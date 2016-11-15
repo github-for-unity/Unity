@@ -22,7 +22,7 @@ using System;
 */
 
 
-namespace GitHub
+namespace GitHub.Unity
 {
 	interface ITask
 	{
@@ -50,21 +50,21 @@ namespace GitHub
 
 
 		const int
-			kNoTasksSleep = 100,
-			kBlockingTaskWaitSleep = 10;
+			NoTasksSleep = 100,
+			BlockingTaskWaitSleep = 10;
 		const string
-			kCacheFileName = "GitHubCache",
-			kQuitActionFieldName = "editorApplicationQuit",
-			kTaskThreadExceptionRestartError = "GitHub task thread restarting after encountering an exception: {0}",
-			kTaskProgressTitle = "GitHub",
-			kTaskBlockingTitle = "Critical GitHub task",
-			kTaskBlockingDescription = "A critical GitHub task ({0}) has yet to complete. What would you like to do?",
-			kTaskBlockingComplete = "Complete",
-			kTaskBlockingInterrupt = "Interrupt";
+			CacheFileName = "GitHubCache",
+			QuitActionFieldName = "editorApplicationQuit",
+			TaskThreadExceptionRestartError = "GitHub task thread restarting after encountering an exception: {0}",
+			TaskProgressTitle = "GitHub",
+			TaskBlockingTitle = "Critical GitHub task",
+			TaskBlockingDescription = "A critical GitHub task ({0}) has yet to complete. What would you like to do?",
+			TaskBlockingComplete = "Complete",
+			TaskBlockingInterrupt = "Interrupt";
 		const BindingFlags kQuitActionBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
 
 
-		static FieldInfo m_QuitActionField;
+		static FieldInfo quitActionField;
 
 
 		static Tasks Instance {get;set;}
@@ -73,13 +73,13 @@ namespace GitHub
 
 		static void SecureQuitActionField ()
 		{
-			if (m_QuitActionField == null)
+			if (quitActionField == null)
 			{
-				m_QuitActionField = typeof (EditorApplication).GetField (kQuitActionFieldName, kQuitActionBindingFlags);
+				quitActionField = typeof (EditorApplication).GetField (QuitActionFieldName, kQuitActionBindingFlags);
 
-				if (m_QuitActionField == null)
+				if (quitActionField == null)
 				{
-					throw new NullReferenceException ("Unable to reflect EditorApplication." + kQuitActionFieldName);
+					throw new NullReferenceException ("Unable to reflect EditorApplication." + QuitActionFieldName);
 				}
 			}
 		}
@@ -90,12 +90,12 @@ namespace GitHub
 			get
 			{
 				SecureQuitActionField ();
-				return (UnityAction)m_QuitActionField.GetValue (null);
+				return (UnityAction)quitActionField.GetValue (null);
 			}
 			set
 			{
 				SecureQuitActionField ();
-				m_QuitActionField.SetValue (null, value);
+				quitActionField.SetValue (null, value);
 			}
 		}
 
@@ -108,33 +108,33 @@ namespace GitHub
 		}
 
 
-		bool m_Running = false;
-		Thread m_Thread;
-		ITask m_ActiveTask;
-		Queue<ITask> m_Tasks;
+		bool running = false;
+		Thread thread;
+		ITask activeTask;
+		Queue<ITask> tasks;
 
 
 		Tasks ()
 		{
 			editorApplicationQuit = (UnityAction)Delegate.Combine (editorApplicationQuit, new UnityAction (OnQuit));
-			CacheFilePath = Path.Combine (Application.dataPath, Path.Combine ("..", Path.Combine ("Temp", kCacheFileName)));
+			CacheFilePath = Path.Combine (Application.dataPath, Path.Combine ("..", Path.Combine ("Temp", CacheFileName)));
 
-			m_Tasks = new Queue<ITask> ();
+			tasks = new Queue<ITask> ();
 			// TODO: Rebuild task list from file system cache if any
 
-			m_Thread = new Thread (Start);
-			m_Thread.Start ();
+			thread = new Thread (Start);
+			thread.Start ();
 		}
 
 
 		public static void Add (ITask task)
 		{
-			if (!task.Queued && Instance.m_Tasks.Count > 0)
+			if (!task.Queued && Instance.tasks.Count > 0)
 			{
 				return;
 			}
 
-			Instance.m_Tasks.Enqueue (task);
+			Instance.tasks.Enqueue (task);
 		}
 
 
@@ -151,7 +151,7 @@ namespace GitHub
 				catch (ThreadAbortException)
 				// Aborted by domain unload or explicitly via the editor quit handler. Button down the hatches.
 				{
-					m_Running = false;
+					running = false;
 
 					try
 					// At least don't start with outdated cache next time
@@ -163,17 +163,17 @@ namespace GitHub
 					{
 						StringBuilder cache = new StringBuilder ();
 
-						if (m_ActiveTask != null && !m_ActiveTask.Done && m_ActiveTask.Cached)
+						if (activeTask != null && !activeTask.Done && activeTask.Cached)
 						{
-							cache.Append (m_ActiveTask);
+							cache.Append (activeTask);
 							cache.Append ('\n');
 
-							m_ActiveTask = null;
+							activeTask = null;
 						}
 
-						while (m_Tasks.Count > 0)
+						while (tasks.Count > 0)
 						{
-							ITask task = m_Tasks.Dequeue ();
+							ITask task = tasks.Dequeue ();
 
 							if (!task.Cached)
 							{
@@ -192,9 +192,9 @@ namespace GitHub
 				catch (Exception e)
 				// Something broke internally - reboot
 				{
-					Debug.LogErrorFormat (kTaskThreadExceptionRestartError, e);
+					Debug.LogErrorFormat (TaskThreadExceptionRestartError, e);
 
-					m_Running = false;
+					running = false;
 
 					Thread.Sleep (1);
 				}
@@ -205,51 +205,51 @@ namespace GitHub
 		void OnQuit ()
 		{
 			// Stop the queue
-			m_Running = false;
+			running = false;
 
-			if (m_ActiveTask != null && m_ActiveTask.Critical)
+			if (activeTask != null && activeTask.Critical)
 			{
-				WaitForTask (m_ActiveTask, WaitMode.Blocking);
+				WaitForTask (activeTask, WaitMode.Blocking);
 			}
 		}
 
 
 		void Run ()
 		{
-			m_Running = true;
+			running = true;
 
-			while (m_Running)
+			while (running)
 			{
-				if (m_ActiveTask != null && m_ActiveTask.Done)
+				if (activeTask != null && activeTask.Done)
 				{
-					m_ActiveTask = null;
+					activeTask = null;
 				}
 
-				if (m_ActiveTask == null && m_Tasks.Count > 0)
+				if (activeTask == null && tasks.Count > 0)
 				{
-					m_ActiveTask = m_Tasks.Dequeue ();
+					activeTask = tasks.Dequeue ();
 				}
 
-				if (m_ActiveTask != null)
+				if (activeTask != null)
 				{
-					ScheduleMainThread (() => WaitForTask (m_ActiveTask, m_ActiveTask.Blocking ? WaitMode.Modal : WaitMode.Background));
+					ScheduleMainThread (() => WaitForTask (activeTask, activeTask.Blocking ? WaitMode.Modal : WaitMode.Background));
 
-					m_ActiveTask.Run ();
+					activeTask.Run ();
 				}
 				else
 				{
-					Thread.Sleep (kNoTasksSleep);
+					Thread.Sleep (NoTasksSleep);
 				}
 			}
 
-			m_Thread.Abort ();
+			thread.Abort ();
 		}
 
 
 		void WaitForTask (ITask task, WaitMode mode = WaitMode.Background)
 		// Update progress bars to match progress of given task
 		{
-			if (m_ActiveTask != task)
+			if (activeTask != task)
 			{
 				return;
 			}
@@ -259,7 +259,7 @@ namespace GitHub
 			{
 				task.OnEnd = OnWaitingBackgroundTaskEnd;
 
-				DisplayBackgroundProgressBar (kTaskProgressTitle, task.Label, task.Progress);
+				DisplayBackgroundProgressBar (TaskProgressTitle, task.Label, task.Progress);
 
 				if (!task.Done)
 				{
@@ -271,7 +271,7 @@ namespace GitHub
 			{
 				task.OnEnd = OnWaitingModalTaskEnd;
 
-				if (!EditorUtility.DisplayCancelableProgressBar (kTaskProgressTitle, task.Label, task.Progress) && !task.Done)
+				if (!EditorUtility.DisplayCancelableProgressBar (TaskProgressTitle, task.Label, task.Progress) && !task.Done)
 				{
 					ScheduleMainThread (() => WaitForTask (task, mode));
 				}
@@ -284,16 +284,16 @@ namespace GitHub
 			// Offer to interrupt task via dialog box, else block main thread until completion
 			{
 				if (EditorUtility.DisplayDialog (
-					kTaskBlockingTitle,
-					string.Format (kTaskBlockingDescription, task.Label),
-					kTaskBlockingComplete,
-					kTaskBlockingInterrupt
+					TaskBlockingTitle,
+					string.Format (TaskBlockingDescription, task.Label),
+					TaskBlockingComplete,
+					TaskBlockingInterrupt
 				))
 				{
 					do
 					{
-						EditorUtility.DisplayProgressBar (kTaskProgressTitle, task.Label, task.Progress);
-						Thread.Sleep (kBlockingTaskWaitSleep);
+						EditorUtility.DisplayProgressBar (TaskProgressTitle, task.Label, task.Progress);
+						Thread.Sleep (BlockingTaskWaitSleep);
 					}
 					while (!task.Done);
 

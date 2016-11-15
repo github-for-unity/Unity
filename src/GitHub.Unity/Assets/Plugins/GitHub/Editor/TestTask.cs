@@ -4,7 +4,7 @@ using System.Threading;
 using System;
 
 
-namespace GitHub
+namespace GitHub.Unity
 {
 	class TestTask : ITask
 	{
