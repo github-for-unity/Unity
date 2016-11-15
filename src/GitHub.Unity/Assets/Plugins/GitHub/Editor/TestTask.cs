@@ -8,27 +8,27 @@ namespace GitHub.Unity
 {
 	class TestTask : ITask
 	{
-		[MenuItem ("Assets/GitHub/Test Blocking Critical")]
-		static void TestA ()
+		[MenuItem("Assets/GitHub/Test Blocking Critical")]
+		static void TestA()
 		{
-			Test (new TestTask (true));
+			Test(new TestTask(true));
 		}
 
 
-		[MenuItem ("Assets/GitHub/Test Non-blocking Critical")]
-		static void TestB ()
+		[MenuItem("Assets/GitHub/Test Non-blocking Critical")]
+		static void TestB()
 		{
-			Test (new TestTask (false));
+			Test(new TestTask(false));
 		}
 
 
-		static void Test (TestTask task)
+		static void Test(TestTask task)
 		{
-			EditorApplication.delayCall += () => Tasks.Add (task);
+			EditorApplication.delayCall += () => Tasks.Add(task);
 		}
 
 
-		TestTask (bool shouldBlock)
+		TestTask(bool shouldBlock)
 		{
 			Blocking = shouldBlock;
 			Done = false;
@@ -36,19 +36,19 @@ namespace GitHub.Unity
 		}
 
 
-		public bool Blocking {get; protected set;}
-		public float Progress {get; protected set;}
-		public bool Done {get; protected set;}
-		public bool Queued {get {return true;}}
-		public bool Critical {get {return true;}}
-		public bool Cached {get {return true;}}
-		public Action<ITask> OnEnd {get;set;}
+		public bool Blocking { get; protected set; }
+		public float Progress { get; protected set; }
+		public bool Done { get; protected set; }
+		public bool Queued { get { return true; } }
+		public bool Critical { get { return true; } }
+		public bool Cached { get { return true; } }
+		public Action<ITask> OnEnd { get; set; }
 		public string Label { get { return "Test task"; } }
 
 
-		public void Run ()
+		public void Run()
 		{
-			Debug.LogFormat ("{0} start", Label);
+			Debug.LogFormat("{0} start", Label);
 
 			Done = false;
 			Progress = 0.0f;
@@ -57,7 +57,7 @@ namespace GitHub.Unity
 				kSteps = 10,
 				kStepSleep = 1000;
 
-			for (int step = 0; !Done && step < kSteps; ++step)
+			for(int step = 0; !Done && step < kSteps; ++step)
 			{
 				Progress = step / (float)kSteps;
 				Thread.Sleep (kStepSleep);
@@ -66,18 +66,18 @@ namespace GitHub.Unity
 			Progress = 1.0f;
 			Done = true;
 
-			Debug.LogFormat ("{0} end", Label);
+			Debug.LogFormat("{0} end", Label);
 
-			if (OnEnd != null)
+			if(OnEnd != null)
 			{
-				OnEnd (this);
+				OnEnd(this);
 			}
 		}
 
 
-		public void Abort ()
+		public void Abort()
 		{
-			Debug.LogFormat ("Aborting {0}", Label);
+			Debug.LogFormat("Aborting {0}", Label);
 
 			Done = true;
 		}

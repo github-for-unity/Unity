@@ -26,16 +26,16 @@ namespace GitHub.Unity
 {
 	interface ITask
 	{
-		bool Blocking {get;}
-		float Progress {get;}
-		bool Done {get;}
-		bool Queued {get;}
-		bool Critical {get;}
-		bool Cached {get;}
-		Action<ITask> OnEnd {set;}
-		string Label {get;}
-		void Run ();
-		void Abort ();
+		bool Blocking { get; }
+		float Progress { get; }
+		bool Done { get; }
+		bool Queued { get; }
+		bool Critical { get; }
+		bool Cached { get; }
+		Action<ITask> OnEnd { set; }
+		string Label { get; }
+		void Run();
+		void Abort();
 	}
 
 
@@ -67,19 +67,19 @@ namespace GitHub.Unity
 		static FieldInfo quitActionField;
 
 
-		static Tasks Instance {get;set;}
-		static string CacheFilePath {get; set;}
+		static Tasks Instance { get; set; }
+		static string CacheFilePath { get; set; }
 
 
-		static void SecureQuitActionField ()
+		static void SecureQuitActionField()
 		{
-			if (quitActionField == null)
+			if(quitActionField == null)
 			{
-				quitActionField = typeof (EditorApplication).GetField (QuitActionFieldName, kQuitActionBindingFlags);
+				quitActionField = typeof(EditorApplication).GetField(QuitActionFieldName, kQuitActionBindingFlags);
 
-				if (quitActionField == null)
+				if(quitActionField == null)
 				{
-					throw new NullReferenceException ("Unable to reflect EditorApplication." + QuitActionFieldName);
+					throw new NullReferenceException("Unable to reflect EditorApplication." + QuitActionFieldName);
 				}
 			}
 		}
@@ -89,22 +89,22 @@ namespace GitHub.Unity
 		{
 			get
 			{
-				SecureQuitActionField ();
-				return (UnityAction)quitActionField.GetValue (null);
+				SecureQuitActionField();
+				return (UnityAction)quitActionField.GetValue(null);
 			}
 			set
 			{
-				SecureQuitActionField ();
-				quitActionField.SetValue (null, value);
+				SecureQuitActionField();
+				quitActionField.SetValue(null, value);
 			}
 		}
 
 
 		// "Everything is broken - let's rebuild from the ashes (read: cache)"
 		[InitializeOnLoadMethod]
-		static void OnLoad ()
+		static void OnLoad()
 		{
-			Instance = new Tasks ();
+			Instance = new Tasks();
 		}
 
 
@@ -114,41 +114,41 @@ namespace GitHub.Unity
 		Queue<ITask> tasks;
 
 
-		Tasks ()
+		Tasks()
 		{
-			editorApplicationQuit = (UnityAction)Delegate.Combine (editorApplicationQuit, new UnityAction (OnQuit));
-			CacheFilePath = Path.Combine (Application.dataPath, Path.Combine ("..", Path.Combine ("Temp", CacheFileName)));
+			editorApplicationQuit = (UnityAction)Delegate.Combine(editorApplicationQuit, new UnityAction(OnQuit));
+			CacheFilePath = Path.Combine(Application.dataPath, Path.Combine("..", Path.Combine("Temp", CacheFileName)));
 
-			tasks = new Queue<ITask> ();
+			tasks = new Queue<ITask>();
 			// TODO: Rebuild task list from file system cache if any
 
-			thread = new Thread (Start);
-			thread.Start ();
+			thread = new Thread(Start);
+			thread.Start();
 		}
 
 
-		public static void Add (ITask task)
+		public static void Add(ITask task)
 		{
-			if (!task.Queued && Instance.tasks.Count > 0)
+			if(!task.Queued && Instance.tasks.Count > 0)
 			{
 				return;
 			}
 
-			Instance.tasks.Enqueue (task);
+			Instance.tasks.Enqueue(task);
 		}
 
 
-		void Start ()
+		void Start()
 		{
-			while (true)
+			while(true)
 			{
 				try
 				{
-					Run ();
+					Run();
 
 					break;
 				}
-				catch (ThreadAbortException)
+				catch(ThreadAbortException)
 				// Aborted by domain unload or explicitly via the editor quit handler. Button down the hatches.
 				{
 					running = false;
@@ -156,178 +156,178 @@ namespace GitHub.Unity
 					try
 					// At least don't start with outdated cache next time
 					{
-						File.Delete (CacheFilePath);
+						File.Delete(CacheFilePath);
 					}
 					finally
 					// Build and write cache
 					{
-						StringBuilder cache = new StringBuilder ();
+						StringBuilder cache = new StringBuilder();
 
-						if (activeTask != null && !activeTask.Done && activeTask.Cached)
+						if(activeTask != null && !activeTask.Done && activeTask.Cached)
 						{
-							cache.Append (activeTask);
-							cache.Append ('\n');
+							cache.Append(activeTask);
+							cache.Append('\n');
 
 							activeTask = null;
 						}
 
-						while (tasks.Count > 0)
+						while(tasks.Count > 0)
 						{
-							ITask task = tasks.Dequeue ();
+							ITask task = tasks.Dequeue();
 
-							if (!task.Cached)
+							if(!task.Cached)
 							{
 								continue;
 							}
 
-							cache.Append (task);
-							cache.Append ('\n');
+							cache.Append(task);
+							cache.Append('\n');
 						}
 
-						File.WriteAllText (CacheFilePath, cache.ToString ());
+						File.WriteAllText(CacheFilePath, cache.ToString());
 					}
 
 					break;
 				}
-				catch (Exception e)
+				catch(Exception e)
 				// Something broke internally - reboot
 				{
-					Debug.LogErrorFormat (TaskThreadExceptionRestartError, e);
+					Debug.LogErrorFormat(TaskThreadExceptionRestartError, e);
 
 					running = false;
 
-					Thread.Sleep (1);
+					Thread.Sleep(1);
 				}
 			}
 		}
 
 
-		void OnQuit ()
+		void OnQuit()
 		{
 			// Stop the queue
 			running = false;
 
-			if (activeTask != null && activeTask.Critical)
+			if(activeTask != null && activeTask.Critical)
 			{
-				WaitForTask (activeTask, WaitMode.Blocking);
+				WaitForTask(activeTask, WaitMode.Blocking);
 			}
 		}
 
 
-		void Run ()
+		void Run()
 		{
 			running = true;
 
-			while (running)
+			while(running)
 			{
-				if (activeTask != null && activeTask.Done)
+				if(activeTask != null && activeTask.Done)
 				{
 					activeTask = null;
 				}
 
-				if (activeTask == null && tasks.Count > 0)
+				if(activeTask == null && tasks.Count > 0)
 				{
-					activeTask = tasks.Dequeue ();
+					activeTask = tasks.Dequeue();
 				}
 
-				if (activeTask != null)
+				if(activeTask != null)
 				{
-					ScheduleMainThread (() => WaitForTask (activeTask, activeTask.Blocking ? WaitMode.Modal : WaitMode.Background));
+					ScheduleMainThread(() => WaitForTask(activeTask, activeTask.Blocking ? WaitMode.Modal : WaitMode.Background));
 
-					activeTask.Run ();
+					activeTask.Run();
 				}
 				else
 				{
-					Thread.Sleep (NoTasksSleep);
+					Thread.Sleep(NoTasksSleep);
 				}
 			}
 
-			thread.Abort ();
+			thread.Abort();
 		}
 
 
-		void WaitForTask (ITask task, WaitMode mode = WaitMode.Background)
+		void WaitForTask(ITask task, WaitMode mode = WaitMode.Background)
 		// Update progress bars to match progress of given task
 		{
-			if (activeTask != task)
+			if(activeTask != task)
 			{
 				return;
 			}
 
-			if (mode == WaitMode.Background)
+			if(mode == WaitMode.Background)
 			// Unintrusive background process
 			{
 				task.OnEnd = OnWaitingBackgroundTaskEnd;
 
-				DisplayBackgroundProgressBar (TaskProgressTitle, task.Label, task.Progress);
+				DisplayBackgroundProgressBar(TaskProgressTitle, task.Label, task.Progress);
 
-				if (!task.Done)
+				if(!task.Done)
 				{
-					ScheduleMainThread (() => WaitForTask (task, mode));
+					ScheduleMainThread(() => WaitForTask(task, mode));
 				}
 			}
-			else if (mode == WaitMode.Modal)
+			else if(mode == WaitMode.Modal)
 			// Obstruct editor interface, while offering cancel button
 			{
 				task.OnEnd = OnWaitingModalTaskEnd;
 
-				if (!EditorUtility.DisplayCancelableProgressBar (TaskProgressTitle, task.Label, task.Progress) && !task.Done)
+				if(!EditorUtility.DisplayCancelableProgressBar(TaskProgressTitle, task.Label, task.Progress) && !task.Done)
 				{
-					ScheduleMainThread (() => WaitForTask (task, mode));
+					ScheduleMainThread(() => WaitForTask(task, mode));
 				}
-				else if (!task.Done)
+				else if(!task.Done)
 				{
-					task.Abort ();
+					task.Abort();
 				}
 			}
 			else
 			// Offer to interrupt task via dialog box, else block main thread until completion
 			{
-				if (EditorUtility.DisplayDialog (
+				if(EditorUtility.DisplayDialog(
 					TaskBlockingTitle,
-					string.Format (TaskBlockingDescription, task.Label),
+					string.Format(TaskBlockingDescription, task.Label),
 					TaskBlockingComplete,
 					TaskBlockingInterrupt
 				))
 				{
 					do
 					{
-						EditorUtility.DisplayProgressBar (TaskProgressTitle, task.Label, task.Progress);
-						Thread.Sleep (BlockingTaskWaitSleep);
+						EditorUtility.DisplayProgressBar(TaskProgressTitle, task.Label, task.Progress);
+						Thread.Sleep(BlockingTaskWaitSleep);
 					}
-					while (!task.Done);
+					while(!task.Done);
 
-					EditorUtility.ClearProgressBar ();
+					EditorUtility.ClearProgressBar();
 				}
 				else
 				{
-					task.Abort ();
+					task.Abort();
 				}
 			}
 		}
 
 
-		void DisplayBackgroundProgressBar (string title, string description, float progress)
+		void DisplayBackgroundProgressBar(string title, string description, float progress)
 		{
 			// TODO: Use the same progress bar as the various bake systems
-			Debug.LogFormat ("Background progress: {0}", progress);
+			Debug.LogFormat("Background progress: {0}", progress);
 		}
 
 
-		void OnWaitingBackgroundTaskEnd (ITask task)
+		void OnWaitingBackgroundTaskEnd(ITask task)
 		{
 			// TODO: Clear the progress bar used above here
-			ScheduleMainThread (() => Debug.Log ("TODO: Clear background progress"));
+			ScheduleMainThread(() => Debug.Log("TODO: Clear background progress"));
 		}
 
 
-		void OnWaitingModalTaskEnd (ITask task)
+		void OnWaitingModalTaskEnd(ITask task)
 		{
-			ScheduleMainThread (() => EditorUtility.ClearProgressBar ());
+			ScheduleMainThread(() => EditorUtility.ClearProgressBar());
 		}
 
 
-		void ScheduleMainThread (EditorApplication.CallbackFunction action)
+		void ScheduleMainThread(EditorApplication.CallbackFunction action)
 		{
 			EditorApplication.delayCall += action;
 		}
