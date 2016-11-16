@@ -49,6 +49,9 @@ namespace GitHub.Unity
 		};
 
 
+		delegate void ProgressBarDisplayMethod(string text, float progress);
+
+
 		const int
 			NoTasksSleep = 100,
 			BlockingTaskWaitSleep = 10;
@@ -65,6 +68,8 @@ namespace GitHub.Unity
 
 
 		static FieldInfo quitActionField;
+		static ProgressBarDisplayMethod displayBackgroundProgressBar;
+		static Action clearBackgroundProgressBar;
 
 
 		static Tasks Instance { get; set; }
@@ -259,7 +264,7 @@ namespace GitHub.Unity
 			{
 				task.OnEnd = OnWaitingBackgroundTaskEnd;
 
-				DisplayBackgroundProgressBar(TaskProgressTitle, task.Label, task.Progress);
+				DisplayBackgroundProgressBar(task.Label, task.Progress);
 
 				if(!task.Done)
 				{
@@ -307,17 +312,36 @@ namespace GitHub.Unity
 		}
 
 
-		void DisplayBackgroundProgressBar(string title, string description, float progress)
+		static void DisplayBackgroundProgressBar(string description, float progress)
 		{
-			// TODO: Use the same progress bar as the various bake systems
-			Debug.LogFormat("Background progress: {0}", progress);
+			if(displayBackgroundProgressBar == null)
+			{
+				Type type = typeof(EditorWindow).Assembly.GetType("UnityEditor.AsyncProgressBar");
+				displayBackgroundProgressBar = (ProgressBarDisplayMethod)Delegate.CreateDelegate(
+					typeof(ProgressBarDisplayMethod),
+					type.GetMethod("Display", new Type[]{ typeof(string), typeof(float) })
+				);
+			}
+
+			displayBackgroundProgressBar(description, progress);
+		}
+
+
+		static void ClearBackgroundProgressBar()
+		{
+			if(clearBackgroundProgressBar == null)
+			{
+				Type type = typeof(EditorWindow).Assembly.GetType("UnityEditor.AsyncProgressBar");
+				clearBackgroundProgressBar = (Action)Delegate.CreateDelegate(typeof(Action), type.GetMethod("Clear", new Type[]{}));
+			}
+
+			clearBackgroundProgressBar();
 		}
 
 
 		void OnWaitingBackgroundTaskEnd(ITask task)
 		{
-			// TODO: Clear the progress bar used above here
-			ScheduleMainThread(() => Debug.Log("TODO: Clear background progress"));
+			ScheduleMainThread(() => ClearBackgroundProgressBar());
 		}
 
 
