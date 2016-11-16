@@ -81,5 +81,11 @@ namespace GitHub.Unity
 
 			Done = true;
 		}
+
+
+		public void Disconnect()
+		{
+			Abort();
+		}
 	}
 }

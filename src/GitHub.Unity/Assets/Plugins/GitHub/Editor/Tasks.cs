@@ -36,6 +36,7 @@ namespace GitHub.Unity
 		string Label { get; }
 		void Run();
 		void Abort();
+		void Disconnect();
 	}
 
 
@@ -123,9 +124,22 @@ namespace GitHub.Unity
 		{
 			editorApplicationQuit = (UnityAction)Delegate.Combine(editorApplicationQuit, new UnityAction(OnQuit));
 			CacheFilePath = Path.Combine(Application.dataPath, Path.Combine("..", Path.Combine("Temp", CacheFileName)));
+			EditorApplication.playmodeStateChanged += () =>
+			{
+				if(EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
+				{
+					OnPlaymodeEnter();
+				}
+			};
 
 			tasks = new Queue<ITask>();
-			// TODO: Rebuild task list from file system cache if any
+			if(File.Exists(CacheFilePath))
+			{
+				// TODO: Rebuild task list from file system cache
+
+				File.Delete(CacheFilePath);
+				OnSessionRestarted();
+			}
 
 			thread = new Thread(Start);
 			thread.Start();
@@ -168,13 +182,18 @@ namespace GitHub.Unity
 					{
 						StringBuilder cache = new StringBuilder();
 
-						if(activeTask != null && !activeTask.Done && activeTask.Cached)
+						if(activeTask != null && !activeTask.Done)
 						{
-							cache.Append(activeTask);
-							cache.Append('\n');
+							if(activeTask.Cached)
+							{
+								cache.Append(activeTask);
+								cache.Append('\n');
+							}
 
-							activeTask = null;
+							activeTask.Disconnect();
 						}
+
+						activeTask = null;
 
 						while(tasks.Count > 0)
 						{
@@ -204,6 +223,26 @@ namespace GitHub.Unity
 					Thread.Sleep(1);
 				}
 			}
+		}
+
+
+		void OnPlaymodeEnter()
+		// About to enter playmode
+		{
+			if(activeTask != null)
+			{
+				ClearBackgroundProgressBar();
+				EditorUtility.ClearProgressBar();
+			}
+		}
+
+
+		void OnSessionRestarted()
+		// A recompile or playmode enter/exit cause the script environment to reload while we had tasks at hand
+		{
+			ClearBackgroundProgressBar();
+			EditorUtility.ClearProgressBar();
+			// TODO: Resume any running action
 		}
 
 
