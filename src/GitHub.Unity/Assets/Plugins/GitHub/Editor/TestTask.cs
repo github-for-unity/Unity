@@ -3,6 +3,7 @@ using UnityEditor;
 using System.Threading;
 using System;
 using System.IO;
+using System.Collections.Generic;
 
 
 namespace GitHub.Unity
@@ -29,6 +30,16 @@ namespace GitHub.Unity
 		}
 
 
+		public static TestTask Parse(IDictionary<string, object> data)
+		{
+			return new TestTask(false)
+			{
+				reconnecting = true,
+				Done = false
+			};
+		}
+
+
 		TestTask(bool shouldBlock)
 		{
 			Blocking = shouldBlock;
@@ -48,9 +59,12 @@ namespace GitHub.Unity
 		public string Label { get { return "Test task"; } }
 
 
+		bool reconnecting = false;
+
+
 		public void Run()
 		{
-			Debug.LogFormat("{0} start", Label);
+			Debug.LogFormat("{0} {1}", Label, reconnecting ? "reconnect" : "start");
 
 			Done = false;
 			Progress = 0.0f;
@@ -61,7 +75,7 @@ namespace GitHub.Unity
 			}
 
 			const int
-				kSteps = 10,
+				kSteps = 20,
 				kStepSleep = 1000;
 
 			for(int step = 0; !Done && step < kSteps; ++step)
@@ -96,7 +110,20 @@ namespace GitHub.Unity
 		}
 
 
-		public void WriteCache(TextWriter cache)
+		public void Reconnect()
 		{}
+
+
+		public void WriteCache(TextWriter cache)
+		{
+			Debug.LogFormat("Writing cache for {0}", Label);
+
+			cache.Write(
+@"{{
+	""{0}"": ""{1}""
+}}",
+				Tasks.TypeKey,		CachedTask.TestTask
+			);
+		}
 	}
 }

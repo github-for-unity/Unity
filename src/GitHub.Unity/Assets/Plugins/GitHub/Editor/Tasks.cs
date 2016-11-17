@@ -38,8 +38,15 @@ namespace GitHub.Unity
 		void Run();
 		void Abort();
 		void Disconnect();
+		void Reconnect();
 		void WriteCache(TextWriter cache);
-	}
+	};
+
+
+	enum CachedTask
+	{
+		TestTask
+	};
 
 
 	class Tasks
@@ -55,6 +62,9 @@ namespace GitHub.Unity
 		delegate void ProgressBarDisplayMethod(string text, float progress);
 
 
+		internal const string TypeKey = "type";
+
+
 		const int
 			NoTasksSleep = 100,
 			BlockingTaskWaitSleep = 10;
@@ -63,6 +73,8 @@ namespace GitHub.Unity
 			QuitActionFieldName = "editorApplicationQuit",
 			TaskThreadExceptionRestartError = "GitHub task thread restarting after encountering an exception: {0}",
 			TaskCacheWriteExceptionError = "GitHub: Exception when writing task cache: {0}",
+			TaskCacheParseError = "GitHub: Failed to parse task cache",
+			TaskParseUnhandledTypeError = "GitHub: Trying to parse unhandled cached task: {0}",
 			TaskProgressTitle = "GitHub",
 			TaskBlockingTitle = "Critical GitHub task",
 			TaskBlockingDescription = "A critical GitHub task ({0}) has yet to complete. What would you like to do?",
@@ -139,9 +151,9 @@ namespace GitHub.Unity
 			tasks = new Queue<ITask>();
 			if(File.Exists(CacheFilePath))
 			{
-				// TODO: Rebuild task list from file system cache
-
+				ReadCache();
 				File.Delete(CacheFilePath);
+
 				OnSessionRestarted();
 			}
 
@@ -225,7 +237,10 @@ namespace GitHub.Unity
 		{
 			ClearBackgroundProgressBar();
 			EditorUtility.ClearProgressBar();
-			// TODO: Resume any running action
+			if(activeTask != null)
+			{
+				activeTask.Reconnect();
+			}
 		}
 
 
@@ -325,6 +340,78 @@ namespace GitHub.Unity
 			catch(Exception e)
 			{
 				Debug.LogErrorFormat(TaskCacheWriteExceptionError, e);
+			}
+		}
+
+
+		bool ReadCache()
+		{
+			string text = File.ReadAllText(CacheFilePath);
+
+			object parseResult;
+			IList<object> cache;
+
+			// Parse root list with at least one item (active task) or fail
+			if(!SimpleJson.TryDeserializeObject(text, out parseResult) || (cache = parseResult as IList<object>) == null || cache.Count < 1)
+			{
+				Debug.LogError(TaskCacheParseError);
+				return false;
+			}
+
+			// Parse active task
+			IDictionary<string, object> taskData = cache[0] as IDictionary<string, object>;
+			ITask cachedActiveTask = (taskData != null) ? ParseTask(taskData) : null;
+
+			// Parse tasks list or fail
+			Queue<ITask> cachedTasks = new Queue<ITask>(cache.Count - 1);
+			for(int index = 1; index < cache.Count; ++index)
+			{
+				taskData = cache[index] as IDictionary<string, object>;
+
+				if(taskData == null)
+				{
+					Debug.LogError(TaskCacheParseError);
+					return false;
+				}
+
+				cachedTasks.Enqueue(ParseTask(taskData));
+			}
+
+			// Apply everything only after fully successful parse
+			activeTask = cachedActiveTask;
+			tasks = cachedTasks;
+
+			return true;
+		}
+
+
+		ITask ParseTask(IDictionary<string, object> data)
+		{
+			CachedTask type;
+
+			try
+			{
+				type = (CachedTask)Enum.Parse(typeof(CachedTask), (string)data[TypeKey]);
+			}
+			catch(Exception)
+			{
+				return null;
+			}
+
+			try
+			{
+				switch(type)
+				{
+					case CachedTask.TestTask:
+					return TestTask.Parse(data);
+					default:
+						Debug.LogErrorFormat(TaskParseUnhandledTypeError, type);
+					return null;
+				}
+			}
+			catch(Exception)
+			{
+				return null;
 			}
 		}
 
