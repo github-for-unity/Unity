@@ -265,11 +265,13 @@ namespace GitHub.Unity
 
 			while(running)
 			{
+				// Clear any completed task
 				if(activeTask != null && activeTask.Done)
 				{
 					activeTask = null;
 				}
 
+				// Grab a new task
 				if(activeTask == null)
 				{
 					lock(tasksLock)
@@ -283,6 +285,7 @@ namespace GitHub.Unity
 				}
 
 				if(activeTask != null)
+				// Run and monitor active task
 				{
 					ScheduleMainThread(() =>
 					{
@@ -296,6 +299,7 @@ namespace GitHub.Unity
 					WriteCache();
 				}
 				else
+				// Wait for something to do
 				{
 					Thread.Sleep(NoTasksSleep);
 				}
