@@ -45,7 +45,8 @@ namespace GitHub.Unity
 
 	enum CachedTask
 	{
-		TestTask
+		TestTask,
+		ProcessTask
 	};
 
 
@@ -62,7 +63,9 @@ namespace GitHub.Unity
 		delegate void ProgressBarDisplayMethod(string text, float progress);
 
 
-		internal const string TypeKey = "type";
+		internal const string
+			TypeKey = "type",
+			ProcessKey = "process";
 
 
 		const int
@@ -404,6 +407,8 @@ namespace GitHub.Unity
 				{
 					case CachedTask.TestTask:
 					return TestTask.Parse(data);
+					case CachedTask.ProcessTask:
+					return ProcessTask.Parse(data);
 					default:
 						Debug.LogErrorFormat(TaskParseUnhandledTypeError, type);
 					return null;
