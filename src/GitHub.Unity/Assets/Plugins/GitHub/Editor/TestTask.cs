@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Threading;
 using System;
+using System.IO;
 
 
 namespace GitHub.Unity
@@ -42,6 +43,7 @@ namespace GitHub.Unity
 		public bool Queued { get { return true; } }
 		public bool Critical { get { return true; } }
 		public bool Cached { get { return true; } }
+		public Action<ITask> OnBegin { get; set; }
 		public Action<ITask> OnEnd { get; set; }
 		public string Label { get { return "Test task"; } }
 
@@ -52,6 +54,11 @@ namespace GitHub.Unity
 
 			Done = false;
 			Progress = 0.0f;
+
+			if(OnBegin != null)
+			{
+				OnBegin(this);
+			}
 
 			const int
 				kSteps = 10,
@@ -87,5 +94,9 @@ namespace GitHub.Unity
 		{
 			Abort();
 		}
+
+
+		public void WriteCache(TextWriter cache)
+		{}
 	}
 }

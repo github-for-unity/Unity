@@ -32,11 +32,13 @@ namespace GitHub.Unity
 		bool Queued { get; }
 		bool Critical { get; }
 		bool Cached { get; }
+		Action<ITask> OnBegin { set; }
 		Action<ITask> OnEnd { set; }
 		string Label { get; }
 		void Run();
 		void Abort();
 		void Disconnect();
+		void WriteCache(TextWriter cache);
 	}
 
 
@@ -60,6 +62,7 @@ namespace GitHub.Unity
 			CacheFileName = "GitHubCache",
 			QuitActionFieldName = "editorApplicationQuit",
 			TaskThreadExceptionRestartError = "GitHub task thread restarting after encountering an exception: {0}",
+			TaskCacheWriteExceptionError = "GitHub: Exception when writing task cache: {0}",
 			TaskProgressTitle = "GitHub",
 			TaskBlockingTitle = "Critical GitHub task",
 			TaskBlockingDescription = "A critical GitHub task ({0}) has yet to complete. What would you like to do?",
@@ -118,6 +121,7 @@ namespace GitHub.Unity
 		Thread thread;
 		ITask activeTask;
 		Queue<ITask> tasks;
+		object tasksLock = new object();
 
 
 		Tasks()
@@ -148,12 +152,17 @@ namespace GitHub.Unity
 
 		public static void Add(ITask task)
 		{
-			if(!task.Queued && Instance.tasks.Count > 0)
+			lock(Instance.tasksLock)
 			{
-				return;
+				if(!task.Queued && Instance.tasks.Count > 0)
+				{
+					return;
+				}
+
+				Instance.tasks.Enqueue(task);
 			}
 
-			Instance.tasks.Enqueue(task);
+			Instance.WriteCache();
 		}
 
 
@@ -172,43 +181,17 @@ namespace GitHub.Unity
 				{
 					running = false;
 
-					try
-					// At least don't start with outdated cache next time
+					// Disconnect the active task
+					if(activeTask != null && !activeTask.Done)
 					{
-						File.Delete(CacheFilePath);
-					}
-					finally
-					// Build and write cache
-					{
-						StringBuilder cache = new StringBuilder();
-
-						if(activeTask != null && !activeTask.Done)
+						try
 						{
-							if(activeTask.Cached)
-							{
-								cache.Append(activeTask);
-								cache.Append('\n');
-							}
-
 							activeTask.Disconnect();
 						}
-
-						activeTask = null;
-
-						while(tasks.Count > 0)
+						finally
 						{
-							ITask task = tasks.Dequeue();
-
-							if(!task.Cached)
-							{
-								continue;
-							}
-
-							cache.Append(task);
-							cache.Append('\n');
+							activeTask = null;
 						}
-
-						File.WriteAllText(CacheFilePath, cache.ToString());
 					}
 
 					break;
@@ -269,9 +252,16 @@ namespace GitHub.Unity
 					activeTask = null;
 				}
 
-				if(activeTask == null && tasks.Count > 0)
+				if(activeTask == null)
 				{
-					activeTask = tasks.Dequeue();
+					lock(tasksLock)
+					{
+						if(tasks.Count > 0)
+						{
+							activeTask = tasks.Dequeue();
+							activeTask.OnBegin = task => ScheduleMainThread(WriteCache);
+						}
+					}
 				}
 
 				if(activeTask != null)
@@ -285,6 +275,7 @@ namespace GitHub.Unity
 					});
 
 					activeTask.Run();
+					WriteCache();
 				}
 				else
 				{
@@ -293,6 +284,48 @@ namespace GitHub.Unity
 			}
 
 			thread.Abort();
+		}
+
+
+		void WriteCache()
+		{
+			try
+			{
+				StreamWriter cache = File.CreateText(CacheFilePath);
+				cache.Write("[");
+
+				// Cache the active task
+				if(activeTask != null && !activeTask.Done && activeTask.Cached)
+				{
+					activeTask.WriteCache(cache);
+				}
+				else
+				{
+					cache.Write("false");
+				}
+
+				// Cache the queue
+				lock(tasksLock)
+				{
+					foreach(ITask task in tasks)
+					{
+						if(!task.Cached)
+						{
+							continue;
+						}
+
+						cache.Write(",\n");
+						task.WriteCache(cache);
+					}
+				}
+
+				cache.Write("]");
+				cache.Close();
+			}
+			catch(Exception e)
+			{
+				Debug.LogErrorFormat(TaskCacheWriteExceptionError, e);
+			}
 		}
 
 
