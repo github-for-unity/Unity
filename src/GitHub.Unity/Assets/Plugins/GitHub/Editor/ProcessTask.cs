@@ -98,9 +98,19 @@ namespace GitHub.Unity
 		{
 			Debug.LogFormat("Aborting {0}", Label);
 
-			process.Kill();
+			try
+			{
+				process.Kill();
+			}
+			catch(Exception)
+			{}
 
 			Done = true;
+
+			if(OnEnd != null)
+			{
+				OnEnd(this);
+			}
 		}
 
 
