@@ -46,6 +46,8 @@ namespace GitHub.Unity
 		protected virtual string ProcessName { get { return "sleep"; } }
 		protected virtual string ProcessArguments { get { return "20"; } }
 		protected virtual CachedTask CachedTaskType { get { return CachedTask.ProcessTask; } }
+		protected virtual TextWriter OutputBuffer { get { return null; } }
+		protected virtual TextWriter ErrorBuffer { get { return null; } }
 
 
 		Process process;
@@ -88,6 +90,7 @@ namespace GitHub.Unity
 			}
 
 			if(process == null)
+			// Only start the process if we haven't already reconnected to an existing instance
 			{
 				process = Process.Start(new ProcessStartInfo(ProcessName, ProcessArguments)
 				{
@@ -98,31 +101,53 @@ namespace GitHub.Unity
 				});
 			}
 
-			StringWriter output = new StringWriter(), error = new StringWriter();
+			TextWriter
+				output = OutputBuffer,
+				error = ErrorBuffer;
 
 			// NOTE: WaitForExit is too low level here. Won't be properly interrupted by thread abort.
 			do
 			{
+				// Wait a bit
 				Thread.Sleep(ExitMonitorSleep);
+
+				// Read all available process output //
+
+				bool updated = false;
 
 				while(!process.StandardOutput.EndOfStream)
 				{
-					output.Write((char)process.StandardOutput.Read());
+					char read = (char)process.StandardOutput.Read();
+					if(output != null)
+					{
+						output.Write(read);
+						updated = true;
+					}
 				}
 
 				while(!process.StandardError.EndOfStream)
 				{
-					error.Write((char)process.StandardError.Read());
+					char read = (char)process.StandardError.Read();
+					if(error != null)
+					{
+						error.Write(read);
+						updated = true;
+					}
+				}
+
+				// Notify if anything was read //
+
+				if(updated)
+				{
+					OnProcessOutputUpdate();
 				}
 			}
 			while(!process.HasExited);
 
-			Debug.LogFormat("Output: {0}", output.ToString());
-			Debug.LogFormat("Error: {0}", error.ToString());
-			Debug.LogFormat("Return: {0}", process.ExitCode);
-
 			Progress = 1.0f;
 			Done = true;
+
+			OnProcessOutputUpdate();
 
 			Debug.LogFormat("{0} end", Label);
 
@@ -178,5 +203,9 @@ namespace GitHub.Unity
 				Tasks.ProcessKey,	process == null ? -1 : process.Id
 			);
 		}
+
+
+		protected virtual void OnProcessOutputUpdate()
+		{}
 	}
 }
