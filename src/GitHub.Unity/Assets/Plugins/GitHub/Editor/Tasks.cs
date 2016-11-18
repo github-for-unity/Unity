@@ -550,7 +550,7 @@ namespace GitHub.Unity
 		}
 
 
-		void ScheduleMainThread(EditorApplication.CallbackFunction action)
+		public static void ScheduleMainThread(EditorApplication.CallbackFunction action)
 		{
 			EditorApplication.delayCall += action;
 		}
