@@ -15,6 +15,16 @@ namespace GitHub.Unity
 		const int ExitMonitorSleep = 10;
 
 
+		static string WorkingDirectory;
+
+
+		[InitializeOnLoadMethod]
+		static void Prepare()
+		{
+			WorkingDirectory = Application.dataPath;
+		}
+
+
 		[MenuItem("Assets/GitHub/Process Test")]
 		static void Test()
 		{
@@ -31,6 +41,8 @@ namespace GitHub.Unity
 		public Action<ITask> OnBegin { get; set; }
 		public Action<ITask> OnEnd { get; set; }
 		public string Label { get { return "Process task"; } }
+		protected virtual string ProcessName { get { return "sleep"; } }
+		protected virtual string ProcessArguments { get { return "20"; } }
 
 
 		Process process;
@@ -44,6 +56,7 @@ namespace GitHub.Unity
 			try
 			{
 				resumedProcess = Process.GetProcessById((int)(Int64)data[Tasks.ProcessKey]);
+				resumedProcess.StartInfo.RedirectStandardOutput = resumedProcess.StartInfo.RedirectStandardError = true;
 			}
 			catch(Exception)
 			{
@@ -73,14 +86,37 @@ namespace GitHub.Unity
 
 			if(process == null)
 			{
-				process = Process.Start("sleep", "20");
+				process = Process.Start(new ProcessStartInfo(ProcessName, ProcessArguments)
+				{
+					UseShellExecute = false,
+					RedirectStandardError = true,
+					RedirectStandardOutput = true,
+					WorkingDirectory = WorkingDirectory
+				});
 			}
 
+			StringWriter output = new StringWriter(), error = new StringWriter();
+
 			// NOTE: WaitForExit is too low level here. Won't be properly interrupted by thread abort.
-			while(!process.HasExited)
+			do
 			{
 				Thread.Sleep(ExitMonitorSleep);
+
+				while(!process.StandardOutput.EndOfStream)
+				{
+					output.Write((char)process.StandardOutput.Read());
+				}
+
+				while(!process.StandardError.EndOfStream)
+				{
+					error.Write((char)process.StandardError.Read());
+				}
 			}
+			while(!process.HasExited);
+
+			Debug.LogFormat("Output: {0}", output.ToString());
+			Debug.LogFormat("Error: {0}", error.ToString());
+			Debug.LogFormat("Return: {0}", process.ExitCode);
 
 			Progress = 1.0f;
 			Done = true;
