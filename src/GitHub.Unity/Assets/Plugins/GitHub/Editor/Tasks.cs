@@ -70,7 +70,9 @@ namespace GitHub.Unity
 
 		const int
 			NoTasksSleep = 100,
-			BlockingTaskWaitSleep = 10;
+			BlockingTaskWaitSleep = 10,
+			FailureDelayDefault = 1,
+			FailureDelayLong = 5000;
 		const string
 			CacheFileName = "GitHubCache",
 			QuitActionFieldName = "editorApplicationQuit",
@@ -137,6 +139,7 @@ namespace GitHub.Unity
 		ITask activeTask;
 		Queue<ITask> tasks;
 		object tasksLock = new object();
+		Exception lastException;
 
 
 		Tasks()
@@ -214,11 +217,19 @@ namespace GitHub.Unity
 				catch(Exception e)
 				// Something broke internally - reboot
 				{
-					Debug.LogErrorFormat(TaskThreadExceptionRestartError, e);
-
 					running = false;
+					bool repeat = lastException != null && e.TargetSite.Equals(lastException.TargetSite);
+					lastException = e;
 
-					Thread.Sleep(1);
+					if(!repeat)
+					{
+						Debug.LogErrorFormat(TaskThreadExceptionRestartError, e);
+						Thread.Sleep(FailureDelayDefault);
+					}
+					else
+					{
+						Thread.Sleep(FailureDelayLong);
+					}
 				}
 			}
 		}
