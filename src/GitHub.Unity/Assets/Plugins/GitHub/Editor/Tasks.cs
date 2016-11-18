@@ -199,16 +199,30 @@ namespace GitHub.Unity
 				{
 					running = false;
 
-					// Disconnect the active task
+					// Disconnect or abort the active task
 					if(activeTask != null && !activeTask.Done)
 					{
-						try
+						if(activeTask.Cached)
 						{
-							activeTask.Disconnect();
+							try
+							{
+								activeTask.Disconnect();
+							}
+							finally
+							{
+								activeTask = null;
+							}
 						}
-						finally
+						else
 						{
-							activeTask = null;
+							try
+							{
+								activeTask.Abort();
+							}
+							finally
+							{
+								activeTask = null;
+							}
 						}
 					}
 
