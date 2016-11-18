@@ -32,17 +32,20 @@ namespace GitHub.Unity
 		}
 
 
-		public bool Blocking { get { return true; } }
-		public float Progress { get; protected set; }
-		public bool Done { get; protected set; }
-		public bool Queued { get { return true; } }
-		public bool Critical { get { return true; } }
-		public bool Cached { get { return true; } }
-		public Action<ITask> OnBegin { get; set; }
-		public Action<ITask> OnEnd { get; set; }
-		public string Label { get { return "Process task"; } }
+		public virtual bool Blocking { get { return true; } }
+		public virtual float Progress { get; protected set; }
+		public virtual bool Done { get; protected set; }
+		public virtual bool Queued { get { return true; } }
+		public virtual bool Critical { get { return true; } }
+		public virtual bool Cached { get { return true; } }
+		public virtual Action<ITask> OnBegin { get; set; }
+		public virtual Action<ITask> OnEnd { get; set; }
+		public virtual string Label { get { return "Process task"; } }
+
+
 		protected virtual string ProcessName { get { return "sleep"; } }
 		protected virtual string ProcessArguments { get { return "20"; } }
+		protected virtual CachedTask CachedTaskType { get { return CachedTask.ProcessTask; } }
 
 
 		Process process;
@@ -171,7 +174,7 @@ namespace GitHub.Unity
 	""{0}"": ""{1}"",
 	""{2}"": {3}
 }}",
-				Tasks.TypeKey,		CachedTask.ProcessTask,
+				Tasks.TypeKey,		CachedTaskType,
 				Tasks.ProcessKey,	process == null ? -1 : process.Id
 			);
 		}
