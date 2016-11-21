@@ -10,12 +10,6 @@ namespace GitHub.Unity
 {
 	class GitCommitTask : ProcessTask
 	{
-		const string
-			CommitErrorTitle = "GitHub",
-			CommitErrorMessage = "Git comit failed:\n{0}",
-			CommitErrorOK = "OK";
-
-
 		public static void Schedule(IEnumerable<string> files, string message, string body, Action onSuccess = null, Action onFailure = null)
 		{
 			GitAddTask.Schedule(files, () => Schedule(message, body, onSuccess, onFailure), onFailure);
@@ -63,19 +57,16 @@ namespace GitHub.Unity
 				return;
 			}
 
-			// Pop up any errors and report success or failure
+			// Handle failure / success
 			StringBuilder buffer = error.GetStringBuilder();
 			if (buffer.Length > 0)
 			{
-				Tasks.ScheduleMainThread(() =>
-				{
-					EditorUtility.DisplayDialog(CommitErrorTitle, string.Format(CommitErrorMessage, buffer.ToString()), CommitErrorOK);
+				Tasks.ReportFailure(this, buffer.ToString());
 
-					if (onFailure != null)
-					{
-						onFailure();
-					}
-				});
+				if (onFailure != null)
+				{
+					Tasks.ScheduleMainThread(() => onFailure());
+				}
 			}
 			else if (onSuccess != null)
 			{

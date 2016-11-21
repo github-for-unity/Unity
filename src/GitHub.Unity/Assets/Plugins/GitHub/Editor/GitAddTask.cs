@@ -10,12 +10,6 @@ namespace GitHub.Unity
 {
 	class GitAddTask : ProcessTask
 	{
-		const string
-			AddErrorTitle = "GitHub",
-			AddErrorMessage = "Git add failed:\n{0}",
-			AddErrorOK = "OK";
-
-
 		public static void Schedule(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
 		{
 			Tasks.Add(new GitAddTask(files, onSuccess, onFailure));
@@ -62,19 +56,16 @@ namespace GitHub.Unity
 				return;
 			}
 
-			// Pop up any errors
+			// Handle failure / success
 			StringBuilder buffer = error.GetStringBuilder();
 			if (buffer.Length > 0)
 			{
-				Tasks.ScheduleMainThread(() =>
-				{
-					EditorUtility.DisplayDialog(AddErrorTitle, string.Format(AddErrorMessage, buffer.ToString()), AddErrorOK);
+				Tasks.ReportFailure(this, buffer.ToString());
 
-					if (onFailure != null)
-					{
-						onFailure();
-					}
-				});
+				if (onFailure != null)
+				{
+					Tasks.ScheduleMainThread(() => onFailure());
+				}
 			}
 			else if (onSuccess != null)
 			{
