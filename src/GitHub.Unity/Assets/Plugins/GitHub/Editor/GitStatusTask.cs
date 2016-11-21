@@ -24,6 +24,7 @@ namespace GitHub.Unity
 		}
 	}
 
+
 	enum GitFileStatus
 	{
 		Untracked,
@@ -37,16 +38,14 @@ namespace GitHub.Unity
 
 	struct GitStatusEntry
 	{
-		string path;
-		public string Path { get { return path; } }
-		GitFileStatus status;
-		public GitFileStatus Status { get { return status; } }
+		public readonly string Path;
+		public readonly GitFileStatus Status;
 
 
 		public GitStatusEntry(string path, GitFileStatus status)
 		{
-			this.path = path;
-			this.status = status;
+			Path = path;
+			Status = status;
 		}
 
 
