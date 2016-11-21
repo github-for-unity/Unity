@@ -49,6 +49,12 @@ namespace GitHub.Unity
 		}
 
 
+		public override int GetHashCode()
+		{
+			return Path.GetHashCode();
+		}
+
+
 		public override string ToString()
 		{
 			return string.Format("'{0}': {1}", Path, Status);

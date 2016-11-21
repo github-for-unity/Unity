@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 
@@ -8,9 +9,53 @@ namespace GitHub.Unity
 {
 	public class Window : EditorWindow
 	{
+		enum ViewMode
+		{
+			History,
+			Changes
+		}
+
+
+		[Serializable]
+		class GitCommitTarget
+		{
+			public bool All = false;
+			// TODO: Add line tracking here
+
+
+			public bool Any
+			{
+				get
+				{
+					return All; // TODO: Add line tracking here
+				}
+			}
+
+
+			public void Clear()
+			{
+				All = false;
+				// TODO: Add line tracking here
+			}
+		}
+
+
 		const string
 			Title = "GitHub",
-			LaunchMenu = "Window/GitHub";
+			LaunchMenu = "Window/GitHub",
+			ViewModeHistoryTab = "History",
+			ViewModeChangesTab = "Changes",
+			RefreshButton = "Refresh",
+			UnknownViewModeError = "Unsupported view mode: {0}",
+			SummaryLabel = "Summary",
+			DescriptionLabel = "Description",
+			CommitButton = "Commit to <b>{0}</b>",
+			ChangedFilesLabel = "{0} changed files",
+			OneChangedFileLabel = "1 changed file";
+		const float
+			CommitAreaMinHeight = 16f,
+			CommitAreaDefaultRatio = .4f,
+			CommitAreaMaxHeight = 10 * 15f;
 
 
 		[MenuItem(LaunchMenu)]
@@ -20,7 +65,34 @@ namespace GitHub.Unity
 		}
 
 
-		List<GitStatusEntry> entries = new List<GitStatusEntry>();
+		[SerializeField] ViewMode viewMode = ViewMode.History;
+		[SerializeField] List<GitStatusEntry> entries = new List<GitStatusEntry>();
+		[SerializeField] List<GitCommitTarget> entryCommitTargets = new List<GitCommitTarget>();
+		[SerializeField] Vector2 scrollPosition;
+		[SerializeField] string
+			commitMessage = "",
+			commitBody = "",
+			currentBranch = "placeholder-placeholder"; // TODO: Ask for branch into updates as well
+
+
+		bool lockCommit = true;
+		GUIStyle commitButtonStyle;
+
+
+		GUIStyle CommitButtonStyle
+		{
+			get
+			{
+				if (commitButtonStyle == null)
+				{
+					commitButtonStyle = new GUIStyle(GUI.skin.button);
+					commitButtonStyle.name = "CommitButtonStyle";
+					commitButtonStyle.richText = true;
+				}
+
+				return commitButtonStyle;
+			}
+		}
 
 
 		void OnEnable()
@@ -38,95 +110,153 @@ namespace GitHub.Unity
 
 		void OnStatusUpdate(IList<GitStatusEntry> update)
 		{
-			entries.Clear();
-			entries.AddRange(update);
+			// Remove what got nuked
+			for (int index = 0; index < entries.Count;)
+			{
+				if (!update.Contains(entries[index]))
+				{
+					entries.RemoveAt(index);
+					entryCommitTargets.RemoveAt(index);
+				}
+				else
+				{
+					++index;
+				}
+			}
+
+			// Add new stuff
+			for (int index = 0; index < update.Count; ++index)
+			{
+				GitStatusEntry entry = update[index];
+				if (!entries.Contains(entry))
+				{
+					entries.Add(entry);
+					entryCommitTargets.Add(new GitCommitTarget());
+				}
+			}
+
+			// TODO: Perform sort dependent on setting, making sure to keep indices in sync between the two lists
+
+			lockCommit = false;
+
 			Repaint();
 		}
 
 
-		List<string> selections = new List<string>();
-
-		Vector2 scrollPosition;
-		Dictionary<string, bool> fileSelection = new Dictionary<string, bool>();
-
-		string commitMessage = "";
-		string commitBody = "";
 		void OnGUI()
 		{
+			// Set window title
 			titleContent = new GUIContent(Title);
 
+			// Subtabs & toolbar
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
+				viewMode = GUILayout.Toggle(viewMode == ViewMode.History, ViewModeHistoryTab, EditorStyles.toolbarButton) ? ViewMode.History : viewMode;
+				viewMode = GUILayout.Toggle(viewMode == ViewMode.Changes, ViewModeChangesTab, EditorStyles.toolbarButton) ? ViewMode.Changes : viewMode;
 
-			// TODO: Remove this, it's for selecting the window to check the serialized data
-			if (GUILayout.Button("Select"))
-			{
-				Selection.activeObject = this;
-			}
+				GUILayout.FlexibleSpace();
 
-			GUILayout.FlexibleSpace();
-
-			if (GUILayout.Button("Refresh", EditorStyles.toolbarButton))
-			{
-				GitStatusTask.Schedule();
-			}
-
-
+				if (GUILayout.Button(RefreshButton, EditorStyles.toolbarButton))
+				{
+					GitStatusTask.Schedule();
+				}
 			GUILayout.EndHorizontal();
+
+			// Run the proper view mode
+			switch(viewMode)
+			{
+				case ViewMode.History:
+					OnHistoryGUI();
+				break;
+				case ViewMode.Changes:
+					OnCommitGUI();
+				break;
+				default:
+					GUILayout.Label(string.Format(UnknownViewModeError));
+				break;
+			}
+		}
+
+
+		void OnHistoryGUI()
+		{
+			GUILayout.Label("TODO");
+		}
+
+
+		void OnCommitGUI()
+		{
+			GUILayout.Label(entries.Count == 0 ? OneChangedFileLabel : string.Format(ChangedFilesLabel, entries.Count));
 
 			scrollPosition = GUILayout.BeginScrollView(scrollPosition);
-			GUILayout.BeginVertical();
-			for(int index = 0; index < entries.Count; ++index)
-			{
-				var key = entries[index].Path;
-				GUILayout.BeginHorizontal();
-				//GUILayout.Box(entries[index].ToString());
-				var selected = selections.Contains(key);
-				EditorGUI.BeginChangeCheck();
-				var newSelection = GUILayout.Toggle(selected, "");
-				if (EditorGUI.EndChangeCheck())
-				{
-					if (newSelection)
+				// List commit states, paths, and statuses
+				GUILayout.BeginVertical(GUI.skin.box);
+					for (int index = 0; index < entries.Count; ++index)
 					{
-						if (!selected)
-							selections.Add(key);
+						GitStatusEntry entry = entries[index];
+						GitCommitTarget target = entryCommitTargets[index];
+
+						GUILayout.BeginHorizontal();
+							target.All = GUILayout.Toggle(target.All, "");
+							GUILayout.Label(entry.Path);
+
+							GUILayout.FlexibleSpace();
+
+							GUILayout.Label(entry.Status.ToString());
+						GUILayout.EndHorizontal();
 					}
-					else
-					{
-						if (selected)
-							selections.Remove(key);
-					}
-				}
-				GUILayout.Label(key);
-				GUILayout.FlexibleSpace();
-				GUILayout.Label(entries[index].Status.ToString());
-				GUILayout.EndHorizontal();
-			}
+					GUILayout.FlexibleSpace();
+				GUILayout.EndVertical();
 
-			GUILayout.FlexibleSpace();
+				// Do the commit details area
+				OnCommitDetailsAreaGUI();
+			GUILayout.EndScrollView();
+		}
 
-			GUILayout.BeginHorizontal();
-			commitMessage = EditorGUILayout.TextField("Summary", commitMessage);
-			GUILayout.EndHorizontal();
 
-			GUILayout.BeginHorizontal();
-			EditorGUILayout.PrefixLabel("Description");
-			commitBody = EditorGUILayout.TextArea(commitBody, GUILayout.Height(16*10));
-			GUILayout.EndHorizontal();
+		void OnCommitDetailsAreaGUI()
+		{
+			GUILayout.BeginVertical(GUILayout.Height(Mathf.Clamp(position.height * CommitAreaDefaultRatio, CommitAreaMinHeight, CommitAreaMaxHeight)));
+				GUILayout.Label(SummaryLabel);
+				commitMessage = GUILayout.TextField(commitMessage);
 
-			GUILayout.BeginHorizontal();
-			GUILayout.FlexibleSpace();
-			if (GUILayout.Button("Commit") && !String.IsNullOrEmpty(commitMessage))
-			{
-				GitCommitTask.Schedule(selections, commitMessage, commitBody, () =>
+				GUILayout.Label(DescriptionLabel);
+				commitBody = EditorGUILayout.TextArea(commitBody, GUILayout.ExpandHeight(true));
+
+				// Disable committing when already committing or if we don't have all the data needed
+				EditorGUI.BeginDisabledGroup(lockCommit || string.IsNullOrEmpty(commitMessage) || !entryCommitTargets.Any(t => t.Any));
+					GUILayout.BeginHorizontal();
+						GUILayout.FlexibleSpace();
+						if (GUILayout.Button(string.Format(CommitButton, currentBranch), CommitButtonStyle))
+						{
+							Commit();
+						}
+					GUILayout.EndHorizontal();
+				EditorGUI.EndDisabledGroup();
+			GUILayout.EndVertical();
+		}
+
+
+		void Commit()
+		{
+			// Do not allow new commits before we have received one successful update
+			lockCommit = true;
+
+			// Schedule the commit with the selected files
+			GitCommitTask.Schedule(
+				Enumerable.Range(0, entries.Count).Where(i => entryCommitTargets[i].All).Select(i => entries[i].Path),
+				commitMessage,
+				commitBody,
+				() =>
 				{
 					commitMessage = "";
 					commitBody = "";
-				});
-			}
-			GUILayout.EndHorizontal();
-
-			GUILayout.EndVertical();
-			GUILayout.EndScrollView();
+					for (int index = 0; index < entries.Count; ++index)
+					{
+						entryCommitTargets[index].Clear();
+					}
+				},
+				() => lockCommit = false
+			);
 		}
 	}
 }
