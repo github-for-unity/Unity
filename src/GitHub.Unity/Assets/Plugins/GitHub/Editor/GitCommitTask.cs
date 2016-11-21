@@ -45,6 +45,12 @@ namespace GitHub.Unity
 		}
 
 
+		public override bool Blocking { get { return false; } }
+		public override bool Critical { get { return true; } }
+		public override bool Cached { get { return true; } }
+		public override string Label { get { return "git commit"; } }
+
+
 		protected override string ProcessName { get { return "git"; } }
 		protected override string ProcessArguments { get { return arguments; } }
 		protected override TextWriter ErrorBuffer { get { return error; } }
