@@ -27,6 +27,7 @@ namespace GitHub.Unity
 
 		static string FindRoot(string path)
 		{
+			// TODO: Fix this to either use libgit2sharp or properly handle OS drive roots
 			if (path == "/")
 				return unityDataPath;
 			if (Directory.Exists(Path.Combine(path, ".git")))

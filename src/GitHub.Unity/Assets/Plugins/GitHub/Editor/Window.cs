@@ -56,6 +56,8 @@ namespace GitHub.Unity
 			titleContent = new GUIContent(Title);
 
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
+
+			// TODO: Remove this, it's for selecting the window to check the serialized data
 			if (GUILayout.Button("Select"))
 			{
 				Selection.activeObject = this;
