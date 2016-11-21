@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 using System;
 using System.IO;
@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace GitHub.Unity
 {
-	class CommitTask : ProcessTask
+	class AddTask : ProcessTask
 	{
 		StringWriter
 		output = new StringWriter(),
@@ -22,16 +22,14 @@ namespace GitHub.Unity
 		protected override TextWriter ErrorBuffer { get { return error; } }
 
 
-		public CommitTask(string msg, string body)
+		public AddTask(IEnumerable<string> files)
 		{
-			arguments = "commit ";
-			arguments += String.Format(@" -m ""{0}{1}{2}""", msg, Environment.NewLine, body);
-		}
-
-		public static void Schedule(IEnumerable<string> files, string msg, string body)
-		{
-			Tasks.Add(new AddTask(files));
-			Tasks.Add(new CommitTask(msg, body));
+			arguments = "add ";
+			arguments += " -- ";
+			foreach (var f in files)
+			{
+				arguments += " " + f;
+			}
 		}
 
 		protected override void OnProcessOutputUpdate()
@@ -49,9 +47,7 @@ namespace GitHub.Unity
 			{
 				Debug.Log(buffer.ToString());
 				Debug.Log(error.GetStringBuilder().ToString());
-				GitStatusTask.Schedule();
 			}
 		}
 	}
 }
-
