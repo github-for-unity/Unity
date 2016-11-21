@@ -80,6 +80,9 @@ namespace GitHub.Unity
 			TaskCacheWriteExceptionError = "GitHub: Exception when writing task cache: {0}",
 			TaskCacheParseError = "GitHub: Failed to parse task cache",
 			TaskParseUnhandledTypeError = "GitHub: Trying to parse unhandled cached task: {0}",
+			TaskFailureTitle = "GitHub",
+			TaskFailureMessage = "{0} failed:\n{1}",
+			TaskFailureOK = "OK",
 			TaskProgressTitle = "GitHub",
 			TaskBlockingTitle = "Critical GitHub task",
 			TaskBlockingDescription = "A critical GitHub task ({0}) has yet to complete. What would you like to do?",
@@ -553,6 +556,12 @@ namespace GitHub.Unity
 		public static void ScheduleMainThread(EditorApplication.CallbackFunction action)
 		{
 			EditorApplication.delayCall += action;
+		}
+
+
+		public static void ReportFailure(ITask task, string error)
+		{
+			ScheduleMainThread(() => EditorUtility.DisplayDialog(TaskFailureTitle, string.Format(TaskFailureMessage, task.Label, error), TaskFailureOK));
 		}
 	}
 }

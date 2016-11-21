@@ -44,13 +44,89 @@ namespace GitHub.Unity
 		}
 
 
+		List<string> selections = new List<string>();
+
+		Vector2 scrollPosition;
+		Dictionary<string, bool> fileSelection = new Dictionary<string, bool>();
+
+		string commitMessage = "";
+		string commitBody = "";
 		void OnGUI()
 		{
 			titleContent = new GUIContent(Title);
+
+			GUILayout.BeginHorizontal(EditorStyles.toolbar);
+
+			// TODO: Remove this, it's for selecting the window to check the serialized data
+			if (GUILayout.Button("Select"))
+			{
+				Selection.activeObject = this;
+			}
+
+			GUILayout.FlexibleSpace();
+
+			if (GUILayout.Button("Refresh", EditorStyles.toolbarButton))
+			{
+				GitStatusTask.Schedule();
+			}
+
+
+			GUILayout.EndHorizontal();
+
+			scrollPosition = GUILayout.BeginScrollView(scrollPosition);
+			GUILayout.BeginVertical();
 			for(int index = 0; index < entries.Count; ++index)
 			{
-				GUILayout.Box(entries[index].ToString());
+				var key = entries[index].Path;
+				GUILayout.BeginHorizontal();
+				//GUILayout.Box(entries[index].ToString());
+				var selected = selections.Contains(key);
+				EditorGUI.BeginChangeCheck();
+				var newSelection = GUILayout.Toggle(selected, "");
+				if (EditorGUI.EndChangeCheck())
+				{
+					if (newSelection)
+					{
+						if (!selected)
+							selections.Add(key);
+					}
+					else
+					{
+						if (selected)
+							selections.Remove(key);
+					}
+				}
+				GUILayout.Label(key);
+				GUILayout.FlexibleSpace();
+				GUILayout.Label(entries[index].Status.ToString());
+				GUILayout.EndHorizontal();
 			}
+
+			GUILayout.FlexibleSpace();
+
+			GUILayout.BeginHorizontal();
+			commitMessage = EditorGUILayout.TextField("Summary", commitMessage);
+			GUILayout.EndHorizontal();
+
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.PrefixLabel("Description");
+			commitBody = EditorGUILayout.TextArea(commitBody, GUILayout.Height(16*10));
+			GUILayout.EndHorizontal();
+
+			GUILayout.BeginHorizontal();
+			GUILayout.FlexibleSpace();
+			if (GUILayout.Button("Commit") && !String.IsNullOrEmpty(commitMessage))
+			{
+				GitCommitTask.Schedule(selections, commitMessage, commitBody, () =>
+				{
+					commitMessage = "";
+					commitBody = "";
+				});
+			}
+			GUILayout.EndHorizontal();
+
+			GUILayout.EndVertical();
+			GUILayout.EndScrollView();
 		}
 	}
 }

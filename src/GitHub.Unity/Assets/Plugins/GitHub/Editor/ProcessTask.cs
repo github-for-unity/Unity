@@ -15,13 +15,14 @@ namespace GitHub.Unity
 		const int ExitMonitorSleep = 10;
 
 
-		static string WorkingDirectory;
+		static string workingDirectory;
+		static string unityDataPath;
 
 
 		[InitializeOnLoadMethod]
 		static void Prepare()
 		{
-			WorkingDirectory = Application.dataPath;
+			workingDirectory = unityDataPath = Application.dataPath;
 		}
 
 
@@ -29,6 +30,23 @@ namespace GitHub.Unity
 		static void Test()
 		{
 			EditorApplication.delayCall += () => Tasks.Add(new ProcessTask());
+		}
+
+
+		// TODO: replace with libgit2sharp call
+		static string FindRoot(string path)
+		{
+			if (string.IsNullOrEmpty(Path.GetDirectoryName(path)))
+			{
+				return unityDataPath;
+			}
+
+			if (Directory.Exists(Path.Combine(path, ".git")))
+			{
+				return path;
+			}
+
+			return FindRoot(Directory.GetParent(path).FullName);
 		}
 
 
@@ -92,12 +110,16 @@ namespace GitHub.Unity
 			if(process == null)
 			// Only start the process if we haven't already reconnected to an existing instance
 			{
+				if (workingDirectory == unityDataPath)
+				{
+					workingDirectory = FindRoot(unityDataPath);
+				}
 				process = Process.Start(new ProcessStartInfo(ProcessName, ProcessArguments)
 				{
 					UseShellExecute = false,
 					RedirectStandardError = true,
 					RedirectStandardOutput = true,
-					WorkingDirectory = WorkingDirectory
+					WorkingDirectory = workingDirectory
 				});
 			}
 
