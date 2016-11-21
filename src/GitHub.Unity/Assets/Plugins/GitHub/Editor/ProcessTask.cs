@@ -25,20 +25,27 @@ namespace GitHub.Unity
 			workingDirectory = unityDataPath = Application.dataPath;
 		}
 
-		static string FindRoot(string path)
-		{
-			// TODO: Fix this to either use libgit2sharp or properly handle OS drive roots
-			if (path == "/")
-				return unityDataPath;
-			if (Directory.Exists(Path.Combine(path, ".git")))
-				return path;
-			return FindRoot(Directory.GetParent(path).FullName);
-		}
 
 		[MenuItem("Assets/GitHub/Process Test")]
 		static void Test()
 		{
 			EditorApplication.delayCall += () => Tasks.Add(new ProcessTask());
+		}
+
+
+		static string FindRoot(string path)
+		{
+			if (string.IsNullOrEmpty(Path.GetDirectoryName(path)))
+			{
+				return unityDataPath;
+			}
+
+			if (Directory.Exists(Path.Combine(path, ".git")))
+			{
+				return path;
+			}
+
+			return FindRoot(Directory.GetParent(path).FullName);
 		}
 
 
