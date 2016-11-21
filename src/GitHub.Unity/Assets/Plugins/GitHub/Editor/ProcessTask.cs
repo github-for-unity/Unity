@@ -33,6 +33,7 @@ namespace GitHub.Unity
 		}
 
 
+		// TODO: replace with libgit2sharp call
 		static string FindRoot(string path)
 		{
 			if (string.IsNullOrEmpty(Path.GetDirectoryName(path)))
