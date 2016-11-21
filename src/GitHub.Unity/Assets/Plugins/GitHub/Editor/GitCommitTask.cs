@@ -32,7 +32,7 @@ namespace GitHub.Unity
 		public GitCommitTask(string message, string body, Action onSuccess = null, Action onFailure = null)
 		{
 			arguments = "commit ";
-			arguments += string.Format(@" -m ""{0}\n{1}""", message, body);
+			arguments += string.Format(@" -m ""{0}{1}{2}""", message, Environment.NewLine, body);
 
 			this.onSuccess = onSuccess;
 			this.onFailure = onFailure;
