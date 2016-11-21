@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using System;
 using System.IO;
 using System.Text;
 using System.Collections.Generic;
@@ -15,14 +16,17 @@ namespace GitHub.Unity
 			AddErrorOK = "OK";
 
 
-		public static void Schedule(IEnumerable<string> files)
+		public static void Schedule(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
 		{
-			Tasks.Add(new GitAddTask(files));
+			Tasks.Add(new GitAddTask(files, onSuccess, onFailure));
 		}
 
 
 		StringWriter error = new StringWriter();
 		string arguments = "";
+		Action
+			onSuccess,
+			onFailure;
 
 
 		protected override string ProcessName { get { return "git"; } }
@@ -30,14 +34,18 @@ namespace GitHub.Unity
 		protected override TextWriter ErrorBuffer { get { return error; } }
 
 
-		public GitAddTask(IEnumerable<string> files)
+		public GitAddTask(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
 		{
 			arguments = "add ";
 			arguments += " -- ";
-			foreach (var f in files)
+
+			foreach (string file in files)
 			{
-				arguments += " " + f;
+				arguments += " " + file;
 			}
+
+			this.onSuccess = onSuccess;
+			this.onFailure = onFailure;
 		}
 
 
@@ -52,7 +60,19 @@ namespace GitHub.Unity
 			StringBuilder buffer = error.GetStringBuilder();
 			if (buffer.Length > 0)
 			{
-				EditorUtility.DisplayDialog(AddErrorTitle, string.Format(AddErrorMessage, buffer.ToString()), AddErrorOK);
+				Tasks.ScheduleMainThread(() =>
+				{
+					EditorUtility.DisplayDialog(AddErrorTitle, string.Format(AddErrorMessage, buffer.ToString()), AddErrorOK);
+
+					if (onFailure != null)
+					{
+						onFailure();
+					}
+				});
+			}
+			else if (onSuccess != null)
+			{
+				Tasks.ScheduleMainThread(() => onSuccess());
 			}
 
 			// Always update
