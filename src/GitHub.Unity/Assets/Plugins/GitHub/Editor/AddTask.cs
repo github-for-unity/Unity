@@ -1,24 +1,32 @@
 using UnityEngine;
 using UnityEditor;
-using System;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Collections.Generic;
+
 
 namespace GitHub.Unity
 {
 	class AddTask : ProcessTask
 	{
-		StringWriter
-		output = new StringWriter(),
-		error = new StringWriter();
+		const string
+			AddErrorTitle = "GitHub",
+			AddErrorMessage = "Git add failed:\n{0}",
+			AddErrorOK = "OK";
 
+
+		public static void Schedule(IEnumerable<string> files)
+		{
+			Tasks.Add(new AddTask(files));
+		}
+
+
+		StringWriter error = new StringWriter();
 		string arguments = "";
+
 
 		protected override string ProcessName { get { return "git"; } }
 		protected override string ProcessArguments { get { return arguments; } }
-		protected override TextWriter OutputBuffer { get { return output; } }
 		protected override TextWriter ErrorBuffer { get { return error; } }
 
 
@@ -32,22 +40,23 @@ namespace GitHub.Unity
 			}
 		}
 
+
 		protected override void OnProcessOutputUpdate()
 		{
-			StringBuilder buffer = output.GetStringBuilder();
-			int end = buffer.Length - 1;
-			if(!Done)
-				// Only try to avoid partial lines if the process did not already end
+			if (!Done)
 			{
-				for(; end > 0 && buffer[end] != '\n'; --end);
+				return;
 			}
 
-			if(Done)
-				// If we are done, hand over the results to any listeners on the main thread
+			// Pop up any errors
+			StringBuilder buffer = error.GetStringBuilder();
+			if (buffer.Length > 0)
 			{
-				Debug.Log(buffer.ToString());
-				Debug.Log(error.GetStringBuilder().ToString());
+				EditorUtility.DisplayDialog(AddErrorTitle, string.Format(AddErrorMessage, buffer.ToString()), AddErrorOK);
 			}
+
+			// Always update
+			GitStatusTask.Schedule();
 		}
 	}
 }

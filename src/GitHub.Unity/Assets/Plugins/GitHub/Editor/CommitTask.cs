@@ -1,57 +1,65 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Collections.Generic;
+
 
 namespace GitHub.Unity
 {
 	class CommitTask : ProcessTask
 	{
-		StringWriter
-		output = new StringWriter(),
-		error = new StringWriter();
+		const string
+			CommitErrorTitle = "GitHub",
+			CommitErrorMessage = "Git comit failed:\n{0}",
+			CommitErrorOK = "OK";
 
+
+		public static void Schedule(IEnumerable<string> files, string message, string body)
+		{
+			AddTask.Schedule(files);
+			Schedule(message, body);
+		}
+
+
+		public static void Schedule(string message, string body)
+		{
+			Tasks.Add(new CommitTask(message, body));
+		}
+
+
+		StringWriter error = new StringWriter();
 		string arguments = "";
+
+
+		public CommitTask(string message, string body)
+		{
+			arguments = "commit ";
+			arguments += string.Format(@" -m ""{0}\n{1}""", message, body);
+		}
+
 
 		protected override string ProcessName { get { return "git"; } }
 		protected override string ProcessArguments { get { return arguments; } }
-		protected override TextWriter OutputBuffer { get { return output; } }
 		protected override TextWriter ErrorBuffer { get { return error; } }
 
 
-		public CommitTask(string msg, string body)
-		{
-			arguments = "commit ";
-			arguments += String.Format(@" -m ""{0}{1}{2}""", msg, Environment.NewLine, body);
-		}
-
-		public static void Schedule(IEnumerable<string> files, string msg, string body)
-		{
-			Tasks.Add(new AddTask(files));
-			Tasks.Add(new CommitTask(msg, body));
-		}
-
 		protected override void OnProcessOutputUpdate()
 		{
-			StringBuilder buffer = output.GetStringBuilder();
-			int end = buffer.Length - 1;
-			if(!Done)
-				// Only try to avoid partial lines if the process did not already end
+			if (!Done)
 			{
-				for(; end > 0 && buffer[end] != '\n'; --end);
+				return;
 			}
 
-			if(Done)
-				// If we are done, hand over the results to any listeners on the main thread
+			// Pop up any errors
+			StringBuilder buffer = error.GetStringBuilder();
+			if (buffer.Length > 0)
 			{
-				Debug.Log(buffer.ToString());
-				Debug.Log(error.GetStringBuilder().ToString());
-				GitStatusTask.Schedule();
+				EditorUtility.DisplayDialog(CommitErrorTitle, string.Format(CommitErrorMessage, buffer.ToString()), CommitErrorOK);
 			}
+
+			// Always update
+			GitStatusTask.Schedule();
 		}
 	}
 }
-
