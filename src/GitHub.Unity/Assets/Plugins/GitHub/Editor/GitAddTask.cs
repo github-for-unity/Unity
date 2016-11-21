@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace GitHub.Unity
 {
-	class AddTask : ProcessTask
+	class GitAddTask : ProcessTask
 	{
 		const string
 			AddErrorTitle = "GitHub",
@@ -17,7 +17,7 @@ namespace GitHub.Unity
 
 		public static void Schedule(IEnumerable<string> files)
 		{
-			Tasks.Add(new AddTask(files));
+			Tasks.Add(new GitAddTask(files));
 		}
 
 
@@ -30,7 +30,7 @@ namespace GitHub.Unity
 		protected override TextWriter ErrorBuffer { get { return error; } }
 
 
-		public AddTask(IEnumerable<string> files)
+		public GitAddTask(IEnumerable<string> files)
 		{
 			arguments = "add ";
 			arguments += " -- ";

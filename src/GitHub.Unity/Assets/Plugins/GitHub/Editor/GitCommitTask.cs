@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace GitHub.Unity
 {
-	class CommitTask : ProcessTask
+	class GitCommitTask : ProcessTask
 	{
 		const string
 			CommitErrorTitle = "GitHub",
@@ -17,14 +17,14 @@ namespace GitHub.Unity
 
 		public static void Schedule(IEnumerable<string> files, string message, string body)
 		{
-			AddTask.Schedule(files);
+			GitAddTask.Schedule(files);
 			Schedule(message, body);
 		}
 
 
 		public static void Schedule(string message, string body)
 		{
-			Tasks.Add(new CommitTask(message, body));
+			Tasks.Add(new GitCommitTask(message, body));
 		}
 
 
@@ -32,7 +32,7 @@ namespace GitHub.Unity
 		string arguments = "";
 
 
-		public CommitTask(string message, string body)
+		public GitCommitTask(string message, string body)
 		{
 			arguments = "commit ";
 			arguments += string.Format(@" -m ""{0}\n{1}""", message, body);

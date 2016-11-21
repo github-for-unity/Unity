@@ -117,7 +117,7 @@ namespace GitHub.Unity
 			GUILayout.FlexibleSpace();
 			if (GUILayout.Button("Commit") && !String.IsNullOrEmpty(commitMessage))
 			{
-				CommitTask.Schedule(selections, commitMessage, commitBody);
+				GitCommitTask.Schedule(selections, commitMessage, commitBody);
 				commitMessage = "";
 				commitBody = "";
 			}
