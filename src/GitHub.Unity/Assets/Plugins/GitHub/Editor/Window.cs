@@ -47,8 +47,8 @@ namespace GitHub.Unity
 			ViewModeChangesTab = "Changes",
 			RefreshButton = "Refresh",
 			UnknownViewModeError = "Unsupported view mode: {0}",
-			SummaryLabel = "Summary",
-			DescriptionLabel = "Description",
+			SummaryLabel = "Commit summary",
+			DescriptionLabel = "Commit description",
 			CommitButton = "Commit to <b>{0}</b>",
 			ChangedFilesLabel = "{0} changed files",
 			OneChangedFileLabel = "1 changed file";
@@ -79,8 +79,26 @@ namespace GitHub.Unity
 
 
 		bool lockCommit = true;
-		GUIStyle commitButtonStyle;
+		GUIStyle
+			commitFileAreaStyle,
+			commitButtonStyle;
 		float commitTreeHeight;
+
+
+		GUIStyle CommitFileAreaStyle
+		{
+			get
+			{
+				if (commitFileAreaStyle == null)
+				{
+					commitFileAreaStyle = new GUIStyle(GUI.skin.box);
+					commitFileAreaStyle.name = "CommitFileAreaStyle";
+					commitFileAreaStyle.margin = new RectOffset(0, 0, 0, 0);
+				}
+
+				return commitFileAreaStyle;
+			}
+		}
 
 
 		GUIStyle CommitButtonStyle
@@ -191,10 +209,10 @@ namespace GitHub.Unity
 		void OnCommitGUI()
 		{
 			verticalCommitScroll = GUILayout.BeginScrollView(verticalCommitScroll);
-				GUILayout.Label(entries.Count == 0 ? OneChangedFileLabel : string.Format(ChangedFilesLabel, entries.Count));
+				GUILayout.Label(entries.Count == 0 ? OneChangedFileLabel : string.Format(ChangedFilesLabel, entries.Count), EditorStyles.boldLabel);
 
 				// List commit states, paths, and statuses
-				GUILayout.BeginVertical(GUI.skin.box);
+				GUILayout.BeginVertical(CommitFileAreaStyle);
 					if (commitTreeHeight > 0)
 					{
 						horizontalCommitScroll = GUILayout.BeginScrollView(
