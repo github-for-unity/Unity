@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using System;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -40,6 +41,38 @@ namespace GitHub.Unity
 		}
 
 
+		[Serializable]
+		class FileTreeNode
+		{
+			public string Label;
+			public bool Open = true;
+			public GitCommitTarget Target;
+
+
+			[SerializeField] string path;
+			[SerializeField] List<FileTreeNode> children = new List<FileTreeNode>();
+
+
+			public FileTreeNode(string path)
+			{
+				this.path = path;
+				Label = path;
+			}
+
+
+			public string Path { get { return path; } }
+			public IEnumerable<FileTreeNode> Children { get { return children; } }
+
+
+			public FileTreeNode Add(FileTreeNode child)
+			{
+				children.Add(child);
+
+				return child;
+			}
+		}
+
+
 		const string
 			Title = "GitHub",
 			LaunchMenu = "Window/GitHub",
@@ -51,12 +84,15 @@ namespace GitHub.Unity
 			DescriptionLabel = "Commit description",
 			CommitButton = "Commit to <b>{0}</b>",
 			ChangedFilesLabel = "{0} changed files",
-			OneChangedFileLabel = "1 changed file";
+			OneChangedFileLabel = "1 changed file",
+			BasePathLabel = "{0}{1}";
 		const float
 			CommitAreaMinHeight = 16f,
 			CommitAreaDefaultRatio = .4f,
 			CommitAreaMaxHeight = 10 * 15f,
-			MinCommitTreePadding = 20f;
+			MinCommitTreePadding = 20f,
+			FoldoutWidth = 23f,
+			TreeIndentation = 15f;
 
 
 		[MenuItem(LaunchMenu)]
@@ -76,6 +112,7 @@ namespace GitHub.Unity
 			commitMessage = "",
 			commitBody = "",
 			currentBranch = "placeholder-placeholder"; // TODO: Ask for branch into updates as well
+		[SerializeField] FileTreeNode commitTree;
 
 
 		bool lockCommit = true;
@@ -157,12 +194,64 @@ namespace GitHub.Unity
 				}
 			}
 
-			// TODO: Perform sort dependent on setting, making sure to keep indices in sync between the two lists
-			commitTreeHeight = 0f;
+			// TODO: Filter .meta files - consider adding them as children of the asset or folder they're supporting
 
+			// TODO: In stead of completely rebuilding the tree structure, figure out a way to migrate open/closed states from the old tree to the new
+
+			// Build tree structure
+			commitTree = new FileTreeNode(FindCommonPath("" + Path.DirectorySeparatorChar, entries.Select(e => e.Path)));
+			for (int index = 0; index < entries.Count; ++index)
+			{
+				BuildTree(commitTree, new FileTreeNode(entries[index].Path.Substring(commitTree.Path.Length + 1)){ Target = entryCommitTargets[index] });
+			}
+
+			commitTreeHeight = 0f;
 			lockCommit = false;
 
 			Repaint();
+		}
+
+
+		void BuildTree(FileTreeNode parent, FileTreeNode node)
+		{
+			if (string.IsNullOrEmpty(node.Label))
+			{
+				// TODO: We should probably reassign this target onto the parent? Depends on how we want to handle .meta files for folders
+				return;
+			}
+
+			// Is this node inside a folder?
+			int index = node.Label.IndexOf(Path.DirectorySeparatorChar);
+			if (index > 0)
+			{
+				// Figure out what the root folder is and chop it from the path
+				string root = node.Label.Substring(0, index);
+				node.Label = node.Label.Substring(index + 1);
+
+				// Look for a branch matching our root in the existing children
+				bool found = false;
+				foreach (FileTreeNode child in parent.Children)
+				{
+					if (child.Label.Equals(root))
+					// If we found the branch, continue building from that branch
+					{
+						found = true;
+						BuildTree(child, node);
+						break;
+					}
+				}
+
+				// No existing branch - we will have to add a new one to build from
+				if (!found)
+				{
+					BuildTree(parent.Add(new FileTreeNode(root)), node);
+				}
+			}
+			// Not inside a folder - just add this node right here
+			else
+			{
+				parent.Add(node);
+			}
 		}
 
 
@@ -211,9 +300,9 @@ namespace GitHub.Unity
 			verticalCommitScroll = GUILayout.BeginScrollView(verticalCommitScroll);
 				GUILayout.Label(entries.Count == 0 ? OneChangedFileLabel : string.Format(ChangedFilesLabel, entries.Count), EditorStyles.boldLabel);
 
-				// List commit states, paths, and statuses
 				GUILayout.BeginVertical(CommitFileAreaStyle);
 					if (commitTreeHeight > 0)
+					// Specify a minimum height if we can - avoiding vertical scrollbars on both the outer and inner scroll view
 					{
 						horizontalCommitScroll = GUILayout.BeginScrollView(
 							horizontalCommitScroll,
@@ -221,30 +310,34 @@ namespace GitHub.Unity
 							GUILayout.MaxHeight(100000f) // NOTE: This ugliness is necessary as unbounded MaxHeight appears impossible when MinHeight is specified
 						);
 					}
+					// If we have no minimum height to work with, just stretch and hope
 					else
 					{
 						horizontalCommitScroll = GUILayout.BeginScrollView(horizontalCommitScroll);
 					}
-						for (int index = 0; index < entries.Count; ++index)
+						// The file tree (when available)
+						if (commitTree != null)
 						{
-							GitStatusEntry entry = entries[index];
-							GitCommitTarget target = entryCommitTargets[index];
+							// Base path label
+							if (!string.IsNullOrEmpty(commitTree.Path))
+							{
+								GUILayout.Label(string.Format(BasePathLabel, commitTree.Path, Path.DirectorySeparatorChar));
+							}
 
-							GUILayout.BeginHorizontal();
-								target.All = GUILayout.Toggle(target.All, "");
-								GUILayout.Label(entry.Path);
-
-								GUILayout.FlexibleSpace();
-
-								GUILayout.Label(entry.Status.ToString());
-							GUILayout.EndHorizontal();
+							// Root nodes
+							foreach (FileTreeNode node in commitTree.Children)
+							{
+								TreeNode(node);
+							}
 						}
 
 						if (commitTreeHeight == 0f && Event.current.type == EventType.Repaint)
+						// If we have no minimum height calculated, do that now and repaint so it can be used
 						{
 							commitTreeHeight = GUILayoutUtility.GetLastRect().yMax + MinCommitTreePadding;
 							Repaint();
 						}
+
 						GUILayout.FlexibleSpace();
 					GUILayout.EndScrollView();
 				GUILayout.EndVertical();
@@ -252,6 +345,55 @@ namespace GitHub.Unity
 				// Do the commit details area
 				OnCommitDetailsAreaGUI();
 			GUILayout.EndScrollView();
+		}
+
+
+		void TreeNode(FileTreeNode node)
+		{
+			GitCommitTarget target = node.Target;
+
+			GUILayout.BeginHorizontal();
+				// Foldout or space for it
+				if (node.Children.Any())
+				{
+					node.Open = GUILayout.Toggle(node.Open, "", EditorStyles.foldout);
+				}
+				else
+				{
+					GUILayout.Space(FoldoutWidth);
+				}
+
+				// Commit inclusion toggle
+				if (target != null)
+				{
+					target.All = GUILayout.Toggle(target.All, "");
+				}
+
+				// Node label
+				GUILayout.Label(node.Label);
+
+				GUILayout.FlexibleSpace();
+
+				// Current status (if any)
+				if (target != null)
+				{
+					GUILayout.Label(entries[entryCommitTargets.IndexOf(target)].Status.ToString());
+				}
+			GUILayout.EndHorizontal();
+
+			// Render children (if any and folded out)
+			if (node.Children.Any() && node.Open)
+			{
+				GUILayout.BeginHorizontal();
+					GUILayout.Space(TreeIndentation);
+					GUILayout.BeginVertical();
+						foreach (FileTreeNode child in node.Children)
+						{
+							TreeNode(child);
+						}
+					GUILayout.EndVertical();
+				GUILayout.EndHorizontal();
+			}
 		}
 
 
@@ -299,6 +441,35 @@ namespace GitHub.Unity
 				},
 				() => lockCommit = false
 			);
+		}
+
+
+		// Based on: https://www.rosettacode.org/wiki/Find_common_directory_path#C.23
+		static string FindCommonPath(string separator, IEnumerable<string> paths)
+		{
+			string commonPath = String.Empty;
+			List<string> separatedPath = paths
+				.First(first => first.Length == paths.Max(second => second.Length))
+				.Split(new string[] { separator }, StringSplitOptions.RemoveEmptyEntries)
+				.ToList();
+
+			foreach (string pathSegment in separatedPath.AsEnumerable())
+			{
+				if (commonPath.Length == 0 && paths.All(path => path.StartsWith(pathSegment)))
+				{
+					commonPath = pathSegment;
+				}
+				else if (paths.All(path => path.StartsWith(commonPath + separator + pathSegment)))
+				{
+					commonPath += separator + pathSegment;
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			return commonPath;
 		}
 	}
 }
