@@ -55,7 +55,8 @@ namespace GitHub.Unity
 		const float
 			CommitAreaMinHeight = 16f,
 			CommitAreaDefaultRatio = .4f,
-			CommitAreaMaxHeight = 10 * 15f;
+			CommitAreaMaxHeight = 10 * 15f,
+			MinCommitTreePadding = 20f;
 
 
 		[MenuItem(LaunchMenu)]
@@ -68,7 +69,9 @@ namespace GitHub.Unity
 		[SerializeField] ViewMode viewMode = ViewMode.History;
 		[SerializeField] List<GitStatusEntry> entries = new List<GitStatusEntry>();
 		[SerializeField] List<GitCommitTarget> entryCommitTargets = new List<GitCommitTarget>();
-		[SerializeField] Vector2 scrollPosition;
+		[SerializeField] Vector2
+			verticalCommitScroll,
+			horizontalCommitScroll;
 		[SerializeField] string
 			commitMessage = "",
 			commitBody = "",
@@ -77,6 +80,7 @@ namespace GitHub.Unity
 
 		bool lockCommit = true;
 		GUIStyle commitButtonStyle;
+		float commitTreeHeight;
 
 
 		GUIStyle CommitButtonStyle
@@ -136,6 +140,7 @@ namespace GitHub.Unity
 			}
 
 			// TODO: Perform sort dependent on setting, making sure to keep indices in sync between the two lists
+			commitTreeHeight = 0f;
 
 			lockCommit = false;
 
@@ -185,26 +190,45 @@ namespace GitHub.Unity
 
 		void OnCommitGUI()
 		{
-			GUILayout.Label(entries.Count == 0 ? OneChangedFileLabel : string.Format(ChangedFilesLabel, entries.Count));
+			verticalCommitScroll = GUILayout.BeginScrollView(verticalCommitScroll);
+				GUILayout.Label(entries.Count == 0 ? OneChangedFileLabel : string.Format(ChangedFilesLabel, entries.Count));
 
-			scrollPosition = GUILayout.BeginScrollView(scrollPosition);
 				// List commit states, paths, and statuses
 				GUILayout.BeginVertical(GUI.skin.box);
-					for (int index = 0; index < entries.Count; ++index)
+					if (commitTreeHeight > 0)
 					{
-						GitStatusEntry entry = entries[index];
-						GitCommitTarget target = entryCommitTargets[index];
-
-						GUILayout.BeginHorizontal();
-							target.All = GUILayout.Toggle(target.All, "");
-							GUILayout.Label(entry.Path);
-
-							GUILayout.FlexibleSpace();
-
-							GUILayout.Label(entry.Status.ToString());
-						GUILayout.EndHorizontal();
+						horizontalCommitScroll = GUILayout.BeginScrollView(
+							horizontalCommitScroll,
+							GUILayout.MinHeight(commitTreeHeight),
+							GUILayout.MaxHeight(100000f) // NOTE: This ugliness is necessary as unbounded MaxHeight appears impossible when MinHeight is specified
+						);
 					}
-					GUILayout.FlexibleSpace();
+					else
+					{
+						horizontalCommitScroll = GUILayout.BeginScrollView(horizontalCommitScroll);
+					}
+						for (int index = 0; index < entries.Count; ++index)
+						{
+							GitStatusEntry entry = entries[index];
+							GitCommitTarget target = entryCommitTargets[index];
+
+							GUILayout.BeginHorizontal();
+								target.All = GUILayout.Toggle(target.All, "");
+								GUILayout.Label(entry.Path);
+
+								GUILayout.FlexibleSpace();
+
+								GUILayout.Label(entry.Status.ToString());
+							GUILayout.EndHorizontal();
+						}
+
+						if (commitTreeHeight == 0f && Event.current.type == EventType.Repaint)
+						{
+							commitTreeHeight = GUILayoutUtility.GetLastRect().yMax + MinCommitTreePadding;
+							Repaint();
+						}
+						GUILayout.FlexibleSpace();
+					GUILayout.EndScrollView();
 				GUILayout.EndVertical();
 
 				// Do the commit details area
