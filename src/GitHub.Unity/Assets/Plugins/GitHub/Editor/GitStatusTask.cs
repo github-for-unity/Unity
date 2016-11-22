@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
@@ -95,7 +96,7 @@ namespace GitHub.Unity
 
 		public static void Schedule()
 		{
-			Tasks.Add(new GitStatusTask());
+			GitListUntrackedFilesTask.Schedule(task => Tasks.Add(new GitStatusTask(task.Entries)));
 		}
 
 
@@ -116,6 +117,15 @@ namespace GitHub.Unity
 			error = new StringWriter();
 		Regex lineRegex = new Regex(@"([AMRDC]|\?\?)\s+([\w\d\/\.\-_ ]+)");
 		List<GitStatusEntry> entries = new List<GitStatusEntry>();
+
+
+		GitStatusTask(IList<GitStatusEntry> existingEntries = null)
+		{
+			if (existingEntries != null)
+			{
+				entries.AddRange(existingEntries);
+			}
+		}
 
 
 		protected override void OnProcessOutputUpdate()
@@ -174,7 +184,14 @@ namespace GitHub.Unity
 				return;
 			}
 
-			entries.Add(new GitStatusEntry(match.Groups[2].ToString(), FileStatusFromKey(match.Groups[1].ToString())));
+			string
+				path = match.Groups[2].ToString(),
+				statusKey = match.Groups[1].ToString();
+
+			if (!entries.Any(e => e.Path.Equals(path)) && !Directory.Exists(Path.Combine(workingDirectory, path)))
+			{
+				entries.Add(new GitStatusEntry(path, FileStatusFromKey(statusKey)));
+			}
 		}
 
 

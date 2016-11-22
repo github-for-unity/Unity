@@ -15,8 +15,8 @@ namespace GitHub.Unity
 		const int ExitMonitorSleep = 10;
 
 
-		static string workingDirectory;
-		static string unityDataPath;
+		protected static string workingDirectory;
+		protected static string unityDataPath;
 
 
 		[InitializeOnLoadMethod]
