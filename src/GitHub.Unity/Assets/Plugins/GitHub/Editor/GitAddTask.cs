@@ -60,7 +60,7 @@ namespace GitHub.Unity
 			StringBuilder buffer = error.GetStringBuilder();
 			if (buffer.Length > 0)
 			{
-				Tasks.ReportFailure(this, buffer.ToString());
+				Tasks.ReportFailure(FailureSeverity.Critical, this, buffer.ToString());
 
 				if (onFailure != null)
 				{

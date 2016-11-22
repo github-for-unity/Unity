@@ -50,6 +50,13 @@ namespace GitHub.Unity
 	};
 
 
+	enum FailureSeverity
+	{
+		Moderate,
+		Critical
+	};
+
+
 	class Tasks
 	{
 		enum WaitMode
@@ -559,9 +566,16 @@ namespace GitHub.Unity
 		}
 
 
-		public static void ReportFailure(ITask task, string error)
+		public static void ReportFailure(FailureSeverity severity, ITask task, string error)
 		{
-			ScheduleMainThread(() => EditorUtility.DisplayDialog(TaskFailureTitle, string.Format(TaskFailureMessage, task.Label, error), TaskFailureOK));
+			if (severity == FailureSeverity.Moderate)
+			{
+				Debug.LogErrorFormat(TaskFailureMessage, task.Label, error);
+			}
+			else
+			{
+				ScheduleMainThread(() => EditorUtility.DisplayDialog(TaskFailureTitle, string.Format(TaskFailureMessage, task.Label, error), TaskFailureOK));
+			}
 		}
 	}
 }
