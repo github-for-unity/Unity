@@ -95,6 +95,60 @@ namespace GitHub.Unity
 			TreeIndentation = 15f;
 
 
+		static GUIStyle
+			commitFileAreaStyle,
+			commitButtonStyle,
+			commitDescriptionFieldStyle;
+
+
+		static GUIStyle CommitFileAreaStyle
+		{
+			get
+			{
+				if (commitFileAreaStyle == null)
+				{
+					commitFileAreaStyle = new GUIStyle(GUI.skin.box);
+					commitFileAreaStyle.name = "CommitFileAreaStyle";
+					commitFileAreaStyle.margin = new RectOffset(0, 0, 0, 0);
+				}
+
+				return commitFileAreaStyle;
+			}
+		}
+
+
+		static GUIStyle CommitButtonStyle
+		{
+			get
+			{
+				if (commitButtonStyle == null)
+				{
+					commitButtonStyle = new GUIStyle(GUI.skin.button);
+					commitButtonStyle.name = "CommitButtonStyle";
+					commitButtonStyle.richText = true;
+					commitButtonStyle.wordWrap = true;
+				}
+
+				return commitButtonStyle;
+			}
+		}
+
+
+		GUIStyle CommitDescriptionFieldStyle
+		{
+			get
+			{
+				if (commitDescriptionFieldStyle == null)
+				{
+					commitDescriptionFieldStyle = new GUIStyle(GUI.skin.textArea);
+					commitDescriptionFieldStyle.wordWrap = true;
+				}
+
+				return commitDescriptionFieldStyle;
+			}
+		}
+
+
 		[MenuItem(LaunchMenu)]
 		static void Launch()
 		{
@@ -116,42 +170,7 @@ namespace GitHub.Unity
 
 
 		bool lockCommit = true;
-		GUIStyle
-			commitFileAreaStyle,
-			commitButtonStyle;
 		float commitTreeHeight;
-
-
-		GUIStyle CommitFileAreaStyle
-		{
-			get
-			{
-				if (commitFileAreaStyle == null)
-				{
-					commitFileAreaStyle = new GUIStyle(GUI.skin.box);
-					commitFileAreaStyle.name = "CommitFileAreaStyle";
-					commitFileAreaStyle.margin = new RectOffset(0, 0, 0, 0);
-				}
-
-				return commitFileAreaStyle;
-			}
-		}
-
-
-		GUIStyle CommitButtonStyle
-		{
-			get
-			{
-				if (commitButtonStyle == null)
-				{
-					commitButtonStyle = new GUIStyle(GUI.skin.button);
-					commitButtonStyle.name = "CommitButtonStyle";
-					commitButtonStyle.richText = true;
-				}
-
-				return commitButtonStyle;
-			}
-		}
 
 
 		void OnEnable()
@@ -404,7 +423,7 @@ namespace GitHub.Unity
 				commitMessage = GUILayout.TextField(commitMessage);
 
 				GUILayout.Label(DescriptionLabel);
-				commitBody = EditorGUILayout.TextArea(commitBody, GUILayout.ExpandHeight(true));
+				commitBody = EditorGUILayout.TextArea(commitBody, CommitDescriptionFieldStyle, GUILayout.ExpandHeight(true));
 
 				// Disable committing when already committing or if we don't have all the data needed
 				EditorGUI.BeginDisabledGroup(lockCommit || string.IsNullOrEmpty(commitMessage) || !entryCommitTargets.Any(t => t.Any));
