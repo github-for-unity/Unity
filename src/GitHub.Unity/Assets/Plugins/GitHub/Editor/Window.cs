@@ -85,7 +85,7 @@ namespace GitHub.Unity
 			CommitButton = "Commit to <b>{0}</b>",
 			ChangedFilesLabel = "{0} changed files",
 			OneChangedFileLabel = "1 changed file",
-			BasePathLabel = "{0}{1}";
+			BasePathLabel = "{0}";
 		const float
 			CommitAreaMinHeight = 16f,
 			CommitAreaDefaultRatio = .4f,
@@ -202,7 +202,7 @@ namespace GitHub.Unity
 			commitTree = new FileTreeNode(FindCommonPath("" + Path.DirectorySeparatorChar, entries.Select(e => e.Path)));
 			for (int index = 0; index < entries.Count; ++index)
 			{
-				BuildTree(commitTree, new FileTreeNode(entries[index].Path.Substring(commitTree.Path.Length + 1)){ Target = entryCommitTargets[index] });
+				BuildTree(commitTree, new FileTreeNode(entries[index].Path.Substring(commitTree.Path.Length)){ Target = entryCommitTargets[index] });
 			}
 
 			commitTreeHeight = 0f;
@@ -321,7 +321,7 @@ namespace GitHub.Unity
 							// Base path label
 							if (!string.IsNullOrEmpty(commitTree.Path))
 							{
-								GUILayout.Label(string.Format(BasePathLabel, commitTree.Path, Path.DirectorySeparatorChar));
+								GUILayout.Label(string.Format(BasePathLabel, commitTree.Path));
 							}
 
 							// Root nodes
@@ -447,7 +447,7 @@ namespace GitHub.Unity
 		// Based on: https://www.rosettacode.org/wiki/Find_common_directory_path#C.23
 		static string FindCommonPath(string separator, IEnumerable<string> paths)
 		{
-			string commonPath = String.Empty;
+			string commonPath = string.Empty;
 			List<string> separatedPath = paths
 				.First(first => first.Length == paths.Max(second => second.Length))
 				.Split(new string[] { separator }, StringSplitOptions.RemoveEmptyEntries)
@@ -455,13 +455,15 @@ namespace GitHub.Unity
 
 			foreach (string pathSegment in separatedPath.AsEnumerable())
 			{
-				if (commonPath.Length == 0 && paths.All(path => path.StartsWith(pathSegment)))
+				string pathExtension = pathSegment + separator;
+
+				if (commonPath.Length == 0 && paths.All(path => path.StartsWith(pathExtension)))
 				{
-					commonPath = pathSegment;
+					commonPath = pathExtension;
 				}
-				else if (paths.All(path => path.StartsWith(commonPath + separator + pathSegment)))
+				else if (paths.All(path => path.StartsWith(commonPath + pathExtension)))
 				{
-					commonPath += separator + pathSegment;
+					commonPath += pathExtension;
 				}
 				else
 				{
