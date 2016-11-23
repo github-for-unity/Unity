@@ -190,12 +190,15 @@ namespace GitHub.Unity
 		}
 
 
-		void OnStatusUpdate(IList<GitStatusEntry> update)
+		void OnStatusUpdate(GitStatus update)
 		{
+			// Set branch
+			currentBranch = update.LocalBranch;
+
 			// Remove what got nuked
 			for (int index = 0; index < entries.Count;)
 			{
-				if (!update.Contains(entries[index]))
+				if (!update.Entries.Contains(entries[index]))
 				{
 					entries.RemoveAt(index);
 					entryCommitTargets.RemoveAt(index);
@@ -207,9 +210,9 @@ namespace GitHub.Unity
 			}
 
 			// Add new stuff
-			for (int index = 0; index < update.Count; ++index)
+			for (int index = 0; index < update.Entries.Count; ++index)
 			{
-				GitStatusEntry entry = update[index];
+				GitStatusEntry entry = update.Entries[index];
 				if (!entries.Contains(entry))
 				{
 					entries.Add(entry);

@@ -37,6 +37,22 @@ namespace GitHub.Unity
 	}
 
 
+	struct GitStatus
+	{
+		public string
+			LocalBranch,
+			RemoteBranch;
+		public List<GitStatusEntry> Entries;
+
+
+		public void Clear()
+		{
+			LocalBranch = RemoteBranch = "";
+			Entries.Clear();
+		}
+	}
+
+
 	struct GitStatusEntry
 	{
 		public readonly string Path;
@@ -79,16 +95,16 @@ namespace GitHub.Unity
 		};
 
 
-		static Action<IList<GitStatusEntry>> onStatusUpdate;
+		static Action<GitStatus> onStatusUpdate;
 
 
-		public static void RegisterCallback(Action<IList<GitStatusEntry>> callback)
+		public static void RegisterCallback(Action<GitStatus> callback)
 		{
 			onStatusUpdate += callback;
 		}
 
 
-		public static void UnregisterCallback(Action<IList<GitStatusEntry>> callback)
+		public static void UnregisterCallback(Action<GitStatus> callback)
 		{
 			onStatusUpdate -= callback;
 		}
@@ -107,7 +123,7 @@ namespace GitHub.Unity
 
 
 		protected override string ProcessName { get { return "git"; } }
-		protected override string ProcessArguments { get { return "status --porcelain"; } }
+		protected override string ProcessArguments { get { return "status -b --porcelain"; } }
 		protected override TextWriter OutputBuffer { get { return output; } }
 		protected override TextWriter ErrorBuffer { get { return error; } }
 
@@ -115,15 +131,18 @@ namespace GitHub.Unity
 		StringWriter
 			output = new StringWriter(),
 			error = new StringWriter();
-		Regex lineRegex = new Regex(@"([AMRDC]|\?\?)\s+([\w\d\/\.\-_ ]+)");
-		List<GitStatusEntry> entries = new List<GitStatusEntry>();
+		Regex
+			changeRegex = new Regex(@"([AMRDC]|\?\?)\s+([\w\d\/\.\-_ ]+)"),
+			branchRegex = new Regex(@"\#\#\s+([\w\d\/\.\-_ ]+)\.\.\.([\w\d\/\.\-_ ]+)");
+		GitStatus status;
 
 
 		GitStatusTask(IList<GitStatusEntry> existingEntries = null)
 		{
+			status.Entries = new List<GitStatusEntry>();
 			if (existingEntries != null)
 			{
-				entries.AddRange(existingEntries);
+				status.Entries.AddRange(existingEntries);
 			}
 		}
 
@@ -166,32 +185,43 @@ namespace GitHub.Unity
 		{
 			if(onStatusUpdate != null)
 			{
-				onStatusUpdate(entries);
-				entries.Clear();
+				onStatusUpdate(status);
+				status.Clear();
 			}
 		}
 
 
-		void ParseOutputLine(int start, int end)
+		bool ParseOutputLine(int start, int end)
 		{
-			StringBuilder buffer = output.GetStringBuilder();
-
 			// TODO: Figure out how we get out of doing that ToString call
-			Match match = lineRegex.Match(buffer.ToString(start, (end - start) + 1));
+			string line = output.GetStringBuilder().ToString(start, (end - start) + 1);
 
-			if(match.Groups.Count < 3)
+			// Grab change lines
+			Match match = changeRegex.Match(line);
+			if (match.Groups.Count == 3)
 			{
-				return;
+				string
+					path = match.Groups[2].ToString(),
+					statusKey = match.Groups[1].ToString();
+
+				if (!status.Entries.Any(e => e.Path.Equals(path)) && !Directory.Exists(Path.Combine(workingDirectory, path)))
+				{
+					status.Entries.Add(new GitStatusEntry(path, FileStatusFromKey(statusKey)));
+				}
 			}
 
-			string
-				path = match.Groups[2].ToString(),
-				statusKey = match.Groups[1].ToString();
-
-			if (!entries.Any(e => e.Path.Equals(path)) && !Directory.Exists(Path.Combine(workingDirectory, path)))
+			// Grab local and remote branch
+			match = branchRegex.Match(line);
+			if (match.Groups.Count >= 2)
 			{
-				entries.Add(new GitStatusEntry(path, FileStatusFromKey(statusKey)));
+				status.LocalBranch = match.Groups[1].ToString();
 			}
+			if (match.Groups.Count == 3)
+			{
+				status.RemoteBranch = match.Groups[2].ToString();
+			}
+
+			return true;
 		}
 
 
