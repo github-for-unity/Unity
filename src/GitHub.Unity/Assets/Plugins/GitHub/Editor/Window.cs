@@ -83,8 +83,11 @@ namespace GitHub.Unity
 			SummaryLabel = "Commit summary",
 			DescriptionLabel = "Commit description",
 			CommitButton = "Commit to <b>{0}</b>",
+			CommitSelectAllButton = "All",
+			CommitSelectNoneButton = "None",
 			ChangedFilesLabel = "{0} changed files",
 			OneChangedFileLabel = "1 changed file",
+			NoChangedFilesLabel = "No changed files",
 			BasePathLabel = "{0}",
 			NoChangesLabel = "No changes found";
 		const float
@@ -332,7 +335,28 @@ namespace GitHub.Unity
 			{
 				GUILayout.BeginScrollView(verticalCommitScroll);
 			}
-				GUILayout.Label(entries.Count == 0 ? OneChangedFileLabel : string.Format(ChangedFilesLabel, entries.Count), EditorStyles.boldLabel);
+				GUILayout.BeginHorizontal();
+					EditorGUI.BeginDisabledGroup(entries.Count == 0);
+						if (GUILayout.Button(CommitSelectAllButton, EditorStyles.miniButtonLeft))
+						{
+							CommitSelectAll();
+						}
+
+						if (GUILayout.Button(CommitSelectNoneButton, EditorStyles.miniButtonRight))
+						{
+							CommitSelectNone();
+						}
+					EditorGUI.EndDisabledGroup();
+
+					GUILayout.FlexibleSpace();
+
+					GUILayout.Label(
+						entries.Count == 0 ? NoChangedFilesLabel :
+							entries.Count == 1 ? OneChangedFileLabel :
+								string.Format(ChangedFilesLabel, entries.Count),
+						EditorStyles.miniLabel
+					);
+				GUILayout.EndHorizontal();
 
 				GUILayout.BeginVertical(CommitFileAreaStyle);
 					if (commitTreeHeight > 0)
@@ -466,6 +490,24 @@ namespace GitHub.Unity
 					GUILayout.EndHorizontal();
 				EditorGUI.EndDisabledGroup();
 			GUILayout.EndVertical();
+		}
+
+
+		void CommitSelectAll()
+		{
+			for (int index = 0; index < entryCommitTargets.Count; ++index)
+			{
+				entryCommitTargets[index].All = true;
+			}
+		}
+
+
+		void CommitSelectNone()
+		{
+			for (int index = 0; index < entryCommitTargets.Count; ++index)
+			{
+				entryCommitTargets[index].All = false;
+			}
 		}
 
 
