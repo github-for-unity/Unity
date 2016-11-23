@@ -316,7 +316,14 @@ namespace GitHub.Unity
 
 		void OnCommitGUI()
 		{
-			verticalCommitScroll = GUILayout.BeginScrollView(verticalCommitScroll);
+			if (commitTreeHeight > 0)
+			{
+				verticalCommitScroll = GUILayout.BeginScrollView(verticalCommitScroll);
+			}
+			else
+			{
+				GUILayout.BeginScrollView(verticalCommitScroll);
+			}
 				GUILayout.Label(entries.Count == 0 ? OneChangedFileLabel : string.Format(ChangedFilesLabel, entries.Count), EditorStyles.boldLabel);
 
 				GUILayout.BeginVertical(CommitFileAreaStyle);
