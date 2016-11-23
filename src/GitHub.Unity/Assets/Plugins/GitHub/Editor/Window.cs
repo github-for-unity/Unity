@@ -224,9 +224,16 @@ namespace GitHub.Unity
 				BuildTree(commitTree, new FileTreeNode(entries[index].Path.Substring(commitTree.Path.Length)){ Target = entryCommitTargets[index] });
 			}
 
-			commitTreeHeight = 0f;
 			lockCommit = false;
 
+			OnCommitTreeChange();
+		}
+
+
+		void OnCommitTreeChange()
+		{
+			commitTreeHeight = 0f;
+			Repaint();
 			Repaint();
 		}
 
@@ -382,7 +389,12 @@ namespace GitHub.Unity
 				// Foldout or space for it
 				if (node.Children.Any())
 				{
-					node.Open = GUILayout.Toggle(node.Open, "", EditorStyles.foldout);
+					EditorGUI.BeginChangeCheck();
+						node.Open = GUILayout.Toggle(node.Open, "", EditorStyles.foldout);
+					if (EditorGUI.EndChangeCheck())
+					{
+						OnCommitTreeChange();
+					}
 				}
 				else
 				{
