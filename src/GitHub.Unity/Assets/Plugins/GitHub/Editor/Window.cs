@@ -85,7 +85,8 @@ namespace GitHub.Unity
 			CommitButton = "Commit to <b>{0}</b>",
 			ChangedFilesLabel = "{0} changed files",
 			OneChangedFileLabel = "1 changed file",
-			BasePathLabel = "{0}";
+			BasePathLabel = "{0}",
+			NoChangesLabel = "No changes found";
 		const float
 			CommitAreaMinHeight = 16f,
 			CommitAreaDefaultRatio = .4f,
@@ -349,7 +350,7 @@ namespace GitHub.Unity
 						horizontalCommitScroll = GUILayout.BeginScrollView(horizontalCommitScroll);
 					}
 						// The file tree (when available)
-						if (commitTree != null)
+						if (commitTree != null || entries.Count < 1)
 						{
 							// Base path label
 							if (!string.IsNullOrEmpty(commitTree.Path))
@@ -362,16 +363,26 @@ namespace GitHub.Unity
 							{
 								TreeNode(node);
 							}
-						}
 
-						if (commitTreeHeight == 0f && Event.current.type == EventType.Repaint)
-						// If we have no minimum height calculated, do that now and repaint so it can be used
+							if (commitTreeHeight == 0f && Event.current.type == EventType.Repaint)
+							// If we have no minimum height calculated, do that now and repaint so it can be used
+							{
+								commitTreeHeight = GUILayoutUtility.GetLastRect().yMax + MinCommitTreePadding;
+								Repaint();
+							}
+
+							GUILayout.FlexibleSpace();
+						}
+						else
 						{
-							commitTreeHeight = GUILayoutUtility.GetLastRect().yMax + MinCommitTreePadding;
-							Repaint();
+							GUILayout.FlexibleSpace();
+							GUILayout.BeginHorizontal();
+								GUILayout.FlexibleSpace();
+								GUILayout.Label(NoChangesLabel);
+								GUILayout.FlexibleSpace();
+							GUILayout.EndHorizontal();
+							GUILayout.FlexibleSpace();
 						}
-
-						GUILayout.FlexibleSpace();
 					GUILayout.EndScrollView();
 				GUILayout.EndVertical();
 
