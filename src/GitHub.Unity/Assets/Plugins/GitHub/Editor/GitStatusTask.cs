@@ -142,7 +142,7 @@ namespace GitHub.Unity
 			error = new StringWriter();
 		Regex
 			changeRegex = new Regex(@"([AMRDC]|\?\?)\s+([\w\d\/\.\-_ ]+)"),
-			branchRegex = new Regex(@"\#\#\s+([\w\d\/\.\-_ ]+)\.\.\.([\w\d\/\.\-_ ]+)");
+			branchRegex = new Regex(@"\#\#\s+([\w\d\/\.\-_ ]+)(?:\.\.\.([\w\d\/\.\-_ ]+))?");
 		GitStatus status;
 
 
