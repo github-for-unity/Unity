@@ -158,29 +158,7 @@ namespace GitHub.Unity
 
 		protected override void OnProcessOutputUpdate()
 		{
-			StringBuilder buffer = output.GetStringBuilder();
-			int end = buffer.Length - 1;
-
-			if(!Done)
-			// Only try to avoid partial lines if the process did not already end
-			{
-				for(; end > 0 && buffer[end] != '\n'; --end);
-			}
-
-			if(end > 0)
-			// Parse output lines into the entries list if we have any buffer to parse
-			{
-				for(int index = 0, last = -1; index <= end; ++index)
-				{
-					if(buffer[index] == '\n')
-					{
-						ParseOutputLine(last + 1, index);
-						last = index;
-					}
-				}
-
-				buffer.Remove(0, end + 1);
-			}
+			Utility.ParseLines(output.GetStringBuilder(), ParseOutputLine, Done);
 
 			if(Done)
 			// If we are done, hand over the results to any listeners on the main thread
@@ -200,11 +178,8 @@ namespace GitHub.Unity
 		}
 
 
-		bool ParseOutputLine(int start, int end)
+		void ParseOutputLine(string line)
 		{
-			// TODO: Figure out how we get out of doing that ToString call
-			string line = output.GetStringBuilder().ToString(start, (end - start) + 1);
-
 			// Grab change lines
 			Match match = changeRegex.Match(line);
 			if (match.Groups.Count == 3)
@@ -229,8 +204,6 @@ namespace GitHub.Unity
 			{
 				status.RemoteBranch = match.Groups[2].ToString();
 			}
-
-			return true;
 		}
 
 
