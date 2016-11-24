@@ -43,6 +43,10 @@ namespace GitHub.Unity
 		Process process;
 
 
+		protected ProcessTask()
+		{}
+
+
 		public static ProcessTask Parse(IDictionary<string, object> data)
 		// Try to reattach to the process. Assume that we're done if that fails.
 		{

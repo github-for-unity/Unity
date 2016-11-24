@@ -34,7 +34,7 @@ namespace GitHub.Unity
 		protected override TextWriter ErrorBuffer { get { return error; } }
 
 
-		public GitAddTask(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
+		GitAddTask(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
 		{
 			arguments = "add ";
 			arguments += " -- ";

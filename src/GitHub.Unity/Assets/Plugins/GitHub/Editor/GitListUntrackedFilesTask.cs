@@ -13,7 +13,7 @@ namespace GitHub.Unity
 	{
 		public static void Schedule(Action<GitListUntrackedFilesTask> success, Action failure = null)
 		{
-			Tasks.Add(new GitListUntrackedFilesTask(){ onSuccess = success, onFailure = failure });
+			Tasks.Add(new GitListUntrackedFilesTask(success, failure));
 		}
 
 
@@ -37,6 +37,13 @@ namespace GitHub.Unity
 			output = new StringWriter(),
 			error = new StringWriter();
 		List<GitStatusEntry> entries = new List<GitStatusEntry>();
+
+
+		GitListUntrackedFilesTask(Action<GitListUntrackedFilesTask> success, Action failure = null)
+		{
+			onSuccess = success;
+			onFailure = failure;
+		}
 
 
 		protected override void OnProcessOutputUpdate()
