@@ -47,6 +47,7 @@ namespace GitHub.Unity
 			public string Label;
 			public bool Open = true;
 			public GitCommitTarget Target;
+			public Texture Icon;
 
 
 			[SerializeField] string path;
@@ -95,14 +96,20 @@ namespace GitHub.Unity
 			CommitAreaDefaultRatio = .4f,
 			CommitAreaMaxHeight = 10 * 15f,
 			MinCommitTreePadding = 20f,
-			FoldoutWidth = 23f,
-			TreeIndentation = 15f;
+			FoldoutWidth = 16f,
+			TreeIndentation = 18f,
+			CommitIconSize = 16f,
+			CommitIconHorizontalPadding = -5f,
+			CommitFilePrefixSpacing = 2;
 
 
 		static GUIStyle
 			commitFileAreaStyle,
 			commitButtonStyle,
 			commitDescriptionFieldStyle;
+		static Texture2D
+			defaultAssetIcon,
+			folderIcon;
 
 
 		static GUIStyle CommitFileAreaStyle
@@ -149,6 +156,34 @@ namespace GitHub.Unity
 				}
 
 				return commitDescriptionFieldStyle;
+			}
+		}
+
+
+		Texture2D DefaultAssetIcon
+		{
+			get
+			{
+				if (defaultAssetIcon == null)
+				{
+					defaultAssetIcon = EditorGUIUtility.FindTexture("DefaultAsset Icon");
+				}
+
+				return defaultAssetIcon;
+			}
+		}
+
+
+		Texture2D FolderIcon
+		{
+			get
+			{
+				if (folderIcon == null)
+				{
+					folderIcon = EditorGUIUtility.FindTexture("Folder Icon");
+				}
+
+				return folderIcon;
 			}
 		}
 
@@ -228,7 +263,13 @@ namespace GitHub.Unity
 			commitTree = new FileTreeNode(FindCommonPath("" + Path.DirectorySeparatorChar, entries.Select(e => e.Path)));
 			for (int index = 0; index < entries.Count; ++index)
 			{
-				BuildTree(commitTree, new FileTreeNode(entries[index].Path.Substring(commitTree.Path.Length)){ Target = entryCommitTargets[index] });
+				FileTreeNode node = new FileTreeNode(entries[index].Path.Substring(commitTree.Path.Length)){ Target = entryCommitTargets[index] };
+				if (!string.IsNullOrEmpty(entries[index].ProjectPath))
+				{
+					node.Icon = AssetDatabase.GetCachedIcon(entries[index].ProjectPath);
+				}
+
+				BuildTree(commitTree, node);
 			}
 
 			lockCommit = false;
@@ -422,13 +463,14 @@ namespace GitHub.Unity
 		void TreeNode(FileTreeNode node)
 		{
 			GitCommitTarget target = node.Target;
+			bool isFolder = node.Children.Any();
 
 			GUILayout.BeginHorizontal();
 				// Foldout or space for it
-				if (node.Children.Any())
+				if (isFolder)
 				{
 					EditorGUI.BeginChangeCheck();
-						node.Open = GUILayout.Toggle(node.Open, "", EditorStyles.foldout);
+						node.Open = GUILayout.Toggle(node.Open, "", EditorStyles.foldout, GUILayout.Width(FoldoutWidth));
 					if (EditorGUI.EndChangeCheck())
 					{
 						OnCommitTreeChange();
@@ -436,7 +478,7 @@ namespace GitHub.Unity
 				}
 				else
 				{
-					GUILayout.Space(FoldoutWidth);
+					GUILayout.Space(CommitFilePrefixSpacing);
 				}
 
 				// Commit inclusion toggle
@@ -445,7 +487,16 @@ namespace GitHub.Unity
 					target.All = GUILayout.Toggle(target.All, "");
 				}
 
-				// Node label
+				// Node icon and label
+				GUILayout.BeginHorizontal();
+					GUILayout.Space(CommitIconHorizontalPadding);
+					Rect iconRect = GUILayoutUtility.GetRect(CommitIconSize, CommitIconSize);
+					if (Event.current.type == EventType.Repaint)
+					{
+						GUI.DrawTexture(iconRect, node.Icon ?? (isFolder ? FolderIcon : DefaultAssetIcon), ScaleMode.ScaleToFit);
+					}
+					GUILayout.Space(CommitIconHorizontalPadding);
+				GUILayout.EndHorizontal();
 				GUILayout.Label(node.Label);
 
 				GUILayout.FlexibleSpace();
@@ -458,7 +509,7 @@ namespace GitHub.Unity
 			GUILayout.EndHorizontal();
 
 			// Render children (if any and folded out)
-			if (node.Children.Any() && node.Open)
+			if (isFolder && node.Open)
 			{
 				GUILayout.BeginHorizontal();
 					GUILayout.Space(TreeIndentation);

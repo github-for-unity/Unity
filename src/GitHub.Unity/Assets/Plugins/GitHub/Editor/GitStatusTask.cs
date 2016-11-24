@@ -55,13 +55,22 @@ namespace GitHub.Unity
 
 	struct GitStatusEntry
 	{
-		public readonly string Path;
+		public readonly string
+			Path,
+			FullPath,
+			ProjectPath;
 		public readonly GitFileStatus Status;
 
 
 		public GitStatusEntry(string path, GitFileStatus status)
 		{
 			Path = path;
+			FullPath = System.IO.Path.Combine(Utility.GitRoot, Path);
+			string localDataPath = Utility.UnityDataPath.Substring(Utility.GitRoot.Length + 1);
+			ProjectPath = (Path.IndexOf (localDataPath) == 0) ?
+				("Assets" + Path.Substring(localDataPath.Length)).Replace(System.IO.Path.DirectorySeparatorChar, '/') :
+				"";
+
 			Status = status;
 		}
 
@@ -204,7 +213,7 @@ namespace GitHub.Unity
 					path = match.Groups[2].ToString(),
 					statusKey = match.Groups[1].ToString();
 
-				if (!status.Entries.Any(e => e.Path.Equals(path)) && !Directory.Exists(Path.Combine(workingDirectory, path)))
+				if (!status.Entries.Any(e => e.Path.Equals(path)) && !Directory.Exists(Path.Combine(Utility.GitRoot, path)))
 				{
 					status.Entries.Add(new GitStatusEntry(path, FileStatusFromKey(statusKey)));
 				}
