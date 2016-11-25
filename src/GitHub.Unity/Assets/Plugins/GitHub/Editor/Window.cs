@@ -414,7 +414,14 @@ namespace GitHub.Unity
 
 		void OnHistoryGUI()
 		{
-			historyScroll = GUILayout.BeginScrollView(historyScroll);
+			if (history.Any())
+			{
+				historyScroll = GUILayout.BeginScrollView(historyScroll);
+			}
+			else
+			{
+				GUILayout.BeginScrollView(historyScroll);
+			}
 				foreach (GitLogEntry entry in history)
 				{
 					GUILayout.Label(entry.Summary, GUILayout.MaxWidth(position.width - HistorySummaryPadding));
