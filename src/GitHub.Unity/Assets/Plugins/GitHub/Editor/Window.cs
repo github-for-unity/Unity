@@ -305,7 +305,9 @@ namespace GitHub.Unity
 
 		void OnLogUpdate(IList<GitLogEntry> entries)
 		{
+			history.Clear();
 			history.AddRange(entries);
+			Repaint();
 		}
 
 
