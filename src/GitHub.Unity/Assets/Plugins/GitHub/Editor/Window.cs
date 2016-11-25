@@ -92,6 +92,8 @@ namespace GitHub.Unity
 			BasePathLabel = "{0}",
 			NoChangesLabel = "No changes found";
 		const float
+			HistorySummaryPadding = 22f,
+			HistoryEntryPadding = 16f,
 			CommitAreaMinHeight = 16f,
 			CommitAreaDefaultRatio = .4f,
 			CommitAreaMaxHeight = 10 * 15f,
@@ -104,12 +106,30 @@ namespace GitHub.Unity
 
 
 		static GUIStyle
+			historyEntryDetailsStyle,
 			commitFileAreaStyle,
 			commitButtonStyle,
 			commitDescriptionFieldStyle;
 		static Texture2D
 			defaultAssetIcon,
 			folderIcon;
+
+
+		static GUIStyle HistoryEntryDetailsStyle
+		{
+			get
+			{
+				if (historyEntryDetailsStyle == null)
+				{
+					historyEntryDetailsStyle = new GUIStyle(EditorStyles.miniLabel);
+					historyEntryDetailsStyle.name = "HistoryEntryDetailsStyle";
+					Color c = EditorStyles.miniLabel.normal.textColor;
+					historyEntryDetailsStyle.normal.textColor = new Color(c.r, c.g, c.b, c.a * 0.7f);
+				}
+
+				return historyEntryDetailsStyle;
+			}
+		}
 
 
 		static GUIStyle CommitFileAreaStyle
@@ -199,6 +219,7 @@ namespace GitHub.Unity
 		[SerializeField] List<GitStatusEntry> entries = new List<GitStatusEntry>();
 		[SerializeField] List<GitCommitTarget> entryCommitTargets = new List<GitCommitTarget>();
 		[SerializeField] Vector2
+			historyScroll,
 			verticalCommitScroll,
 			horizontalCommitScroll;
 		[SerializeField] string
@@ -392,10 +413,20 @@ namespace GitHub.Unity
 
 		void OnHistoryGUI()
 		{
-			foreach (GitLogEntry entry in history)
-			{
-				GUILayout.Label(entry.ToString());
-			}
+			historyScroll = GUILayout.BeginScrollView(historyScroll);
+				foreach (GitLogEntry entry in history)
+				{
+					GUILayout.Label(entry.Summary, GUILayout.MaxWidth(position.width - HistorySummaryPadding));
+
+					GUILayout.BeginHorizontal();
+						GUILayout.Label(entry.PrettyTimeString, HistoryEntryDetailsStyle);
+						GUILayout.FlexibleSpace();
+						GUILayout.Label(entry.AuthorName, HistoryEntryDetailsStyle);
+					GUILayout.EndHorizontal();
+
+					GUILayout.Space(HistoryEntryPadding);
+				}
+			GUILayout.EndScrollView();
 		}
 
 

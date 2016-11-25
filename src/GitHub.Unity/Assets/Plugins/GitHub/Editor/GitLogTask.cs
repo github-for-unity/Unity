@@ -5,12 +5,17 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.Globalization;
 
 
 namespace GitHub.Unity
 {
 	struct GitLogEntry
 	{
+		const string
+			Today = "Today",
+			Yesterday = "Yesterday";
+
 		public string
 			CommitID,
 			MergeA,
@@ -21,6 +26,34 @@ namespace GitHub.Unity
 			Description;
 		public DateTimeOffset Time;
 		public List<GitStatusEntry> Changes;
+
+
+		public string ShortID
+		{
+			get
+			{
+				return CommitID.Length < 7 ? CommitID : CommitID.Substring(0, 7);
+			}
+		}
+
+
+		public string PrettyTimeString
+		{
+			get
+			{
+				DateTimeOffset
+					now = DateTimeOffset.Now,
+					relative = Time.ToLocalTime();
+
+				return string.Format(
+					"{0}, {1:HH}:{1:mm}",
+					relative.DayOfYear == now.DayOfYear ? Today :
+						relative.DayOfYear == now.DayOfYear - 1 ? Yesterday :
+							relative.ToString("d MMM yyyy"),
+					relative
+				);
+			}
+		}
 
 
 		public void Clear()
@@ -232,8 +265,8 @@ Description: {7}",
 						if (DateTimeOffset.TryParseExact(
 							time,
 							GitTimeFormat,
-							System.Globalization.CultureInfo.InvariantCulture,
-							System.Globalization.DateTimeStyles.None,
+							CultureInfo.InvariantCulture,
+							DateTimeStyles.None,
 							out parsedEntry.Time
 						))
 						{
