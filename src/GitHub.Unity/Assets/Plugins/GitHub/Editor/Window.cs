@@ -172,6 +172,7 @@ namespace GitHub.Unity
 				if (commitDescriptionFieldStyle == null)
 				{
 					commitDescriptionFieldStyle = new GUIStyle(GUI.skin.textArea);
+					commitDescriptionFieldStyle.name = "CommitDescriptionFieldStyle";
 					commitDescriptionFieldStyle.wordWrap = true;
 				}
 
