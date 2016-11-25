@@ -37,6 +37,28 @@ namespace GitHub.Unity
 		}
 
 
+		public static string RepositoryPathToAbsolute(string repositoryPath)
+		{
+			return Path.Combine(Utility.GitRoot, repositoryPath);
+		}
+
+
+		public static string RepositoryPathToAsset(string repositoryPath)
+		{
+			string localDataPath = UnityDataPath.Substring(GitRoot.Length + 1);
+			return (repositoryPath.IndexOf (localDataPath) == 0) ?
+				("Assets" + repositoryPath.Substring(localDataPath.Length)).Replace(Path.DirectorySeparatorChar, '/') :
+				null;
+		}
+
+
+		public static string AssetPathToRepository(string assetPath)
+		{
+			string localDataPath = UnityDataPath.Substring(GitRoot.Length + 1);
+			return Path.Combine(localDataPath.Substring(0, localDataPath.Length - "Assets".Length), assetPath.Replace('/', Path.DirectorySeparatorChar));
+		}
+
+
 		public static void ParseLines(StringBuilder buffer, Action<string> lineParser, bool parseAll)
 		{
 			int end = buffer.Length - 1;

@@ -114,12 +114,8 @@ namespace GitHub.Unity
 		public GitStatusEntry(string path, GitFileStatus status)
 		{
 			Path = path;
-			FullPath = System.IO.Path.Combine(Utility.GitRoot, Path);
-			string localDataPath = Utility.UnityDataPath.Substring(Utility.GitRoot.Length + 1);
-			ProjectPath = (Path.IndexOf (localDataPath) == 0) ?
-				("Assets" + Path.Substring(localDataPath.Length)).Replace(System.IO.Path.DirectorySeparatorChar, '/') :
-				"";
-
+			FullPath = Utility.RepositoryPathToAbsolute(Path);
+			ProjectPath = Utility.RepositoryPathToAsset(Path);
 			Status = status;
 		}
 
@@ -218,7 +214,7 @@ namespace GitHub.Unity
 			// Grab change lines
 			if (GitStatusEntry.TryParse(line, out entry))
 			{
-				if (!status.Entries.Any(e => e.Path.Equals(entry.Path)) && !Directory.Exists(Path.Combine(Utility.GitRoot, entry.Path)))
+				if (!status.Entries.Any(e => e.Path.Equals(entry.Path)) && !Directory.Exists(Utility.RepositoryPathToAbsolute(entry.Path)))
 				{
 					status.Entries.Add(entry);
 				}
