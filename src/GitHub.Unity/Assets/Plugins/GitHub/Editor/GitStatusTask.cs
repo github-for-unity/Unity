@@ -67,7 +67,7 @@ namespace GitHub.Unity
 			"R",
 			"C"
 		};
-		static Regex regex = new Regex(@"([AMRDC]|\?\?)\s+([\w\d\/\.\-_ ]+)");
+		static Regex regex = new Regex(@"([AMRDC]|\?\?)(?:\d*)\s+([\w\d\/\.\-_ ]+)");
 
 
 		public static bool TryParse(string line, out GitStatusEntry entry)
