@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using Object = UnityEngine.Object;
 
 
 namespace GitHub.Unity
@@ -81,6 +82,8 @@ namespace GitHub.Unity
 			ViewModeChangesTab = "Changes",
 			RefreshButton = "Refresh",
 			UnknownViewModeError = "Unsupported view mode: {0}",
+			HistoryFocusAll = "(All)",
+			HistoryFocusSingle = "Focus: {0}",
 			SummaryLabel = "Commit summary",
 			DescriptionLabel = "Commit description",
 			CommitButton = "Commit to <b>{0}</b>",
@@ -106,6 +109,7 @@ namespace GitHub.Unity
 
 
 		static GUIStyle
+			historyLockStyle,
 			historyEntryDetailsStyle,
 			commitFileAreaStyle,
 			commitButtonStyle,
@@ -113,6 +117,23 @@ namespace GitHub.Unity
 		static Texture2D
 			defaultAssetIcon,
 			folderIcon;
+
+
+		static GUIStyle HistoryLockStyle
+		{
+			get
+			{
+				if (historyLockStyle == null)
+				{
+					historyLockStyle = new GUIStyle(GUI.skin.FindStyle("IN LockButton"));
+					historyLockStyle.name = "HistoryLockStyle";
+				}
+
+				historyLockStyle.margin = new RectOffset(0, 0, 2, 2);
+
+				return historyLockStyle;
+			}
+		}
 
 
 		static GUIStyle HistoryEntryDetailsStyle
@@ -229,6 +250,8 @@ namespace GitHub.Unity
 			currentBranch = "placeholder-placeholder"; // TODO: Ask for branch into updates as well
 		[SerializeField] FileTreeNode commitTree;
 		[SerializeField] List<GitLogEntry> history = new List<GitLogEntry>();
+		[SerializeField] bool historyLocked = true;
+		[SerializeField] Object historyTarget = null;
 
 
 		bool lockCommit = true;
@@ -405,7 +428,14 @@ namespace GitHub.Unity
 		{
 			if (viewMode == ViewMode.History)
 			{
-				GitLogTask.Schedule();
+				if (historyTarget != null)
+				{
+					GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)));
+				}
+				else
+				{
+					GitLogTask.Schedule();
+				}
 			}
 			else if (viewMode == ViewMode.Changes)
 			{
@@ -416,6 +446,23 @@ namespace GitHub.Unity
 
 		void OnHistoryGUI()
 		{
+			GUILayout.BeginHorizontal(EditorStyles.toolbar);
+				EditorGUI.BeginDisabledGroup(historyTarget == null);
+					if (GUILayout.Button(historyTarget == null ? HistoryFocusAll : string.Format(HistoryFocusSingle, historyTarget.name), EditorStyles.toolbarButton))
+					{
+						historyTarget = null;
+						Refresh();
+					}
+				EditorGUI.EndDisabledGroup();
+				GUILayout.FlexibleSpace();
+				EditorGUI.BeginChangeCheck();
+					historyLocked = GUILayout.Toggle(historyLocked, GUIContent.none, HistoryLockStyle);
+				if (EditorGUI.EndChangeCheck())
+				{
+					OnSelectionChange();
+				}
+			GUILayout.EndHorizontal();
+
 			if (history.Any())
 			{
 				historyScroll = GUILayout.BeginScrollView(historyScroll);
@@ -437,6 +484,21 @@ namespace GitHub.Unity
 					GUILayout.Space(HistoryEntryPadding);
 				}
 			GUILayout.EndScrollView();
+		}
+
+
+		void OnSelectionChange()
+		{
+			if (viewMode != ViewMode.History || historyLocked)
+			{
+				return;
+			}
+
+			if (!string.IsNullOrEmpty(AssetDatabase.GetAssetPath(Selection.activeObject)))
+			{
+				historyTarget = Selection.activeObject;
+				Refresh();
+			}
 		}
 
 
