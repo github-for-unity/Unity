@@ -206,6 +206,7 @@ namespace GitHub.Unity
 			commitBody = "",
 			currentBranch = "placeholder-placeholder"; // TODO: Ask for branch into updates as well
 		[SerializeField] FileTreeNode commitTree;
+		[SerializeField] List<GitLogEntry> history = new List<GitLogEntry>();
 
 
 		bool lockCommit = true;
@@ -215,12 +216,14 @@ namespace GitHub.Unity
 		void OnEnable()
 		{
 			GitStatusTask.RegisterCallback(OnStatusUpdate);
-			GitStatusTask.Schedule();
+			GitLogTask.RegisterCallback(OnLogUpdate);
+			Refresh();
 		}
 
 
 		void OnDisable()
 		{
+			GitLogTask.UnregisterCallback(OnLogUpdate);
 			GitStatusTask.UnregisterCallback(OnStatusUpdate);
 		}
 
@@ -275,6 +278,12 @@ namespace GitHub.Unity
 			lockCommit = false;
 
 			OnCommitTreeChange();
+		}
+
+
+		void OnLogUpdate(IList<GitLogEntry> entries)
+		{
+			history.AddRange(entries);
 		}
 
 
@@ -336,14 +345,19 @@ namespace GitHub.Unity
 
 			// Subtabs & toolbar
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
-				viewMode = GUILayout.Toggle(viewMode == ViewMode.History, ViewModeHistoryTab, EditorStyles.toolbarButton) ? ViewMode.History : viewMode;
-				viewMode = GUILayout.Toggle(viewMode == ViewMode.Changes, ViewModeChangesTab, EditorStyles.toolbarButton) ? ViewMode.Changes : viewMode;
+				EditorGUI.BeginChangeCheck();
+					viewMode = GUILayout.Toggle(viewMode == ViewMode.History, ViewModeHistoryTab, EditorStyles.toolbarButton) ? ViewMode.History : viewMode;
+					viewMode = GUILayout.Toggle(viewMode == ViewMode.Changes, ViewModeChangesTab, EditorStyles.toolbarButton) ? ViewMode.Changes : viewMode;
+				if (EditorGUI.EndChangeCheck())
+				{
+					Refresh();
+				}
 
 				GUILayout.FlexibleSpace();
 
 				if (GUILayout.Button(RefreshButton, EditorStyles.toolbarButton))
 				{
-					GitStatusTask.Schedule();
+					Refresh();
 				}
 			GUILayout.EndHorizontal();
 
@@ -363,9 +377,25 @@ namespace GitHub.Unity
 		}
 
 
+		void Refresh()
+		{
+			if (viewMode == ViewMode.History)
+			{
+				GitLogTask.Schedule();
+			}
+			else if (viewMode == ViewMode.Changes)
+			{
+				GitStatusTask.Schedule();
+			}
+		}
+
+
 		void OnHistoryGUI()
 		{
-			GUILayout.Label("TODO");
+			foreach (GitLogEntry entry in history)
+			{
+				GUILayout.Label(entry.ToString());
+			}
 		}
 
 
