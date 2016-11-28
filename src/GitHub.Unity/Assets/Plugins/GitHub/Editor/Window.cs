@@ -531,6 +531,14 @@ namespace GitHub.Unity
 				timestampRect = new Rect(entryRect.x, entryRect.yMax - HistoryDetailsHeight, entryRect.width * .5f, HistoryDetailsHeight);
 			Rect authorRect = new Rect(timestampRect.xMax, timestampRect.y, timestampRect.width, timestampRect.height);
 
+			if (!string.IsNullOrEmpty(entry.MergeA))
+			{
+				const float MergeIndicatorSize = 40f;
+				Rect mergeIndicatorRect = new Rect(summaryRect.x, summaryRect.y, MergeIndicatorSize, summaryRect.height);
+				GUI.Label(mergeIndicatorRect, "Merge:", HistoryEntryDetailsStyle);
+				summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorSize, summaryRect.height);
+			}
+
 			GUI.Label(summaryRect, entry.Summary);
 			GUI.Label(timestampRect, entry.PrettyTimeString, HistoryEntryDetailsStyle);
 			GUI.Label(authorRect, entry.AuthorName, HistoryEntryDetailsRightStyle);
