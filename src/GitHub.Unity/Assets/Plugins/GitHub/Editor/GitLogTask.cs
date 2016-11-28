@@ -161,7 +161,7 @@ Description: {7}",
 
 			if (!string.IsNullOrEmpty(file))
 			{
-				arguments = string.Format("{0} --follow {1}", arguments, file);
+				arguments = string.Format("{0} --follow -m {1}", arguments, file);
 			}
 		}
 
@@ -173,6 +173,9 @@ Description: {7}",
 			if (Done && !completed)
 			{
 				completed = true;
+
+				// Complete parsing on the last entry
+				ParseOutputLine(null);
 
 				// Handle failure / success
 				StringBuilder buffer = error.GetStringBuilder();
