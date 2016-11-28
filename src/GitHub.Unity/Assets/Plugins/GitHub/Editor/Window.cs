@@ -355,6 +355,7 @@ namespace GitHub.Unity
 		{
 			history.Clear();
 			history.AddRange(entries);
+			CullHistory();
 			Repaint();
 		}
 
@@ -514,12 +515,19 @@ namespace GitHub.Unity
 				GUILayout.Space((history.Count - historyStopIndex) * totalEntryHeight);
 			GUILayout.EndScrollView();
 
-			// Recalculate the range of history items to handle - based on what is visible, plus a bit of padding for fast scrolling
 			if (Event.current.type == EventType.Repaint)
 			{
-				historyStartIndex = (int)Mathf.Clamp(historyScroll.y / totalEntryHeight - HistoryExtraItemCount, 0, history.Count);
-				historyStopIndex = (int)Mathf.Clamp(historyStartIndex + position.height / totalEntryHeight + 1 + HistoryExtraItemCount, 0, history.Count);
+				CullHistory();
 			}
+		}
+
+
+		void CullHistory()
+		// Recalculate the range of history items to handle - based on what is visible, plus a bit of padding for fast scrolling
+		{
+			float totalEntryHeight = HistoryEntryHeight + HistoryEntryPadding;
+			historyStartIndex = (int)Mathf.Clamp(historyScroll.y / totalEntryHeight - HistoryExtraItemCount, 0, history.Count);
+			historyStopIndex = (int)Mathf.Clamp(historyStartIndex + position.height / totalEntryHeight + 1 + HistoryExtraItemCount, 0, history.Count);
 		}
 
 
