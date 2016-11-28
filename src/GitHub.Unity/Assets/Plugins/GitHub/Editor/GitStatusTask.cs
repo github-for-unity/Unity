@@ -42,6 +42,9 @@ namespace GitHub.Unity
 		public string
 			LocalBranch,
 			RemoteBranch;
+		public int
+			Ahead,
+			Behind;
 		public List<GitStatusEntry> Entries;
 
 
@@ -139,7 +142,9 @@ namespace GitHub.Unity
 
 
 		static Action<GitStatus> onStatusUpdate;
-		static Regex branchLineValidRegex = new Regex(@"\#\#\s+(?:[\w\d\/\-_\.]+)");
+		static Regex
+			branchLineValidRegex = new Regex(@"\#\#\s+(?:[\w\d\/\-_\.]+)"),
+			aheadBehindRegex = new Regex(@"\[ahead (?<ahead>\d+), behind (?<behind>\d+)\]|\[ahead (?<ahead>\d+)\]|\[behind (?<behind>\d+>)\]");
 
 
 		public static void RegisterCallback(Action<GitStatus> callback)
@@ -236,9 +241,22 @@ namespace GitHub.Unity
 					status.RemoteBranch = line.Substring(index + BranchNamesSeparator.Length);
 					index = status.RemoteBranch.IndexOf('[');
 					if (index > 0)
+					// Ahead and/or behind information available
 					{
+						Match match = aheadBehindRegex.Match(status.RemoteBranch.Substring(index - 1));
+
 						status.RemoteBranch = status.RemoteBranch.Substring(0, index).Trim();
-						// TODO: Consider tracking how far ahead/behind branches are
+
+						string
+							aheadString = match.Groups["ahead"].Value,
+							behindString = match.Groups["behind"].Value;
+
+						status.Ahead = string.IsNullOrEmpty(aheadString) ? 0 : Int32.Parse(aheadString);
+						status.Behind = string.IsNullOrEmpty(behindString) ? 0 : Int32.Parse(behindString);
+					}
+					else
+					{
+						status.RemoteBranch = status.RemoteBranch.Trim();
 					}
 				}
 				else
