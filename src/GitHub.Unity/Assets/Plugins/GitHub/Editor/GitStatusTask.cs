@@ -135,8 +135,11 @@ namespace GitHub.Unity
 
 	class GitStatusTask : ProcessTask
 	{
+		const string BranchNamesSeparator = "...";
+
+
 		static Action<GitStatus> onStatusUpdate;
-		static Regex branchRegex = new Regex(@"\#\#\s+([\w\d\/\.\-_ ]+)(?:\.\.\.([\w\d\/\.\-_ ]+))?");
+		static Regex branchLineValidRegex = new Regex(@"\#\#\s+(?:[\w\d\/\-_\.]+)");
 
 
 		public static void RegisterCallback(Action<GitStatus> callback)
@@ -223,14 +226,26 @@ namespace GitHub.Unity
 
 
 			// Grab local and remote branch
-			Match match = branchRegex.Match(line);
-			if (match.Groups.Count >= 2)
+			if (branchLineValidRegex.Match(line).Success)
 			{
-				status.LocalBranch = match.Groups[1].ToString();
-			}
-			if (match.Groups.Count == 3)
-			{
-				status.RemoteBranch = match.Groups[2].ToString();
+				int index = line.IndexOf(BranchNamesSeparator);
+				if (index >= 0)
+				// Remote branch available
+				{
+					status.LocalBranch = line.Substring(2, index - 2);
+					status.RemoteBranch = line.Substring(index + BranchNamesSeparator.Length);
+					index = status.RemoteBranch.IndexOf('[');
+					if (index > 0)
+					{
+						status.RemoteBranch = status.RemoteBranch.Substring(0, index).Trim();
+						// TODO: Consider tracking how far ahead/behind branches are
+					}
+				}
+				else
+				// No remote branch
+				{
+					status.LocalBranch = line.Substring(2).Trim();
+				}
 			}
 		}
 	}
