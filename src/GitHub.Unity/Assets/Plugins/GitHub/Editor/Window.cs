@@ -95,7 +95,9 @@ namespace GitHub.Unity
 			BasePathLabel = "{0}",
 			NoChangesLabel = "No changes found";
 		const float
-			HistorySummaryPadding = 22f,
+			HistoryEntryHeight = 30f,
+			HistorySummaryHeight = 16f,
+			HistoryDetailsHeight = 16f,
 			HistoryEntryPadding = 16f,
 			CommitAreaMinHeight = 16f,
 			CommitAreaDefaultRatio = .4f,
@@ -106,11 +108,14 @@ namespace GitHub.Unity
 			CommitIconSize = 16f,
 			CommitIconHorizontalPadding = -5f,
 			CommitFilePrefixSpacing = 2;
+		const int
+			HistoryExtraItemCount = 10;
 
 
 		static GUIStyle
 			historyLockStyle,
 			historyEntryDetailsStyle,
+			historyEntryDetailsRightStyle,
 			commitFileAreaStyle,
 			commitButtonStyle,
 			commitDescriptionFieldStyle;
@@ -149,6 +154,23 @@ namespace GitHub.Unity
 				}
 
 				return historyEntryDetailsStyle;
+			}
+		}
+
+
+		static GUIStyle HistoryEntryDetailsRightStyle
+		{
+			get
+			{
+				if (historyEntryDetailsRightStyle == null)
+				{
+					historyEntryDetailsRightStyle = new GUIStyle(HistoryEntryDetailsStyle);
+					historyEntryDetailsRightStyle.name = "HistoryEntryDetailsRightStyle";
+				}
+
+				historyEntryDetailsRightStyle.alignment = TextAnchor.MiddleRight;
+
+				return historyEntryDetailsRightStyle;
 			}
 		}
 
@@ -256,6 +278,9 @@ namespace GitHub.Unity
 
 		bool lockCommit = true;
 		float commitTreeHeight;
+		int
+			historyStartIndex,
+			historyStopIndex;
 
 
 		void OnEnable()
@@ -446,7 +471,9 @@ namespace GitHub.Unity
 
 		void OnHistoryGUI()
 		{
+			// History toolbar
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
+				// Target indicator / clear button
 				EditorGUI.BeginDisabledGroup(historyTarget == null);
 					if (GUILayout.Button(historyTarget == null ? HistoryFocusAll : string.Format(HistoryFocusSingle, historyTarget.name), EditorStyles.toolbarButton))
 					{
@@ -454,7 +481,10 @@ namespace GitHub.Unity
 						Refresh();
 					}
 				EditorGUI.EndDisabledGroup();
+
 				GUILayout.FlexibleSpace();
+
+				// Target lock button
 				EditorGUI.BeginChangeCheck();
 					historyLocked = GUILayout.Toggle(historyLocked, GUIContent.none, HistoryLockStyle);
 				if (EditorGUI.EndChangeCheck())
@@ -463,6 +493,7 @@ namespace GitHub.Unity
 				}
 			GUILayout.EndHorizontal();
 
+			// When history scroll actually changes, store time value of topmost visible entry. This is the value we use to reposition scroll on log update - not the pixel value.
 			if (history.Any())
 			{
 				historyScroll = GUILayout.BeginScrollView(historyScroll);
@@ -471,19 +502,38 @@ namespace GitHub.Unity
 			{
 				GUILayout.BeginScrollView(historyScroll);
 			}
-				foreach (GitLogEntry entry in history)
+				// Handle only the selected range of history items - adding spacing for the rest
+				float totalEntryHeight = HistoryEntryHeight + HistoryEntryPadding;
+				GUILayout.Space(historyStartIndex * totalEntryHeight);
+				for (int index = historyStartIndex; index < historyStopIndex; ++index)
 				{
-					GUILayout.Label(entry.Summary, GUILayout.MaxWidth(position.width - HistorySummaryPadding));
-
-					GUILayout.BeginHorizontal();
-						GUILayout.Label(entry.PrettyTimeString, HistoryEntryDetailsStyle);
-						GUILayout.FlexibleSpace();
-						GUILayout.Label(entry.AuthorName, HistoryEntryDetailsStyle);
-					GUILayout.EndHorizontal();
+					HistoryEntry(history[index]);
 
 					GUILayout.Space(HistoryEntryPadding);
 				}
+				GUILayout.Space((history.Count - historyStopIndex) * totalEntryHeight);
 			GUILayout.EndScrollView();
+
+			// Recalculate the range of history items to handle - based on what is visible, plus a bit of padding for fast scrolling
+			if (Event.current.type == EventType.Repaint)
+			{
+				historyStartIndex = (int)Mathf.Clamp(historyScroll.y / totalEntryHeight - HistoryExtraItemCount, 0, history.Count);
+				historyStopIndex = (int)Mathf.Clamp(historyStartIndex + position.height / totalEntryHeight + 1 + HistoryExtraItemCount, 0, history.Count);
+			}
+		}
+
+
+		void HistoryEntry(GitLogEntry entry)
+		{
+			Rect entryRect = GUILayoutUtility.GetRect(HistoryEntryHeight, HistoryEntryHeight);
+			Rect
+				summaryRect = new Rect(entryRect.x, entryRect.y, entryRect.width, HistorySummaryHeight),
+				timestampRect = new Rect(entryRect.x, entryRect.yMax - HistoryDetailsHeight, entryRect.width * .5f, HistoryDetailsHeight);
+			Rect authorRect = new Rect(timestampRect.xMax, timestampRect.y, timestampRect.width, timestampRect.height);
+
+			GUI.Label(summaryRect, entry.Summary);
+			GUI.Label(timestampRect, entry.PrettyTimeString, HistoryEntryDetailsStyle);
+			GUI.Label(authorRect, entry.AuthorName, HistoryEntryDetailsRightStyle);
 		}
 
 
