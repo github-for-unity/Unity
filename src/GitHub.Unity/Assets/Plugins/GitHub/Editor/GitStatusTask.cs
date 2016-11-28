@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ namespace GitHub.Unity
 		}
 	}
 
+
 	enum GitFileStatus
 	{
 		Untracked,
@@ -35,18 +37,47 @@ namespace GitHub.Unity
 	}
 
 
+	struct GitStatus
+	{
+		public string
+			LocalBranch,
+			RemoteBranch;
+		public List<GitStatusEntry> Entries;
+
+
+		public void Clear()
+		{
+			LocalBranch = RemoteBranch = "";
+			Entries.Clear();
+		}
+	}
+
+
 	struct GitStatusEntry
 	{
-		string path;
-		public string Path { get { return path; } }
-		GitFileStatus status;
-		public GitFileStatus Status { get { return status; } }
+		public readonly string
+			Path,
+			FullPath,
+			ProjectPath;
+		public readonly GitFileStatus Status;
 
 
 		public GitStatusEntry(string path, GitFileStatus status)
 		{
-			this.path = path;
-			this.status = status;
+			Path = path;
+			FullPath = System.IO.Path.Combine(Utility.GitRoot, Path);
+			string localDataPath = Utility.UnityDataPath.Substring(Utility.GitRoot.Length + 1);
+			ProjectPath = (Path.IndexOf (localDataPath) == 0) ?
+				("Assets" + Path.Substring(localDataPath.Length)).Replace(System.IO.Path.DirectorySeparatorChar, '/') :
+				"";
+
+			Status = status;
+		}
+
+
+		public override int GetHashCode()
+		{
+			return Path.GetHashCode();
 		}
 
 
@@ -73,16 +104,20 @@ namespace GitHub.Unity
 		};
 
 
-		static Action<IList<GitStatusEntry>> onStatusUpdate;
+		const string BranchNamesSeparator = "...";
 
 
-		public static void RegisterCallback(Action<IList<GitStatusEntry>> callback)
+		static Action<GitStatus> onStatusUpdate;
+		static Regex branchLineValidRegex = new Regex(@"\#\#\s+(?:[\w\d\/\-_\.]+)");
+
+
+		public static void RegisterCallback(Action<GitStatus> callback)
 		{
 			onStatusUpdate += callback;
 		}
 
 
-		public static void UnregisterCallback(Action<IList<GitStatusEntry>> callback)
+		public static void UnregisterCallback(Action<GitStatus> callback)
 		{
 			onStatusUpdate -= callback;
 		}
@@ -90,7 +125,7 @@ namespace GitHub.Unity
 
 		public static void Schedule()
 		{
-			Tasks.Add(new GitStatusTask());
+			GitListUntrackedFilesTask.Schedule(task => Tasks.Add(new GitStatusTask(task.Entries)));
 		}
 
 
@@ -101,7 +136,7 @@ namespace GitHub.Unity
 
 
 		protected override string ProcessName { get { return "git"; } }
-		protected override string ProcessArguments { get { return "status --porcelain"; } }
+		protected override string ProcessArguments { get { return "status -b --porcelain"; } }
 		protected override TextWriter OutputBuffer { get { return output; } }
 		protected override TextWriter ErrorBuffer { get { return error; } }
 
@@ -109,8 +144,20 @@ namespace GitHub.Unity
 		StringWriter
 			output = new StringWriter(),
 			error = new StringWriter();
-		Regex lineRegex = new Regex(@"([AMRDC]|\?\?)\s+([\w\d\/\.\-_ ]+)");
-		List<GitStatusEntry> entries = new List<GitStatusEntry>();
+		Regex
+			changeRegex = new Regex(@"([AMRDC]|\?\?)\s+([\w\d\/\.\-_ ]+)"),
+			branchRegex = new Regex(@"\#\#\s+([\w\d\/\.\-_ ]+)\.\.\.([\w\d\/\.\-_ ]+)");
+		GitStatus status;
+
+
+		GitStatusTask(IList<GitStatusEntry> existingEntries = null)
+		{
+			status.Entries = new List<GitStatusEntry>();
+			if (existingEntries != null)
+			{
+				status.Entries.AddRange(existingEntries);
+			}
+		}
 
 
 		protected override void OnProcessOutputUpdate()
@@ -151,25 +198,55 @@ namespace GitHub.Unity
 		{
 			if(onStatusUpdate != null)
 			{
-				onStatusUpdate(entries);
-				entries.Clear();
+				onStatusUpdate(status);
+				status.Clear();
 			}
 		}
 
 
-		void ParseOutputLine(int start, int end)
+		bool ParseOutputLine(int start, int end)
 		{
-			StringBuilder buffer = output.GetStringBuilder();
-
 			// TODO: Figure out how we get out of doing that ToString call
-			Match match = lineRegex.Match(buffer.ToString(start, (end - start) + 1));
+			string line = output.GetStringBuilder().ToString(start, (end - start) + 1);
 
-			if(match.Groups.Count < 3)
+			// Grab change lines
+			Match match = changeRegex.Match(line);
+			if (match.Groups.Count == 3)
 			{
-				return;
+				string
+					path = match.Groups[2].ToString(),
+					statusKey = match.Groups[1].ToString();
+
+				if (!status.Entries.Any(e => e.Path.Equals(path)) && !Directory.Exists(Path.Combine(Utility.GitRoot, path)))
+				{
+					status.Entries.Add(new GitStatusEntry(path, FileStatusFromKey(statusKey)));
+				}
 			}
 
-			entries.Add(new GitStatusEntry(match.Groups[2].ToString(), FileStatusFromKey(match.Groups[1].ToString())));
+			// Grab local and remote branch
+			if (branchLineValidRegex.Match(line).Success)
+			{
+				int index = line.IndexOf(BranchNamesSeparator);
+				if (index >= 0)
+				// Remote branch available
+				{
+					status.LocalBranch = line.Substring(2, index - 2);
+					status.RemoteBranch = line.Substring(index + BranchNamesSeparator.Length);
+					index = status.RemoteBranch.IndexOf('[');
+					if (index > 0)
+					{
+						status.RemoteBranch = status.RemoteBranch.Substring(0, index).Trim();
+						// TODO: Consider tracking how far ahead/behind branches are
+					}
+				}
+				else
+				// No remote branch
+				{
+					status.LocalBranch = line.Substring(2).Trim();
+				}
+			}
+
+			return true;
 		}
 
 
