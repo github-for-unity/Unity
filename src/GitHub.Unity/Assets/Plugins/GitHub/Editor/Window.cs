@@ -571,23 +571,24 @@ namespace GitHub.Unity
 			if (history.Any())
 			{
 				historyScroll = GUILayout.BeginScrollView(historyScroll);
+					// Handle only the selected range of history items - adding spacing for the rest
+					float totalEntryHeight = HistoryEntryHeight + HistoryEntryPadding;
+					GUILayout.Space(historyStartIndex * totalEntryHeight);
+					for (int index = historyStartIndex; index < historyStopIndex; ++index)
+					{
+						LogEntryState entryState = (historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal);
+
+						HistoryEntry(history[index], entryState);
+
+						GUILayout.Space(HistoryEntryPadding);
+					}
+					GUILayout.Space((history.Count - historyStopIndex) * totalEntryHeight);
 			}
 			else
 			{
 				GUILayout.BeginScrollView(historyScroll);
 			}
-				// Handle only the selected range of history items - adding spacing for the rest
-				float totalEntryHeight = HistoryEntryHeight + HistoryEntryPadding;
-				GUILayout.Space(historyStartIndex * totalEntryHeight);
-				for (int index = historyStartIndex; index < historyStopIndex; ++index)
-				{
-					LogEntryState entryState = (historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal);
 
-					HistoryEntry(history[index], entryState);
-
-					GUILayout.Space(HistoryEntryPadding);
-				}
-				GUILayout.Space((history.Count - historyStopIndex) * totalEntryHeight);
 			GUILayout.EndScrollView();
 
 			if (Event.current.type == EventType.Repaint)
@@ -700,7 +701,7 @@ namespace GitHub.Unity
 						horizontalCommitScroll = GUILayout.BeginScrollView(horizontalCommitScroll);
 					}
 						// The file tree (when available)
-						if (commitTree != null || entries.Count < 1)
+						if (commitTree != null && entries.Any())
 						{
 							// Base path label
 							if (!string.IsNullOrEmpty(commitTree.Path))
