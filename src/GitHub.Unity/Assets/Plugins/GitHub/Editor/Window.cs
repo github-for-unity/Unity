@@ -493,7 +493,7 @@ namespace GitHub.Unity
 					OnCommitGUI();
 				break;
 				default:
-					GUILayout.Label(string.Format(UnknownViewModeError));
+					GUILayout.Label(string.Format(UnknownViewModeError, viewMode));
 				break;
 			}
 		}
