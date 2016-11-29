@@ -39,7 +39,8 @@ namespace GitHub.Unity
 		enum ViewMode
 		{
 			History,
-			Changes
+			Changes,
+			Settings
 		}
 
 
@@ -111,8 +112,17 @@ namespace GitHub.Unity
 		const string
 			Title = "GitHub",
 			LaunchMenu = "Window/GitHub",
+			NoActiveRepositoryTitle = "No repository found",
+			NoActiveRepositoryMessage = "Your current project is not currently in an active git repository:",
+			GitInitBrowseButton = "...",
+			GitInitBrowseTitle = "Pick desired repository root",
+			GitInitButton = "Set up git",
+			InvalidInitDirectoryTitle = "Invalid repository root",
+			InvalidInitDirectoryMessage = "Your selected folder '{0}' is not a valid repository root for your current project.",
+			InvalidInitDirectoryOK = "OK",
 			ViewModeHistoryTab = "History",
 			ViewModeChangesTab = "Changes",
+			ViewModeSettingsTab = "Settings",
 			RefreshButton = "Refresh",
 			UnknownViewModeError = "Unsupported view mode: {0}",
 			HistoryFocusAll = "(All)",
@@ -140,6 +150,8 @@ namespace GitHub.Unity
 			BasePathLabel = "{0}",
 			NoChangesLabel = "No changes found";
 		const float
+			NoActiveRepositoryWidth = 200f,
+			BrowseFolderButtonHorizontalPadding = -4f,
 			HistoryEntryHeight = 30f,
 			HistorySummaryHeight = 16f,
 			HistoryDetailsHeight = 16f,
@@ -158,6 +170,7 @@ namespace GitHub.Unity
 
 
 		static GUIStyle
+			longMessageStyle,
 			historyToolbarButtonStyle,
 			historyLockStyle,
 			historyEntryDetailsStyle,
@@ -168,6 +181,23 @@ namespace GitHub.Unity
 		static Texture2D
 			defaultAssetIcon,
 			folderIcon;
+
+
+		static GUIStyle LongMessageStyle
+		{
+			get
+			{
+				if (longMessageStyle == null)
+				{
+					longMessageStyle = new GUIStyle(EditorStyles.miniLabel);
+					longMessageStyle.name = "LongMessageStyle";
+					longMessageStyle.richText = true;
+					longMessageStyle.wordWrap = true;
+				}
+
+				return longMessageStyle;
+			}
+		}
 
 
 		static GUIStyle HistoryToolbarButtonStyle
@@ -347,6 +377,7 @@ namespace GitHub.Unity
 			historyStopIndex,
 			statusAhead,
 			statusBehind;
+		string initDirectory;
 
 
 		void OnEnable()
@@ -490,11 +521,19 @@ namespace GitHub.Unity
 			// Set window title
 			titleContent = new GUIContent(Title);
 
+			// Initial state
+			if (!Utility.ActiveRepository)
+			{
+				OnSettingsGUI();
+				return;
+			}
+
 			// Subtabs & toolbar
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
 				EditorGUI.BeginChangeCheck();
 					viewMode = GUILayout.Toggle(viewMode == ViewMode.History, ViewModeHistoryTab, EditorStyles.toolbarButton) ? ViewMode.History : viewMode;
 					viewMode = GUILayout.Toggle(viewMode == ViewMode.Changes, ViewModeChangesTab, EditorStyles.toolbarButton) ? ViewMode.Changes : viewMode;
+					viewMode = GUILayout.Toggle(viewMode == ViewMode.Settings, ViewModeSettingsTab, EditorStyles.toolbarButton) ? ViewMode.Settings : viewMode;
 				if (EditorGUI.EndChangeCheck())
 				{
 					Refresh();
@@ -516,6 +555,9 @@ namespace GitHub.Unity
 				break;
 				case ViewMode.Changes:
 					OnCommitGUI();
+				break;
+				case ViewMode.Settings:
+					OnSettingsGUI();
 				break;
 				default:
 					GUILayout.Label(string.Format(UnknownViewModeError, viewMode));
@@ -544,6 +586,70 @@ namespace GitHub.Unity
 			}
 
 			GitStatusTask.Schedule();
+		}
+
+
+		void ResetInitDirectory()
+		{
+			initDirectory = Utility.UnityDataPath.Substring(0, Utility.UnityDataPath.Length - "Assets".Length);
+			GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+		}
+
+
+		void OnSettingsGUI()
+		{
+			if (!Utility.ActiveRepository)
+			{
+				// If we do run init, make sure that we return to the settings tab for further setup
+				viewMode = ViewMode.Settings;
+
+				GUILayout.BeginVertical();
+					GUILayout.FlexibleSpace();
+					GUILayout.BeginHorizontal();
+						GUILayout.FlexibleSpace();
+						// Initial state message
+						GUILayout.BeginVertical(GUILayout.MaxWidth(NoActiveRepositoryWidth));
+							GUILayout.Label(NoActiveRepositoryTitle, EditorStyles.boldLabel);
+							GUILayout.Label(NoActiveRepositoryMessage, LongMessageStyle);
+							GUILayout.BeginHorizontal();
+								if (string.IsNullOrEmpty(initDirectory))
+								{
+									ResetInitDirectory();
+								}
+								initDirectory = EditorGUILayout.TextField(initDirectory);
+								GUILayout.Space(BrowseFolderButtonHorizontalPadding);
+								if (GUILayout.Button(GitInitBrowseButton, EditorStyles.miniButtonRight))
+								{
+									initDirectory = EditorUtility.OpenFolderPanel(GitInitBrowseTitle, initDirectory, "");
+									if (Utility.UnityDataPath.IndexOf(initDirectory) != 0)
+									{
+										EditorUtility.DisplayDialog(
+											InvalidInitDirectoryTitle,
+											string.Format(InvalidInitDirectoryMessage, initDirectory),
+											InvalidInitDirectoryOK
+										);
+										ResetInitDirectory();
+									}
+									GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+								}
+							GUILayout.EndHorizontal();
+						GUILayout.EndVertical();
+						GUILayout.FlexibleSpace();
+					GUILayout.EndHorizontal();
+					GUILayout.BeginHorizontal();
+						GUILayout.FlexibleSpace();
+						// Git init, which starts the config flow
+						if (GUILayout.Button(GitInitButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+						{
+							Init();
+						}
+						GUILayout.FlexibleSpace();
+					GUILayout.EndHorizontal();
+					GUILayout.FlexibleSpace();
+				GUILayout.EndVertical();
+
+				return;
+			}
 		}
 
 
@@ -857,6 +963,12 @@ namespace GitHub.Unity
 					GUILayout.EndHorizontal();
 				EditorGUI.EndDisabledGroup();
 			GUILayout.EndVertical();
+		}
+
+
+		void Init()
+		{
+			Debug.LogFormat("TODO: Init '{0}'", initDirectory);
 		}
 
 
