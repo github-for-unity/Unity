@@ -148,7 +148,12 @@ namespace GitHub.Unity
 			OneChangedFileLabel = "1 changed file",
 			NoChangedFilesLabel = "No changed files",
 			BasePathLabel = "{0}",
-			NoChangesLabel = "No changes found";
+			NoChangesLabel = "No changes found",
+			RemotesTitle = "Remotes",
+			RemoteNameTitle = "Name",
+			RemoteUserTitle = "User",
+			RemoteHostTitle = "Host",
+			RemoteAccessTitle = "Access";
 		const float
 			NoActiveRepositoryWidth = 200f,
 			BrowseFolderButtonHorizontalPadding = -4f,
@@ -164,7 +169,12 @@ namespace GitHub.Unity
 			TreeIndentation = 18f,
 			CommitIconSize = 16f,
 			CommitIconHorizontalPadding = -5f,
-			CommitFilePrefixSpacing = 2;
+			CommitFilePrefixSpacing = 2,
+			RemotesTotalHorizontalMargin = 37,
+			RemotesNameRatio = 0.2f,
+			RemotesUserRatio = 0.2f,
+			RemotesHostRation = 0.5f,
+			RemotesAccessRatio = 0.1f;
 		const int
 			HistoryExtraItemCount = 10;
 
@@ -368,6 +378,7 @@ namespace GitHub.Unity
 		[SerializeField] List<GitLogEntry> history = new List<GitLogEntry>();
 		[SerializeField] bool historyLocked = true;
 		[SerializeField] Object historyTarget = null;
+		[SerializeField] List<GitRemote> remotes = new List<GitRemote>();
 
 
 		bool lockCommit = true;
@@ -384,12 +395,14 @@ namespace GitHub.Unity
 		{
 			GitStatusTask.RegisterCallback(OnStatusUpdate);
 			GitLogTask.RegisterCallback(OnLogUpdate);
+			GitListRemotesTask.RegisterCallback(OnRemotesUpdate);
 			Refresh();
 		}
 
 
 		void OnDisable()
 		{
+			GitListRemotesTask.UnregisterCallback(OnRemotesUpdate);
 			GitLogTask.UnregisterCallback(OnLogUpdate);
 			GitStatusTask.UnregisterCallback(OnStatusUpdate);
 		}
@@ -461,6 +474,14 @@ namespace GitHub.Unity
 			history.Clear();
 			history.AddRange(entries);
 			CullHistory();
+			Repaint();
+		}
+
+
+		void OnRemotesUpdate(IList<GitRemote> entries)
+		{
+			remotes.Clear();
+			remotes.AddRange(entries);
 			Repaint();
 		}
 
@@ -573,16 +594,21 @@ namespace GitHub.Unity
 				return;
 			}
 
-			if (viewMode == ViewMode.History)
+			switch (viewMode)
 			{
-				if (historyTarget != null)
-				{
-					GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)));
-				}
-				else
-				{
-					GitLogTask.Schedule();
-				}
+				case ViewMode.History:
+					if (historyTarget != null)
+					{
+						GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)));
+					}
+					else
+					{
+						GitLogTask.Schedule();
+					}
+				break;
+				case ViewMode.Settings:
+					GitListRemotesTask.Schedule();
+				break;
 			}
 
 			GitStatusTask.Schedule();
@@ -650,6 +676,40 @@ namespace GitHub.Unity
 
 				return;
 			}
+
+			GUILayout.Label("TODO: Favourite branches settings?");
+
+			float remotesWith = position.width - RemotesTotalHorizontalMargin;
+			float
+				nameWidth = remotesWith * RemotesNameRatio,
+				userWidth = remotesWith * RemotesUserRatio,
+				hostWidth = remotesWith * RemotesHostRation,
+				accessWidth = remotesWith * RemotesAccessRatio;
+
+			GUILayout.Label(RemotesTitle, EditorStyles.boldLabel);
+			GUILayout.BeginVertical(GUI.skin.box);
+				GUILayout.BeginHorizontal(EditorStyles.toolbar);
+					GUILayout.Label(RemoteNameTitle, EditorStyles.miniLabel, GUILayout.Width(nameWidth), GUILayout.MaxWidth(nameWidth));
+					GUILayout.Label(RemoteUserTitle, EditorStyles.miniLabel, GUILayout.Width(userWidth), GUILayout.MaxWidth(userWidth));
+					GUILayout.Label(RemoteHostTitle, EditorStyles.miniLabel, GUILayout.Width(hostWidth), GUILayout.MaxWidth(hostWidth));
+					GUILayout.Label(RemoteAccessTitle, EditorStyles.miniLabel, GUILayout.Width(accessWidth), GUILayout.MaxWidth(accessWidth));
+				GUILayout.EndHorizontal();
+
+				for (int index = 0; index < remotes.Count; ++index)
+				{
+					GitRemote remote = remotes[index];
+					GUILayout.BeginHorizontal();
+						GUILayout.Label(remote.Name, EditorStyles.miniLabel, GUILayout.Width(nameWidth), GUILayout.MaxWidth(nameWidth));
+						GUILayout.Label(remote.User, EditorStyles.miniLabel, GUILayout.Width(userWidth), GUILayout.MaxWidth(userWidth));
+						GUILayout.Label(remote.Host, EditorStyles.miniLabel, GUILayout.Width(hostWidth), GUILayout.MaxWidth(hostWidth));
+						GUILayout.Label(remote.Function.ToString(), EditorStyles.miniLabel, GUILayout.Width(accessWidth), GUILayout.MaxWidth(accessWidth));
+					GUILayout.EndHorizontal();
+				}
+			GUILayout.EndVertical();
+
+			GUILayout.Label("TODO: GitHub login settings");
+			GUILayout.Label("TODO: Auto-fetch toggle");
+			GUILayout.Label("TODO: Auto-push toggle");
 		}
 
 
