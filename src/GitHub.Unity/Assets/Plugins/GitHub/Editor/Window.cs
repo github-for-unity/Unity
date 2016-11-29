@@ -91,7 +91,19 @@ namespace GitHub.Unity
 			RefreshButton = "Refresh",
 			UnknownViewModeError = "Unsupported view mode: {0}",
 			HistoryFocusAll = "(All)",
-			HistoryFocusSingle = "Focus: {0}",
+			HistoryFocusSingle = "Focus: <b>{0}</b>",
+			PullButton = "Pull",
+			PullButtonCount = "Pull ({<b>0</b>})",
+			PushButton = "Push",
+			PushButtonCount = "Push (<b>{0}</b>)",
+			PullConfirmTitle = "Pull Changes?",
+			PullConfirmDescription = "Would you like to pull changes from remote '{0}'?",
+			PullConfirmYes = "Pull",
+			PullConfirmCancel = "Cancel",
+			PushConfirmTitle = "Push Changes?",
+			PushConfirmDescription = "Would you like to push changes to remote '{0}'?",
+			PushConfirmYes = "Push",
+			PushConfirmCancel = "Cancel",
 			SummaryLabel = "Commit summary",
 			DescriptionLabel = "Commit description",
 			CommitButton = "Commit to <b>{0}</b>",
@@ -121,6 +133,7 @@ namespace GitHub.Unity
 
 
 		static GUIStyle
+			historyToolbarButtonStyle,
 			historyLockStyle,
 			historyEntryDetailsStyle,
 			historyEntryDetailsRightStyle,
@@ -130,6 +143,23 @@ namespace GitHub.Unity
 		static Texture2D
 			defaultAssetIcon,
 			folderIcon;
+
+
+		static GUIStyle HistoryToolbarButtonStyle
+		{
+			get
+			{
+				if (historyToolbarButtonStyle == null)
+				{
+					historyToolbarButtonStyle = new GUIStyle(EditorStyles.toolbarButton);
+					historyToolbarButtonStyle.name = "HistoryToolbarButtonStyle";
+					historyToolbarButtonStyle.richText = true;
+					historyToolbarButtonStyle.wordWrap = true;
+				}
+
+				return historyToolbarButtonStyle;
+			}
+		}
 
 
 		static GUIStyle HistoryLockStyle
@@ -142,7 +172,7 @@ namespace GitHub.Unity
 					historyLockStyle.name = "HistoryLockStyle";
 				}
 
-				historyLockStyle.margin = new RectOffset(0, 0, 2, 2);
+				historyLockStyle.margin = new RectOffset(3, 3, 2, 2);
 
 				return historyLockStyle;
 			}
@@ -277,7 +307,8 @@ namespace GitHub.Unity
 		[SerializeField] string
 			commitMessage = "",
 			commitBody = "",
-			currentBranch = "placeholder-placeholder"; // TODO: Ask for branch into updates as well
+			currentBranch = "[unknown]",
+			currentRemote = "placeholder";
 		[SerializeField] FileTreeNode commitTree;
 		[SerializeField] List<GitLogEntry> history = new List<GitLogEntry>();
 		[SerializeField] bool historyLocked = true;
@@ -314,6 +345,12 @@ namespace GitHub.Unity
 			currentBranch = update.LocalBranch;
 			statusAhead = update.Ahead;
 			statusBehind = update.Behind;
+
+			if (viewMode != ViewMode.Changes)
+			// No need to update the rest unless we're in the changes view
+			{
+				return;
+			}
 
 			// Remove what got nuked
 			for (int index = 0; index < entries.Count;)
@@ -475,10 +512,8 @@ namespace GitHub.Unity
 					GitLogTask.Schedule();
 				}
 			}
-			else if (viewMode == ViewMode.Changes)
-			{
-				GitStatusTask.Schedule();
-			}
+
+			GitStatusTask.Schedule();
 		}
 
 
@@ -488,7 +523,7 @@ namespace GitHub.Unity
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
 				// Target indicator / clear button
 				EditorGUI.BeginDisabledGroup(historyTarget == null);
-					if (GUILayout.Button(historyTarget == null ? HistoryFocusAll : string.Format(HistoryFocusSingle, historyTarget.name), EditorStyles.toolbarButton))
+					if (GUILayout.Button(historyTarget == null ? HistoryFocusAll : string.Format(HistoryFocusSingle, historyTarget.name), HistoryToolbarButtonStyle))
 					{
 						historyTarget = null;
 						Refresh();
@@ -496,6 +531,32 @@ namespace GitHub.Unity
 				EditorGUI.EndDisabledGroup();
 
 				GUILayout.FlexibleSpace();
+
+				// Pull / Push buttons
+				if (
+					GUILayout.Button(statusBehind > 0 ? string.Format(PullButtonCount, statusBehind) : PullButton, HistoryToolbarButtonStyle) &&
+					EditorUtility.DisplayDialog(
+						PullConfirmTitle,
+						string.Format(PullConfirmDescription, currentRemote),
+						PullConfirmYes,
+						PullConfirmCancel
+					)
+				)
+				{
+					Pull();
+				}
+				if (
+					GUILayout.Button(statusAhead > 0 ? string.Format(PushButtonCount, statusAhead) : PushButton, HistoryToolbarButtonStyle) &&
+					EditorUtility.DisplayDialog(
+						PushConfirmTitle,
+						string.Format(PushConfirmDescription, currentRemote),
+						PushConfirmYes,
+						PushConfirmCancel
+					)
+				)
+				{
+					Push();
+				}
 
 				// Target lock button
 				EditorGUI.BeginChangeCheck();
@@ -783,6 +844,18 @@ namespace GitHub.Unity
 			{
 				entryCommitTargets[index].All = false;
 			}
+		}
+
+
+		void Pull()
+		{
+			Debug.Log("TODO: Pull");
+		}
+
+
+		void Push()
+		{
+			Debug.Log("TODO: Push");
 		}
 
 
