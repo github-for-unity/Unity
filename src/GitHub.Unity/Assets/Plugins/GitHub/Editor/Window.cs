@@ -18,6 +18,14 @@ namespace GitHub.Unity
 		}
 
 
+		enum LogEntryState
+		{
+			Normal,
+			Local,
+			Remote
+		}
+
+
 		[Serializable]
 		class GitCommitTarget
 		{
@@ -280,7 +288,9 @@ namespace GitHub.Unity
 		float commitTreeHeight;
 		int
 			historyStartIndex,
-			historyStopIndex;
+			historyStopIndex,
+			statusAhead,
+			statusBehind;
 
 
 		void OnEnable()
@@ -300,8 +310,10 @@ namespace GitHub.Unity
 
 		void OnStatusUpdate(GitStatus update)
 		{
-			// Set branch
+			// Set branch state
 			currentBranch = update.LocalBranch;
+			statusAhead = update.Ahead;
+			statusBehind = update.Behind;
 
 			// Remove what got nuked
 			for (int index = 0; index < entries.Count;)
@@ -508,7 +520,9 @@ namespace GitHub.Unity
 				GUILayout.Space(historyStartIndex * totalEntryHeight);
 				for (int index = historyStartIndex; index < historyStopIndex; ++index)
 				{
-					HistoryEntry(history[index]);
+					LogEntryState entryState = (historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal);
+
+					HistoryEntry(history[index], entryState);
 
 					GUILayout.Space(HistoryEntryPadding);
 				}
@@ -531,7 +545,7 @@ namespace GitHub.Unity
 		}
 
 
-		void HistoryEntry(GitLogEntry entry)
+		void HistoryEntry(GitLogEntry entry, LogEntryState state)
 		{
 			Rect entryRect = GUILayoutUtility.GetRect(HistoryEntryHeight, HistoryEntryHeight);
 			Rect
@@ -545,6 +559,14 @@ namespace GitHub.Unity
 				Rect mergeIndicatorRect = new Rect(summaryRect.x, summaryRect.y, MergeIndicatorSize, summaryRect.height);
 				GUI.Label(mergeIndicatorRect, "Merge:", HistoryEntryDetailsStyle);
 				summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorSize, summaryRect.height);
+			}
+
+			if (state == LogEntryState.Local)
+			{
+				const float LocalIndicatorSize = 40f;
+				Rect localIndicatorRect = new Rect(summaryRect.x, summaryRect.y, LocalIndicatorSize, summaryRect.height);
+				GUI.Label(localIndicatorRect, "Local:", HistoryEntryDetailsStyle);
+				summaryRect.Set(localIndicatorRect.xMax, summaryRect.y, summaryRect.width - LocalIndicatorSize, summaryRect.height);
 			}
 
 			GUI.Label(summaryRect, entry.Summary);
