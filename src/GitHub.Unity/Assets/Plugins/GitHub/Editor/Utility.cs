@@ -11,6 +11,13 @@ namespace GitHub.Unity
 	{
 		public static string GitRoot { get; protected set; }
 		public static string UnityDataPath { get; protected set; }
+		public static bool ActiveRepository
+		{
+			get
+			{
+				return !string.IsNullOrEmpty(GitRoot);
+			}
+		}
 
 
 		[InitializeOnLoadMethod]
@@ -25,7 +32,7 @@ namespace GitHub.Unity
 		{
 			if (string.IsNullOrEmpty(Path.GetDirectoryName(path)))
 			{
-				return UnityDataPath;
+				return null;
 			}
 
 			if (Directory.Exists(Path.Combine(path, ".git")))

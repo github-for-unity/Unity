@@ -526,6 +526,11 @@ namespace GitHub.Unity
 
 		public void Refresh()
 		{
+			if (!Utility.ActiveRepository)
+			{
+				return;
+			}
+
 			if (viewMode == ViewMode.History)
 			{
 				if (historyTarget != null)
