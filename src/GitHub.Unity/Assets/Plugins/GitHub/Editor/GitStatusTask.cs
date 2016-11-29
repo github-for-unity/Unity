@@ -10,22 +10,6 @@ using System.Collections.Generic;
 
 namespace GitHub.Unity
 {
-	class GitStatusTaskRunner : AssetPostprocessor
-	{
-		[InitializeOnLoadMethod]
-		static void OnLoad()
-		{
-			Tasks.ScheduleMainThread(() => GitStatusTask.Schedule());
-		}
-
-
-		static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moveDestination, string[] moveSource)
-		{
-			GitStatusTask.Schedule();
-		}
-	}
-
-
 	enum GitFileStatus
 	{
 		Untracked,

@@ -9,6 +9,31 @@ using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
+	class RefreshRunner : AssetPostprocessor
+	{
+		[InitializeOnLoadMethod]
+		static void OnLoad()
+		{
+			Tasks.ScheduleMainThread(Refresh);
+		}
+
+
+		static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moveDestination, string[] moveSource)
+		{
+			Refresh();
+		}
+
+
+		static void Refresh()
+		{
+			foreach (Window window in Object.FindObjectsOfType(typeof(Window)))
+			{
+				window.Refresh();
+			}
+		}
+	}
+
+
 	public class Window : EditorWindow
 	{
 		enum ViewMode
@@ -499,7 +524,7 @@ namespace GitHub.Unity
 		}
 
 
-		void Refresh()
+		public void Refresh()
 		{
 			if (viewMode == ViewMode.History)
 			{
