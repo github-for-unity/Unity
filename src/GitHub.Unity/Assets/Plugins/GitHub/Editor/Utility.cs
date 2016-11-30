@@ -7,10 +7,11 @@ using System.Text;
 
 namespace GitHub.Unity
 {
-	class Utility
+	class Utility : ScriptableObject
 	{
 		public static string GitRoot { get; protected set; }
 		public static string UnityDataPath { get; protected set; }
+		public static string ExtensionInstallPath { get; protected set; }
 		public static bool ActiveRepository
 		{
 			get
@@ -23,7 +24,27 @@ namespace GitHub.Unity
 		[InitializeOnLoadMethod]
 		static void Prepare()
 		{
+			// Root paths
 			GitRoot = FindRoot(UnityDataPath = Application.dataPath);
+
+			// Juggling to find out where we got installed
+			Utility instance = FindObjectOfType(typeof(Utility)) as Utility;
+			if (instance == null)
+			{
+				instance = CreateInstance<Utility>();
+			}
+			MonoScript script = MonoScript.FromScriptableObject(instance);
+			if (script == null)
+			{
+				ExtensionInstallPath = string.Empty;
+			}
+			else
+			{
+				ExtensionInstallPath = AssetDatabase.GetAssetPath(script);
+				ExtensionInstallPath = ExtensionInstallPath.Substring(0, ExtensionInstallPath.LastIndexOf('/'));
+				ExtensionInstallPath = ExtensionInstallPath.Substring(0, ExtensionInstallPath.LastIndexOf('/'));
+			}
+			DestroyImmediate(instance);
 		}
 
 
@@ -93,6 +114,12 @@ namespace GitHub.Unity
 
 				buffer.Remove(0, end + 1);
 			}
+		}
+
+
+		public static Texture2D GetIcon(string filename)
+		{
+			return AssetDatabase.LoadMainAssetAtPath(ExtensionInstallPath + "/Icons/" + filename) as Texture2D;
 		}
 	}
 }
