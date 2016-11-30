@@ -88,6 +88,7 @@ namespace GitHub.Unity
 			{
 				process = Process.Start(new ProcessStartInfo(ProcessName, ProcessArguments)
 				{
+					CreateNoWindow = true,
 					UseShellExecute = false,
 					RedirectStandardError = true,
 					RedirectStandardOutput = true,
