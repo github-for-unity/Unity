@@ -79,7 +79,7 @@ namespace GitHub.Unity
 		[Serializable]
 		class FileTreeNode
 		{
-			public string Label;
+			public string Label, RepositoryPath;
 			public bool Open = true;
 			public GitCommitTarget Target;
 			public Texture Icon;
@@ -452,6 +452,7 @@ namespace GitHub.Unity
 
 			// Build tree structure
 			commitTree = new FileTreeNode(FindCommonPath("" + Path.DirectorySeparatorChar, entries.Select(e => e.Path)));
+			commitTree.RepositoryPath = commitTree.Path;
 			for (int index = 0; index < entries.Count; ++index)
 			{
 				FileTreeNode node = new FileTreeNode(entries[index].Path.Substring(commitTree.Path.Length)){ Target = entryCommitTargets[index] };
@@ -502,6 +503,8 @@ namespace GitHub.Unity
 				return;
 			}
 
+			node.RepositoryPath = Path.Combine(parent.RepositoryPath, node.Label);
+
 			// Is this node inside a folder?
 			int index = node.Label.IndexOf(Path.DirectorySeparatorChar);
 			if (index > 0)
@@ -526,7 +529,7 @@ namespace GitHub.Unity
 				// No existing branch - we will have to add a new one to build from
 				if (!found)
 				{
-					BuildTree(parent.Add(new FileTreeNode(root)), node);
+					BuildTree(parent.Add(new FileTreeNode(root){ RepositoryPath = Path.Combine(parent.RepositoryPath, root) }), node);
 				}
 			}
 			// Not inside a folder - just add this node right here
@@ -976,7 +979,7 @@ namespace GitHub.Unity
 					}
 					GUILayout.Space(CommitIconHorizontalPadding);
 				GUILayout.EndHorizontal();
-				GUILayout.Label(node.Label);
+				GUILayout.Label(new GUIContent(node.Label, node.RepositoryPath));
 
 				GUILayout.FlexibleSpace();
 
