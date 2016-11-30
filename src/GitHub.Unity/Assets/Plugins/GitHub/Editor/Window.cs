@@ -9,12 +9,38 @@ using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
+	class RefreshRunner : AssetPostprocessor
+	{
+		[InitializeOnLoadMethod]
+		static void OnLoad()
+		{
+			Tasks.ScheduleMainThread(Refresh);
+		}
+
+
+		static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moveDestination, string[] moveSource)
+		{
+			Refresh();
+		}
+
+
+		static void Refresh()
+		{
+			foreach (Window window in Object.FindObjectsOfType(typeof(Window)))
+			{
+				window.Refresh();
+			}
+		}
+	}
+
+
 	public class Window : EditorWindow
 	{
 		enum ViewMode
 		{
 			History,
-			Changes
+			Changes,
+			Settings
 		}
 
 
@@ -86,8 +112,17 @@ namespace GitHub.Unity
 		const string
 			Title = "GitHub",
 			LaunchMenu = "Window/GitHub",
+			NoActiveRepositoryTitle = "No repository found",
+			NoActiveRepositoryMessage = "Your current project is not currently in an active git repository:",
+			GitInitBrowseButton = "...",
+			GitInitBrowseTitle = "Pick desired repository root",
+			GitInitButton = "Set up git",
+			InvalidInitDirectoryTitle = "Invalid repository root",
+			InvalidInitDirectoryMessage = "Your selected folder '{0}' is not a valid repository root for your current project.",
+			InvalidInitDirectoryOK = "OK",
 			ViewModeHistoryTab = "History",
 			ViewModeChangesTab = "Changes",
+			ViewModeSettingsTab = "Settings",
 			RefreshButton = "Refresh",
 			UnknownViewModeError = "Unsupported view mode: {0}",
 			HistoryFocusAll = "(All)",
@@ -113,8 +148,15 @@ namespace GitHub.Unity
 			OneChangedFileLabel = "1 changed file",
 			NoChangedFilesLabel = "No changed files",
 			BasePathLabel = "{0}",
-			NoChangesLabel = "No changes found";
+			NoChangesLabel = "No changes found",
+			RemotesTitle = "Remotes",
+			RemoteNameTitle = "Name",
+			RemoteUserTitle = "User",
+			RemoteHostTitle = "Host",
+			RemoteAccessTitle = "Access";
 		const float
+			NoActiveRepositoryWidth = 200f,
+			BrowseFolderButtonHorizontalPadding = -4f,
 			HistoryEntryHeight = 30f,
 			HistorySummaryHeight = 16f,
 			HistoryDetailsHeight = 16f,
@@ -127,12 +169,18 @@ namespace GitHub.Unity
 			TreeIndentation = 18f,
 			CommitIconSize = 16f,
 			CommitIconHorizontalPadding = -5f,
-			CommitFilePrefixSpacing = 2;
+			CommitFilePrefixSpacing = 2,
+			RemotesTotalHorizontalMargin = 37,
+			RemotesNameRatio = 0.2f,
+			RemotesUserRatio = 0.2f,
+			RemotesHostRation = 0.5f,
+			RemotesAccessRatio = 0.1f;
 		const int
 			HistoryExtraItemCount = 10;
 
 
 		static GUIStyle
+			longMessageStyle,
 			historyToolbarButtonStyle,
 			historyLockStyle,
 			historyEntryDetailsStyle,
@@ -143,6 +191,23 @@ namespace GitHub.Unity
 		static Texture2D
 			defaultAssetIcon,
 			folderIcon;
+
+
+		static GUIStyle LongMessageStyle
+		{
+			get
+			{
+				if (longMessageStyle == null)
+				{
+					longMessageStyle = new GUIStyle(EditorStyles.miniLabel);
+					longMessageStyle.name = "LongMessageStyle";
+					longMessageStyle.richText = true;
+					longMessageStyle.wordWrap = true;
+				}
+
+				return longMessageStyle;
+			}
+		}
 
 
 		static GUIStyle HistoryToolbarButtonStyle
@@ -313,6 +378,7 @@ namespace GitHub.Unity
 		[SerializeField] List<GitLogEntry> history = new List<GitLogEntry>();
 		[SerializeField] bool historyLocked = true;
 		[SerializeField] Object historyTarget = null;
+		[SerializeField] List<GitRemote> remotes = new List<GitRemote>();
 
 
 		bool lockCommit = true;
@@ -322,18 +388,21 @@ namespace GitHub.Unity
 			historyStopIndex,
 			statusAhead,
 			statusBehind;
+		string initDirectory;
 
 
 		void OnEnable()
 		{
 			GitStatusTask.RegisterCallback(OnStatusUpdate);
 			GitLogTask.RegisterCallback(OnLogUpdate);
+			GitListRemotesTask.RegisterCallback(OnRemotesUpdate);
 			Refresh();
 		}
 
 
 		void OnDisable()
 		{
+			GitListRemotesTask.UnregisterCallback(OnRemotesUpdate);
 			GitLogTask.UnregisterCallback(OnLogUpdate);
 			GitStatusTask.UnregisterCallback(OnStatusUpdate);
 		}
@@ -409,6 +478,14 @@ namespace GitHub.Unity
 		}
 
 
+		void OnRemotesUpdate(IList<GitRemote> entries)
+		{
+			remotes.Clear();
+			remotes.AddRange(entries);
+			Repaint();
+		}
+
+
 		void OnCommitTreeChange()
 		{
 			commitTreeHeight = 0f;
@@ -465,11 +542,19 @@ namespace GitHub.Unity
 			// Set window title
 			titleContent = new GUIContent(Title);
 
+			// Initial state
+			if (!Utility.ActiveRepository)
+			{
+				OnSettingsGUI();
+				return;
+			}
+
 			// Subtabs & toolbar
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
 				EditorGUI.BeginChangeCheck();
 					viewMode = GUILayout.Toggle(viewMode == ViewMode.History, ViewModeHistoryTab, EditorStyles.toolbarButton) ? ViewMode.History : viewMode;
 					viewMode = GUILayout.Toggle(viewMode == ViewMode.Changes, ViewModeChangesTab, EditorStyles.toolbarButton) ? ViewMode.Changes : viewMode;
+					viewMode = GUILayout.Toggle(viewMode == ViewMode.Settings, ViewModeSettingsTab, EditorStyles.toolbarButton) ? ViewMode.Settings : viewMode;
 				if (EditorGUI.EndChangeCheck())
 				{
 					Refresh();
@@ -492,28 +577,139 @@ namespace GitHub.Unity
 				case ViewMode.Changes:
 					OnCommitGUI();
 				break;
+				case ViewMode.Settings:
+					OnSettingsGUI();
+				break;
 				default:
-					GUILayout.Label(string.Format(UnknownViewModeError));
+					GUILayout.Label(string.Format(UnknownViewModeError, viewMode));
 				break;
 			}
 		}
 
 
-		void Refresh()
+		public void Refresh()
 		{
-			if (viewMode == ViewMode.History)
+			if (!Utility.ActiveRepository)
 			{
-				if (historyTarget != null)
-				{
-					GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)));
-				}
-				else
-				{
-					GitLogTask.Schedule();
-				}
+				return;
+			}
+
+			switch (viewMode)
+			{
+				case ViewMode.History:
+					if (historyTarget != null)
+					{
+						GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)));
+					}
+					else
+					{
+						GitLogTask.Schedule();
+					}
+				break;
+				case ViewMode.Settings:
+					GitListRemotesTask.Schedule();
+				break;
 			}
 
 			GitStatusTask.Schedule();
+		}
+
+
+		void ResetInitDirectory()
+		{
+			initDirectory = Utility.UnityDataPath.Substring(0, Utility.UnityDataPath.Length - "Assets".Length);
+			GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+		}
+
+
+		void OnSettingsGUI()
+		{
+			if (!Utility.ActiveRepository)
+			{
+				// If we do run init, make sure that we return to the settings tab for further setup
+				viewMode = ViewMode.Settings;
+
+				GUILayout.BeginVertical();
+					GUILayout.FlexibleSpace();
+					GUILayout.BeginHorizontal();
+						GUILayout.FlexibleSpace();
+						// Initial state message
+						GUILayout.BeginVertical(GUILayout.MaxWidth(NoActiveRepositoryWidth));
+							GUILayout.Label(NoActiveRepositoryTitle, EditorStyles.boldLabel);
+							GUILayout.Label(NoActiveRepositoryMessage, LongMessageStyle);
+							GUILayout.BeginHorizontal();
+								if (string.IsNullOrEmpty(initDirectory))
+								{
+									ResetInitDirectory();
+								}
+								initDirectory = EditorGUILayout.TextField(initDirectory);
+								GUILayout.Space(BrowseFolderButtonHorizontalPadding);
+								if (GUILayout.Button(GitInitBrowseButton, EditorStyles.miniButtonRight))
+								{
+									initDirectory = EditorUtility.OpenFolderPanel(GitInitBrowseTitle, initDirectory, "");
+									if (Utility.UnityDataPath.IndexOf(initDirectory) != 0)
+									{
+										EditorUtility.DisplayDialog(
+											InvalidInitDirectoryTitle,
+											string.Format(InvalidInitDirectoryMessage, initDirectory),
+											InvalidInitDirectoryOK
+										);
+										ResetInitDirectory();
+									}
+									GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+								}
+							GUILayout.EndHorizontal();
+						GUILayout.EndVertical();
+						GUILayout.FlexibleSpace();
+					GUILayout.EndHorizontal();
+					GUILayout.BeginHorizontal();
+						GUILayout.FlexibleSpace();
+						// Git init, which starts the config flow
+						if (GUILayout.Button(GitInitButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+						{
+							Init();
+						}
+						GUILayout.FlexibleSpace();
+					GUILayout.EndHorizontal();
+					GUILayout.FlexibleSpace();
+				GUILayout.EndVertical();
+
+				return;
+			}
+
+			GUILayout.Label("TODO: Favourite branches settings?");
+
+			float remotesWith = position.width - RemotesTotalHorizontalMargin;
+			float
+				nameWidth = remotesWith * RemotesNameRatio,
+				userWidth = remotesWith * RemotesUserRatio,
+				hostWidth = remotesWith * RemotesHostRation,
+				accessWidth = remotesWith * RemotesAccessRatio;
+
+			GUILayout.Label(RemotesTitle, EditorStyles.boldLabel);
+			GUILayout.BeginVertical(GUI.skin.box);
+				GUILayout.BeginHorizontal(EditorStyles.toolbar);
+					GUILayout.Label(RemoteNameTitle, EditorStyles.miniLabel, GUILayout.Width(nameWidth), GUILayout.MaxWidth(nameWidth));
+					GUILayout.Label(RemoteUserTitle, EditorStyles.miniLabel, GUILayout.Width(userWidth), GUILayout.MaxWidth(userWidth));
+					GUILayout.Label(RemoteHostTitle, EditorStyles.miniLabel, GUILayout.Width(hostWidth), GUILayout.MaxWidth(hostWidth));
+					GUILayout.Label(RemoteAccessTitle, EditorStyles.miniLabel, GUILayout.Width(accessWidth), GUILayout.MaxWidth(accessWidth));
+				GUILayout.EndHorizontal();
+
+				for (int index = 0; index < remotes.Count; ++index)
+				{
+					GitRemote remote = remotes[index];
+					GUILayout.BeginHorizontal();
+						GUILayout.Label(remote.Name, EditorStyles.miniLabel, GUILayout.Width(nameWidth), GUILayout.MaxWidth(nameWidth));
+						GUILayout.Label(remote.User, EditorStyles.miniLabel, GUILayout.Width(userWidth), GUILayout.MaxWidth(userWidth));
+						GUILayout.Label(remote.Host, EditorStyles.miniLabel, GUILayout.Width(hostWidth), GUILayout.MaxWidth(hostWidth));
+						GUILayout.Label(remote.Function.ToString(), EditorStyles.miniLabel, GUILayout.Width(accessWidth), GUILayout.MaxWidth(accessWidth));
+					GUILayout.EndHorizontal();
+				}
+			GUILayout.EndVertical();
+
+			GUILayout.Label("TODO: GitHub login settings");
+			GUILayout.Label("TODO: Auto-fetch toggle");
+			GUILayout.Label("TODO: Auto-push toggle");
 		}
 
 
@@ -571,23 +767,24 @@ namespace GitHub.Unity
 			if (history.Any())
 			{
 				historyScroll = GUILayout.BeginScrollView(historyScroll);
+					// Handle only the selected range of history items - adding spacing for the rest
+					float totalEntryHeight = HistoryEntryHeight + HistoryEntryPadding;
+					GUILayout.Space(historyStartIndex * totalEntryHeight);
+					for (int index = historyStartIndex; index < historyStopIndex; ++index)
+					{
+						LogEntryState entryState = (historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal);
+
+						HistoryEntry(history[index], entryState);
+
+						GUILayout.Space(HistoryEntryPadding);
+					}
+					GUILayout.Space((history.Count - historyStopIndex) * totalEntryHeight);
 			}
 			else
 			{
 				GUILayout.BeginScrollView(historyScroll);
 			}
-				// Handle only the selected range of history items - adding spacing for the rest
-				float totalEntryHeight = HistoryEntryHeight + HistoryEntryPadding;
-				GUILayout.Space(historyStartIndex * totalEntryHeight);
-				for (int index = historyStartIndex; index < historyStopIndex; ++index)
-				{
-					LogEntryState entryState = (historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal);
 
-					HistoryEntry(history[index], entryState);
-
-					GUILayout.Space(HistoryEntryPadding);
-				}
-				GUILayout.Space((history.Count - historyStopIndex) * totalEntryHeight);
 			GUILayout.EndScrollView();
 
 			if (Event.current.type == EventType.Repaint)
@@ -700,7 +897,7 @@ namespace GitHub.Unity
 						horizontalCommitScroll = GUILayout.BeginScrollView(horizontalCommitScroll);
 					}
 						// The file tree (when available)
-						if (commitTree != null || entries.Count < 1)
+						if (commitTree != null && entries.Any())
 						{
 							// Base path label
 							if (!string.IsNullOrEmpty(commitTree.Path))
@@ -826,6 +1023,12 @@ namespace GitHub.Unity
 					GUILayout.EndHorizontal();
 				EditorGUI.EndDisabledGroup();
 			GUILayout.EndVertical();
+		}
+
+
+		void Init()
+		{
+			Debug.LogFormat("TODO: Init '{0}'", initDirectory);
 		}
 
 
