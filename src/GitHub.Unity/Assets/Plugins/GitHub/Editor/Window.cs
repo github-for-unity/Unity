@@ -253,6 +253,7 @@ namespace GitHub.Unity
 			commitDescriptionFieldStyle,
 			toggleMixedStyle;
 		static Texture2D
+			titleIcon,
 			defaultAssetIcon,
 			folderIcon;
 
@@ -401,6 +402,20 @@ namespace GitHub.Unity
 				}
 
 				return toggleMixedStyle;
+			}
+		}
+
+
+		static Texture2D TitleIcon
+		{
+			get
+			{
+				if (titleIcon == null)
+				{
+					titleIcon = Utility.GetIcon("mark-github.png");
+				}
+
+				return titleIcon;
 			}
 		}
 
@@ -636,7 +651,7 @@ namespace GitHub.Unity
 		void OnGUI()
 		{
 			// Set window title
-			titleContent = new GUIContent(Title);
+			titleContent = new GUIContent(Title, TitleIcon);
 
 			// Initial state
 			if (!Utility.ActiveRepository)
