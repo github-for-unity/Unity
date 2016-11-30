@@ -52,7 +52,7 @@ namespace GitHub.Unity
 
 		static void OnProjectWindowItemGUI(string guid, Rect itemRect)
 		{
-			if (Event.current.type != EventType.Repaint)
+			if (Event.current.type != EventType.Repaint || string.IsNullOrEmpty(guid))
 			{
 				return;
 			}
