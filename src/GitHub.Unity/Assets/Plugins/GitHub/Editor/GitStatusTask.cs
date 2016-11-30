@@ -42,6 +42,9 @@ namespace GitHub.Unity
 		public string
 			LocalBranch,
 			RemoteBranch;
+		public int
+			Ahead,
+			Behind;
 		public List<GitStatusEntry> Entries;
 
 
@@ -55,6 +58,55 @@ namespace GitHub.Unity
 
 	struct GitStatusEntry
 	{
+		const string UnknownStatusKeyError = "Unknown file status key: '{0}'";
+
+
+		// NOTE: Has to stay in sync with GitFileStatus enum for FileStatusFromKey to function as intended
+		static readonly string[] GitFileStatusKeys = {
+			"??",
+			"M",
+			"A",
+			"D",
+			"R",
+			"C"
+		};
+		static Regex regex = new Regex(@"([AMRDC]|\?\?)(?:\d*)\s+([\w\d\/\.\-_ ]+)");
+
+
+		public static bool TryParse(string line, out GitStatusEntry entry)
+		{
+			Match match = regex.Match(line);
+			if (match.Groups.Count == 3)
+			{
+				string
+					path = match.Groups[2].ToString(),
+					statusKey = match.Groups[1].ToString();
+
+				entry = new GitStatusEntry(path, FileStatusFromKey(statusKey));
+
+				return true;
+			}
+
+			entry = new GitStatusEntry();
+
+			return false;
+		}
+
+
+		static GitFileStatus FileStatusFromKey(string key)
+		{
+			for(int index = 0; index < GitFileStatusKeys.Length; ++index)
+			{
+				if(key.Equals(GitFileStatusKeys[index]))
+				{
+					return (GitFileStatus)index;
+				}
+			}
+
+			throw new ArgumentException(string.Format(UnknownStatusKeyError, key));
+		}
+
+
 		public readonly string
 			Path,
 			FullPath,
@@ -65,12 +117,8 @@ namespace GitHub.Unity
 		public GitStatusEntry(string path, GitFileStatus status)
 		{
 			Path = path;
-			FullPath = System.IO.Path.Combine(Utility.GitRoot, Path);
-			string localDataPath = Utility.UnityDataPath.Substring(Utility.GitRoot.Length + 1);
-			ProjectPath = (Path.IndexOf (localDataPath) == 0) ?
-				("Assets" + Path.Substring(localDataPath.Length)).Replace(System.IO.Path.DirectorySeparatorChar, '/') :
-				"";
-
+			FullPath = Utility.RepositoryPathToAbsolute(Path);
+			ProjectPath = Utility.RepositoryPathToAsset(Path);
 			Status = status;
 		}
 
@@ -90,25 +138,13 @@ namespace GitHub.Unity
 
 	class GitStatusTask : ProcessTask
 	{
-		const string UnknownStatusKeyError = "Unknown file status key: '{0}'";
-
-
-		// NOTE: Has to stay in sync with GitFileStatus enum for FileStatusFromKey to function as intended
-		readonly string[] GitFileStatusKeys = {
-			"??",
-			"M",
-			"A",
-			"D",
-			"R",
-			"C"
-		};
-
-
 		const string BranchNamesSeparator = "...";
 
 
 		static Action<GitStatus> onStatusUpdate;
-		static Regex branchLineValidRegex = new Regex(@"\#\#\s+(?:[\w\d\/\-_\.]+)");
+		static Regex
+			branchLineValidRegex = new Regex(@"\#\#\s+(?:[\w\d\/\-_\.]+)"),
+			aheadBehindRegex = new Regex(@"\[ahead (?<ahead>\d+), behind (?<behind>\d+)\]|\[ahead (?<ahead>\d+)\]|\[behind (?<behind>\d+>)\]");
 
 
 		public static void RegisterCallback(Action<GitStatus> callback)
@@ -144,9 +180,6 @@ namespace GitHub.Unity
 		StringWriter
 			output = new StringWriter(),
 			error = new StringWriter();
-		Regex
-			changeRegex = new Regex(@"([AMRDC]|\?\?)\s+([\w\d\/\.\-_ ]+)"),
-			branchRegex = new Regex(@"\#\#\s+([\w\d\/\.\-_ ]+)\.\.\.([\w\d\/\.\-_ ]+)");
 		GitStatus status;
 
 
@@ -162,29 +195,7 @@ namespace GitHub.Unity
 
 		protected override void OnProcessOutputUpdate()
 		{
-			StringBuilder buffer = output.GetStringBuilder();
-			int end = buffer.Length - 1;
-
-			if(!Done)
-			// Only try to avoid partial lines if the process did not already end
-			{
-				for(; end > 0 && buffer[end] != '\n'; --end);
-			}
-
-			if(end > 0)
-			// Parse output lines into the entries list if we have any buffer to parse
-			{
-				for(int index = 0, last = -1; index <= end; ++index)
-				{
-					if(buffer[index] == '\n')
-					{
-						ParseOutputLine(last + 1, index);
-						last = index;
-					}
-				}
-
-				buffer.Remove(0, end + 1);
-			}
+			Utility.ParseLines(output.GetStringBuilder(), ParseOutputLine, Done);
 
 			if(Done)
 			// If we are done, hand over the results to any listeners on the main thread
@@ -199,29 +210,25 @@ namespace GitHub.Unity
 			if(onStatusUpdate != null)
 			{
 				onStatusUpdate(status);
-				status.Clear();
 			}
+			status.Clear();
 		}
 
 
-		bool ParseOutputLine(int start, int end)
+		void ParseOutputLine(string line)
 		{
-			// TODO: Figure out how we get out of doing that ToString call
-			string line = output.GetStringBuilder().ToString(start, (end - start) + 1);
+			GitStatusEntry entry;
 
 			// Grab change lines
-			Match match = changeRegex.Match(line);
-			if (match.Groups.Count == 3)
+			if (GitStatusEntry.TryParse(line, out entry))
 			{
-				string
-					path = match.Groups[2].ToString(),
-					statusKey = match.Groups[1].ToString();
-
-				if (!status.Entries.Any(e => e.Path.Equals(path)) && !Directory.Exists(Path.Combine(Utility.GitRoot, path)))
+				if (!status.Entries.Any(e => e.Path.Equals(entry.Path)) && !Directory.Exists(Utility.RepositoryPathToAbsolute(entry.Path)))
 				{
-					status.Entries.Add(new GitStatusEntry(path, FileStatusFromKey(statusKey)));
+					status.Entries.Add(entry);
 				}
+				return;
 			}
+
 
 			// Grab local and remote branch
 			if (branchLineValidRegex.Match(line).Success)
@@ -234,9 +241,22 @@ namespace GitHub.Unity
 					status.RemoteBranch = line.Substring(index + BranchNamesSeparator.Length);
 					index = status.RemoteBranch.IndexOf('[');
 					if (index > 0)
+					// Ahead and/or behind information available
 					{
+						Match match = aheadBehindRegex.Match(status.RemoteBranch.Substring(index - 1));
+
 						status.RemoteBranch = status.RemoteBranch.Substring(0, index).Trim();
-						// TODO: Consider tracking how far ahead/behind branches are
+
+						string
+							aheadString = match.Groups["ahead"].Value,
+							behindString = match.Groups["behind"].Value;
+
+						status.Ahead = string.IsNullOrEmpty(aheadString) ? 0 : Int32.Parse(aheadString);
+						status.Behind = string.IsNullOrEmpty(behindString) ? 0 : Int32.Parse(behindString);
+					}
+					else
+					{
+						status.RemoteBranch = status.RemoteBranch.Trim();
 					}
 				}
 				else
@@ -245,22 +265,6 @@ namespace GitHub.Unity
 					status.LocalBranch = line.Substring(2).Trim();
 				}
 			}
-
-			return true;
-		}
-
-
-		GitFileStatus FileStatusFromKey(string key)
-		{
-			for(int index = 0; index < GitFileStatusKeys.Length; ++index)
-			{
-				if(key.Equals(GitFileStatusKeys[index]))
-				{
-					return (GitFileStatus)index;
-				}
-			}
-
-			throw new ArgumentException(string.Format(UnknownStatusKeyError, key));
 		}
 	}
 }
