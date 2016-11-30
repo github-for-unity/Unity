@@ -165,11 +165,12 @@ namespace GitHub.Unity
 			CommitAreaDefaultRatio = .4f,
 			CommitAreaMaxHeight = 10 * 15f,
 			MinCommitTreePadding = 20f,
-			FoldoutWidth = 16f,
-			TreeIndentation = 18f,
+			FoldoutWidth = 11f,
+			FoldoutIndentation = -2f,
+			TreeIndentation = 17f,
+			TreeRootIndentation = -5f,
 			CommitIconSize = 16f,
 			CommitIconHorizontalPadding = -5f,
-			CommitFilePrefixSpacing = 2,
 			RemotesTotalHorizontalMargin = 37,
 			RemotesNameRatio = 0.2f,
 			RemotesUserRatio = 0.2f,
@@ -923,11 +924,16 @@ namespace GitHub.Unity
 								GUILayout.Label(string.Format(BasePathLabel, commitTree.Path));
 							}
 
-							// Root nodes
-							foreach (FileTreeNode node in commitTree.Children)
-							{
-								TreeNode(node);
-							}
+							GUILayout.BeginHorizontal();
+								GUILayout.Space(TreeIndentation + TreeRootIndentation);
+								GUILayout.BeginVertical();
+									// Root nodes
+									foreach (FileTreeNode node in commitTree.Children)
+									{
+										TreeNode(node);
+									}
+								GUILayout.EndVertical();
+							GUILayout.EndHorizontal();
 
 							if (commitTreeHeight == 0f && Event.current.type == EventType.Repaint)
 							// If we have no minimum height calculated, do that now and repaint so it can be used
@@ -963,11 +969,24 @@ namespace GitHub.Unity
 			bool isFolder = node.Children.Any();
 
 			GUILayout.BeginHorizontal();
-				// Foldout or space for it
+				// Commit inclusion toggle
+				if (target != null)
+				{
+					target.All = GUILayout.Toggle(target.All, "", GUILayout.ExpandWidth(false));
+				}
+				else
+				{
+					GUILayout.Toggle(false, "", GUILayout.ExpandWidth(false));
+				}
+
+				// Foldout
 				if (isFolder)
 				{
+					Rect foldoutRect = GUILayoutUtility.GetLastRect();
+					foldoutRect.Set(foldoutRect.x - FoldoutWidth + FoldoutIndentation, foldoutRect.y, FoldoutWidth, foldoutRect.height);
+
 					EditorGUI.BeginChangeCheck();
-						node.Open = GUILayout.Toggle(node.Open, "", EditorStyles.foldout, GUILayout.Width(FoldoutWidth));
+						node.Open = GUI.Toggle(foldoutRect, node.Open, "", EditorStyles.foldout);
 					if (EditorGUI.EndChangeCheck())
 					{
 						if (!node.Open && !foldedTreeEntries.Contains(node.RepositoryPath))
@@ -982,51 +1001,42 @@ namespace GitHub.Unity
 						OnCommitTreeChange();
 					}
 				}
-				else
-				{
-					GUILayout.Space(CommitFilePrefixSpacing);
-				}
-
-				// Commit inclusion toggle
-				if (target != null)
-				{
-					target.All = GUILayout.Toggle(target.All, "");
-				}
 
 				// Node icon and label
 				GUILayout.BeginHorizontal();
 					GUILayout.Space(CommitIconHorizontalPadding);
-					Rect iconRect = GUILayoutUtility.GetRect(CommitIconSize, CommitIconSize);
+					Rect iconRect = GUILayoutUtility.GetRect(CommitIconSize, CommitIconSize, GUILayout.ExpandWidth(false));
 					if (Event.current.type == EventType.Repaint)
 					{
 						GUI.DrawTexture(iconRect, node.Icon ?? (isFolder ? FolderIcon : DefaultAssetIcon), ScaleMode.ScaleToFit);
 					}
 					GUILayout.Space(CommitIconHorizontalPadding);
 				GUILayout.EndHorizontal();
-				GUILayout.Label(new GUIContent(node.Label, node.RepositoryPath));
+				GUILayout.Label(new GUIContent(node.Label, node.RepositoryPath), GUILayout.ExpandWidth(true));
 
 				GUILayout.FlexibleSpace();
 
 				// Current status (if any)
 				if (target != null)
 				{
-					GUILayout.Label(entries[entryCommitTargets.IndexOf(target)].Status.ToString());
+					GUILayout.Label(entries[entryCommitTargets.IndexOf(target)].Status.ToString(), GUILayout.ExpandWidth(false));
 				}
 			GUILayout.EndHorizontal();
 
-			// Render children (if any and folded out)
-			if (isFolder && node.Open)
-			{
-				GUILayout.BeginHorizontal();
-					GUILayout.Space(TreeIndentation);
-					GUILayout.BeginVertical();
-						foreach (FileTreeNode child in node.Children)
-						{
-							TreeNode(child);
-						}
-					GUILayout.EndVertical();
-				GUILayout.EndHorizontal();
-			}
+
+			GUILayout.BeginHorizontal();
+				// Render children (if any and folded out)
+				if (isFolder && node.Open)
+				{
+						GUILayout.Space(TreeIndentation);
+						GUILayout.BeginVertical();
+							foreach (FileTreeNode child in node.Children)
+							{
+								TreeNode(child);
+							}
+						GUILayout.EndVertical();
+				}
+			GUILayout.EndHorizontal();
 		}
 
 
