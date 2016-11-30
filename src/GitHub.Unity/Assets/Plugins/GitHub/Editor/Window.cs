@@ -375,6 +375,7 @@ namespace GitHub.Unity
 			currentBranch = "[unknown]",
 			currentRemote = "placeholder";
 		[SerializeField] FileTreeNode commitTree;
+		[SerializeField] List<string> foldedTreeEntries = new List<string>();
 		[SerializeField] List<GitLogEntry> history = new List<GitLogEntry>();
 		[SerializeField] bool historyLocked = true;
 		[SerializeField] Object historyTarget = null;
@@ -428,6 +429,19 @@ namespace GitHub.Unity
 				{
 					entries.RemoveAt(index);
 					entryCommitTargets.RemoveAt(index);
+				}
+				else
+				{
+					++index;
+				}
+			}
+
+			// Remove folding state of nuked items
+			for (int index = 0; index < foldedTreeEntries.Count;)
+			{
+				if (!update.Entries.Any(e => e.Path.IndexOf(foldedTreeEntries[index]) == 0))
+				{
+					foldedTreeEntries.RemoveAt(index);
 				}
 				else
 				{
@@ -504,6 +518,7 @@ namespace GitHub.Unity
 			}
 
 			node.RepositoryPath = Path.Combine(parent.RepositoryPath, node.Label);
+			parent.Open = !foldedTreeEntries.Contains(parent.RepositoryPath);
 
 			// Is this node inside a folder?
 			int index = node.Label.IndexOf(Path.DirectorySeparatorChar);
@@ -955,6 +970,15 @@ namespace GitHub.Unity
 						node.Open = GUILayout.Toggle(node.Open, "", EditorStyles.foldout, GUILayout.Width(FoldoutWidth));
 					if (EditorGUI.EndChangeCheck())
 					{
+						if (!node.Open && !foldedTreeEntries.Contains(node.RepositoryPath))
+						{
+							foldedTreeEntries.Add(node.RepositoryPath);
+						}
+						else if (node.Open)
+						{
+							foldedTreeEntries.Remove(node.RepositoryPath);
+						}
+
 						OnCommitTreeChange();
 					}
 				}
