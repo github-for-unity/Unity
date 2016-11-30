@@ -52,6 +52,14 @@ namespace GitHub.Unity
 		}
 
 
+		enum CommitState
+		{
+			None,
+			Some,
+			All
+		}
+
+
 		[Serializable]
 		class GitCommitTarget
 		{
@@ -87,6 +95,60 @@ namespace GitHub.Unity
 
 			[SerializeField] string path;
 			[SerializeField] List<FileTreeNode> children = new List<FileTreeNode>();
+
+
+			public CommitState State
+			{
+				get
+				{
+					if (Target != null)
+					{
+						return Target.All ? CommitState.All : Target.Any ? CommitState.Some : CommitState.None;
+					}
+					else
+					{
+						int allCount = children.Count(c => c.State == CommitState.All);
+
+						if (allCount == children.Count)
+						{
+							return CommitState.All;
+						}
+
+						if (allCount > 0)
+						{
+							return CommitState.Some;
+						}
+
+						return children.Count(c => c.State == CommitState.Some) > 0 ? CommitState.Some : CommitState.None;
+					}
+				}
+				set
+				{
+					if (value == CommitState.Some || value == State)
+					{
+						return;
+					}
+
+					if (Target != null)
+					{
+						if (value == CommitState.None)
+						{
+							Target.Clear();
+						}
+						else
+						{
+							Target.All = true;
+						}
+					}
+					else
+					{
+						for (int index = 0; index < children.Count; ++index)
+						{
+							children[index].State = value;
+						}
+					}
+				}
+			}
 
 
 			public FileTreeNode(string path)
@@ -188,7 +250,8 @@ namespace GitHub.Unity
 			historyEntryDetailsRightStyle,
 			commitFileAreaStyle,
 			commitButtonStyle,
-			commitDescriptionFieldStyle;
+			commitDescriptionFieldStyle,
+			toggleMixedStyle;
 		static Texture2D
 			defaultAssetIcon,
 			folderIcon;
@@ -324,6 +387,20 @@ namespace GitHub.Unity
 				}
 
 				return commitDescriptionFieldStyle;
+			}
+		}
+
+
+		GUIStyle ToggleMixedStyle
+		{
+			get
+			{
+				if (toggleMixedStyle == null)
+				{
+					toggleMixedStyle = GUI.skin.FindStyle("ToggleMixed");
+				}
+
+				return toggleMixedStyle;
 			}
 		}
 
@@ -970,13 +1047,14 @@ namespace GitHub.Unity
 
 			GUILayout.BeginHorizontal();
 				// Commit inclusion toggle
-				if (target != null)
+				CommitState state = node.State;
+				bool toggled = state == CommitState.All;
+
+				EditorGUI.BeginChangeCheck();
+					toggled = GUILayout.Toggle(toggled, "", state == CommitState.Some ? ToggleMixedStyle : GUI.skin.toggle, GUILayout.ExpandWidth(false));
+				if (EditorGUI.EndChangeCheck())
 				{
-					target.All = GUILayout.Toggle(target.All, "", GUILayout.ExpandWidth(false));
-				}
-				else
-				{
-					GUILayout.Toggle(false, "", GUILayout.ExpandWidth(false));
+					node.State = toggled ? CommitState.All : CommitState.None;
 				}
 
 				// Foldout
