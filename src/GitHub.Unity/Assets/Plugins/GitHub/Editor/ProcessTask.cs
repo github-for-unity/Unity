@@ -71,7 +71,7 @@ namespace GitHub.Unity
 		}
 
 
-		public void Run()
+		public virtual void Run()
 		{
 			Debug.LogFormat("{0} {1}", Label, process == null ? "start" : "reconnect");
 

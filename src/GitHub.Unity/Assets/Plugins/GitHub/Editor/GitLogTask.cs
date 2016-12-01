@@ -88,7 +88,7 @@ Description: {7}",
 	}
 
 
-	class GitLogTask : ProcessTask
+	class GitLogTask : GitTask
 	{
 		enum ParsePhase
 		{
@@ -149,7 +149,6 @@ Description: {7}",
 		public override string Label { get { return "git log"; } }
 
 
-		protected override string ProcessName { get { return "git"; } }
 		protected override string ProcessArguments { get { return arguments; } }
 		protected override TextWriter OutputBuffer { get { return output; } }
 		protected override TextWriter ErrorBuffer { get { return error; } }

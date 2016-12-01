@@ -88,7 +88,7 @@ Function: {6}",
 	}
 
 
-	class GitListRemotesTask : ProcessTask
+	class GitListRemotesTask : GitTask
 	{
 		const string ParseFailedError = "Remote parse error in line: '{0}'";
 
@@ -126,7 +126,6 @@ Function: {6}",
 		public override string Label { get { return "git remote"; } }
 
 
-		protected override string ProcessName { get { return "git"; } }
 		protected override string ProcessArguments { get { return "remote -v"; } }
 		protected override TextWriter OutputBuffer { get { return output; } }
 		protected override TextWriter ErrorBuffer { get { return error; } }

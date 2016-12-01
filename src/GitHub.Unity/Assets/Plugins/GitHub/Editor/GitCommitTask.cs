@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace GitHub.Unity
 {
-	class GitCommitTask : ProcessTask
+	class GitCommitTask : GitTask
 	{
 		public static void Schedule(IEnumerable<string> files, string message, string body, Action onSuccess = null, Action onFailure = null)
 		{
@@ -45,7 +45,6 @@ namespace GitHub.Unity
 		public override string Label { get { return "git commit"; } }
 
 
-		protected override string ProcessName { get { return "git"; } }
 		protected override string ProcessArguments { get { return arguments; } }
 		protected override TextWriter ErrorBuffer { get { return error; } }
 
