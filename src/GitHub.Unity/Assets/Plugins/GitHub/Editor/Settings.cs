@@ -14,16 +14,22 @@ namespace GitHub.Unity
 			values = new List<string>();
 
 
+		static Settings asset;
+
+
 		static Settings GetAsset()
 		{
-			string path = Utility.ExtensionInstallPath + "/GitHub.local.asset";
-
-			Settings asset = AssetDatabase.LoadMainAssetAtPath(path) as Settings;
-
 			if (asset == null)
 			{
-				AssetDatabase.CreateAsset(CreateInstance<Settings>(), path);
+				string path = Utility.ExtensionInstallPath + "/GitHub.local.asset";
+
 				asset = AssetDatabase.LoadMainAssetAtPath(path) as Settings;
+
+				if (asset == null)
+				{
+					AssetDatabase.CreateAsset(CreateInstance<Settings>(), path);
+					asset = AssetDatabase.LoadMainAssetAtPath(path) as Settings;
+				}
 			}
 
 			return asset;
