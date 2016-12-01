@@ -9,17 +9,22 @@ namespace GitHub.Unity
 {
 	class Utility : ScriptableObject
 	{
-		public static string GitInstallPath { get; protected set; }
-		public static string GitRoot { get; protected set; }
-		public static string UnityDataPath { get; protected set; }
-		public static string ExtensionInstallPath { get; protected set; }
-		public static bool ActiveRepository
+		public static string GitInstallPath
 		{
 			get
 			{
-				return !string.IsNullOrEmpty(GitRoot);
+				return Settings.Get("GitInstallPath");
+			}
+			set
+			{
+				Settings.Set("GitInstallPath", value);
 			}
 		}
+
+
+		public static string GitRoot { get; protected set; }
+		public static string UnityDataPath { get; protected set; }
+		public static string ExtensionInstallPath { get; protected set; }
 
 
 		public static bool GitFound
@@ -27,6 +32,15 @@ namespace GitHub.Unity
 			get
 			{
 				return !string.IsNullOrEmpty(GitInstallPath);
+			}
+		}
+
+
+		public static bool ActiveRepository
+		{
+			get
+			{
+				return !string.IsNullOrEmpty(GitRoot);
 			}
 		}
 
