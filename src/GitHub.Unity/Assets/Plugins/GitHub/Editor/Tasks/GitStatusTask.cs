@@ -54,19 +54,32 @@ namespace GitHub.Unity
 			"R",
 			"C"
 		};
-		static Regex regex = new Regex(@"([AMRDC]|\?\?)(?:\d*)\s+([\w\d\/\.\-_ ]+)");
+		static Regex
+			startRegex = new Regex(@"(?<status>[AMRDC]|\?\?)(?:\d*)\s+(?<path>[\w\d\/\.\-_ ]+)"),
+			endRegex = new Regex(@"->\s(?<path>[\w\d\/\.\-_ ]+)");
 
 
 		public static bool TryParse(string line, out GitStatusEntry entry)
 		{
-			Match match = regex.Match(line);
-			if (match.Groups.Count == 3)
-			{
-				string
-					path = match.Groups[2].ToString(),
-					statusKey = match.Groups[1].ToString();
+			Match match = startRegex.Match(line);
+			string
+				statusKey = match.Groups["status"].Value,
+				path = match.Groups["path"].Value;
 
-				entry = new GitStatusEntry(path, FileStatusFromKey(statusKey));
+			if (!string.IsNullOrEmpty(statusKey) && !string.IsNullOrEmpty(path))
+			{
+				GitFileStatus status = FileStatusFromKey(statusKey);
+				int renameIndex = line.IndexOf("->");
+
+				if (renameIndex >= 0)
+				{
+					match = endRegex.Match(line.Substring(renameIndex));
+					entry = new GitStatusEntry(match.Groups["path"].Value, status, path.Substring(0, path.Length - 1));
+				}
+				else
+				{
+					entry = new GitStatusEntry(path, status);
+				}
 
 				return true;
 			}
@@ -94,16 +107,18 @@ namespace GitHub.Unity
 		public readonly string
 			Path,
 			FullPath,
-			ProjectPath;
+			ProjectPath,
+			OriginalPath;
 		public readonly GitFileStatus Status;
 
 
-		public GitStatusEntry(string path, GitFileStatus status)
+		public GitStatusEntry(string path, GitFileStatus status, string originalPath = "")
 		{
 			Path = path;
 			FullPath = Utility.RepositoryPathToAbsolute(Path);
 			ProjectPath = Utility.RepositoryPathToAsset(Path);
 			Status = status;
+			OriginalPath = originalPath;
 		}
 
 
