@@ -48,6 +48,13 @@ namespace GitHub.Unity
 		}
 
 
+		public override void Refresh()
+		{
+			GitListRemotesTask.Schedule();
+			GitStatusTask.Schedule();
+		}
+
+
 		void OnRemotesUpdate(IList<GitRemote> entries)
 		{
 			remotes.Clear();

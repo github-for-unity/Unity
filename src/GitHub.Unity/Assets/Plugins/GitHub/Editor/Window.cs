@@ -1,42 +1,40 @@
 using UnityEngine;
 using UnityEditor;
 using System;
-using System.IO;
-using System.Linq;
 using System.Collections.Generic;
 using Object = UnityEngine.Object;
 
 
 namespace GitHub.Unity
 {
-	class RefreshRunner : AssetPostprocessor
-	{
-		[InitializeOnLoadMethod]
-		static void OnLoad()
-		{
-			Tasks.ScheduleMainThread(Refresh);
-		}
-
-
-		static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moveDestination, string[] moveSource)
-		{
-			Refresh();
-		}
-
-
-		static void Refresh()
-		{
-			foreach (Window window in Object.FindObjectsOfType(typeof(Window)))
-			{
-				window.Refresh();
-			}
-		}
-	}
-
-
 	public class Window : EditorWindow, IView
 	{
-		enum ViewMode
+		class RefreshRunner : AssetPostprocessor
+		{
+			[InitializeOnLoadMethod]
+			static void OnLoad()
+			{
+				Tasks.ScheduleMainThread(Refresh);
+			}
+
+
+			static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moveDestination, string[] moveSource)
+			{
+				Refresh();
+			}
+
+
+			static void Refresh()
+			{
+				foreach (Window window in Object.FindObjectsOfType(typeof(Window)))
+				{
+					window.Refresh();
+				}
+			}
+		}
+
+
+		enum SubTab
 		{
 			History,
 			Changes,
@@ -44,14 +42,41 @@ namespace GitHub.Unity
 		}
 
 
+		readonly string[]
+			TabLabels = new string[]
+			{
+				"History",
+				"Changes",
+				"Settings"
+			};
+
+
+		readonly Type[]
+			TabTypes = new Type[]
+			{
+				typeof(HistoryView),
+				typeof(ChangesView),
+				typeof(SettingsView)
+			};
+
+
+		const SubTab LastTab = SubTab.Settings;
+
+
+		static void ForEachTab(Action<SubTab> action)
+		{
+			for (int index = 0; index <= (int)LastTab; ++index)
+			{
+				action((SubTab)index);
+			}
+		}
+
+
 		const string
 			Title = "GitHub",
 			LaunchMenu = "Window/GitHub",
-			ViewModeHistoryTab = "History",
-			ViewModeChangesTab = "Changes",
-			ViewModeSettingsTab = "Settings",
 			RefreshButton = "Refresh",
-			UnknownViewModeError = "Unsupported view mode: {0}";
+			UnknownSubTabError = "Unsupported view mode: {0}";
 
 
 		[MenuItem(LaunchMenu)]
@@ -61,31 +86,27 @@ namespace GitHub.Unity
 		}
 
 
-		[SerializeField] ViewMode viewMode = ViewMode.History;
-		[SerializeField] HistoryView historyView;
-		[SerializeField] ChangesView changesView;
-		[SerializeField] SettingsView settingsView;
+		[SerializeField] SubTab activeTab = SubTab.History;
+		[SerializeField] List<Subview> tabViews = new List<Subview>();
 
 
 		void OnEnable()
 		{
-			if (historyView == null)
+			if (tabViews.Count <= (int)LastTab)
 			{
-				historyView = CreateInstance<HistoryView>();
+				tabViews.Clear();
+				ForEachTab(tab => tabViews.Add(null));
 			}
-			historyView.Show(this);
 
-			if (changesView == null)
+			ForEachTab(tab =>
 			{
-				changesView = CreateInstance<ChangesView>();
-			}
-			changesView.Show(this);
+				if (tabViews[(int)tab] == null)
+				{
+					tabViews[(int)tab] = (Subview)CreateInstance(TabTypes[(int)tab]);
+				}
 
-			if (settingsView == null)
-			{
-				settingsView = CreateInstance<SettingsView>();
-			}
-			settingsView.Show(this);
+				tabViews[(int)tab].Show(this);
+			});
 
 			Refresh();
 		}
@@ -99,17 +120,15 @@ namespace GitHub.Unity
 			// Initial state
 			if (!Utility.ActiveRepository || !Utility.GitFound)
 			{
-				viewMode = ViewMode.Settings; // If we do complete init, make sure that we return to the settings tab for further setup
-				settingsView.OnGUI();
+				activeTab = SubTab.Settings; // If we do complete init, make sure that we return to the settings tab for further setup
+				tabViews[(int)SubTab.Settings].OnGUI();
 				return;
 			}
 
 			// Subtabs & toolbar
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
 				EditorGUI.BeginChangeCheck();
-					viewMode = GUILayout.Toggle(viewMode == ViewMode.History, ViewModeHistoryTab, EditorStyles.toolbarButton) ? ViewMode.History : viewMode;
-					viewMode = GUILayout.Toggle(viewMode == ViewMode.Changes, ViewModeChangesTab, EditorStyles.toolbarButton) ? ViewMode.Changes : viewMode;
-					viewMode = GUILayout.Toggle(viewMode == ViewMode.Settings, ViewModeSettingsTab, EditorStyles.toolbarButton) ? ViewMode.Settings : viewMode;
+					ForEachTab(tab => activeTab = GUILayout.Toggle(activeTab == tab, TabLabels[(int)tab], EditorStyles.toolbarButton) ? tab : activeTab);
 				if (EditorGUI.EndChangeCheck())
 				{
 					Refresh();
@@ -123,56 +142,23 @@ namespace GitHub.Unity
 				}
 			GUILayout.EndHorizontal();
 
-			// Run the proper view mode
-			switch(viewMode)
-			{
-				case ViewMode.History:
-					historyView.OnGUI();
-				break;
-				case ViewMode.Changes:
-					changesView.OnGUI();
-				break;
-				case ViewMode.Settings:
-					settingsView.OnGUI();
-				break;
-				default:
-					GUILayout.Label(string.Format(UnknownViewModeError, viewMode));
-				break;
-			}
+			// GUI for the active tab
+			tabViews[(int)activeTab].OnGUI();
 		}
 
 
 		public void Refresh()
 		{
-			if (!Utility.ActiveRepository)
+			if (Utility.ActiveRepository)
 			{
-				return;
-			}
-
-			switch (viewMode)
-			{
-				case ViewMode.History:
-					historyView.Refresh();
-				break;
-				case ViewMode.Changes:
-					changesView.Refresh();
-				break;
-				case ViewMode.Settings:
-					GitListRemotesTask.Schedule();
-					GitStatusTask.Schedule();
-				break;
+				tabViews[(int)activeTab].Refresh();
 			}
 		}
 
 
 		void OnSelectionChange()
 		{
-			if (viewMode != ViewMode.History)
-			{
-				return;
-			}
-
-			historyView.OnSelectionChange();
+			tabViews[(int)activeTab].OnSelectionChange();
 		}
 	}
 }

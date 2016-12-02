@@ -171,7 +171,7 @@ namespace GitHub.Unity
 		}
 
 
-		public void Refresh()
+		public override void Refresh()
 		{
 			GitStatusTask.Schedule();
 		}

@@ -61,6 +61,21 @@ namespace GitHub.Unity
 		}
 
 
+		public override void Refresh()
+		{
+			if (historyTarget != null)
+			{
+				GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)));
+			}
+			else
+			{
+				GitLogTask.Schedule();
+			}
+
+			GitStatusTask.Schedule();
+		}
+
+
 		void OnStatusUpdate(GitStatus update)
 		{
 			// Set branch state
@@ -79,28 +94,13 @@ namespace GitHub.Unity
 		}
 
 
-		public void OnSelectionChange()
+		public override void OnSelectionChange()
 		{
 			if (!historyLocked && !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(Selection.activeObject)))
 			{
 				historyTarget = Selection.activeObject;
 				Refresh();
 			}
-		}
-
-
-		public void Refresh()
-		{
-			if (historyTarget != null)
-			{
-				GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)));
-			}
-			else
-			{
-				GitLogTask.Schedule();
-			}
-
-			GitStatusTask.Schedule();
 		}
 
 

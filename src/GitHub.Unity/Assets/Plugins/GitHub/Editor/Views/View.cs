@@ -7,8 +7,9 @@ namespace GitHub.Unity
 	interface IView
 	{
 		Rect position { get; }
-		void OnGUI();
+		void Refresh();
 		void Repaint();
+		void OnGUI();
 	}
 
 
@@ -53,10 +54,12 @@ namespace GitHub.Unity
 		}
 
 
-		protected abstract void OnShow();
-		protected abstract void OnHide();
+		protected virtual void OnShow() {}
+		protected virtual void OnHide() {}
 
 
+		public virtual void Refresh() {}
+		public virtual void OnSelectionChange() {}
 		public abstract void OnGUI();
 
 
