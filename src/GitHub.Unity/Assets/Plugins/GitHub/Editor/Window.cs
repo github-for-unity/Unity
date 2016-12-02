@@ -52,6 +52,14 @@ namespace GitHub.Unity
 		}
 
 
+		enum CommitState
+		{
+			None,
+			Some,
+			All
+		}
+
+
 		[Serializable]
 		class GitCommitTarget
 		{
@@ -79,7 +87,7 @@ namespace GitHub.Unity
 		[Serializable]
 		class FileTreeNode
 		{
-			public string Label;
+			public string Label, RepositoryPath;
 			public bool Open = true;
 			public GitCommitTarget Target;
 			public Texture Icon;
@@ -87,6 +95,60 @@ namespace GitHub.Unity
 
 			[SerializeField] string path;
 			[SerializeField] List<FileTreeNode> children = new List<FileTreeNode>();
+
+
+			public CommitState State
+			{
+				get
+				{
+					if (Target != null)
+					{
+						return Target.All ? CommitState.All : Target.Any ? CommitState.Some : CommitState.None;
+					}
+					else
+					{
+						int allCount = children.Count(c => c.State == CommitState.All);
+
+						if (allCount == children.Count)
+						{
+							return CommitState.All;
+						}
+
+						if (allCount > 0)
+						{
+							return CommitState.Some;
+						}
+
+						return children.Count(c => c.State == CommitState.Some) > 0 ? CommitState.Some : CommitState.None;
+					}
+				}
+				set
+				{
+					if (value == CommitState.Some || value == State)
+					{
+						return;
+					}
+
+					if (Target != null)
+					{
+						if (value == CommitState.None)
+						{
+							Target.Clear();
+						}
+						else
+						{
+							Target.All = true;
+						}
+					}
+					else
+					{
+						for (int index = 0; index < children.Count; ++index)
+						{
+							children[index].State = value;
+						}
+					}
+				}
+			}
 
 
 			public FileTreeNode(string path)
@@ -165,11 +227,12 @@ namespace GitHub.Unity
 			CommitAreaDefaultRatio = .4f,
 			CommitAreaMaxHeight = 10 * 15f,
 			MinCommitTreePadding = 20f,
-			FoldoutWidth = 16f,
-			TreeIndentation = 18f,
+			FoldoutWidth = 11f,
+			FoldoutIndentation = -2f,
+			TreeIndentation = 17f,
+			TreeRootIndentation = -5f,
 			CommitIconSize = 16f,
 			CommitIconHorizontalPadding = -5f,
-			CommitFilePrefixSpacing = 2,
 			RemotesTotalHorizontalMargin = 37,
 			RemotesNameRatio = 0.2f,
 			RemotesUserRatio = 0.2f,
@@ -187,7 +250,8 @@ namespace GitHub.Unity
 			historyEntryDetailsRightStyle,
 			commitFileAreaStyle,
 			commitButtonStyle,
-			commitDescriptionFieldStyle;
+			commitDescriptionFieldStyle,
+			toggleMixedStyle;
 		static Texture2D
 			defaultAssetIcon,
 			folderIcon;
@@ -327,6 +391,20 @@ namespace GitHub.Unity
 		}
 
 
+		GUIStyle ToggleMixedStyle
+		{
+			get
+			{
+				if (toggleMixedStyle == null)
+				{
+					toggleMixedStyle = GUI.skin.FindStyle("ToggleMixed");
+				}
+
+				return toggleMixedStyle;
+			}
+		}
+
+
 		Texture2D DefaultAssetIcon
 		{
 			get
@@ -375,6 +453,7 @@ namespace GitHub.Unity
 			currentBranch = "[unknown]",
 			currentRemote = "placeholder";
 		[SerializeField] FileTreeNode commitTree;
+		[SerializeField] List<string> foldedTreeEntries = new List<string>();
 		[SerializeField] List<GitLogEntry> history = new List<GitLogEntry>();
 		[SerializeField] bool historyLocked = true;
 		[SerializeField] Object historyTarget = null;
@@ -435,6 +514,19 @@ namespace GitHub.Unity
 				}
 			}
 
+			// Remove folding state of nuked items
+			for (int index = 0; index < foldedTreeEntries.Count;)
+			{
+				if (!update.Entries.Any(e => e.Path.IndexOf(foldedTreeEntries[index]) == 0))
+				{
+					foldedTreeEntries.RemoveAt(index);
+				}
+				else
+				{
+					++index;
+				}
+			}
+
 			// Add new stuff
 			for (int index = 0; index < update.Entries.Count; ++index)
 			{
@@ -452,6 +544,7 @@ namespace GitHub.Unity
 
 			// Build tree structure
 			commitTree = new FileTreeNode(FindCommonPath("" + Path.DirectorySeparatorChar, entries.Select(e => e.Path)));
+			commitTree.RepositoryPath = commitTree.Path;
 			for (int index = 0; index < entries.Count; ++index)
 			{
 				FileTreeNode node = new FileTreeNode(entries[index].Path.Substring(commitTree.Path.Length)){ Target = entryCommitTargets[index] };
@@ -502,6 +595,9 @@ namespace GitHub.Unity
 				return;
 			}
 
+			node.RepositoryPath = Path.Combine(parent.RepositoryPath, node.Label);
+			parent.Open = !foldedTreeEntries.Contains(parent.RepositoryPath);
+
 			// Is this node inside a folder?
 			int index = node.Label.IndexOf(Path.DirectorySeparatorChar);
 			if (index > 0)
@@ -526,7 +622,7 @@ namespace GitHub.Unity
 				// No existing branch - we will have to add a new one to build from
 				if (!found)
 				{
-					BuildTree(parent.Add(new FileTreeNode(root)), node);
+					BuildTree(parent.Add(new FileTreeNode(root){ RepositoryPath = Path.Combine(parent.RepositoryPath, root) }), node);
 				}
 			}
 			// Not inside a folder - just add this node right here
@@ -905,11 +1001,16 @@ namespace GitHub.Unity
 								GUILayout.Label(string.Format(BasePathLabel, commitTree.Path));
 							}
 
-							// Root nodes
-							foreach (FileTreeNode node in commitTree.Children)
-							{
-								TreeNode(node);
-							}
+							GUILayout.BeginHorizontal();
+								GUILayout.Space(TreeIndentation + TreeRootIndentation);
+								GUILayout.BeginVertical();
+									// Root nodes
+									foreach (FileTreeNode node in commitTree.Children)
+									{
+										TreeNode(node);
+									}
+								GUILayout.EndVertical();
+							GUILayout.EndHorizontal();
 
 							if (commitTreeHeight == 0f && Event.current.type == EventType.Repaint)
 							// If we have no minimum height calculated, do that now and repaint so it can be used
@@ -945,61 +1046,75 @@ namespace GitHub.Unity
 			bool isFolder = node.Children.Any();
 
 			GUILayout.BeginHorizontal();
-				// Foldout or space for it
-				if (isFolder)
+				// Commit inclusion toggle
+				CommitState state = node.State;
+				bool toggled = state == CommitState.All;
+
+				EditorGUI.BeginChangeCheck();
+					toggled = GUILayout.Toggle(toggled, "", state == CommitState.Some ? ToggleMixedStyle : GUI.skin.toggle, GUILayout.ExpandWidth(false));
+				if (EditorGUI.EndChangeCheck())
 				{
-					EditorGUI.BeginChangeCheck();
-						node.Open = GUILayout.Toggle(node.Open, "", EditorStyles.foldout, GUILayout.Width(FoldoutWidth));
-					if (EditorGUI.EndChangeCheck())
-					{
-						OnCommitTreeChange();
-					}
-				}
-				else
-				{
-					GUILayout.Space(CommitFilePrefixSpacing);
+					node.State = toggled ? CommitState.All : CommitState.None;
 				}
 
-				// Commit inclusion toggle
-				if (target != null)
+				// Foldout
+				if (isFolder)
 				{
-					target.All = GUILayout.Toggle(target.All, "");
+					Rect foldoutRect = GUILayoutUtility.GetLastRect();
+					foldoutRect.Set(foldoutRect.x - FoldoutWidth + FoldoutIndentation, foldoutRect.y, FoldoutWidth, foldoutRect.height);
+
+					EditorGUI.BeginChangeCheck();
+						node.Open = GUI.Toggle(foldoutRect, node.Open, "", EditorStyles.foldout);
+					if (EditorGUI.EndChangeCheck())
+					{
+						if (!node.Open && !foldedTreeEntries.Contains(node.RepositoryPath))
+						{
+							foldedTreeEntries.Add(node.RepositoryPath);
+						}
+						else if (node.Open)
+						{
+							foldedTreeEntries.Remove(node.RepositoryPath);
+						}
+
+						OnCommitTreeChange();
+					}
 				}
 
 				// Node icon and label
 				GUILayout.BeginHorizontal();
 					GUILayout.Space(CommitIconHorizontalPadding);
-					Rect iconRect = GUILayoutUtility.GetRect(CommitIconSize, CommitIconSize);
+					Rect iconRect = GUILayoutUtility.GetRect(CommitIconSize, CommitIconSize, GUILayout.ExpandWidth(false));
 					if (Event.current.type == EventType.Repaint)
 					{
 						GUI.DrawTexture(iconRect, node.Icon ?? (isFolder ? FolderIcon : DefaultAssetIcon), ScaleMode.ScaleToFit);
 					}
 					GUILayout.Space(CommitIconHorizontalPadding);
 				GUILayout.EndHorizontal();
-				GUILayout.Label(node.Label);
+				GUILayout.Label(new GUIContent(node.Label, node.RepositoryPath), GUILayout.ExpandWidth(true));
 
 				GUILayout.FlexibleSpace();
 
 				// Current status (if any)
 				if (target != null)
 				{
-					GUILayout.Label(entries[entryCommitTargets.IndexOf(target)].Status.ToString());
+					GUILayout.Label(entries[entryCommitTargets.IndexOf(target)].Status.ToString(), GUILayout.ExpandWidth(false));
 				}
 			GUILayout.EndHorizontal();
 
-			// Render children (if any and folded out)
-			if (isFolder && node.Open)
-			{
-				GUILayout.BeginHorizontal();
-					GUILayout.Space(TreeIndentation);
-					GUILayout.BeginVertical();
-						foreach (FileTreeNode child in node.Children)
-						{
-							TreeNode(child);
-						}
-					GUILayout.EndVertical();
-				GUILayout.EndHorizontal();
-			}
+
+			GUILayout.BeginHorizontal();
+				// Render children (if any and folded out)
+				if (isFolder && node.Open)
+				{
+						GUILayout.Space(TreeIndentation);
+						GUILayout.BeginVertical();
+							foreach (FileTreeNode child in node.Children)
+							{
+								TreeNode(child);
+							}
+						GUILayout.EndVertical();
+				}
+			GUILayout.EndHorizontal();
 		}
 
 
