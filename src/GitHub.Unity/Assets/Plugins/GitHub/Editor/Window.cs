@@ -176,12 +176,21 @@ namespace GitHub.Unity
 			LaunchMenu = "Window/GitHub",
 			NoActiveRepositoryTitle = "No repository found",
 			NoActiveRepositoryMessage = "Your current project is not currently in an active git repository:",
-			GitInitBrowseButton = "...",
+			BrowseButton = "...",
 			GitInitBrowseTitle = "Pick desired repository root",
 			GitInitButton = "Set up git",
 			InvalidInitDirectoryTitle = "Invalid repository root",
 			InvalidInitDirectoryMessage = "Your selected folder '{0}' is not a valid repository root for your current project.",
 			InvalidInitDirectoryOK = "OK",
+			GitInstallTitle = "Git install",
+			GitInstallMissingMessage = "GitHub was unable to locate a valid git install. Please specify install location or install git.",
+			GitInstallBrowseTitle = "Select git binary",
+			GitInstallPickInvalidTitle = "Invalid git install",
+			GitInstallPickInvalidMessage = "The selected file is not a valid git install.",
+			GitInstallPickInvalidOK = "OK",
+			GitInstallFindButton = "Find install",
+			GitInstallButton = "New git install",
+			GitInstallURL = "http://desktop.github.com",
 			ViewModeHistoryTab = "History",
 			ViewModeChangesTab = "Changes",
 			ViewModeSettingsTab = "Settings",
@@ -217,7 +226,7 @@ namespace GitHub.Unity
 			RemoteHostTitle = "Host",
 			RemoteAccessTitle = "Access";
 		const float
-			NoActiveRepositoryWidth = 200f,
+			InitialStateAreaWidth = 200f,
 			BrowseFolderButtonHorizontalPadding = -4f,
 			HistoryEntryHeight = 30f,
 			HistorySummaryHeight = 16f,
@@ -654,7 +663,7 @@ namespace GitHub.Unity
 			titleContent = new GUIContent(Title, TitleIcon);
 
 			// Initial state
-			if (!Utility.ActiveRepository)
+			if (!Utility.ActiveRepository || !Utility.GitFound)
 			{
 				OnSettingsGUI();
 				return;
@@ -733,62 +742,84 @@ namespace GitHub.Unity
 		}
 
 
+		static bool ValidateInitDirectory(string path)
+		{
+			if (Utility.UnityDataPath.IndexOf(path) != 0)
+			{
+				EditorUtility.DisplayDialog(
+					InvalidInitDirectoryTitle,
+					string.Format(InvalidInitDirectoryMessage, path),
+					InvalidInitDirectoryOK
+				);
+
+				return false;
+			}
+
+			return true;
+		}
+
+
+		static bool ValidateGitInstall(string path)
+		{
+			if (!FindGitTask.ValidateGitInstall(path))
+			{
+				EditorUtility.DisplayDialog(
+					GitInstallPickInvalidTitle,
+					string.Format(GitInstallPickInvalidMessage, path),
+					GitInstallPickInvalidOK
+				);
+
+				return false;
+			}
+
+			return true;
+		}
+
+
 		void OnSettingsGUI()
 		{
-			if (!Utility.ActiveRepository)
+			if (!Utility.GitFound)
+			{
+				BeginInitialStateArea(GitInstallTitle, GitInstallMissingMessage);
+					OnInstallPathGUI();
+				EndInitialStateArea();
+
+				return;
+			}
+			else if (!Utility.ActiveRepository)
 			{
 				// If we do run init, make sure that we return to the settings tab for further setup
 				viewMode = ViewMode.Settings;
 
-				GUILayout.BeginVertical();
-					GUILayout.FlexibleSpace();
+				BeginInitialStateArea(NoActiveRepositoryTitle, NoActiveRepositoryMessage);
+					// Init directory path field
+					PathField(ref initDirectory, () => EditorUtility.OpenFolderPanel(GitInitBrowseTitle, initDirectory, ""), ValidateInitDirectory);
+
+					GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+					// Git init, which starts the config flow
 					GUILayout.BeginHorizontal();
 						GUILayout.FlexibleSpace();
-						// Initial state message
-						GUILayout.BeginVertical(GUILayout.MaxWidth(NoActiveRepositoryWidth));
-							GUILayout.Label(NoActiveRepositoryTitle, EditorStyles.boldLabel);
-							GUILayout.Label(NoActiveRepositoryMessage, LongMessageStyle);
-							GUILayout.BeginHorizontal();
-								if (string.IsNullOrEmpty(initDirectory))
-								{
-									ResetInitDirectory();
-								}
-								initDirectory = EditorGUILayout.TextField(initDirectory);
-								GUILayout.Space(BrowseFolderButtonHorizontalPadding);
-								if (GUILayout.Button(GitInitBrowseButton, EditorStyles.miniButtonRight))
-								{
-									initDirectory = EditorUtility.OpenFolderPanel(GitInitBrowseTitle, initDirectory, "");
-									if (Utility.UnityDataPath.IndexOf(initDirectory) != 0)
-									{
-										EditorUtility.DisplayDialog(
-											InvalidInitDirectoryTitle,
-											string.Format(InvalidInitDirectoryMessage, initDirectory),
-											InvalidInitDirectoryOK
-										);
-										ResetInitDirectory();
-									}
-									GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
-								}
-							GUILayout.EndHorizontal();
-						GUILayout.EndVertical();
-						GUILayout.FlexibleSpace();
-					GUILayout.EndHorizontal();
-					GUILayout.BeginHorizontal();
-						GUILayout.FlexibleSpace();
-						// Git init, which starts the config flow
-						if (GUILayout.Button(GitInitButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+						if (GUILayout.Button(GitInitButton, GUILayout.ExpandWidth(false)))
 						{
-							Init();
+							if (ValidateInitDirectory(initDirectory))
+							{
+								Init();
+							}
+							else
+							{
+								ResetInitDirectory();
+							}
 						}
-						GUILayout.FlexibleSpace();
 					GUILayout.EndHorizontal();
-					GUILayout.FlexibleSpace();
-				GUILayout.EndVertical();
+				EndInitialStateArea();
 
 				return;
 			}
 
 			GUILayout.Label("TODO: Favourite branches settings?");
+
+			// Remotes
 
 			float remotesWith = position.width - RemotesTotalHorizontalMargin;
 			float
@@ -821,6 +852,97 @@ namespace GitHub.Unity
 			GUILayout.Label("TODO: GitHub login settings");
 			GUILayout.Label("TODO: Auto-fetch toggle");
 			GUILayout.Label("TODO: Auto-push toggle");
+
+			// Install path
+
+			GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
+			OnInstallPathGUI();
+		}
+
+
+		void OnInstallPathGUI()
+		{
+			// Install path field
+			EditorGUI.BeginChangeCheck();
+				string gitInstallPath = Utility.GitInstallPath;
+				PathField(
+					ref gitInstallPath,
+					() => EditorUtility.OpenFilePanel(
+						GitInstallBrowseTitle,
+						Path.GetDirectoryName(FindGitTask.DefaultGitPath),
+						Path.GetExtension(FindGitTask.DefaultGitPath)
+					),
+					ValidateGitInstall
+				);
+			if (EditorGUI.EndChangeCheck())
+			{
+				Utility.GitInstallPath = gitInstallPath;
+			}
+
+			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+			GUILayout.BeginHorizontal();
+				// Find button - for attempting to locate a new install
+				if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
+				{
+					FindGitTask.Schedule(path =>
+					{
+						if (!string.IsNullOrEmpty(path))
+						{
+							Utility.GitInstallPath = path;
+							GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+						}
+					});
+				}
+				GUILayout.FlexibleSpace();
+
+				// Install button if git is not installed or we want a new install
+				if (GUILayout.Button(GitInstallButton, GUILayout.ExpandWidth(false)))
+				{
+					Application.OpenURL(GitInstallURL);
+				}
+			GUILayout.EndHorizontal();
+		}
+
+
+		static void BeginInitialStateArea(string title, string message)
+		{
+			GUILayout.BeginVertical();
+				GUILayout.FlexibleSpace();
+				GUILayout.BeginHorizontal();
+					GUILayout.FlexibleSpace();
+					GUILayout.BeginVertical(GUILayout.MaxWidth(InitialStateAreaWidth));
+						GUILayout.Label(title, EditorStyles.boldLabel);
+						GUILayout.Label(message, LongMessageStyle);
+		}
+
+
+		static void EndInitialStateArea()
+		{
+					GUILayout.EndVertical();
+					GUILayout.FlexibleSpace();
+				GUILayout.EndHorizontal();
+				GUILayout.FlexibleSpace();
+			GUILayout.EndVertical();
+		}
+
+
+		static void PathField(ref string path, Func<string> browseFunction, Func<string, bool> validationFunction)
+		{
+			GUILayout.BeginHorizontal();
+				path = EditorGUILayout.TextField(path);
+				GUILayout.Space(BrowseFolderButtonHorizontalPadding);
+				if (GUILayout.Button(BrowseButton, EditorStyles.miniButtonRight))
+				{
+					string newValue = browseFunction();
+					if (!string.IsNullOrEmpty(newValue) && validationFunction(newValue))
+					{
+						path = newValue;
+						GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+						GUI.changed = true;
+					}
+				}
+			GUILayout.EndHorizontal();
 		}
 
 

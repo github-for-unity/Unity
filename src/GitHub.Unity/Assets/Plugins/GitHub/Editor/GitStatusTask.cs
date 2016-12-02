@@ -120,7 +120,7 @@ namespace GitHub.Unity
 	}
 
 
-	class GitStatusTask : ProcessTask
+	class GitStatusTask : GitTask
 	{
 		const string BranchNamesSeparator = "...";
 
@@ -155,7 +155,6 @@ namespace GitHub.Unity
 		public override string Label { get { return "git status"; } }
 
 
-		protected override string ProcessName { get { return "git"; } }
 		protected override string ProcessArguments { get { return "status -b --porcelain"; } }
 		protected override TextWriter OutputBuffer { get { return output; } }
 		protected override TextWriter ErrorBuffer { get { return error; } }

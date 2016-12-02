@@ -9,9 +9,33 @@ namespace GitHub.Unity
 {
 	class Utility : ScriptableObject
 	{
+		public static string GitInstallPath
+		{
+			get
+			{
+				return Settings.Get("GitInstallPath");
+			}
+			set
+			{
+				Settings.Set("GitInstallPath", value);
+			}
+		}
+
+
 		public static string GitRoot { get; protected set; }
 		public static string UnityDataPath { get; protected set; }
 		public static string ExtensionInstallPath { get; protected set; }
+
+
+		public static bool GitFound
+		{
+			get
+			{
+				return !string.IsNullOrEmpty(GitInstallPath);
+			}
+		}
+
+
 		public static bool ActiveRepository
 		{
 			get
@@ -21,12 +45,25 @@ namespace GitHub.Unity
 		}
 
 
+		public static bool IsWindows
+		{
+			get
+			{
+				switch (Application.platform)
+				{
+					case RuntimePlatform.WindowsPlayer:
+					case RuntimePlatform.WindowsEditor:
+					return true;
+					default:
+					return false;
+				}
+			}
+		}
+
+
 		[InitializeOnLoadMethod]
 		static void Prepare()
 		{
-			// Root paths
-			GitRoot = FindRoot(UnityDataPath = Application.dataPath);
-
 			// Juggling to find out where we got installed
 			Utility instance = FindObjectOfType(typeof(Utility)) as Utility;
 			if (instance == null)
@@ -45,6 +82,29 @@ namespace GitHub.Unity
 				ExtensionInstallPath = ExtensionInstallPath.Substring(0, ExtensionInstallPath.LastIndexOf('/'));
 			}
 			DestroyImmediate(instance);
+
+			// Root paths
+			if (string.IsNullOrEmpty(GitInstallPath))
+			{
+				FindGitTask.Schedule(path =>
+				{
+					if (!string.IsNullOrEmpty(path))
+					{
+						GitInstallPath = path;
+						DetermineGitRoot();
+					}
+				});
+			}
+			else
+			{
+				DetermineGitRoot();
+			}
+		}
+
+
+		static void DetermineGitRoot()
+		{
+			GitRoot = FindRoot(UnityDataPath = Application.dataPath);
 		}
 
 
