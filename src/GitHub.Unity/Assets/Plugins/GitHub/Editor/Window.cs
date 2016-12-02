@@ -338,7 +338,7 @@ namespace GitHub.Unity
 			// TODO: In stead of completely rebuilding the tree structure, figure out a way to migrate open/closed states from the old tree to the new
 
 			// Build tree structure
-			commitTree = new FileTreeNode(FindCommonPath("" + Path.DirectorySeparatorChar, entries.Select(e => e.Path)));
+			commitTree = new FileTreeNode(Utility.FindCommonPath("" + Path.DirectorySeparatorChar, entries.Select(e => e.Path)));
 			commitTree.RepositoryPath = commitTree.Path;
 			for (int index = 0; index < entries.Count; ++index)
 			{
@@ -1070,37 +1070,6 @@ namespace GitHub.Unity
 				},
 				() => lockCommit = false
 			);
-		}
-
-
-		// Based on: https://www.rosettacode.org/wiki/Find_common_directory_path#C.23
-		static string FindCommonPath(string separator, IEnumerable<string> paths)
-		{
-			string commonPath = string.Empty;
-			List<string> separatedPath = paths
-				.First(first => first.Length == paths.Max(second => second.Length))
-				.Split(new string[] { separator }, StringSplitOptions.RemoveEmptyEntries)
-				.ToList();
-
-			foreach (string pathSegment in separatedPath.AsEnumerable())
-			{
-				string pathExtension = pathSegment + separator;
-
-				if (commonPath.Length == 0 && paths.All(path => path.StartsWith(pathExtension)))
-				{
-					commonPath = pathExtension;
-				}
-				else if (paths.All(path => path.StartsWith(commonPath + pathExtension)))
-				{
-					commonPath += pathExtension;
-				}
-				else
-				{
-					break;
-				}
-			}
-
-			return commonPath;
 		}
 	}
 }
