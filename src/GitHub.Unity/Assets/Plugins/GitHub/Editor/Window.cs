@@ -176,7 +176,6 @@ namespace GitHub.Unity
 			LaunchMenu = "Window/GitHub",
 			NoActiveRepositoryTitle = "No repository found",
 			NoActiveRepositoryMessage = "Your current project is not currently in an active git repository:",
-			BrowseButton = "...",
 			GitInitBrowseTitle = "Pick desired repository root",
 			GitInitButton = "Set up git",
 			InvalidInitDirectoryTitle = "Invalid repository root",
@@ -225,236 +224,8 @@ namespace GitHub.Unity
 			RemoteUserTitle = "User",
 			RemoteHostTitle = "Host",
 			RemoteAccessTitle = "Access";
-		const float
-			InitialStateAreaWidth = 200f,
-			BrowseFolderButtonHorizontalPadding = -4f,
-			HistoryEntryHeight = 30f,
-			HistorySummaryHeight = 16f,
-			HistoryDetailsHeight = 16f,
-			HistoryEntryPadding = 16f,
-			CommitAreaMinHeight = 16f,
-			CommitAreaDefaultRatio = .4f,
-			CommitAreaMaxHeight = 10 * 15f,
-			MinCommitTreePadding = 20f,
-			FoldoutWidth = 11f,
-			FoldoutIndentation = -2f,
-			TreeIndentation = 17f,
-			TreeRootIndentation = -5f,
-			CommitIconSize = 16f,
-			CommitIconHorizontalPadding = -5f,
-			RemotesTotalHorizontalMargin = 37,
-			RemotesNameRatio = 0.2f,
-			RemotesUserRatio = 0.2f,
-			RemotesHostRation = 0.5f,
-			RemotesAccessRatio = 0.1f;
 		const int
 			HistoryExtraItemCount = 10;
-
-
-		static GUIStyle
-			longMessageStyle,
-			historyToolbarButtonStyle,
-			historyLockStyle,
-			historyEntryDetailsStyle,
-			historyEntryDetailsRightStyle,
-			commitFileAreaStyle,
-			commitButtonStyle,
-			commitDescriptionFieldStyle,
-			toggleMixedStyle;
-		static Texture2D
-			titleIcon,
-			defaultAssetIcon,
-			folderIcon;
-
-
-		static GUIStyle LongMessageStyle
-		{
-			get
-			{
-				if (longMessageStyle == null)
-				{
-					longMessageStyle = new GUIStyle(EditorStyles.miniLabel);
-					longMessageStyle.name = "LongMessageStyle";
-					longMessageStyle.richText = true;
-					longMessageStyle.wordWrap = true;
-				}
-
-				return longMessageStyle;
-			}
-		}
-
-
-		static GUIStyle HistoryToolbarButtonStyle
-		{
-			get
-			{
-				if (historyToolbarButtonStyle == null)
-				{
-					historyToolbarButtonStyle = new GUIStyle(EditorStyles.toolbarButton);
-					historyToolbarButtonStyle.name = "HistoryToolbarButtonStyle";
-					historyToolbarButtonStyle.richText = true;
-					historyToolbarButtonStyle.wordWrap = true;
-				}
-
-				return historyToolbarButtonStyle;
-			}
-		}
-
-
-		static GUIStyle HistoryLockStyle
-		{
-			get
-			{
-				if (historyLockStyle == null)
-				{
-					historyLockStyle = new GUIStyle(GUI.skin.FindStyle("IN LockButton"));
-					historyLockStyle.name = "HistoryLockStyle";
-				}
-
-				historyLockStyle.margin = new RectOffset(3, 3, 2, 2);
-
-				return historyLockStyle;
-			}
-		}
-
-
-		static GUIStyle HistoryEntryDetailsStyle
-		{
-			get
-			{
-				if (historyEntryDetailsStyle == null)
-				{
-					historyEntryDetailsStyle = new GUIStyle(EditorStyles.miniLabel);
-					historyEntryDetailsStyle.name = "HistoryEntryDetailsStyle";
-					Color c = EditorStyles.miniLabel.normal.textColor;
-					historyEntryDetailsStyle.normal.textColor = new Color(c.r, c.g, c.b, c.a * 0.7f);
-				}
-
-				return historyEntryDetailsStyle;
-			}
-		}
-
-
-		static GUIStyle HistoryEntryDetailsRightStyle
-		{
-			get
-			{
-				if (historyEntryDetailsRightStyle == null)
-				{
-					historyEntryDetailsRightStyle = new GUIStyle(HistoryEntryDetailsStyle);
-					historyEntryDetailsRightStyle.name = "HistoryEntryDetailsRightStyle";
-				}
-
-				historyEntryDetailsRightStyle.alignment = TextAnchor.MiddleRight;
-
-				return historyEntryDetailsRightStyle;
-			}
-		}
-
-
-		static GUIStyle CommitFileAreaStyle
-		{
-			get
-			{
-				if (commitFileAreaStyle == null)
-				{
-					commitFileAreaStyle = new GUIStyle(GUI.skin.box);
-					commitFileAreaStyle.name = "CommitFileAreaStyle";
-					commitFileAreaStyle.margin = new RectOffset(0, 0, 0, 0);
-				}
-
-				return commitFileAreaStyle;
-			}
-		}
-
-
-		static GUIStyle CommitButtonStyle
-		{
-			get
-			{
-				if (commitButtonStyle == null)
-				{
-					commitButtonStyle = new GUIStyle(GUI.skin.button);
-					commitButtonStyle.name = "CommitButtonStyle";
-					commitButtonStyle.richText = true;
-					commitButtonStyle.wordWrap = true;
-				}
-
-				return commitButtonStyle;
-			}
-		}
-
-
-		GUIStyle CommitDescriptionFieldStyle
-		{
-			get
-			{
-				if (commitDescriptionFieldStyle == null)
-				{
-					commitDescriptionFieldStyle = new GUIStyle(GUI.skin.textArea);
-					commitDescriptionFieldStyle.name = "CommitDescriptionFieldStyle";
-					commitDescriptionFieldStyle.wordWrap = true;
-				}
-
-				return commitDescriptionFieldStyle;
-			}
-		}
-
-
-		GUIStyle ToggleMixedStyle
-		{
-			get
-			{
-				if (toggleMixedStyle == null)
-				{
-					toggleMixedStyle = GUI.skin.FindStyle("ToggleMixed");
-				}
-
-				return toggleMixedStyle;
-			}
-		}
-
-
-		static Texture2D TitleIcon
-		{
-			get
-			{
-				if (titleIcon == null)
-				{
-					titleIcon = Utility.GetIcon("mark-github.png");
-				}
-
-				return titleIcon;
-			}
-		}
-
-
-		Texture2D DefaultAssetIcon
-		{
-			get
-			{
-				if (defaultAssetIcon == null)
-				{
-					defaultAssetIcon = EditorGUIUtility.FindTexture("DefaultAsset Icon");
-				}
-
-				return defaultAssetIcon;
-			}
-		}
-
-
-		Texture2D FolderIcon
-		{
-			get
-			{
-				if (folderIcon == null)
-				{
-					folderIcon = EditorGUIUtility.FindTexture("Folder Icon");
-				}
-
-				return folderIcon;
-			}
-		}
 
 
 		[MenuItem(LaunchMenu)]
@@ -660,7 +431,7 @@ namespace GitHub.Unity
 		void OnGUI()
 		{
 			// Set window title
-			titleContent = new GUIContent(Title, TitleIcon);
+			titleContent = new GUIContent(Title, Styles.TitleIcon);
 
 			// Initial state
 			if (!Utility.ActiveRepository || !Utility.GitFound)
@@ -780,9 +551,9 @@ namespace GitHub.Unity
 		{
 			if (!Utility.GitFound)
 			{
-				BeginInitialStateArea(GitInstallTitle, GitInstallMissingMessage);
+				Styles.BeginInitialStateArea(GitInstallTitle, GitInstallMissingMessage);
 					OnInstallPathGUI();
-				EndInitialStateArea();
+				Styles.EndInitialStateArea();
 
 				return;
 			}
@@ -791,9 +562,9 @@ namespace GitHub.Unity
 				// If we do run init, make sure that we return to the settings tab for further setup
 				viewMode = ViewMode.Settings;
 
-				BeginInitialStateArea(NoActiveRepositoryTitle, NoActiveRepositoryMessage);
+				Styles.BeginInitialStateArea(NoActiveRepositoryTitle, NoActiveRepositoryMessage);
 					// Init directory path field
-					PathField(ref initDirectory, () => EditorUtility.OpenFolderPanel(GitInitBrowseTitle, initDirectory, ""), ValidateInitDirectory);
+					Styles.PathField(ref initDirectory, () => EditorUtility.OpenFolderPanel(GitInitBrowseTitle, initDirectory, ""), ValidateInitDirectory);
 
 					GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
@@ -812,7 +583,7 @@ namespace GitHub.Unity
 							}
 						}
 					GUILayout.EndHorizontal();
-				EndInitialStateArea();
+				Styles.EndInitialStateArea();
 
 				return;
 			}
@@ -821,12 +592,12 @@ namespace GitHub.Unity
 
 			// Remotes
 
-			float remotesWith = position.width - RemotesTotalHorizontalMargin;
+			float remotesWith = position.width - Styles.RemotesTotalHorizontalMargin;
 			float
-				nameWidth = remotesWith * RemotesNameRatio,
-				userWidth = remotesWith * RemotesUserRatio,
-				hostWidth = remotesWith * RemotesHostRation,
-				accessWidth = remotesWith * RemotesAccessRatio;
+				nameWidth = remotesWith * Styles.RemotesNameRatio,
+				userWidth = remotesWith * Styles.RemotesUserRatio,
+				hostWidth = remotesWith * Styles.RemotesHostRation,
+				accessWidth = remotesWith * Styles.RemotesAccessRatio;
 
 			GUILayout.Label(RemotesTitle, EditorStyles.boldLabel);
 			GUILayout.BeginVertical(GUI.skin.box);
@@ -865,7 +636,7 @@ namespace GitHub.Unity
 			// Install path field
 			EditorGUI.BeginChangeCheck();
 				string gitInstallPath = Utility.GitInstallPath;
-				PathField(
+				Styles.PathField(
 					ref gitInstallPath,
 					() => EditorUtility.OpenFilePanel(
 						GitInstallBrowseTitle,
@@ -905,54 +676,16 @@ namespace GitHub.Unity
 		}
 
 
-		static void BeginInitialStateArea(string title, string message)
-		{
-			GUILayout.BeginVertical();
-				GUILayout.FlexibleSpace();
-				GUILayout.BeginHorizontal();
-					GUILayout.FlexibleSpace();
-					GUILayout.BeginVertical(GUILayout.MaxWidth(InitialStateAreaWidth));
-						GUILayout.Label(title, EditorStyles.boldLabel);
-						GUILayout.Label(message, LongMessageStyle);
-		}
-
-
-		static void EndInitialStateArea()
-		{
-					GUILayout.EndVertical();
-					GUILayout.FlexibleSpace();
-				GUILayout.EndHorizontal();
-				GUILayout.FlexibleSpace();
-			GUILayout.EndVertical();
-		}
-
-
-		static void PathField(ref string path, Func<string> browseFunction, Func<string, bool> validationFunction)
-		{
-			GUILayout.BeginHorizontal();
-				path = EditorGUILayout.TextField(path);
-				GUILayout.Space(BrowseFolderButtonHorizontalPadding);
-				if (GUILayout.Button(BrowseButton, EditorStyles.miniButtonRight))
-				{
-					string newValue = browseFunction();
-					if (!string.IsNullOrEmpty(newValue) && validationFunction(newValue))
-					{
-						path = newValue;
-						GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
-						GUI.changed = true;
-					}
-				}
-			GUILayout.EndHorizontal();
-		}
-
-
 		void OnHistoryGUI()
 		{
 			// History toolbar
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
 				// Target indicator / clear button
 				EditorGUI.BeginDisabledGroup(historyTarget == null);
-					if (GUILayout.Button(historyTarget == null ? HistoryFocusAll : string.Format(HistoryFocusSingle, historyTarget.name), HistoryToolbarButtonStyle))
+					if (GUILayout.Button(
+						historyTarget == null ? HistoryFocusAll : string.Format(HistoryFocusSingle, historyTarget.name),
+						Styles.HistoryToolbarButtonStyle
+					))
 					{
 						historyTarget = null;
 						Refresh();
@@ -963,7 +696,7 @@ namespace GitHub.Unity
 
 				// Pull / Push buttons
 				if (
-					GUILayout.Button(statusBehind > 0 ? string.Format(PullButtonCount, statusBehind) : PullButton, HistoryToolbarButtonStyle) &&
+					GUILayout.Button(statusBehind > 0 ? string.Format(PullButtonCount, statusBehind) : PullButton, Styles.HistoryToolbarButtonStyle) &&
 					EditorUtility.DisplayDialog(
 						PullConfirmTitle,
 						string.Format(PullConfirmDescription, currentRemote),
@@ -975,7 +708,7 @@ namespace GitHub.Unity
 					Pull();
 				}
 				if (
-					GUILayout.Button(statusAhead > 0 ? string.Format(PushButtonCount, statusAhead) : PushButton, HistoryToolbarButtonStyle) &&
+					GUILayout.Button(statusAhead > 0 ? string.Format(PushButtonCount, statusAhead) : PushButton, Styles.HistoryToolbarButtonStyle) &&
 					EditorUtility.DisplayDialog(
 						PushConfirmTitle,
 						string.Format(PushConfirmDescription, currentRemote),
@@ -989,7 +722,7 @@ namespace GitHub.Unity
 
 				// Target lock button
 				EditorGUI.BeginChangeCheck();
-					historyLocked = GUILayout.Toggle(historyLocked, GUIContent.none, HistoryLockStyle);
+					historyLocked = GUILayout.Toggle(historyLocked, GUIContent.none, Styles.HistoryLockStyle);
 				if (EditorGUI.EndChangeCheck())
 				{
 					OnSelectionChange();
@@ -1001,7 +734,7 @@ namespace GitHub.Unity
 			{
 				historyScroll = GUILayout.BeginScrollView(historyScroll);
 					// Handle only the selected range of history items - adding spacing for the rest
-					float totalEntryHeight = HistoryEntryHeight + HistoryEntryPadding;
+					float totalEntryHeight = Styles.HistoryEntryHeight + Styles.HistoryEntryPadding;
 					GUILayout.Space(historyStartIndex * totalEntryHeight);
 					for (int index = historyStartIndex; index < historyStopIndex; ++index)
 					{
@@ -1009,7 +742,7 @@ namespace GitHub.Unity
 
 						HistoryEntry(history[index], entryState);
 
-						GUILayout.Space(HistoryEntryPadding);
+						GUILayout.Space(Styles.HistoryEntryPadding);
 					}
 					GUILayout.Space((history.Count - historyStopIndex) * totalEntryHeight);
 			}
@@ -1030,7 +763,7 @@ namespace GitHub.Unity
 		void CullHistory()
 		// Recalculate the range of history items to handle - based on what is visible, plus a bit of padding for fast scrolling
 		{
-			float totalEntryHeight = HistoryEntryHeight + HistoryEntryPadding;
+			float totalEntryHeight = Styles.HistoryEntryHeight + Styles.HistoryEntryPadding;
 			historyStartIndex = (int)Mathf.Clamp(historyScroll.y / totalEntryHeight - HistoryExtraItemCount, 0, history.Count);
 			historyStopIndex = (int)Mathf.Clamp(historyStartIndex + position.height / totalEntryHeight + 1 + HistoryExtraItemCount, 0, history.Count);
 		}
@@ -1038,17 +771,17 @@ namespace GitHub.Unity
 
 		void HistoryEntry(GitLogEntry entry, LogEntryState state)
 		{
-			Rect entryRect = GUILayoutUtility.GetRect(HistoryEntryHeight, HistoryEntryHeight);
+			Rect entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
 			Rect
-				summaryRect = new Rect(entryRect.x, entryRect.y, entryRect.width, HistorySummaryHeight),
-				timestampRect = new Rect(entryRect.x, entryRect.yMax - HistoryDetailsHeight, entryRect.width * .5f, HistoryDetailsHeight);
+				summaryRect = new Rect(entryRect.x, entryRect.y, entryRect.width, Styles.HistorySummaryHeight),
+				timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight, entryRect.width * .5f, Styles.HistoryDetailsHeight);
 			Rect authorRect = new Rect(timestampRect.xMax, timestampRect.y, timestampRect.width, timestampRect.height);
 
 			if (!string.IsNullOrEmpty(entry.MergeA))
 			{
 				const float MergeIndicatorSize = 40f;
 				Rect mergeIndicatorRect = new Rect(summaryRect.x, summaryRect.y, MergeIndicatorSize, summaryRect.height);
-				GUI.Label(mergeIndicatorRect, "Merge:", HistoryEntryDetailsStyle);
+				GUI.Label(mergeIndicatorRect, "Merge:", Styles.HistoryEntryDetailsStyle);
 				summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorSize, summaryRect.height);
 			}
 
@@ -1056,13 +789,13 @@ namespace GitHub.Unity
 			{
 				const float LocalIndicatorSize = 40f;
 				Rect localIndicatorRect = new Rect(summaryRect.x, summaryRect.y, LocalIndicatorSize, summaryRect.height);
-				GUI.Label(localIndicatorRect, "Local:", HistoryEntryDetailsStyle);
+				GUI.Label(localIndicatorRect, "Local:", Styles.HistoryEntryDetailsStyle);
 				summaryRect.Set(localIndicatorRect.xMax, summaryRect.y, summaryRect.width - LocalIndicatorSize, summaryRect.height);
 			}
 
 			GUI.Label(summaryRect, entry.Summary);
-			GUI.Label(timestampRect, entry.PrettyTimeString, HistoryEntryDetailsStyle);
-			GUI.Label(authorRect, entry.AuthorName, HistoryEntryDetailsRightStyle);
+			GUI.Label(timestampRect, entry.PrettyTimeString, Styles.HistoryEntryDetailsStyle);
+			GUI.Label(authorRect, entry.AuthorName, Styles.HistoryEntryDetailsRightStyle);
 		}
 
 
@@ -1114,7 +847,7 @@ namespace GitHub.Unity
 					);
 				GUILayout.EndHorizontal();
 
-				GUILayout.BeginVertical(CommitFileAreaStyle);
+				GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
 					if (commitTreeHeight > 0)
 					// Specify a minimum height if we can - avoiding vertical scrollbars on both the outer and inner scroll view
 					{
@@ -1139,7 +872,7 @@ namespace GitHub.Unity
 							}
 
 							GUILayout.BeginHorizontal();
-								GUILayout.Space(TreeIndentation + TreeRootIndentation);
+								GUILayout.Space(Styles.TreeIndentation + Styles.TreeRootIndentation);
 								GUILayout.BeginVertical();
 									// Root nodes
 									foreach (FileTreeNode node in commitTree.Children)
@@ -1152,7 +885,7 @@ namespace GitHub.Unity
 							if (commitTreeHeight == 0f && Event.current.type == EventType.Repaint)
 							// If we have no minimum height calculated, do that now and repaint so it can be used
 							{
-								commitTreeHeight = GUILayoutUtility.GetLastRect().yMax + MinCommitTreePadding;
+								commitTreeHeight = GUILayoutUtility.GetLastRect().yMax + Styles.MinCommitTreePadding;
 								Repaint();
 							}
 
@@ -1188,7 +921,7 @@ namespace GitHub.Unity
 				bool toggled = state == CommitState.All;
 
 				EditorGUI.BeginChangeCheck();
-					toggled = GUILayout.Toggle(toggled, "", state == CommitState.Some ? ToggleMixedStyle : GUI.skin.toggle, GUILayout.ExpandWidth(false));
+					toggled = GUILayout.Toggle(toggled, "", state == CommitState.Some ? Styles.ToggleMixedStyle : GUI.skin.toggle, GUILayout.ExpandWidth(false));
 				if (EditorGUI.EndChangeCheck())
 				{
 					node.State = toggled ? CommitState.All : CommitState.None;
@@ -1198,7 +931,7 @@ namespace GitHub.Unity
 				if (isFolder)
 				{
 					Rect foldoutRect = GUILayoutUtility.GetLastRect();
-					foldoutRect.Set(foldoutRect.x - FoldoutWidth + FoldoutIndentation, foldoutRect.y, FoldoutWidth, foldoutRect.height);
+					foldoutRect.Set(foldoutRect.x - Styles.FoldoutWidth + Styles.FoldoutIndentation, foldoutRect.y, Styles.FoldoutWidth, foldoutRect.height);
 
 					EditorGUI.BeginChangeCheck();
 						node.Open = GUI.Toggle(foldoutRect, node.Open, "", EditorStyles.foldout);
@@ -1219,13 +952,13 @@ namespace GitHub.Unity
 
 				// Node icon and label
 				GUILayout.BeginHorizontal();
-					GUILayout.Space(CommitIconHorizontalPadding);
-					Rect iconRect = GUILayoutUtility.GetRect(CommitIconSize, CommitIconSize, GUILayout.ExpandWidth(false));
+					GUILayout.Space(Styles.CommitIconHorizontalPadding);
+					Rect iconRect = GUILayoutUtility.GetRect(Styles.CommitIconSize, Styles.CommitIconSize, GUILayout.ExpandWidth(false));
 					if (Event.current.type == EventType.Repaint)
 					{
-						GUI.DrawTexture(iconRect, node.Icon ?? (isFolder ? FolderIcon : DefaultAssetIcon), ScaleMode.ScaleToFit);
+						GUI.DrawTexture(iconRect, node.Icon ?? (isFolder ? Styles.FolderIcon : Styles.DefaultAssetIcon), ScaleMode.ScaleToFit);
 					}
-					GUILayout.Space(CommitIconHorizontalPadding);
+					GUILayout.Space(Styles.CommitIconHorizontalPadding);
 				GUILayout.EndHorizontal();
 				GUILayout.Label(new GUIContent(node.Label, node.RepositoryPath), GUILayout.ExpandWidth(true));
 
@@ -1243,7 +976,7 @@ namespace GitHub.Unity
 				// Render children (if any and folded out)
 				if (isFolder && node.Open)
 				{
-						GUILayout.Space(TreeIndentation);
+						GUILayout.Space(Styles.TreeIndentation);
 						GUILayout.BeginVertical();
 							foreach (FileTreeNode child in node.Children)
 							{
@@ -1257,18 +990,20 @@ namespace GitHub.Unity
 
 		void OnCommitDetailsAreaGUI()
 		{
-			GUILayout.BeginVertical(GUILayout.Height(Mathf.Clamp(position.height * CommitAreaDefaultRatio, CommitAreaMinHeight, CommitAreaMaxHeight)));
+			GUILayout.BeginVertical(
+				GUILayout.Height(Mathf.Clamp(position.height * Styles.CommitAreaDefaultRatio, Styles.CommitAreaMinHeight, Styles.CommitAreaMaxHeight))
+			);
 				GUILayout.Label(SummaryLabel);
 				commitMessage = GUILayout.TextField(commitMessage);
 
 				GUILayout.Label(DescriptionLabel);
-				commitBody = EditorGUILayout.TextArea(commitBody, CommitDescriptionFieldStyle, GUILayout.ExpandHeight(true));
+				commitBody = EditorGUILayout.TextArea(commitBody, Styles.CommitDescriptionFieldStyle, GUILayout.ExpandHeight(true));
 
 				// Disable committing when already committing or if we don't have all the data needed
 				EditorGUI.BeginDisabledGroup(lockCommit || string.IsNullOrEmpty(commitMessage) || !entryCommitTargets.Any(t => t.Any));
 					GUILayout.BeginHorizontal();
 						GUILayout.FlexibleSpace();
-						if (GUILayout.Button(string.Format(CommitButton, currentBranch), CommitButtonStyle))
+						if (GUILayout.Button(string.Format(CommitButton, currentBranch), Styles.CommitButtonStyle))
 						{
 							Commit();
 						}
