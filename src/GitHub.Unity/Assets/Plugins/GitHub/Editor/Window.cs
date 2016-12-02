@@ -44,14 +44,6 @@ namespace GitHub.Unity
 		}
 
 
-		enum LogEntryState
-		{
-			Normal,
-			Local,
-			Remote
-		}
-
-
 		enum CommitState
 		{
 			None,
@@ -179,20 +171,6 @@ namespace GitHub.Unity
 			ViewModeSettingsTab = "Settings",
 			RefreshButton = "Refresh",
 			UnknownViewModeError = "Unsupported view mode: {0}",
-			HistoryFocusAll = "(All)",
-			HistoryFocusSingle = "Focus: <b>{0}</b>",
-			PullButton = "Pull",
-			PullButtonCount = "Pull ({<b>0</b>})",
-			PushButton = "Push",
-			PushButtonCount = "Push (<b>{0}</b>)",
-			PullConfirmTitle = "Pull Changes?",
-			PullConfirmDescription = "Would you like to pull changes from remote '{0}'?",
-			PullConfirmYes = "Pull",
-			PullConfirmCancel = "Cancel",
-			PushConfirmTitle = "Push Changes?",
-			PushConfirmDescription = "Would you like to push changes to remote '{0}'?",
-			PushConfirmYes = "Push",
-			PushConfirmCancel = "Cancel",
 			SummaryLabel = "Commit summary",
 			DescriptionLabel = "Commit description",
 			CommitButton = "Commit to <b>{0}</b>",
@@ -203,8 +181,6 @@ namespace GitHub.Unity
 			NoChangedFilesLabel = "No changed files",
 			BasePathLabel = "{0}",
 			NoChangesLabel = "No changes found";
-		const int
-			HistoryExtraItemCount = 10;
 
 
 		[MenuItem(LaunchMenu)]
@@ -215,50 +191,47 @@ namespace GitHub.Unity
 
 
 		[SerializeField] ViewMode viewMode = ViewMode.History;
+		[SerializeField] HistoryView historyView;
 		[SerializeField] SettingsView settingsView;
 		[SerializeField] List<GitStatusEntry> entries = new List<GitStatusEntry>();
 		[SerializeField] List<GitCommitTarget> entryCommitTargets = new List<GitCommitTarget>();
 		[SerializeField] Vector2
-			historyScroll,
 			verticalCommitScroll,
 			horizontalCommitScroll;
 		[SerializeField] string
 			commitMessage = "",
 			commitBody = "",
-			currentBranch = "[unknown]",
-			currentRemote = "placeholder";
+			currentBranch = "[unknown]";
 		[SerializeField] FileTreeNode commitTree;
 		[SerializeField] List<string> foldedTreeEntries = new List<string>();
-		[SerializeField] List<GitLogEntry> history = new List<GitLogEntry>();
-		[SerializeField] bool historyLocked = true;
-		[SerializeField] Object historyTarget = null;
 
 
 		bool lockCommit = true;
 		float commitTreeHeight;
-		int
-			historyStartIndex,
-			historyStopIndex,
-			statusAhead,
-			statusBehind;
 
 
 		void OnEnable()
 		{
 			GitStatusTask.RegisterCallback(OnStatusUpdate);
-			GitLogTask.RegisterCallback(OnLogUpdate);
+
+			if (historyView == null)
+			{
+				historyView = CreateInstance<HistoryView>();
+			}
+			historyView.Show(this);
+
 			if (settingsView == null)
 			{
 				settingsView = CreateInstance<SettingsView>();
 			}
 			settingsView.Show(this);
+
 			Refresh();
 		}
 
 
 		void OnDisable()
 		{
-			GitLogTask.UnregisterCallback(OnLogUpdate);
 			GitStatusTask.UnregisterCallback(OnStatusUpdate);
 		}
 
@@ -267,8 +240,6 @@ namespace GitHub.Unity
 		{
 			// Set branch state
 			currentBranch = update.LocalBranch;
-			statusAhead = update.Ahead;
-			statusBehind = update.Behind;
 
 			if (viewMode != ViewMode.Changes)
 			// No need to update the rest unless we're in the changes view
@@ -335,15 +306,6 @@ namespace GitHub.Unity
 			lockCommit = false;
 
 			OnCommitTreeChange();
-		}
-
-
-		void OnLogUpdate(IList<GitLogEntry> entries)
-		{
-			history.Clear();
-			history.AddRange(entries);
-			CullHistory();
-			Repaint();
 		}
 
 
@@ -437,7 +399,7 @@ namespace GitHub.Unity
 			switch(viewMode)
 			{
 				case ViewMode.History:
-					OnHistoryGUI();
+					historyView.OnGUI();
 				break;
 				case ViewMode.Changes:
 					OnCommitGUI();
@@ -462,15 +424,8 @@ namespace GitHub.Unity
 			switch (viewMode)
 			{
 				case ViewMode.History:
-					if (historyTarget != null)
-					{
-						GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)));
-					}
-					else
-					{
-						GitLogTask.Schedule();
-					}
-				break;
+					historyView.Refresh();
+				return;
 				case ViewMode.Settings:
 					GitListRemotesTask.Schedule();
 				break;
@@ -480,141 +435,14 @@ namespace GitHub.Unity
 		}
 
 
-		void OnHistoryGUI()
-		{
-			// History toolbar
-			GUILayout.BeginHorizontal(EditorStyles.toolbar);
-				// Target indicator / clear button
-				EditorGUI.BeginDisabledGroup(historyTarget == null);
-					if (GUILayout.Button(
-						historyTarget == null ? HistoryFocusAll : string.Format(HistoryFocusSingle, historyTarget.name),
-						Styles.HistoryToolbarButtonStyle
-					))
-					{
-						historyTarget = null;
-						Refresh();
-					}
-				EditorGUI.EndDisabledGroup();
-
-				GUILayout.FlexibleSpace();
-
-				// Pull / Push buttons
-				if (
-					GUILayout.Button(statusBehind > 0 ? string.Format(PullButtonCount, statusBehind) : PullButton, Styles.HistoryToolbarButtonStyle) &&
-					EditorUtility.DisplayDialog(
-						PullConfirmTitle,
-						string.Format(PullConfirmDescription, currentRemote),
-						PullConfirmYes,
-						PullConfirmCancel
-					)
-				)
-				{
-					Pull();
-				}
-				if (
-					GUILayout.Button(statusAhead > 0 ? string.Format(PushButtonCount, statusAhead) : PushButton, Styles.HistoryToolbarButtonStyle) &&
-					EditorUtility.DisplayDialog(
-						PushConfirmTitle,
-						string.Format(PushConfirmDescription, currentRemote),
-						PushConfirmYes,
-						PushConfirmCancel
-					)
-				)
-				{
-					Push();
-				}
-
-				// Target lock button
-				EditorGUI.BeginChangeCheck();
-					historyLocked = GUILayout.Toggle(historyLocked, GUIContent.none, Styles.HistoryLockStyle);
-				if (EditorGUI.EndChangeCheck())
-				{
-					OnSelectionChange();
-				}
-			GUILayout.EndHorizontal();
-
-			// When history scroll actually changes, store time value of topmost visible entry. This is the value we use to reposition scroll on log update - not the pixel value.
-			if (history.Any())
-			{
-				historyScroll = GUILayout.BeginScrollView(historyScroll);
-					// Handle only the selected range of history items - adding spacing for the rest
-					float totalEntryHeight = Styles.HistoryEntryHeight + Styles.HistoryEntryPadding;
-					GUILayout.Space(historyStartIndex * totalEntryHeight);
-					for (int index = historyStartIndex; index < historyStopIndex; ++index)
-					{
-						LogEntryState entryState = (historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal);
-
-						HistoryEntry(history[index], entryState);
-
-						GUILayout.Space(Styles.HistoryEntryPadding);
-					}
-					GUILayout.Space((history.Count - historyStopIndex) * totalEntryHeight);
-			}
-			else
-			{
-				GUILayout.BeginScrollView(historyScroll);
-			}
-
-			GUILayout.EndScrollView();
-
-			if (Event.current.type == EventType.Repaint)
-			{
-				CullHistory();
-			}
-		}
-
-
-		void CullHistory()
-		// Recalculate the range of history items to handle - based on what is visible, plus a bit of padding for fast scrolling
-		{
-			float totalEntryHeight = Styles.HistoryEntryHeight + Styles.HistoryEntryPadding;
-			historyStartIndex = (int)Mathf.Clamp(historyScroll.y / totalEntryHeight - HistoryExtraItemCount, 0, history.Count);
-			historyStopIndex = (int)Mathf.Clamp(historyStartIndex + position.height / totalEntryHeight + 1 + HistoryExtraItemCount, 0, history.Count);
-		}
-
-
-		void HistoryEntry(GitLogEntry entry, LogEntryState state)
-		{
-			Rect entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
-			Rect
-				summaryRect = new Rect(entryRect.x, entryRect.y, entryRect.width, Styles.HistorySummaryHeight),
-				timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight, entryRect.width * .5f, Styles.HistoryDetailsHeight);
-			Rect authorRect = new Rect(timestampRect.xMax, timestampRect.y, timestampRect.width, timestampRect.height);
-
-			if (!string.IsNullOrEmpty(entry.MergeA))
-			{
-				const float MergeIndicatorSize = 40f;
-				Rect mergeIndicatorRect = new Rect(summaryRect.x, summaryRect.y, MergeIndicatorSize, summaryRect.height);
-				GUI.Label(mergeIndicatorRect, "Merge:", Styles.HistoryEntryDetailsStyle);
-				summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorSize, summaryRect.height);
-			}
-
-			if (state == LogEntryState.Local)
-			{
-				const float LocalIndicatorSize = 40f;
-				Rect localIndicatorRect = new Rect(summaryRect.x, summaryRect.y, LocalIndicatorSize, summaryRect.height);
-				GUI.Label(localIndicatorRect, "Local:", Styles.HistoryEntryDetailsStyle);
-				summaryRect.Set(localIndicatorRect.xMax, summaryRect.y, summaryRect.width - LocalIndicatorSize, summaryRect.height);
-			}
-
-			GUI.Label(summaryRect, entry.Summary);
-			GUI.Label(timestampRect, entry.PrettyTimeString, Styles.HistoryEntryDetailsStyle);
-			GUI.Label(authorRect, entry.AuthorName, Styles.HistoryEntryDetailsRightStyle);
-		}
-
-
 		void OnSelectionChange()
 		{
-			if (viewMode != ViewMode.History || historyLocked)
+			if (viewMode != ViewMode.History)
 			{
 				return;
 			}
 
-			if (!string.IsNullOrEmpty(AssetDatabase.GetAssetPath(Selection.activeObject)))
-			{
-				historyTarget = Selection.activeObject;
-				Refresh();
-			}
+			historyView.OnSelectionChange();
 		}
 
 
@@ -832,18 +660,6 @@ namespace GitHub.Unity
 			{
 				entryCommitTargets[index].All = false;
 			}
-		}
-
-
-		void Pull()
-		{
-			Debug.Log("TODO: Pull");
-		}
-
-
-		void Push()
-		{
-			Debug.Log("TODO: Push");
 		}
 
 
