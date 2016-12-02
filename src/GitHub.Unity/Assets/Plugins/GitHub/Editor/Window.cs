@@ -34,7 +34,7 @@ namespace GitHub.Unity
 	}
 
 
-	public class Window : EditorWindow
+	public class Window : EditorWindow, IView
 	{
 		enum ViewMode
 		{
