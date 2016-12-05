@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace GitHub.Unity
 {
+	[System.Serializable]
 	class HistoryView : Subview
 	{
 		enum LogEntryState

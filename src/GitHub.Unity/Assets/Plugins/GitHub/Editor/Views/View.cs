@@ -13,7 +13,7 @@ namespace GitHub.Unity
 	}
 
 
-	abstract class Subview : ScriptableObject, IView
+	abstract class Subview : IView
 	{
 		const string NullParentError = "Subview parent is null";
 

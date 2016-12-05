@@ -8,6 +8,7 @@ using System.Collections.Generic;
 
 namespace GitHub.Unity
 {
+	[System.Serializable]
 	class ChangesView : Subview
 	{
 		enum CommitState

@@ -6,6 +6,7 @@ using System.IO;
 
 namespace GitHub.Unity
 {
+	[System.Serializable]
 	class SettingsView : Subview
 	{
 		const string

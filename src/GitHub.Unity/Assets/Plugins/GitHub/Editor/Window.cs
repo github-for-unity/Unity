@@ -42,41 +42,14 @@ namespace GitHub.Unity
 		}
 
 
-		readonly string[]
-			TabLabels = new string[]
-			{
-				"History",
-				"Changes",
-				"Settings"
-			};
-
-
-		readonly Type[]
-			TabTypes = new Type[]
-			{
-				typeof(HistoryView),
-				typeof(ChangesView),
-				typeof(SettingsView)
-			};
-
-
-		const SubTab LastTab = SubTab.Settings;
-
-
-		static void ForEachTab(Action<SubTab> action)
-		{
-			for (int index = 0; index <= (int)LastTab; ++index)
-			{
-				action((SubTab)index);
-			}
-		}
-
-
 		const string
 			Title = "GitHub",
 			LaunchMenu = "Window/GitHub",
 			RefreshButton = "Refresh",
-			UnknownSubTabError = "Unsupported view mode: {0}";
+			UnknownSubTabError = "Unsupported view mode: {0}",
+			HistoryTitle = "History",
+			ChangesTitle = "Changes",
+			SettingsTitle = "Settings";
 
 
 		[MenuItem(LaunchMenu)]
@@ -87,26 +60,35 @@ namespace GitHub.Unity
 
 
 		[SerializeField] SubTab activeTab = SubTab.History;
-		[SerializeField] List<Subview> tabViews = new List<Subview>();
+		[SerializeField] HistoryView historyTab = new HistoryView();
+		[SerializeField] ChangesView changesTab = new ChangesView();
+		[SerializeField] SettingsView settingsTab = new SettingsView();
+
+
+		Subview ActiveTab
+		{
+			get
+			{
+				switch(activeTab)
+				{
+					case SubTab.History:
+					return historyTab;
+					case SubTab.Changes:
+					return changesTab;
+					case SubTab.Settings:
+					return settingsTab;
+					default:
+					throw new ArgumentException(string.Format(UnknownSubTabError, activeTab));
+				}
+			}
+		}
 
 
 		void OnEnable()
 		{
-			if (tabViews.Count <= (int)LastTab)
-			{
-				tabViews.Clear();
-				ForEachTab(tab => tabViews.Add(null));
-			}
-
-			ForEachTab(tab =>
-			{
-				if (tabViews[(int)tab] == null)
-				{
-					tabViews[(int)tab] = (Subview)CreateInstance(TabTypes[(int)tab]);
-				}
-
-				tabViews[(int)tab].Show(this);
-			});
+			historyTab.Show(this);
+			changesTab.Show(this);
+			settingsTab.Show(this);
 
 			Refresh();
 		}
@@ -121,14 +103,16 @@ namespace GitHub.Unity
 			if (!Utility.ActiveRepository || !Utility.GitFound)
 			{
 				activeTab = SubTab.Settings; // If we do complete init, make sure that we return to the settings tab for further setup
-				tabViews[(int)SubTab.Settings].OnGUI();
+				settingsTab.OnGUI();
 				return;
 			}
 
 			// Subtabs & toolbar
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
 				EditorGUI.BeginChangeCheck();
-					ForEachTab(tab => activeTab = GUILayout.Toggle(activeTab == tab, TabLabels[(int)tab], EditorStyles.toolbarButton) ? tab : activeTab);
+					TabButton(ref activeTab, SubTab.History, HistoryTitle);
+					TabButton(ref activeTab, SubTab.Changes, ChangesTitle);
+					TabButton(ref activeTab, SubTab.Settings, SettingsTitle);
 				if (EditorGUI.EndChangeCheck())
 				{
 					Refresh();
@@ -143,7 +127,13 @@ namespace GitHub.Unity
 			GUILayout.EndHorizontal();
 
 			// GUI for the active tab
-			tabViews[(int)activeTab].OnGUI();
+			ActiveTab.OnGUI();
+		}
+
+
+		static void TabButton(ref SubTab activeTab, SubTab tab, string title)
+		{
+			activeTab = GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
 		}
 
 
@@ -151,14 +141,14 @@ namespace GitHub.Unity
 		{
 			if (Utility.ActiveRepository)
 			{
-				tabViews[(int)activeTab].Refresh();
+				ActiveTab.Refresh();
 			}
 		}
 
 
 		void OnSelectionChange()
 		{
-			tabViews[(int)activeTab].OnSelectionChange();
+			ActiveTab.OnSelectionChange();
 		}
 	}
 }
