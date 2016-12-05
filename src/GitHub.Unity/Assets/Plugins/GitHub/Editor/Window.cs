@@ -119,11 +119,6 @@ namespace GitHub.Unity
 				}
 
 				GUILayout.FlexibleSpace();
-
-				if (GUILayout.Button(RefreshButton, EditorStyles.toolbarButton))
-				{
-					Refresh();
-				}
 			GUILayout.EndHorizontal();
 
 			// GUI for the active tab
