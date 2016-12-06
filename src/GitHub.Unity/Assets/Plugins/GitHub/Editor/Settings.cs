@@ -12,7 +12,7 @@ namespace GitHub.Unity
 	{
 		const string
 			SettingsParseError = "Failed to parse settings file at '{0}'",
-			LocalSettingsName = "GitHub.local.asset";
+			LocalSettingsName = "GitHub.local.json";
 
 
 		[SerializeField] List<string>
