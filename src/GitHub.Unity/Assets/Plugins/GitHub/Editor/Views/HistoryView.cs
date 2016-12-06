@@ -50,6 +50,15 @@ namespace GitHub.Unity
 			statusBehind;
 
 
+		float EntryHeight
+		{
+			get
+			{
+				return Styles.HistoryEntryHeight + Styles.HistoryEntryPadding;
+			}
+		}
+
+
 		protected override void OnShow()
 		{
 			GitLogTask.RegisterCallback(OnLogUpdate);
@@ -163,9 +172,11 @@ namespace GitHub.Unity
 			{
 				scroll = GUILayout.BeginScrollView(scroll);
 					// Handle only the selected range of history items - adding spacing for the rest
-					float totalEntryHeight = Styles.HistoryEntryHeight + Styles.HistoryEntryPadding;
-					GUILayout.Space(historyStartIndex * totalEntryHeight);
-					for (int index = historyStartIndex; index < historyStopIndex; ++index)
+					int
+						start = Mathf.Max(0, historyStartIndex - HistoryExtraItemCount),
+						stop = Mathf.Min(historyStopIndex + HistoryExtraItemCount, history.Count);
+					GUILayout.Space(start * EntryHeight);
+					for (int index = start; index < stop; ++index)
 					{
 						LogEntryState entryState = (historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal);
 
@@ -173,7 +184,7 @@ namespace GitHub.Unity
 
 						GUILayout.Space(Styles.HistoryEntryPadding);
 					}
-					GUILayout.Space((history.Count - historyStopIndex) * totalEntryHeight);
+					GUILayout.Space((history.Count - stop) * EntryHeight);
 			}
 			else
 			{
@@ -192,9 +203,8 @@ namespace GitHub.Unity
 		void CullHistory()
 		// Recalculate the range of history items to handle - based on what is visible, plus a bit of padding for fast scrolling
 		{
-			float totalEntryHeight = Styles.HistoryEntryHeight + Styles.HistoryEntryPadding;
-			historyStartIndex = (int)Mathf.Clamp(scroll.y / totalEntryHeight - HistoryExtraItemCount, 0, history.Count);
-			historyStopIndex = (int)Mathf.Clamp(historyStartIndex + position.height / totalEntryHeight + 1 + HistoryExtraItemCount, 0, history.Count);
+			historyStartIndex = (int)Mathf.Clamp(scroll.y / EntryHeight, 0, history.Count);
+			historyStopIndex = (int)Mathf.Clamp(historyStartIndex + position.height / EntryHeight + 1, 0, history.Count);
 		}
 
 
