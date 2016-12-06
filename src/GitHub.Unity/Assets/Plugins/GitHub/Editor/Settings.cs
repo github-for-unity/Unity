@@ -25,20 +25,13 @@ namespace GitHub.Unity
 
 		static string GetPath()
 		{
-			string path = Utility.UnityDataPath;
-
-			return path == null ? null : path.Substring(0, path.Length - "Assets".Length) + "ProjectSettings/" + LocalSettingsName;
+			return string.Format("{0}/ProjectSettings/{1}", Utility.UnityProjectPath, LocalSettingsName);
 		}
 
 
 		public static bool Reload()
 		{
 			string path = GetPath();
-
-			if (path == null)
-			{
-				return false;
-			}
 
 			Settings newAsset = CreateInstance<Settings>();
 
@@ -76,11 +69,6 @@ namespace GitHub.Unity
 			}
 
 			string path = GetPath();
-
-			if (path == null)
-			{
-				return false;
-			}
 
 			StreamWriter settings = File.CreateText(path);
 			settings.Write("{\n");

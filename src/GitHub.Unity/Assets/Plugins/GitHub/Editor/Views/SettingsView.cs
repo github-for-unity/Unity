@@ -192,14 +192,14 @@ namespace GitHub.Unity
 
 		void ResetInitDirectory()
 		{
-			initDirectory = Utility.UnityDataPath.Substring(0, Utility.UnityDataPath.Length - "Assets".Length);
+			initDirectory = Utility.UnityProjectPath;
 			GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
 		}
 
 
 		static bool ValidateInitDirectory(string path)
 		{
-			if (Utility.UnityDataPath.IndexOf(path) != 0)
+			if (Utility.UnityProjectPath.IndexOf(path) != 0)
 			{
 				EditorUtility.DisplayDialog(
 					InvalidInitDirectoryTitle,
