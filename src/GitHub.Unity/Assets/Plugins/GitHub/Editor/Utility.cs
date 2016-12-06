@@ -3,6 +3,8 @@ using UnityEditor;
 using System;
 using System.IO;
 using System.Text;
+using System.Collections.Generic;
+using System.Linq;
 
 
 namespace GitHub.Unity
@@ -180,6 +182,37 @@ namespace GitHub.Unity
 		public static Texture2D GetIcon(string filename)
 		{
 			return AssetDatabase.LoadMainAssetAtPath(ExtensionInstallPath + "/Icons/" + filename) as Texture2D;
+		}
+
+
+		// Based on: https://www.rosettacode.org/wiki/Find_common_directory_path#C.23
+		public static string FindCommonPath(string separator, IEnumerable<string> paths)
+		{
+			string commonPath = string.Empty;
+			List<string> separatedPath = paths
+				.First(first => first.Length == paths.Max(second => second.Length))
+				.Split(new string[] { separator }, StringSplitOptions.RemoveEmptyEntries)
+				.ToList();
+
+			foreach (string pathSegment in separatedPath.AsEnumerable())
+			{
+				string pathExtension = pathSegment + separator;
+
+				if (commonPath.Length == 0 && paths.All(path => path.StartsWith(pathExtension)))
+				{
+					commonPath = pathExtension;
+				}
+				else if (paths.All(path => path.StartsWith(commonPath + pathExtension)))
+				{
+					commonPath += pathExtension;
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			return commonPath;
 		}
 	}
 }
