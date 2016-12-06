@@ -31,7 +31,9 @@ namespace GitHub.Unity
 			RemotesAccessRatio = 0.1f;
 
 
-		const string BrowseButton = "...";
+		const string
+			BrowseButton = "...",
+			WarningLabel = "<b>Warning:</b> {0}";
 
 
 		static GUIStyle
@@ -259,6 +261,28 @@ namespace GitHub.Unity
 				GUILayout.EndHorizontal();
 				GUILayout.FlexibleSpace();
 			GUILayout.EndVertical();
+		}
+
+
+		public static bool InitialStateActionButton(string label)
+		{
+			bool result;
+
+			GUILayout.BeginHorizontal();
+				GUILayout.FlexibleSpace();
+				result = GUILayout.Button(label, GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+
+			return result;
+		}
+
+
+		public static void Warning(string message)
+		{
+			GUILayout.BeginHorizontal(EditorStyles.helpBox);
+				GUILayout.Label(string.Format(WarningLabel, message), Styles.LongMessageStyle);
+				GUILayout.FlexibleSpace();
+			GUILayout.EndHorizontal();
 		}
 
 

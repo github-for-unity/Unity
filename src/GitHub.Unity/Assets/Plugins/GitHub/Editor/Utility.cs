@@ -28,6 +28,7 @@ namespace GitHub.Unity
 		public static string UnityAssetsPath { get; protected set; }
 		public static string UnityProjectPath { get; protected set; }
 		public static string ExtensionInstallPath { get; protected set; }
+		public static ProjectEvaluation ProjectEvaluation { get; protected set; }
 
 
 		public static bool GitFound
@@ -90,6 +91,11 @@ namespace GitHub.Unity
 			}
 			DestroyImmediate(instance);
 
+			// Evaluate project settings
+			EvaluateProjectConfigurationTask.UnregisterCallback(OnEvaluationResult);
+			EvaluateProjectConfigurationTask.RegisterCallback(OnEvaluationResult);
+			EvaluateProjectConfigurationTask.Schedule();
+
 			// Root paths
 			if (string.IsNullOrEmpty(GitInstallPath))
 			{
@@ -106,6 +112,12 @@ namespace GitHub.Unity
 			{
 				DetermineGitRoot();
 			}
+		}
+
+
+		static void OnEvaluationResult(ProjectEvaluation result)
+		{
+			ProjectEvaluation = result;
 		}
 
 

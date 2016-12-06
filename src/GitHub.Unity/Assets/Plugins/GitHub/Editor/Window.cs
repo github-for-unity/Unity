@@ -100,7 +100,12 @@ namespace GitHub.Unity
 			titleContent = new GUIContent(Title, Styles.TitleIcon);
 
 			// Initial state
-			if (!Utility.ActiveRepository || !Utility.GitFound)
+			if (
+				!Utility.ActiveRepository ||
+				!Utility.GitFound ||
+				((Utility.ProjectEvaluation & ProjectEvaluation.EditorSettingsMissing) != 0) ||
+				((Utility.ProjectEvaluation & ProjectEvaluation.BadVCSSettings) != 0)
+			)
 			{
 				activeTab = SubTab.Settings; // If we do complete init, make sure that we return to the settings tab for further setup
 				settingsTab.OnGUI();
@@ -134,6 +139,8 @@ namespace GitHub.Unity
 
 		public void Refresh()
 		{
+			EvaluateProjectConfigurationTask.Schedule();
+
 			if (Utility.ActiveRepository)
 			{
 				ActiveTab.Refresh();
