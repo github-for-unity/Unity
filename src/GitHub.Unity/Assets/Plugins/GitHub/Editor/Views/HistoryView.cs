@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.Linq;
+using System;
+
+using Object = UnityEngine.Object;
 
 
 namespace GitHub.Unity
@@ -48,6 +51,11 @@ namespace GitHub.Unity
 			historyStopIndex,
 			statusAhead,
 			statusBehind;
+		bool
+			updated = true,
+			useScrollTime = false;
+		DateTimeOffset scrollTime = DateTimeOffset.Now;
+		float scrollOffset;
 
 
 		float EntryHeight
@@ -97,9 +105,33 @@ namespace GitHub.Unity
 
 		void OnLogUpdate(IList<GitLogEntry> entries)
 		{
+			updated = true;
+
 			history.Clear();
 			history.AddRange(entries);
-			CullHistory();
+
+			if (history.Any())
+			{
+				// Make sure that scroll as much as possible focuses the same time period in the new entry list
+				if (useScrollTime)
+				{
+					int closestIndex = -1;
+					double closestDifference = Mathf.Infinity;
+					for (int index = 0; index < history.Count; ++index)
+					{
+						double diff = Math.Abs((history[index].Time - scrollTime).TotalSeconds);
+						if (diff < closestDifference)
+						{
+							closestDifference = diff;
+							closestIndex = index;
+						}
+					}
+
+					scroll.Set(scroll.x, EntryHeight * closestIndex + scrollOffset);
+				}
+
+				CullHistory();
+			}
 			Repaint();
 		}
 
@@ -170,7 +202,15 @@ namespace GitHub.Unity
 			// When history scroll actually changes, store time value of topmost visible entry. This is the value we use to reposition scroll on log update - not the pixel value.
 			if (history.Any())
 			{
+				// Only update time scroll
+				Vector2 lastScroll = scroll;
 				scroll = GUILayout.BeginScrollView(scroll);
+				if (lastScroll != scroll && !updated)
+				{
+					scrollTime = history[historyStartIndex].Time;
+					scrollOffset = scroll.y - historyStartIndex * EntryHeight;
+					useScrollTime = true;
+				}
 					// Handle only the selected range of history items - adding spacing for the rest
 					int
 						start = Mathf.Max(0, historyStartIndex - HistoryExtraItemCount),
@@ -196,6 +236,7 @@ namespace GitHub.Unity
 			if (Event.current.type == EventType.Repaint)
 			{
 				CullHistory();
+				updated = false;
 			}
 		}
 
