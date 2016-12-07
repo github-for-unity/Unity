@@ -34,7 +34,8 @@ namespace GitHub.Unity
 			PushConfirmTitle = "Push Changes?",
 			PushConfirmDescription = "Would you like to push changes to remote '{0}'?",
 			PushConfirmYes = "Push",
-			PushConfirmCancel = "Cancel";
+			PushConfirmCancel = "Cancel",
+			ClearSelectionButton = "x";
 		const int
 			HistoryExtraItemCount = 10;
 
@@ -267,6 +268,10 @@ namespace GitHub.Unity
 					{
 						ScrollTo(selectionIndex);
 					}
+					if (GUILayout.Button(ClearSelectionButton, Styles.HistoryToolbarButtonStyle, GUILayout.ExpandWidth(false)))
+					{
+						newSelectionIndex = -2;
+					}
 				GUILayout.EndHorizontal();
 
 				HistoryEntry(selection, GetEntryState(selectionIndex), false);
@@ -286,9 +291,9 @@ namespace GitHub.Unity
 				CullHistory();
 				updated = false;
 
-				if (newSelectionIndex >= 0)
+				if (newSelectionIndex >= 0 || newSelectionIndex == -2)
 				{
-					selectionIndex = newSelectionIndex;
+					selectionIndex = newSelectionIndex == -2 ? -1 : newSelectionIndex;
 					newSelectionIndex = -1;
 					Repaint();
 				}
