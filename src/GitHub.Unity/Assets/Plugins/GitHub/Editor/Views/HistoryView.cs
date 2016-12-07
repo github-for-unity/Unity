@@ -81,6 +81,7 @@ namespace GitHub.Unity
 			selectionIndex = newSelectionIndex = -1;
 			GitLogTask.RegisterCallback(OnLogUpdate);
 			changesetTree.Show(this);
+			changesetTree.Readonly = true;
 		}
 
 
@@ -292,7 +293,10 @@ namespace GitHub.Unity
 
 						GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
-						changesetTree.OnGUI();
+						GUILayout.BeginHorizontal();
+							GUILayout.Space(Styles.HistoryChangesIndentation);
+							changesetTree.OnGUI();
+						GUILayout.EndHorizontal();
 
 						GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 					GUILayout.EndScrollView();
