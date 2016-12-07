@@ -164,6 +164,19 @@ namespace GitHub.Unity
 
 		public void Update(IList<GitStatusEntry> newEntries)
 		{
+			// Handle the empty list scenario
+			if (!newEntries.Any())
+			{
+				entries.Clear();
+				entryCommitTargets.Clear();
+				tree = null;
+				foldedTreeEntries.Clear();
+
+				OnCommitTreeChange();
+
+				return;
+			}
+
 			// Remove what got nuked
 			for (int index = 0; index < entries.Count;)
 			{
