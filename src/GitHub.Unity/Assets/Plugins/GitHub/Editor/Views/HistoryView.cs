@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.Linq;
+using System;
+
+using Object = UnityEngine.Object;
 
 
 namespace GitHub.Unity
@@ -48,6 +51,20 @@ namespace GitHub.Unity
 			historyStopIndex,
 			statusAhead,
 			statusBehind;
+		bool
+			updated = true,
+			useScrollTime = false;
+		DateTimeOffset scrollTime = DateTimeOffset.Now;
+		float scrollOffset;
+
+
+		float EntryHeight
+		{
+			get
+			{
+				return Styles.HistoryEntryHeight + Styles.HistoryEntryPadding;
+			}
+		}
 
 
 		protected override void OnShow()
@@ -88,9 +105,33 @@ namespace GitHub.Unity
 
 		void OnLogUpdate(IList<GitLogEntry> entries)
 		{
+			updated = true;
+
 			history.Clear();
 			history.AddRange(entries);
-			CullHistory();
+
+			if (history.Any())
+			{
+				// Make sure that scroll as much as possible focuses the same time period in the new entry list
+				if (useScrollTime)
+				{
+					int closestIndex = -1;
+					double closestDifference = Mathf.Infinity;
+					for (int index = 0; index < history.Count; ++index)
+					{
+						double diff = Math.Abs((history[index].Time - scrollTime).TotalSeconds);
+						if (diff < closestDifference)
+						{
+							closestDifference = diff;
+							closestIndex = index;
+						}
+					}
+
+					scroll.Set(scroll.x, EntryHeight * closestIndex + scrollOffset);
+				}
+
+				CullHistory();
+			}
 			Repaint();
 		}
 
@@ -161,11 +202,21 @@ namespace GitHub.Unity
 			// When history scroll actually changes, store time value of topmost visible entry. This is the value we use to reposition scroll on log update - not the pixel value.
 			if (history.Any())
 			{
+				// Only update time scroll
+				Vector2 lastScroll = scroll;
 				scroll = GUILayout.BeginScrollView(scroll);
+				if (lastScroll != scroll && !updated)
+				{
+					scrollTime = history[historyStartIndex].Time;
+					scrollOffset = scroll.y - historyStartIndex * EntryHeight;
+					useScrollTime = true;
+				}
 					// Handle only the selected range of history items - adding spacing for the rest
-					float totalEntryHeight = Styles.HistoryEntryHeight + Styles.HistoryEntryPadding;
-					GUILayout.Space(historyStartIndex * totalEntryHeight);
-					for (int index = historyStartIndex; index < historyStopIndex; ++index)
+					int
+						start = Mathf.Max(0, historyStartIndex - HistoryExtraItemCount),
+						stop = Mathf.Min(historyStopIndex + HistoryExtraItemCount, history.Count);
+					GUILayout.Space(start * EntryHeight);
+					for (int index = start; index < stop; ++index)
 					{
 						LogEntryState entryState = (historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal);
 
@@ -173,7 +224,7 @@ namespace GitHub.Unity
 
 						GUILayout.Space(Styles.HistoryEntryPadding);
 					}
-					GUILayout.Space((history.Count - historyStopIndex) * totalEntryHeight);
+					GUILayout.Space((history.Count - stop) * EntryHeight);
 			}
 			else
 			{
@@ -185,6 +236,7 @@ namespace GitHub.Unity
 			if (Event.current.type == EventType.Repaint)
 			{
 				CullHistory();
+				updated = false;
 			}
 		}
 
@@ -192,9 +244,8 @@ namespace GitHub.Unity
 		void CullHistory()
 		// Recalculate the range of history items to handle - based on what is visible, plus a bit of padding for fast scrolling
 		{
-			float totalEntryHeight = Styles.HistoryEntryHeight + Styles.HistoryEntryPadding;
-			historyStartIndex = (int)Mathf.Clamp(scroll.y / totalEntryHeight - HistoryExtraItemCount, 0, history.Count);
-			historyStopIndex = (int)Mathf.Clamp(historyStartIndex + position.height / totalEntryHeight + 1 + HistoryExtraItemCount, 0, history.Count);
+			historyStartIndex = (int)Mathf.Clamp(scroll.y / EntryHeight, 0, history.Count);
+			historyStopIndex = (int)Mathf.Clamp(historyStartIndex + position.height / EntryHeight + 1, 0, history.Count);
 		}
 
 
