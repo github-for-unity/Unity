@@ -10,8 +10,16 @@ namespace GitHub.Unity
 	class SettingsView : Subview
 	{
 		const string
+			EditorSettingsMissingTitle = "Missing editor settings",
+			EditorSettingsMissingMessage = "No valid editor settings found when looking in expected path '{0}'. Please save the project.",
+			BadVCSSettingsTitle = "Update settings",
+			BadVCSSettingsMessage = "To use git, you will need to set project Version Control Mode to either 'Visible Meta Files' or 'Hidden Meta Files'.",
+			SelectEditorSettingsButton = "View settings",
 			NoActiveRepositoryTitle = "No repository found",
 			NoActiveRepositoryMessage = "Your current project is not currently in an active git repository:",
+			TextSerialisationMessage = "For optimal git use, it is recommended that you configure Unity to serialize assets using text serialization. Note that this may cause editor slowdowns for projects with very large datasets.",
+			BinarySerialisationMessage = "This project is currently configured for binary serialization.",
+			MixedSerialisationMessage = "This project is currently configured for mixed serialization.",
 			GitInitBrowseTitle = "Pick desired repository root",
 			GitInitButton = "Set up git",
 			InvalidInitDirectoryTitle = "Invalid repository root",
@@ -66,7 +74,31 @@ namespace GitHub.Unity
 
 		public override void OnGUI()
 		{
-			if (!Utility.GitFound)
+			if ((Utility.ProjectEvaluation & ProjectEvaluation.EditorSettingsMissing) != 0)
+			{
+				Styles.BeginInitialStateArea(
+					EditorSettingsMissingTitle,
+					string.Format(EditorSettingsMissingMessage, EvaluateProjectConfigurationTask.EditorSettingsPath)
+				);
+				Styles.EndInitialStateArea();
+
+				return;
+			}
+			else if ((Utility.ProjectEvaluation & ProjectEvaluation.BadVCSSettings) != 0)
+			{
+				Styles.BeginInitialStateArea(BadVCSSettingsTitle, BadVCSSettingsMessage);
+					GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+					// Button to select editor settings - for remedying the bad setting
+					if (Styles.InitialStateActionButton(SelectEditorSettingsButton))
+					{
+						Selection.activeObject = EvaluateProjectConfigurationTask.LoadEditorSettings();
+					}
+				Styles.EndInitialStateArea();
+
+				return;
+			}
+			else if (!Utility.GitFound)
 			{
 				Styles.BeginInitialStateArea(GitInstallTitle, GitInstallMissingMessage);
 					OnInstallPathGUI();
@@ -83,23 +115,42 @@ namespace GitHub.Unity
 					GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
 					// Git init, which starts the config flow
-					GUILayout.BeginHorizontal();
-						GUILayout.FlexibleSpace();
-						if (GUILayout.Button(GitInitButton, GUILayout.ExpandWidth(false)))
+					if (Styles.InitialStateActionButton(GitInitButton))
+					{
+						if (ValidateInitDirectory(initDirectory))
 						{
-							if (ValidateInitDirectory(initDirectory))
-							{
-								Init();
-							}
-							else
-							{
-								ResetInitDirectory();
-							}
+							Init();
 						}
-					GUILayout.EndHorizontal();
+						else
+						{
+							ResetInitDirectory();
+						}
+					}
 				Styles.EndInitialStateArea();
 
 				return;
+			}
+
+			if ((Utility.ProjectEvaluation & (ProjectEvaluation.BinarySerialization | ProjectEvaluation.MixedSerialization)) != 0)
+			{
+				GUILayout.Label(TextSerialisationMessage, Styles.LongMessageStyle);
+			}
+
+			if ((Utility.ProjectEvaluation & ProjectEvaluation.BinarySerialization) != 0)
+			{
+				Styles.Warning(BinarySerialisationMessage);
+				if (Styles.InitialStateActionButton(SelectEditorSettingsButton))
+				{
+					Selection.activeObject = EvaluateProjectConfigurationTask.LoadEditorSettings();
+				}
+			}
+			else if ((Utility.ProjectEvaluation & ProjectEvaluation.MixedSerialization) != 0)
+			{
+				Styles.Warning(MixedSerialisationMessage);
+				if (Styles.InitialStateActionButton(SelectEditorSettingsButton))
+				{
+					Selection.activeObject = EvaluateProjectConfigurationTask.LoadEditorSettings();
+				}
 			}
 
 			GUILayout.Label("TODO: Favourite branches settings?");
@@ -192,14 +243,14 @@ namespace GitHub.Unity
 
 		void ResetInitDirectory()
 		{
-			initDirectory = Utility.UnityDataPath.Substring(0, Utility.UnityDataPath.Length - "Assets".Length);
+			initDirectory = Utility.UnityProjectPath;
 			GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
 		}
 
 
 		static bool ValidateInitDirectory(string path)
 		{
-			if (Utility.UnityDataPath.IndexOf(path) != 0)
+			if (Utility.UnityProjectPath.IndexOf(path) != 0)
 			{
 				EditorUtility.DisplayDialog(
 					InvalidInitDirectoryTitle,

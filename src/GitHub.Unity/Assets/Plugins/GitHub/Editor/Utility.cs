@@ -25,8 +25,10 @@ namespace GitHub.Unity
 
 
 		public static string GitRoot { get; protected set; }
-		public static string UnityDataPath { get; protected set; }
+		public static string UnityAssetsPath { get; protected set; }
+		public static string UnityProjectPath { get; protected set; }
 		public static string ExtensionInstallPath { get; protected set; }
+		public static ProjectEvaluation ProjectEvaluation { get; protected set; }
 
 
 		public static bool GitFound
@@ -66,6 +68,10 @@ namespace GitHub.Unity
 		[InitializeOnLoadMethod]
 		static void Prepare()
 		{
+			// Unity paths
+			UnityAssetsPath = Application.dataPath;
+			UnityProjectPath = UnityAssetsPath.Substring(0, UnityAssetsPath.Length - "Assets".Length - 1);
+
 			// Juggling to find out where we got installed
 			Utility instance = FindObjectOfType(typeof(Utility)) as Utility;
 			if (instance == null)
@@ -84,6 +90,11 @@ namespace GitHub.Unity
 				ExtensionInstallPath = ExtensionInstallPath.Substring(0, ExtensionInstallPath.LastIndexOf('/'));
 			}
 			DestroyImmediate(instance);
+
+			// Evaluate project settings
+			EvaluateProjectConfigurationTask.UnregisterCallback(OnEvaluationResult);
+			EvaluateProjectConfigurationTask.RegisterCallback(OnEvaluationResult);
+			EvaluateProjectConfigurationTask.Schedule();
 
 			// Root paths
 			if (string.IsNullOrEmpty(GitInstallPath))
@@ -104,9 +115,15 @@ namespace GitHub.Unity
 		}
 
 
+		static void OnEvaluationResult(ProjectEvaluation result)
+		{
+			ProjectEvaluation = result;
+		}
+
+
 		static void DetermineGitRoot()
 		{
-			GitRoot = FindRoot(UnityDataPath = Application.dataPath);
+			GitRoot = FindRoot(UnityAssetsPath);
 		}
 
 
@@ -135,7 +152,7 @@ namespace GitHub.Unity
 
 		public static string RepositoryPathToAsset(string repositoryPath)
 		{
-			string localDataPath = UnityDataPath.Substring(GitRoot.Length + 1);
+			string localDataPath = UnityAssetsPath.Substring(GitRoot.Length + 1);
 			return (repositoryPath.IndexOf (localDataPath) == 0) ?
 				("Assets" + repositoryPath.Substring(localDataPath.Length)).Replace(Path.DirectorySeparatorChar, '/') :
 				null;
@@ -144,7 +161,7 @@ namespace GitHub.Unity
 
 		public static string AssetPathToRepository(string assetPath)
 		{
-			string localDataPath = UnityDataPath.Substring(GitRoot.Length + 1);
+			string localDataPath = UnityAssetsPath.Substring(GitRoot.Length + 1);
 			return Path.Combine(localDataPath.Substring(0, localDataPath.Length - "Assets".Length), assetPath.Replace('/', Path.DirectorySeparatorChar));
 		}
 
