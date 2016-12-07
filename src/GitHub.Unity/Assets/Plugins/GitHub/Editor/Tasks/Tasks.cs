@@ -7,6 +7,7 @@ using System.Threading;
 using System.Text;
 using System.IO;
 using System;
+using System.Linq;
 
 
 /*
@@ -24,12 +25,20 @@ using System;
 
 namespace GitHub.Unity
 {
+	enum TaskQueueSetting
+	{
+		NoQueue,
+		Queue,
+		QueueSingle
+	}
+
+
 	interface ITask
 	{
 		bool Blocking { get; }
 		float Progress { get; }
 		bool Done { get; }
-		bool Queued { get; }
+		TaskQueueSetting Queued { get; }
 		bool Critical { get; }
 		bool Cached { get; }
 		Action<ITask> OnBegin { set; }
@@ -182,7 +191,10 @@ namespace GitHub.Unity
 		{
 			lock(Instance.tasksLock)
 			{
-				if(!task.Queued && Instance.tasks.Count > 0)
+				if(
+					(task.Queued == TaskQueueSetting.NoQueue && Instance.tasks.Count > 0) ||
+					(task.Queued == TaskQueueSetting.QueueSingle && Instance.tasks.Any(t => t.GetType() == task.GetType()))
+				)
 				{
 					return;
 				}

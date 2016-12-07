@@ -76,7 +76,7 @@ namespace GitHub.Unity
 		public bool Blocking { get { return false; } }
 		public float Progress { get; protected set; }
 		public bool Done { get; protected set; }
-		public bool Queued { get { return true; } }
+		public TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; } }
 		public bool Critical { get { return false; } }
 		public bool Cached { get { return false; } }
 		public Action<ITask> OnBegin { set; protected get; }
