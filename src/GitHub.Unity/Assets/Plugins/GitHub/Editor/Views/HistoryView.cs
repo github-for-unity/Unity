@@ -43,6 +43,7 @@ namespace GitHub.Unity
 		[SerializeField] bool historyLocked = true;
 		[SerializeField] Object historyTarget = null;
 		[SerializeField] Vector2 scroll;
+		[SerializeField] string selectionID;
 
 
 		string currentRemote = "placeholder";
@@ -56,6 +57,9 @@ namespace GitHub.Unity
 			useScrollTime = false;
 		DateTimeOffset scrollTime = DateTimeOffset.Now;
 		float scrollOffset;
+		int
+			selectionIndex,
+			newSelectionIndex;
 
 
 		float EntryHeight
@@ -69,6 +73,7 @@ namespace GitHub.Unity
 
 		protected override void OnShow()
 		{
+			selectionIndex = newSelectionIndex = -1;
 			GitLogTask.RegisterCallback(OnLogUpdate);
 		}
 
@@ -127,12 +132,31 @@ namespace GitHub.Unity
 						}
 					}
 
-					scroll.Set(scroll.x, EntryHeight * closestIndex + scrollOffset);
+					ScrollTo(closestIndex, scrollOffset);
 				}
 
 				CullHistory();
 			}
+
+			// Restore selection index or clear it
+			newSelectionIndex = -1;
+			if (!string.IsNullOrEmpty(selectionID))
+			{
+				selectionIndex = Enumerable.Range(1, history.Count + 1).FirstOrDefault(index => history[index - 1].CommitID.Equals(selectionID)) - 1;
+
+				if (selectionIndex < 0)
+				{
+					selectionID = string.Empty;
+				}
+			}
+
 			Repaint();
+		}
+
+
+		void ScrollTo(int index, float offset = 0f)
+		{
+			scroll.Set(scroll.x, EntryHeight * index + offset);
 		}
 
 
@@ -218,9 +242,10 @@ namespace GitHub.Unity
 					GUILayout.Space(start * EntryHeight);
 					for (int index = start; index < stop; ++index)
 					{
-						LogEntryState entryState = (historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal);
-
-						HistoryEntry(history[index], entryState);
+						if (HistoryEntry(history[index], GetEntryState(index), selectionIndex == index))
+						{
+							newSelectionIndex = index;
+						}
 
 						GUILayout.Space(Styles.HistoryEntryPadding);
 					}
@@ -233,11 +258,47 @@ namespace GitHub.Unity
 
 			GUILayout.EndScrollView();
 
+			if (selectionIndex >= 0)
+			{
+				GitLogEntry selection = history[selectionIndex];
+
+				GUILayout.BeginHorizontal(EditorStyles.toolbar);
+					if (GUILayout.Button(selection.ShortID, Styles.HistoryToolbarButtonStyle))
+					{
+						ScrollTo(selectionIndex);
+					}
+				GUILayout.EndHorizontal();
+
+				HistoryEntry(selection, GetEntryState(selectionIndex), false);
+
+				GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+				for (int index = 0; index < selection.Changes.Count; ++index)
+				{
+					GitStatusEntry change = selection.Changes[index];
+
+					GUILayout.Label(string.Format("{0} {1}", change.Status, change.Path));
+				}
+			}
+
 			if (Event.current.type == EventType.Repaint)
 			{
 				CullHistory();
 				updated = false;
+
+				if (newSelectionIndex >= 0)
+				{
+					selectionIndex = newSelectionIndex;
+					newSelectionIndex = -1;
+					Repaint();
+				}
 			}
+		}
+
+
+		LogEntryState GetEntryState(int index)
+		{
+			return historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal;
 		}
 
 
@@ -249,13 +310,18 @@ namespace GitHub.Unity
 		}
 
 
-		void HistoryEntry(GitLogEntry entry, LogEntryState state)
+		bool HistoryEntry(GitLogEntry entry, LogEntryState state, bool selected)
 		{
 			Rect entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
 			Rect
 				summaryRect = new Rect(entryRect.x, entryRect.y, entryRect.width, Styles.HistorySummaryHeight),
 				timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight, entryRect.width * .5f, Styles.HistoryDetailsHeight);
 			Rect authorRect = new Rect(timestampRect.xMax, timestampRect.y, timestampRect.width, timestampRect.height);
+
+			if (selected && Event.current.type == EventType.Repaint)
+			{
+				EditorStyles.helpBox.Draw(entryRect, GUIContent.none, false, false, false, false);
+			}
 
 			if (!string.IsNullOrEmpty(entry.MergeA))
 			{
@@ -276,6 +342,8 @@ namespace GitHub.Unity
 			GUI.Label(summaryRect, entry.Summary);
 			GUI.Label(timestampRect, entry.PrettyTimeString, Styles.HistoryEntryDetailsStyle);
 			GUI.Label(authorRect, entry.AuthorName, Styles.HistoryEntryDetailsRightStyle);
+
+			return Event.current.type == EventType.MouseDown && entryRect.Contains(Event.current.mousePosition);
 		}
 
 
