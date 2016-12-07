@@ -343,7 +343,13 @@ namespace GitHub.Unity
 			GUI.Label(timestampRect, entry.PrettyTimeString, Styles.HistoryEntryDetailsStyle);
 			GUI.Label(authorRect, entry.AuthorName, Styles.HistoryEntryDetailsRightStyle);
 
-			return Event.current.type == EventType.MouseDown && entryRect.Contains(Event.current.mousePosition);
+			if (Event.current.type == EventType.MouseDown && entryRect.Contains(Event.current.mousePosition))
+			{
+				Event.current.Use();
+				return true;
+			}
+
+			return false;
 		}
 
 
