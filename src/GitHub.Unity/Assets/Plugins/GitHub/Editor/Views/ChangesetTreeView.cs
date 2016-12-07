@@ -142,6 +142,7 @@ namespace GitHub.Unity
 
 
 		public float Height { get; protected set; }
+		public bool Readonly { get; set; }
 
 
 		public IList<GitStatusEntry> Entries
@@ -293,45 +294,47 @@ namespace GitHub.Unity
 
 		public override void OnGUI()
 		{
-			// The file tree (when available)
-			if (tree != null && entries.Any())
-			{
-				// Base path label
-				if (!string.IsNullOrEmpty(tree.Path))
+			GUILayout.BeginVertical();
+				// The file tree (when available)
+				if (tree != null && entries.Any())
 				{
-					GUILayout.Label(string.Format(BasePathLabel, tree.Path));
+					// Base path label
+					if (!string.IsNullOrEmpty(tree.Path))
+					{
+						GUILayout.Label(string.Format(BasePathLabel, tree.Path));
+					}
+
+					GUILayout.BeginHorizontal();
+						GUILayout.Space(Styles.TreeIndentation + Styles.TreeRootIndentation);
+						GUILayout.BeginVertical();
+							// Root nodes
+							foreach (FileTreeNode node in tree.Children)
+							{
+								TreeNode(node);
+							}
+						GUILayout.EndVertical();
+					GUILayout.EndHorizontal();
+
+					if (Height == 0f && Event.current.type == EventType.Repaint)
+					// If we have no minimum height calculated, do that now and repaint so it can be used
+					{
+						Height = GUILayoutUtility.GetLastRect().yMax + Styles.MinCommitTreePadding;
+						Repaint();
+					}
+
+					GUILayout.FlexibleSpace();
 				}
-
-				GUILayout.BeginHorizontal();
-					GUILayout.Space(Styles.TreeIndentation + Styles.TreeRootIndentation);
-					GUILayout.BeginVertical();
-						// Root nodes
-						foreach (FileTreeNode node in tree.Children)
-						{
-							TreeNode(node);
-						}
-					GUILayout.EndVertical();
-				GUILayout.EndHorizontal();
-
-				if (Height == 0f && Event.current.type == EventType.Repaint)
-				// If we have no minimum height calculated, do that now and repaint so it can be used
+				else
 				{
-					Height = GUILayoutUtility.GetLastRect().yMax + Styles.MinCommitTreePadding;
-					Repaint();
+					GUILayout.FlexibleSpace();
+					GUILayout.BeginHorizontal();
+						GUILayout.FlexibleSpace();
+						GUILayout.Label(NoChangesLabel);
+						GUILayout.FlexibleSpace();
+					GUILayout.EndHorizontal();
+					GUILayout.FlexibleSpace();
 				}
-
-				GUILayout.FlexibleSpace();
-			}
-			else
-			{
-				GUILayout.FlexibleSpace();
-				GUILayout.BeginHorizontal();
-					GUILayout.FlexibleSpace();
-					GUILayout.Label(NoChangesLabel);
-					GUILayout.FlexibleSpace();
-				GUILayout.EndHorizontal();
-				GUILayout.FlexibleSpace();
-			}
+			GUILayout.EndVertical();
 		}
 
 
@@ -341,21 +344,34 @@ namespace GitHub.Unity
 			bool isFolder = node.Children.Any();
 
 			GUILayout.BeginHorizontal();
-				// Commit inclusion toggle
-				CommitState state = node.State;
-				bool toggled = state == CommitState.All;
-
-				EditorGUI.BeginChangeCheck();
-					toggled = GUILayout.Toggle(toggled, "", state == CommitState.Some ? Styles.ToggleMixedStyle : GUI.skin.toggle, GUILayout.ExpandWidth(false));
-				if (EditorGUI.EndChangeCheck())
+				if (!Readonly)
 				{
-					node.State = toggled ? CommitState.All : CommitState.None;
+					// Commit inclusion toggle
+					CommitState state = node.State;
+					bool toggled = state == CommitState.All;
+
+					EditorGUI.BeginChangeCheck();
+						toggled = GUILayout.Toggle(toggled, "", state == CommitState.Some ? Styles.ToggleMixedStyle : GUI.skin.toggle, GUILayout.ExpandWidth(false));
+					if (EditorGUI.EndChangeCheck())
+					{
+						node.State = toggled ? CommitState.All : CommitState.None;
+					}
 				}
 
 				// Foldout
 				if (isFolder)
 				{
-					Rect foldoutRect = GUILayoutUtility.GetLastRect();
+					Rect foldoutRect;
+
+					if (Readonly)
+					{
+						foldoutRect = GUILayoutUtility.GetRect(1, 1);
+						foldoutRect.Set(foldoutRect.x - 5f, foldoutRect.y, 0f, EditorGUIUtility.singleLineHeight);
+					}
+					else
+					{
+						foldoutRect = GUILayoutUtility.GetLastRect();
+					}
 					foldoutRect.Set(foldoutRect.x - Styles.FoldoutWidth + Styles.FoldoutIndentation, foldoutRect.y, Styles.FoldoutWidth, foldoutRect.height);
 
 					EditorGUI.BeginChangeCheck();
