@@ -205,12 +205,12 @@ namespace GitHub.Unity
 				// Only update time scroll
 				Vector2 lastScroll = scroll;
 				scroll = GUILayout.BeginScrollView(scroll);
-				if (lastScroll != scroll && !updated)
-				{
-					scrollTime = history[historyStartIndex].Time;
-					scrollOffset = scroll.y - historyStartIndex * EntryHeight;
-					useScrollTime = true;
-				}
+					if (lastScroll != scroll && !updated)
+					{
+						scrollTime = history[historyStartIndex].Time;
+						scrollOffset = scroll.y - historyStartIndex * EntryHeight;
+						useScrollTime = true;
+					}
 					// Handle only the selected range of history items - adding spacing for the rest
 					int
 						start = Mathf.Max(0, historyStartIndex - HistoryExtraItemCount),
