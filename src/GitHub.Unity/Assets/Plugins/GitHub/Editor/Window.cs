@@ -26,6 +26,13 @@ namespace GitHub.Unity
 
 			static void Refresh()
 			{
+				Utility.UnregisterReadyCallback(OnReady);
+				Utility.RegisterReadyCallback(OnReady);
+			}
+
+
+			static void OnReady()
+			{
 				foreach (Window window in Object.FindObjectsOfType(typeof(Window)))
 				{
 					window.Refresh();
@@ -90,7 +97,8 @@ namespace GitHub.Unity
 			changesTab.Show(this);
 			settingsTab.Show(this);
 
-			Refresh();
+			Utility.UnregisterReadyCallback(Refresh);
+			Utility.RegisterReadyCallback(Refresh);
 		}
 
 
