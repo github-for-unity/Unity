@@ -28,7 +28,7 @@ namespace GitHub.Unity
 		public static string UnityAssetsPath { get; protected set; }
 		public static string UnityProjectPath { get; protected set; }
 		public static string ExtensionInstallPath { get; protected set; }
-		public static ProjectEvaluation ProjectEvaluation { get; protected set; }
+		public static List<ProjectConfigurationIssue> Issues { get; protected set; }
 
 
 		public static bool GitFound
@@ -115,9 +115,9 @@ namespace GitHub.Unity
 		}
 
 
-		static void OnEvaluationResult(ProjectEvaluation result)
+		static void OnEvaluationResult(IEnumerable<ProjectConfigurationIssue> result)
 		{
-			ProjectEvaluation = result;
+			Issues = new List<ProjectConfigurationIssue>(result);
 		}
 
 

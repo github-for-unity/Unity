@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
+using  System.Linq;
 
 
 namespace GitHub.Unity
@@ -20,6 +21,9 @@ namespace GitHub.Unity
 			TextSerialisationMessage = "For optimal git use, it is recommended that you configure Unity to serialize assets using text serialization. Note that this may cause editor slowdowns for projects with very large datasets.",
 			BinarySerialisationMessage = "This project is currently configured for binary serialization.",
 			MixedSerialisationMessage = "This project is currently configured for mixed serialization.",
+			GitIgnoreExceptionWarning = "Exception when searching .gitignore files: {0}",
+			GitIgnoreIssueWarning = "{0}: {2}\n\nIn line \"{1}\"",
+			GitIgnoreIssueNoLineWarning = "{0}: {1}",
 			GitInitBrowseTitle = "Pick desired repository root",
 			GitInitButton = "Set up git",
 			InvalidInitDirectoryTitle = "Invalid repository root",
@@ -74,31 +78,37 @@ namespace GitHub.Unity
 
 		public override void OnGUI()
 		{
-			if ((Utility.ProjectEvaluation & ProjectEvaluation.EditorSettingsMissing) != 0)
+			ProjectSettingsIssue settingsIssues = Utility.Issues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
+
+			if (settingsIssues != null)
 			{
-				Styles.BeginInitialStateArea(
-					EditorSettingsMissingTitle,
-					string.Format(EditorSettingsMissingMessage, EvaluateProjectConfigurationTask.EditorSettingsPath)
-				);
-				Styles.EndInitialStateArea();
+				if (settingsIssues.WasCaught(ProjectSettingsEvaluation.EditorSettingsMissing))
+				{
+					Styles.BeginInitialStateArea(
+						EditorSettingsMissingTitle,
+						string.Format(EditorSettingsMissingMessage, EvaluateProjectConfigurationTask.EditorSettingsPath)
+					);
+					Styles.EndInitialStateArea();
 
-				return;
+					return;
+				}
+				else if (settingsIssues.WasCaught(ProjectSettingsEvaluation.BadVCSSettings))
+				{
+					Styles.BeginInitialStateArea(BadVCSSettingsTitle, BadVCSSettingsMessage);
+						GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+						// Button to select editor settings - for remedying the bad setting
+						if (Styles.InitialStateActionButton(SelectEditorSettingsButton))
+						{
+							Selection.activeObject = EvaluateProjectConfigurationTask.LoadEditorSettings();
+						}
+					Styles.EndInitialStateArea();
+
+					return;
+				}
 			}
-			else if ((Utility.ProjectEvaluation & ProjectEvaluation.BadVCSSettings) != 0)
-			{
-				Styles.BeginInitialStateArea(BadVCSSettingsTitle, BadVCSSettingsMessage);
-					GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
-					// Button to select editor settings - for remedying the bad setting
-					if (Styles.InitialStateActionButton(SelectEditorSettingsButton))
-					{
-						Selection.activeObject = EvaluateProjectConfigurationTask.LoadEditorSettings();
-					}
-				Styles.EndInitialStateArea();
-
-				return;
-			}
-			else if (!Utility.GitFound)
+			if (!Utility.GitFound)
 			{
 				Styles.BeginInitialStateArea(GitInstallTitle, GitInstallMissingMessage);
 					OnInstallPathGUI();
@@ -131,25 +141,49 @@ namespace GitHub.Unity
 				return;
 			}
 
-			if ((Utility.ProjectEvaluation & (ProjectEvaluation.BinarySerialization | ProjectEvaluation.MixedSerialization)) != 0)
+			if (settingsIssues != null)
 			{
-				GUILayout.Label(TextSerialisationMessage, Styles.LongMessageStyle);
-			}
-
-			if ((Utility.ProjectEvaluation & ProjectEvaluation.BinarySerialization) != 0)
-			{
-				Styles.Warning(BinarySerialisationMessage);
-				if (Styles.InitialStateActionButton(SelectEditorSettingsButton))
+				if (
+					settingsIssues.WasCaught(ProjectSettingsEvaluation.BinarySerialization) ||
+					settingsIssues.WasCaught(ProjectSettingsEvaluation.MixedSerialization)
+				)
 				{
-					Selection.activeObject = EvaluateProjectConfigurationTask.LoadEditorSettings();
+					GUILayout.Label(TextSerialisationMessage, Styles.LongMessageStyle);
+				}
+
+				if (settingsIssues.WasCaught(ProjectSettingsEvaluation.BinarySerialization))
+				{
+					Styles.Warning(BinarySerialisationMessage);
+					if (Styles.InitialStateActionButton(SelectEditorSettingsButton))
+					{
+						Selection.activeObject = EvaluateProjectConfigurationTask.LoadEditorSettings();
+					}
+				}
+				else if (settingsIssues.WasCaught(ProjectSettingsEvaluation.MixedSerialization))
+				{
+					Styles.Warning(MixedSerialisationMessage);
+					if (Styles.InitialStateActionButton(SelectEditorSettingsButton))
+					{
+						Selection.activeObject = EvaluateProjectConfigurationTask.LoadEditorSettings();
+					}
 				}
 			}
-			else if ((Utility.ProjectEvaluation & ProjectEvaluation.MixedSerialization) != 0)
+
+			GitIgnoreException gitIgnoreException = Utility.Issues.Select(i => i as GitIgnoreException).FirstOrDefault(i => i != null);
+			if (gitIgnoreException != null)
 			{
-				Styles.Warning(MixedSerialisationMessage);
-				if (Styles.InitialStateActionButton(SelectEditorSettingsButton))
+				Styles.Warning(string.Format(GitIgnoreExceptionWarning, gitIgnoreException.Exception));
+			}
+
+			foreach (GitIgnoreIssue issue in Utility.Issues.Select(i => i as GitIgnoreIssue).Where(i => i != null))
+			{
+				if (string.IsNullOrEmpty(issue.Line))
 				{
-					Selection.activeObject = EvaluateProjectConfigurationTask.LoadEditorSettings();
+					Styles.Warning(string.Format(GitIgnoreIssueNoLineWarning, issue.File, issue.Description));
+				}
+				else
+				{
+					Styles.Warning(string.Format(GitIgnoreIssueWarning, issue.File, issue.Line, issue.Description));
 				}
 			}
 

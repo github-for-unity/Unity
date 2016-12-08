@@ -13,7 +13,7 @@ using Object = UnityEngine.Object;
 namespace GitHub.Unity
 {
 	[Flags]
-	enum ProjectEvaluation
+	enum ProjectSettingsEvaluation
 	{
 		None = 						0,
 		EditorSettingsMissing = 	1 << 0,
@@ -27,6 +27,56 @@ namespace GitHub.Unity
 	{
 		Require = 0,
 		Disallow = 1
+	}
+
+
+	abstract class ProjectConfigurationIssue
+	{}
+
+
+	class ProjectSettingsIssue : ProjectConfigurationIssue
+	{
+		public ProjectSettingsEvaluation Evaluation { get; protected set; }
+
+
+		public ProjectSettingsIssue(ProjectSettingsEvaluation evaluation)
+		{
+			Evaluation = evaluation;
+		}
+
+
+		public bool WasCaught(ProjectSettingsEvaluation evaluation)
+		{
+			return (Evaluation & evaluation) != 0;
+		}
+	}
+
+
+	class GitIgnoreException : ProjectConfigurationIssue
+	{
+		public Exception Exception { get; protected set; }
+
+
+		public GitIgnoreException(Exception exception)
+		{
+			Exception = exception;
+		}
+	}
+
+
+	class GitIgnoreIssue : ProjectConfigurationIssue
+	{
+		public string File { get; protected set; }
+		public string Line { get; protected set; }
+		public string Description { get; protected set; }
+
+
+		public GitIgnoreIssue(string file, string line, string description)
+		{
+			File = file;
+			Line = line;
+			Description = description;
+		}
 	}
 
 
@@ -128,16 +178,16 @@ namespace GitHub.Unity
 		const int ThreadSyncDelay = 100;
 
 
-		static Action<ProjectEvaluation> onEvaluationResult;
+		static Action<IEnumerable<ProjectConfigurationIssue>> onEvaluationResult;
 
 
-		public static void RegisterCallback(Action<ProjectEvaluation> callback)
+		public static void RegisterCallback(Action<IEnumerable<ProjectConfigurationIssue>> callback)
 		{
 			onEvaluationResult += callback;
 		}
 
 
-		public static void UnregisterCallback(Action<ProjectEvaluation> callback)
+		public static void UnregisterCallback(Action<IEnumerable<ProjectConfigurationIssue>> callback)
 		{
 			onEvaluationResult -= callback;
 		}
@@ -155,8 +205,7 @@ namespace GitHub.Unity
 		}
 
 
-		// TODO: Change this to a list of references to a base "evaluation issue" type, which allows more data to be provided with certain issue types
-		ProjectEvaluation result;
+		List<ProjectConfigurationIssue> issues = new List<ProjectConfigurationIssue>();
 
 
 		public bool Blocking { get { return false; } }
@@ -175,7 +224,7 @@ namespace GitHub.Unity
 			Done = false;
 			Progress = 0f;
 
-			result = ProjectEvaluation.None;
+			issues.Clear();
 
 			if(OnBegin != null)
 			{
@@ -186,7 +235,7 @@ namespace GitHub.Unity
 			Tasks.ScheduleMainThread(EvaluateLocalConfiguration);
 
 			// Git config
-			EvaluateGitConfiguration();
+			EvaluateGitIgnore();
 
 			// Wait for main thread work to complete
 			while(!Done) { Thread.Sleep(ThreadSyncDelay); }
@@ -201,17 +250,19 @@ namespace GitHub.Unity
 
 			if (onEvaluationResult != null)
 			{
-				onEvaluationResult(result);
+				onEvaluationResult(issues);
 			}
 		}
 
 
 		void EvaluateLocalConfiguration()
 		{
+			ProjectSettingsEvaluation result = ProjectSettingsEvaluation.None;
+
 			Object settingsAsset = LoadEditorSettings();
 			if (settingsAsset == null)
 			{
-				result |= ProjectEvaluation.EditorSettingsMissing;
+				result |= ProjectSettingsEvaluation.EditorSettingsMissing;
 				return;
 			}
 			SerializedObject settingsObject = new SerializedObject(settingsAsset);
@@ -219,24 +270,29 @@ namespace GitHub.Unity
 			string vcsSetting = settingsObject.FindProperty(VCSPropertyName).stringValue;
 			if (!vcsSetting.Equals(VisibleMetaFilesValue) && !vcsSetting.Equals(HiddenMetaFilesValue))
 			{
-				result |= ProjectEvaluation.BadVCSSettings;
+				result |= ProjectSettingsEvaluation.BadVCSSettings;
 			}
 
 			SerializationSetting serializationSetting = (SerializationSetting)settingsObject.FindProperty(SerializationPropertyName).intValue;
 			if (serializationSetting == SerializationSetting.ForceBinary)
 			{
-				result |= ProjectEvaluation.BinarySerialization;
+				result |= ProjectSettingsEvaluation.BinarySerialization;
 			}
 			else if (serializationSetting == SerializationSetting.Mixed)
 			{
-				result |= ProjectEvaluation.MixedSerialization;
+				result |= ProjectSettingsEvaluation.MixedSerialization;
+			}
+
+			if (result != ProjectSettingsEvaluation.None)
+			{
+				issues.Add(new ProjectSettingsIssue(result));
 			}
 
 			Done = true;
 		}
 
 
-		void EvaluateGitConfiguration()
+		void EvaluateGitIgnore()
 		{
 			// Read rules
 			List<GitIgnoreRule> rules = new List<GitIgnoreRule>(Mathf.Max(0, int.Parse(Settings.Get(GitIgnoreRule.CountKey, "0"))));
@@ -267,8 +323,7 @@ namespace GitHub.Unity
 			}
 			catch (Exception e)
 			{
-				// TODO: Add an issue of being unable to evaluate git configuration, providing the specific exception
-				Debug.LogErrorFormat("Exception while reading gitignores: {0}", e);
+				issues.Add(new GitIgnoreException(e));
 
 				return;
 			}
@@ -296,8 +351,7 @@ namespace GitHub.Unity
 						if (rule.Effect == GitIgnoreRuleEffect.Disallow && match)
 						// This line is not allowed
 						{
-							// TODO: Add an issue
-							Debug.LogErrorFormat("Broken gitignore rule:\n\t{0}\nLine in {1}:\n\t{2}", rule, file.Path, line);
+							issues.Add(new GitIgnoreIssue(file.Path, line, rule.TriggerText));
 						}
 						else if (rule.Effect == GitIgnoreRuleEffect.Require)
 						// If the line is required, see if we're there
@@ -310,8 +364,7 @@ namespace GitHub.Unity
 							else if (lineIndex == file.Contents.Length - 1)
 							// We reached the last line without finding it
 							{
-								// TODO: Add an issue
-								Debug.LogErrorFormat("Broken gitignore rule:\n\t{0}\nNo lines in {1}", rule, file.Path);
+								issues.Add(new GitIgnoreIssue(file.Path, string.Empty, rule.TriggerText));
 							}
 						}
 					}
