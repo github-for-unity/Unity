@@ -96,7 +96,7 @@ namespace GitHub.Unity
 		}
 
 
-		public static string Get(string key)
+		public static string Get(string key, string fallback = "")
 		{
 			Settings asset = GetAsset();
 
@@ -112,7 +112,7 @@ namespace GitHub.Unity
 				return asset.values[index];
 			}
 
-			return string.Empty;
+			return fallback;
 		}
 
 
