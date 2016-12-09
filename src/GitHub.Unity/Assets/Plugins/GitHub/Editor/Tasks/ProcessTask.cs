@@ -25,7 +25,7 @@ namespace GitHub.Unity
 		public virtual bool Blocking { get { return true; } }
 		public virtual float Progress { get; protected set; }
 		public virtual bool Done { get; protected set; }
-		public virtual bool Queued { get { return true; } }
+		public virtual TaskQueueSetting Queued { get { return TaskQueueSetting.Queue; } }
 		public virtual bool Critical { get { return true; } }
 		public virtual bool Cached { get { return true; } }
 		public virtual Action<ITask> OnBegin { get; set; }

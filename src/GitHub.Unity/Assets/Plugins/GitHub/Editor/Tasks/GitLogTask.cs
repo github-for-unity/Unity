@@ -144,6 +144,7 @@ Description: {7}",
 
 
 		public override bool Blocking { get { return false; } }
+		public virtual TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; } }
 		public override bool Critical { get { return false; } }
 		public override bool Cached { get { return false; } }
 		public override string Label { get { return "git log"; } }
