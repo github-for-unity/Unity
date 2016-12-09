@@ -11,6 +11,10 @@ namespace GitHub.Unity
 {
 	class Utility : ScriptableObject
 	{
+		static bool ready = false;
+		static Action onReady;
+
+
 		public static string GitInstallPath
 		{
 			get
@@ -65,6 +69,22 @@ namespace GitHub.Unity
 		}
 
 
+		public static void RegisterReadyCallback(Action callback)
+		{
+			onReady += callback;
+			if (ready)
+			{
+				callback();
+			}
+		}
+
+
+		public static void UnregisterReadyCallback(Action callback)
+		{
+			onReady -= callback;
+		}
+
+
 		[InitializeOnLoadMethod]
 		static void Prepare()
 		{
@@ -105,12 +125,24 @@ namespace GitHub.Unity
 					{
 						GitInstallPath = path;
 						DetermineGitRoot();
+						OnPrepareCompleted();
 					}
 				});
 			}
 			else
 			{
 				DetermineGitRoot();
+				OnPrepareCompleted();
+			}
+		}
+
+
+		static void OnPrepareCompleted()
+		{
+			ready = true;
+			if (onReady != null)
+			{
+				onReady();
 			}
 		}
 
