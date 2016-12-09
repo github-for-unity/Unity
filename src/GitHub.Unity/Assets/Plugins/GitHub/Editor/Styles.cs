@@ -25,11 +25,16 @@ namespace GitHub.Unity
 			TreeRootIndentation = -5f,
 			CommitIconSize = 16f,
 			CommitIconHorizontalPadding = -5f,
-			RemotesTotalHorizontalMargin = 37,
-			RemotesNameRatio = 0.2f,
-			RemotesUserRatio = 0.2f,
-			RemotesHostRation = 0.5f,
-			RemotesAccessRatio = 0.1f;
+			RemotesTotalHorizontalMargin = 37f,
+			RemotesNameRatio = .2f,
+			RemotesUserRatio = .2f,
+			RemotesHostRation = .5f,
+			RemotesAccessRatio = .1f,
+			GitIgnoreRulesTotalHorizontalMargin = 33f,
+			GitIgnoreRulesSelectorWidth = 14f,
+			GitIgnoreRulesEffectRatio = .2f,
+			GitIgnoreRulesFileRatio = .3f,
+			GitIgnoreRulesLineRatio = .5f;
 
 
 		const string

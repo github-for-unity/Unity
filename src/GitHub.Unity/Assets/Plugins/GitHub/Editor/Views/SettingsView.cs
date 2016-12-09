@@ -38,6 +38,10 @@ namespace GitHub.Unity
 			GitInstallFindButton = "Find install",
 			GitInstallButton = "New git install",
 			GitInstallURL = "http://desktop.github.com",
+			GitIgnoreRulesTitle = "gitignore rules",
+			GitIgnoreRulesEffect = "Effect",
+			GitIgnoreRulesFile = "File",
+			GitIgnoreRulesLine = "Line",
 			RemotesTitle = "Remotes",
 			RemoteNameTitle = "Name",
 			RemoteUserTitle = "User",
@@ -47,6 +51,10 @@ namespace GitHub.Unity
 
 		[SerializeField] List<GitRemote> remotes = new List<GitRemote>();
 		[SerializeField] string initDirectory;
+		[SerializeField] int gitIgnoreRulesSelection = 0;
+
+
+		int newGitIgnoreRulesSelection = -1;
 
 
 		protected override void OnShow()
@@ -187,7 +195,11 @@ namespace GitHub.Unity
 				}
 			}
 
+			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
 			GUILayout.Label("TODO: Favourite branches settings?");
+
+			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
 			// Remotes
 
@@ -201,23 +213,74 @@ namespace GitHub.Unity
 			GUILayout.Label(RemotesTitle, EditorStyles.boldLabel);
 			GUILayout.BeginVertical(GUI.skin.box);
 				GUILayout.BeginHorizontal(EditorStyles.toolbar);
-					GUILayout.Label(RemoteNameTitle, EditorStyles.miniLabel, GUILayout.Width(nameWidth), GUILayout.MaxWidth(nameWidth));
-					GUILayout.Label(RemoteUserTitle, EditorStyles.miniLabel, GUILayout.Width(userWidth), GUILayout.MaxWidth(userWidth));
-					GUILayout.Label(RemoteHostTitle, EditorStyles.miniLabel, GUILayout.Width(hostWidth), GUILayout.MaxWidth(hostWidth));
-					GUILayout.Label(RemoteAccessTitle, EditorStyles.miniLabel, GUILayout.Width(accessWidth), GUILayout.MaxWidth(accessWidth));
+					TableCell(RemoteNameTitle, nameWidth);
+					TableCell(RemoteUserTitle, userWidth);
+					TableCell(RemoteHostTitle, hostWidth);
+					TableCell(RemoteAccessTitle, accessWidth);
 				GUILayout.EndHorizontal();
 
 				for (int index = 0; index < remotes.Count; ++index)
 				{
 					GitRemote remote = remotes[index];
 					GUILayout.BeginHorizontal();
-						GUILayout.Label(remote.Name, EditorStyles.miniLabel, GUILayout.Width(nameWidth), GUILayout.MaxWidth(nameWidth));
-						GUILayout.Label(remote.User, EditorStyles.miniLabel, GUILayout.Width(userWidth), GUILayout.MaxWidth(userWidth));
-						GUILayout.Label(remote.Host, EditorStyles.miniLabel, GUILayout.Width(hostWidth), GUILayout.MaxWidth(hostWidth));
-						GUILayout.Label(remote.Function.ToString(), EditorStyles.miniLabel, GUILayout.Width(accessWidth), GUILayout.MaxWidth(accessWidth));
+						TableCell(remote.Name, nameWidth);
+						TableCell(remote.User, userWidth);
+						TableCell(remote.Host, hostWidth);
+						TableCell(remote.Function.ToString(), accessWidth);
 					GUILayout.EndHorizontal();
 				}
 			GUILayout.EndVertical();
+
+			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+			// gitignore rules list
+
+			float gitignoreRulesWith = position.width - Styles.GitIgnoreRulesTotalHorizontalMargin - Styles.GitIgnoreRulesSelectorWidth;
+			float
+				effectWidth = gitignoreRulesWith * Styles.GitIgnoreRulesEffectRatio,
+				fileWidth = gitignoreRulesWith * Styles.GitIgnoreRulesFileRatio,
+				lineWidth = gitignoreRulesWith * Styles.GitIgnoreRulesLineRatio;
+
+			GUILayout.Label(GitIgnoreRulesTitle, EditorStyles.boldLabel);
+			GUILayout.BeginVertical(GUI.skin.box);
+				GUILayout.BeginHorizontal(EditorStyles.toolbar);
+					GUILayout.Space(Styles.GitIgnoreRulesSelectorWidth);
+					TableCell(GitIgnoreRulesEffect, effectWidth);
+					TableCell(GitIgnoreRulesFile, fileWidth);
+					TableCell(GitIgnoreRulesLine, lineWidth);
+				GUILayout.EndHorizontal();
+
+				int count = GitIgnoreRule.Count;
+				for (int index = 0; index < count; ++index)
+				{
+					GitIgnoreRule rule;
+					if (GitIgnoreRule.TryLoad(index, out rule))
+					{
+						GUILayout.BeginHorizontal();
+							GUILayout.Space(Styles.GitIgnoreRulesSelectorWidth);
+
+							if (gitIgnoreRulesSelection == index && Event.current.type == EventType.Repaint)
+							{
+								Rect selectorRect = GUILayoutUtility.GetLastRect();
+								selectorRect.Set(selectorRect.x, selectorRect.y + 2f, selectorRect.width - 2f, EditorGUIUtility.singleLineHeight);
+								EditorStyles.foldout.Draw(selectorRect, false, false, false, false);
+							}
+
+							TableCell(rule.Effect.ToString(), effectWidth);
+							TableCell(rule.File.ToString(), fileWidth);
+							TableCell(rule.Line.ToString(), lineWidth);
+						GUILayout.EndHorizontal();
+
+						if (Event.current.type == EventType.MouseDown && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
+						{
+							newGitIgnoreRulesSelection = index;
+							Event.current.Use();
+						}
+					}
+				}
+			GUILayout.EndVertical();
+
+			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
 			GUILayout.Label("TODO: GitHub login settings");
 			GUILayout.Label("TODO: Auto-fetch toggle");
@@ -227,6 +290,19 @@ namespace GitHub.Unity
 
 			GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
 			OnInstallPathGUI();
+
+			// Effectuate new selection at end of frame
+			if (Event.current.type == EventType.Repaint && newGitIgnoreRulesSelection > -1)
+			{
+				gitIgnoreRulesSelection = newGitIgnoreRulesSelection;
+				newGitIgnoreRulesSelection = -1;
+			}
+		}
+
+
+		static void TableCell(string label, float width)
+		{
+			GUILayout.Label(label, EditorStyles.miniLabel, GUILayout.Width(width), GUILayout.MaxWidth(width));
 		}
 
 
