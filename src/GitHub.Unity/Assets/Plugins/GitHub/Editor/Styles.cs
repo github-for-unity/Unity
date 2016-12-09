@@ -14,6 +14,7 @@ namespace GitHub.Unity
 			HistorySummaryHeight = 16f,
 			HistoryDetailsHeight = 16f,
 			HistoryEntryPadding = 16f,
+			HistoryChangesIndentation = 8f,
 			CommitAreaMinHeight = 16f,
 			CommitAreaDefaultRatio = .4f,
 			CommitAreaMaxHeight = 10 * 15f,
