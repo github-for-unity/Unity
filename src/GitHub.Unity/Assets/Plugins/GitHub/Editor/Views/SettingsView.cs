@@ -42,6 +42,7 @@ namespace GitHub.Unity
 			GitIgnoreRulesEffect = "Effect",
 			GitIgnoreRulesFile = "File",
 			GitIgnoreRulesLine = "Line",
+			GitIgnoreRulesDescription = "Description",
 			RemotesTitle = "Remotes",
 			RemoteNameTitle = "Name",
 			RemoteUserTitle = "User",
@@ -277,6 +278,22 @@ namespace GitHub.Unity
 							Event.current.Use();
 						}
 					}
+				}
+
+				GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+				// Selected gitignore rule edit
+
+				GitIgnoreRule selectedRule;
+				if (GitIgnoreRule.TryLoad(gitIgnoreRulesSelection, out selectedRule))
+				{
+					GUILayout.BeginVertical(GUI.skin.box);
+						GitIgnoreRuleEffect newEffect = (GitIgnoreRuleEffect)EditorGUILayout.EnumPopup(GitIgnoreRulesEffect, selectedRule.Effect);
+						string newFile = EditorGUILayout.TextField(GitIgnoreRulesFile, selectedRule.File.ToString());
+						string newLine = EditorGUILayout.TextField(GitIgnoreRulesLine, selectedRule.Line.ToString());
+						GUILayout.Label(GitIgnoreRulesDescription);
+						string newDescription = EditorGUILayout.TextArea(selectedRule.TriggerText);
+					GUILayout.EndVertical();
 				}
 			GUILayout.EndVertical();
 
