@@ -3,6 +3,7 @@ using UnityEditor;
 using System;
 using System.Collections.Generic;
 using Object = UnityEngine.Object;
+using System.Linq;
 
 
 namespace GitHub.Unity
@@ -107,12 +108,16 @@ namespace GitHub.Unity
 			// Set window title
 			titleContent = new GUIContent(Title, Styles.TitleIcon);
 
+			ProjectSettingsIssue settingsIssues = Utility.Issues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
+
 			// Initial state
 			if (
 				!Utility.ActiveRepository ||
 				!Utility.GitFound ||
-				((Utility.ProjectEvaluation & ProjectEvaluation.EditorSettingsMissing) != 0) ||
-				((Utility.ProjectEvaluation & ProjectEvaluation.BadVCSSettings) != 0)
+				(settingsIssues != null && (
+					settingsIssues.WasCaught(ProjectSettingsEvaluation.EditorSettingsMissing) ||
+					settingsIssues.WasCaught(ProjectSettingsEvaluation.BadVCSSettings))
+				)
 			)
 			{
 				activeTab = SubTab.Settings; // If we do complete init, make sure that we return to the settings tab for further setup

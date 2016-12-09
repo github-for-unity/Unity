@@ -1,0 +1,8 @@
+{
+	"GitInstallPath": "/usr/bin/git",
+	"GitIgnoreRuleCount": "1",
+	"GitIgnoreRule0Effect": "1",
+	"GitIgnoreRule0File": ".+",
+	"GitIgnoreRule0Line": "^\\*\\.sln",
+	"GitIgnoreRule0TriggerText": "Rather than ignoring *.sln or *.csproj, it is recommended that you just ignore the specific generated files. Keeping your current settings may interfere with third party software in your project.",
+}
