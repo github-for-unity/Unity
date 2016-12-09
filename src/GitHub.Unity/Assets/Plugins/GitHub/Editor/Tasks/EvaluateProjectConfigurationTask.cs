@@ -80,6 +80,69 @@ namespace GitHub.Unity
 	}
 
 
+	struct GitIgnoreRule
+	{
+		const string
+			CountKey = "GitIgnoreRuleCount",
+			EffectKey = "GitIgnoreRule{0}Effect",
+			FileKey = "GitIgnoreRule{0}File",
+			LineKey = "GitIgnoreRule{0}Line",
+			TriggetTextKey = "GitIgnoreRule{0}TriggerText";
+
+
+		public static int Count
+		{
+			get
+			{
+				return Mathf.Max(0, int.Parse(Settings.Get(GitIgnoreRule.CountKey, "0")));
+			}
+		}
+
+
+		public GitIgnoreRuleEffect Effect { get; private set; }
+		public Regex File { get; private set; }
+		public Regex Line { get; private set; }
+		public string TriggerText { get; private set; }
+
+
+		public static bool TryLoad(int index, out GitIgnoreRule result)
+		{
+			result = new GitIgnoreRule();
+
+			int effect;
+			if (!int.TryParse(Settings.Get(string.Format(EffectKey, index), "-1"), out effect) || effect < 0)
+			{
+				return false;
+			}
+			result.Effect = (GitIgnoreRuleEffect)effect;
+
+			string file = Settings.Get(string.Format(FileKey, index));
+			if (string.IsNullOrEmpty(file))
+			{
+				return false;
+			}
+			result.File = new Regex(file);
+
+			string line = Settings.Get(string.Format(LineKey, index));
+			if (string.IsNullOrEmpty(line))
+			{
+				return false;
+			}
+			result.Line = new Regex(line);
+
+			result.TriggerText = Settings.Get(string.Format(TriggetTextKey, index));
+
+			return !string.IsNullOrEmpty(result.TriggerText);
+		}
+
+
+		public override string ToString()
+		{
+			return string.Format("{0} \"{1}\" in \"{2}\": {3}", Effect, Line, File, TriggerText);
+		}
+	}
+
+
 	class EvaluateProjectConfigurationTask : ITask
 	{
 		enum SerializationSetting
@@ -106,61 +169,6 @@ namespace GitHub.Unity
 			public override string ToString()
 			{
 				return string.Format("{0}:\n{1}", Path, string.Join("\n", Contents));
-			}
-		}
-
-
-		struct GitIgnoreRule
-		{
-			public const string
-				CountKey = "GitIgnoreRuleCount";
-			const string
-				EffectKey = "GitIgnoreRule{0}Effect",
-				FileKey = "GitIgnoreRule{0}File",
-				LineKey = "GitIgnoreRule{0}Line",
-				TriggetTextKey = "GitIgnoreRule{0}TriggerText";
-
-
-			public GitIgnoreRuleEffect Effect { get; private set; }
-			public Regex File { get; private set; }
-			public Regex Line { get; private set; }
-			public string TriggerText { get; private set; }
-
-
-			public static bool TryLoad(int index, out GitIgnoreRule result)
-			{
-				result = new GitIgnoreRule();
-
-				int effect;
-				if (!int.TryParse(Settings.Get(string.Format(EffectKey, index), "-1"), out effect) || effect < 0)
-				{
-					return false;
-				}
-				result.Effect = (GitIgnoreRuleEffect)effect;
-
-				string file = Settings.Get(string.Format(FileKey, index));
-				if (string.IsNullOrEmpty(file))
-				{
-					return false;
-				}
-				result.File = new Regex(file);
-
-				string line = Settings.Get(string.Format(LineKey, index));
-				if (string.IsNullOrEmpty(line))
-				{
-					return false;
-				}
-				result.Line = new Regex(line);
-
-				result.TriggerText = Settings.Get(string.Format(TriggetTextKey, index));
-
-				return !string.IsNullOrEmpty(result.TriggerText);
-			}
-
-
-			public override string ToString()
-			{
-				return string.Format("{0} \"{1}\" in \"{2}\": {3}", Effect, Line, File, TriggerText);
 			}
 		}
 
@@ -295,7 +303,7 @@ namespace GitHub.Unity
 		void EvaluateGitIgnore()
 		{
 			// Read rules
-			List<GitIgnoreRule> rules = new List<GitIgnoreRule>(Mathf.Max(0, int.Parse(Settings.Get(GitIgnoreRule.CountKey, "0"))));
+			List<GitIgnoreRule> rules = new List<GitIgnoreRule>(GitIgnoreRule.Count);
 			for (int index = 0; index < rules.Capacity; ++index)
 			{
 				GitIgnoreRule rule;
