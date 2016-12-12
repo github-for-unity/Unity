@@ -289,11 +289,17 @@ namespace GitHub.Unity
 				if (GitIgnoreRule.TryLoad(gitIgnoreRulesSelection, out selectedRule))
 				{
 					GUILayout.BeginVertical(GUI.skin.box);
-						GitIgnoreRuleEffect newEffect = (GitIgnoreRuleEffect)EditorGUILayout.EnumPopup(GitIgnoreRulesEffect, selectedRule.Effect);
-						GUILayout.Label(GitIgnoreRulesDescription);
-						string newDescription = EditorGUILayout.TextArea(selectedRule.TriggerText);
+						EditorGUI.BeginChangeCheck();
+							GitIgnoreRuleEffect newEffect = (GitIgnoreRuleEffect)EditorGUILayout.EnumPopup(GitIgnoreRulesEffect, selectedRule.Effect);
 							string newFile = EditorGUILayout.TextField(GitIgnoreRulesFile, selectedRule.FileString);
 							string newLine = EditorGUILayout.TextField(GitIgnoreRulesLine, selectedRule.LineString);
+							GUILayout.Label(GitIgnoreRulesDescription);
+							string newDescription = EditorGUILayout.TextArea(selectedRule.TriggerText, Styles.CommitDescriptionFieldStyle);
+						if (EditorGUI.EndChangeCheck())
+						{
+							GitIgnoreRule.Save(gitIgnoreRulesSelection, newEffect, newFile, newLine, newDescription);
+							EvaluateProjectConfigurationTask.Schedule();
+						}
 					GUILayout.EndVertical();
 				}
 			GUILayout.EndVertical();

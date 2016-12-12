@@ -154,6 +154,15 @@ namespace GitHub.Unity
 		}
 
 
+		public static void Save(int index, GitIgnoreRuleEffect effect, string file, string line, string triggerText)
+		{
+			Settings.Set(string.Format(EffectKey, index), ((int)effect).ToString(), true);
+			Settings.Set(string.Format(FileKey, index), file, true);
+			Settings.Set(string.Format(LineKey, index), line, true);
+			Settings.Set(string.Format(TriggetTextKey, index), triggerText);
+		}
+
+
 		public override string ToString()
 		{
 			return string.Format("{0} \"{1}\" in \"{2}\": {3}", Effect, Line, File, TriggerText);
