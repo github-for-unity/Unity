@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 
 namespace GitHub.Unity
@@ -75,13 +76,29 @@ namespace GitHub.Unity
 
 			for (int index = 0; index < asset.keys.Count; ++index)
 			{
-				settings.Write("\t\"{0}\": \"{1}\"\n", asset.keys[index], asset.values[index]);
+				settings.Write("\t\"{0}\": \"{1}\",\n", Escape(asset.keys[index]), Escape(asset.values[index]));
 			}
 
 			settings.Write("}\n");
 			settings.Close();
 
 			return true;
+		}
+
+
+		static string Escape(string unescaped)
+		{
+			StringBuilder builder = new StringBuilder(unescaped);
+
+			builder.Replace("\\", "\\\\");
+			builder.Replace("\"", "\\\"");
+			builder.Replace("\n", "\\n");
+			builder.Replace("\r", "\\r");
+			builder.Replace("\t", "\\t");
+			builder.Replace("\b", "\\b");
+			builder.Replace("\f", "\\f");
+
+			return builder.ToString();
 		}
 
 
