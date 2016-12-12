@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 
 namespace GitHub.Unity
@@ -75,13 +76,29 @@ namespace GitHub.Unity
 
 			for (int index = 0; index < asset.keys.Count; ++index)
 			{
-				settings.Write("\t\"{0}\": \"{1}\"\n", asset.keys[index], asset.values[index]);
+				settings.Write("\t\"{0}\": \"{1}\",\n", Escape(asset.keys[index]), Escape(asset.values[index]));
 			}
 
 			settings.Write("}\n");
 			settings.Close();
 
 			return true;
+		}
+
+
+		static string Escape(string unescaped)
+		{
+			StringBuilder builder = new StringBuilder(unescaped);
+
+			builder.Replace("\\", "\\\\");
+			builder.Replace("\"", "\\\"");
+			builder.Replace("\n", "\\n");
+			builder.Replace("\r", "\\r");
+			builder.Replace("\t", "\\t");
+			builder.Replace("\b", "\\b");
+			builder.Replace("\f", "\\f");
+
+			return builder.ToString();
 		}
 
 
@@ -102,7 +119,7 @@ namespace GitHub.Unity
 
 			if (asset == null)
 			{
-				return null;
+				return fallback;
 			}
 
 			int index = asset.keys.IndexOf(key);
@@ -116,7 +133,7 @@ namespace GitHub.Unity
 		}
 
 
-		public static bool Set(string key, string value)
+		public static bool Set(string key, string value, bool noSave = false)
 		{
 			Settings asset = GetAsset();
 
@@ -142,7 +159,65 @@ namespace GitHub.Unity
 			asset.keys.Add(key);
 			asset.values.Add(value);
 
-			Save();
+			if (!noSave)
+			{
+				Save();
+			}
+
+			return true;
+		}
+
+
+		public static bool Unset(string key, bool noSave = false)
+		{
+			Settings asset = GetAsset();
+
+			if (asset == null)
+			{
+				return false;
+			}
+
+			int index = asset.keys.IndexOf(key);
+
+			if (index < 0)
+			{
+				return false;
+			}
+
+			asset.keys.RemoveAt(index);
+			asset.values.RemoveAt(index);
+
+			if (!noSave)
+			{
+				Save();
+			}
+
+			return true;
+		}
+
+
+		public static bool Rename(string key, string newKey, bool noSave = false)
+		{
+			Settings asset = GetAsset();
+
+			if (asset == null)
+			{
+				return false;
+			}
+
+			int index = asset.keys.IndexOf(key);
+
+			if (index < 0)
+			{
+				return false;
+			}
+
+			asset.keys[index] = newKey;
+
+			if (!noSave)
+			{
+				Save();
+			}
 
 			return true;
 		}

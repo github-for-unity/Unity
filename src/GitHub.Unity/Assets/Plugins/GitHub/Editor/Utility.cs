@@ -92,6 +92,9 @@ namespace GitHub.Unity
 			UnityAssetsPath = Application.dataPath;
 			UnityProjectPath = UnityAssetsPath.Substring(0, UnityAssetsPath.Length - "Assets".Length - 1);
 
+			// Secure settings here so other threads don't try to reload
+			Settings.Reload();
+
 			// Juggling to find out where we got installed
 			Utility instance = FindObjectOfType(typeof(Utility)) as Utility;
 			if (instance == null)
@@ -112,6 +115,7 @@ namespace GitHub.Unity
 			DestroyImmediate(instance);
 
 			// Evaluate project settings
+			Issues = new List<ProjectConfigurationIssue>();
 			EvaluateProjectConfigurationTask.UnregisterCallback(OnEvaluationResult);
 			EvaluateProjectConfigurationTask.RegisterCallback(OnEvaluationResult);
 			EvaluateProjectConfigurationTask.Schedule();
