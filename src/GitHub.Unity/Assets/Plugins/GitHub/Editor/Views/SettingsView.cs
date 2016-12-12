@@ -21,6 +21,9 @@ namespace GitHub.Unity
 			TextSerialisationMessage = "For optimal git use, it is recommended that you configure Unity to serialize assets using text serialization. Note that this may cause editor slowdowns for projects with very large datasets.",
 			BinarySerialisationMessage = "This project is currently configured for binary serialization.",
 			MixedSerialisationMessage = "This project is currently configured for mixed serialization.",
+			IgnoreSerialisationIssuesSetting = "IgnoreSerializationIssues",
+			IgnoreSerialisationSettingsButton = "Ignore forever",
+			RefreshIssuesButton = "Refresh",
 			GitIgnoreExceptionWarning = "Exception when searching .gitignore files: {0}",
 			GitIgnoreIssueWarning = "{0}: {2}\n\nIn line \"{1}\"",
 			GitIgnoreIssueNoLineWarning = "{0}: {1}",
@@ -201,31 +204,35 @@ namespace GitHub.Unity
 				return false;
 			}
 
-			if (settingsIssues != null)
+			if (settingsIssues != null && !Settings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
 			{
-				if (
-					settingsIssues.WasCaught(ProjectSettingsEvaluation.BinarySerialization) ||
-					settingsIssues.WasCaught(ProjectSettingsEvaluation.MixedSerialization)
-				)
+				bool
+					binary = settingsIssues.WasCaught(ProjectSettingsEvaluation.BinarySerialization),
+					mixed = settingsIssues.WasCaught(ProjectSettingsEvaluation.MixedSerialization);
+
+				if (binary || mixed)
 				{
 					GUILayout.Label(TextSerialisationMessage, Styles.LongMessageStyle);
-				}
+					Styles.Warning(binary ? BinarySerialisationMessage : MixedSerialisationMessage);
 
-				if (settingsIssues.WasCaught(ProjectSettingsEvaluation.BinarySerialization))
-				{
-					Styles.Warning(BinarySerialisationMessage);
-					if (Styles.InitialStateActionButton(SelectEditorSettingsButton))
-					{
-						Selection.activeObject = EvaluateProjectConfigurationTask.LoadEditorSettings();
-					}
-				}
-				else if (settingsIssues.WasCaught(ProjectSettingsEvaluation.MixedSerialization))
-				{
-					Styles.Warning(MixedSerialisationMessage);
-					if (Styles.InitialStateActionButton(SelectEditorSettingsButton))
-					{
-						Selection.activeObject = EvaluateProjectConfigurationTask.LoadEditorSettings();
-					}
+					GUILayout.BeginHorizontal();
+						if (GUILayout.Button(IgnoreSerialisationSettingsButton))
+						{
+							Settings.Set(IgnoreSerialisationIssuesSetting, "1");
+						}
+
+						GUILayout.FlexibleSpace();
+
+						if (GUILayout.Button(RefreshIssuesButton))
+						{
+							EvaluateProjectConfigurationTask.Schedule();
+						}
+
+						if (GUILayout.Button(SelectEditorSettingsButton))
+						{
+							Selection.activeObject = EvaluateProjectConfigurationTask.LoadEditorSettings();
+						}
+					GUILayout.EndHorizontal();
 				}
 			}
 
