@@ -119,7 +119,7 @@ namespace GitHub.Unity
 
 			if (asset == null)
 			{
-				return null;
+				return fallback;
 			}
 
 			int index = asset.keys.IndexOf(key);
@@ -158,6 +158,61 @@ namespace GitHub.Unity
 
 			asset.keys.Add(key);
 			asset.values.Add(value);
+
+			if (!noSave)
+			{
+				Save();
+			}
+
+			return true;
+		}
+
+
+		public static bool Unset(string key, bool noSave = false)
+		{
+			Settings asset = GetAsset();
+
+			if (asset == null)
+			{
+				return false;
+			}
+
+			int index = asset.keys.IndexOf(key);
+
+			if (index < 0)
+			{
+				return false;
+			}
+
+			asset.keys.RemoveAt(index);
+			asset.values.RemoveAt(index);
+
+			if (!noSave)
+			{
+				Save();
+			}
+
+			return true;
+		}
+
+
+		public static bool Rename(string key, string newKey, bool noSave = false)
+		{
+			Settings asset = GetAsset();
+
+			if (asset == null)
+			{
+				return false;
+			}
+
+			int index = asset.keys.IndexOf(key);
+
+			if (index < 0)
+			{
+				return false;
+			}
+
+			asset.keys[index] = newKey;
 
 			if (!noSave)
 			{

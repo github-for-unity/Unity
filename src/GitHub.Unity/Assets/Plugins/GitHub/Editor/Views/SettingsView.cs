@@ -44,6 +44,7 @@ namespace GitHub.Unity
 			GitIgnoreRulesLine = "Line",
 			GitIgnoreRulesDescription = "Description",
 			NewGitIgnoreRuleButton = "New",
+			DeleteGitIgnoreRuleButton = "Delete",
 			RemotesTitle = "Remotes",
 			RemoteNameTitle = "Name",
 			RemoteUserTitle = "User",
@@ -299,6 +300,14 @@ namespace GitHub.Unity
 				if (GitIgnoreRule.TryLoad(gitIgnoreRulesSelection, out selectedRule))
 				{
 					GUILayout.BeginVertical(GUI.skin.box);
+						GUILayout.BeginHorizontal();
+							GUILayout.FlexibleSpace();
+							if (GUILayout.Button(DeleteGitIgnoreRuleButton, EditorStyles.miniButton))
+							{
+								GitIgnoreRule.Delete(gitIgnoreRulesSelection);
+								newGitIgnoreRulesSelection = gitIgnoreRulesSelection - 1;
+							}
+						GUILayout.EndHorizontal();
 						EditorGUI.BeginChangeCheck();
 							GitIgnoreRuleEffect newEffect = (GitIgnoreRuleEffect)EditorGUILayout.EnumPopup(GitIgnoreRulesEffect, selectedRule.Effect);
 							string newFile = EditorGUILayout.TextField(GitIgnoreRulesFile, selectedRule.FileString);

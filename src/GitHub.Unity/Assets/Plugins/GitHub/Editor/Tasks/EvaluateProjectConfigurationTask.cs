@@ -162,6 +162,26 @@ namespace GitHub.Unity
 		}
 
 
+		public static void Delete(int index)
+		{
+			Settings.Unset(string.Format(EffectKey, index), true);
+			Settings.Unset(string.Format(FileKey, index), true);
+			Settings.Unset(string.Format(LineKey, index), true);
+			Settings.Unset(string.Format(TriggetTextKey, index), true);
+
+			int count = Count;
+			for (int current = index + 1; index < count; ++index)
+			{
+				Settings.Rename(string.Format(EffectKey, index), string.Format(EffectKey, index - 1), true);
+				Settings.Rename(string.Format(FileKey, index), string.Format(FileKey, index - 1), true);
+				Settings.Rename(string.Format(LineKey, index), string.Format(LineKey, index - 1), true);
+				Settings.Rename(string.Format(TriggetTextKey, index), string.Format(TriggetTextKey, index - 1), true);
+			}
+
+			Settings.Set(CountKey, (count - 1).ToString());
+		}
+
+
 		public override string ToString()
 		{
 			return string.Format("{0} \"{1}\" in \"{2}\": {3}", Effect, Line, File, TriggerText);
