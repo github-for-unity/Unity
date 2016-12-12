@@ -43,6 +43,7 @@ namespace GitHub.Unity
 			GitIgnoreRulesFile = "File",
 			GitIgnoreRulesLine = "Line",
 			GitIgnoreRulesDescription = "Description",
+			NewGitIgnoreRuleButton = "New",
 			RemotesTitle = "Remotes",
 			RemoteNameTitle = "Name",
 			RemoteUserTitle = "User",
@@ -280,6 +281,15 @@ namespace GitHub.Unity
 						}
 					}
 				}
+
+				GUILayout.BeginHorizontal();
+					GUILayout.FlexibleSpace();
+					if (GUILayout.Button(NewGitIgnoreRuleButton, EditorStyles.miniButton))
+					{
+						GitIgnoreRule.New();
+						GUIUtility.hotControl = GUIUtility.keyboardControl = -1;
+					}
+				GUILayout.EndHorizontal();
 
 				GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 

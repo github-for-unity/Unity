@@ -94,7 +94,7 @@ namespace GitHub.Unity
 		{
 			get
 			{
-				return Mathf.Max(0, int.Parse(Settings.Get(GitIgnoreRule.CountKey, "0")));
+				return Mathf.Max(0, int.Parse(Settings.Get(CountKey, "0")));
 			}
 		}
 
@@ -152,6 +152,13 @@ namespace GitHub.Unity
 			Settings.Set(string.Format(FileKey, index), file, true);
 			Settings.Set(string.Format(LineKey, index), line, true);
 			Settings.Set(string.Format(TriggetTextKey, index), triggerText);
+		}
+
+
+		public static void New()
+		{
+			Save(Count, GitIgnoreRuleEffect.Require, "", "", "");
+			Settings.Set(CountKey, (Count + 1).ToString());
 		}
 
 
