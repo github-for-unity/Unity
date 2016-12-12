@@ -89,6 +89,52 @@ namespace GitHub.Unity
 
 		public override void OnGUI()
 		{
+			// Issues
+
+			if (!OnIssuesGUI())
+			{
+				return;
+			}
+
+			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+			GUILayout.Label("TODO: Favourite branches settings?");
+
+			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+			// Remotes
+
+			OnRemotesGUI();
+
+			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+			// gitignore rules list
+
+			OnGitIgnoreRulesGUI();
+
+			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+			GUILayout.Label("TODO: GitHub login settings");
+			GUILayout.Label("TODO: Auto-fetch toggle");
+			GUILayout.Label("TODO: Auto-push toggle");
+
+			// Install path
+
+			GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
+			OnInstallPathGUI();
+
+			// Effectuate new selection at end of frame
+			if (Event.current.type == EventType.Repaint && newGitIgnoreRulesSelection > -1)
+			{
+				gitIgnoreRulesSelection = newGitIgnoreRulesSelection;
+				newGitIgnoreRulesSelection = -1;
+				GUIUtility.hotControl = GUIUtility.keyboardControl = -1;
+			}
+		}
+
+
+		bool OnIssuesGUI()
+		{
 			ProjectSettingsIssue settingsIssues = Utility.Issues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
 
 			if (settingsIssues != null)
@@ -101,7 +147,7 @@ namespace GitHub.Unity
 					);
 					Styles.EndInitialStateArea();
 
-					return;
+					return false;
 				}
 				else if (settingsIssues.WasCaught(ProjectSettingsEvaluation.BadVCSSettings))
 				{
@@ -115,7 +161,7 @@ namespace GitHub.Unity
 						}
 					Styles.EndInitialStateArea();
 
-					return;
+					return false;
 				}
 			}
 
@@ -125,7 +171,7 @@ namespace GitHub.Unity
 					OnInstallPathGUI();
 				Styles.EndInitialStateArea();
 
-				return;
+				return false;
 			}
 			else if (!Utility.ActiveRepository)
 			{
@@ -149,7 +195,7 @@ namespace GitHub.Unity
 					}
 				Styles.EndInitialStateArea();
 
-				return;
+				return false;
 			}
 
 			if (settingsIssues != null)
@@ -198,14 +244,12 @@ namespace GitHub.Unity
 				}
 			}
 
-			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+			return true;
+		}
 
-			GUILayout.Label("TODO: Favourite branches settings?");
 
-			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-			// Remotes
-
+		void OnRemotesGUI()
+		{
 			float remotesWith = position.width - Styles.RemotesTotalHorizontalMargin;
 			float
 				nameWidth = remotesWith * Styles.RemotesNameRatio,
@@ -233,11 +277,11 @@ namespace GitHub.Unity
 					GUILayout.EndHorizontal();
 				}
 			GUILayout.EndVertical();
+		}
 
-			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
-			// gitignore rules list
-
+		void OnGitIgnoreRulesGUI()
+		{
 			float gitignoreRulesWith = position.width - Styles.GitIgnoreRulesTotalHorizontalMargin - Styles.GitIgnoreRulesSelectorWidth;
 			float
 				effectWidth = gitignoreRulesWith * Styles.GitIgnoreRulesEffectRatio,
@@ -322,25 +366,6 @@ namespace GitHub.Unity
 					GUILayout.EndVertical();
 				}
 			GUILayout.EndVertical();
-
-			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-			GUILayout.Label("TODO: GitHub login settings");
-			GUILayout.Label("TODO: Auto-fetch toggle");
-			GUILayout.Label("TODO: Auto-push toggle");
-
-			// Install path
-
-			GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
-			OnInstallPathGUI();
-
-			// Effectuate new selection at end of frame
-			if (Event.current.type == EventType.Repaint && newGitIgnoreRulesSelection > -1)
-			{
-				gitIgnoreRulesSelection = newGitIgnoreRulesSelection;
-				newGitIgnoreRulesSelection = -1;
-				GUIUtility.hotControl = GUIUtility.keyboardControl = -1;
-			}
 		}
 
 
