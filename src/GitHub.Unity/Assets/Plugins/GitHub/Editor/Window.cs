@@ -34,7 +34,7 @@ namespace GitHub.Unity
 
 			static void OnReady()
 			{
-				foreach (Window window in Object.FindObjectsOfType(typeof(Window)))
+				foreach (Window window in Object.FindObjectsOfTypeAll(typeof(Window)))
 				{
 					window.Refresh();
 				}
