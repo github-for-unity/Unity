@@ -119,10 +119,6 @@ namespace GitHub.Unity
 			result.Effect = (GitIgnoreRuleEffect)effect;
 
 			result.FileString = Settings.Get(string.Format(FileKey, index));
-			if (string.IsNullOrEmpty(result.FileString))
-			{
-				return false;
-			}
 
 			try
 			{
@@ -134,10 +130,6 @@ namespace GitHub.Unity
 			}
 
 			result.LineString = Settings.Get(string.Format(LineKey, index));
-			if (string.IsNullOrEmpty(result.LineString))
-			{
-				return false;
-			}
 
 			try
 			{
@@ -150,7 +142,7 @@ namespace GitHub.Unity
 
 			result.TriggerText = Settings.Get(string.Format(TriggetTextKey, index));
 
-			return !string.IsNullOrEmpty(result.TriggerText);
+			return true;
 		}
 
 
