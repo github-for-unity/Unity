@@ -268,8 +268,9 @@ namespace GitHub.Unity
 							}
 
 							TableCell(rule.Effect.ToString(), effectWidth);
-							TableCell(rule.File.ToString(), fileWidth);
-							TableCell(rule.Line.ToString(), lineWidth);
+							// TODO: Tint if the regex is null
+							TableCell(rule.FileString, fileWidth);
+							TableCell(rule.LineString, lineWidth);
 						GUILayout.EndHorizontal();
 
 						if (Event.current.type == EventType.MouseDown && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
@@ -289,10 +290,10 @@ namespace GitHub.Unity
 				{
 					GUILayout.BeginVertical(GUI.skin.box);
 						GitIgnoreRuleEffect newEffect = (GitIgnoreRuleEffect)EditorGUILayout.EnumPopup(GitIgnoreRulesEffect, selectedRule.Effect);
-						string newFile = EditorGUILayout.TextField(GitIgnoreRulesFile, selectedRule.File.ToString());
-						string newLine = EditorGUILayout.TextField(GitIgnoreRulesLine, selectedRule.Line.ToString());
 						GUILayout.Label(GitIgnoreRulesDescription);
 						string newDescription = EditorGUILayout.TextArea(selectedRule.TriggerText);
+							string newFile = EditorGUILayout.TextField(GitIgnoreRulesFile, selectedRule.FileString);
+							string newLine = EditorGUILayout.TextField(GitIgnoreRulesLine, selectedRule.LineString);
 					GUILayout.EndVertical();
 				}
 			GUILayout.EndVertical();

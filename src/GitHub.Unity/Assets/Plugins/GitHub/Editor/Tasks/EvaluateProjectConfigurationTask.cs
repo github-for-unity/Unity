@@ -100,6 +100,8 @@ namespace GitHub.Unity
 
 
 		public GitIgnoreRuleEffect Effect { get; private set; }
+		public string FileString { get; private set; }
+		public string LineString { get; private set; }
 		public Regex File { get; private set; }
 		public Regex Line { get; private set; }
 		public string TriggerText { get; private set; }
@@ -116,19 +118,35 @@ namespace GitHub.Unity
 			}
 			result.Effect = (GitIgnoreRuleEffect)effect;
 
-			string file = Settings.Get(string.Format(FileKey, index));
-			if (string.IsNullOrEmpty(file))
+			result.FileString = Settings.Get(string.Format(FileKey, index));
+			if (string.IsNullOrEmpty(result.FileString))
 			{
 				return false;
 			}
-			result.File = new Regex(file);
 
-			string line = Settings.Get(string.Format(LineKey, index));
-			if (string.IsNullOrEmpty(line))
+			try
+			{
+				result.File = new Regex(result.FileString);
+			}
+			catch(ArgumentException e)
+			{
+				result.File = null;
+			}
+
+			result.LineString = Settings.Get(string.Format(LineKey, index));
+			if (string.IsNullOrEmpty(result.LineString))
 			{
 				return false;
 			}
-			result.Line = new Regex(line);
+
+			try
+			{
+				result.Line = new Regex(result.LineString);
+			}
+			catch(ArgumentException e)
+			{
+				result.Line = null;
+			}
 
 			result.TriggerText = Settings.Get(string.Format(TriggetTextKey, index));
 
@@ -344,7 +362,7 @@ namespace GitHub.Unity
 				{
 					GitIgnoreFile file = files[fileIndex];
 					// Check against all files with matching path
-					if (!rule.File.IsMatch(file.Path))
+					if (rule.File == null || !rule.File.IsMatch(file.Path))
 					{
 						continue;
 					}
@@ -353,7 +371,7 @@ namespace GitHub.Unity
 					for (int lineIndex = 0; lineIndex < file.Contents.Length; ++lineIndex)
 					{
 						string line = file.Contents[lineIndex];
-						bool match = rule.Line.IsMatch(line);
+						bool match = rule.Line != null && rule.Line.IsMatch(line);
 						bool broken = false;
 
 						if (rule.Effect == GitIgnoreRuleEffect.Disallow && match)
