@@ -133,7 +133,7 @@ namespace GitHub.Unity
 		}
 
 
-		public static bool Set(string key, string value)
+		public static bool Set(string key, string value, bool noSave = false)
 		{
 			Settings asset = GetAsset();
 
@@ -159,7 +159,10 @@ namespace GitHub.Unity
 			asset.keys.Add(key);
 			asset.values.Add(value);
 
-			Save();
+			if (!noSave)
+			{
+				Save();
+			}
 
 			return true;
 		}
