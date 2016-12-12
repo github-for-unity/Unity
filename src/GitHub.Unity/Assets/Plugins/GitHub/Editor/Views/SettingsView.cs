@@ -55,6 +55,7 @@ namespace GitHub.Unity
 		[SerializeField] List<GitRemote> remotes = new List<GitRemote>();
 		[SerializeField] string initDirectory;
 		[SerializeField] int gitIgnoreRulesSelection = 0;
+		[SerializeField] Vector2 scroll;
 
 
 		int newGitIgnoreRulesSelection = -1;
@@ -89,39 +90,41 @@ namespace GitHub.Unity
 
 		public override void OnGUI()
 		{
-			// Issues
+			scroll = GUILayout.BeginScrollView(scroll);
+				// Issues
 
-			if (!OnIssuesGUI())
-			{
-				return;
-			}
+				if (!OnIssuesGUI())
+				{
+					return;
+				}
 
-			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+				GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
-			GUILayout.Label("TODO: Favourite branches settings?");
+				GUILayout.Label("TODO: Favourite branches settings?");
 
-			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+				GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
-			// Remotes
+				// Remotes
 
-			OnRemotesGUI();
+				OnRemotesGUI();
 
-			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+				GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
-			// gitignore rules list
+				// gitignore rules list
 
-			OnGitIgnoreRulesGUI();
+				OnGitIgnoreRulesGUI();
 
-			GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+				GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
-			GUILayout.Label("TODO: GitHub login settings");
-			GUILayout.Label("TODO: Auto-fetch toggle");
-			GUILayout.Label("TODO: Auto-push toggle");
+				GUILayout.Label("TODO: GitHub login settings");
+				GUILayout.Label("TODO: Auto-fetch toggle");
+				GUILayout.Label("TODO: Auto-push toggle");
 
-			// Install path
+				// Install path
 
-			GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
-			OnInstallPathGUI();
+				GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
+				OnInstallPathGUI();
+			GUILayout.EndScrollView();
 
 			// Effectuate new selection at end of frame
 			if (Event.current.type == EventType.Repaint && newGitIgnoreRulesSelection > -1)
@@ -250,7 +253,7 @@ namespace GitHub.Unity
 
 		void OnRemotesGUI()
 		{
-			float remotesWith = position.width - Styles.RemotesTotalHorizontalMargin;
+			float remotesWith = position.width - Styles.RemotesTotalHorizontalMargin - 16f;
 			float
 				nameWidth = remotesWith * Styles.RemotesNameRatio,
 				userWidth = remotesWith * Styles.RemotesUserRatio,
@@ -282,7 +285,7 @@ namespace GitHub.Unity
 
 		void OnGitIgnoreRulesGUI()
 		{
-			float gitignoreRulesWith = position.width - Styles.GitIgnoreRulesTotalHorizontalMargin - Styles.GitIgnoreRulesSelectorWidth;
+			float gitignoreRulesWith = position.width - Styles.GitIgnoreRulesTotalHorizontalMargin - Styles.GitIgnoreRulesSelectorWidth - 16f;
 			float
 				effectWidth = gitignoreRulesWith * Styles.GitIgnoreRulesEffectRatio,
 				fileWidth = gitignoreRulesWith * Styles.GitIgnoreRulesFileRatio,
