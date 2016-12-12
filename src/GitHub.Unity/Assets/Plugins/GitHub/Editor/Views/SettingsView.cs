@@ -320,6 +320,7 @@ namespace GitHub.Unity
 			{
 				gitIgnoreRulesSelection = newGitIgnoreRulesSelection;
 				newGitIgnoreRulesSelection = -1;
+				GUIUtility.hotControl = GUIUtility.keyboardControl = -1;
 			}
 		}
 
