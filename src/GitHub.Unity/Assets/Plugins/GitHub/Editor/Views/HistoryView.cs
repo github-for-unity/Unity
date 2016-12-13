@@ -62,7 +62,9 @@ namespace GitHub.Unity
 			updated = true,
 			useScrollTime = false;
 		DateTimeOffset scrollTime = DateTimeOffset.Now;
-		float scrollOffset;
+		float
+			lastWidth,
+			scrollOffset;
 		int
 			selectionIndex,
 			newSelectionIndex;
@@ -82,6 +84,7 @@ namespace GitHub.Unity
 
 		protected override void OnShow()
 		{
+			lastWidth = position.width;
 			selectionIndex = newSelectionIndex = -1;
 			GitLogTask.RegisterCallback(OnLogUpdate);
 			changesetTree.Show(this);
@@ -190,6 +193,7 @@ namespace GitHub.Unity
 		{
 			bool past = broadMode;
 
+			// Flip when the limits are breached
 			if (position.width > Styles.BroadModeLimit)
 			{
 				broadMode = true;
@@ -199,6 +203,18 @@ namespace GitHub.Unity
 				broadMode = false;
 			}
 
+			// Show the layout notification while scaling
+
+			Window window = (Window)parent;
+			bool scaled = position.width != lastWidth;
+			lastWidth = position.width;
+
+			if (scaled)
+			{
+				window.ShowNotification(new GUIContent(Styles.FolderIcon), Styles.ModeNotificationDelay);
+			}
+
+			// Return whether we flipped
 			return broadMode != past;
 		}
 

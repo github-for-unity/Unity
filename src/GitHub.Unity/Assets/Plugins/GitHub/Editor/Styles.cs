@@ -10,6 +10,7 @@ namespace GitHub.Unity
 		public const float
 			BroadModeLimit = 500f,
 			NarrowModeLimit = 300f,
+			ModeNotificationDelay = .5f,
 			BroadModeBranchesMinWidth = 200f,
 			BroadModeBranchesRatio = .4f,
 			InitialStateAreaWidth = 200f,
