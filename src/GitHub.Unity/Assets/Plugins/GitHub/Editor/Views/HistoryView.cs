@@ -79,7 +79,10 @@ namespace GitHub.Unity
 		protected override void OnShow()
 		{
 			selectionIndex = newSelectionIndex = -1;
+
 			GitLogTask.RegisterCallback(OnLogUpdate);
+			GitStatusTask.RegisterCallback(OnStatusUpdate);
+
 			changesetTree.Show(this);
 			changesetTree.Readonly = true;
 		}
@@ -87,6 +90,7 @@ namespace GitHub.Unity
 
 		protected override void OnHide()
 		{
+			GitStatusTask.UnregisterCallback(OnStatusUpdate);
 			GitLogTask.UnregisterCallback(OnLogUpdate);
 		}
 
