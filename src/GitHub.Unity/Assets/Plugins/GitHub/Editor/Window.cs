@@ -8,7 +8,8 @@ using System.Linq;
 
 namespace GitHub.Unity
 {
-	public class Window : EditorWindow, IView
+	[System.Serializable]
+	class Window : EditorWindow, IView
 	{
 		class RefreshRunner : AssetPostprocessor
 		{
@@ -74,6 +75,12 @@ namespace GitHub.Unity
 		[SerializeField] ChangesView changesTab = new ChangesView();
 		[SerializeField] BranchesView branchesTab = new BranchesView();
 		[SerializeField] SettingsView settingsTab = new SettingsView();
+
+
+		public HistoryView HistoryTab { get { return historyTab; } }
+		public ChangesView ChangesTab { get { return changesTab; } }
+		public BranchesView BranchesTab { get { return branchesTab; } }
+		public SettingsView SettingsTab { get { return settingsTab; } }
 
 
 		Subview ActiveTab
