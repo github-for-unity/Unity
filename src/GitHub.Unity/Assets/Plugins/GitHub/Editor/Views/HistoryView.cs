@@ -49,6 +49,7 @@ namespace GitHub.Unity
 		[SerializeField] string selectionID;
 		[SerializeField] ChangesetTreeView changesetTree = new ChangesetTreeView();
 		[SerializeField] Vector2 detailsScroll;
+		[SerializeField] bool broadMode = false;
 
 
 		string currentRemote = "placeholder";
@@ -65,6 +66,9 @@ namespace GitHub.Unity
 		int
 			selectionIndex,
 			newSelectionIndex;
+
+
+		public bool BroadMode { get { return broadMode; } }
 
 
 		float EntryHeight
@@ -103,6 +107,11 @@ namespace GitHub.Unity
 			}
 
 			GitStatusTask.Schedule();
+
+			if (broadMode)
+			{
+				((Window)parent).BranchesTab.RefreshEmbedded();
+			}
 		}
 
 
@@ -177,7 +186,58 @@ namespace GitHub.Unity
 		}
 
 
+		public bool EvaluateBroadMode()
+		{
+			bool past = broadMode;
+
+			if (position.width > Styles.BroadModeLimit)
+			{
+				broadMode = true;
+			}
+			else if (position.width < Styles.NarrowModeLimit)
+			{
+				broadMode = false;
+			}
+
+			return broadMode != past;
+		}
+
+
 		public override void OnGUI()
+		{
+			if (broadMode)
+			{
+				OnBroadGUI();
+			}
+			else
+			{
+				OnEmbeddedGUI();
+			}
+
+			if (Event.current.type == EventType.Repaint && EvaluateBroadMode())
+			{
+				Refresh();
+			}
+		}
+
+
+		public void OnBroadGUI()
+		{
+			GUILayout.BeginHorizontal();
+				GUILayout.BeginVertical(
+					GUILayout.MinWidth(Styles.BroadModeBranchesMinWidth),
+					GUILayout.MaxWidth(Mathf.Max(Styles.BroadModeBranchesMinWidth, position.width * Styles.BroadModeBranchesRatio))
+				);
+					((Window)parent).BranchesTab.OnEmbeddedGUI();
+				GUILayout.EndVertical();
+				GUILayout.BeginVertical();
+					OnEmbeddedGUI();
+				GUILayout.EndVertical();
+			GUILayout.EndHorizontal();
+		}
+
+
+		public void OnEmbeddedGUI()
 		{
 			// History toolbar
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);

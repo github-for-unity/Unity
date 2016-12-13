@@ -56,6 +56,21 @@ namespace GitHub.Unity
 
 		public override void Refresh()
 		{
+			HistoryView historyView = ((Window)parent).HistoryTab;
+
+			if (historyView.BroadMode)
+			{
+				historyView.Refresh();
+			}
+			else
+			{
+				RefreshEmbedded();
+			}
+		}
+
+
+		public void RefreshEmbedded()
+		{
 			GitListBranchesTask.ScheduleLocal(OnLocalBranchesUpdate);
 			GitListBranchesTask.ScheduleRemote(OnRemoteBranchesUpdate);
 		}
@@ -139,6 +154,25 @@ namespace GitHub.Unity
 
 
 		public override void OnGUI()
+		{
+			HistoryView historyView = ((Window)parent).HistoryTab;
+
+			if (historyView.BroadMode)
+			{
+				historyView.OnGUI();
+			}
+			else
+			{
+				OnEmbeddedGUI();
+
+				if (Event.current.type == EventType.Repaint && historyView.EvaluateBroadMode())
+				{
+					Refresh();
+				}
+			}
+		}
+
+		public void OnEmbeddedGUI()
 		{
 			scroll = GUILayout.BeginScrollView(scroll);
 				GUILayout.Label(LocalTitle);

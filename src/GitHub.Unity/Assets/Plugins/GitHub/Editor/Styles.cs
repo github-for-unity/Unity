@@ -8,6 +8,10 @@ namespace GitHub.Unity
 	class Styles
 	{
 		public const float
+			BroadModeLimit = 500f,
+			NarrowModeLimit = 300f,
+			BroadModeBranchesMinWidth = 200f,
+			BroadModeBranchesRatio = .4f,
 			InitialStateAreaWidth = 200f,
 			BrowseFolderButtonHorizontalPadding = -4f,
 			HistoryEntryHeight = 30f,
