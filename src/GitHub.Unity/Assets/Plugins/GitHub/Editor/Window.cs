@@ -52,11 +52,13 @@ namespace GitHub.Unity
 		}
 
 
+		const float DefaultNotificationTimeout = 4f;
 		const string
 			Title = "GitHub",
 			LaunchMenu = "Window/GitHub",
 			RefreshButton = "Refresh",
 			UnknownSubTabError = "Unsupported view mode: {0}",
+			BadNotificationDelayError = "A delay of {0} is shorter than the default delay and thus would get pre-empted.",
 			HistoryTitle = "History",
 			ChangesTitle = "Changes",
 			BranchesTitle = "Branches",
@@ -75,6 +77,9 @@ namespace GitHub.Unity
 		[SerializeField] ChangesView changesTab = new ChangesView();
 		[SerializeField] BranchesView branchesTab = new BranchesView();
 		[SerializeField] SettingsView settingsTab = new SettingsView();
+
+
+		double notificationClearTime = -1;
 
 
 		public HistoryView HistoryTab { get { return historyTab; } }
@@ -113,6 +118,21 @@ namespace GitHub.Unity
 
 			Utility.UnregisterReadyCallback(Refresh);
 			Utility.RegisterReadyCallback(Refresh);
+		}
+
+
+		new public void ShowNotification(GUIContent content)
+		{
+			ShowNotification(content, DefaultNotificationTimeout);
+		}
+
+
+		public void ShowNotification(GUIContent content, float timeout)
+		{
+ 			System.Diagnostics.Debug.Assert(timeout <= DefaultNotificationTimeout, string.Format(BadNotificationDelayError, timeout));
+
+			notificationClearTime = timeout < DefaultNotificationTimeout ? EditorApplication.timeSinceStartup + timeout : -1f;
+			base.ShowNotification(content);
 		}
 
 
@@ -155,6 +175,18 @@ namespace GitHub.Unity
 
 			// GUI for the active tab
 			ActiveTab.OnGUI();
+		}
+
+
+		void Update()
+		{
+			// Notification auto-clear timer override
+			if (notificationClearTime > 0f && EditorApplication.timeSinceStartup > notificationClearTime)
+			{
+				notificationClearTime = -1f;
+				RemoveNotification();
+				Repaint();
+			}
 		}
 
 
