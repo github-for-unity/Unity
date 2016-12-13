@@ -13,33 +13,38 @@ namespace GitHub.Unity
 	{
 		const string
 			SettingsParseError = "Failed to parse settings file at '{0}'",
-			LocalSettingsName = "GitHub.local.json";
+			RelativeSettingsPath = "{0}/ProjectSettings/{1}",
+			LocalSettingsName = "GitHub.local.json",
+			TeamSettingsName = "GitHub.json";
 
 
 		[SerializeField] List<string>
 			keys = new List<string>(),
-			values = new List<string>();
+			values = new List<string>(),
+			teamKeys = new List<string>(),
+			teamValues = new List<string>();
 
 
 		static Settings asset;
 
 
-		static string GetPath()
+		static string GetLocalPath()
 		{
-			return string.Format("{0}/ProjectSettings/{1}", Utility.UnityProjectPath, LocalSettingsName);
+			return string.Format(RelativeSettingsPath, Utility.UnityProjectPath, LocalSettingsName);
 		}
 
 
-		public static bool Reload()
+		static string GetTeamPath()
 		{
-			string path = GetPath();
+			return string.Format(RelativeSettingsPath, Utility.UnityProjectPath, TeamSettingsName);
+		}
 
-			Settings newAsset = CreateInstance<Settings>();
 
+		static IDictionary<string, object> LoadSettings(string path)
+		{
 			if (!File.Exists(path))
 			{
-				asset = newAsset;
-				return true;
+				return null;
 			}
 
 			object parseResult;
@@ -48,13 +53,32 @@ namespace GitHub.Unity
 			if(!SimpleJson.TryDeserializeObject(File.ReadAllText(path), out parseResult) || (settings = parseResult as IDictionary<string, object>) == null)
 			{
 				Debug.LogErrorFormat(SettingsParseError, path);
-				return false;
+				return null;
 			}
 
-			newAsset.keys.Clear();
-			newAsset.keys.AddRange(settings.Keys);
-			newAsset.values.Clear();
-			newAsset.values.AddRange(settings.Values.Select(v => v as string));
+			return settings;
+		}
+
+
+		public static bool Reload()
+		{
+			Settings newAsset = CreateInstance<Settings>();
+
+			IDictionary<string, object> settings = LoadSettings(GetLocalPath());
+
+			if (settings != null)
+			{
+				newAsset.keys.AddRange(settings.Keys);
+				newAsset.values.AddRange(settings.Values.Select(v => v as string));
+			}
+
+			settings = LoadSettings(GetTeamPath());
+
+			if (settings != null)
+			{
+				newAsset.teamKeys.AddRange(settings.Keys);
+				newAsset.teamValues.AddRange(settings.Values.Select(v => v as string));
+			}
 
 			asset = newAsset;
 
@@ -69,7 +93,7 @@ namespace GitHub.Unity
 				return false;
 			}
 
-			string path = GetPath();
+			string path = GetLocalPath();
 
 			StreamWriter settings = File.CreateText(path);
 			settings.Write("{\n");
@@ -122,7 +146,14 @@ namespace GitHub.Unity
 				return fallback;
 			}
 
-			int index = asset.keys.IndexOf(key);
+			int index = asset.teamKeys.IndexOf(key);
+
+			if (index >= 0)
+			{
+				return asset.teamValues[index];
+			}
+
+			index = asset.keys.IndexOf(key);
 
 			if (index >= 0)
 			{
@@ -138,6 +169,11 @@ namespace GitHub.Unity
 			Settings asset = GetAsset();
 
 			if (asset == null)
+			{
+				return false;
+			}
+
+			if (asset.teamKeys.Contains(key))
 			{
 				return false;
 			}
@@ -177,6 +213,11 @@ namespace GitHub.Unity
 				return false;
 			}
 
+			if (asset.teamKeys.Contains(key))
+			{
+				return false;
+			}
+
 			int index = asset.keys.IndexOf(key);
 
 			if (index < 0)
@@ -201,6 +242,11 @@ namespace GitHub.Unity
 			Settings asset = GetAsset();
 
 			if (asset == null)
+			{
+				return false;
+			}
+
+			if (asset.teamKeys.Contains(key))
 			{
 				return false;
 			}
