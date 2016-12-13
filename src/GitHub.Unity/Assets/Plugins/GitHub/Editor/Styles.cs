@@ -25,6 +25,8 @@ namespace GitHub.Unity
 			TreeRootIndentation = -5f,
 			CommitIconSize = 16f,
 			CommitIconHorizontalPadding = -5f,
+			BranchListIndentation = 20f,
+			BranchListSeperation = 15f,
 			RemotesTotalHorizontalMargin = 37f,
 			RemotesNameRatio = .2f,
 			RemotesUserRatio = .2f,

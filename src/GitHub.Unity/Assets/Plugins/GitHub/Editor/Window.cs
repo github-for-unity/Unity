@@ -46,6 +46,7 @@ namespace GitHub.Unity
 		{
 			History,
 			Changes,
+			Branches,
 			Settings
 		}
 
@@ -57,6 +58,7 @@ namespace GitHub.Unity
 			UnknownSubTabError = "Unsupported view mode: {0}",
 			HistoryTitle = "History",
 			ChangesTitle = "Changes",
+			BranchesTitle = "Branches",
 			SettingsTitle = "Settings";
 
 
@@ -70,6 +72,7 @@ namespace GitHub.Unity
 		[SerializeField] SubTab activeTab = SubTab.History;
 		[SerializeField] HistoryView historyTab = new HistoryView();
 		[SerializeField] ChangesView changesTab = new ChangesView();
+		[SerializeField] BranchesView branchesTab = new BranchesView();
 		[SerializeField] SettingsView settingsTab = new SettingsView();
 
 
@@ -83,6 +86,8 @@ namespace GitHub.Unity
 					return historyTab;
 					case SubTab.Changes:
 					return changesTab;
+					case SubTab.Branches:
+					return branchesTab;
 					case SubTab.Settings:
 					return settingsTab;
 					default:
@@ -96,6 +101,7 @@ namespace GitHub.Unity
 		{
 			historyTab.Show(this);
 			changesTab.Show(this);
+			branchesTab.Show(this);
 			settingsTab.Show(this);
 
 			Utility.UnregisterReadyCallback(Refresh);
@@ -130,6 +136,7 @@ namespace GitHub.Unity
 				EditorGUI.BeginChangeCheck();
 					TabButton(ref activeTab, SubTab.History, HistoryTitle);
 					TabButton(ref activeTab, SubTab.Changes, ChangesTitle);
+					TabButton(ref activeTab, SubTab.Branches, BranchesTitle);
 					TabButton(ref activeTab, SubTab.Settings, SettingsTitle);
 				if (EditorGUI.EndChangeCheck())
 				{
