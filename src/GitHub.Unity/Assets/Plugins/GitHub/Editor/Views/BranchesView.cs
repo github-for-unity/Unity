@@ -54,6 +54,7 @@ namespace GitHub.Unity
 
 		BranchTreeNode newNodeSelection = null;
 		GitBranchList newLocalBranches;
+		int listID = -1;
 
 
 		public override void Refresh()
@@ -143,14 +144,13 @@ namespace GitHub.Unity
 		public override void OnGUI()
 		{
 			scroll = GUILayout.BeginScrollView(scroll);
+				listID = GUIUtility.GetControlID(FocusType.Keyboard);
+
 				GUILayout.Label(LocalTitle);
 				GUILayout.BeginHorizontal();
 					GUILayout.Space(Styles.BranchListIndentation);
 					GUILayout.BeginVertical();
-						for (int index = 0; index < localRoot.Children.Count; ++index)
-						{
-							OnTreeNodeGUI(localRoot.Children[index]);
-						}
+						OnTreeNodeChildrenGUI(localRoot);
 
 						GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
@@ -175,10 +175,7 @@ namespace GitHub.Unity
 							GUILayout.BeginHorizontal();
 								GUILayout.Space(Styles.TreeIndentation);
 								GUILayout.BeginVertical();
-									for (int childIndex = 0; childIndex < remote.Root.Children.Count; ++childIndex)
-									{
-										OnTreeNodeGUI(remote.Root.Children[childIndex]);
-									}
+									OnTreeNodeChildrenGUI(remote.Root);
 								GUILayout.EndVertical();
 							GUILayout.EndHorizontal();
 
@@ -191,16 +188,36 @@ namespace GitHub.Unity
 			if (Event.current.type == EventType.Repaint && newNodeSelection != null)
 			{
 				selectedNode = newNodeSelection;
+				GUIUtility.keyboardControl = listID;
+				Repaint();
 			}
+		}
+
+
+		int OnKeyboardInput()
+		{
+			return
+				Event.current.GetTypeForControl(listID) != EventType.KeyDown ?
+					0
+				:
+					Event.current.keyCode == KeyCode.UpArrow ?
+						-1
+					:
+						Event.current.keyCode == KeyCode.DownArrow ?
+							1
+						:
+							0;
 		}
 
 
 		void OnTreeNodeGUI(BranchTreeNode node)
 		{
+			Rect clickRect = new Rect();
+
 			GUIContent content = new GUIContent(node.Label, node.Children.Count > 0 ? Styles.FolderIcon : Styles.DefaultAssetIcon);
 			GUIStyle style = node.Active ? EditorStyles.boldLabel : GUI.skin.label;
 			Rect rect = GUILayoutUtility.GetRect(content, style, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
-			Rect clickRect = new Rect(0f, rect.y, position.width, rect.height);
+			clickRect = new Rect(0f, rect.y, position.width, rect.height);
 
 			if (selectedNode == node)
 			{
@@ -212,25 +229,38 @@ namespace GitHub.Unity
 			GUILayout.BeginHorizontal();
 				GUILayout.Space(Styles.TreeIndentation);
 				GUILayout.BeginVertical();
-					for (int index = 0; index < node.Children.Count; ++index)
-					{
-						OnTreeNodeGUI(node.Children[index]);
-					}
+					OnTreeNodeChildrenGUI(node);
 				GUILayout.EndVertical();
 			GUILayout.EndHorizontal();
-
-			if (selectedNode == node && Event.current.type == EventType.Repaint)
-			{
-				const float HighlightSize = 20f;
-				Rect highlightRect = new Rect(clickRect);
-				highlightRect.Set(highlightRect.x - HighlightSize + 5f, highlightRect.y, HighlightSize, highlightRect.height);
-				EditorStyles.foldout.Draw(highlightRect, false, false, false, false);
-			}
 
 			if (Event.current.type == EventType.MouseDown && clickRect.Contains(Event.current.mousePosition))
 			{
 				newNodeSelection = node;
 				Event.current.Use();
+			}
+		}
+
+
+		void OnTreeNodeChildrenGUI(BranchTreeNode node)
+		{
+			for (int index = 0; index < node.Children.Count; ++index)
+			{
+				OnTreeNodeGUI(node.Children[index]);
+
+				if (selectedNode == node.Children[index])
+				{
+					int direction = OnKeyboardInput();
+					if (direction < 0 && index > 0)
+					{
+						newNodeSelection = node.Children[index - 1];
+						Event.current.Use();
+					}
+					else if (direction > 0 && index < node.Children.Count - 1)
+					{
+						newNodeSelection = node.Children[index + 1];
+						Event.current.Use();
+					}
+				}
 			}
 		}
 	}
