@@ -408,7 +408,13 @@ namespace GitHub.Unity
 				// Current status (if any)
 				if (target != null)
 				{
-					GUILayout.Label(entries[entryCommitTargets.IndexOf(target)].Status.ToString(), GUILayout.ExpandWidth(false));
+					GitFileStatus status = entries[entryCommitTargets.IndexOf(target)].Status;
+					Texture2D statusIcon = Styles.GetGitFileStatusIcon(status);
+					GUILayout.Label(
+						statusIcon != null ? new GUIContent(statusIcon) : new GUIContent(status.ToString()),
+						GUILayout.ExpandWidth(false),
+						GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight)
+					);
 				}
 			GUILayout.EndHorizontal();
 
