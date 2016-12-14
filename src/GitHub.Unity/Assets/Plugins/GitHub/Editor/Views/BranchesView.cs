@@ -41,6 +41,7 @@ namespace GitHub.Unity
 
 
 		const string
+			FavouritesSetting = "Favourites",
 			LocalTitle = "LOCAL BRANCHES",
 			RemoteTitle = "REMOTE BRANCHES",
 			CreateBranchButton = "+ New branch";
@@ -141,6 +142,36 @@ namespace GitHub.Unity
 		}
 
 
+		bool GetFavourite(string branch)
+		{
+			if (string.IsNullOrEmpty(branch))
+			{
+				return false;
+			}
+
+			return Settings.GetElementIndex(FavouritesSetting, branch) > -1;
+		}
+
+
+		void SetFavourite(string branch, bool favourite)
+		{
+			if (string.IsNullOrEmpty(branch))
+			{
+				return;
+			}
+
+			if (!favourite)
+			{
+				Settings.RemoveElement(FavouritesSetting, branch);
+			}
+			else
+			{
+				Settings.RemoveElement(FavouritesSetting, branch, false);
+				Settings.AddElement(FavouritesSetting, branch);
+			}
+		}
+
+
 		public override void OnGUI()
 		{
 			scroll = GUILayout.BeginScrollView(scroll);
@@ -196,16 +227,29 @@ namespace GitHub.Unity
 
 		void OnTreeNodeGUI(BranchTreeNode node)
 		{
-			Rect clickRect = new Rect();
-
 			GUIContent content = new GUIContent(node.Label, node.Children.Count > 0 ? Styles.FolderIcon : Styles.DefaultAssetIcon);
 			GUIStyle style = node.Active ? EditorStyles.boldLabel : GUI.skin.label;
 			Rect rect = GUILayoutUtility.GetRect(content, style, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
-			clickRect = new Rect(0f, rect.y, position.width, rect.height);
+			Rect clickRect = new Rect(0f, rect.y, position.width, rect.height);
+			Rect starRect = new Rect(clickRect.xMax - clickRect.height * 2f, clickRect.y, clickRect.height, clickRect.height);
 
 			if (selectedNode == node)
 			{
 				GUI.Box(clickRect, GUIContent.none);
+
+				if (!string.IsNullOrEmpty(node.Name))
+				{
+					EditorGUI.BeginChangeCheck();
+						bool favourite = GUI.Toggle(starRect, GetFavourite(node.Name), GUIContent.none);
+					if (EditorGUI.EndChangeCheck())
+					{
+						SetFavourite(node.Name, favourite);
+					}
+				}
+			}
+			else if (!string.IsNullOrEmpty(node.Name) && GetFavourite(node.Name))
+			{
+				GUI.Toggle(starRect, GetFavourite(node.Name), GUIContent.none);
 			}
 
 			GUI.Label(rect, content, style);
