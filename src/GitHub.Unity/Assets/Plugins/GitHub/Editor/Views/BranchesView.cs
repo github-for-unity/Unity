@@ -194,22 +194,6 @@ namespace GitHub.Unity
 		}
 
 
-		int OnKeyboardInput()
-		{
-			return
-				Event.current.GetTypeForControl(listID) != EventType.KeyDown ?
-					0
-				:
-					Event.current.keyCode == KeyCode.UpArrow ?
-						-1
-					:
-						Event.current.keyCode == KeyCode.DownArrow ?
-							1
-						:
-							0;
-		}
-
-
 		void OnTreeNodeGUI(BranchTreeNode node)
 		{
 			Rect clickRect = new Rect();
@@ -247,17 +231,43 @@ namespace GitHub.Unity
 			{
 				OnTreeNodeGUI(node.Children[index]);
 
-				if (selectedNode == node.Children[index])
+				if (selectedNode == node.Children[index] && Event.current.GetTypeForControl(listID) == EventType.KeyDown)
 				{
-					int direction = OnKeyboardInput();
-					if (direction < 0 && index > 0)
+					int directionY =
+						Event.current.keyCode == KeyCode.UpArrow ?
+							-1
+						:
+							Event.current.keyCode == KeyCode.DownArrow ?
+								1
+							:
+								0,
+						directionX =
+						Event.current.keyCode == KeyCode.LeftArrow ?
+							-1
+						:
+							Event.current.keyCode == KeyCode.RightArrow ?
+								1
+							:
+								0;
+
+					if (directionY < 0 && index > 0)
 					{
 						newNodeSelection = node.Children[index - 1];
 						Event.current.Use();
 					}
-					else if (direction > 0 && index < node.Children.Count - 1)
+					else if (directionY > 0 && index < node.Children.Count - 1)
 					{
 						newNodeSelection = node.Children[index + 1];
+						Event.current.Use();
+					}
+					else if(directionX < 0)
+					{
+						newNodeSelection = node;
+						Event.current.Use();
+					}
+					else if(directionX > 0 && node.Children[index].Children.Count > 0)
+					{
+						newNodeSelection = node.Children[index].Children[0];
 						Event.current.Use();
 					}
 				}
