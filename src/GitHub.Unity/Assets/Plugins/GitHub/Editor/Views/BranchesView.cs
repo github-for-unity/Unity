@@ -79,34 +79,68 @@ namespace GitHub.Unity
 
 		void BuildTree(GitBranchList local, GitBranchList remote)
 		{
+			// Sort
+			string activeBranch = local.Branches[local.ActiveIndex];
+			List<string>
+				localBranches = new List<string>(local.Branches),
+				remoteBranches = new List<string>(remote.Branches);
+			localBranches.Sort(CompareBranches);
+			remoteBranches.Sort(CompareBranches);
+
 			// Just build directly on the local root, keep track of active branch
 			localRoot = new BranchTreeNode("", false);
-			for (int index = 0; index < local.Branches.Length; ++index)
+			for (int index = 0; index < localBranches.Count; ++index)
 			{
-				BuildTree(localRoot, new BranchTreeNode(local.Branches[index], index == local.ActiveIndex));
+				BuildTree(localRoot, new BranchTreeNode(localBranches[index], localBranches[index].Equals(activeBranch)));
 			}
 
 			// Maintain list of remotes before building their roots, ignoring active state
 			remotes.Clear();
-			for (int index = 0; index < remote.Branches.Length; ++index)
+			for (int index = 0; index < remoteBranches.Count; ++index)
 			{
 				// Remote name is always the first level
-				string name = remote.Branches[index];
-				name = name.Substring(0, name.IndexOf('/'));
+				string branchName = remoteBranches[index];
+				string remoteName = branchName.Substring(0, branchName.IndexOf('/'));
 
 				// Get or create this remote
-				int remoteIndex = Enumerable.Range(1, remotes.Count + 1).FirstOrDefault(i => remotes.Count > i - 1 && remotes[i - 1].Name.Equals(name)) - 1;
+				int remoteIndex = Enumerable.Range(1, remotes.Count + 1).FirstOrDefault(i => remotes.Count > i - 1 && remotes[i - 1].Name.Equals(remoteName)) - 1;
 				if (remoteIndex < 0)
 				{
-					remotes.Add(new Remote() { Name = name, Root = new BranchTreeNode("", false) });
+					remotes.Add(new Remote() { Name = remoteName, Root = new BranchTreeNode("", false) });
 					remoteIndex = remotes.Count - 1;
 				}
 
 				// Build on the root of the remote, just like with locals
-				BuildTree(remotes[remoteIndex].Root, new BranchTreeNode(remote.Branches[index], false) { Label = remote.Branches[index].Substring(name.Length + 1) });
+				BuildTree(remotes[remoteIndex].Root, new BranchTreeNode(branchName, false) { Label = branchName.Substring(remoteName.Length + 1) });
 			}
 
 			Repaint();
+		}
+
+
+		int CompareBranches(string a, string b)
+		{
+			if (GetFavourite(a))
+			{
+				return -1;
+			}
+
+			if (GetFavourite(b))
+			{
+				return 1;
+			}
+
+			if (a.Equals("master"))
+			{
+				return -1;
+			}
+
+			if (b.Equals("master"))
+			{
+				return 1;
+			}
+
+			return 0;
 		}
 
 
