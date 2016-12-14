@@ -16,9 +16,8 @@ namespace GitHub.Unity
 			LocalSettingsName = "GitHub.local.json";
 
 
-		[SerializeField] List<string>
-			keys = new List<string>(),
-			values = new List<string>();
+		[SerializeField] List<string> keys = new List<string>();
+		[SerializeField] List<object> values = new List<object>();
 
 
 		static Settings asset;
@@ -54,7 +53,12 @@ namespace GitHub.Unity
 			newAsset.keys.Clear();
 			newAsset.keys.AddRange(settings.Keys);
 			newAsset.values.Clear();
-			newAsset.values.AddRange(settings.Values.Select(v => v as string));
+			newAsset.values.AddRange(settings.Values.Select(
+				v => (v is IList<object>) ?
+					(object)new List<string>(((IList<object>)v).Select(v2 => v2 as string))
+				:
+					(object)(v as string)
+			));
 
 			asset = newAsset;
 
@@ -76,7 +80,21 @@ namespace GitHub.Unity
 
 			for (int index = 0; index < asset.keys.Count; ++index)
 			{
-				settings.Write("\t\"{0}\": \"{1}\",\n", Escape(asset.keys[index]), Escape(asset.values[index]));
+				List<string> list = asset.values[index] as List<string>;
+
+				if (list == null)
+				{
+					settings.Write("\t\"{0}\": \"{1}\",\n", Escape(asset.keys[index]), Escape((string)asset.values[index]));
+				}
+				else
+				{
+					settings.Write("\t\"{0}\":\n\t[\n", Escape(asset.keys[index]));
+					for (int listIndex = 0; listIndex < list.Count; ++listIndex)
+					{
+						settings.Write("\t\t\"{0}\",\n", Escape(list[listIndex]));
+					}
+					settings.Write("\t],\n");
+				}
 			}
 
 			settings.Write("}\n");
@@ -126,7 +144,7 @@ namespace GitHub.Unity
 
 			if (index >= 0)
 			{
-				return asset.values[index];
+				return asset.values[index] as string;
 			}
 
 			return fallback;
@@ -213,6 +231,136 @@ namespace GitHub.Unity
 			}
 
 			asset.keys[index] = newKey;
+
+			if (!noSave)
+			{
+				Save();
+			}
+
+			return true;
+		}
+
+
+		static List<string> GetList(string key)
+		{
+			Settings asset = GetAsset();
+
+			if (asset == null)
+			{
+				return null;
+			}
+
+			int index = asset.keys.IndexOf(key);
+			return index < 0 ? null : asset.values[index] as List<string>;
+		}
+
+
+		public static int CountElements(string key)
+		{
+			List<string> list = GetList(key);
+			return list == null ? 0 : list.Count;
+		}
+
+
+		public static int GetElementIndex(string key, string value)
+		{
+			List<string> list = GetList(key);
+			return list == null ? -1 : list.IndexOf(value);
+		}
+
+
+		public static string GetElement(string key, int index, string fallback = "")
+		{
+			List<string> list = GetList(key);
+			return (list == null || index >= list.Count || index < 0) ? fallback : list[index];
+		}
+
+
+		public static bool SetElement(string key, int index, string value, bool noSave = false)
+		{
+			List<string> list = GetList(key);
+
+			if (list == null || index >= list.Count || index < 0)
+			{
+				return false;
+			}
+
+			list[index] = value;
+
+			if (!noSave)
+			{
+				Save();
+			}
+
+			return true;
+		}
+
+
+		public static bool RemoveElement(string key, string value, bool noSave = false)
+		{
+			List<string> list = GetList(key);
+
+			if (list == null)
+			{
+				return false;
+			}
+
+			list.Remove(value);
+
+			if (!noSave)
+			{
+				Save();
+			}
+
+			return true;
+		}
+
+
+		public static bool RemoveElementAt(string key, int index, bool noSave = false)
+		{
+			List<string> list = GetList(key);
+
+			if (list == null || index >= list.Count || index < 0)
+			{
+				return false;
+			}
+
+			list.RemoveAt(index);
+
+			if (!noSave)
+			{
+				Save();
+			}
+
+			return true;
+		}
+
+
+		public static bool AddElement(string key, string value, bool noSave = false)
+		{
+			Settings asset = GetAsset();
+
+			if (asset == null)
+			{
+				return false;
+			}
+
+			int index = asset.keys.IndexOf(key);
+
+			List<string> list = null;
+
+			if (index < 0)
+			{
+				list = new List<string>();
+				asset.keys.Add(key);
+				asset.values.Add(list);
+			}
+			else
+			{
+				asset.values[index] = list = asset.values[index] as List<string> ?? new List<string>();
+			}
+
+			list.Add(value);
 
 			if (!noSave)
 			{
