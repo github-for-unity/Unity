@@ -102,7 +102,7 @@ namespace GitHub.Unity
 				}
 
 				// Build on the root of the remote, just like with locals
-				BuildTree(remotes[remoteIndex].Root, new BranchTreeNode(remote.Branches[index].Substring(name.Length + 1), false));
+				BuildTree(remotes[remoteIndex].Root, new BranchTreeNode(remote.Branches[index], false) { Label = remote.Branches[index].Substring(name.Length + 1) });
 			}
 
 			Repaint();
@@ -125,7 +125,7 @@ namespace GitHub.Unity
 			BranchTreeNode folder = parent.Children.FirstOrDefault(f => f.Label.Equals(folderName));
 			if (folder == null)
 			{
-				folder = new BranchTreeNode(folderName, false);
+				folder = new BranchTreeNode("", false) { Label = folderName };
 				parent.Children.Add(folder);
 			}
 
