@@ -237,6 +237,8 @@ namespace GitHub.Unity
 			// When history scroll actually changes, store time value of topmost visible entry. This is the value we use to reposition scroll on log update - not the pixel value.
 			if (history.Any())
 			{
+				int listID = GUIUtility.GetControlID(FocusType.Keyboard);
+
 				// Only update time scroll
 				Vector2 lastScroll = scroll;
 				scroll = GUILayout.BeginScrollView(scroll);
@@ -256,11 +258,37 @@ namespace GitHub.Unity
 						if (HistoryEntry(history[index], GetEntryState(index), selectionIndex == index))
 						{
 							newSelectionIndex = index;
+							GUIUtility.keyboardControl = listID;
 						}
 
 						GUILayout.Space(Styles.HistoryEntryPadding);
 					}
 					GUILayout.Space((history.Count - stop) * EntryHeight);
+
+					// Keyboard control
+					if (Event.current.GetTypeForControl(listID) == EventType.KeyDown)
+					{
+						int change = 0;
+
+						if (Event.current.keyCode == KeyCode.DownArrow)
+						{
+							change = 1;
+						}
+						else if (Event.current.keyCode == KeyCode.UpArrow)
+						{
+							change = -1;
+						}
+
+						if (change != 0)
+						{
+							newSelectionIndex = (selectionIndex + change) %  history.Count;
+							if (newSelectionIndex < historyStartIndex || newSelectionIndex > historyStopIndex)
+							{
+								ScrollTo(newSelectionIndex, (position.height - position.height * MaxChangelistHeightRatio - 30f - EntryHeight) * -.5f);
+							}
+							Event.current.Use();
+						}
+					}
 			}
 			else
 			{
@@ -344,7 +372,12 @@ namespace GitHub.Unity
 		// Recalculate the range of history items to handle - based on what is visible, plus a bit of padding for fast scrolling
 		{
 			historyStartIndex = (int)Mathf.Clamp(scroll.y / EntryHeight, 0, history.Count);
-			historyStopIndex = (int)Mathf.Clamp(historyStartIndex + position.height / EntryHeight + 1, 0, history.Count);
+			historyStopIndex = (int)Mathf.Clamp(
+				historyStartIndex + (position.height - 2f * Mathf.Min(changesetTree.Height, position.height * MaxChangelistHeightRatio)) / EntryHeight +
+				1,
+				0,
+				history.Count
+			);
 		}
 
 
