@@ -49,8 +49,10 @@ namespace GitHub.Unity
 		[SerializeField] Vector2 scroll;
 		[SerializeField] BranchTreeNode localRoot;
 		[SerializeField] List<Remote> remotes = new List<Remote>();
+		[SerializeField] BranchTreeNode selectedNode = null;
 
 
+		BranchTreeNode newNodeSelection = null;
 		GitBranchList newLocalBranches;
 
 
@@ -185,13 +187,28 @@ namespace GitHub.Unity
 					GUILayout.EndVertical();
 				GUILayout.EndHorizontal();
 			GUILayout.EndScrollView();
+
+			if (Event.current.type == EventType.Repaint && newNodeSelection != null)
+			{
+				selectedNode = newNodeSelection;
+			}
 		}
 
 
 		void OnTreeNodeGUI(BranchTreeNode node)
 		{
 			GUIContent content = new GUIContent(node.Label, node.Children.Count > 0 ? Styles.FolderIcon : Styles.DefaultAssetIcon);
-			GUILayout.Label(content, node.Active ? EditorStyles.boldLabel : GUI.skin.label, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
+			GUIStyle style = node.Active ? EditorStyles.boldLabel : GUI.skin.label;
+			Rect rect = GUILayoutUtility.GetRect(content, style, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
+			Rect clickRect = new Rect(0f, rect.y, position.width, rect.height);
+
+			if (selectedNode == node)
+			{
+				GUI.Box(clickRect, GUIContent.none);
+			}
+
+			GUI.Label(rect, content, style);
+
 			GUILayout.BeginHorizontal();
 				GUILayout.Space(Styles.TreeIndentation);
 				GUILayout.BeginVertical();
@@ -201,6 +218,20 @@ namespace GitHub.Unity
 					}
 				GUILayout.EndVertical();
 			GUILayout.EndHorizontal();
+
+			if (selectedNode == node && Event.current.type == EventType.Repaint)
+			{
+				const float HighlightSize = 20f;
+				Rect highlightRect = new Rect(clickRect);
+				highlightRect.Set(highlightRect.x - HighlightSize + 5f, highlightRect.y, HighlightSize, highlightRect.height);
+				EditorStyles.foldout.Draw(highlightRect, false, false, false, false);
+			}
+
+			if (Event.current.type == EventType.MouseDown && clickRect.Contains(Event.current.mousePosition))
+			{
+				newNodeSelection = node;
+				Event.current.Use();
+			}
 		}
 	}
 }
