@@ -344,7 +344,12 @@ namespace GitHub.Unity
 		// Recalculate the range of history items to handle - based on what is visible, plus a bit of padding for fast scrolling
 		{
 			historyStartIndex = (int)Mathf.Clamp(scroll.y / EntryHeight, 0, history.Count);
-			historyStopIndex = (int)Mathf.Clamp(historyStartIndex + position.height / EntryHeight + 1, 0, history.Count);
+			historyStopIndex = (int)Mathf.Clamp(
+				historyStartIndex + (position.height - 2f * Mathf.Min(changesetTree.Height, position.height * MaxChangelistHeightRatio)) / EntryHeight +
+				1,
+				0,
+				history.Count
+			);
 		}
 
 
