@@ -55,7 +55,7 @@ namespace GitHub.Unity
 			"C"
 		};
 		static Regex
-			startRegex = new Regex(@"(?<status>[AMRDC]|\?\?)(?:\d*)\s+(?<path>[\w\d\/\.\-_ ]+)"),
+			startRegex = new Regex(@"(?<status>[AMRDC]|\?\?)(?:\d*)\s+(?<path>[\w\d\/\.\-_ \@]+)"),
 			endRegex = new Regex(@"->\s(?<path>[\w\d\/\.\-_ ]+)");
 
 
