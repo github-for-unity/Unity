@@ -55,6 +55,7 @@ namespace GitHub.Unity
 			commitDescriptionFieldStyle,
 			toggleMixedStyle;
 		static Texture2D
+			activeBranchIcon,
 			favouriteIconOn,
 			favouriteIconOff,
 			titleIcon,
@@ -206,6 +207,20 @@ namespace GitHub.Unity
 				}
 
 				return toggleMixedStyle;
+			}
+		}
+
+
+		public static Texture2D ActiveBranchIcon
+		{
+			get
+			{
+				if (activeBranchIcon == null)
+				{
+					activeBranchIcon = Utility.GetIcon("current-branch-indicator.png");
+				}
+
+				return activeBranchIcon;
 			}
 		}
 

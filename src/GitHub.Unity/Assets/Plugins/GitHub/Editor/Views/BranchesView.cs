@@ -350,6 +350,14 @@ namespace GitHub.Unity
 			// The actual icon and label
 			GUI.Label(rect, content, style);
 
+			// Active branch mark
+			if (node.Active && Event.current.type == EventType.Repaint)
+			{
+				Rect activeRect = new Rect(rect.x - rect.height, rect.y, rect.height, rect.height);
+
+				GUI.DrawTexture(activeRect, Styles.ActiveBranchIcon);
+			}
+
 			// Children
 			GUILayout.BeginHorizontal();
 				GUILayout.Space(Styles.TreeIndentation);
