@@ -421,11 +421,16 @@ namespace GitHub.Unity
 				GUILayout.EndVertical();
 			GUILayout.EndHorizontal();
 
-			// Click selection of the node
+			// Click selection of the node as well as branch switch
 			if (Event.current.type == EventType.MouseDown && clickRect.Contains(Event.current.mousePosition))
 			{
 				newNodeSelection = node;
 				Event.current.Use();
+
+				if (Event.current.clickCount > 1 && node.Type == NodeType.LocalBranch)
+				{
+					GitSwitchBranchesTask.Schedule(node.Name, Refresh);
+				}
 			}
 		}
 
