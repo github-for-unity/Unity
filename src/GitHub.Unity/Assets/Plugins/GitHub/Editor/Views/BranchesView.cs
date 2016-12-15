@@ -42,6 +42,7 @@ namespace GitHub.Unity
 
 		const string
 			FavouritesSetting = "Favourites",
+			FavouritesTitle = "FAVOURITES",
 			LocalTitle = "LOCAL BRANCHES",
 			RemoteTitle = "REMOTE BRANCHES",
 			CreateBranchButton = "+ New branch";
@@ -55,6 +56,7 @@ namespace GitHub.Unity
 
 		BranchTreeNode newNodeSelection = null;
 		GitBranchList newLocalBranches;
+		List<BranchTreeNode> favourites = new List<BranchTreeNode>();
 		int listID = -1;
 
 
@@ -87,11 +89,24 @@ namespace GitHub.Unity
 			localBranches.Sort(CompareBranches);
 			remoteBranches.Sort(CompareBranches);
 
+			// Prepare for updated favourites listing
+			favourites.Clear();
+
 			// Just build directly on the local root, keep track of active branch
 			localRoot = new BranchTreeNode("", false);
 			for (int index = 0; index < localBranches.Count; ++index)
 			{
-				BuildTree(localRoot, new BranchTreeNode(localBranches[index], localBranches[index].Equals(activeBranch)));
+				string name = localBranches[index];
+				BranchTreeNode branch = new BranchTreeNode(name, name.Equals(activeBranch));
+
+				// Add to favourites
+				if (Settings.GetElementIndex(FavouritesSetting, name) > -1)
+				{
+					favourites.Add(branch);
+				}
+
+				// Build into tree
+				BuildTree(localRoot, branch);
 			}
 
 			// Maintain list of remotes before building their roots, ignoring active state
@@ -110,8 +125,17 @@ namespace GitHub.Unity
 					remoteIndex = remotes.Count - 1;
 				}
 
+				// Create the branch
+				BranchTreeNode branch = new BranchTreeNode(branchName, false) { Label = branchName.Substring(remoteName.Length + 1) };
+
+				// Add to favourites
+				if (Settings.GetElementIndex(FavouritesSetting, branchName) > -1)
+				{
+					favourites.Add(branch);
+				}
+
 				// Build on the root of the remote, just like with locals
-				BuildTree(remotes[remoteIndex].Root, new BranchTreeNode(branchName, false) { Label = branchName.Substring(remoteName.Length + 1) });
+				BuildTree(remotes[remoteIndex].Root, branch);
 			}
 
 			Repaint();
@@ -176,32 +200,41 @@ namespace GitHub.Unity
 		}
 
 
-		static bool GetFavourite(string branch)
+		static bool GetFavourite(BranchTreeNode branch)
 		{
-			if (string.IsNullOrEmpty(branch))
+			return GetFavourite(branch.Name);
+		}
+
+
+		static bool GetFavourite(string branchName)
+		{
+			if (string.IsNullOrEmpty(branchName))
 			{
 				return false;
 			}
 
-			return Settings.GetElementIndex(FavouritesSetting, branch) > -1;
+			return Settings.GetElementIndex(FavouritesSetting, branchName) > -1;
 		}
 
 
-		static void SetFavourite(string branch, bool favourite)
+		void SetFavourite(BranchTreeNode branch, bool favourite)
 		{
-			if (string.IsNullOrEmpty(branch))
+			if (string.IsNullOrEmpty(branch.Name))
 			{
 				return;
 			}
 
 			if (!favourite)
 			{
-				Settings.RemoveElement(FavouritesSetting, branch);
+				Settings.RemoveElement(FavouritesSetting, branch.Name);
+				favourites.Remove(branch);
 			}
 			else
 			{
-				Settings.RemoveElement(FavouritesSetting, branch, false);
-				Settings.AddElement(FavouritesSetting, branch);
+				Settings.RemoveElement(FavouritesSetting, branch.Name, false);
+				Settings.AddElement(FavouritesSetting, branch.Name);
+				favourites.Remove(branch);
+				favourites.Add(branch);
 			}
 		}
 
@@ -210,6 +243,23 @@ namespace GitHub.Unity
 		{
 			scroll = GUILayout.BeginScrollView(scroll);
 				listID = GUIUtility.GetControlID(FocusType.Keyboard);
+
+				// Favourites list
+				if (favourites.Count > 0)
+				{
+					GUILayout.Label(FavouritesTitle);
+					GUILayout.BeginHorizontal();
+						GUILayout.Space(Styles.BranchListIndentation);
+						GUILayout.BeginVertical();
+							for (int index = 0; index < favourites.Count; ++index)
+							{
+								OnTreeNodeGUI(favourites[index]);
+							}
+						GUILayout.EndVertical();
+					GUILayout.EndHorizontal();
+
+					GUILayout.Space(Styles.BranchListSeperation);
+				}
 
 				// Local branches and "create branch" button
 				GUILayout.Label(LocalTitle);
@@ -279,14 +329,14 @@ namespace GitHub.Unity
 
 				if (!string.IsNullOrEmpty(node.Name))
 				{
-					bool favourite = GetFavourite(node.Name);
+					bool favourite = GetFavourite(node);
 					if (Event.current.type == EventType.Repaint)
 					{
 						GUI.DrawTexture(favouriteRect, favourite ? Styles.FavouriteIconOn : Styles.FavouriteIconOff);
 					}
 					else if (Event.current.type == EventType.MouseDown && favouriteRect.Contains(Event.current.mousePosition))
 					{
-						SetFavourite(node.Name, !favourite);
+						SetFavourite(node, !favourite);
 						Event.current.Use();
 					}
 				}
