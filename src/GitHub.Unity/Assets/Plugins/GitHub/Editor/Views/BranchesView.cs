@@ -211,6 +211,7 @@ namespace GitHub.Unity
 			scroll = GUILayout.BeginScrollView(scroll);
 				listID = GUIUtility.GetControlID(FocusType.Keyboard);
 
+				// Local branches and "create branch" button
 				GUILayout.Label(LocalTitle);
 				GUILayout.BeginHorizontal();
 					GUILayout.Space(Styles.BranchListIndentation);
@@ -228,6 +229,7 @@ namespace GitHub.Unity
 
 				GUILayout.Space(Styles.BranchListSeperation);
 
+				// Remotes
 				GUILayout.Label(RemoteTitle);
 				GUILayout.BeginHorizontal();
 					GUILayout.Space(Styles.BranchListIndentation);
@@ -237,6 +239,7 @@ namespace GitHub.Unity
 							Remote remote = remotes[index];
 							GUILayout.Label(remote.Name);
 
+							// Branches of the remote
 							GUILayout.BeginHorizontal();
 								GUILayout.Space(Styles.TreeIndentation);
 								GUILayout.BeginVertical();
@@ -250,6 +253,7 @@ namespace GitHub.Unity
 				GUILayout.EndHorizontal();
 			GUILayout.EndScrollView();
 
+			// Effectuating selection
 			if (Event.current.type == EventType.Repaint && newNodeSelection != null)
 			{
 				selectedNode = newNodeSelection;
@@ -261,12 +265,14 @@ namespace GitHub.Unity
 
 		void OnTreeNodeGUI(BranchTreeNode node)
 		{
+			// Content, style, and rects
 			GUIContent content = new GUIContent(node.Label, node.Children.Count > 0 ? Styles.FolderIcon : Styles.DefaultAssetIcon);
 			GUIStyle style = node.Active ? EditorStyles.boldLabel : GUI.skin.label;
 			Rect rect = GUILayoutUtility.GetRect(content, style, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
 			Rect clickRect = new Rect(0f, rect.y, position.width, rect.height);
 			Rect starRect = new Rect(clickRect.xMax - clickRect.height * 2f, clickRect.y, clickRect.height, clickRect.height);
 
+			// Selection highlight and favourite toggle
 			if (selectedNode == node)
 			{
 				GUI.Box(clickRect, GUIContent.none);
@@ -281,13 +287,16 @@ namespace GitHub.Unity
 					}
 				}
 			}
+			// Favourite status
 			else if (!string.IsNullOrEmpty(node.Name) && GetFavourite(node.Name))
 			{
 				GUI.Toggle(starRect, GetFavourite(node.Name), GUIContent.none);
 			}
 
+			// The actual icon and label
 			GUI.Label(rect, content, style);
 
+			// Children
 			GUILayout.BeginHorizontal();
 				GUILayout.Space(Styles.TreeIndentation);
 				GUILayout.BeginVertical();
@@ -295,6 +304,7 @@ namespace GitHub.Unity
 				GUILayout.EndVertical();
 			GUILayout.EndHorizontal();
 
+			// Click selection of the node
 			if (Event.current.type == EventType.MouseDown && clickRect.Contains(Event.current.mousePosition))
 			{
 				newNodeSelection = node;
@@ -312,8 +322,10 @@ namespace GitHub.Unity
 
 			for (int index = 0; index < node.Children.Count; ++index)
 			{
+				// The actual GUI of the child
 				OnTreeNodeGUI(node.Children[index]);
 
+				// Keyboard navigation if this child is the current selection
 				if (selectedNode == node.Children[index] && Event.current.GetTypeForControl(listID) == EventType.KeyDown)
 				{
 					int directionY =
