@@ -56,6 +56,7 @@ namespace GitHub.Unity
 			toggleMixedStyle;
 		static Texture2D
 			activeBranchIcon,
+			trackingBranchIcon,
 			favouriteIconOn,
 			favouriteIconOff,
 			titleIcon,
@@ -221,6 +222,20 @@ namespace GitHub.Unity
 				}
 
 				return activeBranchIcon;
+			}
+		}
+
+
+		public static Texture2D TrackingBranchIcon
+		{
+			get
+			{
+				if (trackingBranchIcon == null)
+				{
+					trackingBranchIcon = Utility.GetIcon("tracked-branch-indicator.png");
+				}
+
+				return trackingBranchIcon;
 			}
 		}
 

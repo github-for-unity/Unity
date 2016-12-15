@@ -17,6 +17,7 @@ namespace GitHub.Unity
 
 
 			public string Label;
+			public BranchTreeNode Tracking;
 
 
 			public string Name { get; protected set; }
@@ -55,7 +56,7 @@ namespace GitHub.Unity
 
 
 		BranchTreeNode newNodeSelection = null;
-		GitBranchList newLocalBranches;
+		List<GitBranch> newLocalBranches;
 		List<BranchTreeNode> favourites = new List<BranchTreeNode>();
 		int listID = -1;
 
@@ -67,27 +68,30 @@ namespace GitHub.Unity
 		}
 
 
-		void OnLocalBranchesUpdate(GitBranchList list)
+		void OnLocalBranchesUpdate(IEnumerable<GitBranch> list)
 		{
-			newLocalBranches = list;
+			newLocalBranches = new List<GitBranch>(list);
 		}
 
 
-		void OnRemoteBranchesUpdate(GitBranchList list)
+		void OnRemoteBranchesUpdate(IEnumerable<GitBranch> list)
 		{
 			BuildTree(newLocalBranches, list);
 		}
 
 
-		void BuildTree(GitBranchList local, GitBranchList remote)
+		void BuildTree(IEnumerable<GitBranch> local, IEnumerable<GitBranch> remote)
 		{
 			// Sort
-			string activeBranch = local.Branches[local.ActiveIndex];
-			List<string>
-				localBranches = new List<string>(local.Branches),
-				remoteBranches = new List<string>(remote.Branches);
+			List<GitBranch>
+				localBranches = new List<GitBranch>(local),
+				remoteBranches = new List<GitBranch>(remote);
 			localBranches.Sort(CompareBranches);
 			remoteBranches.Sort(CompareBranches);
+
+			// Prepare for tracking
+			List<KeyValuePair<int, int>> tracking = new List<KeyValuePair<int, int>>();
+			List<BranchTreeNode> localBranchNodes = new List<BranchTreeNode>();
 
 			// Prepare for updated favourites listing
 			favourites.Clear();
@@ -96,26 +100,42 @@ namespace GitHub.Unity
 			localRoot = new BranchTreeNode("", false);
 			for (int index = 0; index < localBranches.Count; ++index)
 			{
-				string name = localBranches[index];
-				BranchTreeNode branch = new BranchTreeNode(name, name.Equals(activeBranch));
+				GitBranch branch = localBranches[index];
+				BranchTreeNode node = new BranchTreeNode(branch.Name, branch.Active);
+				localBranchNodes.Add(node);
+
+				// Add to tracking
+				if (!string.IsNullOrEmpty(branch.Tracking))
+				{
+					int trackingIndex = !remoteBranches.Any() ? -1 :
+						Enumerable.Range(1, remoteBranches.Count + 1).FirstOrDefault(
+							i => remoteBranches[i - 1].Name.Equals(branch.Tracking)
+						) - 1;
+
+					if (trackingIndex > -1)
+					{
+						tracking.Add(new KeyValuePair<int, int>(index, trackingIndex));
+					}
+				}
 
 				// Add to favourites
-				if (Settings.GetElementIndex(FavouritesSetting, name) > -1)
+				if (Settings.GetElementIndex(FavouritesSetting, branch.Name) > -1)
 				{
-					favourites.Add(branch);
+					favourites.Add(node);
 				}
 
 				// Build into tree
-				BuildTree(localRoot, branch);
+				BuildTree(localRoot, node);
 			}
 
 			// Maintain list of remotes before building their roots, ignoring active state
 			remotes.Clear();
 			for (int index = 0; index < remoteBranches.Count; ++index)
 			{
+				GitBranch branch = remoteBranches[index];
+
 				// Remote name is always the first level
-				string branchName = remoteBranches[index];
-				string remoteName = branchName.Substring(0, branchName.IndexOf('/'));
+				string remoteName = branch.Name.Substring(0, branch.Name.IndexOf('/'));
 
 				// Get or create this remote
 				int remoteIndex = Enumerable.Range(1, remotes.Count + 1).FirstOrDefault(i => remotes.Count > i - 1 && remotes[i - 1].Name.Equals(remoteName)) - 1;
@@ -126,40 +146,51 @@ namespace GitHub.Unity
 				}
 
 				// Create the branch
-				BranchTreeNode branch = new BranchTreeNode(branchName, false) { Label = branchName.Substring(remoteName.Length + 1) };
+				BranchTreeNode node = new BranchTreeNode(branch.Name, false) { Label = branch.Name.Substring(remoteName.Length + 1) };
+
+				// Establish tracking link
+				for (int trackingIndex = 0; trackingIndex < tracking.Count; ++trackingIndex)
+				{
+					KeyValuePair<int, int> pair = tracking[trackingIndex];
+
+					if (pair.Value == index)
+					{
+						localBranchNodes[pair.Key].Tracking = node;
+					}
+				}
 
 				// Add to favourites
-				if (Settings.GetElementIndex(FavouritesSetting, branchName) > -1)
+				if (Settings.GetElementIndex(FavouritesSetting, branch.Name) > -1)
 				{
-					favourites.Add(branch);
+					favourites.Add(node);
 				}
 
 				// Build on the root of the remote, just like with locals
-				BuildTree(remotes[remoteIndex].Root, branch);
+				BuildTree(remotes[remoteIndex].Root, node);
 			}
 
 			Repaint();
 		}
 
 
-		static int CompareBranches(string a, string b)
+		static int CompareBranches(GitBranch a, GitBranch b)
 		{
-			if (GetFavourite(a))
+			if (GetFavourite(a.Name))
 			{
 				return -1;
 			}
 
-			if (GetFavourite(b))
+			if (GetFavourite(b.Name))
 			{
 				return 1;
 			}
 
-			if (a.Equals("master"))
+			if (a.Name.Equals("master"))
 			{
 				return -1;
 			}
 
-			if (b.Equals("master"))
+			if (b.Name.Equals("master"))
 			{
 				return 1;
 			}
@@ -350,12 +381,26 @@ namespace GitHub.Unity
 			// The actual icon and label
 			GUI.Label(rect, content, style);
 
-			// Active branch mark
-			if (node.Active && Event.current.type == EventType.Repaint)
+			// State marks
+			if (Event.current.type == EventType.Repaint)
 			{
-				Rect activeRect = new Rect(rect.x - rect.height, rect.y, rect.height, rect.height);
+				Rect indicatorRect = new Rect(rect.x - rect.height, rect.y, rect.height, rect.height);
 
-				GUI.DrawTexture(activeRect, Styles.ActiveBranchIcon);
+				if (selectedNode != null && selectedNode.Tracking == node)
+				// Being tracked by current selection mark
+				{
+					GUI.DrawTexture(indicatorRect, Styles.TrackingBranchIcon);
+				}
+				else if (node.Active)
+				// Active branch mark
+				{
+					GUI.DrawTexture(indicatorRect, Styles.ActiveBranchIcon);
+				}
+				else if (node.Tracking != null)
+				// Tracking mark
+				{
+					GUI.DrawTexture(indicatorRect, Styles.TrackingBranchIcon);
+				}
 			}
 
 			// Children
