@@ -10,6 +10,14 @@ namespace GitHub.Unity
 	[System.Serializable]
 	class BranchesView : Subview
 	{
+		enum NodeType
+		{
+			Folder,
+			LocalBranch,
+			RemoteBranch
+		}
+
+
 		[Serializable]
 		class BranchTreeNode
 		{
@@ -21,13 +29,15 @@ namespace GitHub.Unity
 
 
 			public string Name { get; protected set; }
+			public NodeType Type { get; protected set; }
 			public bool Active { get; protected set; }
 			public IList<BranchTreeNode> Children { get { return children; } }
 
 
-			public BranchTreeNode(string name, bool active)
+			public BranchTreeNode(string name, NodeType type, bool active)
 			{
 				Label = Name = name;
+				Type = type;
 				Active = active;
 			}
 		}
@@ -97,11 +107,11 @@ namespace GitHub.Unity
 			favourites.Clear();
 
 			// Just build directly on the local root, keep track of active branch
-			localRoot = new BranchTreeNode("", false);
+			localRoot = new BranchTreeNode("", NodeType.Folder, false);
 			for (int index = 0; index < localBranches.Count; ++index)
 			{
 				GitBranch branch = localBranches[index];
-				BranchTreeNode node = new BranchTreeNode(branch.Name, branch.Active);
+				BranchTreeNode node = new BranchTreeNode(branch.Name, NodeType.LocalBranch, branch.Active);
 				localBranchNodes.Add(node);
 
 				// Add to tracking
@@ -141,12 +151,12 @@ namespace GitHub.Unity
 				int remoteIndex = Enumerable.Range(1, remotes.Count + 1).FirstOrDefault(i => remotes.Count > i - 1 && remotes[i - 1].Name.Equals(remoteName)) - 1;
 				if (remoteIndex < 0)
 				{
-					remotes.Add(new Remote() { Name = remoteName, Root = new BranchTreeNode("", false) });
+					remotes.Add(new Remote() { Name = remoteName, Root = new BranchTreeNode("", NodeType.Folder, false) });
 					remoteIndex = remotes.Count - 1;
 				}
 
 				// Create the branch
-				BranchTreeNode node = new BranchTreeNode(branch.Name, false) { Label = branch.Name.Substring(remoteName.Length + 1) };
+				BranchTreeNode node = new BranchTreeNode(branch.Name, NodeType.RemoteBranch, false) { Label = branch.Name.Substring(remoteName.Length + 1) };
 
 				// Establish tracking link
 				for (int trackingIndex = 0; trackingIndex < tracking.Count; ++trackingIndex)
@@ -215,7 +225,7 @@ namespace GitHub.Unity
 			BranchTreeNode folder = parent.Children.FirstOrDefault(f => f.Label.Equals(folderName));
 			if (folder == null)
 			{
-				folder = new BranchTreeNode("", false) { Label = folderName };
+				folder = new BranchTreeNode("", NodeType.Folder, false) { Label = folderName };
 				parent.Children.Add(folder);
 			}
 
@@ -358,7 +368,7 @@ namespace GitHub.Unity
 			{
 				GUI.Box(clickRect, GUIContent.none);
 
-				if (!string.IsNullOrEmpty(node.Name))
+				if (node.Type != NodeType.Folder)
 				{
 					bool favourite = GetFavourite(node);
 					if (Event.current.type == EventType.Repaint)
@@ -373,7 +383,7 @@ namespace GitHub.Unity
 				}
 			}
 			// Favourite status
-			else if (Event.current.type == EventType.Repaint && !string.IsNullOrEmpty(node.Name) && GetFavourite(node.Name))
+			else if (Event.current.type == EventType.Repaint && node.Type != NodeType.Folder && GetFavourite(node.Name))
 			{
 				GUI.DrawTexture(favouriteRect, Styles.FavouriteIconOn);
 			}
