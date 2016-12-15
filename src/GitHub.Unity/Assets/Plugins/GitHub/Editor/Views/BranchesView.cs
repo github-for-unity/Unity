@@ -118,7 +118,7 @@ namespace GitHub.Unity
 		}
 
 
-		int CompareBranches(string a, string b)
+		static int CompareBranches(string a, string b)
 		{
 			if (GetFavourite(a))
 			{
@@ -176,7 +176,7 @@ namespace GitHub.Unity
 		}
 
 
-		bool GetFavourite(string branch)
+		static bool GetFavourite(string branch)
 		{
 			if (string.IsNullOrEmpty(branch))
 			{
@@ -187,7 +187,7 @@ namespace GitHub.Unity
 		}
 
 
-		void SetFavourite(string branch, bool favourite)
+		static void SetFavourite(string branch, bool favourite)
 		{
 			if (string.IsNullOrEmpty(branch))
 			{
