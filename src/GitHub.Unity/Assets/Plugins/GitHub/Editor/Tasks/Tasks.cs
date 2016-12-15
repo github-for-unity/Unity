@@ -572,9 +572,9 @@ namespace GitHub.Unity
 		}
 
 
-		public static void ScheduleMainThread(EditorApplication.CallbackFunction action)
+		public static void ScheduleMainThread(Action action)
 		{
-			EditorApplication.delayCall += action;
+			EditorApplication.delayCall += () => action();
 		}
 
 
