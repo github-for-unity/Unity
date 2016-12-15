@@ -270,7 +270,7 @@ namespace GitHub.Unity
 			GUIStyle style = node.Active ? EditorStyles.boldLabel : GUI.skin.label;
 			Rect rect = GUILayoutUtility.GetRect(content, style, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
 			Rect clickRect = new Rect(0f, rect.y, position.width, rect.height);
-			Rect starRect = new Rect(clickRect.xMax - clickRect.height * 2f, clickRect.y, clickRect.height, clickRect.height);
+			Rect favouriteRect = new Rect(clickRect.xMax - clickRect.height * 2f, clickRect.y, clickRect.height, clickRect.height);
 
 			// Selection highlight and favourite toggle
 			if (selectedNode == node)
@@ -279,18 +279,22 @@ namespace GitHub.Unity
 
 				if (!string.IsNullOrEmpty(node.Name))
 				{
-					EditorGUI.BeginChangeCheck();
-						bool favourite = GUI.Toggle(starRect, GetFavourite(node.Name), GUIContent.none);
-					if (EditorGUI.EndChangeCheck())
+					bool favourite = GetFavourite(node.Name);
+					if (Event.current.type == EventType.Repaint)
 					{
-						SetFavourite(node.Name, favourite);
+						GUI.DrawTexture(favouriteRect, favourite ? Styles.FavouriteIconOn : Styles.FavouriteIconOff);
+					}
+					else if (Event.current.type == EventType.MouseDown && favouriteRect.Contains(Event.current.mousePosition))
+					{
+						SetFavourite(node.Name, !favourite);
+						Event.current.Use();
 					}
 				}
 			}
 			// Favourite status
-			else if (!string.IsNullOrEmpty(node.Name) && GetFavourite(node.Name))
+			else if (Event.current.type == EventType.Repaint && !string.IsNullOrEmpty(node.Name) && GetFavourite(node.Name))
 			{
-				GUI.Toggle(starRect, GetFavourite(node.Name), GUIContent.none);
+				GUI.DrawTexture(favouriteRect, Styles.FavouriteIconOn);
 			}
 
 			// The actual icon and label

@@ -55,6 +55,8 @@ namespace GitHub.Unity
 			commitDescriptionFieldStyle,
 			toggleMixedStyle;
 		static Texture2D
+			favouriteIconOn,
+			favouriteIconOff,
 			titleIcon,
 			defaultAssetIcon,
 			folderIcon;
@@ -204,6 +206,34 @@ namespace GitHub.Unity
 				}
 
 				return toggleMixedStyle;
+			}
+		}
+
+
+		public static Texture2D FavouriteIconOn
+		{
+			get
+			{
+				if (favouriteIconOn == null)
+				{
+					favouriteIconOn = Utility.GetIcon("favorite-branch-indicator.png");
+				}
+
+				return favouriteIconOn;
+			}
+		}
+
+
+		public static Texture2D FavouriteIconOff
+		{
+			get
+			{
+				if (favouriteIconOff == null)
+				{
+					favouriteIconOff = FolderIcon;
+				}
+
+				return favouriteIconOff;
 			}
 		}
 
