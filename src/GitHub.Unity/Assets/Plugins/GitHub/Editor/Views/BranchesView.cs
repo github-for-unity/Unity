@@ -52,6 +52,10 @@ namespace GitHub.Unity
 
 
 		const string
+			ConfirmSwitchTitle = "Confirm branch switch",
+			ConfirmSwitchMessage = "Switch branch to {0}?",
+			ConfirmSwitchOK = "Switch",
+			ConfirmSwitchCancel = "Cancel",
 			FavouritesSetting = "Favourites",
 			FavouritesTitle = "FAVOURITES",
 			LocalTitle = "LOCAL BRANCHES",
@@ -427,7 +431,12 @@ namespace GitHub.Unity
 				newNodeSelection = node;
 				Event.current.Use();
 
-				if (Event.current.clickCount > 1 && node.Type == NodeType.LocalBranch)
+				if (Event.current.clickCount > 1 && node.Type == NodeType.LocalBranch && EditorUtility.DisplayDialog(
+					ConfirmSwitchTitle,
+					string.Format(ConfirmSwitchMessage, node.Name),
+					ConfirmSwitchOK,
+					ConfirmSwitchCancel
+				))
 				{
 					GitSwitchBranchesTask.Schedule(node.Name, Refresh);
 				}
