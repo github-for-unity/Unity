@@ -9,6 +9,9 @@ namespace GitHub.Unity
 {
 	class GitSwitchBranchesTask : GitTask
 	{
+		const string SwitchConfirmedMessage = "Switched to branch '{0}'";
+
+
 		public static void Schedule(string branch, Action onSuccess, Action onFailure = null)
 		{
 			Tasks.Add(new GitSwitchBranchesTask(branch, onSuccess, onFailure));
@@ -53,18 +56,23 @@ namespace GitHub.Unity
 				StringBuilder buffer = error.GetStringBuilder();
 				if (buffer.Length > 0)
 				{
-					Tasks.ReportFailure(FailureSeverity.Critical, this, buffer.ToString());
-					if (onFailure != null)
+					string message = buffer.ToString().Trim();
+
+					if (!message.Equals(string.Format(SwitchConfirmedMessage, branch)))
 					{
-						Tasks.ScheduleMainThread(onFailure);
+						Tasks.ReportFailure(FailureSeverity.Critical, this, message);
+						if (onFailure != null)
+						{
+							Tasks.ScheduleMainThread(onFailure);
+						}
+
+						return;
 					}
 				}
-				else
+
+				if (onSuccess != null)
 				{
-					if (onSuccess != null)
-					{
-						Tasks.ScheduleMainThread(onSuccess);
-					}
+					Tasks.ScheduleMainThread(onSuccess);
 				}
 			}
 		}
