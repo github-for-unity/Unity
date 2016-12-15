@@ -305,6 +305,11 @@ namespace GitHub.Unity
 
 		void OnTreeNodeChildrenGUI(BranchTreeNode node)
 		{
+			if (node == null || node.Children == null)
+			{
+				return;
+			}
+
 			for (int index = 0; index < node.Children.Count; ++index)
 			{
 				OnTreeNodeGUI(node.Children[index]);
