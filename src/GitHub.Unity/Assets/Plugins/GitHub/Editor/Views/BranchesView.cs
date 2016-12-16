@@ -91,6 +91,7 @@ namespace GitHub.Unity
 		void OnRemoteBranchesUpdate(IEnumerable<GitBranch> list)
 		{
 			BuildTree(newLocalBranches, list);
+			newLocalBranches.Clear();
 		}
 
 
