@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace GitHub.Unity
 {
-	class GitListUntrackedFilesTask : ProcessTask
+	class GitListUntrackedFilesTask : GitTask
 	{
 		public static void Schedule(Action<GitListUntrackedFilesTask> success, Action failure = null)
 		{
@@ -25,7 +25,6 @@ namespace GitHub.Unity
 		public IList<GitStatusEntry> Entries { get { return entries; } }
 
 
-		protected override string ProcessName { get { return "git"; } }
 		protected override string ProcessArguments { get { return "ls-files -o --exclude-standard"; } }
 		protected override TextWriter OutputBuffer { get { return output; } }
 		protected override TextWriter ErrorBuffer { get { return error; } }

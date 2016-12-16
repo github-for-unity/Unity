@@ -20,14 +20,9 @@ namespace GitHub.Unity
 
 	struct GitRemote
 	{
-		static Regex regex = new Regex(
-			@"(?<name>[\w\d\-\_]+)\s+(?<url>https?:\/\/(?<login>(?<user>[\w\d]+)(?::(?<token>[\w\d]+))?)@(?<host>[\w\d\.\/\%]+))\s+\((?<function>fetch|push)\)"
-		);
-
-
 		public static bool TryParse(string line, out GitRemote result)
 		{
-			Match match = regex.Match(line);
+			Match match = Utility.ListRemotesRegex.Match(line);
 
 			if (!match.Success)
 			{
@@ -88,7 +83,7 @@ Function: {6}",
 	}
 
 
-	class GitListRemotesTask : ProcessTask
+	class GitListRemotesTask : GitTask
 	{
 		const string ParseFailedError = "Remote parse error in line: '{0}'";
 
@@ -121,12 +116,12 @@ Function: {6}",
 
 
 		public override bool Blocking { get { return false; } }
+		public virtual TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; } }
 		public override bool Critical { get { return false; } }
 		public override bool Cached { get { return false; } }
 		public override string Label { get { return "git remote"; } }
 
 
-		protected override string ProcessName { get { return "git"; } }
 		protected override string ProcessArguments { get { return "remote -v"; } }
 		protected override TextWriter OutputBuffer { get { return output; } }
 		protected override TextWriter ErrorBuffer { get { return error; } }

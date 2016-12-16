@@ -88,7 +88,7 @@ Description: {7}",
 	}
 
 
-	class GitLogTask : ProcessTask
+	class GitLogTask : GitTask
 	{
 		enum ParsePhase
 		{
@@ -107,12 +107,6 @@ Description: {7}",
 
 
 		static Action<IList<GitLogEntry>> onLogUpdate;
-		static Regex
-			commitRegex = new Regex(@"commit\s(\S+)"),
-			mergeRegex = new Regex(@"Merge:\s+(\S+)\s+(\S+)"),
-			authorRegex = new Regex(@"Author:\s+(.+)\s<(.+)>"),
-			timeRegex = new Regex(@"Date:\s+(.+)"),
-			descriptionRegex = new Regex(@"^\s+(.+)");
 
 
 		public static void RegisterCallback(Action<IList<GitLogEntry>> callback)
@@ -144,12 +138,12 @@ Description: {7}",
 
 
 		public override bool Blocking { get { return false; } }
+		public virtual TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; } }
 		public override bool Critical { get { return false; } }
 		public override bool Cached { get { return false; } }
 		public override string Label { get { return "git log"; } }
 
 
-		protected override string ProcessName { get { return "git"; } }
 		protected override string ProcessArguments { get { return arguments; } }
 		protected override TextWriter OutputBuffer { get { return output; } }
 		protected override TextWriter ErrorBuffer { get { return error; } }
@@ -225,7 +219,7 @@ Description: {7}",
 			switch (parsePhase)
 			{
 				case ParsePhase.Commit:
-					match = commitRegex.Match(line);
+					match = Utility.LogCommitRegex.Match(line);
 					if (match.Groups.Count == 2)
 					{
 						parsedEntry.CommitID = match.Groups[1].ToString();
@@ -235,7 +229,7 @@ Description: {7}",
 				break;
 				case ParsePhase.Author:
 					// If this is a marge commit, merge info comes before author info, so we parse this and stay in the author phase
-					match = mergeRegex.Match(line);
+					match = Utility.LogMergeRegex.Match(line);
 					if (match.Groups.Count == 3)
 					{
 						parsedEntry.MergeA = match.Groups[1].ToString();
@@ -243,7 +237,7 @@ Description: {7}",
 						return;
 					}
 
-					match = authorRegex.Match(line);
+					match = Utility.LogAuthorRegex.Match(line);
 					if (match.Groups.Count == 3)
 					{
 						parsedEntry.AuthorName = match.Groups[1].ToString();
@@ -253,7 +247,7 @@ Description: {7}",
 					}
 				break;
 				case ParsePhase.Time:
-					match = timeRegex.Match(line);
+					match = Utility.LogTimeRegex.Match(line);
 					if (match.Groups.Count == 2)
 					{
 						string time = match.Groups[1].ToString();
@@ -279,7 +273,7 @@ Description: {7}",
 					}
 				break;
 				case ParsePhase.Description:
-					match = descriptionRegex.Match(line);
+					match = Utility.LogDescriptionRegex.Match(line);
 					if (match.Groups.Count == 2)
 					{
 						if (string.IsNullOrEmpty(parsedEntry.Summary))
@@ -302,7 +296,7 @@ Description: {7}",
 						parsedEntry.Changes.Add(entry);
 						return;
 					}
-					else if ((match = commitRegex.Match(line)).Groups.Count == 2)
+					else if ((match = Utility.LogCommitRegex.Match(line)).Groups.Count == 2)
 					// This commit had no changes, so complete parsing it and pass the next commit header into a new session
 					{
 						ParseOutputLine(null);

@@ -25,7 +25,7 @@ namespace GitHub.Unity
 		public virtual bool Blocking { get { return true; } }
 		public virtual float Progress { get; protected set; }
 		public virtual bool Done { get; protected set; }
-		public virtual bool Queued { get { return true; } }
+		public virtual TaskQueueSetting Queued { get { return TaskQueueSetting.Queue; } }
 		public virtual bool Critical { get { return true; } }
 		public virtual bool Cached { get { return true; } }
 		public virtual Action<ITask> OnBegin { get; set; }
@@ -71,7 +71,7 @@ namespace GitHub.Unity
 		}
 
 
-		public void Run()
+		public virtual void Run()
 		{
 			Debug.LogFormat("{0} {1}", Label, process == null ? "start" : "reconnect");
 
@@ -88,6 +88,7 @@ namespace GitHub.Unity
 			{
 				process = Process.Start(new ProcessStartInfo(ProcessName, ProcessArguments)
 				{
+					CreateNoWindow = true,
 					UseShellExecute = false,
 					RedirectStandardError = true,
 					RedirectStandardOutput = true,

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using System;
 using System.IO;
@@ -8,11 +8,17 @@ using System.Collections.Generic;
 
 namespace GitHub.Unity
 {
-	class GitAddTask : ProcessTask
+	class GitCommitTask : GitTask
 	{
-		public static void Schedule(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
+		public static void Schedule(IEnumerable<string> files, string message, string body, Action onSuccess = null, Action onFailure = null)
 		{
-			Tasks.Add(new GitAddTask(files, onSuccess, onFailure));
+			GitAddTask.Schedule(files, () => Schedule(message, body, onSuccess, onFailure), onFailure);
+		}
+
+
+		public static void Schedule(string message, string body, Action onSuccess = null, Action onFailure = null)
+		{
+			Tasks.Add(new GitCommitTask(message, body, onSuccess, onFailure));
 		}
 
 
@@ -23,30 +29,24 @@ namespace GitHub.Unity
 			onFailure;
 
 
-		public override bool Blocking { get { return false; } }
-		public override bool Critical { get { return true; } }
-		public override bool Cached { get { return true; } }
-		public override string Label { get { return "git add"; } }
-
-
-		protected override string ProcessName { get { return "git"; } }
-		protected override string ProcessArguments { get { return arguments; } }
-		protected override TextWriter ErrorBuffer { get { return error; } }
-
-
-		GitAddTask(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
+		GitCommitTask(string message, string body, Action onSuccess = null, Action onFailure = null)
 		{
-			arguments = "add ";
-			arguments += " -- ";
-
-			foreach (string file in files)
-			{
-				arguments += " " + file;
-			}
+			arguments = "commit ";
+			arguments += string.Format(@" -m ""{0}{1}{2}""", message, Environment.NewLine, body);
 
 			this.onSuccess = onSuccess;
 			this.onFailure = onFailure;
 		}
+
+
+		public override bool Blocking { get { return false; } }
+		public override bool Critical { get { return true; } }
+		public override bool Cached { get { return true; } }
+		public override string Label { get { return "git commit"; } }
+
+
+		protected override string ProcessArguments { get { return arguments; } }
+		protected override TextWriter ErrorBuffer { get { return error; } }
 
 
 		protected override void OnProcessOutputUpdate()

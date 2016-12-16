@@ -54,19 +54,29 @@ namespace GitHub.Unity
 			"R",
 			"C"
 		};
-		static Regex regex = new Regex(@"([AMRDC]|\?\?)(?:\d*)\s+([\w\d\/\.\-_ ]+)");
 
 
 		public static bool TryParse(string line, out GitStatusEntry entry)
 		{
-			Match match = regex.Match(line);
-			if (match.Groups.Count == 3)
-			{
-				string
-					path = match.Groups[2].ToString(),
-					statusKey = match.Groups[1].ToString();
+			Match match = Utility.StatusStartRegex.Match(line);
+			string
+				statusKey = match.Groups["status"].Value,
+				path = match.Groups["path"].Value;
 
-				entry = new GitStatusEntry(path, FileStatusFromKey(statusKey));
+			if (!string.IsNullOrEmpty(statusKey) && !string.IsNullOrEmpty(path))
+			{
+				GitFileStatus status = FileStatusFromKey(statusKey);
+				int renameIndex = line.IndexOf(Utility.StatusRenameDivider);
+
+				if (renameIndex >= 0)
+				{
+					match = Utility.StatusEndRegex.Match(line.Substring(renameIndex));
+					entry = new GitStatusEntry(match.Groups["path"].Value, status, path.Substring(0, path.Length - 1));
+				}
+				else
+				{
+					entry = new GitStatusEntry(path, status);
+				}
 
 				return true;
 			}
@@ -94,16 +104,18 @@ namespace GitHub.Unity
 		public readonly string
 			Path,
 			FullPath,
-			ProjectPath;
+			ProjectPath,
+			OriginalPath;
 		public readonly GitFileStatus Status;
 
 
-		public GitStatusEntry(string path, GitFileStatus status)
+		public GitStatusEntry(string path, GitFileStatus status, string originalPath = "")
 		{
 			Path = path;
 			FullPath = Utility.RepositoryPathToAbsolute(Path);
 			ProjectPath = Utility.RepositoryPathToAsset(Path);
 			Status = status;
+			OriginalPath = originalPath;
 		}
 
 
@@ -120,15 +132,12 @@ namespace GitHub.Unity
 	}
 
 
-	class GitStatusTask : ProcessTask
+	class GitStatusTask : GitTask
 	{
 		const string BranchNamesSeparator = "...";
 
 
 		static Action<GitStatus> onStatusUpdate;
-		static Regex
-			branchLineValidRegex = new Regex(@"\#\#\s+(?:[\w\d\/\-_\.]+)"),
-			aheadBehindRegex = new Regex(@"\[ahead (?<ahead>\d+), behind (?<behind>\d+)\]|\[ahead (?<ahead>\d+)\]|\[behind (?<behind>\d+>)\]");
 
 
 		public static void RegisterCallback(Action<GitStatus> callback)
@@ -150,12 +159,12 @@ namespace GitHub.Unity
 
 
 		public override bool Blocking { get { return false; } }
+		public virtual TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; } }
 		public override bool Critical { get { return false; } }
 		public override bool Cached { get { return false; } }
 		public override string Label { get { return "git status"; } }
 
 
-		protected override string ProcessName { get { return "git"; } }
 		protected override string ProcessArguments { get { return "status -b --porcelain"; } }
 		protected override TextWriter OutputBuffer { get { return output; } }
 		protected override TextWriter ErrorBuffer { get { return error; } }
@@ -215,7 +224,7 @@ namespace GitHub.Unity
 
 
 			// Grab local and remote branch
-			if (branchLineValidRegex.Match(line).Success)
+			if (Utility.StatusBranchLineValidRegex.Match(line).Success)
 			{
 				int index = line.IndexOf(BranchNamesSeparator);
 				if (index >= 0)
@@ -227,7 +236,7 @@ namespace GitHub.Unity
 					if (index > 0)
 					// Ahead and/or behind information available
 					{
-						Match match = aheadBehindRegex.Match(status.RemoteBranch.Substring(index - 1));
+						Match match = Utility.StatusAheadBehindRegex.Match(status.RemoteBranch.Substring(index - 1));
 
 						status.RemoteBranch = status.RemoteBranch.Substring(0, index).Trim();
 
