@@ -62,6 +62,10 @@ namespace GitHub.Unity
 			commitDescriptionFieldStyle,
 			toggleMixedStyle;
 		static Texture2D
+			modifiedStatusIcon,
+			addedStatusIcon,
+			deletedStatusIcon,
+			renamedStatusIcon,
 			activeBranchIcon,
 			trackingBranchIcon,
 			favouriteIconOn,
@@ -356,6 +360,24 @@ namespace GitHub.Unity
 				}
 
 				return folderIcon;
+			}
+		}
+
+
+		public static Texture2D GetGitFileStatusIcon(GitFileStatus status)
+		{
+			switch(status)
+			{
+				case GitFileStatus.Modified:
+				return modifiedStatusIcon = modifiedStatusIcon ?? Utility.GetIcon("modified.png", "modified@2x.png");
+				case GitFileStatus.Added:
+				return addedStatusIcon = addedStatusIcon ?? Utility.GetIcon("added.png", "added@2x.png");
+				case GitFileStatus.Deleted:
+				return deletedStatusIcon = deletedStatusIcon ?? Utility.GetIcon("removed.png", "removed@2x.png");
+				case GitFileStatus.Renamed:
+				return renamedStatusIcon = renamedStatusIcon ?? Utility.GetIcon("renamed.png", "renamed@2x.png");
+				default:
+				return null;
 			}
 		}
 
