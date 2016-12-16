@@ -85,8 +85,7 @@ namespace GitHub.Unity
 		}
 
 
-		[InitializeOnLoadMethod]
-		static void Prepare()
+		public static void Prepare()
 		{
 			// Unity paths
 			UnityAssetsPath = Application.dataPath;

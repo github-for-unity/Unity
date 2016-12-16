@@ -13,32 +13,39 @@ namespace GitHub.Unity
 	{
 		const string
 			SettingsParseError = "Failed to parse settings file at '{0}'",
-			LocalSettingsName = "GitHub.local.json";
+			RelativeSettingsPath = "{0}/ProjectSettings/{1}",
+			LocalSettingsName = "GitHub.local.json",
+			TeamSettingsName = "GitHub.json";
 
 
-		[SerializeField] List<string> keys = new List<string>();
-		[SerializeField] List<object> values = new List<object>();
+		[SerializeField] List<string>
+			keys = new List<string>(),
+			teamKeys = new List<string>();
+		[SerializeField] List<object>
+			values = new List<object>(),
+			teamValues = new List<object>();
 
 
 		static Settings asset;
 
 
-		static string GetPath()
+		static string GetLocalPath()
 		{
-			return string.Format("{0}/ProjectSettings/{1}", Utility.UnityProjectPath, LocalSettingsName);
+			return string.Format(RelativeSettingsPath, Utility.UnityProjectPath, LocalSettingsName);
 		}
 
 
-		public static bool Reload()
+		static string GetTeamPath()
 		{
-			string path = GetPath();
+			return string.Format(RelativeSettingsPath, Utility.UnityProjectPath, TeamSettingsName);
+		}
 
-			Settings newAsset = CreateInstance<Settings>();
 
+		static IDictionary<string, object> LoadSettings(string path)
+		{
 			if (!File.Exists(path))
 			{
-				asset = newAsset;
-				return true;
+				return null;
 			}
 
 			object parseResult;
@@ -47,18 +54,42 @@ namespace GitHub.Unity
 			if(!SimpleJson.TryDeserializeObject(File.ReadAllText(path), out parseResult) || (settings = parseResult as IDictionary<string, object>) == null)
 			{
 				Debug.LogErrorFormat(SettingsParseError, path);
-				return false;
+				return null;
 			}
 
-			newAsset.keys.Clear();
-			newAsset.keys.AddRange(settings.Keys);
-			newAsset.values.Clear();
-			newAsset.values.AddRange(settings.Values.Select(
-				v => (v is IList<object>) ?
-					(object)new List<string>(((IList<object>)v).Select(v2 => v2 as string))
-				:
-					(object)(v as string)
-			));
+			return settings;
+		}
+
+
+		public static bool Reload()
+		{
+			Settings newAsset = CreateInstance<Settings>();
+
+			IDictionary<string, object> settings = LoadSettings(GetLocalPath());
+
+			if (settings != null)
+			{
+				newAsset.keys.AddRange(settings.Keys);
+				newAsset.values.AddRange(settings.Values.Select(
+					v => (v is IList<object>) ?
+						(object)new List<string>(((IList<object>)v).Select(v2 => v2 as string))
+					:
+						(object)(v as string)
+				));
+			}
+
+			settings = LoadSettings(GetTeamPath());
+
+			if (settings != null)
+			{
+				newAsset.teamKeys.AddRange(settings.Keys);
+				newAsset.teamValues.AddRange(settings.Values.Select(
+					v => (v is IList<object>) ?
+						(object)new List<string>(((IList<object>)v).Select(v2 => v2 as string))
+					:
+						(object)(v as string)
+				));
+			}
 
 			asset = newAsset;
 
@@ -73,7 +104,7 @@ namespace GitHub.Unity
 				return false;
 			}
 
-			string path = GetPath();
+			string path = GetLocalPath();
 
 			StreamWriter settings = File.CreateText(path);
 			settings.Write("{\n");
@@ -140,7 +171,14 @@ namespace GitHub.Unity
 				return fallback;
 			}
 
-			int index = asset.keys.IndexOf(key);
+			int index = asset.teamKeys.IndexOf(key);
+
+			if (index >= 0)
+			{
+				return asset.teamValues[index] as string;
+			}
+
+			index = asset.keys.IndexOf(key);
 
 			if (index >= 0)
 			{
@@ -156,6 +194,11 @@ namespace GitHub.Unity
 			Settings asset = GetAsset();
 
 			if (asset == null)
+			{
+				return false;
+			}
+
+			if (asset.teamKeys.Contains(key))
 			{
 				return false;
 			}
@@ -195,6 +238,11 @@ namespace GitHub.Unity
 				return false;
 			}
 
+			if (asset.teamKeys.Contains(key))
+			{
+				return false;
+			}
+
 			int index = asset.keys.IndexOf(key);
 
 			if (index < 0)
@@ -223,6 +271,11 @@ namespace GitHub.Unity
 				return false;
 			}
 
+			if (asset.teamKeys.Contains(key))
+			{
+				return false;
+			}
+
 			int index = asset.keys.IndexOf(key);
 
 			if (index < 0)
@@ -241,7 +294,7 @@ namespace GitHub.Unity
 		}
 
 
-		static List<string> GetList(string key)
+		static List<string> GetLocalList(string key)
 		{
 			Settings asset = GetAsset();
 
@@ -255,37 +308,81 @@ namespace GitHub.Unity
 		}
 
 
+		static List<string> GetTeamList(string key)
+		{
+			Settings asset = GetAsset();
+
+			if (asset == null)
+			{
+				return null;
+			}
+
+			int index = asset.teamKeys.IndexOf(key);
+			return index < 0 ? null : asset.teamValues[index] as List<string>;
+		}
+
+
 		public static int CountElements(string key)
 		{
-			List<string> list = GetList(key);
-			return list == null ? 0 : list.Count;
+			List<string>
+				localList = GetLocalList(key),
+				teamList = GetTeamList(key);
+
+			return (localList == null ? 0 : teamList.Count) + (teamList == null ? 0 : teamList.Count);
 		}
 
 
 		public static int GetElementIndex(string key, string value)
 		{
-			List<string> list = GetList(key);
-			return list == null ? -1 : list.IndexOf(value);
+			List<string>
+				localList = GetLocalList(key),
+				teamList = GetTeamList(key);
+
+			int index = (teamList == null ? -1 : teamList.IndexOf(value));
+			if (index > -1)
+			{
+				return index + (localList == null ? 0 : localList.Count);
+			}
+
+			return localList == null ? -1 : localList.IndexOf(value);
 		}
 
 
 		public static string GetElement(string key, int index, string fallback = "")
 		{
-			List<string> list = GetList(key);
-			return (list == null || index >= list.Count || index < 0) ? fallback : list[index];
+			List<string>
+				localList = GetLocalList(key),
+				teamList = GetTeamList(key);
+
+			if (index < 0)
+			{
+				return fallback;
+			}
+
+			if (localList != null && index < localList.Count)
+			{
+				return localList[index];
+			}
+
+			if (teamList != null && index < teamList.Count + (localList == null ? 0 : localList.Count))
+			{
+				return teamList[index];
+			}
+
+			return fallback;
 		}
 
 
 		public static bool SetElement(string key, int index, string value, bool noSave = false)
 		{
-			List<string> list = GetList(key);
+			List<string> localList = GetLocalList(key);
 
-			if (list == null || index >= list.Count || index < 0)
+			if (localList == null || index >= localList.Count || index < 0)
 			{
 				return false;
 			}
 
-			list[index] = value;
+			localList[index] = value;
 
 			if (!noSave)
 			{
@@ -298,14 +395,14 @@ namespace GitHub.Unity
 
 		public static bool RemoveElement(string key, string value, bool noSave = false)
 		{
-			List<string> list = GetList(key);
+			List<string> localList = GetLocalList(key);
 
-			if (list == null)
+			if (localList == null)
 			{
 				return false;
 			}
 
-			list.Remove(value);
+			localList.Remove(value);
 
 			if (!noSave)
 			{
@@ -318,14 +415,14 @@ namespace GitHub.Unity
 
 		public static bool RemoveElementAt(string key, int index, bool noSave = false)
 		{
-			List<string> list = GetList(key);
+			List<string> localList = GetLocalList(key);
 
-			if (list == null || index >= list.Count || index < 0)
+			if (localList == null || index >= localList.Count || index < 0)
 			{
 				return false;
 			}
 
-			list.RemoveAt(index);
+			localList.RemoveAt(index);
 
 			if (!noSave)
 			{
