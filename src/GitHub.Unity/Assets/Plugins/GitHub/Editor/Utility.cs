@@ -231,8 +231,13 @@ namespace GitHub.Unity
 		}
 
 
-		public static Texture2D GetIcon(string filename)
+		public static Texture2D GetIcon(string filename, string filename2x = "")
 		{
+			if (EditorGUIUtility.pixelsPerPoint > 1f && !string.IsNullOrEmpty(filename2x))
+			{
+				filename = filename2x;
+			}
+
 			return AssetDatabase.LoadMainAssetAtPath(ExtensionInstallPath + "/Icons/" + filename) as Texture2D;
 		}
 
