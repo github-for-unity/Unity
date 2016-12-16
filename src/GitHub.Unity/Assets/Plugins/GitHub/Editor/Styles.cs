@@ -50,6 +50,7 @@ namespace GitHub.Unity
 
 
 		static GUIStyle
+			label,
 			longMessageStyle,
 			historyToolbarButtonStyle,
 			historyLockStyle,
@@ -67,6 +68,27 @@ namespace GitHub.Unity
 			titleIcon,
 			defaultAssetIcon,
 			folderIcon;
+
+
+		public static GUIStyle Label
+		{
+			get
+			{
+				if (label == null)
+				{
+					label = new GUIStyle(GUI.skin.label);
+					label.name = "CustomLabel";
+
+					GUIStyle hierarchyStyle = GUI.skin.FindStyle("PR Label");
+					label.onNormal.background = hierarchyStyle.onNormal.background;
+					label.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+					label.onFocused.background = hierarchyStyle.onFocused.background;
+					label.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+				}
+
+				return label;
+			}
+		}
 
 
 		public static GUIStyle LongMessageStyle
@@ -130,6 +152,12 @@ namespace GitHub.Unity
 					historyEntryDetailsStyle.name = "HistoryEntryDetailsStyle";
 					Color c = EditorStyles.miniLabel.normal.textColor;
 					historyEntryDetailsStyle.normal.textColor = new Color(c.r, c.g, c.b, c.a * 0.7f);
+
+					GUIStyle hierarchyStyle = GUI.skin.FindStyle("PR Label");
+					historyEntryDetailsStyle.onNormal.background = hierarchyStyle.onNormal.background;
+					historyEntryDetailsStyle.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+					historyEntryDetailsStyle.onFocused.background = hierarchyStyle.onFocused.background;
+					historyEntryDetailsStyle.onFocused.textColor = hierarchyStyle.onFocused.textColor;
 				}
 
 				return historyEntryDetailsStyle;
