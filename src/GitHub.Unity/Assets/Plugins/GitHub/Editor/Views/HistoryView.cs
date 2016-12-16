@@ -49,6 +49,7 @@ namespace GitHub.Unity
 		[SerializeField] string selectionID;
 		[SerializeField] ChangesetTreeView changesetTree = new ChangesetTreeView();
 		[SerializeField] Vector2 detailsScroll;
+		[SerializeField] bool broadMode = false;
 
 
 		string currentRemote = "placeholder";
@@ -61,10 +62,15 @@ namespace GitHub.Unity
 			updated = true,
 			useScrollTime = false;
 		DateTimeOffset scrollTime = DateTimeOffset.Now;
-		float scrollOffset;
+		float
+			lastWidth,
+			scrollOffset;
 		int
 			selectionIndex,
 			newSelectionIndex;
+
+
+		public bool BroadMode { get { return broadMode; } }
 
 
 		float EntryHeight
@@ -78,6 +84,7 @@ namespace GitHub.Unity
 
 		protected override void OnShow()
 		{
+			lastWidth = position.width;
 			selectionIndex = newSelectionIndex = -1;
 
 			GitLogTask.RegisterCallback(OnLogUpdate);
@@ -107,6 +114,11 @@ namespace GitHub.Unity
 			}
 
 			GitStatusTask.Schedule();
+
+			if (broadMode)
+			{
+				((Window)parent).BranchesTab.RefreshEmbedded();
+			}
 		}
 
 
@@ -181,7 +193,71 @@ namespace GitHub.Unity
 		}
 
 
+		public bool EvaluateBroadMode()
+		{
+			bool past = broadMode;
+
+			// Flip when the limits are breached
+			if (position.width > Styles.BroadModeLimit)
+			{
+				broadMode = true;
+			}
+			else if (position.width < Styles.NarrowModeLimit)
+			{
+				broadMode = false;
+			}
+
+			// Show the layout notification while scaling
+
+			Window window = (Window)parent;
+			bool scaled = position.width != lastWidth;
+			lastWidth = position.width;
+
+			if (scaled)
+			{
+				window.ShowNotification(new GUIContent(Styles.FolderIcon), Styles.ModeNotificationDelay);
+			}
+
+			// Return whether we flipped
+			return broadMode != past;
+		}
+
+
 		public override void OnGUI()
+		{
+			if (broadMode)
+			{
+				OnBroadGUI();
+			}
+			else
+			{
+				OnEmbeddedGUI();
+			}
+
+			if (Event.current.type == EventType.Repaint && EvaluateBroadMode())
+			{
+				Refresh();
+			}
+		}
+
+
+		public void OnBroadGUI()
+		{
+			GUILayout.BeginHorizontal();
+				GUILayout.BeginVertical(
+					GUILayout.MinWidth(Styles.BroadModeBranchesMinWidth),
+					GUILayout.MaxWidth(Mathf.Max(Styles.BroadModeBranchesMinWidth, position.width * Styles.BroadModeBranchesRatio))
+				);
+					((Window)parent).BranchesTab.OnEmbeddedGUI();
+				GUILayout.EndVertical();
+				GUILayout.BeginVertical();
+					OnEmbeddedGUI();
+				GUILayout.EndVertical();
+			GUILayout.EndHorizontal();
+		}
+
+
+		public void OnEmbeddedGUI()
 		{
 			// History toolbar
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
