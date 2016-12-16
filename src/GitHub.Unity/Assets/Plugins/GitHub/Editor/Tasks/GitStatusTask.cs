@@ -54,14 +54,11 @@ namespace GitHub.Unity
 			"R",
 			"C"
 		};
-		static Regex
-			startRegex = new Regex(@"(?<status>[AMRDC]|\?\?)(?:\d*)\s+(?<path>[\w\d\/\.\-_ \@]+)"),
-			endRegex = new Regex(@"->\s(?<path>[\w\d\/\.\-_ ]+)");
 
 
 		public static bool TryParse(string line, out GitStatusEntry entry)
 		{
-			Match match = startRegex.Match(line);
+			Match match = Utility.StatusStartRegex.Match(line);
 			string
 				statusKey = match.Groups["status"].Value,
 				path = match.Groups["path"].Value;
@@ -69,11 +66,11 @@ namespace GitHub.Unity
 			if (!string.IsNullOrEmpty(statusKey) && !string.IsNullOrEmpty(path))
 			{
 				GitFileStatus status = FileStatusFromKey(statusKey);
-				int renameIndex = line.IndexOf("->");
+				int renameIndex = line.IndexOf(Utility.StatusRenameDivider);
 
 				if (renameIndex >= 0)
 				{
-					match = endRegex.Match(line.Substring(renameIndex));
+					match = Utility.StatusEndRegex.Match(line.Substring(renameIndex));
 					entry = new GitStatusEntry(match.Groups["path"].Value, status, path.Substring(0, path.Length - 1));
 				}
 				else
@@ -141,9 +138,6 @@ namespace GitHub.Unity
 
 
 		static Action<GitStatus> onStatusUpdate;
-		static Regex
-			branchLineValidRegex = new Regex(@"\#\#\s+(?:[\w\d\/\-_\.]+)"),
-			aheadBehindRegex = new Regex(@"\[ahead (?<ahead>\d+), behind (?<behind>\d+)\]|\[ahead (?<ahead>\d+)\]|\[behind (?<behind>\d+>)\]");
 
 
 		public static void RegisterCallback(Action<GitStatus> callback)
@@ -230,7 +224,7 @@ namespace GitHub.Unity
 
 
 			// Grab local and remote branch
-			if (branchLineValidRegex.Match(line).Success)
+			if (Utility.StatusBranchLineValidRegex.Match(line).Success)
 			{
 				int index = line.IndexOf(BranchNamesSeparator);
 				if (index >= 0)
@@ -242,7 +236,7 @@ namespace GitHub.Unity
 					if (index > 0)
 					// Ahead and/or behind information available
 					{
-						Match match = aheadBehindRegex.Match(status.RemoteBranch.Substring(index - 1));
+						Match match = Utility.StatusAheadBehindRegex.Match(status.RemoteBranch.Substring(index - 1));
 
 						status.RemoteBranch = status.RemoteBranch.Substring(0, index).Trim();
 

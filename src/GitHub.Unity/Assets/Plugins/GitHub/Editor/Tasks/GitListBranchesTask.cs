@@ -39,7 +39,6 @@ namespace GitHub.Unity
 			LocalArguments = "branch -vv",
 			RemoteArguments = "branch -r",
 			UnmatchedLineError = "Unable to match the line '{0}'";
-		static Regex regex = new Regex(@"^(?<active>\*)?\s+(?<name>[\w\d\/\-\_]+)\s*(?:[a-z|0-9]{7} \[(?<tracking>[\w\d\/\-\_]+)\])?");
 
 
 		public static void ScheduleLocal(Action<IEnumerable<GitBranch>> onSuccess, Action onFailure = null)
@@ -127,7 +126,7 @@ namespace GitHub.Unity
 
 		void ParseOutputLine(string line)
 		{
-			Match match = regex.Match(line);
+			Match match = Utility.ListBranchesRegex.Match(line);
 
 			if (!match.Success)
 			{
