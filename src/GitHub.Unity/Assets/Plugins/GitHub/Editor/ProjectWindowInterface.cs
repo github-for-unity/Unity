@@ -73,6 +73,7 @@ namespace GitHub.Unity
 			}
 			else
 			// Corner placement
+			// TODO: Magic numbers that need reviewing. Make sure this works properly with long filenames and wordwrap.
 			{
 				float scale = itemRect.height / 90f;
 				Vector2
