@@ -3,6 +3,7 @@ using UnityEditor;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using System.Text.RegularExpressions;
 
 
 namespace GitHub.Unity
@@ -15,6 +16,13 @@ namespace GitHub.Unity
 			Folder,
 			LocalBranch,
 			RemoteBranch
+		}
+
+
+		enum BranchesMode
+		{
+			Default,
+			Create
 		}
 
 
@@ -56,23 +64,36 @@ namespace GitHub.Unity
 			ConfirmSwitchMessage = "Switch branch to {0}?",
 			ConfirmSwitchOK = "Switch",
 			ConfirmSwitchCancel = "Cancel",
+			NewBranchCancelButton = "x",
+			NewBranchConfirmButton = "Create",
 			FavouritesSetting = "Favourites",
 			FavouritesTitle = "FAVOURITES",
 			LocalTitle = "LOCAL BRANCHES",
 			RemoteTitle = "REMOTE BRANCHES",
 			CreateBranchButton = "+ New branch";
+		static Regex BranchNameRegex = new Regex(@"^(?<name>[\w\d\/\-\_]+)$");
 
 
 		[SerializeField] Vector2 scroll;
 		[SerializeField] BranchTreeNode localRoot;
 		[SerializeField] List<Remote> remotes = new List<Remote>();
 		[SerializeField] BranchTreeNode selectedNode = null;
+		[SerializeField] BranchTreeNode activeBranchNode = null;
+		[SerializeField] BranchesMode mode = BranchesMode.Default;
+		[SerializeField] string newBranchName;
 
 
 		BranchTreeNode newNodeSelection = null;
 		List<GitBranch> newLocalBranches;
 		List<BranchTreeNode> favourites = new List<BranchTreeNode>();
 		int listID = -1;
+		BranchesMode targetMode;
+
+
+		protected override void OnShow()
+		{
+			targetMode = mode;
+		}
 
 
 		public override void Refresh()
@@ -118,6 +139,12 @@ namespace GitHub.Unity
 				GitBranch branch = localBranches[index];
 				BranchTreeNode node = new BranchTreeNode(branch.Name, NodeType.LocalBranch, branch.Active);
 				localBranchNodes.Add(node);
+
+				// Keep active node for quick reference
+				if (branch.Active)
+				{
+					activeBranchNode = node;
+				}
 
 				// Add to tracking
 				if (!string.IsNullOrEmpty(branch.Tracking))
@@ -240,12 +267,6 @@ namespace GitHub.Unity
 		}
 
 
-		void Branch()
-		{
-			Debug.Log("TODO: Switch to branch creation view");
-		}
-
-
 		static bool GetFavourite(BranchTreeNode branch)
 		{
 			return GetFavourite(branch.Name);
@@ -316,10 +337,7 @@ namespace GitHub.Unity
 
 						GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
-						if (GUILayout.Button(CreateBranchButton, GUI.skin.label, GUILayout.ExpandWidth(false)))
-						{
-							Branch();
-						}
+						OnCreateGUI();
 					GUILayout.EndVertical();
 				GUILayout.EndHorizontal();
 
@@ -349,12 +367,105 @@ namespace GitHub.Unity
 				GUILayout.EndHorizontal();
 			GUILayout.EndScrollView();
 
-			// Effectuating selection
-			if (Event.current.type == EventType.Repaint && newNodeSelection != null)
+			if (Event.current.type == EventType.Repaint)
 			{
-				selectedNode = newNodeSelection;
-				GUIUtility.keyboardControl = listID;
-				Repaint();
+				// Effectuating selection
+				if (newNodeSelection != null)
+				{
+					selectedNode = newNodeSelection;
+					newNodeSelection = null;
+					GUIUtility.keyboardControl = listID;
+					Repaint();
+				}
+
+				// Effectuating mode switch
+				if (mode != targetMode)
+				{
+					mode = targetMode;
+
+					if (mode == BranchesMode.Create)
+					{
+						selectedNode = activeBranchNode;
+					}
+
+					Repaint();
+				}
+			}
+		}
+
+
+		void OnCreateGUI()
+		{
+			if (mode == BranchesMode.Default)
+			// Create button
+			{
+				if (GUILayout.Button(CreateBranchButton, GUI.skin.label, GUILayout.ExpandWidth(false)))
+				{
+					targetMode = BranchesMode.Create;
+				}
+			}
+			else if (mode == BranchesMode.Create)
+			// Branch name + cancel + create
+			{
+				GUILayout.BeginHorizontal();
+					bool
+						createBranch = false,
+						cancelCreate = false,
+						cannotCreate = selectedNode == null || selectedNode.Type == NodeType.Folder || !BranchNameRegex.IsMatch(newBranchName);
+
+					// Create on return/enter or cancel on escape
+					int offsetID = GUIUtility.GetControlID(FocusType.Passive);
+					if (Event.current.isKey && GUIUtility.keyboardControl == offsetID + 1)
+					{
+						if (Event.current.keyCode == KeyCode.Escape)
+						{
+							cancelCreate = true;
+							Event.current.Use();
+						}
+						else if (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter)
+						{
+							if (cannotCreate)
+							{
+								EditorApplication.Beep();
+							}
+							else
+							{
+								createBranch = true;
+							}
+							Event.current.Use();
+						}
+					}
+					newBranchName = EditorGUILayout.TextField(newBranchName, GUILayout.MaxWidth(200f));
+
+					// Cancel create
+					GUILayout.Space(-5f);
+					if (GUILayout.Button(NewBranchCancelButton, EditorStyles.miniButtonMid, GUILayout.ExpandWidth(false)))
+					{
+						cancelCreate = true;
+					}
+
+					// Create
+					EditorGUI.BeginDisabledGroup(cannotCreate);
+						if (GUILayout.Button(NewBranchConfirmButton, EditorStyles.miniButtonRight, GUILayout.ExpandWidth(false)))
+						{
+							createBranch = true;
+						}
+					EditorGUI.EndDisabledGroup();
+
+					// Effectuate create
+					if (createBranch)
+					{
+						GitBranchCreateTask.Schedule(newBranchName, selectedNode.Name, Refresh);
+					}
+
+					// Cleanup
+					if (createBranch || cancelCreate)
+					{
+						newBranchName = "";
+						GUIUtility.keyboardControl = -1;
+						targetMode = BranchesMode.Default;
+					}
+				GUILayout.EndHorizontal();
 			}
 		}
 
