@@ -10,16 +10,18 @@ using System.Linq;
 
 namespace GitHub.Unity
 {
-	struct GitBranchList
+	struct GitBranch
 	{
-		public string[] Branches{ get; private set; }
-		public int ActiveIndex{ get; private set; }
+		public string Name{ get; private set; }
+		public string Tracking{ get; private set; }
+		public bool Active{ get; private set; }
 
 
-		public GitBranchList(IEnumerable<string> branches, int activeIndex)
+		public GitBranch(string name, string tracking, bool active)
 		{
-			Branches = branches.ToArray();
-			ActiveIndex = activeIndex;
+			Name = name;
+			Tracking = tracking;
+			Active = active;
 		}
 	}
 
@@ -34,25 +36,25 @@ namespace GitHub.Unity
 
 
 		const string
-			LocalArguments = "branch",
+			LocalArguments = "branch -vv",
 			RemoteArguments = "branch -r",
 			UnmatchedLineError = "Unable to match the line '{0}'";
-		static Regex regex = new Regex(@"^(?<active>\*)?\s+(?<name>[\w\d\/\-\_]+)");
+		static Regex regex = new Regex(@"^(?<active>\*)?\s+(?<name>[\w\d\/\-\_]+)\s*(?:[a-z|0-9]{7} \[(?<tracking>[\w\d\/\-\_]+)\])?");
 
 
-		public static void ScheduleLocal(Action<GitBranchList> onSuccess, Action onFailure = null)
+		public static void ScheduleLocal(Action<IEnumerable<GitBranch>> onSuccess, Action onFailure = null)
 		{
 			Schedule(Mode.Local, onSuccess, onFailure);
 		}
 
 
-		public static void ScheduleRemote(Action<GitBranchList> onSuccess, Action onFailure = null)
+		public static void ScheduleRemote(Action<IEnumerable<GitBranch>> onSuccess, Action onFailure = null)
 		{
 			Schedule(Mode.Remote, onSuccess, onFailure);
 		}
 
 
-		static void Schedule(Mode mode, Action<GitBranchList> onSuccess, Action onFailure = null)
+		static void Schedule(Mode mode, Action<IEnumerable<GitBranch>> onSuccess, Action onFailure = null)
 		{
 			Tasks.Add(new GitListBranchesTask(mode, onSuccess, onFailure));
 		}
@@ -62,9 +64,9 @@ namespace GitHub.Unity
 			output = new StringWriter(),
 			error = new StringWriter();
 		Mode mode;
-		List<string> branches = new List<string>();
+		List<GitBranch> branches = new List<GitBranch>();
 		int activeIndex;
-		Action<GitBranchList> onSuccess;
+		Action<IEnumerable<GitBranch>> onSuccess;
 		Action onFailure;
 
 
@@ -80,7 +82,7 @@ namespace GitHub.Unity
 		protected override TextWriter ErrorBuffer { get { return error; } }
 
 
-		GitListBranchesTask(Mode mode, Action<GitBranchList> onSuccess, Action onFailure = null)
+		GitListBranchesTask(Mode mode, Action<IEnumerable<GitBranch>> onSuccess, Action onFailure = null)
 		{
 			this.mode = mode;
 			this.onSuccess = onSuccess;
@@ -119,7 +121,7 @@ namespace GitHub.Unity
 				return;
 			}
 
-			onSuccess(new GitBranchList(branches.ToArray(), activeIndex));
+			onSuccess(branches);
 		}
 
 
@@ -133,12 +135,7 @@ namespace GitHub.Unity
 				return;
 			}
 
-			if (!string.IsNullOrEmpty(match.Groups["active"].Value))
-			{
-				activeIndex = branches.Count;
-			}
-
-			branches.Add(match.Groups["name"].Value);
+			branches.Add(new GitBranch(match.Groups["name"].Value, match.Groups["tracking"].Value, !string.IsNullOrEmpty(match.Groups["active"].Value)));
 		}
 	}
 }

@@ -150,6 +150,11 @@ namespace GitHub.Unity
 		static void OnLoad()
 		{
 			Instance = new Tasks();
+
+			Utility.Prepare();
+
+			Instance.thread = new Thread(Instance.Start);
+			Instance.thread.Start();
 		}
 
 
@@ -181,9 +186,6 @@ namespace GitHub.Unity
 
 				OnSessionRestarted();
 			}
-
-			thread = new Thread(Start);
-			thread.Start();
 		}
 
 
@@ -572,9 +574,9 @@ namespace GitHub.Unity
 		}
 
 
-		public static void ScheduleMainThread(EditorApplication.CallbackFunction action)
+		public static void ScheduleMainThread(Action action)
 		{
-			EditorApplication.delayCall += action;
+			EditorApplication.delayCall += () => action();
 		}
 
 
