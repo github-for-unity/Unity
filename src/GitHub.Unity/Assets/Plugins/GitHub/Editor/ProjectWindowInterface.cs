@@ -63,11 +63,12 @@ namespace GitHub.Unity
 				return;
 			}
 
-			GUIStyle style = EditorStyles.miniLabel;
-			GUIContent content = new GUIContent(entries[index].Status.ToString());
-			Vector2 size = style.CalcSize(content);
-
-			style.Draw(new Rect(itemRect.xMax - size.x, itemRect.y, size.x, size.y), content, false, false, false, false);
+			Texture2D texture = Styles.GetGitFileStatusIcon(entries[index].Status);
+			GUI.DrawTexture(
+				new Rect(itemRect.xMax - texture.width, itemRect.y, texture.width, Mathf.Min(texture.height, EditorGUIUtility.singleLineHeight)),
+				texture,
+				ScaleMode.ScaleToFit
+			);
 		}
 	}
 }
