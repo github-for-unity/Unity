@@ -543,14 +543,21 @@ namespace GitHub.Unity
 				newNodeSelection = node;
 				Event.current.Use();
 
-				if (Event.current.clickCount > 1 && node.Type == NodeType.LocalBranch && EditorUtility.DisplayDialog(
-					ConfirmSwitchTitle,
-					string.Format(ConfirmSwitchMessage, node.Name),
-					ConfirmSwitchOK,
-					ConfirmSwitchCancel
-				))
+				if (Event.current.clickCount > 1 && mode == BranchesMode.Default)
 				{
-					GitSwitchBranchesTask.Schedule(node.Name, Refresh);
+					if (node.Type == NodeType.LocalBranch && EditorUtility.DisplayDialog(
+						ConfirmSwitchTitle,
+						string.Format(ConfirmSwitchMessage, node.Name),
+						ConfirmSwitchOK,
+						ConfirmSwitchCancel
+					))
+					{
+						GitSwitchBranchesTask.Schedule(node.Name, Refresh);
+					}
+					else if (node.Type == NodeType.RemoteBranch)
+					{
+						GitBranchCreateTask.Schedule(selectedNode.Name.Substring(selectedNode.Name.IndexOf('/') + 1), selectedNode.Name, Refresh);
+					}
 				}
 			}
 		}
