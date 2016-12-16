@@ -49,6 +49,7 @@ namespace GitHub.Unity
 		[SerializeField] string selectionID;
 		[SerializeField] ChangesetTreeView changesetTree = new ChangesetTreeView();
 		[SerializeField] Vector2 detailsScroll;
+		[SerializeField] bool broadMode = false;
 
 
 		string currentRemote = "placeholder";
@@ -61,10 +62,16 @@ namespace GitHub.Unity
 			updated = true,
 			useScrollTime = false;
 		DateTimeOffset scrollTime = DateTimeOffset.Now;
-		float scrollOffset;
+		float
+			lastWidth,
+			scrollOffset;
 		int
+			listID,
 			selectionIndex,
 			newSelectionIndex;
+
+
+		public bool BroadMode { get { return broadMode; } }
 
 
 		float EntryHeight
@@ -78,6 +85,7 @@ namespace GitHub.Unity
 
 		protected override void OnShow()
 		{
+			lastWidth = position.width;
 			selectionIndex = newSelectionIndex = -1;
 
 			GitLogTask.RegisterCallback(OnLogUpdate);
@@ -107,6 +115,11 @@ namespace GitHub.Unity
 			}
 
 			GitStatusTask.Schedule();
+
+			if (broadMode)
+			{
+				((Window)parent).BranchesTab.RefreshEmbedded();
+			}
 		}
 
 
@@ -181,7 +194,71 @@ namespace GitHub.Unity
 		}
 
 
+		public bool EvaluateBroadMode()
+		{
+			bool past = broadMode;
+
+			// Flip when the limits are breached
+			if (position.width > Styles.BroadModeLimit)
+			{
+				broadMode = true;
+			}
+			else if (position.width < Styles.NarrowModeLimit)
+			{
+				broadMode = false;
+			}
+
+			// Show the layout notification while scaling
+
+			Window window = (Window)parent;
+			bool scaled = position.width != lastWidth;
+			lastWidth = position.width;
+
+			if (scaled)
+			{
+				window.ShowNotification(new GUIContent(Styles.FolderIcon), Styles.ModeNotificationDelay);
+			}
+
+			// Return whether we flipped
+			return broadMode != past;
+		}
+
+
 		public override void OnGUI()
+		{
+			if (broadMode)
+			{
+				OnBroadGUI();
+			}
+			else
+			{
+				OnEmbeddedGUI();
+			}
+
+			if (Event.current.type == EventType.Repaint && EvaluateBroadMode())
+			{
+				Refresh();
+			}
+		}
+
+
+		public void OnBroadGUI()
+		{
+			GUILayout.BeginHorizontal();
+				GUILayout.BeginVertical(
+					GUILayout.MinWidth(Styles.BroadModeBranchesMinWidth),
+					GUILayout.MaxWidth(Mathf.Max(Styles.BroadModeBranchesMinWidth, position.width * Styles.BroadModeBranchesRatio))
+				);
+					((Window)parent).BranchesTab.OnEmbeddedGUI();
+				GUILayout.EndVertical();
+				GUILayout.BeginVertical();
+					OnEmbeddedGUI();
+				GUILayout.EndVertical();
+			GUILayout.EndHorizontal();
+		}
+
+
+		public void OnEmbeddedGUI()
 		{
 			// History toolbar
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -237,6 +314,8 @@ namespace GitHub.Unity
 			// When history scroll actually changes, store time value of topmost visible entry. This is the value we use to reposition scroll on log update - not the pixel value.
 			if (history.Any())
 			{
+				listID = GUIUtility.GetControlID(FocusType.Keyboard);
+
 				// Only update time scroll
 				Vector2 lastScroll = scroll;
 				scroll = GUILayout.BeginScrollView(scroll);
@@ -256,11 +335,37 @@ namespace GitHub.Unity
 						if (HistoryEntry(history[index], GetEntryState(index), selectionIndex == index))
 						{
 							newSelectionIndex = index;
+							GUIUtility.keyboardControl = listID;
 						}
 
 						GUILayout.Space(Styles.HistoryEntryPadding);
 					}
 					GUILayout.Space((history.Count - stop) * EntryHeight);
+
+					// Keyboard control
+					if (GUIUtility.keyboardControl == listID && Event.current.type == EventType.KeyDown)
+					{
+						int change = 0;
+
+						if (Event.current.keyCode == KeyCode.DownArrow)
+						{
+							change = 1;
+						}
+						else if (Event.current.keyCode == KeyCode.UpArrow)
+						{
+							change = -1;
+						}
+
+						if (change != 0)
+						{
+							newSelectionIndex = (selectionIndex + change) %  history.Count;
+							if (newSelectionIndex < historyStartIndex || newSelectionIndex > historyStopIndex)
+							{
+								ScrollTo(newSelectionIndex, (position.height - position.height * MaxChangelistHeightRatio - 30f - EntryHeight) * -.5f);
+							}
+							Event.current.Use();
+						}
+					}
 			}
 			else
 			{
@@ -344,44 +449,55 @@ namespace GitHub.Unity
 		// Recalculate the range of history items to handle - based on what is visible, plus a bit of padding for fast scrolling
 		{
 			historyStartIndex = (int)Mathf.Clamp(scroll.y / EntryHeight, 0, history.Count);
-			historyStopIndex = (int)Mathf.Clamp(historyStartIndex + position.height / EntryHeight + 1, 0, history.Count);
+			historyStopIndex = (int)Mathf.Clamp(
+				historyStartIndex + (position.height - 2f * Mathf.Min(changesetTree.Height, position.height * MaxChangelistHeightRatio)) / EntryHeight +
+				1,
+				0,
+				history.Count
+			);
 		}
 
 
 		bool HistoryEntry(GitLogEntry entry, LogEntryState state, bool selected)
 		{
 			Rect entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
-			Rect
-				summaryRect = new Rect(entryRect.x, entryRect.y, entryRect.width, Styles.HistorySummaryHeight),
-				timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight, entryRect.width * .5f, Styles.HistoryDetailsHeight);
-			Rect authorRect = new Rect(timestampRect.xMax, timestampRect.y, timestampRect.width, timestampRect.height);
 
-			if (selected && Event.current.type == EventType.Repaint)
+			if (Event.current.type == EventType.Repaint)
 			{
-				EditorStyles.helpBox.Draw(entryRect, GUIContent.none, false, false, false, false);
+				bool keyboardFocus = GUIUtility.keyboardControl == listID;
+
+				Rect
+					summaryRect = new Rect(entryRect.x, entryRect.y, entryRect.width, Styles.HistorySummaryHeight),
+					timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight, entryRect.width * .5f, Styles.HistoryDetailsHeight);
+				Rect authorRect = new Rect(timestampRect.xMax, timestampRect.y, timestampRect.width, timestampRect.height);
+
+				if (!string.IsNullOrEmpty(entry.MergeA))
+				{
+					const float MergeIndicatorSize = 40f;
+					Rect mergeIndicatorRect = new Rect(summaryRect.x, summaryRect.y, MergeIndicatorSize, summaryRect.height);
+
+					// TODO: Get an icon or something here
+					Styles.HistoryEntryDetailsStyle.Draw(mergeIndicatorRect, "Merge:", false, false, selected, keyboardFocus);
+
+					summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorSize, summaryRect.height);
+				}
+
+				if (state == LogEntryState.Local)
+				{
+					const float LocalIndicatorSize = 40f;
+					Rect localIndicatorRect = new Rect(summaryRect.x, summaryRect.y, LocalIndicatorSize, summaryRect.height);
+
+					// TODO: Get an icon or something here
+					Styles.HistoryEntryDetailsStyle.Draw(localIndicatorRect, "Local:", false, false, selected, keyboardFocus);
+
+					summaryRect.Set(localIndicatorRect.xMax, summaryRect.y, summaryRect.width - LocalIndicatorSize, summaryRect.height);
+				}
+
+				Styles.Label.Draw(summaryRect, entry.Summary, false, false, selected, keyboardFocus);
+				Styles.HistoryEntryDetailsStyle.Draw(timestampRect, entry.PrettyTimeString, false, false, selected, keyboardFocus);
+				Styles.HistoryEntryDetailsStyle.Draw(authorRect, entry.AuthorName, false, false, selected, keyboardFocus);
 			}
-
-			if (!string.IsNullOrEmpty(entry.MergeA))
-			{
-				const float MergeIndicatorSize = 40f;
-				Rect mergeIndicatorRect = new Rect(summaryRect.x, summaryRect.y, MergeIndicatorSize, summaryRect.height);
-				GUI.Label(mergeIndicatorRect, "Merge:", Styles.HistoryEntryDetailsStyle);
-				summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorSize, summaryRect.height);
-			}
-
-			if (state == LogEntryState.Local)
-			{
-				const float LocalIndicatorSize = 40f;
-				Rect localIndicatorRect = new Rect(summaryRect.x, summaryRect.y, LocalIndicatorSize, summaryRect.height);
-				GUI.Label(localIndicatorRect, "Local:", Styles.HistoryEntryDetailsStyle);
-				summaryRect.Set(localIndicatorRect.xMax, summaryRect.y, summaryRect.width - LocalIndicatorSize, summaryRect.height);
-			}
-
-			GUI.Label(summaryRect, entry.Summary);
-			GUI.Label(timestampRect, entry.PrettyTimeString, Styles.HistoryEntryDetailsStyle);
-			GUI.Label(authorRect, entry.AuthorName, Styles.HistoryEntryDetailsRightStyle);
-
-			if (Event.current.type == EventType.MouseDown && entryRect.Contains(Event.current.mousePosition))
+			else if (Event.current.type == EventType.MouseDown && entryRect.Contains(Event.current.mousePosition))
 			{
 				Event.current.Use();
 				return true;

@@ -8,7 +8,8 @@ using System.Linq;
 
 namespace GitHub.Unity
 {
-	public class Window : EditorWindow, IView
+	[System.Serializable]
+	class Window : EditorWindow, IView
 	{
 		class RefreshRunner : AssetPostprocessor
 		{
@@ -46,17 +47,21 @@ namespace GitHub.Unity
 		{
 			History,
 			Changes,
+			Branches,
 			Settings
 		}
 
 
+		const float DefaultNotificationTimeout = 4f;
 		const string
 			Title = "GitHub",
 			LaunchMenu = "Window/GitHub",
 			RefreshButton = "Refresh",
 			UnknownSubTabError = "Unsupported view mode: {0}",
+			BadNotificationDelayError = "A delay of {0} is shorter than the default delay and thus would get pre-empted.",
 			HistoryTitle = "History",
 			ChangesTitle = "Changes",
+			BranchesTitle = "Branches",
 			SettingsTitle = "Settings";
 
 
@@ -70,7 +75,17 @@ namespace GitHub.Unity
 		[SerializeField] SubTab activeTab = SubTab.History;
 		[SerializeField] HistoryView historyTab = new HistoryView();
 		[SerializeField] ChangesView changesTab = new ChangesView();
+		[SerializeField] BranchesView branchesTab = new BranchesView();
 		[SerializeField] SettingsView settingsTab = new SettingsView();
+
+
+		double notificationClearTime = -1;
+
+
+		public HistoryView HistoryTab { get { return historyTab; } }
+		public ChangesView ChangesTab { get { return changesTab; } }
+		public BranchesView BranchesTab { get { return branchesTab; } }
+		public SettingsView SettingsTab { get { return settingsTab; } }
 
 
 		Subview ActiveTab
@@ -83,6 +98,8 @@ namespace GitHub.Unity
 					return historyTab;
 					case SubTab.Changes:
 					return changesTab;
+					case SubTab.Branches:
+					return branchesTab;
 					case SubTab.Settings:
 					return settingsTab;
 					default:
@@ -96,10 +113,26 @@ namespace GitHub.Unity
 		{
 			historyTab.Show(this);
 			changesTab.Show(this);
+			branchesTab.Show(this);
 			settingsTab.Show(this);
 
 			Utility.UnregisterReadyCallback(Refresh);
 			Utility.RegisterReadyCallback(Refresh);
+		}
+
+
+		new public void ShowNotification(GUIContent content)
+		{
+			ShowNotification(content, DefaultNotificationTimeout);
+		}
+
+
+		public void ShowNotification(GUIContent content, float timeout)
+		{
+ 			System.Diagnostics.Debug.Assert(timeout <= DefaultNotificationTimeout, string.Format(BadNotificationDelayError, timeout));
+
+			notificationClearTime = timeout < DefaultNotificationTimeout ? EditorApplication.timeSinceStartup + timeout : -1f;
+			base.ShowNotification(content);
 		}
 
 
@@ -130,6 +163,7 @@ namespace GitHub.Unity
 				EditorGUI.BeginChangeCheck();
 					TabButton(ref activeTab, SubTab.History, HistoryTitle);
 					TabButton(ref activeTab, SubTab.Changes, ChangesTitle);
+					TabButton(ref activeTab, SubTab.Branches, BranchesTitle);
 					TabButton(ref activeTab, SubTab.Settings, SettingsTitle);
 				if (EditorGUI.EndChangeCheck())
 				{
@@ -141,6 +175,18 @@ namespace GitHub.Unity
 
 			// GUI for the active tab
 			ActiveTab.OnGUI();
+		}
+
+
+		void Update()
+		{
+			// Notification auto-clear timer override
+			if (notificationClearTime > 0f && EditorApplication.timeSinceStartup > notificationClearTime)
+			{
+				notificationClearTime = -1f;
+				RemoveNotification();
+				Repaint();
+			}
 		}
 
 

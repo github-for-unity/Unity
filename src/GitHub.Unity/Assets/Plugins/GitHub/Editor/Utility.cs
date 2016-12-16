@@ -5,12 +5,37 @@ using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 
 namespace GitHub.Unity
 {
 	class Utility : ScriptableObject
 	{
+		public static readonly Regex
+			ListBranchesRegex = new Regex(@"^(?<active>\*)?\s+(?<name>[\w\d\/\-\_]+)\s*(?:[a-z|0-9]{7} \[(?<tracking>[\w\d\/\-\_]+)\])?"),
+
+			ListRemotesRegex = new Regex(
+				@"(?<name>[\w\d\-\_]+)\s+(?<url>https?:\/\/(?<login>(?<user>[\w\d]+)(?::(?<token>[\w\d]+))?)@(?<host>[\w\d\.\/\%]+))\s+\((?<function>fetch|push)\)"
+			),
+
+			LogCommitRegex = new Regex(@"commit\s(\S+)"),
+			LogMergeRegex = new Regex(@"Merge:\s+(\S+)\s+(\S+)"),
+			LogAuthorRegex = new Regex(@"Author:\s+(.+)\s<(.+)>"),
+			LogTimeRegex = new Regex(@"Date:\s+(.+)"),
+			LogDescriptionRegex = new Regex(@"^\s+(.+)"),
+
+			StatusStartRegex = new Regex(@"(?<status>[AMRDC]|\?\?)(?:\d*)\s+(?<path>[\w\d\/\.\-_ \@]+)"),
+			StatusEndRegex = new Regex(@"->\s(?<path>[\w\d\/\.\-_ ]+)"),
+			StatusBranchLineValidRegex = new Regex(@"\#\#\s+(?:[\w\d\/\-_\.]+)"),
+			StatusAheadBehindRegex = new Regex(@"\[ahead (?<ahead>\d+), behind (?<behind>\d+)\]|\[ahead (?<ahead>\d+)\]|\[behind (?<behind>\d+>)\]"),
+
+			BranchNameRegex = new Regex(@"^(?<name>[\w\d\/\-\_]+)$");
+
+		public const string
+			StatusRenameDivider = "->";
+
+
 		static bool ready = false;
 		static Action onReady;
 
@@ -231,8 +256,13 @@ namespace GitHub.Unity
 		}
 
 
-		public static Texture2D GetIcon(string filename)
+		public static Texture2D GetIcon(string filename, string filename2x = "")
 		{
+			if (EditorGUIUtility.pixelsPerPoint > 1f && !string.IsNullOrEmpty(filename2x))
+			{
+				filename = filename2x;
+			}
+
 			return AssetDatabase.LoadMainAssetAtPath(ExtensionInstallPath + "/Icons/" + filename) as Texture2D;
 		}
 

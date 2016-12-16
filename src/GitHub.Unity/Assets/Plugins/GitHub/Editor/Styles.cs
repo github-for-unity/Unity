@@ -8,6 +8,11 @@ namespace GitHub.Unity
 	class Styles
 	{
 		public const float
+			BroadModeLimit = 500f,
+			NarrowModeLimit = 300f,
+			ModeNotificationDelay = .5f,
+			BroadModeBranchesMinWidth = 200f,
+			BroadModeBranchesRatio = .4f,
 			InitialStateAreaWidth = 200f,
 			BrowseFolderButtonHorizontalPadding = -4f,
 			HistoryEntryHeight = 30f,
@@ -25,6 +30,8 @@ namespace GitHub.Unity
 			TreeRootIndentation = -5f,
 			CommitIconSize = 16f,
 			CommitIconHorizontalPadding = -5f,
+			BranchListIndentation = 20f,
+			BranchListSeperation = 15f,
 			RemotesTotalHorizontalMargin = 37f,
 			RemotesNameRatio = .2f,
 			RemotesUserRatio = .2f,
@@ -43,6 +50,8 @@ namespace GitHub.Unity
 
 
 		static GUIStyle
+			label,
+			boldLabel,
 			longMessageStyle,
 			historyToolbarButtonStyle,
 			historyLockStyle,
@@ -57,9 +66,51 @@ namespace GitHub.Unity
 			addedStatusIcon,
 			deletedStatusIcon,
 			renamedStatusIcon,
+			activeBranchIcon,
+			trackingBranchIcon,
+			favouriteIconOn,
+			favouriteIconOff,
 			titleIcon,
 			defaultAssetIcon,
 			folderIcon;
+
+
+		public static GUIStyle Label
+		{
+			get
+			{
+				if (label == null)
+				{
+					label = new GUIStyle(GUI.skin.label);
+					label.name = "CustomLabel";
+
+					GUIStyle hierarchyStyle = GUI.skin.FindStyle("PR Label");
+					label.onNormal.background = hierarchyStyle.onNormal.background;
+					label.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+					label.onFocused.background = hierarchyStyle.onFocused.background;
+					label.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+				}
+
+				return label;
+			}
+		}
+
+
+		public static GUIStyle BoldLabel
+		{
+			get
+			{
+				if (boldLabel == null)
+				{
+					boldLabel = new GUIStyle(Label);
+					boldLabel.name = "CustomBoldLabel";
+
+					boldLabel.fontStyle = FontStyle.Bold;
+				}
+
+				return boldLabel;
+			}
+		}
 
 
 		public static GUIStyle LongMessageStyle
@@ -123,6 +174,11 @@ namespace GitHub.Unity
 					historyEntryDetailsStyle.name = "HistoryEntryDetailsStyle";
 					Color c = EditorStyles.miniLabel.normal.textColor;
 					historyEntryDetailsStyle.normal.textColor = new Color(c.r, c.g, c.b, c.a * 0.7f);
+
+					historyEntryDetailsStyle.onNormal.background = Label.onNormal.background;
+					historyEntryDetailsStyle.onNormal.textColor = Label.onNormal.textColor;
+					historyEntryDetailsStyle.onFocused.background = Label.onFocused.background;
+					historyEntryDetailsStyle.onFocused.textColor = Label.onFocused.textColor;
 				}
 
 				return historyEntryDetailsStyle;
@@ -206,6 +262,62 @@ namespace GitHub.Unity
 				}
 
 				return toggleMixedStyle;
+			}
+		}
+
+
+		public static Texture2D ActiveBranchIcon
+		{
+			get
+			{
+				if (activeBranchIcon == null)
+				{
+					activeBranchIcon = Utility.GetIcon("current-branch-indicator.png");
+				}
+
+				return activeBranchIcon;
+			}
+		}
+
+
+		public static Texture2D TrackingBranchIcon
+		{
+			get
+			{
+				if (trackingBranchIcon == null)
+				{
+					trackingBranchIcon = Utility.GetIcon("tracked-branch-indicator.png");
+				}
+
+				return trackingBranchIcon;
+			}
+		}
+
+
+		public static Texture2D FavouriteIconOn
+		{
+			get
+			{
+				if (favouriteIconOn == null)
+				{
+					favouriteIconOn = Utility.GetIcon("favorite-branch-indicator.png");
+				}
+
+				return favouriteIconOn;
+			}
+		}
+
+
+		public static Texture2D FavouriteIconOff
+		{
+			get
+			{
+				if (favouriteIconOff == null)
+				{
+					favouriteIconOff = FolderIcon;
+				}
+
+				return favouriteIconOff;
 			}
 		}
 
