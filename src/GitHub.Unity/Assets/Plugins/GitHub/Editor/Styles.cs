@@ -25,6 +25,8 @@ namespace GitHub.Unity
 			TreeRootIndentation = -5f,
 			CommitIconSize = 16f,
 			CommitIconHorizontalPadding = -5f,
+			BranchListIndentation = 20f,
+			BranchListSeperation = 15f,
 			RemotesTotalHorizontalMargin = 37f,
 			RemotesNameRatio = .2f,
 			RemotesUserRatio = .2f,
@@ -53,6 +55,10 @@ namespace GitHub.Unity
 			commitDescriptionFieldStyle,
 			toggleMixedStyle;
 		static Texture2D
+			activeBranchIcon,
+			trackingBranchIcon,
+			favouriteIconOn,
+			favouriteIconOff,
 			titleIcon,
 			defaultAssetIcon,
 			folderIcon;
@@ -202,6 +208,62 @@ namespace GitHub.Unity
 				}
 
 				return toggleMixedStyle;
+			}
+		}
+
+
+		public static Texture2D ActiveBranchIcon
+		{
+			get
+			{
+				if (activeBranchIcon == null)
+				{
+					activeBranchIcon = Utility.GetIcon("current-branch-indicator.png");
+				}
+
+				return activeBranchIcon;
+			}
+		}
+
+
+		public static Texture2D TrackingBranchIcon
+		{
+			get
+			{
+				if (trackingBranchIcon == null)
+				{
+					trackingBranchIcon = Utility.GetIcon("tracked-branch-indicator.png");
+				}
+
+				return trackingBranchIcon;
+			}
+		}
+
+
+		public static Texture2D FavouriteIconOn
+		{
+			get
+			{
+				if (favouriteIconOn == null)
+				{
+					favouriteIconOn = Utility.GetIcon("favorite-branch-indicator.png");
+				}
+
+				return favouriteIconOn;
+			}
+		}
+
+
+		public static Texture2D FavouriteIconOff
+		{
+			get
+			{
+				if (favouriteIconOff == null)
+				{
+					favouriteIconOff = FolderIcon;
+				}
+
+				return favouriteIconOff;
 			}
 		}
 
