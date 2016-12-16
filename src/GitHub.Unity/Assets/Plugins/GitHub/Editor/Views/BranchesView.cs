@@ -508,15 +508,22 @@ namespace GitHub.Unity
 		{
 			// Content, style, and rects
 			GUIContent content = new GUIContent(node.Label, node.Children.Count > 0 ? Styles.FolderIcon : Styles.DefaultAssetIcon);
-			GUIStyle style = node.Active ? EditorStyles.boldLabel : GUI.skin.label;
+			GUIStyle style = node.Active ? Styles.BoldLabel : Styles.Label;
 			Rect rect = GUILayoutUtility.GetRect(content, style, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
 			Rect clickRect = new Rect(0f, rect.y, position.width, rect.height);
 			Rect favouriteRect = new Rect(clickRect.xMax - clickRect.height * 2f, clickRect.y, clickRect.height, clickRect.height);
 
+			bool
+				selected = selectedNode == node,
+				keyboardFocus = GUIUtility.keyboardControl == listID;
+
 			// Selection highlight and favourite toggle
-			if (selectedNode == node)
+			if (selected)
 			{
-				GUI.Box(clickRect, GUIContent.none);
+				if (Event.current.type == EventType.Repaint)
+				{
+					style.Draw(clickRect, GUIContent.none, false, false, true, keyboardFocus);
+				}
 
 				if (node.Type != NodeType.Folder)
 				{
@@ -539,7 +546,10 @@ namespace GitHub.Unity
 			}
 
 			// The actual icon and label
-			GUI.Label(rect, content, style);
+			if (Event.current.type == EventType.Repaint)
+			{
+				style.Draw(rect, content, false, false, selected, keyboardFocus);
+			}
 
 			// State marks
 			if (Event.current.type == EventType.Repaint)

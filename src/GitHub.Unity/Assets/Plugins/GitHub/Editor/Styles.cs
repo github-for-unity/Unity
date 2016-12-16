@@ -51,6 +51,7 @@ namespace GitHub.Unity
 
 		static GUIStyle
 			label,
+			boldLabel,
 			longMessageStyle,
 			historyToolbarButtonStyle,
 			historyLockStyle,
@@ -87,6 +88,23 @@ namespace GitHub.Unity
 				}
 
 				return label;
+			}
+		}
+
+
+		public static GUIStyle BoldLabel
+		{
+			get
+			{
+				if (boldLabel == null)
+				{
+					boldLabel = new GUIStyle(Label);
+					boldLabel.name = "CustomBoldLabel";
+
+					boldLabel.fontStyle = FontStyle.Bold;
+				}
+
+				return boldLabel;
 			}
 		}
 
@@ -153,11 +171,10 @@ namespace GitHub.Unity
 					Color c = EditorStyles.miniLabel.normal.textColor;
 					historyEntryDetailsStyle.normal.textColor = new Color(c.r, c.g, c.b, c.a * 0.7f);
 
-					GUIStyle hierarchyStyle = GUI.skin.FindStyle("PR Label");
-					historyEntryDetailsStyle.onNormal.background = hierarchyStyle.onNormal.background;
-					historyEntryDetailsStyle.onNormal.textColor = hierarchyStyle.onNormal.textColor;
-					historyEntryDetailsStyle.onFocused.background = hierarchyStyle.onFocused.background;
-					historyEntryDetailsStyle.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+					historyEntryDetailsStyle.onNormal.background = Label.onNormal.background;
+					historyEntryDetailsStyle.onNormal.textColor = Label.onNormal.textColor;
+					historyEntryDetailsStyle.onFocused.background = Label.onFocused.background;
+					historyEntryDetailsStyle.onFocused.textColor = Label.onFocused.textColor;
 				}
 
 				return historyEntryDetailsStyle;
