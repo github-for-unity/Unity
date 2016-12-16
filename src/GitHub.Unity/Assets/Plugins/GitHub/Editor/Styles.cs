@@ -369,13 +369,13 @@ namespace GitHub.Unity
 			switch(status)
 			{
 				case GitFileStatus.Modified:
-				return modifiedStatusIcon = modifiedStatusIcon ?? Utility.GetIcon("modified@2x.png");
+				return modifiedStatusIcon = modifiedStatusIcon ?? Utility.GetIcon("modified.png", "modified@2x.png");
 				case GitFileStatus.Added:
-				return addedStatusIcon = addedStatusIcon ?? Utility.GetIcon("added@2x.png");
+				return addedStatusIcon = addedStatusIcon ?? Utility.GetIcon("added.png", "added@2x.png");
 				case GitFileStatus.Deleted:
-				return deletedStatusIcon = deletedStatusIcon ?? Utility.GetIcon("deleted@2x.png");
+				return deletedStatusIcon = deletedStatusIcon ?? Utility.GetIcon("removed.png", "removed@2x.png");
 				case GitFileStatus.Renamed:
-				return renamedStatusIcon = renamedStatusIcon ?? Utility.GetIcon("renamed@2x.png");
+				return renamedStatusIcon = renamedStatusIcon ?? Utility.GetIcon("renamed.png", "renamed@2x.png");
 				default:
 				return null;
 			}
