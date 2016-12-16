@@ -48,8 +48,6 @@ namespace GitHub.Unity
 
 		protected override void OnProcessOutputUpdate()
 		{
-			Utility.ParseLines(output.GetStringBuilder(), ParseOutputLine, Done);
-
 			if (Done)
 			{
 				// Handle failure / success
@@ -75,12 +73,6 @@ namespace GitHub.Unity
 					Tasks.ScheduleMainThread(onSuccess);
 				}
 			}
-		}
-
-
-		void ParseOutputLine(string line)
-		{
-			Debug.LogFormat("Line: '{0}'", line);
 		}
 	}
 }
