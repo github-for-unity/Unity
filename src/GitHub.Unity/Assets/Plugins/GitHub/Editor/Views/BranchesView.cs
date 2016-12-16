@@ -620,7 +620,7 @@ namespace GitHub.Unity
 				OnTreeNodeGUI(node.Children[index]);
 
 				// Keyboard navigation if this child is the current selection
-				if (selectedNode == node.Children[index] && Event.current.GetTypeForControl(listID) == EventType.KeyDown)
+				if (selectedNode == node.Children[index] && GUIUtility.keyboardControl == listID && Event.current.type == EventType.KeyDown)
 				{
 					int directionY =
 						Event.current.keyCode == KeyCode.UpArrow ?
