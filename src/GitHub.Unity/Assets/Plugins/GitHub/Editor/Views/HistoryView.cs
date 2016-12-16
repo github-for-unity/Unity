@@ -342,7 +342,7 @@ namespace GitHub.Unity
 					GUILayout.Space((history.Count - stop) * EntryHeight);
 
 					// Keyboard control
-					if (Event.current.GetTypeForControl(listID) == EventType.KeyDown)
+					if (GUIUtility.keyboardControl == listID && Event.current.type == EventType.KeyDown)
 					{
 						int change = 0;
 
