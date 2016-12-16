@@ -3,7 +3,6 @@ using UnityEditor;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using System.Text.RegularExpressions;
 
 
 namespace GitHub.Unity
@@ -71,7 +70,6 @@ namespace GitHub.Unity
 			LocalTitle = "LOCAL BRANCHES",
 			RemoteTitle = "REMOTE BRANCHES",
 			CreateBranchButton = "+ New branch";
-		static Regex BranchNameRegex = new Regex(@"^(?<name>[\w\d\/\-\_]+)$");
 
 
 		[SerializeField] Vector2 scroll;
@@ -445,7 +443,7 @@ namespace GitHub.Unity
 					bool
 						createBranch = false,
 						cancelCreate = false,
-						cannotCreate = selectedNode == null || selectedNode.Type == NodeType.Folder || !BranchNameRegex.IsMatch(newBranchName);
+						cannotCreate = selectedNode == null || selectedNode.Type == NodeType.Folder || !Utility.BranchNameRegex.IsMatch(newBranchName);
 
 					// Create on return/enter or cancel on escape
 					int offsetID = GUIUtility.GetControlID(FocusType.Passive);

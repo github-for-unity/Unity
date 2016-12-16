@@ -20,14 +20,9 @@ namespace GitHub.Unity
 
 	struct GitRemote
 	{
-		static Regex regex = new Regex(
-			@"(?<name>[\w\d\-\_]+)\s+(?<url>https?:\/\/(?<login>(?<user>[\w\d]+)(?::(?<token>[\w\d]+))?)@(?<host>[\w\d\.\/\%]+))\s+\((?<function>fetch|push)\)"
-		);
-
-
 		public static bool TryParse(string line, out GitRemote result)
 		{
-			Match match = regex.Match(line);
+			Match match = Utility.ListRemotesRegex.Match(line);
 
 			if (!match.Success)
 			{
