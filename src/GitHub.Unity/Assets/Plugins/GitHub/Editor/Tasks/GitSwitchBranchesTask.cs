@@ -29,7 +29,7 @@ namespace GitHub.Unity
 
 		public override bool Blocking { get { return true; } }
 		public override TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; } }
-		public override bool Critical { get { return false; } }
+		public override bool Critical { get { return true; } }
 		public override bool Cached { get { return false; } }
 		public override string Label { get { return "git checkout"; } }
 
