@@ -64,11 +64,33 @@ namespace GitHub.Unity
 			}
 
 			Texture2D texture = Styles.GetGitFileStatusIcon(entries[index].Status);
-			GUI.DrawTexture(
-				new Rect(itemRect.xMax - texture.width, itemRect.y, texture.width, Mathf.Min(texture.height, EditorGUIUtility.singleLineHeight)),
-				texture,
-				ScaleMode.ScaleToFit
-			);
+			Rect rect;
+
+			if (itemRect.width > itemRect.height)
+			// End of row placement
+			{
+				rect = new Rect(itemRect.xMax - texture.width, itemRect.y, texture.width, Mathf.Min(texture.height, EditorGUIUtility.singleLineHeight));
+			}
+			else
+			// Corner placement
+			{
+				float scale = itemRect.height / 90f;
+				Vector2
+					size = new Vector2(texture.width * scale, texture.height * scale),
+					offset = new Vector2(
+						itemRect.width * Mathf.Min(.4f * scale, .2f),
+						itemRect.height * Mathf.Min(.2f * scale, .2f)
+					);
+
+				rect = new Rect(
+					itemRect.center.x - size.x * .5f + offset.x,
+					itemRect.center.y - size.y * .5f + offset.y,
+					size.x,
+					size.y
+				);
+			}
+
+			GUI.DrawTexture(rect, texture, ScaleMode.ScaleToFit);
 		}
 	}
 }
