@@ -4,68 +4,68 @@ using UnityEditor;
 
 namespace GitHub.Unity
 {
-	interface IView
-	{
-		Rect position { get; }
-		void Refresh();
-		void Repaint();
-		void OnGUI();
-	}
+    interface IView
+    {
+        Rect position { get; }
+        void Refresh();
+        void Repaint();
+        void OnGUI();
+    }
 
 
-	abstract class Subview : IView
-	{
-		const string NullParentError = "Subview parent is null";
+    abstract class Subview : IView
+    {
+        const string NullParentError = "Subview parent is null";
 
 
-		protected IView parent;
+        protected IView parent;
 
 
-		public Rect position
-		{
-			get
-			{
-				return parent.position;
-			}
-		}
+        public Rect position
+        {
+            get
+            {
+                return parent.position;
+            }
+        }
 
 
-		public void Show(IView parent)
-		{
-			System.Diagnostics.Debug.Assert(parent != null, NullParentError);
+        public void Show(IView parent)
+        {
+            System.Diagnostics.Debug.Assert(parent != null, NullParentError);
 
-			this.parent = parent;
-			OnShow();
-		}
-
-
-		void OnEnable()
-		{
-			if (parent != null)
-			{
-				OnShow();
-			}
-		}
+            this.parent = parent;
+            OnShow();
+        }
 
 
-		void OnDisable()
-		{
-			OnHide();
-		}
+        void OnEnable()
+        {
+            if (parent != null)
+            {
+                OnShow();
+            }
+        }
 
 
-		protected virtual void OnShow() {}
-		protected virtual void OnHide() {}
+        void OnDisable()
+        {
+            OnHide();
+        }
 
 
-		public virtual void Refresh() {}
-		public virtual void OnSelectionChange() {}
-		public abstract void OnGUI();
+        protected virtual void OnShow() {}
+        protected virtual void OnHide() {}
 
 
-		public void Repaint()
-		{
-			parent.Repaint();
-		}
-	}
+        public virtual void Refresh() {}
+        public virtual void OnSelectionChange() {}
+        public abstract void OnGUI();
+
+
+        public void Repaint()
+        {
+            parent.Repaint();
+        }
+    }
 }
