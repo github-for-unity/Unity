@@ -97,7 +97,7 @@ namespace GitHub.Unity
         {
             get
             {
-                return File.Exists(Path.Combine(Application.dataPath, ".devroot"));
+                return File.Exists(Path.Combine(UnityProjectPath.Replace('/', Path.DirectorySeparatorChar), ".devroot"));
             }
         }
 
