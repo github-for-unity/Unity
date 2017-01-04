@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Microsoft ResX Schema
+
+    Version 2.0
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
+    associated with the data types.
+
+    Example:
+
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+
+    There are any number of "resheader" rows that contain simple
+    name/value pairs.
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
+    mimetype set.
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
+    extensible. For a given mimetype the value must be set accordingly:
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
+    read any of the formats listed below.
+
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="GitInitBrowseButton" xml:space="preserve">
+    <value>...</value>
+  </data>
+  <data name="GitInitBrowseTitle" xml:space="preserve">
+    <value>Pick desired repository root</value>
+  </data>
+  <data name="GitInitButton" xml:space="preserve">
+    <value>Set up git</value>
+  </data>
+  <data name="NoActiveRepositoryMessage" xml:space="preserve">
+    <value>Your current project is not currently in an active git repository:</value>
+  </data>
+  <data name="NoActiveRepositoryTitle" xml:space="preserve">
+    <value>No repository found</value>
+  </data>
+  <data name="InvalidInitDirectoryTitle" xml:space="preserve">
+    <value>Invalid repository root</value>
+  </data>
+  <data name="InvalidInitDirectoryMessage" xml:space="preserve">
+    <value>Your selected folder '{0}' is not a valid repository root for your current project.</value>
+  </data>
+  <data name="InvalidInitDirectoryOK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="ViewModeHistoryTab" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="ViewModeChangesTab" xml:space="preserve">
+    <value>Changes</value>
+  </data>
+  <data name="ViewModeSettingsTab" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="RefreshButton" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="UnknownViewModeError" xml:space="preserve">
+    <value>Unsupported view mode: {0}</value>
+  </data>
+  <data name="HistoryFocusAll" xml:space="preserve">
+    <value>(All)</value>
+  </data>
+  <data name="HistoryFocusSingle" xml:space="preserve">
+    <value />
+  </data>
+  <data name="PullButton" xml:space="preserve">
+    <value>Pull</value>
+  </data>
+  <data name="PullButtonCount" xml:space="preserve">
+    <value />
+  </data>
+  <data name="PushButton" xml:space="preserve">
+    <value>Push</value>
+  </data>
+  <data name="PushButtonCount" xml:space="preserve">
+    <value />
+  </data>
+  <data name="PullConfirmTitle" xml:space="preserve">
+    <value>Pull Changes?</value>
+  </data>
+  <data name="PullConfirmDescription" xml:space="preserve">
+    <value>Would you like to pull changes from remote '{0}'?</value>
+  </data>
+  <data name="PullConfirmYes" xml:space="preserve">
+    <value>Pull</value>
+  </data>
+  <data name="PullConfirmCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="PushConfirmTitle" xml:space="preserve">
+    <value>Push Changes?</value>
+  </data>
+  <data name="PushConfirmDescription" xml:space="preserve">
+    <value>Would you like to push changes to remote '{0}'?</value>
+  </data>
+  <data name="PushConfirmYes" xml:space="preserve">
+    <value>Push</value>
+  </data>
+  <data name="PushConfirmCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="SummaryLabel" xml:space="preserve">
+    <value>Commit summary</value>
+  </data>
+  <data name="DescriptionLabel" xml:space="preserve">
+    <value>Commit description</value>
+  </data>
+  <data name="CommitButton" xml:space="preserve">
+    <value />
+  </data>
+  <data name="CommitSelectAllButton" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="CommitSelectNoneButton" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="ChangedFilesLabel" xml:space="preserve">
+    <value>{0} changed files</value>
+  </data>
+  <data name="OneChangedFileLabel" xml:space="preserve">
+    <value>1 changed file</value>
+  </data>
+  <data name="NoChangedFilesLabel" xml:space="preserve">
+    <value>No changed files</value>
+  </data>
+  <data name="BasePathLabel" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="NoChangesLabel" xml:space="preserve">
+    <value>No changes found</value>
+  </data>
+  <data name="RemotesTitle" xml:space="preserve">
+    <value>Remotes</value>
+  </data>
+  <data name="RemoteNameTitle" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="RemoteUserTitle" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="RemoteHostTitle" xml:space="preserve">
+    <value>Host</value>
+  </data>
+  <data name="RemoteAccessTitle" xml:space="preserve">
+    <value>Access</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+</root>
