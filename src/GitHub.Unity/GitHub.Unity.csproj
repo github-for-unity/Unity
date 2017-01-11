@@ -20,6 +20,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <CodeAnalysisRuleSet>..\common\GitHub.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -47,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EntryPoint.cs" />
+    <Compile Include="Guard.cs" />
     <Compile Include="Installer.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -71,6 +74,7 @@
     <Compile Include="Tasks\GitSwitchBranchesTask.cs" />
     <Compile Include="Tasks\GitTask.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
+    <Compile Include="Tasks\TaskException.cs" />
     <Compile Include="Tasks\Tasks.cs" />
     <Compile Include="Tasks\TestTask.cs" />
     <Compile Include="Utility.cs" />
@@ -114,27 +118,9 @@
     <EmbeddedResource Include="Icons\tracked-branch-indicator.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Tasks\EvaluateProjectConfigurationTask.cs.meta" />
-    <None Include="Tasks\FindGitTask.cs.meta" />
-    <None Include="Tasks\GitAddTask.cs.meta" />
-    <None Include="Tasks\GitBranchCreateTask.cs.meta" />
-    <None Include="Tasks\GitCommitTask.cs.meta" />
-    <None Include="Tasks\GitListBranchesTask.cs.meta" />
-    <None Include="Tasks\GitListRemotesTask.cs.meta" />
-    <None Include="Tasks\GitListUntrackedFilesTask.cs.meta" />
-    <None Include="Tasks\GitLogTask.cs.meta" />
-    <None Include="Tasks\GitStatusTask.cs.meta" />
-    <None Include="Tasks\GitSwitchBranchesTask.cs.meta" />
-    <None Include="Tasks\GitTask.cs.meta" />
-    <None Include="Tasks\ProcessTask.cs.meta" />
-    <None Include="Tasks\Tasks.cs.meta" />
-    <None Include="Tasks\TestTask.cs.meta" />
-    <None Include="Views\BranchesView.cs.meta" />
-    <None Include="Views\ChangesetTreeView.cs.meta" />
-    <None Include="Views\ChangesView.cs.meta" />
-    <None Include="Views\HistoryView.cs.meta" />
-    <None Include="Views\SettingsView.cs.meta" />
-    <None Include="Views\View.cs.meta" />
+    <None Include="..\common\GitHub.ruleset">
+      <Link>GitHub.ruleset</Link>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

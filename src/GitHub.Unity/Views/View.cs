@@ -1,45 +1,50 @@
 using UnityEngine;
-using UnityEditor;
-
+using Debug = System.Diagnostics.Debug;
 
 namespace GitHub.Unity
 {
     interface IView
     {
-        Rect position { get; }
         void Refresh();
         void Repaint();
         void OnGUI();
+        Rect position { get; }
     }
-
 
     abstract class Subview : IView
     {
-        const string NullParentError = "Subview parent is null";
-
+        private const string NullParentError = "Subview parent is null";
 
         protected IView parent;
 
+        public virtual void Refresh()
+        {}
 
-        public Rect position
+        public abstract void OnGUI();
+
+        public void Repaint()
         {
-            get
-            {
-                return parent.position;
-            }
+            parent.Repaint();
         }
 
-
-        public void Show(IView parent)
+        public void Show(IView parentView)
         {
-            System.Diagnostics.Debug.Assert(parent != null, NullParentError);
+            Debug.Assert(parentView != null, NullParentError);
 
-            this.parent = parent;
+            parent = parentView;
             OnShow();
         }
 
+        public virtual void OnSelectionChange()
+        {}
 
-        void OnEnable()
+        protected virtual void OnShow()
+        {}
+
+        protected virtual void OnHide()
+        {}
+
+        private void OnEnable()
         {
             if (parent != null)
             {
@@ -47,25 +52,14 @@ namespace GitHub.Unity
             }
         }
 
-
-        void OnDisable()
+        private void OnDisable()
         {
             OnHide();
         }
 
-
-        protected virtual void OnShow() {}
-        protected virtual void OnHide() {}
-
-
-        public virtual void Refresh() {}
-        public virtual void OnSelectionChange() {}
-        public abstract void OnGUI();
-
-
-        public void Repaint()
+        public Rect position
         {
-            parent.Repaint();
+            get { return parent.position; }
         }
     }
 }

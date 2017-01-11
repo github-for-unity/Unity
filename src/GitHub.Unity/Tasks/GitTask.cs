@@ -2,11 +2,7 @@ namespace GitHub.Unity
 {
     class GitTask : ProcessTask
     {
-        const string NoGitError = "Tried to run git task while git was not found.";
-
-
-        protected override string ProcessName { get { return Utility.GitInstallPath; } }
-
+        private const string NoGitError = "Tried to run git task while git was not found.";
 
         public override void Run()
         {
@@ -18,6 +14,11 @@ namespace GitHub.Unity
             }
 
             base.Run();
+        }
+
+        protected override string ProcessName
+        {
+            get { return Utility.GitInstallPath; }
         }
     }
 }

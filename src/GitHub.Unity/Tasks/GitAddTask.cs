@@ -1,44 +1,21 @@
-using UnityEngine;
-using UnityEditor;
 using System;
-using System.IO;
-using System.Text;
 using System.Collections.Generic;
-
+using System.IO;
 
 namespace GitHub.Unity
 {
     class GitAddTask : GitTask
     {
-        public static void Schedule(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
-        {
-            Tasks.Add(new GitAddTask(files, onSuccess, onFailure));
-        }
+        private string arguments = "";
+        private Action onFailure;
+        private Action onSuccess;
 
-
-        StringWriter error = new StringWriter();
-        string arguments = "";
-        Action
-            onSuccess,
-            onFailure;
-
-
-        public override bool Blocking { get { return false; } }
-        public override bool Critical { get { return true; } }
-        public override bool Cached { get { return true; } }
-        public override string Label { get { return "git add"; } }
-
-
-        protected override string ProcessArguments { get { return arguments; } }
-        protected override TextWriter ErrorBuffer { get { return error; } }
-
-
-        GitAddTask(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
+        private GitAddTask(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
         {
             arguments = "add ";
             arguments += " -- ";
 
-            foreach (string file in files)
+            foreach (var file in files)
             {
                 arguments += " " + file;
             }
@@ -47,6 +24,10 @@ namespace GitHub.Unity
             this.onFailure = onFailure;
         }
 
+        public static void Schedule(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
+        {
+            Tasks.Add(new GitAddTask(files, onSuccess, onFailure));
+        }
 
         protected override void OnProcessOutputUpdate()
         {
@@ -56,7 +37,7 @@ namespace GitHub.Unity
             }
 
             // Handle failure / success
-            StringBuilder buffer = error.GetStringBuilder();
+            var buffer = ErrorBuffer.GetStringBuilder();
             if (buffer.Length > 0)
             {
                 Tasks.ReportFailure(FailureSeverity.Critical, this, buffer.ToString());
@@ -73,6 +54,31 @@ namespace GitHub.Unity
 
             // Always update
             GitStatusTask.Schedule();
+        }
+
+        public override bool Blocking
+        {
+            get { return false; }
+        }
+
+        public override bool Critical
+        {
+            get { return true; }
+        }
+
+        public override bool Cached
+        {
+            get { return true; }
+        }
+
+        public override string Label
+        {
+            get { return "git add"; }
+        }
+
+        protected override string ProcessArguments
+        {
+            get { return arguments; }
         }
     }
 }

@@ -1,14 +1,12 @@
-using UnityEngine;
-using UnityEditor;
-using UnityEngine.Events;
-using System.Reflection;
-using System.Collections.Generic;
-using System.Threading;
-using System.Text;
-using System.IO;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-
+using System.Reflection;
+using System.Threading;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Events;
 
 /*
 
@@ -22,7 +20,6 @@ using System.Linq;
 
 */
 
-
 namespace GitHub.Unity
 {
     enum TaskQueueSetting
@@ -32,9 +29,13 @@ namespace GitHub.Unity
         QueueSingle
     }
 
-
     interface ITask
     {
+        void Run();
+        void Abort();
+        void Disconnect();
+        void Reconnect();
+        void WriteCache(TextWriter cache);
         bool Blocking { get; }
         float Progress { get; }
         bool Done { get; }
@@ -44,13 +45,7 @@ namespace GitHub.Unity
         Action<ITask> OnBegin { set; }
         Action<ITask> OnEnd { set; }
         string Label { get; }
-        void Run();
-        void Abort();
-        void Disconnect();
-        void Reconnect();
-        void WriteCache(TextWriter cache);
     };
-
 
     enum CachedTask
     {
@@ -58,92 +53,67 @@ namespace GitHub.Unity
         ProcessTask
     };
 
-
     enum FailureSeverity
     {
         Moderate,
         Critical
     };
 
-
     class Tasks
     {
-        enum WaitMode
+        internal const string TypeKey = "type", ProcessKey = "process";
+
+        private const int NoTasksSleep = 100;
+        private const int BlockingTaskWaitSleep = 10;
+        private const int FailureDelayDefault = 1;
+        private const int FailureDelayLong = 5000;
+        private const string CacheFileName = "GitHubCache";
+        private const string QuitActionFieldName = "editorApplicationQuit";
+        private const string TaskThreadExceptionRestartError = "GitHub task thread restarting after encountering an exception: {0}";
+        private const string TaskCacheWriteExceptionError = "GitHub: Exception when writing task cache: {0}";
+        private const string TaskCacheParseError = "GitHub: Failed to parse task cache";
+        private const string TaskParseUnhandledTypeError = "GitHub: Trying to parse unhandled cached task: {0}";
+        private const string TaskFailureTitle = "GitHub";
+        private const string TaskFailureMessage = "{0} failed:\n{1}";
+        private const string TaskFailureOK = "OK";
+        private const string TaskProgressTitle = "GitHub";
+        private const string TaskBlockingTitle = "Critical GitHub task";
+        private const string TaskBlockingDescription = "A critical GitHub task ({0}) has yet to complete. What would you like to do?";
+        private const string TaskBlockingComplete = "Complete";
+        private const string TaskBlockingInterrupt = "Interrupt";
+        private const BindingFlags kQuitActionBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
+
+        private static FieldInfo quitActionField;
+        private static ProgressBarDisplayMethod displayBackgroundProgressBar;
+        private static Action clearBackgroundProgressBar;
+        private ITask activeTask;
+        private Exception lastException;
+
+        private bool running = false;
+        private Queue<ITask> tasks;
+        private object tasksLock = new object();
+        private Thread thread;
+
+        private Tasks()
         {
-            Background,
-            Modal,
-            Blocking
-        };
-
-
-        delegate void ProgressBarDisplayMethod(string text, float progress);
-
-
-        internal const string
-            TypeKey = "type",
-            ProcessKey = "process";
-
-
-        const int
-            NoTasksSleep = 100,
-            BlockingTaskWaitSleep = 10,
-            FailureDelayDefault = 1,
-            FailureDelayLong = 5000;
-        const string
-            CacheFileName = "GitHubCache",
-            QuitActionFieldName = "editorApplicationQuit",
-            TaskThreadExceptionRestartError = "GitHub task thread restarting after encountering an exception: {0}",
-            TaskCacheWriteExceptionError = "GitHub: Exception when writing task cache: {0}",
-            TaskCacheParseError = "GitHub: Failed to parse task cache",
-            TaskParseUnhandledTypeError = "GitHub: Trying to parse unhandled cached task: {0}",
-            TaskFailureTitle = "GitHub",
-            TaskFailureMessage = "{0} failed:\n{1}",
-            TaskFailureOK = "OK",
-            TaskProgressTitle = "GitHub",
-            TaskBlockingTitle = "Critical GitHub task",
-            TaskBlockingDescription = "A critical GitHub task ({0}) has yet to complete. What would you like to do?",
-            TaskBlockingComplete = "Complete",
-            TaskBlockingInterrupt = "Interrupt";
-        const BindingFlags kQuitActionBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
-
-
-        static FieldInfo quitActionField;
-        static ProgressBarDisplayMethod displayBackgroundProgressBar;
-        static Action clearBackgroundProgressBar;
-
-
-        static Tasks Instance { get; set; }
-        static string CacheFilePath { get; set; }
-
-
-        static void SecureQuitActionField()
-        {
-            if(quitActionField == null)
-            {
-                quitActionField = typeof(EditorApplication).GetField(QuitActionFieldName, kQuitActionBindingFlags);
-
-                if(quitActionField == null)
+            editorApplicationQuit = (UnityAction)Delegate.Combine(editorApplicationQuit, new UnityAction(OnQuit));
+            CacheFilePath = Path.Combine(Application.dataPath, Path.Combine("..", Path.Combine("Temp", CacheFileName)));
+            EditorApplication.playmodeStateChanged += () => {
+                if (EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
                 {
-                    throw new NullReferenceException("Unable to reflect EditorApplication." + QuitActionFieldName);
+                    OnPlaymodeEnter();
                 }
+            };
+
+            tasks = new Queue<ITask>();
+            if (File.Exists(CacheFilePath))
+            {
+                ReadCache();
+                File.Delete(CacheFilePath);
+
+                OnSessionRestarted();
             }
         }
-
-
-        static UnityAction editorApplicationQuit
-        {
-            get
-            {
-                SecureQuitActionField();
-                return (UnityAction)quitActionField.GetValue(null);
-            }
-            set
-            {
-                SecureQuitActionField();
-                quitActionField.SetValue(null, value);
-            }
-        }
-
 
         // "Everything is broken - let's rebuild from the ashes (read: cache)"
         public static void Initialize()
@@ -157,46 +127,12 @@ namespace GitHub.Unity
             Instance.thread.Start();
         }
 
-
-        bool running = false;
-        Thread thread;
-        ITask activeTask;
-        Queue<ITask> tasks;
-        object tasksLock = new object();
-        Exception lastException;
-
-
-        Tasks()
-        {
-            editorApplicationQuit = (UnityAction)Delegate.Combine(editorApplicationQuit, new UnityAction(OnQuit));
-            CacheFilePath = Path.Combine(Application.dataPath, Path.Combine("..", Path.Combine("Temp", CacheFileName)));
-            EditorApplication.playmodeStateChanged += () =>
-            {
-                if(EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
-                {
-                    OnPlaymodeEnter();
-                }
-            };
-
-            tasks = new Queue<ITask>();
-            if(File.Exists(CacheFilePath))
-            {
-                ReadCache();
-                File.Delete(CacheFilePath);
-
-                OnSessionRestarted();
-            }
-        }
-
-
         public static void Add(ITask task)
         {
             lock(Instance.tasksLock)
             {
-                if(
-                    (task.Queued == TaskQueueSetting.NoQueue && Instance.tasks.Count > 0) ||
-                    (task.Queued == TaskQueueSetting.QueueSingle && Instance.tasks.Any(t => t.GetType() == task.GetType()))
-                )
+                if ((task.Queued == TaskQueueSetting.NoQueue && Instance.tasks.Count > 0) ||
+                    (task.Queued == TaskQueueSetting.QueueSingle && Instance.tasks.Any(t => t.GetType() == task.GetType())))
                 {
                     return;
                 }
@@ -207,10 +143,63 @@ namespace GitHub.Unity
             Instance.WriteCache();
         }
 
-
-        void Start()
+        public static void ScheduleMainThread(Action action)
         {
-            while(true)
+            EditorApplication.delayCall += () => action();
+        }
+
+        public static void ReportFailure(FailureSeverity severity, ITask task, string error)
+        {
+            if (severity == FailureSeverity.Moderate)
+            {
+                Debug.LogErrorFormat(TaskFailureMessage, task.Label, error);
+            }
+            else
+            {
+                ScheduleMainThread(
+                    () => EditorUtility.DisplayDialog(TaskFailureTitle, String.Format(TaskFailureMessage, task.Label, error), TaskFailureOK));
+            }
+        }
+
+        private static void SecureQuitActionField()
+        {
+            if (quitActionField == null)
+            {
+                quitActionField = typeof(EditorApplication).GetField(QuitActionFieldName, kQuitActionBindingFlags);
+
+                if (quitActionField == null)
+                {
+                    throw new TaskException("Unable to reflect EditorApplication." + QuitActionFieldName);
+                }
+            }
+        }
+
+        private static void DisplayBackgroundProgressBar(string description, float progress)
+        {
+            if (displayBackgroundProgressBar == null)
+            {
+                var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.AsyncProgressBar");
+                displayBackgroundProgressBar =
+                    (ProgressBarDisplayMethod)
+                        Delegate.CreateDelegate(typeof(ProgressBarDisplayMethod),
+                            type.GetMethod("Display", new Type[] { typeof(string), typeof(float) }));
+            }
+            displayBackgroundProgressBar(description, progress);
+        }
+
+        private static void ClearBackgroundProgressBar()
+        {
+            if (clearBackgroundProgressBar == null)
+            {
+                var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.AsyncProgressBar");
+                clearBackgroundProgressBar = (Action)Delegate.CreateDelegate(typeof(Action), type.GetMethod("Clear", new Type[] { }));
+            }
+            clearBackgroundProgressBar();
+        }
+
+        private void Start()
+        {
+            while (true)
             {
                 try
                 {
@@ -218,15 +207,15 @@ namespace GitHub.Unity
 
                     break;
                 }
-                catch(ThreadAbortException)
-                // Aborted by domain unload or explicitly via the editor quit handler. Button down the hatches.
+                    // Aborted by domain unload or explicitly via the editor quit handler. Button down the hatches.
+                catch (ThreadAbortException)
                 {
                     running = false;
 
                     // Disconnect or abort the active task
-                    if(activeTask != null && !activeTask.Done)
+                    if (activeTask != null && !activeTask.Done)
                     {
-                        if(activeTask.Cached)
+                        if (activeTask.Cached)
                         {
                             try
                             {
@@ -252,14 +241,14 @@ namespace GitHub.Unity
 
                     break;
                 }
-                catch(Exception e)
-                // Something broke internally - reboot
+                    // Something broke internally - reboot
+                catch (Exception e)
                 {
                     running = false;
-                    bool repeat = lastException != null && e.TargetSite.Equals(lastException.TargetSite);
+                    var repeat = lastException != null && e.TargetSite.Equals(lastException.TargetSite);
                     lastException = e;
 
-                    if(!repeat)
+                    if (!repeat)
                     {
                         Debug.LogErrorFormat(TaskThreadExceptionRestartError, e);
                         Thread.Sleep(FailureDelayDefault);
@@ -272,60 +261,56 @@ namespace GitHub.Unity
             }
         }
 
-
-        void OnPlaymodeEnter()
         // About to enter playmode
+        private void OnPlaymodeEnter()
         {
-            if(activeTask != null)
+            if (activeTask != null)
             {
                 ClearBackgroundProgressBar();
                 EditorUtility.ClearProgressBar();
             }
         }
 
-
-        void OnSessionRestarted()
         // A recompile or playmode enter/exit cause the script environment to reload while we had tasks at hand
+        private void OnSessionRestarted()
         {
             ClearBackgroundProgressBar();
             EditorUtility.ClearProgressBar();
-            if(activeTask != null)
+            if (activeTask != null)
             {
                 activeTask.Reconnect();
             }
         }
 
-
-        void OnQuit()
+        private void OnQuit()
         {
             // Stop the queue
             running = false;
 
-            if(activeTask != null && activeTask.Critical)
+            if (activeTask != null && activeTask.Critical)
             {
                 WaitForTask(activeTask, WaitMode.Blocking);
             }
         }
 
-
-        void RunInternal()
+        private void RunInternal()
         {
             running = true;
 
-            while(running)
+            while (running)
             {
                 // Clear any completed task
-                if(activeTask != null && activeTask.Done)
+                if (activeTask != null && activeTask.Done)
                 {
                     activeTask = null;
                 }
 
                 // Grab a new task
-                if(activeTask == null)
+                if (activeTask == null)
                 {
                     lock(tasksLock)
                     {
-                        if(tasks.Count > 0)
+                        if (tasks.Count > 0)
                         {
                             activeTask = tasks.Dequeue();
                             activeTask.OnBegin = task => ScheduleMainThread(WriteCache);
@@ -333,12 +318,11 @@ namespace GitHub.Unity
                     }
                 }
 
-                if(activeTask != null)
                 // Run and monitor active task
+                if (activeTask != null)
                 {
-                    ScheduleMainThread(() =>
-                    {
-                        if(activeTask != null)
+                    ScheduleMainThread(() => {
+                        if (activeTask != null)
                         {
                             WaitForTask(activeTask, activeTask.Blocking ? WaitMode.Modal : WaitMode.Background);
                         }
@@ -357,16 +341,15 @@ namespace GitHub.Unity
             thread.Abort();
         }
 
-
-        void WriteCache()
+        private void WriteCache()
         {
             try
             {
-                StreamWriter cache = File.CreateText(CacheFilePath);
+                var cache = File.CreateText(CacheFilePath);
                 cache.Write("[");
 
                 // Cache the active task
-                if(activeTask != null && !activeTask.Done && activeTask.Cached)
+                if (activeTask != null && !activeTask.Done && activeTask.Cached)
                 {
                     activeTask.WriteCache(cache);
                 }
@@ -378,9 +361,9 @@ namespace GitHub.Unity
                 // Cache the queue
                 lock(tasksLock)
                 {
-                    foreach(ITask task in tasks)
+                    foreach (var task in tasks)
                     {
-                        if(!task.Cached)
+                        if (!task.Cached)
                         {
                             continue;
                         }
@@ -393,38 +376,37 @@ namespace GitHub.Unity
                 cache.Write("]");
                 cache.Close();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Debug.LogErrorFormat(TaskCacheWriteExceptionError, e);
             }
         }
 
-
-        bool ReadCache()
+        private bool ReadCache()
         {
-            string text = File.ReadAllText(CacheFilePath);
+            var text = File.ReadAllText(CacheFilePath);
 
             object parseResult;
             IList<object> cache;
 
             // Parse root list with at least one item (active task) or fail
-            if(!SimpleJson.TryDeserializeObject(text, out parseResult) || (cache = parseResult as IList<object>) == null || cache.Count < 1)
+            if (!SimpleJson.TryDeserializeObject(text, out parseResult) || (cache = parseResult as IList<object>) == null || cache.Count < 1)
             {
                 Debug.LogError(TaskCacheParseError);
                 return false;
             }
 
             // Parse active task
-            IDictionary<string, object> taskData = cache[0] as IDictionary<string, object>;
-            ITask cachedActiveTask = (taskData != null) ? ParseTask(taskData) : null;
+            var taskData = cache[0] as IDictionary<string, object>;
+            var cachedActiveTask = taskData != null ? ParseTask(taskData) : null;
 
             // Parse tasks list or fail
-            Queue<ITask> cachedTasks = new Queue<ITask>(cache.Count - 1);
-            for(int index = 1; index < cache.Count; ++index)
+            var cachedTasks = new Queue<ITask>(cache.Count - 1);
+            for (var index = 1; index < cache.Count; ++index)
             {
                 taskData = cache[index] as IDictionary<string, object>;
 
-                if(taskData == null)
+                if (taskData == null)
                 {
                     Debug.LogError(TaskCacheParseError);
                     return false;
@@ -440,8 +422,7 @@ namespace GitHub.Unity
             return true;
         }
 
-
-        ITask ParseTask(IDictionary<string, object> data)
+        private ITask ParseTask(IDictionary<string, object> data)
         {
             CachedTask type;
 
@@ -449,81 +430,77 @@ namespace GitHub.Unity
             {
                 type = (CachedTask)Enum.Parse(typeof(CachedTask), (string)data[TypeKey]);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return null;
             }
 
             try
             {
-                switch(type)
+                switch (type)
                 {
                     case CachedTask.TestTask:
-                    return TestTask.Parse(data);
+                        return TestTask.Parse(data);
                     case CachedTask.ProcessTask:
-                    return ProcessTask.Parse(data);
+                        return ProcessTask.Parse(data);
                     default:
                         Debug.LogErrorFormat(TaskParseUnhandledTypeError, type);
-                    return null;
+                        return null;
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return null;
             }
         }
 
-
-        void WaitForTask(ITask task, WaitMode mode = WaitMode.Background)
-        // Update progress bars to match progress of given task
+        /// <summary>
+        /// Update progress bars to match progress of given task
+        /// </summary>
+        private void WaitForTask(ITask task, WaitMode mode = WaitMode.Background)
         {
-            if(activeTask != task)
+            if (activeTask != task)
             {
                 return;
             }
 
-            if(mode == WaitMode.Background)
             // Unintrusive background process
+            if (mode == WaitMode.Background)
             {
                 task.OnEnd = OnWaitingBackgroundTaskEnd;
 
                 DisplayBackgroundProgressBar(task.Label, task.Progress);
 
-                if(!task.Done)
+                if (!task.Done)
                 {
                     ScheduleMainThread(() => WaitForTask(task, mode));
                 }
             }
-            else if(mode == WaitMode.Modal)
             // Obstruct editor interface, while offering cancel button
+            else if (mode == WaitMode.Modal)
             {
                 task.OnEnd = OnWaitingModalTaskEnd;
 
-                if(!EditorUtility.DisplayCancelableProgressBar(TaskProgressTitle, task.Label, task.Progress) && !task.Done)
+                if (!EditorUtility.DisplayCancelableProgressBar(TaskProgressTitle, task.Label, task.Progress) && !task.Done)
                 {
                     ScheduleMainThread(() => WaitForTask(task, mode));
                 }
-                else if(!task.Done)
+                else if (!task.Done)
                 {
                     task.Abort();
                 }
             }
-            else
             // Offer to interrupt task via dialog box, else block main thread until completion
+            else
             {
-                if(EditorUtility.DisplayDialog(
-                    TaskBlockingTitle,
-                    string.Format(TaskBlockingDescription, task.Label),
-                    TaskBlockingComplete,
-                    TaskBlockingInterrupt
-                ))
+                if (EditorUtility.DisplayDialog(TaskBlockingTitle, String.Format(TaskBlockingDescription, task.Label), TaskBlockingComplete,
+                    TaskBlockingInterrupt))
                 {
                     do
                     {
                         EditorUtility.DisplayProgressBar(TaskProgressTitle, task.Label, task.Progress);
                         Thread.Sleep(BlockingTaskWaitSleep);
-                    }
-                    while(!task.Done);
+                    } while (!task.Done);
 
                     EditorUtility.ClearProgressBar();
                 }
@@ -534,62 +511,40 @@ namespace GitHub.Unity
             }
         }
 
-
-        static void DisplayBackgroundProgressBar(string description, float progress)
-        {
-            if(displayBackgroundProgressBar == null)
-            {
-                Type type = typeof(EditorWindow).Assembly.GetType("UnityEditor.AsyncProgressBar");
-                displayBackgroundProgressBar = (ProgressBarDisplayMethod)Delegate.CreateDelegate(
-                    typeof(ProgressBarDisplayMethod),
-                    type.GetMethod("Display", new Type[]{ typeof(string), typeof(float) })
-                );
-            }
-
-            displayBackgroundProgressBar(description, progress);
-        }
-
-
-        static void ClearBackgroundProgressBar()
-        {
-            if(clearBackgroundProgressBar == null)
-            {
-                Type type = typeof(EditorWindow).Assembly.GetType("UnityEditor.AsyncProgressBar");
-                clearBackgroundProgressBar = (Action)Delegate.CreateDelegate(typeof(Action), type.GetMethod("Clear", new Type[]{}));
-            }
-
-            clearBackgroundProgressBar();
-        }
-
-
-        void OnWaitingBackgroundTaskEnd(ITask task)
+        private void OnWaitingBackgroundTaskEnd(ITask task)
         {
             ScheduleMainThread(() => ClearBackgroundProgressBar());
         }
 
-
-        void OnWaitingModalTaskEnd(ITask task)
+        private void OnWaitingModalTaskEnd(ITask task)
         {
             ScheduleMainThread(() => EditorUtility.ClearProgressBar());
         }
 
+        private static Tasks Instance { get; set; }
+        private static string CacheFilePath { get; set; }
 
-        public static void ScheduleMainThread(Action action)
+        private static UnityAction editorApplicationQuit
         {
-            EditorApplication.delayCall += () => action();
-        }
-
-
-        public static void ReportFailure(FailureSeverity severity, ITask task, string error)
-        {
-            if (severity == FailureSeverity.Moderate)
+            get
             {
-                Debug.LogErrorFormat(TaskFailureMessage, task.Label, error);
+                SecureQuitActionField();
+                return (UnityAction)quitActionField.GetValue(null);
             }
-            else
+            set
             {
-                ScheduleMainThread(() => EditorUtility.DisplayDialog(TaskFailureTitle, string.Format(TaskFailureMessage, task.Label, error), TaskFailureOK));
+                SecureQuitActionField();
+                quitActionField.SetValue(null, value);
             }
         }
+
+        private enum WaitMode
+        {
+            Background,
+            Modal,
+            Blocking
+        };
+
+        private delegate void ProgressBarDisplayMethod(string text, float progress);
     }
 }

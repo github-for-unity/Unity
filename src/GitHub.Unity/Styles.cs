@@ -420,7 +420,7 @@ namespace GitHub.Unity
         public static void Warning(string message)
         {
             GUILayout.BeginHorizontal(EditorStyles.helpBox);
-                GUILayout.Label(string.Format(WarningLabel, message), Styles.LongMessageStyle);
+                GUILayout.Label(String.Format(WarningLabel, message), Styles.LongMessageStyle);
                 GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }

@@ -1,37 +1,100 @@
-using UnityEngine;
-using UnityEditor;
 using System;
 using System.Linq;
-
+using UnityEditor;
+using UnityEngine;
 
 namespace GitHub.Unity
 {
-    [System.Serializable]
+    [Serializable]
     class ChangesView : Subview
     {
-        const string
-            SummaryLabel = "Commit summary",
-            DescriptionLabel = "Commit description",
-            CommitButton = "Commit to <b>{0}</b>",
-            SelectAllButton = "All",
-            SelectNoneButton = "None",
-            ChangedFilesLabel = "{0} changed files",
-            OneChangedFileLabel = "1 changed file",
-            NoChangedFilesLabel = "No changed files";
+        private const string SummaryLabel = "Commit summary";
+        private const string DescriptionLabel = "Commit description";
+        private const string CommitButton = "Commit to <b>{0}</b>";
+        private const string SelectAllButton = "All";
+        private const string SelectNoneButton = "None";
+        private const string ChangedFilesLabel = "{0} changed files";
+        private const string OneChangedFileLabel = "1 changed file";
+        private const string NoChangedFilesLabel = "No changed files";
 
+        [NonSerialized] private bool lockCommit = true;
+        [SerializeField] private string commitBody = "";
 
-        [SerializeField] Vector2
-            verticalScroll,
-            horizontalScroll;
-        [SerializeField] string
-            commitMessage = "",
-            commitBody = "",
-            currentBranch = "[unknown]";
-        [SerializeField] ChangesetTreeView tree = new ChangesetTreeView();
+        [SerializeField] private string commitMessage = "";
+        [SerializeField] private string currentBranch = "[unknown]";
+        [SerializeField] private Vector2 horizontalScroll;
+        [SerializeField] private ChangesetTreeView tree = new ChangesetTreeView();
+        [SerializeField] private Vector2 verticalScroll;
 
+        public override void Refresh()
+        {
+            GitStatusTask.Schedule();
+        }
 
-        bool lockCommit = true;
+        public override void OnGUI()
+        {
+            var scroll = verticalScroll;
+            scroll = GUILayout.BeginScrollView(verticalScroll);
+            {
+                if (tree.Height > 0)
+                {
+                    verticalScroll = scroll;
+                }
 
+                GUILayout.BeginHorizontal();
+                {
+                    EditorGUI.BeginDisabledGroup(tree.Entries.Count == 0);
+                    {
+                        if (GUILayout.Button(SelectAllButton, EditorStyles.miniButtonLeft))
+                        {
+                            SelectAll();
+                        }
+
+                        if (GUILayout.Button(SelectNoneButton, EditorStyles.miniButtonRight))
+                        {
+                            SelectNone();
+                        }
+                    }
+                    EditorGUI.EndDisabledGroup();
+
+                    GUILayout.FlexibleSpace();
+
+                    GUILayout.Label(
+                        tree.Entries.Count == 0
+                            ? NoChangedFilesLabel
+                            : tree.Entries.Count == 1 ? OneChangedFileLabel : String.Format(ChangedFilesLabel, tree.Entries.Count),
+                        EditorStyles.miniLabel);
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
+                {
+                    // Specify a minimum height if we can - avoiding vertical scrollbars on both the outer and inner scroll view
+                    if (tree.Height > 0)
+                    {
+                        horizontalScroll = GUILayout.BeginScrollView(horizontalScroll, GUILayout.MinHeight(tree.Height),
+                            GUILayout.MaxHeight(100000f)
+                            // NOTE: This ugliness is necessary as unbounded MaxHeight appears impossible when MinHeight is specified
+                            );
+                    }
+
+                    else // if we have no minimum height to work with, just stretch and hope
+                    {
+                        horizontalScroll = GUILayout.BeginScrollView(horizontalScroll);
+                    }
+
+                    {// scroll view block started above
+                        tree.OnGUI();
+                    }
+                    GUILayout.EndScrollView();
+                }
+                GUILayout.EndVertical();
+
+                // Do the commit details area
+                OnCommitDetailsAreaGUI();
+            }
+            GUILayout.EndScrollView();
+        }
 
         protected override void OnShow()
         {
@@ -39,20 +102,12 @@ namespace GitHub.Unity
             GitStatusTask.RegisterCallback(OnStatusUpdate);
         }
 
-
         protected override void OnHide()
         {
             GitStatusTask.UnregisterCallback(OnStatusUpdate);
         }
 
-
-        public override void Refresh()
-        {
-            GitStatusTask.Schedule();
-        }
-
-
-        void OnStatusUpdate(GitStatus update)
+        private void OnStatusUpdate(GitStatus update)
         {
             // Set branch state
             currentBranch = update.LocalBranch;
@@ -63,70 +118,14 @@ namespace GitHub.Unity
             lockCommit = false;
         }
 
-
-        public override void OnGUI()
+        private void OnCommitDetailsAreaGUI()
         {
-            if (tree.Height > 0)
-            {
-                verticalScroll = GUILayout.BeginScrollView(verticalScroll);
-            }
-            else
-            {
-                GUILayout.BeginScrollView(verticalScroll);
-            }
-                GUILayout.BeginHorizontal();
-                    EditorGUI.BeginDisabledGroup(tree.Entries.Count == 0);
-                        if (GUILayout.Button(SelectAllButton, EditorStyles.miniButtonLeft))
-                        {
-                            SelectAll();
-                        }
-
-                        if (GUILayout.Button(SelectNoneButton, EditorStyles.miniButtonRight))
-                        {
-                            SelectNone();
-                        }
-                    EditorGUI.EndDisabledGroup();
-
-                    GUILayout.FlexibleSpace();
-
-                    GUILayout.Label(
-                        tree.Entries.Count == 0 ? NoChangedFilesLabel :
-                            tree.Entries.Count == 1 ? OneChangedFileLabel :
-                                string.Format(ChangedFilesLabel, tree.Entries.Count),
-                        EditorStyles.miniLabel
-                    );
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
-                    if (tree.Height > 0)
-                    // Specify a minimum height if we can - avoiding vertical scrollbars on both the outer and inner scroll view
-                    {
-                        horizontalScroll = GUILayout.BeginScrollView(
-                            horizontalScroll,
-                            GUILayout.MinHeight(tree.Height),
-                            GUILayout.MaxHeight(100000f) // NOTE: This ugliness is necessary as unbounded MaxHeight appears impossible when MinHeight is specified
-                        );
-                    }
-                    // If we have no minimum height to work with, just stretch and hope
-                    else
-                    {
-                        horizontalScroll = GUILayout.BeginScrollView(horizontalScroll);
-                    }
-                        tree.OnGUI();
-                    GUILayout.EndScrollView();
-                GUILayout.EndVertical();
-
-                // Do the commit details area
-                OnCommitDetailsAreaGUI();
-            GUILayout.EndScrollView();
-        }
-
-
-        void OnCommitDetailsAreaGUI()
-        {
-            GUILayout.BeginVertical(
-                GUILayout.Height(Mathf.Clamp(position.height * Styles.CommitAreaDefaultRatio, Styles.CommitAreaMinHeight, Styles.CommitAreaMaxHeight))
+            GUILayout.BeginVertical(GUILayout.Height(
+                    Mathf.Clamp(position.height * Styles.CommitAreaDefaultRatio,
+                    Styles.CommitAreaMinHeight,
+                    Styles.CommitAreaMaxHeight))
             );
+            {
                 GUILayout.Label(SummaryLabel);
                 commitMessage = GUILayout.TextField(commitMessage);
 
@@ -135,37 +134,39 @@ namespace GitHub.Unity
 
                 // Disable committing when already committing or if we don't have all the data needed
                 EditorGUI.BeginDisabledGroup(lockCommit || string.IsNullOrEmpty(commitMessage) || !tree.CommitTargets.Any(t => t.Any));
+                {
                     GUILayout.BeginHorizontal();
+                    {
                         GUILayout.FlexibleSpace();
-                        if (GUILayout.Button(string.Format(CommitButton, currentBranch), Styles.CommitButtonStyle))
+                        if (GUILayout.Button(String.Format(CommitButton, currentBranch), Styles.CommitButtonStyle))
                         {
                             Commit();
                         }
+                    }
                     GUILayout.EndHorizontal();
+                }
                 EditorGUI.EndDisabledGroup();
+            }
             GUILayout.EndVertical();
         }
 
-
-        void SelectAll()
+        private void SelectAll()
         {
-            for (int index = 0; index < tree.CommitTargets.Count; ++index)
+            for (var index = 0; index < tree.CommitTargets.Count; ++index)
             {
                 tree.CommitTargets[index].All = true;
             }
         }
 
-
-        void SelectNone()
+        private void SelectNone()
         {
-            for (int index = 0; index < tree.CommitTargets.Count; ++index)
+            for (var index = 0; index < tree.CommitTargets.Count; ++index)
             {
                 tree.CommitTargets[index].All = false;
             }
         }
 
-
-        void Commit()
+        private void Commit()
         {
             // Do not allow new commits before we have received one successful update
             lockCommit = true;
@@ -175,11 +176,10 @@ namespace GitHub.Unity
                 Enumerable.Range(0, tree.Entries.Count).Where(i => tree.CommitTargets[i].All).Select(i => tree.Entries[i].Path),
                 commitMessage,
                 commitBody,
-                () =>
-                {
+                () => {
                     commitMessage = "";
                     commitBody = "";
-                    for (int index = 0; index < tree.Entries.Count; ++index)
+                    for (var index = 0; index < tree.Entries.Count; ++index)
                     {
                         tree.CommitTargets[index].Clear();
                     }

@@ -1,21 +1,20 @@
-using UnityEngine;
-using UnityEditor;
 using System;
-
+using UnityEditor;
+using UnityEngine;
 
 namespace GitHub.Unity
 {
     class Installer : ScriptableObject
     {
-        const string PackageName = "GitHub extensions";
-        const string
-            QueryTitle = "Embed " + PackageName + "?",
-            QueryMessage = "This package has no project dependencies and so can either run embedded in your Unity install or remain in your assets folder.\n\nWould you like to embed it?",
-            QueryOK = "Embed",
-            QueryCancel = "Cancel",
-            ErrorTitle = "Installer error",
-            ErrorMessage = "An error occured during installation:\n{0}",
-            ErrorOK = "OK";
+        private const string PackageName = "GitHub extensions";
+        private const string QueryTitle = "Embed " + PackageName + "?";
+        private const string QueryMessage =
+            "This package has no project dependencies and so can either run embedded in your Unity install or remain in your assets folder.\n\nWould you like to embed it?";
+        private const string QueryOK = "Embed";
+        private const string QueryCancel = "Cancel";
+        private const string ErrorTitle = "Installer error";
+        private const string ErrorMessage = "An error occured during installation:\n{0}";
+        private const string ErrorOK = "OK";
 
         public static void Initialize()
         {
@@ -26,12 +25,12 @@ namespace GitHub.Unity
 
             // Detect install path
             string selfPath;
-            Installer instance = FindObjectOfType(typeof(Installer)) as Installer;
+            var instance = FindObjectOfType(typeof(Installer)) as Installer;
             if (instance == null)
             {
                 instance = CreateInstance<Installer>();
             }
-            MonoScript script = MonoScript.FromScriptableObject(instance);
+            var script = MonoScript.FromScriptableObject(instance);
             if (script == null)
             {
                 selfPath = string.Empty;
@@ -42,14 +41,14 @@ namespace GitHub.Unity
             }
             DestroyImmediate(instance);
 
-            if (string.IsNullOrEmpty(selfPath))
             // If we cannot self-locate then forget the whole thing
+            if (string.IsNullOrEmpty(selfPath))
             {
                 return;
             }
 
-            if (EditorUtility.DisplayDialog(QueryTitle, QueryMessage, QueryOK, QueryCancel))
             // Perform move
+            if (EditorUtility.DisplayDialog(QueryTitle, QueryMessage, QueryOK, QueryCancel))
             {
                 MoveFrom(Application.dataPath + selfPath.Substring("Assets".Length, selfPath.LastIndexOf('/') - "Assets".Length));
             }
@@ -58,8 +57,7 @@ namespace GitHub.Unity
             AssetDatabase.DeleteAsset(selfPath);
         }
 
-
-        static void MoveFrom(string path)
+        private static void MoveFrom(string path)
         {
             try
             {
@@ -72,11 +70,9 @@ namespace GitHub.Unity
             }
         }
 
-
-        static void Failure(string error)
+        private static void Failure(string error)
         {
-            EditorUtility.DisplayDialog(ErrorTitle, string.Format(ErrorMessage, error), ErrorOK);
+            EditorUtility.DisplayDialog(ErrorTitle, String.Format(ErrorMessage, error), ErrorOK);
         }
     }
 }
-

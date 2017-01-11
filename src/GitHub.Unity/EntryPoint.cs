@@ -1,6 +1,4 @@
-﻿using System;
-using UnityEditor;
-using UnityEngine;
+﻿using UnityEditor;
 
 namespace GitHub.Unity
 {
@@ -14,7 +12,7 @@ namespace GitHub.Unity
         }
 
         // we do this so we're guaranteed to run on the main thread, not the loader thread
-        static void Initialize()
+        private static void Initialize()
         {
             EditorApplication.update -= Initialize;
 

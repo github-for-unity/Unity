@@ -1,66 +1,39 @@
-using UnityEngine;
-using UnityEditor;
-using System.Threading;
 using System;
-using System.IO;
 using System.Collections.Generic;
-
+using System.IO;
+using System.Threading;
+using UnityEditor;
+using UnityEngine;
 
 namespace GitHub.Unity
 {
     class TestTask : ITask
     {
-        [MenuItem("Assets/GitHub/Test Blocking Critical")]
-        static void TestA()
-        {
-            Test(new TestTask(true));
-        }
+        private bool reconnecting = false;
 
-
-        [MenuItem("Assets/GitHub/Test Non-blocking Critical")]
-        static void TestB()
-        {
-            Test(new TestTask(false));
-        }
-
-
-        static void Test(TestTask task)
-        {
-            EditorApplication.delayCall += () => Tasks.Add(task);
-        }
-
-
-        public static TestTask Parse(IDictionary<string, object> data)
-        {
-            return new TestTask(false)
-            {
-                reconnecting = true,
-                Done = false
-            };
-        }
-
-
-        TestTask(bool shouldBlock)
+        private TestTask(bool shouldBlock)
         {
             Blocking = shouldBlock;
             Done = false;
             Progress = 0.0f;
         }
 
+        public static TestTask Parse(IDictionary<string, object> data)
+        {
+            return new TestTask(false) { reconnecting = true, Done = false };
+        }
 
-        public bool Blocking { get; protected set; }
-        public float Progress { get; protected set; }
-        public bool Done { get; protected set; }
-        public TaskQueueSetting Queued { get { return TaskQueueSetting.Queue; } }
-        public bool Critical { get { return true; } }
-        public bool Cached { get { return true; } }
-        public Action<ITask> OnBegin { get; set; }
-        public Action<ITask> OnEnd { get; set; }
-        public string Label { get { return "Test task"; } }
+        [MenuItem("Assets/GitHub/Test Blocking Critical")]
+        public static void TestA()
+        {
+            Test(new TestTask(true));
+        }
 
-
-        bool reconnecting = false;
-
+        [MenuItem("Assets/GitHub/Test Non-blocking Critical")]
+        public static void TestB()
+        {
+            Test(new TestTask(false));
+        }
 
         public void Run()
         {
@@ -69,19 +42,17 @@ namespace GitHub.Unity
             Done = false;
             Progress = 0.0f;
 
-            if(OnBegin != null)
+            if (OnBegin != null)
             {
                 OnBegin(this);
             }
 
-            const int
-                kSteps = 20,
-                kStepSleep = 1000;
+            const int kSteps = 20, kStepSleep = 1000;
 
-            for(int step = 0; !Done && step < kSteps; ++step)
+            for (var step = 0; !Done && step < kSteps; ++step)
             {
                 Progress = step / (float)kSteps;
-                Thread.Sleep (kStepSleep);
+                Thread.Sleep(kStepSleep);
             }
 
             Progress = 1.0f;
@@ -89,12 +60,11 @@ namespace GitHub.Unity
 
             Debug.LogFormat("{0} end", Label);
 
-            if(OnEnd != null)
+            if (OnEnd != null)
             {
                 OnEnd(this);
             }
         }
-
 
         public void Abort()
         {
@@ -103,27 +73,52 @@ namespace GitHub.Unity
             Done = true;
         }
 
-
         public void Disconnect()
         {
             Abort();
         }
 
-
         public void Reconnect()
         {}
-
 
         public void WriteCache(TextWriter cache)
         {
             Debug.LogFormat("Writing cache for {0}", Label);
+            cache.WriteLine("{");
+            cache.WriteLine("\"{0}\": \"{1}\"", Tasks.TypeKey, CachedTask.TestTask);
+            cache.WriteLine("}");
+        }
 
-            cache.Write(
-@"{{
-    ""{0}"": ""{1}""
-}}",
-                Tasks.TypeKey,      CachedTask.TestTask
-            );
+        private static void Test(TestTask task)
+        {
+            EditorApplication.delayCall += () => Tasks.Add(task);
+        }
+
+        public bool Blocking { get; protected set; }
+        public float Progress { get; protected set; }
+        public bool Done { get; protected set; }
+
+        public TaskQueueSetting Queued
+        {
+            get { return TaskQueueSetting.Queue; }
+        }
+
+        public bool Critical
+        {
+            get { return true; }
+        }
+
+        public bool Cached
+        {
+            get { return true; }
+        }
+
+        public Action<ITask> OnBegin { get; set; }
+        public Action<ITask> OnEnd { get; set; }
+
+        public string Label
+        {
+            get { return "Test task"; }
         }
     }
 }

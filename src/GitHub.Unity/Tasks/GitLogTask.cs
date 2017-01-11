@@ -1,60 +1,39 @@
-using UnityEngine;
-using UnityEditor;
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Collections.Generic;
-using System.Globalization;
-
+using UnityEngine;
 
 namespace GitHub.Unity
 {
     struct GitLogEntry
     {
-        const string
-            Today = "Today",
-            Yesterday = "Yesterday";
+        private const string Today = "Today";
+        private const string Yesterday = "Yesterday";
 
-        public string
-            CommitID,
-            MergeA,
-            MergeB,
-            AuthorName,
-            AuthorEmail,
-            Summary,
-            Description;
+        public string CommitID, MergeA, MergeB, AuthorName, AuthorEmail, Summary, Description;
         public DateTimeOffset Time;
         public List<GitStatusEntry> Changes;
 
-
         public string ShortID
         {
-            get
-            {
-                return CommitID.Length < 7 ? CommitID : CommitID.Substring(0, 7);
-            }
+            get { return CommitID.Length < 7 ? CommitID : CommitID.Substring(0, 7); }
         }
-
 
         public string PrettyTimeString
         {
             get
             {
-                DateTimeOffset
-                    now = DateTimeOffset.Now,
-                    relative = Time.ToLocalTime();
+                DateTimeOffset now = DateTimeOffset.Now, relative = Time.ToLocalTime();
 
-                return string.Format(
-                    "{0}, {1:HH}:{1:mm}",
-                    relative.DayOfYear == now.DayOfYear ? Today :
-                        relative.DayOfYear == now.DayOfYear - 1 ? Yesterday :
-                            relative.ToString("d MMM yyyy"),
-                    relative
-                );
+                return String.Format("{0}, {1:HH}:{1:mm}",
+                    relative.DayOfYear == now.DayOfYear
+                        ? Today
+                        : relative.DayOfYear == now.DayOfYear - 1 ? Yesterday : relative.ToString("d MMM yyyy"), relative);
             }
         }
-
 
         public void Clear()
         {
@@ -63,106 +42,63 @@ namespace GitHub.Unity
             Changes = new List<GitStatusEntry>();
         }
 
-
         public override string ToString()
         {
-            return string.Format(
-@"CommitID: {0}
-MergeA: {1}
-MergeB: {2}
-AuthorName: {3}
-AuthorEmail: {4}
-Time: {5}
-Summary: {6}
-Description: {7}",
-                CommitID,
-                MergeA,
-                MergeB,
-                AuthorName,
-                AuthorEmail,
-                Time.ToString(),
-                Summary,
-                Description
-            );
+            var sb = new StringBuilder();
+            sb.AppendLine(String.Format("CommitID: {0}", CommitID));
+            sb.AppendLine(String.Format("MergeA: {0}", MergeA));
+            sb.AppendLine(String.Format("MergeB: {0}", MergeB));
+            sb.AppendLine(String.Format("AuthorName: {0}", AuthorName));
+            sb.AppendLine(String.Format("AuthorEmail: {0}", AuthorEmail));
+            sb.AppendLine(String.Format("Time: {0}", Time.ToString()));
+            sb.AppendLine(String.Format("Summary: {0}", Summary));
+            sb.AppendLine(String.Format("Description: {0}", Description));
+            return sb.ToString();
         }
     }
 
-
     class GitLogTask : GitTask
     {
-        enum ParsePhase
+        private const string UnhandledParsePhaseError = "Unhandled parse phase: '{0}'";
+        private const string LineParseError = "Log parse error in line: '{0}', parse phase: '{1}'";
+        private const string GitTimeFormat = "ddd MMM d HH:mm:ss yyyy zz";
+
+        private static Action<IList<GitLogEntry>> onLogUpdate;
+
+        private string arguments = "log --name-status";
+        private bool completed = false;
+        private List<GitLogEntry> entries = new List<GitLogEntry>();
+        private GitLogEntry parsedEntry = new GitLogEntry();
+        private ParsePhase parsePhase;
+
+        private GitLogTask(string file = null)
         {
-            Commit,
-            Author,
-            Time,
-            Description,
-            Changes
+            parsedEntry.Clear();
+
+            if (!string.IsNullOrEmpty(file))
+            {
+                arguments = String.Format("{0} --follow -m {1}", arguments, file);
+            }
         }
-
-
-        const string
-            UnhandledParsePhaseError = "Unhandled parse phase: '{0}'",
-            LineParseError = "Log parse error in line: '{0}', parse phase: '{1}'",
-            GitTimeFormat = "ddd MMM d HH:mm:ss yyyy zz";
-
-
-        static Action<IList<GitLogEntry>> onLogUpdate;
-
 
         public static void RegisterCallback(Action<IList<GitLogEntry>> callback)
         {
             onLogUpdate += callback;
         }
 
-
         public static void UnregisterCallback(Action<IList<GitLogEntry>> callback)
         {
             onLogUpdate -= callback;
         }
-
 
         public static void Schedule(string file = null)
         {
             Tasks.Add(new GitLogTask(file));
         }
 
-
-        string arguments = "log --name-status";
-        StringWriter
-            output = new StringWriter(),
-            error = new StringWriter();
-        List<GitLogEntry> entries = new List<GitLogEntry>();
-        GitLogEntry parsedEntry = new GitLogEntry();
-        ParsePhase parsePhase;
-        bool completed = false;
-
-
-        public override bool Blocking { get { return false; } }
-        public virtual TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; } }
-        public override bool Critical { get { return false; } }
-        public override bool Cached { get { return false; } }
-        public override string Label { get { return "git log"; } }
-
-
-        protected override string ProcessArguments { get { return arguments; } }
-        protected override TextWriter OutputBuffer { get { return output; } }
-        protected override TextWriter ErrorBuffer { get { return error; } }
-
-
-        GitLogTask(string file = null)
-        {
-            parsedEntry.Clear();
-
-            if (!string.IsNullOrEmpty(file))
-            {
-                arguments = string.Format("{0} --follow -m {1}", arguments, file);
-            }
-        }
-
-
         protected override void OnProcessOutputUpdate()
         {
-            Utility.ParseLines(output.GetStringBuilder(), ParseOutputLine, Done);
+            Utility.ParseLines(OutputBuffer.GetStringBuilder(), ParseOutputLine, Done);
 
             if (Done && !completed)
             {
@@ -172,7 +108,7 @@ Description: {7}",
                 ParseOutputLine(null);
 
                 // Handle failure / success
-                StringBuilder buffer = error.GetStringBuilder();
+                var buffer = ErrorBuffer.GetStringBuilder();
                 if (buffer.Length > 0)
                 {
                     Tasks.ReportFailure(FailureSeverity.Moderate, this, buffer.ToString());
@@ -184,8 +120,7 @@ Description: {7}",
             }
         }
 
-
-        void DeliverResult()
+        private void DeliverResult()
         {
             if (onLogUpdate != null)
             {
@@ -195,8 +130,7 @@ Description: {7}",
             entries.Clear();
         }
 
-
-        void ParseOutputLine(string line)
+        private void ParseOutputLine(string line)
         {
             // Empty lines are section or commit dividers
             if (string.IsNullOrEmpty(line))
@@ -207,10 +141,10 @@ Description: {7}",
                         entries.Add(parsedEntry);
                         parsedEntry.Clear();
                         parsePhase = ParsePhase.Commit;
-                    return;
+                        return;
                     default:
                         ++parsePhase;
-                    return;
+                        return;
                 }
             }
 
@@ -226,7 +160,8 @@ Description: {7}",
                         ++parsePhase;
                         return;
                     }
-                break;
+
+                    break;
                 case ParsePhase.Author:
                     // If this is a marge commit, merge info comes before author info, so we parse this and stay in the author phase
                     match = Utility.LogMergeRegex.Match(line);
@@ -245,33 +180,25 @@ Description: {7}",
                         ++parsePhase;
                         return;
                     }
-                break;
+
+                    break;
                 case ParsePhase.Time:
                     match = Utility.LogTimeRegex.Match(line);
                     if (match.Groups.Count == 2)
                     {
-                        string time = match.Groups[1].ToString();
+                        var time = match.Groups[1].ToString();
 
-                        parsedEntry.Time = DateTimeOffset.ParseExact(
-                            time,
-                            GitTimeFormat,
-                            System.Globalization.CultureInfo.InvariantCulture,
-                            System.Globalization.DateTimeStyles.None
-                        );
+                        parsedEntry.Time = DateTimeOffset.ParseExact(time, GitTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None);
 
-                        if (DateTimeOffset.TryParseExact(
-                            time,
-                            GitTimeFormat,
-                            CultureInfo.InvariantCulture,
-                            DateTimeStyles.None,
-                            out parsedEntry.Time
-                        ))
+                        if (DateTimeOffset.TryParseExact(time, GitTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None,
+                            out parsedEntry.Time))
                         {
                             // NOTE: Time is always last in the header, so we should not progress to next phase here - the divider will do that
                             return;
                         }
                     }
-                break;
+
+                    break;
                 case ParsePhase.Description:
                     match = Utility.LogDescriptionRegex.Match(line);
                     if (match.Groups.Count == 2)
@@ -286,31 +213,72 @@ Description: {7}",
                         }
                         return;
                     }
-                break;
+
+                    break;
                 case ParsePhase.Changes:
                     GitStatusEntry entry;
 
-                    if (GitStatusEntry.TryParse(line, out entry))
                     // Try to read the line as a change entry
+                    if (GitStatusEntry.TryParse(line, out entry))
                     {
                         parsedEntry.Changes.Add(entry);
                         return;
                     }
-                    else if ((match = Utility.LogCommitRegex.Match(line)).Groups.Count == 2)
                     // This commit had no changes, so complete parsing it and pass the next commit header into a new session
+                    else if ((match = Utility.LogCommitRegex.Match(line)).Groups.Count == 2)
                     {
                         ParseOutputLine(null);
                         ParseOutputLine(line);
                         return;
                     }
-                break;
+
+                    break;
                 default:
-                throw new ApplicationException(string.Format(UnhandledParsePhaseError, parsePhase));
+                    throw new TaskException(String.Format(UnhandledParsePhaseError, parsePhase));
             }
 
             // Garbled input. Eject!
             Debug.LogErrorFormat(LineParseError, line, parsePhase);
             Abort();
+        }
+
+        public override bool Blocking
+        {
+            get { return false; }
+        }
+
+        public virtual TaskQueueSetting Queued
+        {
+            get { return TaskQueueSetting.QueueSingle; }
+        }
+
+        public override bool Critical
+        {
+            get { return false; }
+        }
+
+        public override bool Cached
+        {
+            get { return false; }
+        }
+
+        public override string Label
+        {
+            get { return "git log"; }
+        }
+
+        protected override string ProcessArguments
+        {
+            get { return arguments; }
+        }
+
+        private enum ParsePhase
+        {
+            Commit,
+            Author,
+            Time,
+            Description,
+            Changes
         }
     }
 }

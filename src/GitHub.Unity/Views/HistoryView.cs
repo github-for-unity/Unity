@@ -1,107 +1,55 @@
-using UnityEngine;
-using UnityEditor;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
-
+using UnityEditor;
+using UnityEngine;
 using Object = UnityEngine.Object;
-
 
 namespace GitHub.Unity
 {
-    [System.Serializable]
+    [Serializable]
     class HistoryView : Subview
     {
-        enum LogEntryState
-        {
-            Normal,
-            Local,
-            Remote
-        }
+        private const string HistoryFocusAll = "(All)";
+        private const string HistoryFocusSingle = "Focus: <b>{0}</b>";
+        private const string PullButton = "Pull";
+        private const string PullButtonCount = "Pull (<b>{0}</b>)";
+        private const string PushButton = "Push";
+        private const string PushButtonCount = "Push (<b>{0}</b>)";
+        private const string PullConfirmTitle = "Pull Changes?";
+        private const string PullConfirmDescription = "Would you like to pull changes from remote '{0}'?";
+        private const string PullConfirmYes = "Pull";
+        private const string PullConfirmCancel = "Cancel";
+        private const string PushConfirmTitle = "Push Changes?";
+        private const string PushConfirmDescription = "Would you like to push changes to remote '{0}'?";
+        private const string PushConfirmYes = "Push";
+        private const string PushConfirmCancel = "Cancel";
+        private const string ClearSelectionButton = "x";
+        private const int HistoryExtraItemCount = 10;
+        private const float MaxChangelistHeightRatio = .2f;
 
+        [NonSerialized] private string currentRemote = "placeholder";
+        [NonSerialized] private int historyStartIndex;
+        [NonSerialized] private int historyStopIndex;
+        [NonSerialized] private float lastWidth;
+        [NonSerialized] private int listID;
+        [NonSerialized] private int newSelectionIndex;
+        [NonSerialized] private float scrollOffset;
+        [NonSerialized] private DateTimeOffset scrollTime = DateTimeOffset.Now;
+        [NonSerialized] private int selectionIndex;
+        [NonSerialized] private int statusAhead;
+        [NonSerialized] private int statusBehind;
+        [NonSerialized] private bool updated = true;
+        [NonSerialized] private bool useScrollTime;
 
-        const string
-            HistoryFocusAll = "(All)",
-            HistoryFocusSingle = "Focus: <b>{0}</b>",
-            PullButton = "Pull",
-            PullButtonCount = "Pull ({<b>0</b>})",
-            PushButton = "Push",
-            PushButtonCount = "Push (<b>{0}</b>)",
-            PullConfirmTitle = "Pull Changes?",
-            PullConfirmDescription = "Would you like to pull changes from remote '{0}'?",
-            PullConfirmYes = "Pull",
-            PullConfirmCancel = "Cancel",
-            PushConfirmTitle = "Push Changes?",
-            PushConfirmDescription = "Would you like to push changes to remote '{0}'?",
-            PushConfirmYes = "Push",
-            PushConfirmCancel = "Cancel",
-            ClearSelectionButton = "x";
-        const int
-            HistoryExtraItemCount = 10;
-        const float
-            MaxChangelistHeightRatio = .2f;
-
-
-        [SerializeField] List<GitLogEntry> history = new List<GitLogEntry>();
-        [SerializeField] bool historyLocked = true;
-        [SerializeField] Object historyTarget = null;
-        [SerializeField] Vector2 scroll;
-        [SerializeField] string selectionID;
-        [SerializeField] ChangesetTreeView changesetTree = new ChangesetTreeView();
-        [SerializeField] Vector2 detailsScroll;
-        [SerializeField] bool broadMode = false;
-
-
-        string currentRemote = "placeholder";
-        int
-            historyStartIndex,
-            historyStopIndex,
-            statusAhead,
-            statusBehind;
-        bool
-            updated = true,
-            useScrollTime = false;
-        DateTimeOffset scrollTime = DateTimeOffset.Now;
-        float
-            lastWidth,
-            scrollOffset;
-        int
-            listID,
-            selectionIndex,
-            newSelectionIndex;
-
-
-        public bool BroadMode { get { return broadMode; } }
-
-
-        float EntryHeight
-        {
-            get
-            {
-                return Styles.HistoryEntryHeight + Styles.HistoryEntryPadding;
-            }
-        }
-
-
-        protected override void OnShow()
-        {
-            lastWidth = position.width;
-            selectionIndex = newSelectionIndex = -1;
-
-            GitLogTask.RegisterCallback(OnLogUpdate);
-            GitStatusTask.RegisterCallback(OnStatusUpdate);
-
-            changesetTree.Show(this);
-            changesetTree.Readonly = true;
-        }
-
-
-        protected override void OnHide()
-        {
-            GitStatusTask.UnregisterCallback(OnStatusUpdate);
-            GitLogTask.UnregisterCallback(OnLogUpdate);
-        }
-
+        [SerializeField] private bool broadMode;
+        [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
+        [SerializeField] private Vector2 detailsScroll;
+        [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
+        [SerializeField] private bool historyLocked = true;
+        [SerializeField] private Object historyTarget;
+        [SerializeField] private Vector2 scroll;
+        [SerializeField] private string selectionID;
 
         public override void Refresh()
         {
@@ -122,68 +70,6 @@ namespace GitHub.Unity
             }
         }
 
-
-        void OnStatusUpdate(GitStatus update)
-        {
-            // Set branch state
-            // TODO: Update currentRemote
-            statusAhead = update.Ahead;
-            statusBehind = update.Behind;
-        }
-
-
-        void OnLogUpdate(IList<GitLogEntry> entries)
-        {
-            updated = true;
-
-            history.Clear();
-            history.AddRange(entries);
-
-            if (history.Any())
-            {
-                // Make sure that scroll as much as possible focuses the same time period in the new entry list
-                if (useScrollTime)
-                {
-                    int closestIndex = -1;
-                    double closestDifference = Mathf.Infinity;
-                    for (int index = 0; index < history.Count; ++index)
-                    {
-                        double diff = Math.Abs((history[index].Time - scrollTime).TotalSeconds);
-                        if (diff < closestDifference)
-                        {
-                            closestDifference = diff;
-                            closestIndex = index;
-                        }
-                    }
-
-                    ScrollTo(closestIndex, scrollOffset);
-                }
-
-                CullHistory();
-            }
-
-            // Restore selection index or clear it
-            newSelectionIndex = -1;
-            if (!string.IsNullOrEmpty(selectionID))
-            {
-                selectionIndex = Enumerable.Range(1, history.Count + 1).FirstOrDefault(index => history[index - 1].CommitID.Equals(selectionID)) - 1;
-
-                if (selectionIndex < 0)
-                {
-                    selectionID = string.Empty;
-                }
-            }
-
-            Repaint();
-        }
-
-
-        void ScrollTo(int index, float offset = 0f)
-        {
-            scroll.Set(scroll.x, EntryHeight * index + offset);
-        }
-
-
         public override void OnSelectionChange()
         {
             if (!historyLocked && !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(Selection.activeObject)))
@@ -193,10 +79,9 @@ namespace GitHub.Unity
             }
         }
 
-
         public bool EvaluateBroadMode()
         {
-            bool past = broadMode;
+            var past = broadMode;
 
             // Flip when the limits are breached
             if (position.width > Styles.BroadModeLimit)
@@ -209,9 +94,8 @@ namespace GitHub.Unity
             }
 
             // Show the layout notification while scaling
-
-            Window window = (Window)parent;
-            bool scaled = position.width != lastWidth;
+            var window = (Window)parent;
+            var scaled = position.width != lastWidth;
             lastWidth = position.width;
 
             if (scaled)
@@ -222,7 +106,6 @@ namespace GitHub.Unity
             // Return whether we flipped
             return broadMode != past;
         }
-
 
         public override void OnGUI()
         {
@@ -241,62 +124,68 @@ namespace GitHub.Unity
             }
         }
 
-
         public void OnBroadGUI()
         {
             GUILayout.BeginHorizontal();
+            {
                 GUILayout.BeginVertical(
                     GUILayout.MinWidth(Styles.BroadModeBranchesMinWidth),
                     GUILayout.MaxWidth(Mathf.Max(Styles.BroadModeBranchesMinWidth, position.width * Styles.BroadModeBranchesRatio))
                 );
+                {
                     ((Window)parent).BranchesTab.OnEmbeddedGUI();
+                }
                 GUILayout.EndVertical();
                 GUILayout.BeginVertical();
+                {
                     OnEmbeddedGUI();
+                }
                 GUILayout.EndVertical();
+            }
             GUILayout.EndHorizontal();
         }
-
 
         public void OnEmbeddedGUI()
         {
             // History toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
+            {
                 // Target indicator / clear button
                 EditorGUI.BeginDisabledGroup(historyTarget == null);
+                {
                     if (GUILayout.Button(
-                        historyTarget == null ? HistoryFocusAll : string.Format(HistoryFocusSingle, historyTarget.name),
-                        Styles.HistoryToolbarButtonStyle
-                    ))
+                            historyTarget == null ? HistoryFocusAll : String.Format(HistoryFocusSingle, historyTarget.name),
+                            Styles.HistoryToolbarButtonStyle)
+                    )
                     {
                         historyTarget = null;
                         Refresh();
                     }
+                }
                 EditorGUI.EndDisabledGroup();
 
                 GUILayout.FlexibleSpace();
 
                 // Pull / Push buttons
-                if (
-                    GUILayout.Button(statusBehind > 0 ? string.Format(PullButtonCount, statusBehind) : PullButton, Styles.HistoryToolbarButtonStyle) &&
-                    EditorUtility.DisplayDialog(
-                        PullConfirmTitle,
-                        string.Format(PullConfirmDescription, currentRemote),
+                var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
+                var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
+                if (pullClicked &&
+                    EditorUtility.DisplayDialog(PullConfirmTitle,
+                        String.Format(PullConfirmDescription, currentRemote),
                         PullConfirmYes,
-                        PullConfirmCancel
-                    )
+                        PullConfirmCancel)
                 )
                 {
                     Pull();
                 }
-                if (
-                    GUILayout.Button(statusAhead > 0 ? string.Format(PushButtonCount, statusAhead) : PushButton, Styles.HistoryToolbarButtonStyle) &&
-                    EditorUtility.DisplayDialog(
-                        PushConfirmTitle,
-                        string.Format(PushConfirmDescription, currentRemote),
+
+                var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
+                var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
+                if (pushClicked &&
+                    EditorUtility.DisplayDialog(PushConfirmTitle,
+                        String.Format(PushConfirmDescription, currentRemote),
                         PushConfirmYes,
-                        PushConfirmCancel
-                    )
+                        PushConfirmCancel)
                 )
                 {
                     Push();
@@ -304,11 +193,14 @@ namespace GitHub.Unity
 
                 // Target lock button
                 EditorGUI.BeginChangeCheck();
+                {
                     historyLocked = GUILayout.Toggle(historyLocked, GUIContent.none, Styles.HistoryLockStyle);
+                }
                 if (EditorGUI.EndChangeCheck())
                 {
                     OnSelectionChange();
                 }
+            }
             GUILayout.EndHorizontal();
 
             // When history scroll actually changes, store time value of topmost visible entry. This is the value we use to reposition scroll on log update - not the pixel value.
@@ -317,55 +209,56 @@ namespace GitHub.Unity
                 listID = GUIUtility.GetControlID(FocusType.Keyboard);
 
                 // Only update time scroll
-                Vector2 lastScroll = scroll;
+                var lastScroll = scroll;
                 scroll = GUILayout.BeginScrollView(scroll);
-                    if (lastScroll != scroll && !updated)
+                if (lastScroll != scroll && !updated)
+                {
+                    scrollTime = history[historyStartIndex].Time;
+                    scrollOffset = scroll.y - historyStartIndex * EntryHeight;
+                    useScrollTime = true;
+                }
+                // Handle only the selected range of history items - adding spacing for the rest
+                var start = Mathf.Max(0, historyStartIndex - HistoryExtraItemCount);
+                var stop = Mathf.Min(historyStopIndex + HistoryExtraItemCount, history.Count);
+                GUILayout.Space(start * EntryHeight);
+                for (var index = start; index < stop; ++index)
+                {
+                    if (HistoryEntry(history[index], GetEntryState(index), selectionIndex == index))
                     {
-                        scrollTime = history[historyStartIndex].Time;
-                        scrollOffset = scroll.y - historyStartIndex * EntryHeight;
-                        useScrollTime = true;
+                        newSelectionIndex = index;
+                        GUIUtility.keyboardControl = listID;
                     }
-                    // Handle only the selected range of history items - adding spacing for the rest
-                    int
-                        start = Mathf.Max(0, historyStartIndex - HistoryExtraItemCount),
-                        stop = Mathf.Min(historyStopIndex + HistoryExtraItemCount, history.Count);
-                    GUILayout.Space(start * EntryHeight);
-                    for (int index = start; index < stop; ++index)
+
+                    GUILayout.Space(Styles.HistoryEntryPadding);
+                }
+
+                GUILayout.Space((history.Count - stop) * EntryHeight);
+
+                // Keyboard control
+                if (GUIUtility.keyboardControl == listID && Event.current.type == EventType.KeyDown)
+                {
+                    var change = 0;
+
+                    if (Event.current.keyCode == KeyCode.DownArrow)
                     {
-                        if (HistoryEntry(history[index], GetEntryState(index), selectionIndex == index))
-                        {
-                            newSelectionIndex = index;
-                            GUIUtility.keyboardControl = listID;
-                        }
-
-                        GUILayout.Space(Styles.HistoryEntryPadding);
+                        change = 1;
                     }
-                    GUILayout.Space((history.Count - stop) * EntryHeight);
-
-                    // Keyboard control
-                    if (GUIUtility.keyboardControl == listID && Event.current.type == EventType.KeyDown)
+                    else if (Event.current.keyCode == KeyCode.UpArrow)
                     {
-                        int change = 0;
-
-                        if (Event.current.keyCode == KeyCode.DownArrow)
-                        {
-                            change = 1;
-                        }
-                        else if (Event.current.keyCode == KeyCode.UpArrow)
-                        {
-                            change = -1;
-                        }
-
-                        if (change != 0)
-                        {
-                            newSelectionIndex = (selectionIndex + change) %  history.Count;
-                            if (newSelectionIndex < historyStartIndex || newSelectionIndex > historyStopIndex)
-                            {
-                                ScrollTo(newSelectionIndex, (position.height - position.height * MaxChangelistHeightRatio - 30f - EntryHeight) * -.5f);
-                            }
-                            Event.current.Use();
-                        }
+                        change = -1;
                     }
+
+                    if (change != 0)
+                    {
+                        newSelectionIndex = (selectionIndex + change) % history.Count;
+                        if (newSelectionIndex < historyStartIndex || newSelectionIndex > historyStopIndex)
+                        {
+                            ScrollTo(newSelectionIndex,
+                                (position.height - position.height * MaxChangelistHeightRatio - 30f - EntryHeight) * -.5f);
+                        }
+                        Event.current.Use();
+                    }
+                }
             }
             else
             {
@@ -377,10 +270,11 @@ namespace GitHub.Unity
             // Selection info
             if (selectionIndex >= 0)
             {
-                GitLogEntry selection = history[selectionIndex];
+                var selection = history[selectionIndex];
 
                 // Top bar for scrolling to selection or clearing it
                 GUILayout.BeginHorizontal(EditorStyles.toolbar);
+                {
                     if (GUILayout.Button(selection.ShortID, Styles.HistoryToolbarButtonStyle))
                     {
                         ScrollTo(selectionIndex);
@@ -389,25 +283,28 @@ namespace GitHub.Unity
                     {
                         newSelectionIndex = -2;
                     }
+                }
                 GUILayout.EndHorizontal();
 
                 // Log entry details - including changeset tree (if any changes are found)
                 if (changesetTree.Entries.Any())
                 {
-                    detailsScroll = GUILayout.BeginScrollView(
-                        detailsScroll,
-                        GUILayout.MinHeight(Mathf.Min(changesetTree.Height, position.height * MaxChangelistHeightRatio))
-                    );
+                    detailsScroll = GUILayout.BeginScrollView(detailsScroll,
+                        GUILayout.MinHeight(Mathf.Min(changesetTree.Height, position.height * MaxChangelistHeightRatio)));
+                    {
                         HistoryEntry(selection, GetEntryState(selectionIndex), false);
 
                         GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
                         GUILayout.BeginHorizontal();
+                        {
                             GUILayout.Space(Styles.HistoryChangesIndentation);
                             changesetTree.OnGUI();
+                        }
                         GUILayout.EndHorizontal();
 
                         GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                    }
                     GUILayout.EndScrollView();
                 }
                 else
@@ -438,43 +335,119 @@ namespace GitHub.Unity
             }
         }
 
+        protected override void OnShow()
+        {
+            lastWidth = position.width;
+            selectionIndex = newSelectionIndex = -1;
 
-        LogEntryState GetEntryState(int index)
+            GitLogTask.RegisterCallback(OnLogUpdate);
+            GitStatusTask.RegisterCallback(OnStatusUpdate);
+
+            changesetTree.Show(this);
+            changesetTree.Readonly = true;
+        }
+
+        protected override void OnHide()
+        {
+            GitStatusTask.UnregisterCallback(OnStatusUpdate);
+            GitLogTask.UnregisterCallback(OnLogUpdate);
+        }
+
+        private void OnStatusUpdate(GitStatus update)
+        {
+            // Set branch state
+            // TODO: Update currentRemote
+            statusAhead = update.Ahead;
+            statusBehind = update.Behind;
+        }
+
+        private void OnLogUpdate(IList<GitLogEntry> entries)
+        {
+            updated = true;
+
+            history.Clear();
+            history.AddRange(entries);
+
+            if (history.Any())
+            {
+                // Make sure that scroll as much as possible focuses the same time period in the new entry list
+                if (useScrollTime)
+                {
+                    var closestIndex = -1;
+                    double closestDifference = Mathf.Infinity;
+                    for (var index = 0; index < history.Count; ++index)
+                    {
+                        var diff = Math.Abs((history[index].Time - scrollTime).TotalSeconds);
+                        if (diff < closestDifference)
+                        {
+                            closestDifference = diff;
+                            closestIndex = index;
+                        }
+                    }
+
+                    ScrollTo(closestIndex, scrollOffset);
+                }
+
+                CullHistory();
+            }
+
+            // Restore selection index or clear it
+            newSelectionIndex = -1;
+            if (!string.IsNullOrEmpty(selectionID))
+            {
+                selectionIndex =
+                    Enumerable.Range(1, history.Count + 1).FirstOrDefault(index => history[index - 1].CommitID.Equals(selectionID)) - 1;
+
+                if (selectionIndex < 0)
+                {
+                    selectionID = string.Empty;
+                }
+            }
+
+            Repaint();
+        }
+
+        private void ScrollTo(int index, float offset = 0f)
+        {
+            scroll.Set(scroll.x, EntryHeight * index + offset);
+        }
+
+        private LogEntryState GetEntryState(int index)
         {
             return historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal;
         }
 
-
-        void CullHistory()
-        // Recalculate the range of history items to handle - based on what is visible, plus a bit of padding for fast scrolling
+        /// <summary>
+        /// Recalculate the range of history items to handle - based on what is visible, plus a bit of padding for fast scrolling
+        /// </summary>
+        private void CullHistory()
         {
             historyStartIndex = (int)Mathf.Clamp(scroll.y / EntryHeight, 0, history.Count);
-            historyStopIndex = (int)Mathf.Clamp(
-                historyStartIndex + (position.height - 2f * Mathf.Min(changesetTree.Height, position.height * MaxChangelistHeightRatio)) / EntryHeight +
-                1,
-                0,
-                history.Count
-            );
+            historyStopIndex =
+                (int)
+                    Mathf.Clamp(
+                        historyStartIndex +
+                            (position.height - 2f * Mathf.Min(changesetTree.Height, position.height * MaxChangelistHeightRatio)) /
+                                EntryHeight + 1, 0, history.Count);
         }
 
-
-        bool HistoryEntry(GitLogEntry entry, LogEntryState state, bool selected)
+        private bool HistoryEntry(GitLogEntry entry, LogEntryState state, bool selected)
         {
-            Rect entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
+            var entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
 
             if (Event.current.type == EventType.Repaint)
             {
-                bool keyboardFocus = GUIUtility.keyboardControl == listID;
+                var keyboardFocus = GUIUtility.keyboardControl == listID;
 
-                Rect
-                    summaryRect = new Rect(entryRect.x, entryRect.y, entryRect.width, Styles.HistorySummaryHeight),
-                    timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight, entryRect.width * .5f, Styles.HistoryDetailsHeight);
-                Rect authorRect = new Rect(timestampRect.xMax, timestampRect.y, timestampRect.width, timestampRect.height);
+                var summaryRect = new Rect(entryRect.x, entryRect.y, entryRect.width, Styles.HistorySummaryHeight);
+                var timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight, entryRect.width * .5f,
+                    Styles.HistoryDetailsHeight);
+                var authorRect = new Rect(timestampRect.xMax, timestampRect.y, timestampRect.width, timestampRect.height);
 
                 if (!string.IsNullOrEmpty(entry.MergeA))
                 {
                     const float MergeIndicatorSize = 40f;
-                    Rect mergeIndicatorRect = new Rect(summaryRect.x, summaryRect.y, MergeIndicatorSize, summaryRect.height);
+                    var mergeIndicatorRect = new Rect(summaryRect.x, summaryRect.y, MergeIndicatorSize, summaryRect.height);
 
                     // TODO: Get an icon or something here
                     Styles.HistoryEntryDetailsStyle.Draw(mergeIndicatorRect, "Merge:", false, false, selected, keyboardFocus);
@@ -485,7 +458,7 @@ namespace GitHub.Unity
                 if (state == LogEntryState.Local)
                 {
                     const float LocalIndicatorSize = 40f;
-                    Rect localIndicatorRect = new Rect(summaryRect.x, summaryRect.y, LocalIndicatorSize, summaryRect.height);
+                    var localIndicatorRect = new Rect(summaryRect.x, summaryRect.y, LocalIndicatorSize, summaryRect.height);
 
                     // TODO: Get an icon or something here
                     Styles.HistoryEntryDetailsStyle.Draw(localIndicatorRect, "Local:", false, false, selected, keyboardFocus);
@@ -506,16 +479,31 @@ namespace GitHub.Unity
             return false;
         }
 
-
-        void Pull()
+        private void Pull()
         {
             Debug.Log("TODO: Pull");
         }
 
-
-        void Push()
+        private void Push()
         {
             Debug.Log("TODO: Push");
+        }
+
+        public bool BroadMode
+        {
+            get { return broadMode; }
+        }
+
+        private float EntryHeight
+        {
+            get { return Styles.HistoryEntryHeight + Styles.HistoryEntryPadding; }
+        }
+
+        private enum LogEntryState
+        {
+            Normal,
+            Local,
+            Remote
         }
     }
 }
