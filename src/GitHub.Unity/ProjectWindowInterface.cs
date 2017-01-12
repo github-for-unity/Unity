@@ -8,14 +8,20 @@ namespace GitHub.Unity
     {
         private static readonly List<GitStatusEntry> entries = new List<GitStatusEntry>();
         private static readonly List<string> guids = new List<string>();
+        private static bool initialized = false;
 
         public static void Initialize()
         {
-            GitStatusTask.UnregisterCallback(OnStatusUpdate);
-            GitStatusTask.RegisterCallback(OnStatusUpdate);
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
-            Tasks.ScheduleMainThread(() => Refresh());
+            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
+            StatusService.Instance.RegisterCallback(OnStatusUpdate);
+            initialized = true;
+        }
+
+        public static void Run()
+        {
+            Refresh();
         }
 
         private static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moveDestination, string[] moveSource)
@@ -25,7 +31,10 @@ namespace GitHub.Unity
 
         private static void Refresh()
         {
-            GitStatusTask.Schedule();
+            if (initialized)
+            {
+                StatusService.Instance.Run();
+            }
         }
 
         private static void OnStatusUpdate(GitStatus update)

@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEngine;
 
 namespace GitHub.Unity
 {
@@ -8,6 +9,7 @@ namespace GitHub.Unity
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
         {
+            Debug.Log("Entry Point");
             EditorApplication.update += Initialize;
         }
 
@@ -21,6 +23,8 @@ namespace GitHub.Unity
             Utility.Initialize();
 
             Installer.Initialize();
+
+            StatusService.Initialize();
 
             Tasks.Run();
 

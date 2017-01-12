@@ -7,16 +7,12 @@ namespace GitHub.Unity
     class GitCommitTask : GitTask
     {
         private string arguments = "";
-        private Action onFailure;
-        private Action onSuccess;
 
         private GitCommitTask(string message, string body, Action onSuccess = null, Action onFailure = null)
+            : base(str => onSuccess?.Invoke(), onFailure)
         {
             arguments = "commit ";
             arguments += String.Format(@" -m ""{0}{1}{2}""", message, Environment.NewLine, body);
-
-            this.onSuccess = onSuccess;
-            this.onFailure = onFailure;
         }
 
         public static void Schedule(IEnumerable<string> files, string message, string body, Action onSuccess = null, Action onFailure = null)
@@ -31,29 +27,10 @@ namespace GitHub.Unity
 
         protected override void OnProcessOutputUpdate()
         {
-            if (!Done)
-            {
-                return;
-            }
-
-            // Handle failure / success
-            var buffer = ErrorBuffer.GetStringBuilder();
-            if (buffer.Length > 0)
-            {
-                Tasks.ReportFailure(FailureSeverity.Critical, this, buffer.ToString());
-
-                if (onFailure != null)
-                {
-                    Tasks.ScheduleMainThread(() => onFailure());
-                }
-            }
-            else if (onSuccess != null)
-            {
-                Tasks.ScheduleMainThread(() => onSuccess());
-            }
+            base.OnProcessOutputUpdate();
 
             // Always update
-            GitStatusTask.Schedule();
+            StatusService.Instance.Run();
         }
 
         public override bool Blocking

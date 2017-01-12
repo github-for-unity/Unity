@@ -8,14 +8,11 @@ namespace GitHub.Unity
         private const string SwitchConfirmedMessage = "Switched to branch '{0}'";
 
         private string branch;
-        private Action onFailure;
-        private Action onSuccess;
 
         private GitSwitchBranchesTask(string branch, Action onSuccess, Action onFailure = null)
+            : base(_ => onSuccess(), onFailure)
         {
             this.branch = branch;
-            this.onSuccess = onSuccess;
-            this.onFailure = onFailure;
         }
 
         public static void Schedule(string branch, Action onSuccess, Action onFailure = null)
@@ -25,31 +22,24 @@ namespace GitHub.Unity
 
         protected override void OnProcessOutputUpdate()
         {
-            if (Done)
+            if (!Done)
             {
-                // Handle failure / success
-                var buffer = ErrorBuffer.GetStringBuilder();
-                if (buffer.Length > 0)
+                return;
+            }
+
+            // Handle failure / success
+            var buffer = ErrorBuffer.GetStringBuilder();
+            if (buffer.Length > 0)
+            {
+                var message = buffer.ToString().Trim();
+
+                if (!message.Equals(String.Format(SwitchConfirmedMessage, branch)))
                 {
-                    var message = buffer.ToString().Trim();
-
-                    if (!message.Equals(String.Format(SwitchConfirmedMessage, branch)))
-                    {
-                        Tasks.ReportFailure(FailureSeverity.Critical, this, message);
-                        if (onFailure != null)
-                        {
-                            Tasks.ScheduleMainThread(onFailure);
-                        }
-
-                        return;
-                    }
-                }
-
-                if (onSuccess != null)
-                {
-                    Tasks.ScheduleMainThread(onSuccess);
+                    ReportFailure(message);
+                    return;
                 }
             }
+            ReportSuccess(null);
         }
 
         public override bool Blocking

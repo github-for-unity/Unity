@@ -164,7 +164,7 @@ namespace GitHub.Unity
                     selectedNode = newNodeSelection;
                     newNodeSelection = null;
                     GUIUtility.keyboardControl = listID;
-                    Repaint();
+                    Redraw();
                 }
 
                 // Effectuating mode switch
@@ -177,7 +177,7 @@ namespace GitHub.Unity
                         selectedNode = activeBranchNode;
                     }
 
-                    Repaint();
+                    Redraw();
                 }
             }
         }
@@ -334,7 +334,7 @@ namespace GitHub.Unity
                 BuildTree(remotes[remoteIndex].Root, node);
             }
 
-            Repaint();
+            Redraw();
         }
 
         private void BuildTree(BranchTreeNode parent, BranchTreeNode child)
@@ -469,7 +469,7 @@ namespace GitHub.Unity
             var content = new GUIContent(node.Label, node.Children.Count > 0 ? Styles.FolderIcon : Styles.DefaultAssetIcon);
             var style = node.Active ? Styles.BoldLabel : Styles.Label;
             var rect = GUILayoutUtility.GetRect(content, style, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
-            var clickRect = new Rect(0f, rect.y, position.width, rect.height);
+            var clickRect = new Rect(0f, rect.y, Position.width, rect.height);
             var favouriteRect = new Rect(clickRect.xMax - clickRect.height * 2f, clickRect.y, clickRect.height, clickRect.height);
 
             var selected = selectedNode == node;

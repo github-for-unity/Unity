@@ -62,7 +62,7 @@ namespace GitHub.Unity
                 GitLogTask.Schedule();
             }
 
-            GitStatusTask.Schedule();
+            StatusService.Instance.Run();
 
             if (broadMode)
             {
@@ -341,7 +341,7 @@ namespace GitHub.Unity
             selectionIndex = newSelectionIndex = -1;
 
             GitLogTask.RegisterCallback(OnLogUpdate);
-            GitStatusTask.RegisterCallback(OnStatusUpdate);
+            StatusService.Instance.RegisterCallback(OnStatusUpdate);
 
             changesetTree.Show(this);
             changesetTree.Readonly = true;
@@ -349,7 +349,7 @@ namespace GitHub.Unity
 
         protected override void OnHide()
         {
-            GitStatusTask.UnregisterCallback(OnStatusUpdate);
+            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
             GitLogTask.UnregisterCallback(OnLogUpdate);
         }
 

@@ -22,43 +22,6 @@ using UnityEngine.Events;
 
 namespace GitHub.Unity
 {
-    enum TaskQueueSetting
-    {
-        NoQueue,
-        Queue,
-        QueueSingle
-    }
-
-    interface ITask
-    {
-        void Run();
-        void Abort();
-        void Disconnect();
-        void Reconnect();
-        void WriteCache(TextWriter cache);
-        bool Blocking { get; }
-        float Progress { get; }
-        bool Done { get; }
-        TaskQueueSetting Queued { get; }
-        bool Critical { get; }
-        bool Cached { get; }
-        Action<ITask> OnBegin { set; }
-        Action<ITask> OnEnd { set; }
-        string Label { get; }
-    };
-
-    enum CachedTask
-    {
-        TestTask,
-        ProcessTask
-    };
-
-    enum FailureSeverity
-    {
-        Moderate,
-        Critical
-    };
-
     class Tasks
     {
         internal const string TypeKey = "type", ProcessKey = "process";
@@ -98,7 +61,8 @@ namespace GitHub.Unity
         {
             editorApplicationQuit = (UnityAction)Delegate.Combine(editorApplicationQuit, new UnityAction(OnQuit));
             CacheFilePath = Path.Combine(Application.dataPath, Path.Combine("..", Path.Combine("Temp", CacheFileName)));
-            EditorApplication.playmodeStateChanged += () => {
+            EditorApplication.playmodeStateChanged += () =>
+            {
                 if (EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
                 {
                     OnPlaymodeEnter();
@@ -156,8 +120,7 @@ namespace GitHub.Unity
             }
             else
             {
-                ScheduleMainThread(
-                    () => EditorUtility.DisplayDialog(TaskFailureTitle, String.Format(TaskFailureMessage, task.Label, error), TaskFailureOK));
+                ScheduleMainThread(() => EditorUtility.DisplayDialog(TaskFailureTitle, String.Format(TaskFailureMessage, task.Label, error), TaskFailureOK));
             }
         }
 
@@ -321,7 +284,8 @@ namespace GitHub.Unity
                 // Run and monitor active task
                 if (activeTask != null)
                 {
-                    ScheduleMainThread(() => {
+                    ScheduleMainThread(() =>
+                    {
                         if (activeTask != null)
                         {
                             WaitForTask(activeTask, activeTask.Blocking ? WaitMode.Modal : WaitMode.Background);

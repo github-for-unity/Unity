@@ -7,44 +7,17 @@ namespace GitHub.Unity
     {
         private string baseBranch;
         private string newBranch;
-        private Action onFailure;
-        private Action onSuccess;
 
         private GitBranchCreateTask(string newBranch, string baseBranch, Action onSuccess, Action onFailure)
+            : base(str => onSuccess?.Invoke(), onFailure)
         {
             this.newBranch = newBranch;
             this.baseBranch = baseBranch;
-            this.onSuccess = onSuccess;
-            this.onFailure = onFailure;
         }
 
         public static void Schedule(string newBranch, string baseBranch, Action onSuccess, Action onFailure = null)
         {
             Tasks.Add(new GitBranchCreateTask(newBranch, baseBranch, onSuccess, onFailure));
-        }
-
-        protected override void OnProcessOutputUpdate()
-        {
-            if (Done)
-            {
-                // Handle failure / success
-                var buffer = ErrorBuffer.GetStringBuilder();
-                if (buffer.Length > 0)
-                {
-                    Tasks.ReportFailure(FailureSeverity.Critical, this, buffer.ToString());
-                    if (onFailure != null)
-                    {
-                        Tasks.ScheduleMainThread(onFailure);
-                    }
-
-                    return;
-                }
-
-                if (onSuccess != null)
-                {
-                    Tasks.ScheduleMainThread(onSuccess);
-                }
-            }
         }
 
         public override bool Blocking

@@ -68,7 +68,7 @@ namespace GitHub.Unity
         public override void Refresh()
         {
             GitListRemotesTask.Schedule();
-            GitStatusTask.Schedule();
+            StatusService.Instance.Run();
         }
 
         public override void OnGUI()

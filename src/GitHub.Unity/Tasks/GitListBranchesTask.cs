@@ -4,20 +4,6 @@ using System.IO;
 
 namespace GitHub.Unity
 {
-    struct GitBranch
-    {
-        public string Name { get; private set; }
-        public string Tracking { get; private set; }
-        public bool Active { get; private set; }
-
-        public GitBranch(string name, string tracking, bool active)
-        {
-            Name = name;
-            Tracking = tracking;
-            Active = active;
-        }
-    }
-
     class GitListBranchesTask : GitTask
     {
         private const string LocalArguments = "branch -vv";
@@ -25,14 +11,15 @@ namespace GitHub.Unity
         private const string UnmatchedLineError = "Unable to match the line '{0}'";
         private List<GitBranch> branches = new List<GitBranch>();
         private Mode mode;
-        private Action onFailure;
-        private Action<IEnumerable<GitBranch>> onSuccess;
+        private Action<IEnumerable<GitBranch>> callback;
+        private Action<string> onSuccess;
 
         private GitListBranchesTask(Mode mode, Action<IEnumerable<GitBranch>> onSuccess, Action onFailure = null)
+            : base(null, onFailure)
         {
             this.mode = mode;
-            this.onSuccess = onSuccess;
-            this.onFailure = onFailure;
+            this.callback = onSuccess;
+            this.onSuccess = ParseOutput;
         }
 
         public static void ScheduleLocal(Action<IEnumerable<GitBranch>> onSuccess, Action onFailure = null)
@@ -50,51 +37,26 @@ namespace GitHub.Unity
             Tasks.Add(new GitListBranchesTask(mode, onSuccess, onFailure));
         }
 
-        protected override void OnProcessOutputUpdate()
-        {
-            Utility.ParseLines(OutputBuffer.GetStringBuilder(), ParseOutputLine, Done);
-
-            if (Done)
-            {
-                // Handle failure / success
-                var buffer = ErrorBuffer.GetStringBuilder();
-                if (buffer.Length > 0)
-                {
-                    Tasks.ReportFailure(FailureSeverity.Moderate, this, buffer.ToString());
-                    if (onFailure != null)
-                    {
-                        Tasks.ScheduleMainThread(() => onFailure());
-                    }
-                }
-                else
-                {
-                    Tasks.ScheduleMainThread(DeliverResult);
-                }
-            }
-        }
-
         private void DeliverResult()
         {
-            if (onSuccess == null)
-            {
-                return;
-            }
-
-            onSuccess(branches);
+            callback?.Invoke(branches);
         }
 
-        private void ParseOutputLine(string line)
+        private void ParseOutput(string value)
         {
-            var match = Utility.ListBranchesRegex.Match(line);
-
-            if (!match.Success)
+            foreach (var line in value.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
             {
-                Tasks.ReportFailure(FailureSeverity.Moderate, this, String.Format(UnmatchedLineError, line));
-                return;
-            }
+                var match = Utility.ListBranchesRegex.Match(line);
 
-            branches.Add(new GitBranch(match.Groups["name"].Value, match.Groups["tracking"].Value,
-                !string.IsNullOrEmpty(match.Groups["active"].Value)));
+                if (!match.Success)
+                {
+                    Tasks.ReportFailure(FailureSeverity.Moderate, this, String.Format(UnmatchedLineError, line));
+                    continue;
+                }
+
+                branches.Add(new GitBranch(match.Groups["name"].Value, match.Groups["tracking"].Value,
+                    !string.IsNullOrEmpty(match.Groups["active"].Value)));
+            }
         }
 
         public override bool Blocking
@@ -126,6 +88,8 @@ namespace GitHub.Unity
         {
             get { return mode == Mode.Local ? LocalArguments : RemoteArguments; }
         }
+
+        protected override Action<string> OnSuccess => onSuccess;
 
         private enum Mode
         {

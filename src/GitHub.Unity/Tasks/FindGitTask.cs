@@ -5,13 +5,9 @@ namespace GitHub.Unity
 {
     class FindGitTask : ProcessTask
     {
-        private Action onFailure;
-        private Action<string> onSuccess;
-
         private FindGitTask(Action<string> onSuccess, Action onFailure = null)
+            : base(onSuccess, onFailure)
         {
-            this.onSuccess = onSuccess;
-            this.onFailure = onFailure;
         }
 
         public static bool ValidateGitInstall(string path)
@@ -27,29 +23,6 @@ namespace GitHub.Unity
         public static void Schedule(Action<string> onSuccess, Action onFailure = null)
         {
             Tasks.Add(new FindGitTask(onSuccess, onFailure));
-        }
-
-        protected override void OnProcessOutputUpdate()
-        {
-            if (!Done)
-            {
-                return;
-            }
-
-            var buffer = ErrorBuffer.GetStringBuilder();
-            if (buffer.Length > 0)
-            {
-                Tasks.ReportFailure(FailureSeverity.Critical, this, buffer.ToString());
-
-                if (onFailure != null)
-                {
-                    Tasks.ScheduleMainThread(() => onFailure());
-                }
-            }
-            else if (onSuccess != null)
-            {
-                Tasks.ScheduleMainThread(() => onSuccess(OutputBuffer.ToString().Trim()));
-            }
         }
 
         public static string DefaultGitPath

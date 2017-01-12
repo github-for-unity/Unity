@@ -58,23 +58,34 @@
     </Compile>
     <Compile Include="ProjectWindowInterface.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\StatusService.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="SimpleJson.cs" />
     <Compile Include="Styles.cs" />
+    <Compile Include="Tasks\CachedTask.cs" />
     <Compile Include="Tasks\EvaluateProjectConfigurationTask.cs" />
+    <Compile Include="Tasks\FailureSeverity.cs" />
     <Compile Include="Tasks\FindGitTask.cs" />
     <Compile Include="Tasks\GitAddTask.cs" />
+    <Compile Include="Tasks\GitBranch.cs" />
     <Compile Include="Tasks\GitBranchCreateTask.cs" />
     <Compile Include="Tasks\GitCommitTask.cs" />
+    <Compile Include="Tasks\GitFileStatus.cs" />
     <Compile Include="Tasks\GitListBranchesTask.cs" />
     <Compile Include="Tasks\GitListRemotesTask.cs" />
-    <Compile Include="Tasks\GitListUntrackedFilesTask.cs" />
+    <Compile Include="Tasks\GitLogEntry.cs" />
     <Compile Include="Tasks\GitLogTask.cs" />
+    <Compile Include="Tasks\GitRemote.cs" />
+    <Compile Include="Tasks\GitRemoteFunction.cs" />
+    <Compile Include="Tasks\GitStatus.cs" />
+    <Compile Include="Tasks\GitStatusEntry.cs" />
     <Compile Include="Tasks\GitStatusTask.cs" />
     <Compile Include="Tasks\GitSwitchBranchesTask.cs" />
     <Compile Include="Tasks\GitTask.cs" />
+    <Compile Include="Tasks\ITask.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskException.cs" />
+    <Compile Include="Tasks\TaskQueueSetting.cs" />
     <Compile Include="Tasks\Tasks.cs" />
     <Compile Include="Tasks\TestTask.cs" />
     <Compile Include="Utility.cs" />
@@ -123,6 +134,7 @@
       <Link>GitHub.ruleset</Link>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

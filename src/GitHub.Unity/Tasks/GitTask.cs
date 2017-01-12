@@ -1,8 +1,14 @@
+using System;
+
 namespace GitHub.Unity
 {
     class GitTask : ProcessTask
     {
         private const string NoGitError = "Tried to run git task while git was not found.";
+
+        public GitTask(Action<string> onSuccess, Action onFailure)
+            : base(onSuccess, onFailure)
+        {}
 
         public override void Run()
         {

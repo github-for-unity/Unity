@@ -14,10 +14,16 @@ namespace GitHub.Unity
 
         private readonly StringWriter error = new StringWriter();
         private readonly StringWriter output = new StringWriter();
+        private Action onFailure;
+        private Action<string> onSuccess;
+
         private Process process;
 
-        protected ProcessTask()
-        {}
+        protected ProcessTask(Action<string> onSuccess = null, Action onFailure = null)
+        {
+            this.onSuccess = onSuccess;
+            this.onFailure = onFailure;
+        }
 
         [MenuItem("Assets/GitHub/Process Test")]
         public static void Test()
@@ -158,7 +164,40 @@ namespace GitHub.Unity
         }
 
         protected virtual void OnProcessOutputUpdate()
-        {}
+        {
+            if (!Done)
+            {
+                return;
+            }
+
+            var buffer = ErrorBuffer.GetStringBuilder();
+            if (buffer.Length > 0)
+            {
+                ReportFailure(buffer.ToString());
+            }
+            else
+            {
+                ReportSuccess(OutputBuffer.ToString().Trim());
+            }
+        }
+
+        protected void ReportSuccess(string msg)
+        {
+            if (OnSuccess != null)
+            {
+                Tasks.ScheduleMainThread(() => OnSuccess(msg));
+            }
+        }
+
+        protected void ReportFailure(string msg)
+        {
+            Tasks.ReportFailure(FailureSeverity.Critical, this, msg);
+
+            if (OnFailure != null)
+            {
+                Tasks.ScheduleMainThread(() => OnFailure());
+            }
+        }
 
         bool disposed = false;
         public virtual void Dispose(bool disposing)
@@ -234,5 +273,8 @@ namespace GitHub.Unity
         {
             get { return error; }
         }
+
+        protected virtual Action<string> OnSuccess => onSuccess;
+        protected virtual Action OnFailure => onFailure;
     }
 }

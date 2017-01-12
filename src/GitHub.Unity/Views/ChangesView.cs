@@ -28,7 +28,7 @@ namespace GitHub.Unity
 
         public override void Refresh()
         {
-            GitStatusTask.Schedule();
+            StatusService.Instance.Run();
         }
 
         public override void OnGUI()
@@ -99,12 +99,12 @@ namespace GitHub.Unity
         protected override void OnShow()
         {
             tree.Show(this);
-            GitStatusTask.RegisterCallback(OnStatusUpdate);
+            StatusService.Instance.RegisterCallback(OnStatusUpdate);
         }
 
         protected override void OnHide()
         {
-            GitStatusTask.UnregisterCallback(OnStatusUpdate);
+            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
         }
 
         private void OnStatusUpdate(GitStatus update)
