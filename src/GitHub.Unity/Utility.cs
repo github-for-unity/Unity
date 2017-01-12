@@ -133,7 +133,7 @@ namespace GitHub.Unity
                 filename = filename2x;
             }
 
-            return Assembly.GetExecutingAssembly().GetManifestResourceStream(filename).ToTexture2D();
+            return Assembly.GetExecutingAssembly().GetManifestResourceStream("GitHub.Unity.Icons." + filename).ToTexture2D();
         }
 
         // Based on: https://www.rosettacode.org/wiki/Find_common_directory_path#C.23
