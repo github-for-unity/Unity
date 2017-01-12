@@ -163,7 +163,7 @@ namespace GitHub.Unity
         {
             remotes.Clear();
             remotes.AddRange(entries);
-            Repaint();
+            Redraw();
         }
 
         private bool OnIssuesGUI()
@@ -292,7 +292,7 @@ namespace GitHub.Unity
 
         private void OnRemotesGUI()
         {
-            var remotesWith = position.width - Styles.RemotesTotalHorizontalMargin - 16f;
+            var remotesWith = Position.width - Styles.RemotesTotalHorizontalMargin - 16f;
             var nameWidth = remotesWith * Styles.RemotesNameRatio;
             var userWidth = remotesWith * Styles.RemotesUserRatio;
             var hostWidth = remotesWith * Styles.RemotesHostRation;
@@ -329,7 +329,7 @@ namespace GitHub.Unity
 
         private void OnGitIgnoreRulesGUI()
         {
-            var gitignoreRulesWith = position.width - Styles.GitIgnoreRulesTotalHorizontalMargin - Styles.GitIgnoreRulesSelectorWidth - 16f;
+            var gitignoreRulesWith = Position.width - Styles.GitIgnoreRulesTotalHorizontalMargin - Styles.GitIgnoreRulesSelectorWidth - 16f;
             var effectWidth = gitignoreRulesWith * Styles.GitIgnoreRulesEffectRatio;
             var fileWidth = gitignoreRulesWith * Styles.GitIgnoreRulesFileRatio;
             var lineWidth = gitignoreRulesWith * Styles.GitIgnoreRulesLineRatio;

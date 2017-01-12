@@ -3,14 +3,6 @@ using Debug = System.Diagnostics.Debug;
 
 namespace GitHub.Unity
 {
-    interface IView
-    {
-        void Refresh();
-        void Repaint();
-        void OnGUI();
-        Rect position { get; }
-    }
-
     abstract class Subview : IView
     {
         private const string NullParentError = "Subview parent is null";
@@ -22,9 +14,9 @@ namespace GitHub.Unity
 
         public abstract void OnGUI();
 
-        public void Repaint()
+        public void Redraw()
         {
-            parent.Repaint();
+            parent.Redraw();
         }
 
         public void Show(IView parentView)
@@ -57,9 +49,6 @@ namespace GitHub.Unity
             OnHide();
         }
 
-        public Rect position
-        {
-            get { return parent.position; }
-        }
+        public Rect Position => parent.Position;
     }
 }

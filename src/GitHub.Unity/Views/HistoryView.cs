@@ -84,19 +84,19 @@ namespace GitHub.Unity
             var past = broadMode;
 
             // Flip when the limits are breached
-            if (position.width > Styles.BroadModeLimit)
+            if (Position.width > Styles.BroadModeLimit)
             {
                 broadMode = true;
             }
-            else if (position.width < Styles.NarrowModeLimit)
+            else if (Position.width < Styles.NarrowModeLimit)
             {
                 broadMode = false;
             }
 
             // Show the layout notification while scaling
             var window = (Window)parent;
-            var scaled = position.width != lastWidth;
-            lastWidth = position.width;
+            var scaled = Position.width != lastWidth;
+            lastWidth = Position.width;
 
             if (scaled)
             {
@@ -130,7 +130,7 @@ namespace GitHub.Unity
             {
                 GUILayout.BeginVertical(
                     GUILayout.MinWidth(Styles.BroadModeBranchesMinWidth),
-                    GUILayout.MaxWidth(Mathf.Max(Styles.BroadModeBranchesMinWidth, position.width * Styles.BroadModeBranchesRatio))
+                    GUILayout.MaxWidth(Mathf.Max(Styles.BroadModeBranchesMinWidth, Position.width * Styles.BroadModeBranchesRatio))
                 );
                 {
                     ((Window)parent).BranchesTab.OnEmbeddedGUI();
@@ -254,7 +254,7 @@ namespace GitHub.Unity
                         if (newSelectionIndex < historyStartIndex || newSelectionIndex > historyStopIndex)
                         {
                             ScrollTo(newSelectionIndex,
-                                (position.height - position.height * MaxChangelistHeightRatio - 30f - EntryHeight) * -.5f);
+                                (Position.height - Position.height * MaxChangelistHeightRatio - 30f - EntryHeight) * -.5f);
                         }
                         Event.current.Use();
                     }
@@ -290,7 +290,7 @@ namespace GitHub.Unity
                 if (changesetTree.Entries.Any())
                 {
                     detailsScroll = GUILayout.BeginScrollView(detailsScroll,
-                        GUILayout.MinHeight(Mathf.Min(changesetTree.Height, position.height * MaxChangelistHeightRatio)));
+                        GUILayout.MinHeight(Mathf.Min(changesetTree.Height, Position.height * MaxChangelistHeightRatio)));
                     {
                         HistoryEntry(selection, GetEntryState(selectionIndex), false);
 
@@ -330,14 +330,14 @@ namespace GitHub.Unity
                         changesetTree.Update(history[selectionIndex].Changes);
                     }
 
-                    Repaint();
+                    Redraw();
                 }
             }
         }
 
         protected override void OnShow()
         {
-            lastWidth = position.width;
+            lastWidth = Position.width;
             selectionIndex = newSelectionIndex = -1;
 
             GitLogTask.RegisterCallback(OnLogUpdate);
@@ -404,7 +404,7 @@ namespace GitHub.Unity
                 }
             }
 
-            Repaint();
+            Redraw();
         }
 
         private void ScrollTo(int index, float offset = 0f)
@@ -427,7 +427,7 @@ namespace GitHub.Unity
                 (int)
                     Mathf.Clamp(
                         historyStartIndex +
-                            (position.height - 2f * Mathf.Min(changesetTree.Height, position.height * MaxChangelistHeightRatio)) /
+                            (Position.height - 2f * Mathf.Min(changesetTree.Height, Position.height * MaxChangelistHeightRatio)) /
                                 EntryHeight + 1, 0, history.Count);
         }
 

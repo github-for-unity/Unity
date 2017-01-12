@@ -80,6 +80,28 @@ namespace GitHub.Unity
             ActiveTab.OnGUI();
         }
 
+        public void OnEnable()
+        {
+            historyTab.Show(this);
+            changesTab.Show(this);
+            branchesTab.Show(this);
+            settingsTab.Show(this);
+
+            Utility.UnregisterReadyCallback(Refresh);
+            Utility.RegisterReadyCallback(Refresh);
+        }
+
+        public void Update()
+        {
+            // Notification auto-clear timer override
+            if (notificationClearTime > 0f && EditorApplication.timeSinceStartup > notificationClearTime)
+            {
+                notificationClearTime = -1f;
+                RemoveNotification();
+                Redraw();
+            }
+        }
+
         public void Refresh()
         {
             EvaluateProjectConfigurationTask.Schedule();
@@ -88,6 +110,11 @@ namespace GitHub.Unity
             {
                 ActiveTab.Refresh();
             }
+        }
+
+        public void Redraw()
+        {
+            Repaint();
         }
 
         public new void ShowNotification(GUIContent content)
@@ -106,28 +133,6 @@ namespace GitHub.Unity
         private static void TabButton(ref SubTab activeTab, SubTab tab, string title)
         {
             activeTab = GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
-        }
-
-        private void OnEnable()
-        {
-            historyTab.Show(this);
-            changesTab.Show(this);
-            branchesTab.Show(this);
-            settingsTab.Show(this);
-
-            Utility.UnregisterReadyCallback(Refresh);
-            Utility.RegisterReadyCallback(Refresh);
-        }
-
-        private void Update()
-        {
-            // Notification auto-clear timer override
-            if (notificationClearTime > 0f && EditorApplication.timeSinceStartup > notificationClearTime)
-            {
-                notificationClearTime = -1f;
-                RemoveNotification();
-                Repaint();
-            }
         }
 
         private void OnSelectionChange()
@@ -168,12 +173,14 @@ namespace GitHub.Unity
                     case SubTab.Branches:
                         return branchesTab;
                     case SubTab.Settings:
-                        return settingsTab;
                     default:
-                        throw new ArgumentException(String.Format(UnknownSubTabError, activeTab));
+                        return settingsTab;
+                        //throw new ArgumentException(String.Format(UnknownSubTabError, activeTab));
                 }
             }
         }
+
+        public Rect Position => position;
 
         private class RefreshRunner : AssetPostprocessor
         {

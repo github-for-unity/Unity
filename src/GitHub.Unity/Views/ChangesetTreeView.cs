@@ -148,7 +148,7 @@ namespace GitHub.Unity
                     if (Height == 0f && Event.current.type == EventType.Repaint)
                     {
                         Height = GUILayoutUtility.GetLastRect().yMax + Styles.MinCommitTreePadding;
-                        Repaint();
+                        Redraw();
                     }
 
                     GUILayout.FlexibleSpace();
@@ -173,8 +173,8 @@ namespace GitHub.Unity
         private void OnCommitTreeChange()
         {
             Height = 0f;
-            Repaint();
-            Repaint();
+            Redraw();
+            Redraw();
         }
 
         private void BuildTree(FileTreeNode parent, FileTreeNode node)

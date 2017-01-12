@@ -121,7 +121,7 @@ namespace GitHub.Unity
         private void OnCommitDetailsAreaGUI()
         {
             GUILayout.BeginVertical(GUILayout.Height(
-                    Mathf.Clamp(position.height * Styles.CommitAreaDefaultRatio,
+                    Mathf.Clamp(Position.height * Styles.CommitAreaDefaultRatio,
                     Styles.CommitAreaMinHeight,
                     Styles.CommitAreaMaxHeight))
             );

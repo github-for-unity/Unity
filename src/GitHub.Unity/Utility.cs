@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -125,35 +124,6 @@ namespace GitHub.Unity
             var localDataPath = UnityAssetsPath.Substring(GitRoot.Length + 1);
             return Path.Combine(localDataPath.Substring(0, localDataPath.Length - "Assets".Length),
                 assetPath.Replace('/', Path.DirectorySeparatorChar));
-        }
-
-        public static void ParseLines(StringBuilder buffer, Action<string> lineParser, bool parseAll)
-        {
-            var end = buffer.Length - 1;
-
-            // Try to avoid partial lines unless asked not to
-            if (!parseAll)
-            {
-                for (; end > 0 && buffer[end] != '\n'; --end) ;
-            }
-
-            // Parse lines if we have any buffer to parse
-            if (end > 0)
-            {
-                for (int index = 0, last = -1; index <= end; ++index)
-                {
-                    if (buffer[index] == '\n')
-                    {
-                        var start = last + 1;
-                        // TODO: Figure out how we get out of doing that ToString call
-                        var line = buffer.ToString(start, index - start);
-                        lineParser(line);
-                        last = index;
-                    }
-                }
-
-                buffer.Remove(0, end + 1);
-            }
         }
 
         public static Texture2D GetIcon(string filename, string filename2x = "")

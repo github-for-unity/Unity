@@ -82,6 +82,7 @@
     <Compile Include="Views\ChangesetTreeView.cs" />
     <Compile Include="Views\ChangesView.cs" />
     <Compile Include="Views\HistoryView.cs" />
+    <Compile Include="Views\IView.cs" />
     <Compile Include="Views\SettingsView.cs" />
     <Compile Include="Views\View.cs" />
     <Compile Include="Window.cs" />
