@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 
-namespace GitHub.Extensions
+namespace GitHub.Unity
 {
-    public static class Guard
+    public static class Ensure
     {
         public static void ArgumentNotNull(object value, string name)
         {
@@ -40,9 +40,9 @@ namespace GitHub.Extensions
         /// </summary>
         /// <param name = "value">The argument value to check.</param>
         /// <param name = "name">The name of the argument.</param>
-        public static void ArgumentNotEmptyString(string value, string name)
+        public static void ArgumentNotNullOrEmpty(string value, string name)
         {
-            if (value?.Length > 0) return;
+            if (value == null || value.Length > 0) return;
             string message = String.Format(CultureInfo.InvariantCulture, "The value for '{0}' must not be empty", name);
 #if DEBUG
             if (!InUnitTestRunner)

@@ -13,22 +13,21 @@ namespace GitHub.Unity
     {
         public const string StatusRenameDivider = "->";
         public static readonly Regex ListBranchesRegex =
-            new Regex(@"^(?<active>\*)?\s+(?<name>[\w\d\/\-\_]+)\s*(?:[a-z|0-9]{7} \[(?<tracking>[\w\d\/\-\_]+)\])?"),
-                                     ListRemotesRegex =
+            new Regex(@"^(?<active>\*)?\s+(?<name>[\w\d\/\-\_]+)\s*(?:[a-z|0-9]{7} \[(?<tracking>[\w\d\/\-\_]+)\])?");
+        public static readonly Regex ListRemotesRegex = 
+            new Regex(@"(?<name>[\w\d\-\_]+)\s+(?<url>https?:\/\/(?<login>(?<user>[\w\d]+)(?::(?<token>[\w\d]+))?)@(?<host>[\w\d\.\/\%]+))\s+\((?<function>fetch|push)\)");
+        public static readonly Regex LogCommitRegex = new Regex(@"commit\s(\S+)");
+        public static readonly Regex LogMergeRegex = new Regex(@"Merge:\s+(\S+)\s+(\S+)");
+        public static readonly Regex LogAuthorRegex = new Regex(@"Author:\s+(.+)\s<(.+)>");
+        public static readonly Regex LogTimeRegex = new Regex(@"Date:\s+(.+)");
+        public static readonly Regex LogDescriptionRegex = new Regex(@"^\s+(.+)");
+        public static readonly Regex StatusStartRegex = new Regex(@"(?<status>[AMRDC]|\?\?)(?:\d*)\s+(?<path>[\w\d\/\.\-_ \@]+)");
+        public static readonly Regex StatusEndRegex = new Regex(@"->\s(?<path>[\w\d\/\.\-_ ]+)");
+        public static readonly Regex StatusBranchLineValidRegex = new Regex(@"\#\#\s+(?:[\w\d\/\-_\.]+)");
+        public static readonly Regex StatusAheadBehindRegex =
                                          new Regex(
-                                             @"(?<name>[\w\d\-\_]+)\s+(?<url>https?:\/\/(?<login>(?<user>[\w\d]+)(?::(?<token>[\w\d]+))?)@(?<host>[\w\d\.\/\%]+))\s+\((?<function>fetch|push)\)"),
-                                     LogCommitRegex = new Regex(@"commit\s(\S+)"),
-                                     LogMergeRegex = new Regex(@"Merge:\s+(\S+)\s+(\S+)"),
-                                     LogAuthorRegex = new Regex(@"Author:\s+(.+)\s<(.+)>"),
-                                     LogTimeRegex = new Regex(@"Date:\s+(.+)"),
-                                     LogDescriptionRegex = new Regex(@"^\s+(.+)"),
-                                     StatusStartRegex = new Regex(@"(?<status>[AMRDC]|\?\?)(?:\d*)\s+(?<path>[\w\d\/\.\-_ \@]+)"),
-                                     StatusEndRegex = new Regex(@"->\s(?<path>[\w\d\/\.\-_ ]+)"),
-                                     StatusBranchLineValidRegex = new Regex(@"\#\#\s+(?:[\w\d\/\-_\.]+)"),
-                                     StatusAheadBehindRegex =
-                                         new Regex(
-                                             @"\[ahead (?<ahead>\d+), behind (?<behind>\d+)\]|\[ahead (?<ahead>\d+)\]|\[behind (?<behind>\d+>)\]"),
-                                     BranchNameRegex = new Regex(@"^(?<name>[\w\d\/\-\_]+)$");
+                                             @"\[ahead (?<ahead>\d+), behind (?<behind>\d+)\]|\[ahead (?<ahead>\d+)\]|\[behind (?<behind>\d+>)\]");
+        public static readonly Regex BranchNameRegex = new Regex(@"^(?<name>[\w\d\/\-\_]+)$");
 
         private static bool ready;
         private static Action onReady;
