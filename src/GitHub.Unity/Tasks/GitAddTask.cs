@@ -9,7 +9,7 @@ namespace GitHub.Unity
         private string arguments = "";
 
         private GitAddTask(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
-            : base(str => onSuccess?.Invoke(), onFailure)
+            : base(str => onSuccess.Invoke(), onFailure)
         {
             arguments = "add ";
             arguments += " -- ";

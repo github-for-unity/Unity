@@ -12,14 +12,13 @@ namespace GitHub.Unity
         private List<GitBranch> branches = new List<GitBranch>();
         private Mode mode;
         private Action<IEnumerable<GitBranch>> callback;
-        private Action<string> onSuccess;
+        private readonly BranchListOutputProcessor processor = new BranchListOutputProcessor();
 
         private GitListBranchesTask(Mode mode, Action<IEnumerable<GitBranch>> onSuccess, Action onFailure = null)
             : base(null, onFailure)
         {
             this.mode = mode;
             this.callback = onSuccess;
-            this.onSuccess = ParseOutput;
         }
 
         public static void ScheduleLocal(Action<IEnumerable<GitBranch>> onSuccess, Action onFailure = null)
@@ -37,26 +36,27 @@ namespace GitHub.Unity
             Tasks.Add(new GitListBranchesTask(mode, onSuccess, onFailure));
         }
 
-        private void DeliverResult()
+        protected override ProcessOutputManager HookupOutput(IProcess process)
         {
-            callback?.Invoke(branches);
+            processor.OnBranch += AddBranch;
+            return new ProcessOutputManager(process, processor);
         }
 
-        private void ParseOutput(string value)
+        protected override void OnProcessOutputUpdate()
         {
-            foreach (var line in value.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
-            {
-                var match = Utility.ListBranchesRegex.Match(line);
+            UnityEngine.Debug.Log("Done (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+            Tasks.ScheduleMainThread(() => DeliverResult());
+        }
 
-                if (!match.Success)
-                {
-                    Tasks.ReportFailure(FailureSeverity.Moderate, this, String.Format(UnmatchedLineError, line));
-                    continue;
-                }
+        private void AddBranch(GitBranch branch)
+        {
+            UnityEngine.Debug.Log("AddBranch " + branch + " (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+            branches.Add(branch);
+        }
 
-                branches.Add(new GitBranch(match.Groups["name"].Value, match.Groups["tracking"].Value,
-                    !string.IsNullOrEmpty(match.Groups["active"].Value)));
-            }
+        private void DeliverResult()
+        {
+            callback.Invoke(branches);
         }
 
         public override bool Blocking
@@ -81,15 +81,13 @@ namespace GitHub.Unity
 
         public override string Label
         {
-            get { return "git branch"; }
+            get { return "git list branch"; }
         }
 
         protected override string ProcessArguments
         {
             get { return mode == Mode.Local ? LocalArguments : RemoteArguments; }
         }
-
-        protected override Action<string> OnSuccess => onSuccess;
 
         private enum Mode
         {

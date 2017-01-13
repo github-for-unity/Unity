@@ -70,13 +70,13 @@ namespace GitHub.Unity
             };
 
             tasks = new Queue<ITask>();
-            if (File.Exists(CacheFilePath))
-            {
-                ReadCache();
-                File.Delete(CacheFilePath);
+            //if (File.Exists(CacheFilePath))
+            //{
+            //    ReadCache();
+            //    File.Delete(CacheFilePath);
 
-                OnSessionRestarted();
-            }
+            //    OnSessionRestarted();
+            //}
         }
 
         // "Everything is broken - let's rebuild from the ashes (read: cache)"
@@ -93,18 +93,24 @@ namespace GitHub.Unity
 
         public static void Add(ITask task)
         {
-            lock(Instance.tasksLock)
+            Instance.AddTask(task);
+        }
+
+        private void AddTask(ITask task)
+        {
+            UnityEngine.Debug.LogFormat("Adding task " + task.GetType() + " " + task.Label);
+            lock (tasksLock)
             {
-                if ((task.Queued == TaskQueueSetting.NoQueue && Instance.tasks.Count > 0) ||
-                    (task.Queued == TaskQueueSetting.QueueSingle && Instance.tasks.Any(t => t.GetType() == task.GetType())))
+                if ((task.Queued == TaskQueueSetting.NoQueue && tasks.Count > 0) ||
+                    (task.Queued == TaskQueueSetting.QueueSingle && tasks.Any(t => t.GetType() == task.GetType())))
                 {
                     return;
                 }
 
-                Instance.tasks.Enqueue(task);
+                tasks.Enqueue(task);
             }
 
-            Instance.WriteCache();
+            //WriteCache();
         }
 
         public static void ScheduleMainThread(Action action)
@@ -268,21 +274,22 @@ namespace GitHub.Unity
                     activeTask = null;
                 }
 
+                var runningNewTask = activeTask == null;
                 // Grab a new task
-                if (activeTask == null)
+                if (runningNewTask)
                 {
                     lock(tasksLock)
                     {
                         if (tasks.Count > 0)
                         {
                             activeTask = tasks.Dequeue();
-                            activeTask.OnBegin = task => ScheduleMainThread(WriteCache);
+                            //activeTask.OnBegin = task => ScheduleMainThread(WriteCache);
                         }
                     }
                 }
 
                 // Run and monitor active task
-                if (activeTask != null)
+                if (runningNewTask)
                 {
                     ScheduleMainThread(() =>
                     {
@@ -292,8 +299,8 @@ namespace GitHub.Unity
                         }
                     });
 
-                    activeTask.Run();
-                    WriteCache();
+                    ThreadPool.QueueUserWorkItem(_ => activeTask.Run());
+                    //WriteCache();
                 }
                 else
                 // Wait for something to do

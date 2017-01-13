@@ -9,7 +9,7 @@ namespace GitHub.Unity
         private string arguments = "";
 
         private GitCommitTask(string message, string body, Action onSuccess = null, Action onFailure = null)
-            : base(str => onSuccess?.Invoke(), onFailure)
+            : base(str => onSuccess.Invoke(), onFailure)
         {
             arguments = "commit ";
             arguments += String.Format(@" -m ""{0}{1}{2}""", message, Environment.NewLine, body);

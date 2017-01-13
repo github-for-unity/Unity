@@ -22,6 +22,7 @@
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CodeAnalysisRuleSet>..\common\GitHub.ruleset</CodeAnalysisRuleSet>
+    <LangVersion>4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -49,7 +50,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EntryPoint.cs" />
-    <Compile Include="Guard.cs" />
+    <Compile Include="Ensure.cs" />
+    <Compile Include="Helpers\StringExtensions.cs" />
+    <Compile Include="IO\BaseOutputProcessor.cs" />
+    <Compile Include="IO\BranchListOutputProcessor.cs" />
+    <Compile Include="IO\DefaultEnvironment.cs" />
+    <Compile Include="IO\FileSystem.cs" />
+    <Compile Include="IO\GitEnvironment.cs" />
+    <Compile Include="IO\IEnvironment.cs" />
+    <Compile Include="IO\IFileSystem.cs" />
+    <Compile Include="IO\IGitEnvironment.cs" />
+    <Compile Include="IO\IOutputProcessor.cs" />
+    <Compile Include="IO\IProcess.cs" />
+    <Compile Include="Helpers\LineProcessor.cs" />
+    <Compile Include="IO\ProcessOutputManager.cs" />
+    <Compile Include="IO\ProcessWrapper.cs" />
     <Compile Include="Installer.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -83,6 +98,7 @@
     <Compile Include="Tasks\GitSwitchBranchesTask.cs" />
     <Compile Include="Tasks\GitTask.cs" />
     <Compile Include="Tasks\ITask.cs" />
+    <Compile Include="IO\ProcessManager.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskException.cs" />
     <Compile Include="Tasks\TaskQueueSetting.cs" />

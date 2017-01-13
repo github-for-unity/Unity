@@ -636,14 +636,11 @@ namespace GitHub.Unity
                 Active = active;
             }
 
-            public string Name { get; }
-            public NodeType Type { get; }
-            public bool Active { get; }
+            public string Name { get; private set; }
+            public NodeType Type { get; private set; }
+            public bool Active { get; private set; }
 
-            public IList<BranchTreeNode> Children
-            {
-                get { return children; }
-            }
+            public IList<BranchTreeNode> Children { get { return children; } }
         }
 
         private struct Remote

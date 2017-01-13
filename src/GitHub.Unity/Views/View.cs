@@ -49,6 +49,6 @@ namespace GitHub.Unity
             OnHide();
         }
 
-        public Rect Position => parent.Position;
+        public Rect Position { get { return parent.Position; } }
     }
 }

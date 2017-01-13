@@ -10,14 +10,15 @@ namespace GitHub.Unity
 {
     class ProcessTask : ITask, IDisposable
     {
-        private const int ExitMonitorSleep = 10;
+        private const int ExitMonitorSleep = 100;
 
         private readonly StringWriter error = new StringWriter();
         private readonly StringWriter output = new StringWriter();
+
         private Action onFailure;
         private Action<string> onSuccess;
 
-        private Process process;
+        private IProcess process;
 
         protected ProcessTask(Action<string> onSuccess = null, Action onFailure = null)
         {
@@ -37,19 +38,18 @@ namespace GitHub.Unity
         /// <returns></returns>
         public static ProcessTask Parse(IDictionary<string, object> data)
         {
-            Process resumedProcess;
+            IProcess resumedProcess;
 
             try
             {
-                resumedProcess = Process.GetProcessById((int)(Int64)data[Tasks.ProcessKey]);
-                resumedProcess.StartInfo.RedirectStandardOutput = resumedProcess.StartInfo.RedirectStandardError = true;
+                resumedProcess = ProcessManager.Instance.Reconnect((int)(Int64)data[Tasks.ProcessKey]);
             }
             catch (Exception)
             {
                 resumedProcess = null;
             }
 
-            return new ProcessTask() {
+            return new ProcessTask {
                 process = resumedProcess,
                 Done = resumedProcess == null,
                 Progress = resumedProcess == null ? 1f : 0f
@@ -58,59 +58,74 @@ namespace GitHub.Unity
 
         public virtual void Run()
         {
-            Debug.LogFormat("{0} {1}", Label, process == null ? "start" : "reconnect");
+            Debug.LogFormat("{0} {1} ({2})", Label, process == null ? "start" : "reconnect", System.Threading.Thread.CurrentThread.ManagedThreadId);
 
             Done = false;
             Progress = 0.0f;
 
-            if (OnBegin != null)
-            {
-                OnBegin(this);
-            }
+            OnBegin.Invoke(this);
+
+            var firstTime = process == null;
 
             // Only start the process if we haven't already reconnected to an existing instance
-            if (process == null)
+            if (firstTime)
             {
-                process =
-                    Process.Start(new ProcessStartInfo(ProcessName, ProcessArguments) {
-                        CreateNoWindow = true,
-                        UseShellExecute = false,
-                        RedirectStandardError = true,
-                        RedirectStandardOutput = true,
-                        WorkingDirectory = Utility.GitRoot
-                    });
+                process = ProcessManager.Instance.Configure(ProcessName, ProcessArguments, Utility.GitRoot);
+            }
+
+            process.OnExit += p =>
+            {
+                UnityEngine.Debug.Log("OnExit (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+                Finished();
+            };
+
+            var outputManager = HookupOutput(process);
+
+            if (firstTime)
+            {
+                process.Run();
+            }
+
+            if (process.HasExited)
+            {
+                Finished();
             }
 
             // NOTE: WaitForExit is too low level here. Won't be properly interrupted by thread abort.
-            do
-            {
-                // Wait a bit
-                Thread.Sleep(ExitMonitorSleep);
+            //do
+            //{
+            //    //process.WaitForExit(ExitMonitorSleep);
+            //    // Wait a bit
+            //    //Thread.Sleep(ExitMonitorSleep);
 
-                // Read all available process output
-                var updated = false;
+            //    // Read all available process output
+            //    //var updated = false;
 
-                while (!process.StandardOutput.EndOfStream)
-                {
-                    var read = (char)process.StandardOutput.Read();
-                    OutputBuffer.Write(read);
-                    updated = true;
-                }
+            //    //while (!process.StandardOutput.EndOfStream)
+            //    //{
+            //    //    var read = (char)process.StandardOutput.Read();
+            //    //    OutputBuffer.Write(read);
+            //    //    updated = true;
+            //    //}
 
-                while (!process.StandardError.EndOfStream)
-                {
-                    var read = (char)process.StandardError.Read();
-                    ErrorBuffer.Write(read);
-                    updated = true;
-                }
+            //    //while (!process.StandardError.EndOfStream)
+            //    //{
+            //    //    var read = (char)process.StandardError.Read();
+            //    //    ErrorBuffer.Write(read);
+            //    //    updated = true;
+            //    //}
 
-                // Notify if anything was read
-                if (updated)
-                {
-                    OnProcessOutputUpdate();
-                }
-            } while (!process.HasExited);
+            //    //// Notify if anything was read
+            //    //if (updated)
+            //    //{
+            //    //    OnProcessOutputUpdate();
+            //    //}
+            //} while (!process.HasExited);
 
+        }
+
+        private void Finished()
+        {
             Progress = 1.0f;
             Done = true;
 
@@ -118,10 +133,7 @@ namespace GitHub.Unity
 
             Debug.LogFormat("{0} end", Label);
 
-            if (OnEnd != null)
-            {
-                OnEnd(this);
-            }
+            OnEnd.Invoke(this);
         }
 
         public void Abort()
@@ -137,10 +149,7 @@ namespace GitHub.Unity
 
             Done = true;
 
-            if (OnEnd != null)
-            {
-                OnEnd(this);
-            }
+            OnEnd.Invoke(this);
         }
 
         public void Disconnect()
@@ -161,6 +170,13 @@ namespace GitHub.Unity
             cache.WriteLine(String.Format("\"{0}\": \"{1}\",", Tasks.TypeKey, CachedTaskType));
             cache.WriteLine(String.Format("\"{0}\": \"{1}\"", Tasks.ProcessKey, process == null ? -1 : process.Id));
             cache.WriteLine("}");
+        }
+
+        protected virtual ProcessOutputManager HookupOutput(IProcess process)
+        {
+            var outputProcessor = new BaseOutputProcessor();
+            outputProcessor.OnData += OutputBuffer.WriteLine;
+            return new ProcessOutputManager(process, outputProcessor);
         }
 
         protected virtual void OnProcessOutputUpdate()
@@ -218,63 +234,28 @@ namespace GitHub.Unity
             GC.SuppressFinalize(this);
         }
 
-        public virtual bool Blocking
-        {
-            get { return true; }
-        }
-
         public virtual float Progress { get; protected set; }
         public virtual bool Done { get; protected set; }
 
-        public virtual TaskQueueSetting Queued
-        {
-            get { return TaskQueueSetting.Queue; }
-        }
+        public virtual bool Blocking { get { return true; } }
+        public virtual bool Critical { get { return true; } }
+        public virtual bool Cached { get { return true; } }
 
-        public virtual bool Critical
-        {
-            get { return true; }
-        }
-
-        public virtual bool Cached
-        {
-            get { return true; }
-        }
+        public virtual TaskQueueSetting Queued { get { return TaskQueueSetting.Queue; } }
 
         public virtual Action<ITask> OnBegin { get; set; }
         public virtual Action<ITask> OnEnd { get; set; }
+        public virtual string Label { get { return "Process task"; } }
 
-        public virtual string Label
-        {
-            get { return "Process task"; }
-        }
+        protected virtual string ProcessName { get { return "sleep"; } }
+        protected virtual string ProcessArguments { get { return "20"; } }
 
-        protected virtual string ProcessName
-        {
-            get { return "sleep"; }
-        }
+        protected virtual CachedTask CachedTaskType { get { return CachedTask.ProcessTask; } }
 
-        protected virtual string ProcessArguments
-        {
-            get { return "20"; }
-        }
+        protected virtual StringWriter OutputBuffer { get { return output; } }
+        protected virtual StringWriter ErrorBuffer { get { return error; } }
 
-        protected virtual CachedTask CachedTaskType
-        {
-            get { return CachedTask.ProcessTask; }
-        }
-
-        protected virtual StringWriter OutputBuffer
-        {
-            get { return output; }
-        }
-
-        protected virtual StringWriter ErrorBuffer
-        {
-            get { return error; }
-        }
-
-        protected virtual Action<string> OnSuccess => onSuccess;
-        protected virtual Action OnFailure => onFailure;
+        protected virtual Action<string> OnSuccess { get { return onSuccess; } }
+        protected virtual Action OnFailure { get { return onFailure; } }
     }
 }
