@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
@@ -9,6 +10,8 @@ namespace GitHub.Unity
             : base(onSuccess, onFailure)
         {
         }
+
+        private static readonly ILogger FindGitTaskLogger = Logging.Logger.GetLogger<FindGitTask>();
 
         public static bool ValidateGitInstall(string path)
         {

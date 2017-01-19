@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using GitHub.Unity.Logging;
 using UnityEditor;
-using UnityEngine;
-using Logger = GitHub.Unity.Logging.Logger;
+using Debug = GitHub.Unity.Debug;
 
 namespace GitHub.Unity
 {

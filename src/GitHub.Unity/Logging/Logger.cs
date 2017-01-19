@@ -25,7 +25,12 @@ namespace GitHub.Unity.Logging
 
         public static ILogger GetLogger<T>()
         {
-            return GetLogger(typeof(T).Name);
+            return GetLogger(typeof(T));
+        }
+
+        public static ILogger GetLogger(Type type)
+        {
+            return GetLogger(type.Name);
         }
 
         public static ILogger GetLogger(string context = null)
