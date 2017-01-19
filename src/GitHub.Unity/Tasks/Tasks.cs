@@ -98,7 +98,7 @@ namespace GitHub.Unity
 
         private void AddTask(ITask task)
         {
-            UnityEngine.Debug.LogFormat("Adding task " + task.GetType() + " " + task.Label);
+            Logging.Logger.LogFormat("Adding task " + task.GetType() + " " + task.Label);
             lock (tasksLock)
             {
                 if ((task.Queued == TaskQueueSetting.NoQueue && tasks.Count > 0) ||

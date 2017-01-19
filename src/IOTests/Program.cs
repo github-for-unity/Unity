@@ -50,15 +50,15 @@ namespace IOTests
             processor.OnBranch += data => Console.WriteLine($"{data.Name} {data.Active} {data.Tracking}");
 
             var testEnv = new TestEnvironment();
-            testEnv.GitInstallPath = @"c:\soft\git";
+            //testEnv.GitInstallPath = @"c:\soft\git";
             var procManager = new ProcessManager(new GitEnvironment(testEnv));
             
-            var process = procManager.Configure("git", "branch -vv", @"D:\code\github\UnityInternal");
+            var process = procManager.Configure("git", "branch -vv", @"C:\Users\StanleyGoldman\Documents\Projects\UnityInternal");
             var outputManager = new ProcessOutputManager(process, processor);
 
             process.Run();
 
-            while (!process.WaitForExit(10))
+            while (!process.WaitForExit(20))
             {
 
             }

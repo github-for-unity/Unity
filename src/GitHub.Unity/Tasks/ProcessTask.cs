@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using UnityEditor;
-using Debug = UnityEngine.Debug;
 
 namespace GitHub.Unity
 {
@@ -59,7 +58,7 @@ namespace GitHub.Unity
 
         public virtual void Run()
         {
-            Debug.LogFormat("{0} {1} ({2})", Label, process == null ? "start" : "reconnect", System.Threading.Thread.CurrentThread.ManagedThreadId);
+            Logging.Logger.LogFormat("{0} {1} ({2})", Label, process == null ? "start" : "reconnect", System.Threading.Thread.CurrentThread.ManagedThreadId);
 
             Done = false;
             Progress = 0.0f;
@@ -76,7 +75,7 @@ namespace GitHub.Unity
 
             process.OnExit += p =>
             {
-                UnityEngine.Debug.Log("OnExit (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+                Logging.Logger.Log("OnExit (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
                 Finished();
             };
 
@@ -132,14 +131,14 @@ namespace GitHub.Unity
 
             OnProcessOutputUpdate();
 
-            Debug.LogFormat("{0} end", Label);
+            Logging.Logger.LogFormat("{0} end", Label);
 
             OnEnd.SafeInvoke(this);
         }
 
         public void Abort()
         {
-            Debug.LogFormat("Aborting {0}", Label);
+            Logging.Logger.LogFormat("Aborting {0}", Label);
 
             try
             {
@@ -155,7 +154,7 @@ namespace GitHub.Unity
 
         public void Disconnect()
         {
-            Debug.LogFormat("Disconnect {0}", Label);
+            Logging.Logger.LogFormat("Disconnect {0}", Label);
 
             process = null;
         }
@@ -165,7 +164,7 @@ namespace GitHub.Unity
 
         public void WriteCache(TextWriter cache)
         {
-            Debug.LogFormat("Writing cache for {0}", Label);
+            Logging.Logger.LogFormat("Writing cache for {0}", Label);
 
             cache.WriteLine("{");
             cache.WriteLine(String.Format("\"{0}\": \"{1}\",", Tasks.TypeKey, CachedTaskType));
@@ -200,6 +199,7 @@ namespace GitHub.Unity
 
         protected void ReportSuccess(string msg)
         {
+            Logging.Logger.Log("ReportSuccess");
             if (OnSuccess != null)
             {
                 Tasks.ScheduleMainThread(() => OnSuccess(msg));
@@ -208,6 +208,8 @@ namespace GitHub.Unity
 
         protected void ReportFailure(string msg)
         {
+            Logging.Logger.Log("ReportFailure");
+
             Tasks.ReportFailure(FailureSeverity.Critical, this, msg);
 
             if (OnFailure != null)
