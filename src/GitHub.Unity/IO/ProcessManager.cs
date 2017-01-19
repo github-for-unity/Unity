@@ -7,7 +7,7 @@ using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
-    class ProcessManager
+    public class ProcessManager
     {
         private static readonly ILogger logger = Logger.GetLogger<ProcessManager>();
         private static readonly IFileSystem fs = new FileSystem();

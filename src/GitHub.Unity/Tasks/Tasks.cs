@@ -22,7 +22,7 @@ using UnityEngine.Events;
 
 namespace GitHub.Unity
 {
-    class Tasks
+    public class Tasks
     {
         private static readonly Logging.ILogger logger = Logging.Logger.GetLogger<Tasks>();
 

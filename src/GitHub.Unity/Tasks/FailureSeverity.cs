@@ -1,6 +1,6 @@
 namespace GitHub.Unity
 {
-    enum FailureSeverity
+    public enum FailureSeverity
     {
         Moderate,
         Critical

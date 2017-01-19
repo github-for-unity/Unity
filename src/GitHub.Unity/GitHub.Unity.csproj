@@ -62,6 +62,7 @@
     <Compile Include="IO\IOutputProcessor.cs" />
     <Compile Include="IO\IProcess.cs" />
     <Compile Include="Helpers\LineProcessor.cs" />
+    <Compile Include="IO\ProcessManagerExtensions.cs" />
     <Compile Include="IO\ProcessOutputManager.cs" />
     <Compile Include="IO\ProcessWrapper.cs" />
     <Compile Include="Localization.Designer.cs">

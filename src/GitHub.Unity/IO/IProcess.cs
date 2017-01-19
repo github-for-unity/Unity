@@ -2,7 +2,7 @@ using System;
 
 namespace GitHub.Unity
 {
-    interface IProcess
+    public interface IProcess
     {
         event Action<string> OnOutputData;
         event Action<string> OnErrorData;

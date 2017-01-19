@@ -1,6 +1,6 @@
 namespace GitHub.Unity
 {
-    enum TaskQueueSetting
+    public enum TaskQueueSetting
     {
         NoQueue,
         Queue,

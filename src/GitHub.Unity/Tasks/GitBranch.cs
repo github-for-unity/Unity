@@ -1,6 +1,6 @@
 namespace GitHub.Unity
 {
-    struct GitBranch
+    public struct GitBranch
     {
         public string Name { get; private set; }
         public string Tracking { get; private set; }

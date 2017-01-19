@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitHub.Unity", "GitHub.Unity.csproj", "{ADD7A18B-DD2A-4C22-A2C1-488964EFF30A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitHub.Unity", "GitHub.Unity\GitHub.Unity.csproj", "{ADD7A18B-DD2A-4C22-A2C1-488964EFF30A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IOTests", "..\IOTests\IOTests.csproj", "{69F13D9D-AD56-4EEC-AE10-D528EE23E1A9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitHub.Unity.Tests", "GitHub.Unity.Tests\GitHub.Unity.Tests.csproj", "{69F13D9D-AD56-4EEC-AE10-D528EE23E1A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
