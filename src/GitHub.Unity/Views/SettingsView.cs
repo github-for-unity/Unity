@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using ILogger = GitHub.Unity.Logging.ILogger;
 
 namespace GitHub.Unity
 {
@@ -64,6 +65,8 @@ namespace GitHub.Unity
         [SerializeField] private string initDirectory;
         [SerializeField] private List<GitRemote> remotes = new List<GitRemote>();
         [SerializeField] private Vector2 scroll;
+
+        static readonly ILogger Logger = Logging.Logger.GetLogger<EntryPoint>();
 
         public override void Refresh()
         {
@@ -486,7 +489,7 @@ namespace GitHub.Unity
 
         private void Init()
         {
-            Debug.LogFormat("TODO: Init '{0}'", initDirectory);
+            Logger.LogFormat("TODO: Init '{0}'", initDirectory);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
@@ -12,6 +13,8 @@ namespace GitHub.Unity
         readonly static IFileSystem fs = new FileSystem();
 
         private static ProcessManager instance;
+        static readonly ILogger Logger = Logging.Logger.GetLogger<ProcessManager>();
+
         public static ProcessManager Instance
         {
             get
@@ -38,7 +41,7 @@ namespace GitHub.Unity
 
         public IProcess Configure(string executableFileName, string arguments, string workingDirectory)
         {
-            Logging.Logger.Log("Configuring process " + executableFileName + " " + arguments + " " + workingDirectory);
+            Logger.Log("Configuring process - \"" + executableFileName + " " + arguments + "\" cwd:" + workingDirectory);
             var startInfo = new ProcessStartInfo(executableFileName, arguments)
             {
                 RedirectStandardInput = true,
@@ -55,7 +58,7 @@ namespace GitHub.Unity
 
         public IProcess Reconnect(int pid)
         {
-            Logging.Logger.Log("Reconnecting process " + pid + " (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+            Logger.Log("Reconnecting process " + pid + " (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
             var p = Process.GetProcessById(pid);
             p.StartInfo.RedirectStandardInput = true;
             p.StartInfo.RedirectStandardOutput = true;
@@ -81,7 +84,7 @@ namespace GitHub.Unity
                     }
                     catch (Exception e)
                     {
-                        Logging.Logger.LogErrorFormat("Error while looking for {0} in {1}\n{2}", executable, directory, e);
+                        Logger.LogErrorFormat("Error while looking for {0} in {1}\n{2}", executable, directory, e);
                         return null;
                     }
                 })

@@ -1,6 +1,6 @@
 namespace GitHub.Unity
 {
-    interface IOutputProcessor
+    public interface IOutputProcessor
     {
         void LineReceived(string line);
     }

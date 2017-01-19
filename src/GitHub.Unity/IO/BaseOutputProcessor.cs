@@ -4,7 +4,7 @@ using GitHub.Unity.Extensions;
 
 namespace GitHub.Unity
 {
-    class BaseOutputProcessor : IOutputProcessor
+    public class BaseOutputProcessor : IOutputProcessor
     {
         public event Action<string> OnData;
 

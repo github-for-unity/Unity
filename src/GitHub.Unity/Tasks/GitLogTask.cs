@@ -164,7 +164,7 @@ namespace GitHub.Unity
                 }
 
                 // Garbled input. Eject!
-                Debug.LogErrorFormat(LineParseError, line, parsePhase);
+                Logging.Logger.LogErrorFormat(LineParseError, line, parsePhase);
                 Abort();
             }
             InternalInvoke();

@@ -481,12 +481,12 @@ namespace GitHub.Unity
 
         private void Pull()
         {
-            Debug.Log("TODO: Pull");
+            Logging.Logger.Log("TODO: Pull");
         }
 
         private void Push()
         {
-            Debug.Log("TODO: Push");
+            Logging.Logger.Log("TODO: Push");
         }
 
         public bool BroadMode

@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
+using Logger = GitHub.Unity.Logging.Logger;
 
 namespace GitHub.Unity
 {
@@ -37,7 +38,7 @@ namespace GitHub.Unity
 
         public void Run()
         {
-            Debug.LogFormat("{0} {1}", Label, reconnecting ? "reconnect" : "start");
+            Logger.LogFormat("{0} {1}", Label, reconnecting ? "reconnect" : "start");
 
             Done = false;
             Progress = 0.0f;
@@ -58,7 +59,7 @@ namespace GitHub.Unity
             Progress = 1.0f;
             Done = true;
 
-            Debug.LogFormat("{0} end", Label);
+            Logger.LogFormat("{0} end", Label);
 
             if (OnEnd != null)
             {
@@ -68,7 +69,7 @@ namespace GitHub.Unity
 
         public void Abort()
         {
-            Debug.LogFormat("Aborting {0}", Label);
+            Logger.LogFormat("Aborting {0}", Label);
 
             Done = true;
         }
@@ -83,7 +84,7 @@ namespace GitHub.Unity
 
         public void WriteCache(TextWriter cache)
         {
-            Debug.LogFormat("Writing cache for {0}", Label);
+            Logger.LogFormat("Writing cache for {0}", Label);
             cache.WriteLine("{");
             cache.WriteLine("\"{0}\": \"{1}\"", Tasks.TypeKey, CachedTask.TestTask);
             cache.WriteLine("}");

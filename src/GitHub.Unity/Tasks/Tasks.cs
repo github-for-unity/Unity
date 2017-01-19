@@ -24,6 +24,8 @@ namespace GitHub.Unity
 {
     class Tasks
     {
+        static readonly Logging.ILogger Logger = Logging.Logger.GetLogger<Tasks>();
+
         internal const string TypeKey = "type", ProcessKey = "process";
 
         private const int NoTasksSleep = 100;
@@ -98,7 +100,7 @@ namespace GitHub.Unity
 
         private void AddTask(ITask task)
         {
-            Logging.Logger.LogFormat("Adding task " + task.GetType() + " " + task.Label);
+            Logger.LogFormat("Adding task " + task.GetType() + " " + task.Label);
             lock (tasksLock)
             {
                 if ((task.Queued == TaskQueueSetting.NoQueue && tasks.Count > 0) ||
@@ -122,7 +124,7 @@ namespace GitHub.Unity
         {
             if (severity == FailureSeverity.Moderate)
             {
-                Debug.LogErrorFormat(TaskFailureMessage, task.Label, error);
+                Logger.LogErrorFormat(TaskFailureMessage, task.Label, error);
             }
             else
             {
@@ -219,7 +221,7 @@ namespace GitHub.Unity
 
                     if (!repeat)
                     {
-                        Debug.LogErrorFormat(TaskThreadExceptionRestartError, e);
+                        Logger.LogErrorFormat(TaskThreadExceptionRestartError, e);
                         Thread.Sleep(FailureDelayDefault);
                     }
                     else
@@ -349,7 +351,7 @@ namespace GitHub.Unity
             }
             catch (Exception e)
             {
-                Debug.LogErrorFormat(TaskCacheWriteExceptionError, e);
+                Logger.LogErrorFormat(TaskCacheWriteExceptionError, e);
             }
         }
 
@@ -363,7 +365,7 @@ namespace GitHub.Unity
             // Parse root list with at least one item (active task) or fail
             if (!SimpleJson.TryDeserializeObject(text, out parseResult) || (cache = parseResult as IList<object>) == null || cache.Count < 1)
             {
-                Debug.LogError(TaskCacheParseError);
+                Logger.LogError(TaskCacheParseError);
                 return false;
             }
 
@@ -379,7 +381,7 @@ namespace GitHub.Unity
 
                 if (taskData == null)
                 {
-                    Debug.LogError(TaskCacheParseError);
+                    Logger.LogError(TaskCacheParseError);
                     return false;
                 }
 
@@ -415,7 +417,7 @@ namespace GitHub.Unity
                     case CachedTask.ProcessTask:
                         return ProcessTask.Parse(data);
                     default:
-                        Debug.LogErrorFormat(TaskParseUnhandledTypeError, type);
+                        Logger.LogErrorFormat(TaskParseUnhandledTypeError, type);
                         return null;
                 }
             }
