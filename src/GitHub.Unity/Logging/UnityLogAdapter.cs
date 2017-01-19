@@ -19,32 +19,32 @@ namespace GitHub.Unity.Logging
 
         public void Log(string message)
         {
-            Logger.Log(_logPrefix + message);
+            UnityEngine.Debug.Log(_logPrefix + message);
         }
 
         public void LogWarning(string message)
         {
-            Logger.LogWarning(_logPrefix + message);
+            UnityEngine.Debug.LogWarning(_logPrefix + message);
         }
 
         public void LogError(string message)
         {
-            Logger.LogError(_logPrefix + message);
+            UnityEngine.Debug.LogError(_logPrefix + message);
         }
 
         public void LogFormat(string format, params object[] objects)
         {
-            Logger.LogFormat(_logPrefix + format, objects);
+            UnityEngine.Debug.LogFormat(_logPrefix + format, objects);
         }
 
         public void LogWarningFormat(string format, params object[] objects)
         {
-            Logger.LogWarningFormat(_logPrefix + format, objects);
+            UnityEngine.Debug.LogWarningFormat(_logPrefix + format, objects);
         }
 
         public void LogErrorFormat(string format, params object[] objects)
         {
-            Logger.LogErrorFormat(_logPrefix + format, objects);
+            UnityEngine.Debug.LogErrorFormat(_logPrefix + format, objects);
         }
     }
 }
