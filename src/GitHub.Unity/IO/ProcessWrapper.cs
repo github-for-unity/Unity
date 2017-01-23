@@ -1,23 +1,9 @@
 using System;
 using System.Diagnostics;
+using GitHub.Unity.Extensions;
 
 namespace GitHub.Unity
 {
-    public static class ActionExtensions
-    {
-        public static void Invoke(this Action action)
-        {
-            if (action != null)
-                action();
-        }
-
-        public static void Invoke<T>(this Action<T> action, T obj)
-        {
-            if (action != null)
-                action(obj);
-        }
-    }
-
     class ProcessWrapper : IProcess
     {
         public event Action<string> OnOutputData;
