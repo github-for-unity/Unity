@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using GitHub.Unity.Extensions;
 
 namespace GitHub.Unity
 {
@@ -9,7 +10,7 @@ namespace GitHub.Unity
         private string arguments = "";
 
         private GitCommitTask(string message, string body, Action onSuccess = null, Action onFailure = null)
-            : base(str => onSuccess.Invoke(), onFailure)
+            : base(str => onSuccess.SafeInvoke(), onFailure)
         {
             arguments = "commit ";
             arguments += String.Format(@" -m ""{0}{1}{2}""", message, Environment.NewLine, body);

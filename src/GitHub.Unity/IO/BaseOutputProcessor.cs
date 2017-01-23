@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using GitHub.Unity.Extensions;
 
 namespace GitHub.Unity
 {
@@ -13,7 +14,7 @@ namespace GitHub.Unity
             {
                 return;
             }
-            OnData.Invoke(line);
+            OnData.SafeInvoke(line);
         }
     }
 }

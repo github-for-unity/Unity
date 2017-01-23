@@ -17,21 +17,21 @@ namespace GitHub.Unity
             process.OutputDataReceived += (s, e) =>
             {
                 UnityEngine.Debug.Log("Data " + e.Data + " exit?" + process.HasExited + " (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
-                OnOutputData.Invoke(e.Data);
+                OnOutputData.SafeInvoke(e.Data);
             };
             process.ErrorDataReceived += (s, e) =>
             {
                 UnityEngine.Debug.Log("Error (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
-                OnErrorData.Invoke(e.Data);
+                OnErrorData.SafeInvoke(e.Data);
                 if (process.HasExited)
                 {
-                    OnExit.Invoke(this);
+                    OnExit.SafeInvoke(this);
                 }
             };
             process.Exited += (s, e) =>
             {
                 UnityEngine.Debug.Log("Exit (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
-                OnExit.Invoke(this);
+                OnExit.SafeInvoke(this);
             };
         }
 
