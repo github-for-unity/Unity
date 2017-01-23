@@ -4,7 +4,6 @@ using System.IO;
 using System.Threading;
 using GitHub.Unity.Logging;
 using UnityEditor;
-using Debug = GitHub.Unity.Debug;
 
 namespace GitHub.Unity
 {

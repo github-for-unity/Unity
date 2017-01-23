@@ -133,7 +133,7 @@ namespace GitHub.Unity
 
         public void ShowNotification(GUIContent content, float timeout)
         {
-            Debug.Assert(timeout <= DefaultNotificationTimeout, string.Format(BadNotificationDelayError, timeout));
+            Debug.Assert(timeout <= DefaultNotificationTimeout, String.Format(BadNotificationDelayError, timeout));
 
             notificationClearTime = timeout < DefaultNotificationTimeout ? EditorApplication.timeSinceStartup + timeout : -1f;
             base.ShowNotification(content);
