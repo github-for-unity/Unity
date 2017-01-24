@@ -1,4 +1,5 @@
 ﻿using System;
+using GitHub.Unity.Extensions;
 
 namespace GitHub.Unity
 {
@@ -40,7 +41,7 @@ namespace GitHub.Unity
 
         private void InternalInvoke(GitStatus status)
         {
-            statusUpdated.Invoke(status);
+            statusUpdated.SafeInvoke(status);
         }
     }
 }

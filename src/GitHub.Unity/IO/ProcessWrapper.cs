@@ -1,23 +1,9 @@
 using System;
 using System.Diagnostics;
+using GitHub.Unity.Extensions;
 
 namespace GitHub.Unity
 {
-    public static class ActionExtensions
-    {
-        public static void Invoke(this Action action)
-        {
-            if (action != null)
-                action();
-        }
-
-        public static void Invoke<T>(this Action<T> action, T obj)
-        {
-            if (action != null)
-                action(obj);
-        }
-    }
-
     class ProcessWrapper : IProcess
     {
         public event Action<string> OnOutputData;
@@ -31,21 +17,21 @@ namespace GitHub.Unity
             process.OutputDataReceived += (s, e) =>
             {
                 UnityEngine.Debug.Log("Data " + e.Data + " exit?" + process.HasExited + " (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
-                OnOutputData.Invoke(e.Data);
+                OnOutputData.SafeInvoke(e.Data);
             };
             process.ErrorDataReceived += (s, e) =>
             {
                 UnityEngine.Debug.Log("Error (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
-                OnErrorData.Invoke(e.Data);
+                OnErrorData.SafeInvoke(e.Data);
                 if (process.HasExited)
                 {
-                    OnExit.Invoke(this);
+                    OnExit.SafeInvoke(this);
                 }
             };
             process.Exited += (s, e) =>
             {
                 UnityEngine.Debug.Log("Exit (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
-                OnExit.Invoke(this);
+                OnExit.SafeInvoke(this);
             };
         }
 
@@ -85,11 +71,6 @@ namespace GitHub.Unity
         public void Kill()
         {
             process.Kill();
-        }
-
-        void OnDataReceived(DataReceivedEventHandler handler, DataReceivedEventArgs e)
-        {
-            handler.Invoke(this, e);
         }
 
         public int Id { get { return process.Id; } }

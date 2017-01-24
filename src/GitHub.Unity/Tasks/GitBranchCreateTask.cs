@@ -1,3 +1,4 @@
+using GitHub.Unity.Extensions;
 using System;
 using System.IO;
 
@@ -9,7 +10,7 @@ namespace GitHub.Unity
         private string newBranch;
 
         private GitBranchCreateTask(string newBranch, string baseBranch, Action onSuccess, Action onFailure)
-            : base(str => onSuccess.Invoke(), onFailure)
+            : base(str => onSuccess.SafeInvoke(), onFailure)
         {
             this.newBranch = newBranch;
             this.baseBranch = baseBranch;

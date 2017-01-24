@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\StringExtensions.cs" />
+    <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="IO\BaseOutputProcessor.cs" />
     <Compile Include="IO\BranchListOutputProcessor.cs" />
     <Compile Include="IO\DefaultEnvironment.cs" />
