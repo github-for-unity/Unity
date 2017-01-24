@@ -433,10 +433,19 @@ namespace GitHub.Unity
             // Install path field
             EditorGUI.BeginChangeCheck();
             {
+                var defaultGitPath = FindGitTask.DefaultGitPath;
+
+                //TODO: Verify necessary value for a non Windows OS
+                var extension = defaultGitPath != null && Path.HasExtension(defaultGitPath)
+                    ? Path.GetExtension(defaultGitPath).TrimStart('.')
+                    : null;
+
+                var defaultGitInstallFolder = Path.GetDirectoryName(defaultGitPath);
+
                 Styles.PathField(ref gitInstallPath,
-                    () =>
-                        EditorUtility.OpenFilePanel(GitInstallBrowseTitle, Path.GetDirectoryName(FindGitTask.DefaultGitPath),
-                            Path.GetExtension(FindGitTask.DefaultGitPath)), ValidateGitInstall);
+                    () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
+                        defaultGitInstallFolder,
+                        extension), ValidateGitInstall);
             }
             if (EditorGUI.EndChangeCheck())
             {
