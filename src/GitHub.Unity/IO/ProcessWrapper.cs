@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using GitHub.Unity.Extensions;
+using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
