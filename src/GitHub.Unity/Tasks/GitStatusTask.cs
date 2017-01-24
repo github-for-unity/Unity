@@ -1,3 +1,4 @@
+using GitHub.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -79,7 +80,7 @@ namespace GitHub.Unity
                     }
                 }
             }
-            Tasks.ScheduleMainThread(() => callback.Invoke(status));
+            Tasks.ScheduleMainThread(() => callback.SafeInvoke(status));
         }
 
         public override bool Blocking

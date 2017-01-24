@@ -73,11 +73,6 @@ namespace GitHub.Unity
             process.Kill();
         }
 
-        void OnDataReceived(DataReceivedEventHandler handler, DataReceivedEventArgs e)
-        {
-            handler.Invoke(this, e);
-        }
-
         public int Id { get { return process.Id; } }
 
         public bool HasExited { get { return process.HasExited; } }

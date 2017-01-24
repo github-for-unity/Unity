@@ -1,3 +1,4 @@
+using GitHub.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -56,7 +57,7 @@ namespace GitHub.Unity
 
         private void DeliverResult()
         {
-            callback.Invoke(branches);
+            callback.SafeInvoke(branches);
         }
 
         public override bool Blocking

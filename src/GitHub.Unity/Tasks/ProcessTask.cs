@@ -1,3 +1,4 @@
+using GitHub.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -63,7 +64,7 @@ namespace GitHub.Unity
             Done = false;
             Progress = 0.0f;
 
-            OnBegin.Invoke(this);
+            OnBegin.SafeInvoke(this);
 
             var firstTime = process == null;
 
@@ -133,7 +134,7 @@ namespace GitHub.Unity
 
             Debug.LogFormat("{0} end", Label);
 
-            OnEnd.Invoke(this);
+            OnEnd.SafeInvoke(this);
         }
 
         public void Abort()
@@ -149,7 +150,7 @@ namespace GitHub.Unity
 
             Done = true;
 
-            OnEnd.Invoke(this);
+            OnEnd.SafeInvoke(this);
         }
 
         public void Disconnect()
