@@ -4,7 +4,7 @@ namespace GitHub.Unity.Logging
 {
     public static class Logger
     {
-        public static ILogger Instance { get; private set; }
+        private static Func<string, ILogger> _loggerFactory = s => new UnityLogAdapter(s);
 
         public static Func<string, ILogger> LoggerFactory
         {
@@ -16,11 +16,19 @@ namespace GitHub.Unity.Logging
             }
         }
 
-        private static Func<string, ILogger> _loggerFactory = s => new UnityLogAdapter(s);
+        private static ILogger _instance;
 
-        static Logger()
+        private static ILogger Instance
         {
-            Instance = _loggerFactory(null);
+            get { return _instance; }
+            set
+            {
+                if (_instance == null)
+                {
+                    _instance = _loggerFactory(null);
+                }
+                _instance = value;
+            }
         }
 
         public static ILogger GetLogger<T>()
