@@ -63,7 +63,7 @@ namespace GitHub.Unity
 
         public virtual void Run()
         {
-            Logger.LogFormat("{0} {1} ({2})", Label, process == null ? "start" : "reconnect", System.Threading.Thread.CurrentThread.ManagedThreadId);
+            Logger.Debug("{0} {1}", Label, process == null ? "start" : "reconnect");
 
             Done = false;
             Progress = 0.0f;
@@ -80,7 +80,7 @@ namespace GitHub.Unity
 
             process.OnExit += p =>
             {
-                Logger.Log("OnExit (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+                Logger.Debug("OnExit");
                 Finished();
             };
 
@@ -136,14 +136,14 @@ namespace GitHub.Unity
 
             OnProcessOutputUpdate();
 
-            Logger.LogFormat("{0} end", Label);
+            Logger.Debug("{0} end", Label);
 
             OnEnd.SafeInvoke(this);
         }
 
         public void Abort()
         {
-            Logger.LogFormat("Aborting {0}", Label);
+            Logger.Debug("Aborting {0}", Label);
 
             try
             {
@@ -159,7 +159,7 @@ namespace GitHub.Unity
 
         public void Disconnect()
         {
-            Logger.LogFormat("Disconnect {0}", Label);
+            Logger.Debug("Disconnect {0}", Label);
 
             process = null;
         }
@@ -169,7 +169,7 @@ namespace GitHub.Unity
 
         public void WriteCache(TextWriter cache)
         {
-            Logger.LogFormat("Writing cache for {0}", Label);
+            Logger.Debug("Writing cache for {0}", Label);
 
             cache.WriteLine("{");
             cache.WriteLine(String.Format("\"{0}\": \"{1}\",", Tasks.TypeKey, CachedTaskType));
@@ -206,7 +206,7 @@ namespace GitHub.Unity
         {
             if (OnSuccess != null)
             {
-                this.Logger.Log("Success - \"" + msg + "\"");
+                this.Logger.Debug("Success - \"" + msg + "\"");
                 Tasks.ScheduleMainThread(() => OnSuccess(msg));
             }
         }
@@ -217,7 +217,7 @@ namespace GitHub.Unity
 
             if (OnFailure != null)
             {
-                this.Logger.Log("Failure - \"" + msg + "\"");
+                this.Logger.Debug("Failure - \"" + msg + "\"");
                 Tasks.ScheduleMainThread(() => OnFailure());
             }
         }

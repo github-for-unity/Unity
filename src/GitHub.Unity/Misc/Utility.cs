@@ -90,7 +90,7 @@ namespace GitHub.Unity
             {
                 FindGitTask.Schedule(path =>
                     {
-                        Logger.Log("found " + path);
+                        Logger.Debug("found " + path);
                         if (!string.IsNullOrEmpty(path))
                         {
                             GitInstallPath = path;
@@ -98,7 +98,7 @@ namespace GitHub.Unity
                             OnPrepareCompleted();
                         }
                     },
-                    () => Logger.Log("NOT FOUND")
+                    () => Logger.Debug("NOT FOUND")
                 );
             }
             else

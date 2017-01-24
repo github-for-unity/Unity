@@ -65,7 +65,7 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    Logger.LogWarningFormat(ParseFailedError, line);
+                    Logger.Warning(ParseFailedError, line);
                 }
             }
             InternalInvoke();

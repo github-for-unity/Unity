@@ -40,32 +40,32 @@ namespace GitHub.Unity.Logging
 
         public static void Log(string s)
         {
-            Instance.Log(s);
+            Instance.Debug(s);
         }
 
         public static void LogWarning(string s)
         {
-            Instance.LogWarning(s);
+            Instance.Warning(s);
         }
 
         public static void LogError(string s)
         {
-            Instance.LogError(s);
+            Instance.Error(s);
         }
 
         public static void LogFormat(string format, params object[] objects)
         {
-            Instance.LogFormat(format, objects);
+            Instance.Debug(format, objects);
         }
 
         public static void LogWarningFormat(string format, params object[] objects)
         {
-            Instance.LogWarningFormat(format, objects);
+            Instance.Warning(format, objects);
         }
 
         public static void LogErrorFormat(string format, params object[] objects)
         {
-            Instance.LogErrorFormat(format, objects);
+            Instance.Error(format, objects);
         }
     }
 }

@@ -14,32 +14,42 @@ namespace IOTests
                 : context + ": ";
         }
 
-        public void Log(string message)
+        public void Info(string message)
         {
             Console.WriteLine(_prefix + message);
         }
 
-        public void LogWarning(string message)
-        {
-            Console.WriteLine(_prefix + message);
-        }
-
-        public void LogError(string message)
-        {
-            Console.WriteLine(_prefix + message);
-        }
-
-        public void LogFormat(string format, params object[] objects)
+        public void Info(string format, params object[] objects)
         {
             Console.WriteLine(_prefix + format, objects);
         }
 
-        public void LogWarningFormat(string format, params object[] objects)
+        public void Debug(string message)
+        {
+            Console.WriteLine(_prefix + message);
+        }
+
+        public void Debug(string format, params object[] objects)
         {
             Console.WriteLine(_prefix + format, objects);
         }
 
-        public void LogErrorFormat(string format, params object[] objects)
+        public void Warning(string message)
+        {
+            Console.WriteLine(_prefix + message);
+        }
+
+        public void Warning(string format, params object[] objects)
+        {
+            Console.WriteLine(_prefix + format, objects);
+        }
+
+        public void Error(string message)
+        {
+            Console.WriteLine(_prefix + message);
+        }
+
+        public void Error(string format, params object[] objects)
         {
             Console.WriteLine(_prefix + format, objects);
         }

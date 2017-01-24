@@ -46,13 +46,13 @@ namespace GitHub.Unity
 
         protected override void OnProcessOutputUpdate()
         {
-            Logger.Log("Done (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+            Logger.Debug("Done");
             Tasks.ScheduleMainThread(() => DeliverResult());
         }
 
         private void AddBranch(GitBranch branch)
         {
-            Logger.Log("AddBranch " + branch + " (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+            Logger.Debug("AddBranch " + branch);
             branches.Add(branch);
         }
 

@@ -1,50 +1,82 @@
 using System;
+using UnityEngine;
 
 namespace GitHub.Unity.Logging
 {
     public class UnityLogAdapter : ILogger
     {
-        private readonly string _logPrefix;
+        private readonly string _contextPrefix;
+
+        private string Prefix
+        {
+            get
+            {
+                var time = DateTime.Now.ToString("HH:mm:ss tt");
+                var threadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                return string.Format("{0} [{1}] <{2}> ", time, threadId, _contextPrefix);
+            }
+        }
+
+        static UnityLogAdapter()
+        {
+            Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.Full);
+            Application.SetStackTraceLogType(LogType.Warning, StackTraceLogType.Full);
+            Application.SetStackTraceLogType(LogType.Error, StackTraceLogType.Full);
+        }
 
         public UnityLogAdapter(string context)
         {
-            _logPrefix = string.IsNullOrEmpty(context) 
-                ? "GitHub: " 
-                : string.Format("GitHub:{0}: ", context);
+            _contextPrefix = string.IsNullOrEmpty(context) 
+                ? "GitHub" 
+                : string.Format("GitHub:{0}", context);
         }
 
         public UnityLogAdapter() : this(string.Empty)
         {
         }
 
-        public void Log(string message)
+        public void Info(string message)
         {
-            UnityEngine.Debug.Log(_logPrefix + message);
+            UnityEngine.Debug.Log(Prefix + message);
         }
 
-        public void LogWarning(string message)
+        public void Info(string format, params object[] objects)
         {
-            UnityEngine.Debug.LogWarning(_logPrefix + message);
+            UnityEngine.Debug.LogFormat(Prefix + format, objects);
         }
 
-        public void LogError(string message)
+        public void Debug(string message)
         {
-            UnityEngine.Debug.LogError(_logPrefix + message);
+#if DEBUG
+            UnityEngine.Debug.Log(Prefix + message);
+#endif
         }
 
-        public void LogFormat(string format, params object[] objects)
+        public void Debug(string format, params object[] objects)
         {
-            UnityEngine.Debug.LogFormat(_logPrefix + format, objects);
+#if DEBUG
+            UnityEngine.Debug.LogFormat(Prefix + format, objects);
+#endif
         }
 
-        public void LogWarningFormat(string format, params object[] objects)
+        public void Warning(string message)
         {
-            UnityEngine.Debug.LogWarningFormat(_logPrefix + format, objects);
+            UnityEngine.Debug.LogWarning(Prefix + message);
         }
 
-        public void LogErrorFormat(string format, params object[] objects)
+        public void Warning(string format, params object[] objects)
         {
-            UnityEngine.Debug.LogErrorFormat(_logPrefix + format, objects);
+            UnityEngine.Debug.LogWarningFormat(Prefix + format, objects);
+        }
+
+        public void Error(string message)
+        {
+            UnityEngine.Debug.LogError(Prefix + message);
+        }
+
+        public void Error(string format, params object[] objects)
+        {
+            UnityEngine.Debug.LogErrorFormat(Prefix + format, objects);
         }
     }
 }

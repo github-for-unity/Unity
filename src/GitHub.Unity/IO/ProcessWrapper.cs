@@ -17,14 +17,14 @@ namespace GitHub.Unity
             process = new Process { StartInfo = psi, EnableRaisingEvents = true };
             process.OutputDataReceived += (s, e) =>
             {
-                Logger.Log("Output - \"" + e.Data + "\" exited:" + process.HasExited + " threadId: " + System.Threading.Thread.CurrentThread.ManagedThreadId);
+                Logger.Debug("Output - \"" + e.Data + "\" exited:" + process.HasExited);
                 OnOutputData.SafeInvoke(e.Data);
             };
             process.ErrorDataReceived += (s, e) =>
             {
                 if (e.Data == null) return;
 
-                Logger.Log("Error (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+                Logger.Debug("Error");
                 OnErrorData.SafeInvoke(e.Data);
                 if (process.HasExited)
                 {
@@ -33,14 +33,14 @@ namespace GitHub.Unity
             };
             process.Exited += (s, e) =>
             {
-                Logger.Log("Exit - threadId: " + System.Threading.Thread.CurrentThread.ManagedThreadId);
+                Logger.Debug("Exit");
                 OnExit.SafeInvoke(this);
             };
         }
 
         public void Run()
         {
-            Logger.Log("Run - threadId: " + System.Threading.Thread.CurrentThread.ManagedThreadId);
+            Logger.Debug("Run");
 
             process.Start();
             process.BeginOutputReadLine();
@@ -49,7 +49,7 @@ namespace GitHub.Unity
 
         public bool WaitForExit(int milliseconds)
         {
-            Logger.Log("WaitForExit - time: " + milliseconds + "ms threadId:" + System.Threading.Thread.CurrentThread.ManagedThreadId);
+            Logger.Debug("WaitForExit - time: " + milliseconds + "ms");
 
             // Workaround for a bug in which some data may still be processed AFTER this method returns true, thus losing the data.
             // http://connect.microsoft.com/VisualStudio/feedback/details/272125/waitforexit-and-waitforexit-int32-provide-different-and-undocumented-implementations
@@ -63,7 +63,7 @@ namespace GitHub.Unity
 
         public void WaitForExit()
         {
-            Logger.Log("WaitForExit - threadId:" + System.Threading.Thread.CurrentThread.ManagedThreadId);
+            Logger.Debug("WaitForExit");
             process.WaitForExit();
         }
 

@@ -489,7 +489,7 @@ namespace GitHub.Unity
 
         private void Init()
         {
-            Logger.LogFormat("TODO: Init '{0}'", initDirectory);
+            Logger.Debug("TODO: Init '{0}'", initDirectory);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace GitHub.Unity
 
         public IProcess Configure(string executableFileName, string arguments, string workingDirectory)
         {
-            Logger.Log("Configuring process - \"" + executableFileName + " " + arguments + "\" cwd:" + workingDirectory);
+            Logger.Debug("Configuring process - \"" + executableFileName + " " + arguments + "\" cwd:" + workingDirectory);
             var startInfo = new ProcessStartInfo(executableFileName, arguments)
             {
                 RedirectStandardInput = true,
@@ -58,7 +58,7 @@ namespace GitHub.Unity
 
         public IProcess Reconnect(int pid)
         {
-            Logger.Log("Reconnecting process " + pid + " (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+            Logger.Debug("Reconnecting process " + pid);
             var p = Process.GetProcessById(pid);
             p.StartInfo.RedirectStandardInput = true;
             p.StartInfo.RedirectStandardOutput = true;
@@ -84,7 +84,7 @@ namespace GitHub.Unity
                     }
                     catch (Exception e)
                     {
-                        Logger.LogErrorFormat("Error while looking for {0} in {1}\n{2}", executable, directory, e);
+                        Logger.Error("Error while looking for {0} in {1}\n{2}", executable, directory, e);
                         return null;
                     }
                 })
