@@ -10,9 +10,7 @@ namespace GitHub.Unity
     class ProcessManager
     {
         private static readonly ILogger Logger = Logging.Logger.GetLogger<ProcessManager>();
-
-        readonly IGitEnvironment gitEnvironment;
-        readonly static IFileSystem fs = new FileSystem();
+        private static readonly IFileSystem Fs = new FileSystem();
 
         private static ProcessManager instance;
         public static ProcessManager Instance
@@ -28,6 +26,8 @@ namespace GitHub.Unity
                 instance = value;
             }
         }
+
+        readonly IGitEnvironment gitEnvironment;
 
         public ProcessManager()
         {
@@ -89,7 +89,7 @@ namespace GitHub.Unity
                     }
                 })
                 .Where(x => x != null)
-                .FirstOrDefault(x => fs.FileExists(x));
+                .FirstOrDefault(x => Fs.FileExists(x));
 
             return executablePath;
         }
