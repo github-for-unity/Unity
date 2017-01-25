@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using UnityEngine;
 
 namespace GitHub.Unity.Logging
@@ -15,13 +16,6 @@ namespace GitHub.Unity.Logging
                 var threadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
                 return string.Format("{0} [{1}] <{2}> ", time, threadId, _contextPrefix);
             }
-        }
-
-        static UnityLogAdapter()
-        {
-            Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.Full);
-            Application.SetStackTraceLogType(LogType.Warning, StackTraceLogType.Full);
-            Application.SetStackTraceLogType(LogType.Error, StackTraceLogType.Full);
         }
 
         public UnityLogAdapter(string context)
