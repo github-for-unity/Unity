@@ -7,7 +7,7 @@ namespace GitHub.Unity
 {
     class Installer : ScriptableObject
     {
-        static readonly ILogger Logger = Logging.Logger.GetLogger<Installer>();
+        private static readonly ILogger Logger = Logging.Logger.GetLogger<Installer>();
 
         private const string PackageName = "GitHub extensions";
         private const string QueryTitle = "Embed " + PackageName + "?";

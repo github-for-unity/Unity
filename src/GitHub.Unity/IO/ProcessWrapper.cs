@@ -7,7 +7,7 @@ namespace GitHub.Unity
 {
     class ProcessWrapper : IProcess
     {
-        static readonly ILogger Logger = Logging.Logger.GetLogger<ProcessWrapper>();
+        private static readonly ILogger Logger = Logging.Logger.GetLogger<ProcessWrapper>();
 
         public event Action<string> OnOutputData;
         public event Action<string> OnErrorData;

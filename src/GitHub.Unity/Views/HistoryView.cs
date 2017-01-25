@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using ILogger = GitHub.Unity.Logging.ILogger;
 using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
@@ -50,6 +51,8 @@ namespace GitHub.Unity
         [SerializeField] private Object historyTarget;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string selectionID;
+
+        private static readonly ILogger Logger = Logging.Logger.GetLogger<HistoryView>();
 
         public override void Refresh()
         {
@@ -481,12 +484,12 @@ namespace GitHub.Unity
 
         private void Pull()
         {
-            Logging.Logger.Log("TODO: Pull");
+            Logger.Debug("TODO: Pull");
         }
 
         private void Push()
         {
-            Logging.Logger.Log("TODO: Push");
+            Logger.Debug("TODO: Push");
         }
 
         public bool BroadMode

@@ -24,7 +24,7 @@ namespace GitHub.Unity
 {
     class Tasks
     {
-        static readonly Logging.ILogger Logger = Logging.Logger.GetLogger<Tasks>();
+        private static readonly Logging.ILogger Logger = Logging.Logger.GetLogger<Tasks>();
 
         internal const string TypeKey = "type", ProcessKey = "process";
 

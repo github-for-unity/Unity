@@ -8,9 +8,9 @@ namespace GitHub.Unity
     {
         private static readonly Regex TrackingBranchRegex = new Regex(@"\[[\w]+\/.*\]");
 
-        public event Action<GitBranch> OnBranch;
+        private static readonly ILogger Logger = Logging.Logger.GetLogger<BranchListOutputProcessor>();
 
-        static readonly ILogger Logger = Logging.Logger.GetLogger<BranchListOutputProcessor>();
+        public event Action<GitBranch> OnBranch;
 
         public override void LineReceived(string line)
         {

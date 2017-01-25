@@ -66,7 +66,7 @@ namespace GitHub.Unity
         [SerializeField] private List<GitRemote> remotes = new List<GitRemote>();
         [SerializeField] private Vector2 scroll;
 
-        static readonly ILogger Logger = Logging.Logger.GetLogger<EntryPoint>();
+        private static readonly ILogger Logger = Logging.Logger.GetLogger<EntryPoint>();
 
         public override void Refresh()
         {

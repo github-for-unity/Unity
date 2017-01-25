@@ -12,7 +12,7 @@ namespace GitHub.Unity
 {
     class Utility : ScriptableObject
     {
-        static readonly ILogger Logger = Logging.Logger.GetLogger<Utility>();
+        private static readonly ILogger Logger = Logging.Logger.GetLogger<Utility>();
 
         public const string StatusRenameDivider = "->";
         public static readonly Regex ListBranchesRegex =

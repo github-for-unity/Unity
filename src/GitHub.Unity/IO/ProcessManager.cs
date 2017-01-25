@@ -9,12 +9,12 @@ namespace GitHub.Unity
 {
     class ProcessManager
     {
+        private static readonly ILogger Logger = Logging.Logger.GetLogger<ProcessManager>();
+
         readonly IGitEnvironment gitEnvironment;
         readonly static IFileSystem fs = new FileSystem();
 
         private static ProcessManager instance;
-        static readonly ILogger Logger = Logging.Logger.GetLogger<ProcessManager>();
-
         public static ProcessManager Instance
         {
             get
