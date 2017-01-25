@@ -6,12 +6,12 @@ namespace GitHub.Unity
 {
     class FindGitTask : ProcessTask
     {
+        private static readonly ILogger FindGitTaskLogger = Logging.Logger.GetLogger<FindGitTask>();
+
         private FindGitTask(Action<string> onSuccess, Action onFailure = null)
             : base(onSuccess, onFailure)
         {
         }
-
-        private static readonly ILogger FindGitTaskLogger = Logging.Logger.GetLogger<FindGitTask>();
 
         public static bool ValidateGitInstall(string path)
         {

@@ -27,7 +27,7 @@ namespace GitHub.Unity
             }
         }
 
-        readonly IGitEnvironment gitEnvironment;
+        private readonly IGitEnvironment gitEnvironment;
 
         public ProcessManager()
         {
