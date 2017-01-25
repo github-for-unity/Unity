@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace GitHub.Unity.IO
 {
-    public static class ProcessManagerExtensions
+    static class ProcessManagerExtensions
     {
         public static IEnumerable<GitBranch> GetGitBranches(this ProcessManager processManager, string testGitRepoPath)
         {

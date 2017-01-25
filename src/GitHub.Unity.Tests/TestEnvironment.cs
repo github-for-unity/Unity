@@ -2,7 +2,7 @@ using System;
 
 namespace GitHub.Unity.Tests
 {
-    public class TestEnvironment : IEnvironment
+    class TestEnvironment : IEnvironment
     {
         public string GetFolderPath(Environment.SpecialFolder folder)
         {

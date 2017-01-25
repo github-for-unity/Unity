@@ -37,4 +37,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: NeutralResourcesLanguage("en-US")]
-[assembly: InternalsVisibleTo("IOTests", AllInternalsVisible = true)]
+[assembly: InternalsVisibleTo("GitHub.Unity.Tests", AllInternalsVisible = true)]

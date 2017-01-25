@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace GitHub.Unity.Tests
 {
     [SetUpFixture]
-    public class TextFixtureSetup
+    class TextFixtureSetup
     {
         [SetUp]
         public void SetUp()

@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace GitHub.Unity.Tests.IO
 {
-    public class BaseIOTest
+    class BaseIOTest
     {
         private static string SolutionDirectory => TestContext.CurrentContext.TestDirectory;
 

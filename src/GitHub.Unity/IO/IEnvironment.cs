@@ -1,6 +1,6 @@
 namespace GitHub.Unity
 {
-    public interface IEnvironment
+    interface IEnvironment
     {
         string ExpandEnvironmentVariables(string name);
         string GetEnvironmentVariable(string v);

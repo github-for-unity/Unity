@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace GitHub.Unity.Tests.IO
 {
     [TestFixture]
-    public class ProcessManagerTests : BaseIOTest
+    class ProcessManagerTests : BaseIOTest
     {
         [Test]
         public void BranchListTest()

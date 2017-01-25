@@ -5,7 +5,7 @@ using System.Text;
 
 namespace GitHub.Unity
 {
-    public class GitEnvironment : IGitEnvironment
+    class GitEnvironment : IGitEnvironment
     {
         readonly IEnvironment environment;
 

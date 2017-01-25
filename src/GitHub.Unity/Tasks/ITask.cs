@@ -3,7 +3,7 @@ using System.IO;
 
 namespace GitHub.Unity
 {
-    public interface ITask
+    interface ITask
     {
         void Run();
         void Abort();
