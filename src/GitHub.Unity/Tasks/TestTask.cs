@@ -18,6 +18,8 @@ namespace GitHub.Unity
             Progress = 0.0f;
         }
 
+        private static readonly ILogger Logger = Logging.Logger.GetLogger<TestTask>();
+
         public static TestTask Parse(IDictionary<string, object> data)
         {
             return new TestTask(false) { reconnecting = true, Done = false };
