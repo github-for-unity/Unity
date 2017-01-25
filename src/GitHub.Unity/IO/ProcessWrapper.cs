@@ -7,7 +7,7 @@ namespace GitHub.Unity
 {
     class ProcessWrapper : IProcess
     {
-        private static readonly ILogger Logger = Logging.Logger.GetLogger<ProcessWrapper>();
+        private static readonly ILogger logger = Logger.GetLogger<ProcessWrapper>();
 
         public event Action<string> OnOutputData;
         public event Action<string> OnErrorData;
@@ -19,14 +19,14 @@ namespace GitHub.Unity
             process = new Process { StartInfo = psi, EnableRaisingEvents = true };
             process.OutputDataReceived += (s, e) =>
             {
-                Logger.Debug("Output - \"" + e.Data + "\" exited:" + process.HasExited);
+                logger.Debug("Output - \"" + e.Data + "\" exited:" + process.HasExited);
                 OnOutputData.SafeInvoke(e.Data);
             };
             process.ErrorDataReceived += (s, e) =>
             {
                 if (e.Data == null) return;
 
-                Logger.Debug("Error");
+                logger.Debug("Error");
                 OnErrorData.SafeInvoke(e.Data);
                 if (process.HasExited)
                 {
@@ -35,14 +35,14 @@ namespace GitHub.Unity
             };
             process.Exited += (s, e) =>
             {
-                Logger.Debug("Exit");
+                logger.Debug("Exit");
                 OnExit.SafeInvoke(this);
             };
         }
 
         public void Run()
         {
-            Logger.Debug("Run");
+            logger.Debug("Run");
 
             process.Start();
             process.BeginOutputReadLine();
@@ -51,7 +51,7 @@ namespace GitHub.Unity
 
         public bool WaitForExit(int milliseconds)
         {
-            Logger.Debug("WaitForExit - time: " + milliseconds + "ms");
+            logger.Debug("WaitForExit - time: " + milliseconds + "ms");
 
             // Workaround for a bug in which some data may still be processed AFTER this method returns true, thus losing the data.
             // http://connect.microsoft.com/VisualStudio/feedback/details/272125/waitforexit-and-waitforexit-int32-provide-different-and-undocumented-implementations
@@ -65,7 +65,7 @@ namespace GitHub.Unity
 
         public void WaitForExit()
         {
-            Logger.Debug("WaitForExit");
+            logger.Debug("WaitForExit");
             process.WaitForExit();
         }
 

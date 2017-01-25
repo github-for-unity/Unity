@@ -52,7 +52,7 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string selectionID;
 
-        private static readonly ILogger Logger = Logging.Logger.GetLogger<HistoryView>();
+        private static readonly ILogger logger = Logging.Logger.GetLogger<HistoryView>();
 
         public override void Refresh()
         {
@@ -484,12 +484,12 @@ namespace GitHub.Unity
 
         private void Pull()
         {
-            Logger.Debug("TODO: Pull");
+            logger.Debug("TODO: Pull");
         }
 
         private void Push()
         {
-            Logger.Debug("TODO: Push");
+            logger.Debug("TODO: Push");
         }
 
         public bool BroadMode

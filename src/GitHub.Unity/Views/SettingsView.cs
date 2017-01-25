@@ -66,7 +66,7 @@ namespace GitHub.Unity
         [SerializeField] private List<GitRemote> remotes = new List<GitRemote>();
         [SerializeField] private Vector2 scroll;
 
-        private static readonly ILogger Logger = Logging.Logger.GetLogger<SettingsView>();
+        private static readonly ILogger logger = Logging.Logger.GetLogger<SettingsView>();
 
         public override void Refresh()
         {
@@ -489,7 +489,7 @@ namespace GitHub.Unity
 
         private void Init()
         {
-            Logger.Debug("TODO: Init '{0}'", initDirectory);
+            logger.Debug("TODO: Init '{0}'", initDirectory);
         }
     }
 }

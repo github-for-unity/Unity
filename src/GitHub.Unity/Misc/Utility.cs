@@ -12,7 +12,7 @@ namespace GitHub.Unity
 {
     class Utility : ScriptableObject
     {
-        private static readonly ILogger Logger = Logging.Logger.GetLogger<Utility>();
+        private static readonly ILogger logger = Logging.Logger.GetLogger<Utility>();
 
         public const string StatusRenameDivider = "->";
         public static readonly Regex ListBranchesRegex =
@@ -90,7 +90,7 @@ namespace GitHub.Unity
             {
                 FindGitTask.Schedule(path =>
                     {
-                        Logger.Debug("found " + path);
+                        logger.Debug("found " + path);
                         if (!string.IsNullOrEmpty(path))
                         {
                             GitInstallPath = path;
@@ -98,7 +98,7 @@ namespace GitHub.Unity
                             OnPrepareCompleted();
                         }
                     },
-                    () => Logger.Debug("NOT FOUND")
+                    () => logger.Debug("NOT FOUND")
                 );
             }
             else

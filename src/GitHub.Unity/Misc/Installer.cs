@@ -7,7 +7,7 @@ namespace GitHub.Unity
 {
     class Installer : ScriptableObject
     {
-        private static readonly ILogger Logger = Logging.Logger.GetLogger<Installer>();
+        private static readonly ILogger logger = Logging.Logger.GetLogger<Installer>();
 
         private const string PackageName = "GitHub extensions";
         private const string QueryTitle = "Embed " + PackageName + "?";
@@ -64,7 +64,7 @@ namespace GitHub.Unity
         {
             try
             {
-                Logger.Debug("Installer move from '{0}'", path);
+                logger.Debug("Installer move from '{0}'", path);
                 // TODO: Create the necessary structure and perform the actual move of files into it from the given install path
             }
             catch (Exception e)

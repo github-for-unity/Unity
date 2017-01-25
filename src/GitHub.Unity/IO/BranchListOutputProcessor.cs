@@ -8,7 +8,7 @@ namespace GitHub.Unity
     {
         private static readonly Regex TrackingBranchRegex = new Regex(@"\[[\w]+\/.*\]");
 
-        private static readonly ILogger Logger = Logging.Logger.GetLogger<BranchListOutputProcessor>();
+        private static readonly ILogger logger = Logging.Logger.GetLogger<BranchListOutputProcessor>();
 
         public event Action<GitBranch> OnBranch;
 
@@ -44,7 +44,7 @@ namespace GitHub.Unity
                 trackingName = proc.ReadChunk('[', ']');
             }
 
-            Logger.Debug("Branch - Name: " + name + " TrackedAs: " + trackingName + " Active: " + active);
+            logger.Debug("Branch - Name: " + name + " TrackedAs: " + trackingName + " Active: " + active);
 
             var branch = new GitBranch(name, trackingName, active);
 

@@ -9,8 +9,8 @@ namespace GitHub.Unity
 {
     class ProcessManager
     {
-        private static readonly ILogger Logger = Logging.Logger.GetLogger<ProcessManager>();
-        private static readonly IFileSystem Fs = new FileSystem();
+        private static readonly ILogger logger = Logger.GetLogger<ProcessManager>();
+        private static readonly IFileSystem fs = new FileSystem();
 
         private static ProcessManager instance;
         public static ProcessManager Instance
@@ -41,7 +41,7 @@ namespace GitHub.Unity
 
         public IProcess Configure(string executableFileName, string arguments, string workingDirectory)
         {
-            Logger.Debug("Configuring process - \"" + executableFileName + " " + arguments + "\" cwd:" + workingDirectory);
+            logger.Debug("Configuring process - \"" + executableFileName + " " + arguments + "\" cwd:" + workingDirectory);
             var startInfo = new ProcessStartInfo(executableFileName, arguments)
             {
                 RedirectStandardInput = true,
@@ -58,7 +58,7 @@ namespace GitHub.Unity
 
         public IProcess Reconnect(int pid)
         {
-            Logger.Debug("Reconnecting process " + pid);
+            logger.Debug("Reconnecting process " + pid);
             var p = Process.GetProcessById(pid);
             p.StartInfo.RedirectStandardInput = true;
             p.StartInfo.RedirectStandardOutput = true;
@@ -84,12 +84,12 @@ namespace GitHub.Unity
                     }
                     catch (Exception e)
                     {
-                        Logger.Error("Error while looking for {0} in {1}\n{2}", executable, directory, e);
+                        logger.Error("Error while looking for {0} in {1}\n{2}", executable, directory, e);
                         return null;
                     }
                 })
                 .Where(x => x != null)
-                .FirstOrDefault(x => Fs.FileExists(x));
+                .FirstOrDefault(x => fs.FileExists(x));
 
             return executablePath;
         }
