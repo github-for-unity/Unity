@@ -73,50 +73,53 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
+            bool onIssuesGui;
             scroll = GUILayout.BeginScrollView(scroll);
             {
                 // Issues
-                if (!OnIssuesGUI())
+                onIssuesGui = OnIssuesGUI();
+                if (onIssuesGui)
                 {
-                    return;
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+                    GUILayout.Label("TODO: Favourite branches settings?");
+
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+                    // Remotes
+
+                    OnRemotesGUI();
+
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+                    // gitignore rules list
+
+                    OnGitIgnoreRulesGUI();
+
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+                    GUILayout.Label("TODO: GitHub login settings");
+                    GUILayout.Label("TODO: Auto-fetch toggle");
+                    GUILayout.Label("TODO: Auto-push toggle");
+
+                    // Install path
+
+                    GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
+                    OnInstallPathGUI();
                 }
-
-                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                GUILayout.Label("TODO: Favourite branches settings?");
-
-                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                // Remotes
-
-                OnRemotesGUI();
-
-                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                // gitignore rules list
-
-                OnGitIgnoreRulesGUI();
-
-                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                GUILayout.Label("TODO: GitHub login settings");
-                GUILayout.Label("TODO: Auto-fetch toggle");
-                GUILayout.Label("TODO: Auto-push toggle");
-
-                // Install path
-
-                GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
-                OnInstallPathGUI();
             }
 
             GUILayout.EndScrollView();
 
             // Effectuate new selection at end of frame
-            if (Event.current.type == EventType.Repaint && newGitIgnoreRulesSelection > -1)
+            if (onIssuesGui)
             {
-                gitIgnoreRulesSelection = newGitIgnoreRulesSelection;
-                newGitIgnoreRulesSelection = -1;
-                GUIUtility.hotControl = GUIUtility.keyboardControl = -1;
+                if (Event.current.type == EventType.Repaint && newGitIgnoreRulesSelection > -1)
+                {
+                    gitIgnoreRulesSelection = newGitIgnoreRulesSelection;
+                    newGitIgnoreRulesSelection = -1;
+                    GUIUtility.hotControl = GUIUtility.keyboardControl = -1;
+                }
             }
         }
 
@@ -430,10 +433,19 @@ namespace GitHub.Unity
             // Install path field
             EditorGUI.BeginChangeCheck();
             {
+                var defaultGitPath = FindGitTask.DefaultGitPath;
+
+                //TODO: Verify necessary value for a non Windows OS
+                var extension = defaultGitPath != null && Path.HasExtension(defaultGitPath)
+                    ? Path.GetExtension(defaultGitPath).TrimStart('.')
+                    : null;
+
+                var defaultGitInstallFolder = Path.GetDirectoryName(defaultGitPath);
+
                 Styles.PathField(ref gitInstallPath,
-                    () =>
-                        EditorUtility.OpenFilePanel(GitInstallBrowseTitle, Path.GetDirectoryName(FindGitTask.DefaultGitPath),
-                            Path.GetExtension(FindGitTask.DefaultGitPath)), ValidateGitInstall);
+                    () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
+                        defaultGitInstallFolder,
+                        extension), ValidateGitInstall);
             }
             if (EditorGUI.EndChangeCheck())
             {

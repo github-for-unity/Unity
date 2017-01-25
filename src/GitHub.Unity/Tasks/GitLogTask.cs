@@ -45,12 +45,13 @@ namespace GitHub.Unity
 
         public static void Schedule(string file = null)
         {
-            Tasks.Add(new GitLogTask(file));
+            //Tasks.Add(new GitLogTask(file));
         }
 
         private void DeliverResult()
         {
-            onLogUpdate?.Invoke(entries);
+            if (onLogUpdate != null)
+                onLogUpdate(entries);
 
             entries.Clear();
         }
@@ -204,7 +205,7 @@ namespace GitHub.Unity
             get { return arguments; }
         }
 
-        protected override Action<string> OnSuccess => onSuccess;
+        protected override Action<string> OnSuccess { get { return onSuccess; } }
 
         private enum ParsePhase
         {

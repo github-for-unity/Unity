@@ -28,9 +28,12 @@ namespace GitHub.Unity
         [SerializeField] private HistoryView historyTab = new HistoryView();
         [SerializeField] private SettingsView settingsTab = new SettingsView();
 
+        private static bool initialized;
+
         public static void Initialize()
         {
             RefreshRunner.Initialize();
+            initialized = true;
         }
 
         [MenuItem(LaunchMenu)]
@@ -43,6 +46,12 @@ namespace GitHub.Unity
         {
             // Set window title
             titleContent = new GUIContent(Title, Styles.TitleIcon);
+
+            if (!initialized)
+            {
+                return;
+            }
+
 
             var settingsIssues = Utility.Issues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
 
@@ -180,18 +189,18 @@ namespace GitHub.Unity
             }
         }
 
-        public Rect Position => position;
+        public Rect Position { get { return position; } }
 
         private class RefreshRunner : AssetPostprocessor
         {
             public static void Initialize()
             {
-                Tasks.ScheduleMainThread(Refresh);
+                //Tasks.ScheduleMainThread(Refresh);
             }
 
             private static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moveDestination, string[] moveSource)
             {
-                Refresh();
+                //Refresh();
             }
 
             private static void Refresh()

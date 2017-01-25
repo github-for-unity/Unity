@@ -22,6 +22,7 @@
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CodeAnalysisRuleSet>..\common\GitHub.ruleset</CodeAnalysisRuleSet>
+    <LangVersion>4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -48,20 +49,37 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EntryPoint.cs" />
-    <Compile Include="Guard.cs" />
-    <Compile Include="Installer.cs" />
+    <Compile Include="Helpers\StringExtensions.cs" />
+    <Compile Include="Extensions\ActionExtensions.cs" />
+    <Compile Include="IO\BaseOutputProcessor.cs" />
+    <Compile Include="IO\BranchListOutputProcessor.cs" />
+    <Compile Include="IO\DefaultEnvironment.cs" />
+    <Compile Include="IO\FileSystem.cs" />
+    <Compile Include="IO\GitEnvironment.cs" />
+    <Compile Include="IO\IEnvironment.cs" />
+    <Compile Include="IO\IFileSystem.cs" />
+    <Compile Include="IO\IGitEnvironment.cs" />
+    <Compile Include="IO\IOutputProcessor.cs" />
+    <Compile Include="IO\IProcess.cs" />
+    <Compile Include="Helpers\LineProcessor.cs" />
+    <Compile Include="IO\ProcessOutputManager.cs" />
+    <Compile Include="IO\ProcessWrapper.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Localization.resx</DependentUpon>
     </Compile>
-    <Compile Include="ProjectWindowInterface.cs" />
+    <Compile Include="Misc\Ensure.cs" />
+    <Compile Include="Misc\EntryPoint.cs" />
+    <Compile Include="Misc\Installer.cs" />
+    <Compile Include="Misc\ProjectWindowInterface.cs" />
+    <Compile Include="Misc\Settings.cs" />
+    <Compile Include="Misc\SimpleJson.cs" />
+    <Compile Include="Misc\Styles.cs" />
+    <Compile Include="Misc\Utility.cs" />
+    <Compile Include="Misc\Window.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\StatusService.cs" />
-    <Compile Include="Settings.cs" />
-    <Compile Include="SimpleJson.cs" />
-    <Compile Include="Styles.cs" />
     <Compile Include="Tasks\CachedTask.cs" />
     <Compile Include="Tasks\EvaluateProjectConfigurationTask.cs" />
     <Compile Include="Tasks\FailureSeverity.cs" />
@@ -83,12 +101,12 @@
     <Compile Include="Tasks\GitSwitchBranchesTask.cs" />
     <Compile Include="Tasks\GitTask.cs" />
     <Compile Include="Tasks\ITask.cs" />
+    <Compile Include="IO\ProcessManager.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskException.cs" />
     <Compile Include="Tasks\TaskQueueSetting.cs" />
     <Compile Include="Tasks\Tasks.cs" />
     <Compile Include="Tasks\TestTask.cs" />
-    <Compile Include="Utility.cs" />
     <Compile Include="Views\BranchesView.cs" />
     <Compile Include="Views\ChangesetTreeView.cs" />
     <Compile Include="Views\ChangesView.cs" />
@@ -96,7 +114,6 @@
     <Compile Include="Views\IView.cs" />
     <Compile Include="Views\SettingsView.cs" />
     <Compile Include="Views\View.cs" />
-    <Compile Include="Window.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Localization.resx">

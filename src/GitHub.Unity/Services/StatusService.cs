@@ -1,4 +1,5 @@
 ﻿using System;
+using GitHub.Unity.Extensions;
 
 namespace GitHub.Unity
 {
@@ -6,11 +7,16 @@ namespace GitHub.Unity
     {
         event Action<GitStatus> statusUpdated;
 
-        public static StatusService Instance { get; private set; }
-
-        public static void Initialize()
+        private static StatusService instance;
+        public static StatusService Instance
         {
-            Instance = new StatusService();
+            get
+            {
+                if (instance == null)
+                    instance = new StatusService();
+                return instance;
+            }
+            set { instance = value; }
         }
 
         public static void Shutdown()
@@ -35,7 +41,7 @@ namespace GitHub.Unity
 
         private void InternalInvoke(GitStatus status)
         {
-            statusUpdated?.Invoke(status);
+            statusUpdated.SafeInvoke(status);
         }
     }
 }

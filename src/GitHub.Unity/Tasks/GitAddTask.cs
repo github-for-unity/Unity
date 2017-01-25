@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using GitHub.Unity.Extensions;
 
 namespace GitHub.Unity
 {
@@ -9,7 +10,7 @@ namespace GitHub.Unity
         private string arguments = "";
 
         private GitAddTask(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
-            : base(str => onSuccess?.Invoke(), onFailure)
+            : base(str => onSuccess.SafeInvoke(), onFailure)
         {
             arguments = "add ";
             arguments += " -- ";

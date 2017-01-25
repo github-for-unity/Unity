@@ -24,8 +24,6 @@ namespace GitHub.Unity
 
             Installer.Initialize();
 
-            StatusService.Initialize();
-
             Tasks.Run();
 
             ProjectWindowInterface.Initialize();

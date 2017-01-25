@@ -106,6 +106,6 @@ namespace GitHub.Unity
             get { return "remote -v"; }
         }
 
-        protected override Action<string> OnSuccess => onSuccess;
+        protected override Action<string> OnSuccess { get { return onSuccess; } }
     }
 }

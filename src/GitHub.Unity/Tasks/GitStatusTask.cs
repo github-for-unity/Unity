@@ -1,3 +1,4 @@
+using GitHub.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,7 +22,7 @@ namespace GitHub.Unity
 
         public static void Schedule(Action<GitStatus> onSuccess = null, Action onFailure = null)
         {
-            Tasks.Add(new GitStatusTask(onSuccess, onFailure));
+            //Tasks.Add(new GitStatusTask(onSuccess, onFailure));
         }
 
         private void ProcessOutput(string value)
@@ -79,7 +80,7 @@ namespace GitHub.Unity
                     }
                 }
             }
-            Tasks.ScheduleMainThread(() => callback?.Invoke(status));
+            Tasks.ScheduleMainThread(() => callback.SafeInvoke(status));
         }
 
         public override bool Blocking
@@ -112,6 +113,6 @@ namespace GitHub.Unity
             get { return "status -b -u --porcelain"; }
         }
 
-        protected override Action<string> OnSuccess => onSuccess;
+        protected override Action<string> OnSuccess { get { return onSuccess; } }
     }
 }
