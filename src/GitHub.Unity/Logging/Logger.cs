@@ -2,7 +2,7 @@ using System;
 
 namespace GitHub.Unity.Logging
 {
-    public static class Logger
+    static class Logger
     {
         private static Func<string, ILogger> _loggerFactory = s => new UnityLogAdapter(s);
 

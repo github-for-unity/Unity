@@ -3,7 +3,7 @@ using GitHub.Unity.Logging;
 
 namespace IOTests
 {
-    public class TestLogAdapter : ILogger
+    class TestLogAdapter : ILogger
     {
         private readonly string _prefix;
 

@@ -1,10 +1,8 @@
 using System;
-using System.Diagnostics;
-using UnityEngine;
 
 namespace GitHub.Unity.Logging
 {
-    public class UnityLogAdapter : ILogger
+    class UnityLogAdapter : ILogger
     {
         private readonly string _contextPrefix;
 

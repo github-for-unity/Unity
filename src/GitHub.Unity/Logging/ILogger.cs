@@ -1,6 +1,6 @@
 namespace GitHub.Unity.Logging
 {
-    public interface ILogger
+    interface ILogger
     {
         void Info(string message);
         void Info(string format, params object[] objects);
