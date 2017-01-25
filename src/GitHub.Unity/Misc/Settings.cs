@@ -375,7 +375,7 @@ namespace GitHub.Unity
             if (!SimpleJson.TryDeserializeObject(File.ReadAllText(path), out parseResult) ||
                 (settings = parseResult as IDictionary<string, object>) == null)
             {
-                Logging.Logger.LogErrorFormat(SettingsParseError, path);
+                Logging.Logger.Error(SettingsParseError, path);
                 return null;
             }
 

@@ -46,32 +46,37 @@ namespace GitHub.Unity.Logging
             return _loggerFactory(context);
         }
 
-        public static void Log(string s)
+        public static void Info(string s)
+        {
+            Instance.Info(s);
+        }
+
+        public static void Debug(string s)
         {
             Instance.Debug(s);
         }
 
-        public static void LogWarning(string s)
+        public static void Warning(string s)
         {
             Instance.Warning(s);
         }
 
-        public static void LogError(string s)
+        public static void Error(string s)
         {
             Instance.Error(s);
         }
 
-        public static void LogFormat(string format, params object[] objects)
+        public static void Debug(string format, params object[] objects)
         {
             Instance.Debug(format, objects);
         }
 
-        public static void LogWarningFormat(string format, params object[] objects)
+        public static void Warning(string format, params object[] objects)
         {
             Instance.Warning(format, objects);
         }
 
-        public static void LogErrorFormat(string format, params object[] objects)
+        public static void Error(string format, params object[] objects)
         {
             Instance.Error(format, objects);
         }
