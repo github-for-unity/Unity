@@ -150,7 +150,7 @@ namespace GitHub.Unity
                 process.Kill();
             }
             catch (Exception)
-            { }
+            {}
 
             Done = true;
 
@@ -165,7 +165,7 @@ namespace GitHub.Unity
         }
 
         public void Reconnect()
-        { }
+        {}
 
         public void WriteCache(TextWriter cache)
         {
@@ -206,7 +206,7 @@ namespace GitHub.Unity
         {
             if (OnSuccess != null)
             {
-                this.Logger.Debug("Success - \"" + msg + "\"");
+                Logger.Debug("Success - \"" + msg + "\"");
                 Tasks.ScheduleMainThread(() => OnSuccess(msg));
             }
         }
@@ -217,7 +217,7 @@ namespace GitHub.Unity
 
             if (OnFailure != null)
             {
-                this.Logger.Debug("Failure - \"" + msg + "\"");
+                Logger.Debug("Failure - \"" + msg + "\"");
                 Tasks.ScheduleMainThread(() => OnFailure());
             }
         }
