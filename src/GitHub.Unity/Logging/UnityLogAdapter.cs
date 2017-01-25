@@ -4,7 +4,7 @@ namespace GitHub.Unity.Logging
 {
     class UnityLogAdapter : ILogger
     {
-        private readonly string _contextPrefix;
+        private readonly string contextPrefix;
 
         private string Prefix
         {
@@ -12,13 +12,13 @@ namespace GitHub.Unity.Logging
             {
                 var time = DateTime.Now.ToString("HH:mm:ss tt");
                 var threadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                return string.Format("{0} [{1}] <{2}> ", time, threadId, _contextPrefix);
+                return string.Format("{0} [{1}] <{2}> ", time, threadId, contextPrefix);
             }
         }
 
         public UnityLogAdapter(string context)
         {
-            _contextPrefix = string.IsNullOrEmpty(context) 
+            contextPrefix = string.IsNullOrEmpty(context) 
                 ? "GitHub" 
                 : string.Format("GitHub:{0}", context);
         }
