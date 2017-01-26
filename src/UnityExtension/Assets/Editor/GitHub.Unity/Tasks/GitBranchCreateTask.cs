@@ -1,4 +1,3 @@
-using GitHub.Unity.Extensions;
 using System;
 using System.IO;
 
