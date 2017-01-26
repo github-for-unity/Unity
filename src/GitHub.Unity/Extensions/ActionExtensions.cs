@@ -1,6 +1,6 @@
 using System;
 
-namespace GitHub.Unity.Extensions
+namespace GitHub.Unity
 {
     public static class ActionExtensions
     {
