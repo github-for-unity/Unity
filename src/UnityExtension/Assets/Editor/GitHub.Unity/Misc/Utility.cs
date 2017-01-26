@@ -6,11 +6,14 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using ILogger = GitHub.Unity.Logging.ILogger;
 
 namespace GitHub.Unity
 {
     class Utility : ScriptableObject
     {
+        private static readonly ILogger logger = Logging.Logger.GetLogger<Utility>();
+
         public const string StatusRenameDivider = "->";
         public static readonly Regex ListBranchesRegex =
             new Regex(@"^(?<active>\*)?\s+(?<name>[\w\d\/\-\_]+)\s*(?:[a-z|0-9]{7} \[(?<tracking>[\w\d\/\-\_]+)\])?");
@@ -87,7 +90,7 @@ namespace GitHub.Unity
             {
                 FindGitTask.Schedule(path =>
                     {
-                        Debug.Log("found " + path);
+                        logger.Debug("found " + path);
                         if (!string.IsNullOrEmpty(path))
                         {
                             GitInstallPath = path;
@@ -95,7 +98,7 @@ namespace GitHub.Unity
                             OnPrepareCompleted();
                         }
                     },
-                    () => Debug.Log("NOT FOUND")
+                    () => logger.Debug("NOT FOUND")
                 );
             }
             else

@@ -9,7 +9,7 @@ namespace GitHub.Unity
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
         {
-            Debug.Log("Entry Point");
+            Logging.Logger.Debug("Entry Point");
             EditorApplication.update += Initialize;
         }
 

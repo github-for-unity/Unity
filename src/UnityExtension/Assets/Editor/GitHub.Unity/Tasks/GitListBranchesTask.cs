@@ -2,6 +2,7 @@ using GitHub.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
@@ -45,13 +46,13 @@ namespace GitHub.Unity
 
         protected override void OnProcessOutputUpdate()
         {
-            UnityEngine.Debug.Log("Done (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+            Logger.Debug("Done");
             Tasks.ScheduleMainThread(() => DeliverResult());
         }
 
         private void AddBranch(GitBranch branch)
         {
-            UnityEngine.Debug.Log("AddBranch " + branch + " (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+            Logger.Debug("AddBranch " + branch);
             branches.Add(branch);
         }
 
