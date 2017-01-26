@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="IO\ProcessManagerTests.cs" />
     <Compile Include="IO\BaseIOTest.cs" />
+    <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="TextFixtureSetup.cs" />
     <Compile Include="Logging\TestLogAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
