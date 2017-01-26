@@ -1,10 +1,11 @@
 using GitHub.Unity.Logging;
+using GitHub.Unity.Tests.Logging;
 using NUnit.Framework;
 
-namespace IOTests
+namespace GitHub.Unity.Tests
 {
     [SetUpFixture]
-    public class TextFixtureSetup
+    class TextFixtureSetup
     {
         [SetUp]
         public void SetUp()
