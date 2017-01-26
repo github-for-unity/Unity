@@ -36,6 +36,10 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Threading, Version=1.0.2856.102, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\packages\TaskParallelLibrary.1.0.2856.0\lib\Net35\System.Threading.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
@@ -161,8 +165,26 @@
     <None Include="$(SolutionDir)common\GitHub.ruleset">
       <Link>GitHub.ruleset</Link>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\submodules\dotnet-httpclient35\System.Net.Http\System.Net.Http-net_3_5.csproj">
+      <Project>{9862694d-e4fa-418b-8692-a0280feddf36}</Project>
+      <Name>System.Net.Http-net_3_5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">
+      <Project>{eb4b074e-62a7-4f1d-8f95-e64b7aea0236}</Project>
+      <Name>Octokit-Extensions35</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\submodules\octokit.net\Octokit\Octokit-35.csproj">
+      <Project>{49ef16a2-5ed1-480f-80a1-d1d05d6c1be4}</Project>
+      <Name>Octokit-35</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\GitHub.Api\GitHub.Api.csproj">
+      <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
+      <Name>GitHub.Api</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
