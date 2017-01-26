@@ -1,7 +1,7 @@
 using System;
 using GitHub.Unity.Logging;
 
-namespace IOTests
+namespace GitHub.Unity.Tests.Logging
 {
     class TestLogAdapter : ILogger
     {
