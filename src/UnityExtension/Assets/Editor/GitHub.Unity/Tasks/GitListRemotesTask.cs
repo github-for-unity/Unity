@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
+using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
@@ -65,7 +65,7 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    Debug.LogWarningFormat(ParseFailedError, line);
+                    Logger.Warning(ParseFailedError, line);
                 }
             }
             InternalInvoke();

@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
     class ProcessManager
     {
-        readonly IGitEnvironment gitEnvironment;
-        readonly static IFileSystem fs = new FileSystem();
+        private static readonly ILogger logger = Logger.GetLogger<ProcessManager>();
+        private static readonly IFileSystem fs = new FileSystem();
 
         private static ProcessManager instance;
         public static ProcessManager Instance
@@ -26,6 +27,8 @@ namespace GitHub.Unity
             }
         }
 
+        private readonly IGitEnvironment gitEnvironment;
+
         public ProcessManager()
         {
             gitEnvironment = new GitEnvironment();
@@ -38,7 +41,7 @@ namespace GitHub.Unity
 
         public IProcess Configure(string executableFileName, string arguments, string workingDirectory)
         {
-            UnityEngine.Debug.Log("Configuring process " + executableFileName + " " + arguments + " " + workingDirectory);
+            logger.Debug("Configuring process - \"" + executableFileName + " " + arguments + "\" cwd:" + workingDirectory);
             var startInfo = new ProcessStartInfo(executableFileName, arguments)
             {
                 RedirectStandardInput = true,
@@ -55,7 +58,7 @@ namespace GitHub.Unity
 
         public IProcess Reconnect(int pid)
         {
-            UnityEngine.Debug.Log("Reconnecting process " + pid + " (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+            logger.Debug("Reconnecting process " + pid);
             var p = Process.GetProcessById(pid);
             p.StartInfo.RedirectStandardInput = true;
             p.StartInfo.RedirectStandardOutput = true;
@@ -81,7 +84,7 @@ namespace GitHub.Unity
                     }
                     catch (Exception e)
                     {
-                        UnityEngine.Debug.LogErrorFormat("Error while looking for {0} in {1}\n{2}", executable, directory, e);
+                        logger.Error("Error while looking for {0} in {1}\n{2}", executable, directory, e);
                         return null;
                     }
                 })

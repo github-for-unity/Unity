@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using GitHub.Unity.Logging;
 using UnityEditor;
-using UnityEngine;
 
 namespace GitHub.Unity
 {
@@ -17,6 +17,8 @@ namespace GitHub.Unity
             Done = false;
             Progress = 0.0f;
         }
+
+        private static readonly ILogger logger = Logger.GetLogger<TestTask>();
 
         public static TestTask Parse(IDictionary<string, object> data)
         {
@@ -37,7 +39,7 @@ namespace GitHub.Unity
 
         public void Run()
         {
-            Debug.LogFormat("{0} {1}", Label, reconnecting ? "reconnect" : "start");
+            logger.Debug("{0} {1}", Label, reconnecting ? "reconnect" : "start");
 
             Done = false;
             Progress = 0.0f;
@@ -58,7 +60,7 @@ namespace GitHub.Unity
             Progress = 1.0f;
             Done = true;
 
-            Debug.LogFormat("{0} end", Label);
+            logger.Debug("{0} end", Label);
 
             if (OnEnd != null)
             {
@@ -68,7 +70,7 @@ namespace GitHub.Unity
 
         public void Abort()
         {
-            Debug.LogFormat("Aborting {0}", Label);
+            logger.Debug("Aborting {0}", Label);
 
             Done = true;
         }
@@ -83,7 +85,7 @@ namespace GitHub.Unity
 
         public void WriteCache(TextWriter cache)
         {
-            Debug.LogFormat("Writing cache for {0}", Label);
+            logger.Debug("Writing cache for {0}", Label);
             cache.WriteLine("{");
             cache.WriteLine("\"{0}\": \"{1}\"", Tasks.TypeKey, CachedTask.TestTask);
             cache.WriteLine("}");

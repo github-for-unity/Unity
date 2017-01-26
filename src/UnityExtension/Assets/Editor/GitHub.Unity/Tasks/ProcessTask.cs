@@ -3,14 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using GitHub.Unity.Logging;
 using System.Threading;
 using UnityEditor;
-using Debug = UnityEngine.Debug;
 
 namespace GitHub.Unity
 {
     class ProcessTask : ITask, IDisposable
     {
+        protected ILogger Logger { get; private set; }
+
         private const int ExitMonitorSleep = 100;
 
         private readonly StringWriter error = new StringWriter();
@@ -23,6 +25,7 @@ namespace GitHub.Unity
 
         protected ProcessTask(Action<string> onSuccess = null, Action onFailure = null)
         {
+            Logger = Logging.Logger.GetLogger(GetType());
             this.onSuccess = onSuccess;
             this.onFailure = onFailure;
         }
@@ -50,7 +53,8 @@ namespace GitHub.Unity
                 resumedProcess = null;
             }
 
-            return new ProcessTask {
+            return new ProcessTask
+            {
                 process = resumedProcess,
                 Done = resumedProcess == null,
                 Progress = resumedProcess == null ? 1f : 0f
@@ -59,7 +63,7 @@ namespace GitHub.Unity
 
         public virtual void Run()
         {
-            Debug.LogFormat("{0} {1} ({2})", Label, process == null ? "start" : "reconnect", System.Threading.Thread.CurrentThread.ManagedThreadId);
+            Logger.Debug("{0} {1}", Label, process == null ? "start" : "reconnect");
 
             Done = false;
             Progress = 0.0f;
@@ -76,7 +80,7 @@ namespace GitHub.Unity
 
             process.OnExit += p =>
             {
-                UnityEngine.Debug.Log("OnExit (" + System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
+                Logger.Debug("OnExit");
                 Finished();
             };
 
@@ -132,14 +136,14 @@ namespace GitHub.Unity
 
             OnProcessOutputUpdate();
 
-            Debug.LogFormat("{0} end", Label);
+            Logger.Debug("{0} end", Label);
 
             OnEnd.SafeInvoke(this);
         }
 
         public void Abort()
         {
-            Debug.LogFormat("Aborting {0}", Label);
+            Logger.Debug("Aborting {0}", Label);
 
             try
             {
@@ -155,7 +159,7 @@ namespace GitHub.Unity
 
         public void Disconnect()
         {
-            Debug.LogFormat("Disconnect {0}", Label);
+            Logger.Debug("Disconnect {0}", Label);
 
             process = null;
         }
@@ -165,7 +169,7 @@ namespace GitHub.Unity
 
         public void WriteCache(TextWriter cache)
         {
-            Debug.LogFormat("Writing cache for {0}", Label);
+            Logger.Debug("Writing cache for {0}", Label);
 
             cache.WriteLine("{");
             cache.WriteLine(String.Format("\"{0}\": \"{1}\",", Tasks.TypeKey, CachedTaskType));
@@ -202,6 +206,7 @@ namespace GitHub.Unity
         {
             if (OnSuccess != null)
             {
+                Logger.Debug("Success - \"" + msg + "\"");
                 Tasks.ScheduleMainThread(() => OnSuccess(msg));
             }
         }
@@ -212,6 +217,7 @@ namespace GitHub.Unity
 
             if (OnFailure != null)
             {
+                Logger.Debug("Failure - \"" + msg + "\"");
                 Tasks.ScheduleMainThread(() => OnFailure());
             }
         }

@@ -68,6 +68,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Localization.resx</DependentUpon>
     </Compile>
+    <Compile Include="Logging\ILogger.cs" />
+    <Compile Include="Logging\Logger.cs" />
+    <Compile Include="Logging\UnityLogAdapter.cs" />
     <Compile Include="Misc\Ensure.cs" />
     <Compile Include="Misc\EntryPoint.cs" />
     <Compile Include="Misc\Installer.cs" />
