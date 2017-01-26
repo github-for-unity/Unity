@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using GitHub.Unity.Extensions;
 
 namespace GitHub.Unity
 {

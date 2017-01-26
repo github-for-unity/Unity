@@ -1,5 +1,4 @@
 ﻿using System;
-using GitHub.Unity.Extensions;
 
 namespace GitHub.Unity
 {
