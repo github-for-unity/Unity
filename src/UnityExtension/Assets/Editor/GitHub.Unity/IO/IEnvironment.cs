@@ -1,10 +1,12 @@
+using System;
+
 namespace GitHub.Unity
 {
     interface IEnvironment
     {
         string ExpandEnvironmentVariables(string name);
         string GetEnvironmentVariable(string v);
-        string GetTempPath();
+        string GetSpecialFolder(Environment.SpecialFolder folder);
 
         string Path { get; }
         string UserProfilePath { get; }
