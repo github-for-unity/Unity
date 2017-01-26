@@ -5,9 +5,9 @@ namespace GitHub.Unity
 {
     class DefaultEnvironment : IEnvironment
     {
-        public string GetFolderPath(Environment.SpecialFolder folder)
+        public string GetSpecialFolder(Environment.SpecialFolder folder)
         {
-            return ExpandEnvironmentVariables(Environment.GetFolderPath(folder));
+            return Environment.GetFolderPath(folder);
         }
 
         public string ExpandEnvironmentVariables(string name)
@@ -18,11 +18,6 @@ namespace GitHub.Unity
         public string GetEnvironmentVariable(string variable)
         {
             return Environment.GetEnvironmentVariable(variable);
-        }
-
-        public string GetTempPath()
-        {
-            return System.IO.Path.GetTempPath();
         }
 
         public string UserProfilePath { get { return Environment.GetEnvironmentVariable("USERPROFILE"); } }
