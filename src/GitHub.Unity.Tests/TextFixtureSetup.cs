@@ -1,5 +1,4 @@
 using GitHub.Unity.Logging;
-using GitHub.Unity.Tests.Logging;
 using NUnit.Framework;
 
 namespace GitHub.Unity.Tests

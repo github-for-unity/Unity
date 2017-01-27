@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GitHub.Unity.IO
+namespace GitHub.Unity.Tests
 {
     static class ProcessManagerExtensions
     {
