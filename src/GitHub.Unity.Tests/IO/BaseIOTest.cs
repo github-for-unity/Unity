@@ -3,7 +3,7 @@ using System.IO;
 using Ionic.Zip;
 using NUnit.Framework;
 
-namespace GitHub.Unity.Tests.IO
+namespace GitHub.Unity.Tests
 {
     class BaseIOTest
     {

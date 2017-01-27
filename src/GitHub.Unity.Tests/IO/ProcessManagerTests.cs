@@ -1,8 +1,7 @@
 ﻿using FluentAssertions;
-using GitHub.Unity.IO;
 using NUnit.Framework;
 
-namespace GitHub.Unity.Tests.IO
+namespace GitHub.Unity.Tests
 {
     [TestFixture]
     class ProcessManagerTests : BaseIOTest
