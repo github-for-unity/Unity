@@ -98,6 +98,7 @@
     <Compile Include="Misc\SimpleJson.cs" />
     <Compile Include="Misc\Styles.cs" />
     <Compile Include="Misc\Utility.cs" />
+    <Compile Include="Services\AuthenticationService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\StatusService.cs" />
     <Compile Include="Tasks\CachedTask.cs" />
@@ -127,6 +128,7 @@
     <Compile Include="Tasks\Tasks.cs" />
     <Compile Include="Tasks\TestTask.cs" />
     <Compile Include="Tools\MozRoots.cs" />
+    <Compile Include="UI\AuthenticationView.cs" />
     <Compile Include="UI\BranchesView.cs" />
     <Compile Include="UI\ChangesetTreeView.cs" />
     <Compile Include="UI\ChangesView.cs" />
