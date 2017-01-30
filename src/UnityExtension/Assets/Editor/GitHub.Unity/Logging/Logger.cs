@@ -20,15 +20,14 @@ namespace GitHub.Unity.Logging
 
         private static ILogger Instance
         {
-            get { return instance; }
-            set
-            {
+            get {
                 if (instance == null)
                 {
                     instance = loggerFactory(null);
                 }
-                instance = value;
+                return instance;
             }
+            set { instance = value; }
         }
 
         public static ILogger GetLogger<T>()
