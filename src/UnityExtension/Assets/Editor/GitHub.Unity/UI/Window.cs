@@ -19,6 +19,7 @@ namespace GitHub.Unity
         private const string ChangesTitle = "Changes";
         private const string BranchesTitle = "Branches";
         private const string SettingsTitle = "Settings";
+        private const string AuthenticationTitle = "Auth";
 
         [NonSerialized] private double notificationClearTime = -1;
 
@@ -27,6 +28,7 @@ namespace GitHub.Unity
         [SerializeField] private ChangesView changesTab = new ChangesView();
         [SerializeField] private HistoryView historyTab = new HistoryView();
         [SerializeField] private SettingsView settingsTab = new SettingsView();
+        [SerializeField] private AuthenticationView authTab = new AuthenticationView();
 
         private static bool initialized;
 
@@ -52,29 +54,23 @@ namespace GitHub.Unity
                 return;
             }
 
+            //if (!ValidateSettings())
+            //{
+            //    activeTab = SubTab.Settings; // If we do complete init, make sure that we return to the settings tab for further setup
+            //}
 
-            var settingsIssues = Utility.Issues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
-
-            // Initial state
-            if (!Utility.ActiveRepository || !Utility.GitFound ||
-                (settingsIssues != null &&
-                    (settingsIssues.WasCaught(ProjectSettingsEvaluation.EditorSettingsMissing) ||
-                        settingsIssues.WasCaught(ProjectSettingsEvaluation.BadVCSSettings))))
-            {
-                activeTab = SubTab.Settings; // If we do complete init, make sure that we return to the settings tab for further setup
-                settingsTab.OnGUI();
-                return;
-            }
+            activeTab = SubTab.Authentication;
 
             // Subtabs & toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
                 EditorGUI.BeginChangeCheck();
                 {
-                    TabButton(ref activeTab, SubTab.History, HistoryTitle);
-                    TabButton(ref activeTab, SubTab.Changes, ChangesTitle);
-                    TabButton(ref activeTab, SubTab.Branches, BranchesTitle);
-                    TabButton(ref activeTab, SubTab.Settings, SettingsTitle);
+                    activeTab = TabButton(SubTab.History, HistoryTitle, activeTab);
+                    activeTab = TabButton(SubTab.Changes, ChangesTitle, activeTab);
+                    activeTab = TabButton(SubTab.Branches, BranchesTitle, activeTab);
+                    activeTab = TabButton(SubTab.Settings, SettingsTitle, activeTab);
+                    activeTab = TabButton(SubTab.Authentication, AuthenticationTitle, activeTab);
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -89,12 +85,29 @@ namespace GitHub.Unity
             ActiveTab.OnGUI();
         }
 
+        private bool ValidateSettings()
+        {
+            var settingsIssues = Utility.Issues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
+
+            // Initial state
+            if (!Utility.ActiveRepository || !Utility.GitFound ||
+                (settingsIssues != null &&
+                    (settingsIssues.WasCaught(ProjectSettingsEvaluation.EditorSettingsMissing) ||
+                        settingsIssues.WasCaught(ProjectSettingsEvaluation.BadVCSSettings))))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public void OnEnable()
         {
             historyTab.Show(this);
             changesTab.Show(this);
             branchesTab.Show(this);
             settingsTab.Show(this);
+            authTab.Show(this);
 
             Utility.UnregisterReadyCallback(Refresh);
             Utility.RegisterReadyCallback(Refresh);
@@ -139,9 +152,9 @@ namespace GitHub.Unity
             base.ShowNotification(content);
         }
 
-        private static void TabButton(ref SubTab activeTab, SubTab tab, string title)
+        private static SubTab TabButton(SubTab tab, string title, SubTab activeTab)
         {
-            activeTab = GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
+            return GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
         }
 
         private void OnSelectionChange()
@@ -181,6 +194,8 @@ namespace GitHub.Unity
                         return changesTab;
                     case SubTab.Branches:
                         return branchesTab;
+                    case SubTab.Authentication:
+                        return authTab;
                     case SubTab.Settings:
                     default:
                         return settingsTab;
@@ -223,7 +238,8 @@ namespace GitHub.Unity
             History,
             Changes,
             Branches,
-            Settings
+            Settings,
+            Authentication
         }
     }
 }
