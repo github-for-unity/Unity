@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IO\BaseIntegrationTest.cs" />
+    <Compile Include="IO\RemoteListOutputProcessorTests.cs" />
     <Compile Include="IO\MacBasedGitEnvironmentTests.cs" />
     <Compile Include="IO\LinuxBasedGitEnvironmentTests.cs" />
     <Compile Include="IO\ProcessManagerIntegrationTests.cs" />

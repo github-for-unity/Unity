@@ -70,7 +70,7 @@ namespace GitHub.Unity
 
         public override void Refresh()
         {
-            GitListRemotesTask.Schedule();
+            //GitListRemotesTask.Schedule();
             StatusService.Instance.Run();
         }
 
@@ -157,12 +157,12 @@ namespace GitHub.Unity
 
         protected override void OnShow()
         {
-            GitListRemotesTask.RegisterCallback(OnRemotesUpdate);
+            //GitListRemotesTask.RegisterCallback(OnRemotesUpdate);
         }
 
         protected override void OnHide()
         {
-            GitListRemotesTask.UnregisterCallback(OnRemotesUpdate);
+            //GitListRemotesTask.UnregisterCallback(OnRemotesUpdate);
         }
 
         private void OnRemotesUpdate(IList<GitRemote> entries)

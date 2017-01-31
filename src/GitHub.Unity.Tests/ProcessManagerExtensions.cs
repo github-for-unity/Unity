@@ -18,5 +18,21 @@ namespace GitHub.Unity.Tests
 
             return gitBranches;
         }
+
+        public static IEnumerable<GitRemote> GetGitRemoteEntries(this ProcessManager processManager, string workingDirectory)
+        {
+            var results = new List<GitRemote>();
+
+            var processor = new RemoteListOutputProcessor();
+            processor.OnRemote += data => results.Add(data);
+
+            var process = processManager.Configure("git", "remote -v", workingDirectory);
+            var outputManager = new ProcessOutputManager(process, processor);
+
+            process.Run();
+            process.WaitForExit();
+
+            return results;
+        }
     }
 }
