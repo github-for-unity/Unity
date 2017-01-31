@@ -25,5 +25,27 @@ namespace GitHub.Unity.Tests
                 new GitBranch("master", string.Empty, true),
                 new GitBranch("feature/document", string.Empty, false));
         }
+
+        [Test]
+        public void RemoteListTest()
+        {
+            var fileSystem = new FileSystem();
+
+            var environment = new DefaultEnvironment();
+            var gitEnvironment = environment.IsWindows
+                ? (IGitEnvironment) new WindowsGitEnvironment(fileSystem, environment)
+                : new LinuxBasedGitEnvironment(fileSystem, environment);
+
+            var processManager = new ProcessManager(environment, gitEnvironment, fileSystem);
+            var gitRemotes = processManager.GetGitRemoteEntries(TestGitRepoPath);
+
+            gitRemotes.Should().BeEquivalentTo(new GitRemote()
+            {
+                Name = "origin",
+                URL = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git",
+                Host = "github.com",
+                Function = GitRemoteFunction.Both
+            });
+        }
     }
 }
