@@ -10,7 +10,7 @@ namespace GitHub.Unity.Tests
     public class LogEntryOutputProcessorTests : BaseOutputProcessorTests
     {
         [Test]
-        public void ShouldParse0Commits()
+        public void ShouldParseZeroCommits()
         {
             var output = new[]
             {
