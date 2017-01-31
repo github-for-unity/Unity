@@ -291,7 +291,7 @@ namespace GitHub.Unity
                 }
 
                 // Run and monitor active task
-                if (runningNewTask)
+                if (activeTask != null && runningNewTask)
                 {
                     ScheduleMainThread(() =>
                     {
