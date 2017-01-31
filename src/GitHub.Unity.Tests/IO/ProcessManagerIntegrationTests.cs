@@ -46,7 +46,7 @@ namespace GitHub.Unity.Tests
 
             var processManager = new ProcessManager(environment, gitEnvironment, fileSystem);
             var logEntries =
-                processManager.GetGitLogEntries(TestGitRepoPath, environment, fileSystem, gitEnvironment)
+                processManager.GetGitLogEntries(TestGitRepoPath, environment, fileSystem, gitEnvironment, 1)
                     .ToArray();
 
             logEntries.AssertEqual(new[]
