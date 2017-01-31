@@ -19,7 +19,7 @@ namespace GitHub.Unity.Tests
             return gitBranches;
         }
 
-        public static IEnumerable<GitLogEntry> GetGitLogEntries(this ProcessManager processManager, string workingDirectory, IEnvironment environment, IFileSystem fileSystem, IGitEnvironment gitEnvironment)
+        public static IEnumerable<GitLogEntry> GetGitLogEntries(this ProcessManager processManager, string workingDirectory, IEnvironment environment, IFileSystem fileSystem, IGitEnvironment gitEnvironment, int? logCount = null)
         {
             var results = new List<GitLogEntry>();
 
@@ -28,7 +28,14 @@ namespace GitHub.Unity.Tests
             var processor = new LogEntryOutputProcessor(gitStatusEntryFactory);
             processor.OnLogEntry += data => results.Add(data);
 
-            var process = processManager.Configure("git", "log --name-status -1", workingDirectory);
+            var logNameStatus = "log --name-status";
+
+            if (logCount.HasValue)
+            {
+                logNameStatus = logNameStatus + " -" + logCount.Value;
+            }
+
+            var process = processManager.Configure("git", logNameStatus, workingDirectory);
             var outputManager = new ProcessOutputManager(process, processor);
 
             process.Run();
