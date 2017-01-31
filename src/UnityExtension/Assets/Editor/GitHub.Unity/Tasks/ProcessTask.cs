@@ -90,7 +90,7 @@ namespace GitHub.Unity
                 process.Run();
             }
 
-            if (process.HasExited)
+            if (!firstTime && process.HasExited)
             {
                 Finished();
             }
@@ -180,6 +180,8 @@ namespace GitHub.Unity
         {
             var outputProcessor = new BaseOutputProcessor();
             outputProcessor.OnData += OutputBuffer.WriteLine;
+            process.OnErrorData += ErrorBuffer.WriteLine;
+            
             return new ProcessOutputManager(process, outputProcessor);
         }
 
