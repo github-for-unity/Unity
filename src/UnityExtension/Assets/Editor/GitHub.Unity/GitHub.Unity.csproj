@@ -67,6 +67,7 @@
     <Compile Include="IO\IProcess.cs" />
     <Compile Include="Helpers\LineProcessor.cs" />
     <Compile Include="IO\IProcessManager.cs" />
+    <Compile Include="IO\LogEntryOutputProcessor.cs" />
     <Compile Include="IO\MacBasedGitEnvironment.cs" />
     <Compile Include="IO\LinuxBasedGitEnvironment.cs" />
     <Compile Include="IO\ProcessOutputManager.cs" />
@@ -103,7 +104,7 @@
     <Compile Include="Tasks\GitFileStatus.cs" />
     <Compile Include="Tasks\GitListBranchesTask.cs" />
     <Compile Include="Tasks\GitListRemotesTask.cs" />
-    <Compile Include="Tasks\GitLogEntry.cs" />
+    <Compile Include="IO\GitLogEntry.cs" />
     <Compile Include="Tasks\GitLogTask.cs" />
     <Compile Include="Tasks\GitRemote.cs" />
     <Compile Include="Tasks\GitRemoteFunction.cs" />
