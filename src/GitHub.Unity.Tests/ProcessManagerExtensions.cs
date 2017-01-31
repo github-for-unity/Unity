@@ -19,6 +19,24 @@ namespace GitHub.Unity.Tests
             return gitBranches;
         }
 
+        public static IEnumerable<GitLogEntry> GetGitLogEntries(this ProcessManager processManager, string workingDirectory, IEnvironment environment, IFileSystem fileSystem, IGitEnvironment gitEnvironment)
+        {
+            var results = new List<GitLogEntry>();
+
+            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, fileSystem, gitEnvironment);
+
+            var processor = new LogEntryOutputProcessor(gitStatusEntryFactory);
+            processor.OnLogEntry += data => results.Add(data);
+
+            var process = processManager.Configure("git", "log --name-status -1", workingDirectory);
+            var outputManager = new ProcessOutputManager(process, processor);
+
+            process.Run();
+            process.WaitForExit();
+
+            return results;
+        }
+
         public static GitStatus GetGitStatus(this ProcessManager processManager, string workingDirectory, IEnvironment environment, IFileSystem fileSystem, IGitEnvironment gitEnvironment)
         {
             var result = new GitStatus();
