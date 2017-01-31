@@ -295,7 +295,7 @@ namespace GitHub.Unity
                 {
                     ScheduleMainThread(() =>
                     {
-                        if (activeTask != null)
+                        if (activeTask != null && activeTask.Blocking)
                         {
                             WaitForTask(activeTask, activeTask.Blocking ? WaitMode.Modal : WaitMode.Background);
                         }
