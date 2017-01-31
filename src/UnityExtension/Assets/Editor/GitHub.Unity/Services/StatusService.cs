@@ -25,7 +25,7 @@ namespace GitHub.Unity
 
         public void Run()
         {
-            GitStatusTask.Schedule(InternalInvoke);
+            //GitStatusTask.Schedule(InternalInvoke);
         }
 
         public void RegisterCallback(Action<GitStatus> callback)

@@ -19,5 +19,30 @@ namespace GitHub.Unity
         {
             return Path.GetTempPath();
         }
+
+        public string Combine(string path1, string path2)
+        {
+            return Path.Combine(path1, path2);
+        }
+
+        public string GetFullPath(string path)
+        {
+            return Path.GetFullPath(path);
+        }
+
+        public string GetDirectoryName(string path)
+        {
+            return Path.GetDirectoryName(path);
+        }
+
+        public bool DirectoryExists(string path)
+        {
+            return Directory.Exists(path);
+        }
+
+        public string GetParentDirectory(string path)
+        {
+            return Directory.GetParent(path).FullName;
+        }
     }
 }
