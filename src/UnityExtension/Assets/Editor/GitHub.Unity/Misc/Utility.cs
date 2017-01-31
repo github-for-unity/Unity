@@ -187,23 +187,7 @@ namespace GitHub.Unity
 
         private static void DetermineGitRoot()
         {
-            GitRoot = FindRoot(UnityAssetsPath);
-        }
-
-        // TODO: replace with libgit2sharp call
-        private static string FindRoot(string path)
-        {
-            if (string.IsNullOrEmpty(Path.GetDirectoryName(path)))
-            {
-                return null;
-            }
-
-            if (Directory.Exists(Path.Combine(path, ".git")))
-            {
-                return path;
-            }
-
-            return FindRoot(Directory.GetParent(path).FullName);
+            GitRoot = EntryPoint.GitEnvironment.FindRoot(UnityAssetsPath);
         }
 
         public static string GitInstallPath
