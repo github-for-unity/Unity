@@ -67,6 +67,9 @@
   <ItemGroup>
     <Compile Include="Helpers\AssertExtensions.cs" />
     <Compile Include="IO\BaseOutputProcessorTests.cs" />
+    <Compile Include="IO\GitEnvironmentTestsBase.cs" />
+    <Compile Include="IO\GitLogEntryListTests.cs" />
+    <Compile Include="IO\GitLogEntryTests.cs" />
     <Compile Include="IO\GitStatusEntryFactoryTests.cs" />
     <Compile Include="IO\GitStatusEntryListTests.cs" />
     <Compile Include="IO\GitStatusEntryTests.cs" />
