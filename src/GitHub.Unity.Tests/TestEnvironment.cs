@@ -28,6 +28,8 @@ namespace GitHub.Unity.Tests
         public string Path => Environment.GetEnvironmentVariable("PATH");
         public string NewLine => Environment.NewLine;
         public string GitInstallPath { get; set; }
-        public bool IsWindows { get; set; } = true;
+        public bool IsWindows { get; } = true;
+        public bool IsLinux { get; } = false;
+        public bool IsMac { get; } = false;
     }
 }
