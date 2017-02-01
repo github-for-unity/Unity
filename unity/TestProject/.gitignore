@@ -1,0 +1,5 @@
+*.dll
+*.pdb
+*.mdb
+*.xml
+*.local.json

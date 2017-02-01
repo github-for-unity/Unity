@@ -291,11 +291,11 @@ namespace GitHub.Unity
                 }
 
                 // Run and monitor active task
-                if (runningNewTask)
+                if (activeTask != null && runningNewTask)
                 {
                     ScheduleMainThread(() =>
                     {
-                        if (activeTask != null)
+                        if (activeTask != null && activeTask.Blocking)
                         {
                             WaitForTask(activeTask, activeTask.Blocking ? WaitMode.Modal : WaitMode.Background);
                         }
