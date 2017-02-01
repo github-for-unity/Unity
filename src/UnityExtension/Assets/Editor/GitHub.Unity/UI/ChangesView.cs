@@ -120,34 +120,50 @@ namespace GitHub.Unity
 
         private void OnCommitDetailsAreaGUI()
         {
-            GUILayout.BeginVertical(GUILayout.Height(
-                    Mathf.Clamp(Position.height * Styles.CommitAreaDefaultRatio,
-                    Styles.CommitAreaMinHeight,
-                    Styles.CommitAreaMaxHeight))
-            );
+            GUILayout.BeginHorizontal();
             {
-                GUILayout.Label(SummaryLabel);
-                commitMessage = GUILayout.TextField(commitMessage);
+                GUILayout.Space(Styles.CommitAreaPadding);
 
-                GUILayout.Label(DescriptionLabel);
-                commitBody = EditorGUILayout.TextArea(commitBody, Styles.CommitDescriptionFieldStyle, GUILayout.ExpandHeight(true));
-
-                // Disable committing when already committing or if we don't have all the data needed
-                EditorGUI.BeginDisabledGroup(lockCommit || string.IsNullOrEmpty(commitMessage) || !tree.CommitTargets.Any(t => t.Any));
+                GUILayout.BeginVertical(GUILayout.Height(
+                        Mathf.Clamp(Position.height * Styles.CommitAreaDefaultRatio,
+                        Styles.CommitAreaMinHeight,
+                        Styles.CommitAreaMaxHeight))
+                );
                 {
-                    GUILayout.BeginHorizontal();
+                    GUILayout.Space(Styles.CommitAreaPadding);
+
+                    GUILayout.Label(SummaryLabel);
+                    commitMessage = EditorGUILayout.TextField(commitMessage, Styles.TextFieldStyle);
+
+                    GUILayout.Space(Styles.CommitAreaPadding * 2);
+
+                    GUILayout.Label(DescriptionLabel);
+                    commitBody = EditorGUILayout.TextArea(commitBody, Styles.CommitDescriptionFieldStyle, GUILayout.ExpandHeight(true));
+
+                    GUILayout.Space(Styles.CommitAreaPadding);
+
+                    // Disable committing when already committing or if we don't have all the data needed
+                    EditorGUI.BeginDisabledGroup(lockCommit || string.IsNullOrEmpty(commitMessage) || !tree.CommitTargets.Any(t => t.Any));
                     {
-                        GUILayout.FlexibleSpace();
-                        if (GUILayout.Button(String.Format(CommitButton, currentBranch), Styles.CommitButtonStyle))
+                        GUILayout.BeginHorizontal();
                         {
-                            Commit();
+                            GUILayout.FlexibleSpace();
+                            if (GUILayout.Button(String.Format(CommitButton, currentBranch), Styles.CommitButtonStyle))
+                            {
+                                Commit();
+                            }
                         }
+                        GUILayout.EndHorizontal();
                     }
-                    GUILayout.EndHorizontal();
+                    EditorGUI.EndDisabledGroup();
+
+                    GUILayout.Space(Styles.CommitAreaPadding);
                 }
-                EditorGUI.EndDisabledGroup();
+                GUILayout.EndVertical();
+
+                GUILayout.Space(Styles.CommitAreaPadding);
             }
-            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
         }
 
         private void SelectAll()

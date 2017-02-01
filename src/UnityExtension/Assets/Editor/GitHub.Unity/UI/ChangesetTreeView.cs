@@ -124,7 +124,17 @@ namespace GitHub.Unity
                     // Base path label
                     if (!string.IsNullOrEmpty(tree.Path))
                     {
-                        GUILayout.Label(String.Format(BasePathLabel, tree.Path));
+                        GUILayout.BeginHorizontal();
+                        {
+                            var iconRect = GUILayoutUtility.GetRect(Styles.CommitIconSize, Styles.CommitIconSize, GUILayout.ExpandWidth(false));
+                            iconRect.y += 2;
+                            iconRect.x += 2;
+
+                            GUI.DrawTexture(iconRect, Styles.FolderIcon, ScaleMode.ScaleToFit);
+
+                            GUILayout.Label(string.Format(BasePathLabel, tree.Path));
+                        }
+                        GUILayout.EndHorizontal();
                     }
 
                     GUILayout.BeginHorizontal();
@@ -224,6 +234,7 @@ namespace GitHub.Unity
 
         private void TreeNode(FileTreeNode node)
         {
+            GUILayout.Space(Styles.TreeVerticalSpacing);
             var target = node.Target;
             var isFolder = node.Children.Any();
 
@@ -283,31 +294,54 @@ namespace GitHub.Unity
                     }
                 }
 
+                GitFileStatus? status = null;
+
                 // Node icon and label
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.Space(Styles.CommitIconHorizontalPadding);
                     var iconRect = GUILayoutUtility.GetRect(Styles.CommitIconSize, Styles.CommitIconSize, GUILayout.ExpandWidth(false));
+                    iconRect.y += 2;
+                    iconRect.x -= 2;
+
                     if (Event.current.type == EventType.Repaint)
                     {
-                        GUI.DrawTexture(iconRect, node.Icon ?? (isFolder ? Styles.FolderIcon : Styles.DefaultAssetIcon),
+                        GUI.DrawTexture(iconRect,
+                            node.Icon ?? (isFolder ? Styles.FolderIcon : Styles.DefaultAssetIcon),
                             ScaleMode.ScaleToFit);
                     }
+
+                    var statusRect = new Rect(
+                        iconRect.xMax - 9,
+                        iconRect.yMax - 7,
+                        9,
+                        9);
+
+                    // Current status (if any)
+                    if (target != null)
+                    {
+                        status = entries[entryCommitTargets.IndexOf(target)].Status;
+                        var statusIcon = Styles.GetGitFileStatusIcon(status.Value);
+                        GUI.DrawTexture(statusRect, statusIcon);
+                    }
+
                     GUILayout.Space(Styles.CommitIconHorizontalPadding);
                 }
                 GUILayout.EndHorizontal();
-                GUILayout.Label(new GUIContent(node.Label, node.RepositoryPath), GUILayout.ExpandWidth(true));
 
-                GUILayout.FlexibleSpace();
-
-                // Current status (if any)
-                if (target != null)
+                // Make the text gray and strikethrough if the file is deleted
+                if (status == GitFileStatus.Deleted)
                 {
-                    var status = entries[entryCommitTargets.IndexOf(target)].Status;
-                    var statusIcon = Styles.GetGitFileStatusIcon(status);
-                    GUILayout.Label(statusIcon != null ? new GUIContent(statusIcon) : new GUIContent(status.ToString()),
-                        GUILayout.ExpandWidth(false), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
+                    GUILayout.Label(new GUIContent(node.Label, node.RepositoryPath), Styles.DeletedFileLabel, GUILayout.ExpandWidth(true));
+                    var labelRect = GUILayoutUtility.GetLastRect();
+                    var strikeRect = new Rect(labelRect.xMin, labelRect.center.y, labelRect.width, 1);
+                    EditorGUI.DrawRect(strikeRect, Color.gray);
                 }
+                else
+                {
+                    GUILayout.Label(new GUIContent(node.Label, node.RepositoryPath), GUILayout.ExpandWidth(true));
+                }
+                GUILayout.FlexibleSpace();
             }
             GUILayout.EndHorizontal();
 
