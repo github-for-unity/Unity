@@ -10,6 +10,8 @@ namespace GitHub.Unity
         string UserProfilePath { get; }
         string NewLine { get; }
         string GitInstallPath { get; set; }
-        bool IsWindows { get; set; }
+        bool IsWindows { get; }
+        bool IsLinux { get; }
+        bool IsMac { get; }
     }
 }
