@@ -20,18 +20,6 @@ namespace GitHub.Unity
         {
             logger.Debug("Initialize");
 
-            EditorApplication.update -= Initialize;
-
-            Tasks.Initialize();
-
-            Utility.Initialize();
-
-            Installer.Initialize();
-
-            Tasks.Run();
-
-            ProjectWindowInterface.Initialize();
-
             FileSystem = new FileSystem();
 
             Environment = new DefaultEnvironment();
@@ -45,6 +33,18 @@ namespace GitHub.Unity
             ProcessManager = new ProcessManager(Environment, GitEnvironment, FileSystem);
 
             GitStatusEntryFactory = new GitStatusEntryFactory(Environment, FileSystem, GitEnvironment);
+
+            EditorApplication.update -= Initialize;
+
+            Tasks.Initialize();
+
+            Utility.Initialize();
+
+            Installer.Initialize();
+
+            Tasks.Run();
+
+            ProjectWindowInterface.Initialize();
 
             Window.Initialize();
         }
