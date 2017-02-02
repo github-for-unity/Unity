@@ -109,6 +109,7 @@
     <Compile Include="Tasks\GitRemote.cs" />
     <Compile Include="Tasks\GitRemoteFunction.cs" />
     <Compile Include="IO\GitStatus.cs" />
+    <Compile Include="Tasks\GitStatusTask.cs" />
     <Compile Include="Tasks\GitSwitchBranchesTask.cs" />
     <Compile Include="Tasks\GitTask.cs" />
     <Compile Include="Tasks\ITask.cs" />
