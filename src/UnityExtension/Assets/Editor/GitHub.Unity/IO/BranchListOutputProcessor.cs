@@ -6,9 +6,9 @@ namespace GitHub.Unity
 {
     class BranchListOutputProcessor : BaseOutputProcessor
     {
-        private static readonly Regex TrackingBranchRegex = new Regex(@"\[[\w]+\/.*\]");
+        private static readonly Regex trackingBranchRegex = new Regex(@"\[[\w]+\/.*\]");
 
-        private static readonly ILogger logger = Logging.Logger.GetLogger<BranchListOutputProcessor>();
+        private static readonly ILogger logger = Logger.GetLogger<BranchListOutputProcessor>();
 
         public event Action<GitBranch> OnBranch;
 
@@ -37,7 +37,7 @@ namespace GitHub.Unity
             }
             proc.SkipWhitespace();
             proc.ReadUntilWhitespace();
-            var tracking = proc.Matches(TrackingBranchRegex);
+            var tracking = proc.Matches(trackingBranchRegex);
             var trackingName = "";
             if (tracking)
             {
