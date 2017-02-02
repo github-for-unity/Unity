@@ -11,15 +11,14 @@ namespace GitHub.Unity
 
         public static void Schedule(Action<IList<GitLogEntry>> onSuccess, Action onFailure = null)
         {
-            //TODO: Find a better place to build this object
-            var gitStatusEntryFactory = new GitStatusEntryFactory(EntryPoint.Environment, EntryPoint.FileSystem, EntryPoint.GitEnvironment);
-
-            Tasks.Add(new GitLogTask(onSuccess, onFailure, gitStatusEntryFactory));
+            Tasks.Add(new GitLogTask(onSuccess, onFailure, EntryPoint.GitStatusEntryFactory));
         }
 
-        private GitLogTask(Action<IList<GitLogEntry>> onSuccess, Action onFailure, IGitStatusEntryFactory gitStatusEntryFactory)
+        private GitLogTask(Action<IList<GitLogEntry>> onSuccess, Action onFailure,
+            IGitStatusEntryFactory gitStatusEntryFactory)
             : base(null, onFailure)
         {
+            gitLogEntries = new List<GitLogEntry>();
             callback = onSuccess;
             processor = new LogEntryOutputProcessor(gitStatusEntryFactory);
         }
@@ -57,7 +56,7 @@ namespace GitHub.Unity
         protected override void OnProcessOutputUpdate()
         {
             Logger.Debug("Done");
-            Tasks.ScheduleMainThread(() => DeliverResult());
+            Tasks.ScheduleMainThread(DeliverResult);
         }
 
         private void DeliverResult()
@@ -67,10 +66,13 @@ namespace GitHub.Unity
 
         protected override ProcessOutputManager HookupOutput(IProcess process)
         {
-            processor.OnLogEntry += gitLogEntry => {
-                gitLogEntries.Add(gitLogEntry);
-            };
+            processor.OnLogEntry += AddLogEntry;
             return new ProcessOutputManager(process, processor);
+        }
+
+        private void AddLogEntry(GitLogEntry gitLogEntry)
+        {
+            gitLogEntries.Add(gitLogEntry);
         }
     }
 }

@@ -58,7 +58,7 @@ namespace GitHub.Unity
         {
             if (historyTarget != null)
             {
-                //TODO: Create a task that can history one target
+                //TODO: Create a task that can get the log of one target
                 //GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)),);
             }
             else
