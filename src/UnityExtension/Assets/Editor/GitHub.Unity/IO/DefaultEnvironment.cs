@@ -25,7 +25,10 @@ namespace GitHub.Unity
         public string NewLine { get { return Environment.NewLine; } }
         public string GitInstallPath { get; set; }
 
-        public bool IsWindows { get { return !IsLinux && !IsMac; } }
+        public bool IsWindows
+        {
+            get { return Environment.OSVersion.Platform != PlatformID.Unix && Environment.OSVersion.Platform != PlatformID.MacOSX; }
+        }
 
         public bool IsLinux
         {
