@@ -100,6 +100,7 @@
     <Compile Include="Tasks\GitCommitTask.cs" />
     <Compile Include="Tasks\GitFileStatus.cs" />
     <Compile Include="Tasks\GitListBranchesTask.cs" />
+    <Compile Include="Tasks\GitListRemotesTask.cs" />
     <Compile Include="Tasks\GitLogEntry.cs" />
     <Compile Include="Tasks\GitLogTask.cs" />
     <Compile Include="IO\GitRemoteFunction.cs" />
