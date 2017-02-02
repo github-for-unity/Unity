@@ -13,8 +13,10 @@ namespace GitHub.Unity.Tests
 
             var environment = new DefaultEnvironment();
             var gitEnvironment = environment.IsWindows
-                ? (IGitEnvironment)new WindowsGitEnvironment(fileSystem, environment)
-                : new LinuxBasedGitEnvironment(fileSystem, environment);
+                ? new WindowsGitEnvironment(fileSystem, environment)
+                : (environment.IsLinux 
+                    ? (IGitEnvironment)new LinuxBasedGitEnvironment(fileSystem, environment)
+                    : new MacBasedGitEnvironment(fileSystem, environment));
 
             var processManager = new ProcessManager(environment, gitEnvironment, fileSystem);
             var gitBranches = processManager.GetGitBranches(TestGitRepoPath);

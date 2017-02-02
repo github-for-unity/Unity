@@ -37,8 +37,10 @@ namespace GitHub.Unity
             Environment = new DefaultEnvironment();
 
             GitEnvironment = Environment.IsWindows
-                ? (IGitEnvironment) new WindowsGitEnvironment(FileSystem, Environment)
-                : new LinuxBasedGitEnvironment(FileSystem, Environment);
+                ? new WindowsGitEnvironment(FileSystem, Environment)
+                : (Environment.IsLinux
+                    ? (IGitEnvironment)new LinuxBasedGitEnvironment(FileSystem, Environment)
+                    : new MacBasedGitEnvironment(FileSystem, Environment));
 
             ProcessManager = new ProcessManager(Environment, GitEnvironment, FileSystem);
 
