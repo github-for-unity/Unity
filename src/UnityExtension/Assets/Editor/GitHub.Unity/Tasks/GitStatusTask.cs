@@ -4,10 +4,9 @@ namespace GitHub.Unity
 {
     class GitStatusTask : GitTask
     {
-        public static void Schedule(Action<GitStatus> onSuccess, IGitStatusEntryFactory gitStatusEntryFactory,
-            Action onFailure = null)
+        public static void Schedule(Action<GitStatus> onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitStatusTask(onSuccess, gitStatusEntryFactory, onFailure));
+            Tasks.Add(new GitStatusTask(onSuccess, EntryPoint.GitStatusEntryFactory, onFailure));
         }
 
         private readonly StatusOutputProcessor processor;
