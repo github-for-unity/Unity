@@ -117,6 +117,7 @@ namespace GitHub.Unity
         }
 
         public bool IsAtEnd { get { return line != null ? line.Length == current : true; } }
+        public bool IsAtWhitespace { get { return line != null && Char.IsWhiteSpace(line[current]); } }
         public string LastSubstring { get; private set; }
     }
 }
