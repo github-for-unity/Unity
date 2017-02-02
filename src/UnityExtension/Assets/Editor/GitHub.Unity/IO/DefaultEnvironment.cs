@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using UnityEngine;
 
 namespace GitHub.Unity
 {
@@ -18,6 +19,16 @@ namespace GitHub.Unity
         public string GetEnvironmentVariable(string variable)
         {
             return Environment.GetEnvironmentVariable(variable);
+        }
+
+        public string UnityAssetsPath { get { return Application.dataPath; } }
+
+        public string UnityProjectPath
+        {
+            get
+            {
+                return UnityAssetsPath.Substring(0, UnityAssetsPath.Length - "Assets".Length - 1);
+            }
         }
 
         public string UserProfilePath { get { return Environment.GetEnvironmentVariable("USERPROFILE"); } }

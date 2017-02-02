@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace GitHub.Unity.Tests
 {
     [TestFixture]
-    public class LinuxBasedGitEnvironmentTests
+    public class LinuxBasedGitEnvironmentTests: GitEnvironmentTestsBase
     {
         public static IEnumerable<TestCaseData> GetDefaultGitPath_TestCases()
         {
@@ -52,6 +52,28 @@ namespace GitHub.Unity.Tests
 
             var linuxBasedGitInstallationStrategy = new LinuxBasedGitEnvironment(fileSystem, environment);
             linuxBasedGitInstallationStrategy.ValidateGitInstall("asdf").Should().Be(found);
+        }
+
+        [TestCase(@"c:\Source\file.txt", @"c:\Source", TestName = "should be found")]
+        [TestCase(@"c:\Documents\file.txt", null, TestName = "file outside root should not be found")]
+        [TestCase(@"c:\file.txt", null, TestName = "file outside root inside sibling should not be found")]
+        public void FindRoot(string input, string expected)
+        {
+            var fileSystem = (IFileSystem)BuildFindRootFileSystem();
+
+            var environment = Substitute.For<IEnvironment>();
+
+            var windowsGitEnvironment = new LinuxBasedGitEnvironment(fileSystem, environment);
+            var result = windowsGitEnvironment.FindRoot(input);
+
+            if (expected == null)
+            {
+                result.Should().BeNull();
+            }
+            else
+            {
+                result.Should().Be(expected);
+            }
         }
     }
 }
