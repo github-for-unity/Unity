@@ -1,32 +1,27 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace GitHub.Unity
 {
     class GitStatusTask : GitTask
     {
-        private const string BranchNamesSeparator = "...";
+        public static void Schedule(Action<GitStatus> onSuccess, IGitStatusEntryFactory gitStatusEntryFactory,
+            Action onFailure = null)
+        {
+            Tasks.Add(new GitStatusTask(onSuccess, gitStatusEntryFactory, onFailure));
+        }
+
+        private readonly StatusOutputProcessor processor;
 
         private Action<GitStatus> callback;
-        private Action<string> onSuccess;
 
-        private GitStatusTask(Action<GitStatus> onSuccess = null, Action onFailure = null)
+        private GitStatus gitStatus;
+
+        private GitStatusTask(Action<GitStatus> onSuccess, IGitStatusEntryFactory gitStatusEntryFactory,
+            Action onFailure = null)
             : base(null, onFailure)
         {
-            this.callback = onSuccess;
-            this.onSuccess = ProcessOutput;
-        }
-
-        public static void Schedule(Action<GitStatus> onSuccess = null, Action onFailure = null)
-        {
-            //Tasks.Add(new GitStatusTask(onSuccess, onFailure));
-        }
-
-        private void ProcessOutput(string value)
-        {
-          
+            callback = onSuccess;
+            processor = new StatusOutputProcessor(gitStatusEntryFactory);
         }
 
         public override bool Blocking
@@ -59,6 +54,23 @@ namespace GitHub.Unity
             get { return "status -b -u --porcelain"; }
         }
 
-        protected override Action<string> OnSuccess { get { return onSuccess; } }
+        protected override void OnProcessOutputUpdate()
+        {
+            Logger.Debug("Done");
+            Tasks.ScheduleMainThread(() => DeliverResult());
+        }
+
+        private void DeliverResult()
+        {
+            callback.SafeInvoke(gitStatus);
+        }
+
+        protected override ProcessOutputManager HookupOutput(IProcess process)
+        {
+            processor.OnStatus += status => {
+                gitStatus = status;
+            };
+            return new ProcessOutputManager(process, processor);
+        }
     }
 }
