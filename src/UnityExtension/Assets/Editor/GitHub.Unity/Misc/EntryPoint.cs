@@ -44,6 +44,8 @@ namespace GitHub.Unity
 
             ProcessManager = new ProcessManager(Environment, GitEnvironment, FileSystem);
 
+            GitStatusEntryFactory = new GitStatusEntryFactory(Environment, FileSystem, GitEnvironment);
+
             Window.Initialize();
         }
 
@@ -52,5 +54,7 @@ namespace GitHub.Unity
 
         public static IFileSystem FileSystem { get; private set; }
         public static IProcessManager ProcessManager { get; private set; }
+
+        public static GitStatusEntryFactory GitStatusEntryFactory { get; private set; }
     }
 }
