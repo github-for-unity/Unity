@@ -7,36 +7,19 @@ using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
-    class ProcessManager
+    class ProcessManager: IProcessManager
     {
         private static readonly ILogger logger = Logger.GetLogger<ProcessManager>();
-        private static readonly IFileSystem fs = new FileSystem();
 
-        private static ProcessManager instance;
-        public static ProcessManager Instance
-        {
-            get
-            {
-                if (instance == null)
-                    instance = new ProcessManager();
-                return instance;
-            }
-            set
-            {
-                instance = value;
-            }
-        }
-
+        private readonly IEnvironment environment;
         private readonly IGitEnvironment gitEnvironment;
+        private readonly IFileSystem fileSystem;
 
-        public ProcessManager()
+        public ProcessManager(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fileSystem)
         {
-            gitEnvironment = new GitEnvironment();
-        }
-
-        public ProcessManager(IGitEnvironment gitEnvironment)
-        {
+            this.environment = environment;
             this.gitEnvironment = gitEnvironment;
+            this.fileSystem = fileSystem;
         }
 
         public IProcess Configure(string executableFileName, string arguments, string workingDirectory)
@@ -72,14 +55,14 @@ namespace GitHub.Unity
 
             if (Path.IsPathRooted(executable)) return executable;
 
-            path = path ?? gitEnvironment.Environment.GetEnvironmentVariable("PATH");
+            path = path ?? environment.GetEnvironmentVariable("PATH");
             var executablePath = path.Split(Path.PathSeparator)
                 .Select(directory =>
                 {
                     try
                     {
                         var unquoted = directory.RemoveSurroundingQuotes();
-                        var expanded = gitEnvironment.Environment.ExpandEnvironmentVariables(unquoted);
+                        var expanded = environment.ExpandEnvironmentVariables(unquoted);
                         return Path.Combine(expanded, executable);
                     }
                     catch (Exception e)
@@ -89,7 +72,7 @@ namespace GitHub.Unity
                     }
                 })
                 .Where(x => x != null)
-                .FirstOrDefault(x => fs.FileExists(x));
+                .FirstOrDefault(x => fileSystem.FileExists(x));
 
             return executablePath;
         }
