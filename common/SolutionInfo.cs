@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Resources;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyProduct("GitHub for Unity")]
@@ -12,6 +13,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguage("en-US")]
+
+[assembly: InternalsVisibleTo("GitHub.Unity.Tests", AllInternalsVisible = true)]
+//Required for NSubstitute
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2", AllInternalsVisible = true)]
 
 namespace System
 {

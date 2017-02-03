@@ -65,6 +65,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Api\ISimpleApiClient.cs" />
     <Compile Include="Api\ISimpleApiClientFactory.cs" />
     <Compile Include="Authentication\AuthenticationResult.cs" />
@@ -84,10 +90,6 @@
     <Compile Include="Primitives\StringEquivalent.cs" />
     <Compile Include="Primitives\UriString.cs" />
     <Compile Include="SimpleCredentialStore.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
-      <Link>Properties\SolutionInfo.cs</Link>
-    </Compile>
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="Platform\WindowsBackendFactory.cs" />
