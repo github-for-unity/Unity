@@ -1,9 +1,9 @@
+using GitHub.Unity;
 using System;
-using GitHub.Unity.Logging;
 
 namespace GitHub.Unity.Tests
 {
-    class TestLogAdapter : ILogger
+    class TestLogAdapter : ILogging
     {
         private readonly string prefix;
 

@@ -82,6 +82,8 @@
     <Compile Include="Authentication\ICredentialManager.cs" />
     <Compile Include="LambdaComparer.cs" />
     <Compile Include="Platform\LinuxBackendFactory.cs" />
+    <Compile Include="Logging\ILogging.cs" />
+    <Compile Include="Logging\Logging.cs" />
     <Compile Include="Platform\LinuxCredentialManager.cs" />
     <Compile Include="Platform\MacBackendFactory.cs" />
     <Compile Include="Platform\MacCredentialManager.cs" />

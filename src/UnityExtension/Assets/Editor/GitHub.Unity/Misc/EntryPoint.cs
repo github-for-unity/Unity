@@ -1,22 +1,24 @@
-﻿using System;
+﻿using GitHub.Api;
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using UnityEditor;
 using UnityEngine;
-using ILogger = GitHub.Unity.Logging.ILogger;
 
 namespace GitHub.Unity
 {
     [InitializeOnLoad]
     class EntryPoint : ScriptableObject
     {
-        private static readonly ILogger logger = Logging.Logger.GetLogger<EntryPoint>();
+        private static readonly ILogging logger;
 
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
         {
+            Logging.LoggerFactory = s => new UnityLogAdapter(s);
+            logger = Logging.GetLogger<EntryPoint>();
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
         }

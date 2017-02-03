@@ -1,14 +1,14 @@
+using GitHub.Api;
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
-using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
     abstract class GitEnvironment: IGitEnvironment
     {
-        protected ILogger Logger { get; private set; }
+        protected ILogging Logger { get; private set; }
         protected IFileSystem FileSystem { get; private set; }
         protected IEnvironment Environment { get; private set; }
 
@@ -16,7 +16,7 @@ namespace GitHub.Unity
         {
             FileSystem = fileSystem;
             Environment = environment;
-            Logger = Logging.Logger.GetLogger(GetType());
+            Logger = Logging.GetLogger(GetType());
         }
 
         public bool ValidateGitInstall(string path)

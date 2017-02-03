@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using ILogger = GitHub.Unity.Logging.ILogger;
 
 namespace GitHub.Unity
 {
@@ -66,7 +65,7 @@ namespace GitHub.Unity
         [SerializeField] private List<GitRemote> remotes = new List<GitRemote>();
         [SerializeField] private Vector2 scroll;
 
-        private static readonly ILogger logger = Logging.Logger.GetLogger<SettingsView>();
+        private static readonly ILogging logger = Logging.GetLogger<SettingsView>();
 
         public override void Refresh()
         {

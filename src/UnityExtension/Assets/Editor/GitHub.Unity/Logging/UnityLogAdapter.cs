@@ -1,8 +1,9 @@
+using GitHub.Api;
 using System;
 
-namespace GitHub.Unity.Logging
+namespace GitHub.Unity
 {
-    class UnityLogAdapter : ILogger
+    class UnityLogAdapter : ILogging
     {
         private readonly string contextPrefix;
 
