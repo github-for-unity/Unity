@@ -21,6 +21,7 @@ namespace GitHub.Unity
             logger.Debug("Initialize");
 
             FileSystem = new FileSystem();
+            NPathFileSystemProvider.Current = FileSystem;
 
             Environment = new DefaultEnvironment();
 
