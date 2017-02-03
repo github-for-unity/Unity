@@ -5,13 +5,17 @@ using NUnit.Framework;
 
 namespace GitHub.Unity.Tests
 {
-    class BaseIOTest
+    class BaseIntegrationTest
     {
         private static string SolutionDirectory => TestContext.CurrentContext.TestDirectory;
 
         private static string TestZipFilePath => Path.Combine(SolutionDirectory, "IOTestsRepo.zip");
 
-        private static string GetBase64Guid() => Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        private static string GetBase64Guid() =>
+            Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+                .Replace('/', '_')
+                .Replace('+', '_')
+                .Replace('=', '_');
 
         protected string TestGitRepoPath { get; private set; }
 

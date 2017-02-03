@@ -41,11 +41,11 @@ namespace GitHub.Unity
         /// <returns></returns>
         public static ProcessTask Parse(IDictionary<string, object> data)
         {
-            IProcess resumedProcess;
+            IProcess resumedProcess = null;
 
             try
             {
-                resumedProcess = ProcessManager.Instance.Reconnect((int)(Int64)data[Tasks.ProcessKey]);
+                resumedProcess = EntryPoint.ProcessManager.Reconnect((int)(Int64)data[Tasks.ProcessKey]);
             }
             catch (Exception)
             {
@@ -74,7 +74,7 @@ namespace GitHub.Unity
             // Only start the process if we haven't already reconnected to an existing instance
             if (firstTime)
             {
-                process = ProcessManager.Instance.Configure(ProcessName, ProcessArguments, Utility.GitRoot);
+                process = EntryPoint.ProcessManager.Configure(ProcessName, ProcessArguments, Utility.GitRoot);
             }
 
             process.OnExit += p =>

@@ -148,16 +148,20 @@ namespace GitHub.Unity
                         GitStatusEntry entry;
 
                         // Try to read the line as a change entry
-                        if (GitStatusEntry.TryParse(line, out entry))
-                        {
-                            parsedEntry.Changes.Add(entry);
-                            continue;
-                        }
-                        // This commit had no changes, so complete parsing it and pass the next commit header into a new session
-                        else if ((match = Utility.LogCommitRegex.Match(line)).Groups.Count == 2)
-                        {
-                            continue;
-                        }
+                        
+                        //TODO: Refactor away
+                        throw new NotImplementedException("This class should go away");
+
+//                        if (GitStatusEntry.TryParse(line, out entry))
+//                        {
+//                            parsedEntry.Changes.Add(entry);
+//                            continue;
+//                        }
+//                        // This commit had no changes, so complete parsing it and pass the next commit header into a new session
+//                        else if ((match = Utility.LogCommitRegex.Match(line)).Groups.Count == 2)
+//                        {
+//                            continue;
+//                        }
 
                         break;
                     default:

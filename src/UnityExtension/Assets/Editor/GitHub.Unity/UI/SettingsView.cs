@@ -145,7 +145,7 @@ namespace GitHub.Unity
 
         private static bool ValidateGitInstall(string path)
         {
-            if (!FindGitTask.ValidateGitInstall(path))
+            if (!EntryPoint.GitEnvironment.ValidateGitInstall(path))
             {
                 EditorUtility.DisplayDialog(GitInstallPickInvalidTitle, String.Format(GitInstallPickInvalidMessage, path),
                     GitInstallPickInvalidOK);
@@ -436,12 +436,10 @@ namespace GitHub.Unity
             // Install path field
             EditorGUI.BeginChangeCheck();
             {
-                var defaultGitPath = FindGitTask.DefaultGitPath;
+                var defaultGitPath = EntryPoint.GitEnvironment.FindGitInstallationPath();
 
                 //TODO: Verify necessary value for a non Windows OS
-                var extension = defaultGitPath != null && Path.HasExtension(defaultGitPath)
-                    ? Path.GetExtension(defaultGitPath).TrimStart('.')
-                    : null;
+                var extension = EntryPoint.GitEnvironment.GetGitExecutableExtension();
 
                 var defaultGitInstallFolder = Path.GetDirectoryName(defaultGitPath);
 
