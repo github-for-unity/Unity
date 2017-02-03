@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using ILogger = GitHub.Unity.Logging.ILogger;
 using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
@@ -11,6 +10,8 @@ namespace GitHub.Unity
     [Serializable]
     class HistoryView : Subview
     {
+        private static readonly ILogging logger = Logging.GetLogger<HistoryView>();
+
         private const string HistoryFocusAll = "(All)";
         private const string HistoryFocusSingle = "Focus: <b>{0}</b>";
         private const string PullButton = "Pull";
@@ -51,8 +52,6 @@ namespace GitHub.Unity
         [SerializeField] private Object historyTarget;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string selectionID;
-
-        private static readonly ILogger logger = Logging.Logger.GetLogger<HistoryView>();
 
         public override void Refresh()
         {

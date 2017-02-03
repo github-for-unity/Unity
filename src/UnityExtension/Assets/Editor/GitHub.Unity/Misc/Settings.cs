@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
     class Settings : ISettings
     {
+        private static readonly ILogging logger = Logging.GetLogger<Settings>();
+
         private const string SettingsParseError = "Failed to parse settings file at '{0}'";
         private const string RelativeSettingsPath = "{0}/ProjectSettings/{1}";
         private const string LocalSettingsName = "GitHub.local.json";
@@ -120,8 +121,8 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Logger.Error(SettingsParseError, cachePath);
-                Logger.Debug("{0}", ex);
+                logger.Error(SettingsParseError, cachePath);
+                logger.Debug("{0}", ex);
                 return false;
             }
 

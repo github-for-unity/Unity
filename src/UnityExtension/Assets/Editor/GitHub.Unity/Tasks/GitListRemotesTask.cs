@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {

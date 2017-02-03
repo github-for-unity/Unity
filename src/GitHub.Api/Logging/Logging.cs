@@ -1,12 +1,12 @@
 using System;
 
-namespace GitHub.Unity.Logging
+namespace GitHub.Unity
 {
-    static class Logger
+    public static class Logging
     {
-        private static Func<string, ILogger> loggerFactory = s => new UnityLogAdapter(s);
+        private static Func<string, ILogging> loggerFactory;
 
-        public static Func<string, ILogger> LoggerFactory
+        public static Func<string, ILogging> LoggerFactory
         {
             get { return loggerFactory; }
             set
@@ -16,9 +16,9 @@ namespace GitHub.Unity.Logging
             }
         }
 
-        private static ILogger instance;
+        private static ILogging instance;
 
-        private static ILogger Instance
+        private static ILogging Instance
         {
             get {
                 if (instance == null)
@@ -30,17 +30,17 @@ namespace GitHub.Unity.Logging
             set { instance = value; }
         }
 
-        public static ILogger GetLogger<T>()
+        public static ILogging GetLogger<T>()
         {
             return GetLogger(typeof(T));
         }
 
-        public static ILogger GetLogger(Type type)
+        public static ILogging GetLogger(Type type)
         {
             return GetLogger(type.Name);
         }
 
-        public static ILogger GetLogger(string context = null)
+        public static ILogging GetLogger(string context = null)
         {
             return loggerFactory(context);
         }

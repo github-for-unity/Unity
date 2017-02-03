@@ -81,11 +81,15 @@
     <Compile Include="IO\ProcessManagerIntegrationTests.cs" />
     <Compile Include="IO\WindowsGitEnvironmentTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
-    <Compile Include="TextFixtureSetup.cs" />
+    <Compile Include="TestFixtureSetup.cs" />
     <Compile Include="Logging\TestLogAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GitHub.Api\GitHub.Api.csproj">
+      <Project>{B389ADAF-62CC-486E-85B4-2D8B078DF763}</Project>
+      <Name>GitHub.Api</Name>
+    </ProjectReference>
     <ProjectReference Include="..\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
       <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
       <Name>GitHub.Unity</Name>
