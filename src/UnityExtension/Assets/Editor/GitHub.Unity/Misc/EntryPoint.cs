@@ -34,6 +34,8 @@ namespace GitHub.Unity
 
             Environment = new DefaultEnvironment();
 
+            Platform = new Platform(Environment);
+
             GitEnvironment = Environment.IsWindows
                 ? new WindowsGitEnvironment(FileSystem, Environment)
                 : (Environment.IsLinux
@@ -148,5 +150,6 @@ namespace GitHub.Unity
 
         public static GitStatusEntryFactory GitStatusEntryFactory { get; private set; }
         public static ISettings Settings { get; private set; }
+        public static IPlatform Platform { get; private set; }
     }
 }

@@ -1,9 +1,10 @@
-﻿using GitHub.Api;
+﻿using GitHub.Unity;
 using GitHub.Models;
 using GitHub.Primitives;
 using Octokit;
 using System;
 using System.Reflection;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
@@ -66,11 +67,22 @@ namespace GitHub.Unity
             Failed
         }
 
+        private readonly IProgram program;
+        private readonly ICredentialManager credentialManager;
+        public AuthenticationService(IProgram program, ICredentialManager credentialManager)
+        {
+            this.program = program;
+            this.credentialManager = credentialManager;
+        }
+
         public void Login(Action<LoginResult> callback)
         {
-            var api = new SimpleApiClientFactory(new Program());
+            var api = new SimpleApiClientFactory(program, credentialManager);
             var client = api.Create(new UriString("https://github.com/github/UnityInternal"));
-            var repo = client.GetRepository()
+            var repo = client.GetRepository(r =>
+            {
+
+            });
         }
     }
 }

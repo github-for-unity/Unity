@@ -37,7 +37,7 @@ namespace GitHub.Unity
                     GUILayout.EndHorizontal();
                     if (GUILayout.Button(loginButton))
                     {
-                        var serv = new AuthenticationService();
+                        var serv = new AuthenticationService(new Program(), EntryPoint.Platform.CredentialManager);
                         serv.Login(null);
                     }
                 }
