@@ -225,7 +225,7 @@ namespace GitHub.Unity
 
         private void HandleUnexpected(string line)
         {
-            //throw new Exception(string.Format(@"Unexpected input in phase: {0}{1}""{2}""", phase, Environment.NewLine, line));
+            logger.Error(@"Unexpected input in phase: {0}{1}""{2}""", phase, Environment.NewLine, line);
             Reset();
         }
 
