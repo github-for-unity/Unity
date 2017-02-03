@@ -10,9 +10,9 @@ namespace GitHub.Unity
             return File.Exists(filename);
         }
 
-        public IEnumerable<string> GetDirectories(string gitHubLocalAppDataPath)
+        public IEnumerable<string> GetDirectories(string path)
         {
-            return Directory.GetDirectories(gitHubLocalAppDataPath);
+            return Directory.GetDirectories(path);
         }
 
         public string GetTempPath()
@@ -43,6 +43,96 @@ namespace GitHub.Unity
         public string GetParentDirectory(string path)
         {
             return Directory.GetParent(path).FullName;
+        }
+
+        public IEnumerable<string> GetDirectories(string path, string pattern)
+        {
+            return Directory.GetDirectories(path, pattern);
+        }
+
+        public IEnumerable<string> GetDirectories(string path, string pattern, SearchOption searchOption)
+        {
+            return Directory.GetDirectories(path, pattern, searchOption);
+        }
+
+        public string ChangeExtension(string path, string extension)
+        {
+            return Path.ChangeExtension(path, extension);
+        }
+
+        public string GetFileNameWithoutExtension(string fileName)
+        {
+            return Path.GetFileNameWithoutExtension(fileName);
+        }
+
+        public char DirectorySeparatorChar
+        {
+            get { return Path.DirectorySeparatorChar; }
+        }
+
+        public IEnumerable<string> GetFiles(string path, string pattern, SearchOption searchOption)
+        {
+            return Directory.GetFiles(path, pattern, searchOption);
+        }
+
+        public void WriteAllBytes(string path, byte[] bytes)
+        {
+            File.WriteAllBytes(path, bytes);
+        }
+
+        public void CreateDirectory(string toString)
+        {
+            Directory.CreateDirectory(toString);
+        }
+
+        public void FileCopy(string sourceFileName, string destFileName, bool overwrite)
+        {
+            File.Copy(sourceFileName, destFileName, overwrite);
+        }
+
+        public void FileDelete(string path)
+        {
+            File.Delete(path);
+        }
+
+        public void DirectoryDelete(string path, bool recursive)
+        {
+            Directory.Delete(path, recursive);
+        }
+
+        public void FileMove(string sourceFileName, string destFileName)
+        {
+            File.Move(sourceFileName, destFileName);
+        }
+
+        public void DirectoryMove(string toString, string s)
+        {
+            Directory.Move(toString, s);
+        }
+
+        public string GetCurrentDirectory()
+        {
+            return Directory.GetCurrentDirectory();
+        }
+
+        public void WriteAllText(string path, string contents)
+        {
+            File.WriteAllText(path, contents);
+        }
+
+        public string ReadAllText(string path)
+        {
+            return File.ReadAllText(path);
+        }
+
+        public void WriteAllLines(string path, string[] contents)
+        {
+            File.WriteAllLines(path, contents);
+        }
+
+        public string[] ReadAllLines(string path)
+        {
+            return File.ReadAllLines(path);
         }
     }
 }

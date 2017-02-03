@@ -4,8 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace NiceIO
+namespace GitHub.Unity
 {
+    class NPathFileSystemProvider
+    {
+        public static IFileSystem Current { get; set; }
+    }
+
     public class NPath : IEquatable<NPath>, IComparable
     {
         private static readonly StringComparison PathStringComparison = IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
@@ -156,7 +161,7 @@ namespace NiceIO
             ThrowIfRoot();
 
             var newElements = (string[])_elements.Clone();
-            newElements[newElements.Length - 1] = Path.ChangeExtension(_elements[_elements.Length - 1], WithDot(extension));
+            newElements[newElements.Length - 1] = NPathFileSystemProvider.Current.ChangeExtension(_elements[_elements.Length - 1], WithDot(extension));
             if (extension == string.Empty)
                 newElements[newElements.Length - 1] = newElements[newElements.Length - 1].TrimEnd('.');
             return new NPath(newElements, _isRelative, _driveLetter);
@@ -182,7 +187,7 @@ namespace NiceIO
 
         public string FileNameWithoutExtension
         {
-            get { return Path.GetFileNameWithoutExtension(FileName); }
+            get { return NPathFileSystemProvider.Current.GetFileNameWithoutExtension(FileName); }
         }
 
         public IEnumerable<string> Elements
@@ -212,7 +217,7 @@ namespace NiceIO
 
         public bool DirectoryExists(NPath append)
         {
-            return Directory.Exists(Combine(append).ToString());
+            return NPathFileSystemProvider.Current.DirectoryExists(Combine(append).ToString());
         }
 
         public bool FileExists(string append = "")
@@ -222,7 +227,7 @@ namespace NiceIO
 
         public bool FileExists(NPath append)
         {
-            return File.Exists(Combine(append).ToString());
+            return NPathFileSystemProvider.Current.FileExists(Combine(append).ToString());
         }
 
         public string ExtensionWithDot
@@ -292,7 +297,7 @@ namespace NiceIO
                 case SlashMode.Forward:
                     return '/';
                 default:
-                    return Path.DirectorySeparatorChar;
+                    return NPathFileSystemProvider.Current.DirectorySeparatorChar;
             }
         }
 
@@ -396,7 +401,7 @@ namespace NiceIO
 
         public IEnumerable<NPath> Files(string filter, bool recurse = false)
         {
-            return Directory.GetFiles(ToString(), filter, recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Select(s => new NPath(s));
+            return NPathFileSystemProvider.Current.GetFiles(ToString(), filter, recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Select(s => new NPath(s));
         }
 
         public IEnumerable<NPath> Files(bool recurse = false)
@@ -416,7 +421,7 @@ namespace NiceIO
 
         public IEnumerable<NPath> Directories(string filter, bool recurse = false)
         {
-            return Directory.GetDirectories(ToString(), filter, recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Select(s => new NPath(s));
+            return NPathFileSystemProvider.Current.GetDirectories(ToString(), filter, recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Select(s => new NPath(s));
         }
 
         public IEnumerable<NPath> Directories(bool recurse = false)
@@ -432,7 +437,7 @@ namespace NiceIO
             ThrowIfRelative();
             ThrowIfRoot();
             EnsureParentDirectoryExists();
-            File.WriteAllBytes(ToString(), new byte[0]);
+            NPathFileSystemProvider.Current.WriteAllBytes(ToString(), new byte[0]);
             return this;
         }
 
@@ -455,7 +460,7 @@ namespace NiceIO
             if (IsRoot)
                 throw new NotSupportedException("CreateDirectory is not supported on a root level directory because it would be dangerous:" + ToString());
 
-            Directory.CreateDirectory(ToString());
+            NPathFileSystemProvider.Current.CreateDirectory(ToString());
             return this;
         }
 
@@ -519,7 +524,7 @@ namespace NiceIO
 
                 absoluteDestination.EnsureParentDirectoryExists();
 
-                File.Copy(ToString(), absoluteDestination.ToString(), true);
+                NPathFileSystemProvider.Current.FileCopy(ToString(), absoluteDestination.ToString(), true);
                 return absoluteDestination;
             }
 
@@ -542,11 +547,11 @@ namespace NiceIO
                 throw new NotSupportedException("Delete is not supported on a root level directory because it would be dangerous:" + ToString());
 
             if (FileExists())
-                File.Delete(ToString());
+                NPathFileSystemProvider.Current.FileDelete(ToString());
             else if (DirectoryExists())
                 try
                 {
-                    Directory.Delete(ToString(), true);
+                    NPathFileSystemProvider.Current.DirectoryDelete(ToString(), true);
                 }
                 catch (IOException)
                 {
@@ -599,7 +604,7 @@ namespace NiceIO
             var random = new Random();
             while (true)
             {
-                var candidate = new NPath(Path.GetTempPath() + "/" + myprefix + "_" + random.Next());
+                var candidate = new NPath(NPathFileSystemProvider.Current.GetTempPath() + "/" + myprefix + "_" + random.Next());
                 if (!candidate.Exists())
                     return candidate.CreateDirectory();
             }
@@ -626,13 +631,13 @@ namespace NiceIO
             if (FileExists())
             {
                 dest.EnsureParentDirectoryExists();
-                File.Move(ToString(), dest.ToString());
+                NPathFileSystemProvider.Current.FileMove(ToString(), dest.ToString());
                 return dest;
             }
 
             if (DirectoryExists())
             {
-                Directory.Move(ToString(), dest.ToString());
+                NPathFileSystemProvider.Current.DirectoryMove(ToString(), dest.ToString());
                 return dest;
             }
 
@@ -647,7 +652,7 @@ namespace NiceIO
         {
             get
             {
-                return new NPath(Directory.GetCurrentDirectory());
+                return new NPath(NPathFileSystemProvider.Current.GetCurrentDirectory());
             }
         }
 
@@ -655,7 +660,7 @@ namespace NiceIO
         {
             get
             {
-                if (Path.DirectorySeparatorChar == '\\')
+                if (NPathFileSystemProvider.Current.DirectorySeparatorChar == '\\')
                     return new NPath(Environment.GetEnvironmentVariable("USERPROFILE"));
                 return new NPath(Environment.GetEnvironmentVariable("HOME"));
             }
@@ -665,7 +670,7 @@ namespace NiceIO
         {
             get
             {
-                return new NPath(Path.GetTempPath());
+                return new NPath(NPathFileSystemProvider.Current.GetTempPath());
             }
         }
 
@@ -780,28 +785,28 @@ namespace NiceIO
         {
             ThrowIfRelative();
             EnsureParentDirectoryExists();
-            File.WriteAllText(ToString(), contents);
+            NPathFileSystemProvider.Current.WriteAllText(ToString(), contents);
             return this;
         }
 
         public string ReadAllText()
         {
             ThrowIfRelative();
-            return File.ReadAllText(ToString());
+            return NPathFileSystemProvider.Current.ReadAllText(ToString());
         }
 
         public NPath WriteAllLines(string[] contents)
         {
             ThrowIfRelative();
             EnsureParentDirectoryExists();
-            File.WriteAllLines(ToString(), contents);
+            NPathFileSystemProvider.Current.WriteAllLines(ToString(), contents);
             return this;
         }
 
         public string[] ReadAllLines()
         {
             ThrowIfRelative();
-            return File.ReadAllLines(ToString());
+            return NPathFileSystemProvider.Current.ReadAllLines(ToString());
         }
 
         public IEnumerable<NPath> CopyFiles(NPath destination, bool recurse, Func<NPath, bool> fileFilter = null)
@@ -826,7 +831,7 @@ namespace NiceIO
 
         private static bool IsLinux()
         {
-            return Directory.Exists("/proc");
+            return NPathFileSystemProvider.Current.DirectoryExists("/proc");
         }
     }
 
