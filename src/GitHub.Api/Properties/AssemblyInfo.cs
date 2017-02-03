@@ -4,6 +4,4 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("GitHub.Api")]
 [assembly: AssemblyDescription("GitHub Api")]
-[assembly: Guid("b389adaf-62cc-486e-85b4-2d8b078df763")]
-[assembly: InternalsVisibleTo("GitHub.Unity.Tests", AllInternalsVisible = true)]
-[assembly: InternalsVisibleTo("GitHub.Unity", AllInternalsVisible = true)]
+[assembly: Guid("4B424108-D0E8-4BF9-9B0C-4FB49E532AB9")]

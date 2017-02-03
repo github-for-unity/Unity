@@ -58,6 +58,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Helpers\StringExtensions.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="IO\BaseOutputProcessor.cs" />
@@ -99,7 +105,6 @@
     <Compile Include="Misc\Styles.cs" />
     <Compile Include="Misc\Utility.cs" />
     <Compile Include="Services\AuthenticationService.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\StatusService.cs" />
     <Compile Include="Tasks\CachedTask.cs" />
     <Compile Include="Tasks\EvaluateProjectConfigurationTask.cs" />
