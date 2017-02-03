@@ -1,13 +1,9 @@
 using System;
-using System.IO;
-using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
     class FindGitTask : ProcessTask
     {
-        private static readonly ILogger FindGitTaskLogger = Logging.Logger.GetLogger<FindGitTask>();
-
         private FindGitTask(Action<string> onSuccess, Action onFailure = null)
             : base(onSuccess, onFailure)
         {

@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
@@ -9,10 +7,10 @@ namespace GitHub.Unity
     {
         private const string LocalArguments = "branch -vv";
         private const string RemoteArguments = "branch -r";
-        private const string UnmatchedLineError = "Unable to match the line '{0}'";
-        private List<GitBranch> branches = new List<GitBranch>();
-        private Mode mode;
-        private Action<IEnumerable<GitBranch>> callback;
+
+        private readonly List<GitBranch> branches = new List<GitBranch>();
+        private readonly Mode mode;
+        private readonly Action<IEnumerable<GitBranch>> callback;
         private readonly BranchListOutputProcessor processor = new BranchListOutputProcessor();
 
         private GitListBranchesTask(Mode mode, Action<IEnumerable<GitBranch>> onSuccess, Action onFailure = null)
@@ -46,7 +44,7 @@ namespace GitHub.Unity
         protected override void OnProcessOutputUpdate()
         {
             Logger.Debug("Done");
-            Tasks.ScheduleMainThread(() => DeliverResult());
+            Tasks.ScheduleMainThread(DeliverResult);
         }
 
         private void AddBranch(GitBranch branch)

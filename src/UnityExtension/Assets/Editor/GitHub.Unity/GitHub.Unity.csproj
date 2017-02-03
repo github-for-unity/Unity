@@ -96,10 +96,10 @@
     <Compile Include="Tasks\FailureSeverity.cs" />
     <Compile Include="Tasks\FindGitTask.cs" />
     <Compile Include="Tasks\GitAddTask.cs" />
-    <Compile Include="Tasks\GitBranch.cs" />
+    <Compile Include="IO\GitBranch.cs" />
     <Compile Include="Tasks\GitBranchCreateTask.cs" />
     <Compile Include="Tasks\GitCommitTask.cs" />
-    <Compile Include="Tasks\GitFileStatus.cs" />
+    <Compile Include="IO\GitFileStatus.cs" />
     <Compile Include="Tasks\GitListBranchesTask.cs" />
     <Compile Include="Tasks\GitListRemotesTask.cs" />
     <Compile Include="Tasks\GitLogEntry.cs" />
