@@ -11,5 +11,7 @@ namespace GitHub.Unity
         bool ValidateGitInstall(string path);
 
         void Configure(ProcessStartInfo psi, string workingDirectory);
+
+        string FindRoot(string path);
     }
 }
