@@ -57,7 +57,7 @@ namespace GitHub.Unity
             }
 
             // Self-delete
-            AssetDatabase.DeleteAsset(selfPath);
+            //AssetDatabase.DeleteAsset(selfPath);
         }
 
         private static void MoveFrom(string path)
