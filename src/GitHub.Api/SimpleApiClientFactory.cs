@@ -12,13 +12,13 @@ namespace GitHub.Api
         private static readonly ConcurrentDictionary<UriString, ISimpleApiClient> cache = new ConcurrentDictionary<UriString, ISimpleApiClient>();
 
         private readonly ProductHeaderValue productHeader;
-        private readonly IBackendFactory backend;
+        private readonly ICredentialManager credentialManager;
 
 
-        public SimpleApiClientFactory(IProgram program, IBackendFactory backend)
+        public SimpleApiClientFactory(IProgram program, ICredentialManager credentialManager)
         {
             productHeader = program.ProductHeader;
-            this.backend = backend;
+            this.credentialManager = credentialManager; ;
         }
 
         public ISimpleApiClient Create(UriString repositoryUrl)
@@ -27,7 +27,7 @@ namespace GitHub.Api
             return cache.GetOrAdd(repositoryUrl,
                 new SimpleApiClient(repositoryUrl,
                     new GitHubClient(productHeader,
-                        new SimpleCredentialStore(hostAddress, backend.CredentialManager),
+                        new SimpleCredentialStore(hostAddress, credentialManager),
                         hostAddress.ApiUri)
                 )
             );

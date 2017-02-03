@@ -78,14 +78,13 @@
     <Compile Include="Authentication\Credential.cs" />
     <Compile Include="Extensions\ExceptionExtensions.cs" />
     <Compile Include="Guard.cs" />
-    <Compile Include="Authentication\ICredentialBackendFactory.cs" />
+    <Compile Include="Authentication\IPlatform.cs" />
     <Compile Include="Authentication\ICredentialManager.cs" />
+    <Compile Include="IEnvironment.cs" />
     <Compile Include="LambdaComparer.cs" />
-    <Compile Include="Platform\LinuxBackendFactory.cs" />
     <Compile Include="Logging\ILogging.cs" />
     <Compile Include="Logging\Logging.cs" />
     <Compile Include="Platform\LinuxCredentialManager.cs" />
-    <Compile Include="Platform\MacBackendFactory.cs" />
     <Compile Include="Platform\MacCredentialManager.cs" />
     <Compile Include="Models\IProgram.cs" />
     <Compile Include="Primitives\HostAddress.cs" />
@@ -94,7 +93,7 @@
     <Compile Include="SimpleCredentialStore.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\UriExtensions.cs" />
-    <Compile Include="Platform\WindowsBackendFactory.cs" />
+    <Compile Include="Platform\Platform.cs" />
     <Compile Include="Platform\WindowsCredentialManager.cs" />
   </ItemGroup>
   <ItemGroup>

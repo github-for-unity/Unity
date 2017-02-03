@@ -73,7 +73,6 @@
     <Compile Include="IO\GitEnvironment.cs" />
     <Compile Include="IO\GitStatusEntry.cs" />
     <Compile Include="IO\GitStatusEntryFactory.cs" />
-    <Compile Include="IO\IEnvironment.cs" />
     <Compile Include="IO\IFileSystem.cs" />
     <Compile Include="IO\IGitEnvironment.cs" />
     <Compile Include="IO\IGitStatusEntryFactory.cs" />
