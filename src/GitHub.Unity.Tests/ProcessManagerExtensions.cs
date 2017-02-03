@@ -29,7 +29,7 @@ namespace GitHub.Unity.Tests
             var processor = new LogEntryOutputProcessor(gitStatusEntryFactory);
             processor.OnLogEntry += data => results.Add(data);
 
-            var logNameStatus = "log --name-status";
+            var logNameStatus = @"log --pretty=format:""%H%n%P%n%aN%n%aE%n%aI%n%cN%n%cE%n%cI%n%B---GHUBODYEND---"" --name-status";
 
             if (logCount.HasValue)
             {

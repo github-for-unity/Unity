@@ -13,8 +13,7 @@ namespace GitHub.Unity
 
         private readonly IGitStatusEntryFactory gitStatusEntryFactory;
         public event Action<GitLogEntry> OnLogEntry;
-
-        private int phase;
+        private ProcessingPhase phase;
         private string authorName;
         private string mergeA;
         private string mergeB;
@@ -25,6 +24,9 @@ namespace GitHub.Unity
         private string commitId;
         private DateTimeOffset? time;
         private int newlineCount;
+        private string committerName;
+        private string committerEmail;
+        private DateTimeOffset? committerTime;
 
         public LogEntryOutputProcessor(IGitStatusEntryFactory gitStatusEntryFactory)
         {
@@ -34,7 +36,7 @@ namespace GitHub.Unity
 
         private void Reset()
         {
-            phase = 0;
+            phase = ProcessingPhase.CommitHash;
             authorName = null;
             mergeA = null;
             mergeB = null;
@@ -62,232 +64,148 @@ namespace GitHub.Unity
                 return;
             }
 
-            var proc = new LineParser(line);
             switch (phase)
             {
-                case 0:
-                    if (proc.Matches("commit"))
-                    {
-                        //commit ee1cd912a5728f8fe268130791fd61ab3e69d941
-
-                        proc.MoveToAfter(' ');
-                        commitId = proc.ReadToEnd();
-
-                        phase++;
-                    }
-                    else if (proc.Matches("fatal"))
-                    {
-                        //fatal: your current branch 'master' does not have any commits yet
-                    }
-                    else
-                    {
-                        HandleUnexpected(line);
-                    }
+                case ProcessingPhase.CommitHash:
+                    commitId = line;
+                    phase++;
                     break;
 
-                case 1:
-                    // optionally
-                    // Merge: cf6c9c41 def9a702
-                    if (proc.Matches("Merge:"))
+                case ProcessingPhase.ParentHash:
+                    var parentHashes = line.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+
+                    if (parentHashes.Length > 1)
                     {
-                        proc.MoveToAfter(' ');
-                        mergeA = proc.ReadUntilWhitespace();
-                        proc.SkipWhitespace();
-                        mergeB = proc.ReadToEnd();
+                        mergeA = parentHashes[0];
+                        mergeB = parentHashes[1];
                     }
 
-                    //finally
-                    //Author: Andreia Gaita <shana@users.noreply.github.com>
-                    else if (proc.Matches("Author"))
-                    {
-                        proc.MoveToAfter(' ');
-                        authorName = proc.ReadUntil('<');
-                        proc.MoveNext();
-
-                        authorName = authorName.Substring(0, authorName.Length - 1);
-                        authorEmail = proc.ReadUntil('>');
-
-                        phase++;
-                    }
-                    else
-                    {
-                        HandleUnexpected(line);
-                    }
+                    phase++;
                     break;
 
-                case 2:
-                    //Date:   Tue Jan 24 16:34:49 2017 + 0100
-                    if (proc.Matches("Date:"))
-                    {
-                        proc.MoveToAfter(':');
-                        proc.SkipWhitespace();
-
-                        //Skipping day
-                        proc.ReadUntilWhitespace();
-
-                        var monthString = proc.ReadUntilWhitespace();
-                        int month = DateTime.ParseExact(monthString, "MMM", CultureInfo.CurrentCulture).Month;
-
-                        var date = int.Parse(proc.ReadUntilWhitespace());
-                        var hour = int.Parse(proc.ReadUntil(':'));
-                        proc.MoveNext();
-
-                        var minute = int.Parse(proc.ReadUntil(':'));
-                        proc.MoveNext();
-
-                        var second = int.Parse(proc.ReadUntilWhitespace());
-                        var year = int.Parse(proc.ReadUntilWhitespace());
-                        proc.SkipWhitespace();
-
-                        var timezoneOffset = int.Parse(proc.ReadToEnd());
-
-                        var offset = TimeSpan.FromHours(timezoneOffset / 100.0);
-                        time = new DateTimeOffset(year, month, date, hour, minute, second, offset);
-
-                        phase++;
-                    }
-                    else
-                    {
-                        HandleUnexpected(line);
-                    }
+                case ProcessingPhase.AuthorName:
+                    authorName = line;
+                    phase++;
                     break;
 
-                case 3:
-                    //blank line
-                    if (proc.IsAtEnd)
+                case ProcessingPhase.AuthorEmail:
+                    authorEmail = line;
+                    phase++;
+                    break;
+
+                case ProcessingPhase.AuthorDate:
+                    time = DateTimeOffset.Parse(line);
+                    phase++;
+                    break;
+
+                case ProcessingPhase.CommitterName:
+                    committerName = line;
+                    phase++;
+                    break;
+
+                case ProcessingPhase.CommitterEmail:
+                    committerEmail = line;
+                    phase++;
+                    break;
+
+                case ProcessingPhase.CommitterDate:
+                    committerTime = DateTimeOffset.Parse(line);
+                    phase++;
+                    break;
+
+                case ProcessingPhase.Summary:
+                    summary = line;
+                    descriptionLines.Add(line);
+                    phase++;
+                    break;
+
+                case ProcessingPhase.Description:
+                    var indexOf = line.IndexOf("---GHUBODYEND---", StringComparison.InvariantCulture);
+                    if (indexOf == -1)
+                    {
+                        descriptionLines.Add(line);
+                    }
+                    else if (indexOf == 0)
                     {
                         phase++;
                     }
                     else
                     {
-                        HandleUnexpected(line);
-                    }
-                    break;
-
-                case 4:
-                    if (proc.IsAtWhitespace)
-                    {
-                        //summary
-                        proc.SkipWhitespace();
-                        summary = proc.ReadToEnd();
-                        descriptionLines.Add(summary);
+                        var substring = line.Substring(0, indexOf);
+                        descriptionLines.Add(substring);
                         phase++;
                     }
-                    else
-                    {
-                        HandleUnexpected(line);
-                    }
                     break;
 
-                case 5:
-                    //blank line
-                    if (proc.IsAtEnd)
+                case ProcessingPhase.Files:
+                    if (line == string.Empty)
                     {
-                        phase++;
+                        ReturnGitLogEntry();
+                        return;
                     }
-                    else
+
+                    var proc = new LineParser(line);
+
+                    string file = null;
+                    GitFileStatus status;
+                    string originalPath = null;
+
+                    if (proc.Matches('M'))
                     {
-                        HandleUnexpected(line);
-                    }
-                    break;
-
-                case 6:
-                    if (proc.IsAtEnd)
-                    {
-                        if (changes.Count != 0)
-                        {
-                            //Tf we have recieved files, an empty string signifies the end of this entry
-                            ReturnGitLogEntry();
-                        }
-                        else
-                        {
-                            //else, we have not recieved files, an empty string may preceede files or may be a newline in the description
-                            newlineCount++;
-                        }
-                    }
-                    else if (proc.IsAtWhitespace)
-                    {
-                        //If this line starts with whitespace it is description text
-
-                        PopNewlines();
-                        proc.SkipWhitespace();
-                        descriptionLines.Add(proc.ReadToEnd());
-                    }
-                    else if (proc.Matches('M'))
-                    {
-                        //If this is the first file change decrement the newline count
-                        if (changes.Count == 0 && newlineCount > 0)
-                        {
-                            newlineCount--;
-                        }
-
-                        proc.ReadUntilWhitespace();
-                        proc.SkipWhitespace();
-
-                        var path = proc.ReadToEnd();
-
-                        var gitStatusEntry = gitStatusEntryFactory.Create(path, GitFileStatus.Modified);
-                        changes.Add(gitStatusEntry);
-                    }
-                    else if (proc.Matches('R'))
-                    {
-                        //If this is the first file change decrement the newline count
-                        if (changes.Count == 0 && newlineCount > 0)
-                        {
-                            newlineCount--;
-                        }
-
-                        proc.ReadUntilWhitespace();
-                        proc.SkipWhitespace();
-
-                        var originalPath = proc.ReadUntilWhitespace();
-                        proc.SkipWhitespace();
-
-                        var path = proc.ReadToEnd();
-
-                        var gitStatusEntry = gitStatusEntryFactory.Create(path, GitFileStatus.Renamed, originalPath);
-                        changes.Add(gitStatusEntry);
+                        status = GitFileStatus.Modified;
                     }
                     else if (proc.Matches('A'))
                     {
-                        //If this is the first file change decrement the newline count
-                        if (changes.Count == 0 && newlineCount > 0)
-                        {
-                            newlineCount--;
-                        }
-
-                        proc.ReadUntilWhitespace();
-                        proc.SkipWhitespace();
-
-                        var path = proc.ReadToEnd();
-
-                        var gitStatusEntry = gitStatusEntryFactory.Create(path, GitFileStatus.Added);
-                        changes.Add(gitStatusEntry);
+                        status = GitFileStatus.Added;
                     }
                     else if (proc.Matches('D'))
                     {
-                        //If this is the first file change decrement the newline count
-                        if (changes.Count == 0 && newlineCount > 0)
-                        {
-                            newlineCount--;
-                        }
-
-                        proc.ReadUntilWhitespace();
-                        proc.SkipWhitespace();
-
-                        var path = proc.ReadToEnd();
-
-                        var gitStatusEntry = gitStatusEntryFactory.Create(path, GitFileStatus.Deleted);
-                        changes.Add(gitStatusEntry);
+                        status = GitFileStatus.Deleted;
                     }
-                    else if (proc.Matches("commit"))
+                    else if (proc.Matches('R'))
                     {
-                        ReturnGitLogEntry();
+                        status = GitFileStatus.Renamed;
                     }
                     else
                     {
                         HandleUnexpected(line);
+                        return;
                     }
+
+                    switch (status)
+                    {
+                        case GitFileStatus.Modified:
+                        case GitFileStatus.Added:
+                        case GitFileStatus.Deleted:
+                            proc.SkipWhitespace();
+
+                            file = proc.Matches('"') 
+                                ? proc.ReadUntil('"')
+                                : proc.ReadToEnd();
+
+                            break;
+                        case GitFileStatus.Renamed:
+
+                            proc.SkipWhitespace();
+
+                            originalPath = 
+                                proc.Matches('"') 
+                                ? proc.ReadUntil('"') 
+                                : proc.ReadUntilWhitespace();
+
+                            proc.SkipWhitespace();
+
+                            file = proc.Matches('"') 
+                                ? proc.ReadUntil('"') 
+                                : proc.ReadToEnd();
+
+                            break;
+
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+
+                    changes.Add(gitStatusEntryFactory.Create(file, status, originalPath));
 
                     break;
 
@@ -307,14 +225,12 @@ namespace GitHub.Unity
 
         private void HandleUnexpected(string line)
         {
-            throw new Exception(string.Format(@"Unexpected input in phase: {0}{1}""{2}""", phase, Environment.NewLine,
-                line));
+            //throw new Exception(string.Format(@"Unexpected input in phase: {0}{1}""{2}""", phase, Environment.NewLine, line));
+            Reset();
         }
 
         private void ReturnGitLogEntry()
         {
-            Debug.Assert(time != null, "time != null");
-
             logger.Debug("ReturnGitLogEntry commitId:" + commitId);
 
             PopNewlines();
@@ -324,17 +240,35 @@ namespace GitHub.Unity
             OnLogEntry.SafeInvoke(new GitLogEntry()
             {
                 AuthorName = authorName,
+                CommitName = committerName,
                 MergeA = mergeA,
                 MergeB = mergeB,
                 Changes = changes,
                 AuthorEmail = authorEmail,
+                CommitEmail = committerEmail,
                 Summary = summary,
                 Description = description,
                 CommitID = commitId,
-                Time = time.Value
+                Time = time.Value,
+                CommitTime = committerTime.Value
             });
 
             Reset();
+        }
+
+        private enum ProcessingPhase
+        {
+            CommitHash = 0,
+            ParentHash = 1,
+            AuthorName = 2,
+            AuthorEmail = 3,
+            AuthorDate = 4,
+            CommitterName = 5,
+            CommitterEmail = 6,
+            CommitterDate = 7,
+            Summary = 8,
+            Description = 9,
+            Files = 10,
         }
     }
 }

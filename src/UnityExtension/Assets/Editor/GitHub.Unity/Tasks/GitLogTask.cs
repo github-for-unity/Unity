@@ -50,7 +50,7 @@ namespace GitHub.Unity
 
         protected override string ProcessArguments
         {
-            get { return "log --name-status"; }
+            get { return @"log --pretty=format:""%H%n%P%n%aN%n%aE%n%aI%n%cN%n%cE%n%cI%n%B---GHUBODYEND---"" --name-status"; }
         }
 
         protected override void OnProcessOutputUpdate()
