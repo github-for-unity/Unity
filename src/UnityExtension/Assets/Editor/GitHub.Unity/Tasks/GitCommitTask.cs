@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace GitHub.Unity
 {
     class GitCommitTask : GitTask
     {
-        private string arguments = "";
+        private readonly string arguments;
 
         private GitCommitTask(string message, string body, Action onSuccess = null, Action onFailure = null)
             : base(str => onSuccess.SafeInvoke(), onFailure)

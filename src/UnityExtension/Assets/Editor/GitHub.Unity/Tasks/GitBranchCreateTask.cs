@@ -5,8 +5,8 @@ namespace GitHub.Unity
 {
     class GitBranchCreateTask : GitTask
     {
-        private string baseBranch;
-        private string newBranch;
+        private readonly string baseBranch;
+        private readonly string newBranch;
 
         private GitBranchCreateTask(string newBranch, string baseBranch, Action onSuccess, Action onFailure)
             : base(str => onSuccess.SafeInvoke(), onFailure)
