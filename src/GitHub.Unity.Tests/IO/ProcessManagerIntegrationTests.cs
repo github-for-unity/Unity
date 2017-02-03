@@ -46,7 +46,7 @@ namespace GitHub.Unity.Tests
 
             var processManager = new ProcessManager(environment, gitEnvironment, fileSystem);
             var logEntries =
-                processManager.GetGitLogEntries(TestGitRepoPath, environment, fileSystem, gitEnvironment, 1)
+                processManager.GetGitLogEntries(TestGitRepoPath, environment, fileSystem, gitEnvironment, 2)
                     .ToArray();
 
             logEntries.AssertEqual(new[]
@@ -54,7 +54,9 @@ namespace GitHub.Unity.Tests
                 new GitLogEntry
                 {
                     AuthorEmail = "Stanley.Goldman@gmail.com",
+                    CommitEmail = "Stanley.Goldman@gmail.com",
                     AuthorName = "Stanley Goldman",
+                    CommitName = "Stanley Goldman",
                     Changes = new List<GitStatusEntry>
                     {
                         new GitStatusEntry("Assets/TestDocument.txt",
@@ -64,8 +66,27 @@ namespace GitHub.Unity.Tests
                     CommitID = "1ec2dd47eb6b00a5ef31da9eb13de04de57cbe9f",
                     Description = "Moving project files where they should be kept",
                     Summary = "Moving project files where they should be kept",
-                    Time = new DateTimeOffset(2017, 1, 27, 17, 19, 32, TimeSpan.FromHours(-5))
-                }
+                    Time = new DateTimeOffset(2017, 1, 27, 17, 19, 32, TimeSpan.FromHours(-5)),
+                    CommitTime = new DateTimeOffset(2017, 1, 27, 17, 19, 32, TimeSpan.FromHours(-5)),
+                },
+                new GitLogEntry
+                {
+                    AuthorEmail = "Stanley.Goldman@gmail.com",
+                    CommitEmail = "Stanley.Goldman@gmail.com",
+                    AuthorName = "Stanley Goldman",
+                    CommitName = "Stanley Goldman",
+                    Changes = new List<GitStatusEntry>
+                    {
+                        new GitStatusEntry("TestDocument.txt",
+                            TestGitRepoPath + "TestDocument.txt", null,
+                            GitFileStatus.Added),
+                    },
+                    CommitID = "22712461191fde4b69fcc4f731715f57fcbb31bc",
+                    Description = "Initial Commit",
+                    Summary = "Initial Commit",
+                    Time = new DateTimeOffset(2017, 1, 17, 11, 46, 16, TimeSpan.FromHours(-8)),
+                    CommitTime = new DateTimeOffset(2017, 1, 17, 11, 46, 16, TimeSpan.FromHours(-8)),
+                },
             });
         }
 
