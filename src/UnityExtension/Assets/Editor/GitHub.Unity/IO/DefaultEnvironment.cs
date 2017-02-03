@@ -21,20 +21,15 @@ namespace GitHub.Unity
             return Environment.GetEnvironmentVariable(variable);
         }
 
-        public string UnityAssetsPath { get { return Application.dataPath; } }
-
-        public string UnityProjectPath
-        {
-            get
-            {
-                return UnityAssetsPath.Substring(0, UnityAssetsPath.Length - "Assets".Length - 1);
-            }
-        }
+        public string UnityAssetsPath { get; set; }
+        public string UnityProjectPath { get; set; }
+        public string ExtensionInstallPath { get; set; }
 
         public string UserProfilePath { get { return Environment.GetEnvironmentVariable("USERPROFILE"); } }
         public string Path { get { return Environment.GetEnvironmentVariable("PATH"); } }
         public string NewLine { get { return Environment.NewLine; } }
         public string GitInstallPath { get; set; }
+        public string GitRoot { get; set; }
 
         public bool IsWindows
         {

@@ -15,7 +15,9 @@ namespace GitHub.Unity
         bool IsWindows { get; }
         bool IsLinux { get; }
         bool IsMac { get; }
-        string UnityAssetsPath { get; }
-        string UnityProjectPath { get; }
+        string UnityAssetsPath { get; set; }
+        string UnityProjectPath { get; set; }
+        string ExtensionInstallPath { get; set; }
+        string GitRoot { get; set; }
     }
 }
