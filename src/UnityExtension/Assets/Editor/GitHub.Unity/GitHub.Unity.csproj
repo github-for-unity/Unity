@@ -69,6 +69,7 @@
     <Compile Include="IO\IProcessManager.cs" />
     <Compile Include="IO\MacBasedGitEnvironment.cs" />
     <Compile Include="IO\LinuxBasedGitEnvironment.cs" />
+    <Compile Include="IO\NiceIO.cs" />
     <Compile Include="IO\ProcessOutputManager.cs" />
     <Compile Include="IO\ProcessWrapper.cs" />
     <Compile Include="IO\WindowsGitEnvironment.cs" />
