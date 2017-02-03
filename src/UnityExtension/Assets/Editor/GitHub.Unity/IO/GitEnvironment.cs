@@ -27,6 +27,21 @@ namespace GitHub.Unity
         public abstract string FindGitInstallationPath();
         public abstract string GetGitExecutableExtension();
 
+        public string FindRoot(string path)
+        {
+            if (string.IsNullOrEmpty(FileSystem.GetDirectoryName(path)))
+            {
+                return null;
+            }
+
+            if (FileSystem.DirectoryExists(FileSystem.Combine(path, ".git")))
+            {
+                return path;
+            }
+
+            return FindRoot(FileSystem.GetParentDirectory(path));
+        }
+
         public void Configure(ProcessStartInfo psi, string workingDirectory)
         {
             Ensure.ArgumentNotNull(psi, "psi");
