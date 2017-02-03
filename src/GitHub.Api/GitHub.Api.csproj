@@ -72,7 +72,6 @@
     <Compile Include="Authentication\Credential.cs" />
     <Compile Include="Extensions\ExceptionExtensions.cs" />
     <Compile Include="Guard.cs" />
-    <Compile Include="Helpers\IEnvironment.cs" />
     <Compile Include="Authentication\ICredentialBackendFactory.cs" />
     <Compile Include="Authentication\ICredentialManager.cs" />
     <Compile Include="LambdaComparer.cs" />
