@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitHub.Logging", "src\GitHu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet-httpclient35", "dotnet-httpclient35", "{D0CFD3E7-5B2C-4A54-ABF1-514D06F0747A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.Net.Http-net_3_5", "..\dotnet-httpClient35\System.Net.Http\System.Net.Http-net_3_5.csproj", "{9862694D-E4FA-418B-8692-A0280FEDDF36}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.Net.Http-net_3_5", "submodules\dotnet-httpClient35\System.Net.Http\System.Net.Http-net_3_5.csproj", "{9862694D-E4FA-418B-8692-A0280FEDDF36}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
