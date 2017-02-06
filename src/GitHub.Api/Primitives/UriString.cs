@@ -139,14 +139,15 @@ namespace GitHub.Api
                 ? url.Scheme
                 : Uri.UriSchemeHttps;
 
+            var port = url?.Port == 80
+                    ? -1
+                    : (url?.Port ?? -1);
             return new UriBuilder
             {
                 Scheme = scheme,
                 Host = Host,
                 Path = NameWithOwner,
-                Port = url?.Port == 80
-                    ? -1
-                    : (url?.Port ?? -1)
+                Port = port
             }.Uri;
         }
 
