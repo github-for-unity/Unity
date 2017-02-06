@@ -38,7 +38,7 @@ namespace GitHub.Unity
 
             DetermineInstallationPath(Environment);
 
-            DetermineGitRepoRoot();
+            DetermineGitRepoRoot(FileSystem, Environment, GitEnvironment);
 
             Settings.Initialize();
 
@@ -59,12 +59,14 @@ namespace GitHub.Unity
             Window.Initialize();
         }
 
-        private static void DetermineGitRepoRoot()
+        // TODO: Move these out to a proper location
+        private static void DetermineGitRepoRoot(IFileSystem fs, IEnvironment environment, IGitEnvironment gitEnvironment)
         {
-            var fullProjectRoot = FileSystem.GetFullPath(Environment.UnityProjectPath);
-            Environment.GitRoot = GitEnvironment.FindRoot(fullProjectRoot);
+            var fullProjectRoot = fs.GetFullPath(environment.UnityProjectPath);
+            environment.GitRoot = gitEnvironment.FindRoot(fullProjectRoot);
         }
 
+        // TODO: Move these out to a proper location
         private static void DetermineInstallationPath(IEnvironment environment)
         {
             // Unity paths
@@ -95,6 +97,7 @@ namespace GitHub.Unity
             DestroyImmediate(instance);
         }
 
+        // TODO: Move these out to a proper location
         private static void DetermineGitInstallationPath(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs,
             ISettings settings)
         {
