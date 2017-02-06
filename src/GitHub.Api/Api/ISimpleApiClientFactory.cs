@@ -1,6 +1,4 @@
-﻿using GitHub.Primitives;
-
-namespace GitHub.Api
+﻿namespace GitHub.Api
 {
     public interface ISimpleApiClientFactory
     {

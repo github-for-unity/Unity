@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 
-namespace GitHub.Primitives
+namespace GitHub.Api
 {
     [Serializable]
     public abstract class StringEquivalent<T> : ISerializable, IXmlSerializable where T : StringEquivalent<T>

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GitHub.Extensions
+namespace GitHub.Api
 {
     static class UriExtensions
     {

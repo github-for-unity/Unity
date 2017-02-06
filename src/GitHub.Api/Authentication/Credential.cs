@@ -1,22 +1,29 @@
-﻿namespace GitHub.Api
+﻿using System;
+
+namespace GitHub.Api
 {
     sealed class Credential : ICredential
     {
-        public Credential(string host)
+        public Credential(HostAddress host)
         {
-            this.Host = host;
+            this.Host = host.CredentialCacheKeyHost;
         }
 
-        public ICredential Set(string key, string value)
+        public Credential(HostAddress host, string username, string token)
         {
-            Key = key;
-            Value = value;
-            return this;
+            this.Host = host.CredentialCacheKeyHost;
+            this.Username = username;
+            this.Token = token;
+        }
+
+        public void UpdateToken(string token)
+        {
+            this.Token = token;
         }
 
         public string Host { get; private set; }
-        public string Key { get; private set; }
-        public string Value { get; private set; }
+        public string Username { get; private set; }
+        public string Token { get; private set; }
 
 
         private bool disposed = false;
@@ -27,7 +34,7 @@
                 if (!disposed)
                 {
                     disposed = true;
-                    Value = null;
+                    Token = null;
                 }
             }
         }

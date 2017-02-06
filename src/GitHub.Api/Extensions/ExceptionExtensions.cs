@@ -2,7 +2,7 @@
 using Octokit;
 using System.Threading;
 
-namespace GitHub.Extensions
+namespace GitHub.Api
 {
     static class ApiExceptionExtensions
     {

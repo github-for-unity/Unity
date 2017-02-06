@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Globalization;
-using GitHub.Extensions;
 
-namespace GitHub.Primitives
+namespace GitHub.Api
 {
     public class HostAddress
     {
