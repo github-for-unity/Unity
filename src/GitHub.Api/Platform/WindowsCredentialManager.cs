@@ -1,25 +1,31 @@
+using System.Threading.Tasks;
+
 namespace GitHub.Api
 {
     class WindowsCredentialManager : ICredentialManager
     {
         private ICredential credential;
 
-        public void Delete(ICredential credential)
+        public Task Delete(HostAddress host)
         {
             // TODO: implement credential deletion
             credential = null;
+            return TaskEx.FromResult(true);
         }
 
-        public ICredential Load(string key)
+        public Task<ICredential> Load(HostAddress host)
         {
+            if (credential == null)
+                return TaskEx.FromResult<ICredential>(null);
             // TODO: implement credential loading
-            return new Credential(key).Set(credential.Key, credential.Value);
+            return TaskEx.FromResult<ICredential>(new Credential(host, credential.Username, credential.Token));
         }
 
-        public void Save(ICredential credential)
+        public Task Save(ICredential credential)
         {
             // TODO: implement credential saving
             this.credential = credential;
+            return TaskEx.FromResult(true);
         }
     }
 }

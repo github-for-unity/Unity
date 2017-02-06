@@ -51,6 +51,10 @@ namespace GitHub.Unity
             UnityEngine.Debug.LogFormat(Prefix + format, objects);
 #endif
         }
+        public void Debug(Exception ex)
+        {
+            UnityEngine.Debug.LogException(ex);
+        }
 
         public void Warning(string message)
         {

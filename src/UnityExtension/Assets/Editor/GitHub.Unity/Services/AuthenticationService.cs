@@ -1,6 +1,5 @@
 ﻿using GitHub.Unity;
 using GitHub.Models;
-using GitHub.Primitives;
 using Octokit;
 using System;
 using System.Reflection;
@@ -8,20 +7,6 @@ using GitHub.Api;
 
 namespace GitHub.Unity
 {
-
-    public static class ApplicationInfo
-    {
-#if DEBUG
-        public const string ApplicationName = "Unity123";
-        public const string ApplicationProvider = "GitHub";
-#else
-        public const string ApplicationName = "Unity123";
-        public const string ApplicationProvider = "GitHub";
-#endif
-        public const string ApplicationSafeName = "Unity123";
-        public const string ApplicationDescription = "GitHub for Unity";
-    }
-
     public class Program : IProgram
     {
         public Program()
@@ -60,29 +45,35 @@ namespace GitHub.Unity
 
     class AuthenticationService
     {
-        public enum LoginResult
-        {
-            Ok,
-            TwoFA,
-            Failed
-        }
-
         private readonly IProgram program;
         private readonly ICredentialManager credentialManager;
+        private ISimpleApiClient client;
+
+        private LoginResult loginResultData;
+
         public AuthenticationService(IProgram program, ICredentialManager credentialManager)
         {
             this.program = program;
             this.credentialManager = credentialManager;
+            var api = new SimpleApiClientFactory(program, credentialManager);
+            this.client = api.Create(new UriString("https://github.com/github"));
         }
 
-        public void Login(Action<LoginResult> callback)
+        public void Login(string username, string password, Action<string> twofaRequired, Action<bool, string> authResult)
         {
-            var api = new SimpleApiClientFactory(program, credentialManager);
-            var client = api.Create(new UriString("https://github.com/github/UnityInternal"));
-            var repo = client.GetRepository(r =>
+            loginResultData = null;
+            client.Login(username, password, r =>
             {
+                loginResultData = r;
+                twofaRequired(r.Message);
+            }, authResult);
+        }
 
-            });
+        public void LoginWith2fa(string code)
+        {
+            if (loginResultData == null)
+                throw new InvalidOperationException("Call Login() first");
+            client.ContinueLogin(loginResultData, code);
         }
     }
 }

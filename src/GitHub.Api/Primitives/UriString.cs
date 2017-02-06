@@ -4,9 +4,8 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
-using GitHub.Extensions;
 
-namespace GitHub.Primitives
+namespace GitHub.Api
 {
     /// <summary>
     /// This class represents a URI given to us as a string and is implicitly

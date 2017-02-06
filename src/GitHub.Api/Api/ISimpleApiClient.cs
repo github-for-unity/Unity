@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using GitHub.Primitives;
 using Octokit;
 using System;
 
@@ -9,6 +8,8 @@ namespace GitHub.Api
     {
         HostAddress HostAddress { get; }
         UriString OriginalUrl { get; }
-        Task GetRepository(Action<Repository> callback);
+        void GetRepository(Action<Repository> callback);
+        void Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result);
+        void ContinueLogin(LoginResult loginResult, string code);
     }
 }

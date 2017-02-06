@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 
-namespace GitHub.Extensions
+namespace GitHub.Api
 {
     static class Guard
     {
@@ -28,9 +28,10 @@ namespace GitHub.Extensions
         /// </summary>
         /// <param name = "value">The argument value to check.</param>
         /// <param name = "name">The name of the argument.</param>
-        public static void ArgumentNotEmptyString(string value, string name)
+        public static void ArgumentNotNullOrWhiteSpace(string value, string name)
         {
-            if (value.Length > 0) return;
+            if (value != null && value.Trim().Length > 0)
+                return;
             string message = String.Format(CultureInfo.InvariantCulture, "The value for '{0}' must not be empty", name);
             throw new ArgumentException(message, name);
         }

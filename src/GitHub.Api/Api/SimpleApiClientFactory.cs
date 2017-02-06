@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using GitHub.Models;
-using GitHub.Primitives;
 using Octokit;
 using System.Collections.Concurrent;
 
@@ -25,7 +24,7 @@ namespace GitHub.Api
         {
             var hostAddress = HostAddress.Create(repositoryUrl);
             return cache.GetOrAdd(repositoryUrl,
-                new SimpleApiClient(repositoryUrl,
+                new SimpleApiClient(repositoryUrl, credentialManager,
                     new GitHubClient(productHeader,
                         new SimpleCredentialStore(hostAddress, credentialManager),
                         hostAddress.ApiUri)

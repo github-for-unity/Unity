@@ -19,6 +19,7 @@ namespace GitHub.Unity
         {
             Logging.LoggerFactory = s => new UnityLogAdapter(s);
             logger = Logging.GetLogger<EntryPoint>();
+            logger.Debug("EntryPoint Initialize");
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
         }

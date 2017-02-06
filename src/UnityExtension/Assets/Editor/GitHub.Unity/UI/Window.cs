@@ -22,13 +22,14 @@ namespace GitHub.Unity
         private const string AuthenticationTitle = "Auth";
 
         [NonSerialized] private double notificationClearTime = -1;
+        [NonSerialized] private bool enabled = false;
 
         [SerializeField] private SubTab activeTab = SubTab.History;
-        [SerializeField] private BranchesView branchesTab = new BranchesView();
-        [SerializeField] private ChangesView changesTab = new ChangesView();
-        [SerializeField] private HistoryView historyTab = new HistoryView();
-        [SerializeField] private SettingsView settingsTab = new SettingsView();
-        [SerializeField] private AuthenticationView authTab = new AuthenticationView();
+        [SerializeField] private BranchesView branchesTab;
+        [SerializeField] private ChangesView changesTab;
+        [SerializeField] private HistoryView historyTab;
+        [SerializeField] private SettingsView settingsTab;
+        [SerializeField] private AuthenticationView authTab;
 
         private static bool initialized;
 
@@ -59,7 +60,7 @@ namespace GitHub.Unity
             //    activeTab = SubTab.Settings; // If we do complete init, make sure that we return to the settings tab for further setup
             //}
 
-            activeTab = SubTab.Authentication;
+            //activeTab = SubTab.Authentication;
 
             // Subtabs & toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -103,11 +104,7 @@ namespace GitHub.Unity
 
         public void OnEnable()
         {
-            historyTab.Show(this);
-            changesTab.Show(this);
-            branchesTab.Show(this);
-            settingsTab.Show(this);
-            authTab.Show(this);
+            enabled = true;
 
             Utility.UnregisterReadyCallback(Refresh);
             Utility.RegisterReadyCallback(Refresh);
@@ -126,6 +123,26 @@ namespace GitHub.Unity
 
         public void Refresh()
         {
+            if (enabled)
+            {
+                enabled = false;
+                if (historyTab == null)
+                    historyTab = new HistoryView();
+                historyTab.Show(this);
+                if (changesTab == null)
+                    changesTab = new ChangesView();
+                changesTab.Show(this);
+                if (branchesTab == null)
+                    branchesTab = new BranchesView();
+                branchesTab.Show(this);
+                if (settingsTab == null)
+                    settingsTab = new SettingsView();
+                settingsTab.Show(this);
+                if (authTab == null)
+                    authTab = new AuthenticationView();
+                authTab.Show(this);
+            }
+
             EvaluateProjectConfigurationTask.Schedule();
 
             if (Utility.ActiveRepository)

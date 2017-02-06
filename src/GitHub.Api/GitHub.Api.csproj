@@ -65,6 +65,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Api\ApplicationInfo.cs" />
+    <Compile Include="Authentication\LoginManager.cs" />
+    <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
@@ -82,29 +85,23 @@
     <Compile Include="Authentication\ICredentialManager.cs" />
     <Compile Include="IEnvironment.cs" />
     <Compile Include="LambdaComparer.cs" />
-    <Compile Include="Logging\ILogging.cs" />
-    <Compile Include="Logging\Logging.cs" />
     <Compile Include="Platform\LinuxCredentialManager.cs" />
     <Compile Include="Platform\MacCredentialManager.cs" />
     <Compile Include="Models\IProgram.cs" />
     <Compile Include="Primitives\HostAddress.cs" />
     <Compile Include="Primitives\StringEquivalent.cs" />
     <Compile Include="Primitives\UriString.cs" />
-    <Compile Include="SimpleCredentialStore.cs" />
+    <Compile Include="Authentication\SimpleCredentialStore.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="Platform\Platform.cs" />
     <Compile Include="Platform\WindowsCredentialManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SimpleApiClient.cs" />
-    <Compile Include="SimpleApiClientFactory.cs" />
+    <Compile Include="Api\SimpleApiClient.cs" />
+    <Compile Include="Api\SimpleApiClientFactory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\submodules\dotnet-httpclient35\System.Net.Http\System.Net.Http-net_3_5.csproj">
-      <Project>{9862694d-e4fa-418b-8692-a0280feddf36}</Project>
-      <Name>System.Net.Http-net_3_5</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">
       <Project>{eb4b074e-62a7-4f1d-8f95-e64b7aea0236}</Project>
       <Name>Octokit-Extensions35</Name>
@@ -113,9 +110,16 @@
       <Project>{49ef16a2-5ed1-480f-80a1-d1d05d6c1be4}</Project>
       <Name>Octokit-35</Name>
     </ProjectReference>
+    <ProjectReference Include="..\GitHub.Logging\GitHub.Logging.csproj">
+      <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
+      <Name>GitHub.Logging</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Logging\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

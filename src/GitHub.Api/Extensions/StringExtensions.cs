@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace GitHub.Extensions
+namespace GitHub.Api
 {
     static class StringExtensions
     {
