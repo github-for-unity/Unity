@@ -23,7 +23,7 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CodeAnalysisRuleSet>$(SolutionDir)common\GitHub.ruleset</CodeAnalysisRuleSet>
     <LangVersion>4</LangVersion>
-    <OutputPath>..\..\..\..\..\unity\TestProject\Assets\Editor\</OutputPath>
+    <OutputPath>$(SolutionDir)\unity\TestProject\Assets\Editor\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,17 +31,17 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <OutputPath>..\..\..\..\..\unity\TestProject\Assets\Editor\</OutputPath>
+    <OutputPath>$(SolutionDir)\unity\TestProject\Assets\Editor\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\lib\5.5\Mono.Security.dll</HintPath>
+      <HintPath>$(SolutionDir)\lib\5.5\Mono.Security.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Threading, Version=1.0.2856.102, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\..\packages\TaskParallelLibrary.1.0.2856.0\lib\Net35\System.Threading.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\TaskParallelLibrary.1.0.2856.0\lib\Net35\System.Threading.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Xml.Linq" />
