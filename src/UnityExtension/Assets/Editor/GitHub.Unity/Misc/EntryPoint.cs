@@ -45,11 +45,11 @@ namespace GitHub.Unity
 
             ProcessManager = new ProcessManager(Environment, GitEnvironment, FileSystem);
 
-            Settings = new Settings();
+            DeterminePaths(Environment, GitEnvironment, FileSystem);
 
-            DetermineInstallationPath(Environment);
+            DetermineGitRepoRoot(Environment, GitEnvironment, FileSystem);
 
-            DetermineGitRepoRoot();
+            Settings = new Settings(Environment);
 
             Settings.Initialize();
 
@@ -70,17 +70,15 @@ namespace GitHub.Unity
             Window.Initialize();
         }
 
-        private static void DetermineGitRepoRoot()
+        private static void DetermineGitRepoRoot(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
         {
-            var fullProjectRoot = FileSystem.GetFullPath(Environment.UnityProjectPath);
-            Environment.GitRoot = GitEnvironment.FindRoot(fullProjectRoot);
+            var fullProjectRoot = fs.GetFullPath(Environment.UnityProjectPath);
+            environment.GitRoot = gitEnvironment.FindRoot(fullProjectRoot);
         }
 
-        private static void DetermineInstallationPath(IEnvironment environment)
+        private static void DeterminePaths(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
         {
             // Unity paths
-            environment.UnityAssetsPath = Application.dataPath;
-            environment.UnityProjectPath = environment.UnityAssetsPath.Substring(0, environment.UnityAssetsPath.Length - "Assets".Length - 1);
 
             // Juggling to find out where we got installed
             var instance = FindObjectOfType(typeof(EntryPoint)) as EntryPoint;
@@ -104,6 +102,9 @@ namespace GitHub.Unity
             }
 
             DestroyImmediate(instance);
+
+            environment.UnityAssetsPath = Application.dataPath;
+            environment.UnityProjectPath = environment.UnityAssetsPath.Substring(0, environment.UnityAssetsPath.Length - "Assets".Length - 1);
         }
 
         private static void DetermineGitInstallationPath(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs,
