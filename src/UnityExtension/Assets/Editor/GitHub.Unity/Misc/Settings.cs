@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
@@ -13,6 +14,7 @@ namespace GitHub.Unity
         private const string RelativeSettingsPath = "{0}/ProjectSettings/{1}";
         private const string LocalSettingsName = "GitHub.local.json";
         private readonly string localCachePath;
+        private readonly IEnvironment environment;
 
         private CacheData cacheData = new CacheData();
         private Action<string> dirCreate;
@@ -23,15 +25,16 @@ namespace GitHub.Unity
         private Func<string, Encoding, string> readAllText;
         private Action<string, string> writeAllText;
 
-        public Settings()
+        public Settings(IEnvironment environment)
         {
+            this.environment = environment;
             fileExists = (path) => File.Exists(path);
             readAllText = (path, encoding) => File.ReadAllText(path, encoding);
             writeAllText = (path, content) => File.WriteAllText(path, content);
             fileDelete = (path) => File.Delete(path);
             dirExists = (path) => Directory.Exists(path);
             dirCreate = (path) => Directory.CreateDirectory(path);
-            localCachePath = String.Format(RelativeSettingsPath, Utility.UnityProjectPath, LocalSettingsName);
+            localCachePath = String.Format(RelativeSettingsPath, environment.UnityProjectPath, LocalSettingsName);
         }
 
         public void Initialize()
