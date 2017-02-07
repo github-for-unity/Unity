@@ -1,6 +1,4 @@
-﻿using GitHub.Unity;
-using GitHub.Models;
-using Octokit;
+﻿using Octokit;
 using System;
 using System.Reflection;
 using GitHub.Api;

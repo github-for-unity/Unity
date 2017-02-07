@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using GitHub.Models;
-using Octokit;
+﻿using Octokit;
 using System.Collections.Concurrent;
 
 namespace GitHub.Api
