@@ -98,6 +98,7 @@
     <Compile Include="Tasks\FindGitTask.cs" />
     <Compile Include="Tasks\GitAddTask.cs" />
     <Compile Include="Tasks\GitBranch.cs" />
+    <Compile Include="Tasks\GitBranchDeleteTask.cs" />
     <Compile Include="Tasks\GitInitTask.cs" />
     <Compile Include="Tasks\GitPullTask.cs" />
     <Compile Include="Tasks\GitDeleteRemoteTask.cs" />
