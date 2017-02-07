@@ -5,8 +5,8 @@ namespace GitHub.Unity
 {
     class GitPullTask : GitTask
     {
-        private readonly string repository;
         private readonly string branch;
+        private readonly string repository;
 
         private GitPullTask(Action onSuccess, Action onFailure, string repository = null, string branch = null)
             : base(str => onSuccess.SafeInvoke(), onFailure)
@@ -15,7 +15,8 @@ namespace GitHub.Unity
             this.branch = branch;
         }
 
-        public static void Schedule(Action onSuccess, string repository = null, string branch = null, Action onFailure = null)
+        public static void Schedule(Action onSuccess, string repository = null, string branch = null,
+            Action onFailure = null)
         {
             Tasks.Add(new GitPullTask(onSuccess, onFailure, repository, branch));
         }
