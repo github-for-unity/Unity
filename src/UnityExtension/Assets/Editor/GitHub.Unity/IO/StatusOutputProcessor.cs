@@ -10,7 +10,8 @@ namespace GitHub.Unity
 {
     class StatusOutputProcessor : BaseOutputProcessor
     {
-        private static readonly Regex branchTrackedAndDelta = new Regex(@"(.*)\.\.\.(.*)\s\[(.*)\]", RegexOptions.Compiled);
+        private static readonly Regex branchTrackedAndDelta = new Regex(@"(.*)\.\.\.(.*)\s\[(.*)\]",
+            RegexOptions.Compiled);
 
         private readonly IGitStatusEntryFactory gitStatusEntryFactory;
 
@@ -106,13 +107,31 @@ namespace GitHub.Unity
                     string originalPath = null;
                     string path = null;
                     GitFileStatus status = GitFileStatus.Added;
+                    bool staged = false;
 
-                    if (proc.IsAtWhitespace)
+                    if (proc.Matches('?'))
                     {
+                        //?? something.txt
+                        proc.MoveToAfter('?');
                         proc.SkipWhitespace();
+
+                        path = proc.ReadToEnd().Trim('"');
+                        status = GitFileStatus.Untracked;
+                    }
+                    else
+                    {
+                        if (proc.IsAtWhitespace)
+                        {
+                            proc.SkipWhitespace();
+                        }
+                        else
+                        {
+                            staged = true;
+                        }
+
                         if (proc.Matches('M'))
                         {
-                            // M GitHubVS.sln
+                            //M  GitHubVS.sln
                             proc.MoveNext();
                             proc.SkipWhitespace();
 
@@ -121,28 +140,21 @@ namespace GitHub.Unity
                         }
                         else if (proc.Matches('D'))
                         {
-                            // D deploy.cmd
+                            //D  deploy.cmd
                             proc.MoveNext();
                             proc.SkipWhitespace();
 
                             path = proc.ReadToEnd().Trim('"');
                             status = GitFileStatus.Deleted;
                         }
-                        else
-                        {
-                            HandleUnexpected(line);
-                        }
-                    }
-                    else
-                    {
-                        if (proc.Matches('R'))
+                        else if (proc.Matches('R'))
                         {
                             //R  README.md -> README2.md
                             proc.MoveNext();
                             proc.SkipWhitespace();
 
                             var files = proc.ReadToEnd()
-                                .Split(new[] {"->"}, StringSplitOptions.RemoveEmptyEntries)
+                                .Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries)
                                 .Select(s => s.Trim())
                                 .Select(s => s.Trim('"'))
                                 .ToArray();
@@ -160,22 +172,13 @@ namespace GitHub.Unity
                             path = proc.ReadToEnd().Trim('"');
                             status = GitFileStatus.Added;
                         }
-                        else if (proc.Matches('?'))
-                        {
-                            //?? something.txt
-                            proc.MoveToAfter('?');
-                            proc.SkipWhitespace();
-
-                            path = proc.ReadToEnd().Trim('"');
-                            status = GitFileStatus.Untracked;
-                        }
                         else
                         {
                             HandleUnexpected(line);
                         }
                     }
 
-                    var gitStatusEntry = gitStatusEntryFactory.Create(path, status, originalPath);
+                    var gitStatusEntry = gitStatusEntryFactory.Create(path, status, originalPath, staged);
                     entries.Add(gitStatusEntry);
                 }
             }
