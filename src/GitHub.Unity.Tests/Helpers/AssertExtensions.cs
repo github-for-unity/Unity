@@ -10,7 +10,9 @@ namespace GitHub.Unity.Tests
         public static void AssertEqual(this GitLogEntry gitLogEntry, GitLogEntry other)
         {
             gitLogEntry.AuthorName.Should().Be(other.AuthorName);
+            gitLogEntry.CommitName.Should().Be(other.CommitName);
             gitLogEntry.AuthorEmail.Should().Be(other.AuthorEmail);
+            gitLogEntry.CommitEmail.Should().Be(other.CommitEmail);
             gitLogEntry.MergeA.Should().Be(other.MergeA);
             gitLogEntry.MergeB.Should().Be(other.MergeB);
             gitLogEntry.Changes.AssertEqual(other.Changes);
@@ -18,6 +20,7 @@ namespace GitHub.Unity.Tests
             gitLogEntry.Summary.Should().Be(other.Summary);
             gitLogEntry.Description.Should().Be(other.Description);
             gitLogEntry.Time.Should().Be(other.Time);
+            gitLogEntry.CommitTime.Should().Be(other.CommitTime);
         }
 
         public static void AssertNotEqual(this GitLogEntry gitLogEntry, GitLogEntry other)
