@@ -65,11 +65,6 @@ namespace GitHub.Unity
             return Path.GetFileNameWithoutExtension(fileName);
         }
 
-        public char DirectorySeparatorChar
-        {
-            get { return Path.DirectorySeparatorChar; }
-        }
-
         public IEnumerable<string> GetFiles(string path, string pattern, SearchOption searchOption)
         {
             return Directory.GetFiles(path, pattern, searchOption);
@@ -133,6 +128,11 @@ namespace GitHub.Unity
         public string[] ReadAllLines(string path)
         {
             return File.ReadAllLines(path);
+        }
+
+        public char DirectorySeparatorChar
+        {
+            get { return Path.DirectorySeparatorChar; }
         }
     }
 }
