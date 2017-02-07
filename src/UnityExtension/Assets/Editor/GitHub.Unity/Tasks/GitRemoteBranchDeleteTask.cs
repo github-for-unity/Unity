@@ -2,12 +2,12 @@ using System;
 
 namespace GitHub.Unity
 {
-    class GitDeleteRemoteTask : GitTask
+    class GitRemoteBranchDeleteTask : GitTask
     {
         private readonly string repository;
         private readonly string branch;
 
-        private GitDeleteRemoteTask(Action onSuccess, Action onFailure, string repository, string branch)
+        private GitRemoteBranchDeleteTask(Action onSuccess, Action onFailure, string repository, string branch)
             : base(str => onSuccess.SafeInvoke(), onFailure)
         {
             this.repository = repository;
@@ -16,7 +16,7 @@ namespace GitHub.Unity
 
         public static void Schedule(Action onSuccess, string repository, string branch, Action onFailure = null)
         {
-            Tasks.Add(new GitDeleteRemoteTask(onSuccess, onFailure, repository, branch));
+            Tasks.Add(new GitRemoteBranchDeleteTask(onSuccess, onFailure, repository, branch));
         }
 
         public override bool Blocking
