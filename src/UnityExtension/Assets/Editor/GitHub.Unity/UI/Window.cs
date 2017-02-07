@@ -22,14 +22,12 @@ namespace GitHub.Unity
         private const string AuthenticationTitle = "Auth";
 
         [NonSerialized] private double notificationClearTime = -1;
-        [NonSerialized] private bool enabled = false;
 
         [SerializeField] private SubTab activeTab = SubTab.History;
         [SerializeField] private BranchesView branchesTab;
         [SerializeField] private ChangesView changesTab;
         [SerializeField] private HistoryView historyTab;
         [SerializeField] private SettingsView settingsTab;
-        [SerializeField] private AuthenticationView authTab;
 
         private static bool initialized;
 
@@ -60,8 +58,6 @@ namespace GitHub.Unity
             //    activeTab = SubTab.Settings; // If we do complete init, make sure that we return to the settings tab for further setup
             //}
 
-            //activeTab = SubTab.Authentication;
-
             // Subtabs & toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
@@ -71,7 +67,6 @@ namespace GitHub.Unity
                     activeTab = TabButton(SubTab.Changes, ChangesTitle, activeTab);
                     activeTab = TabButton(SubTab.Branches, BranchesTitle, activeTab);
                     activeTab = TabButton(SubTab.Settings, SettingsTitle, activeTab);
-                    activeTab = TabButton(SubTab.Authentication, AuthenticationTitle, activeTab);
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -104,7 +99,8 @@ namespace GitHub.Unity
 
         public void OnEnable()
         {
-            enabled = true;
+            Utility.UnregisterReadyCallback(CreateViews);
+            Utility.RegisterReadyCallback(CreateViews);
 
             Utility.UnregisterReadyCallback(Refresh);
             Utility.RegisterReadyCallback(Refresh);
@@ -123,32 +119,28 @@ namespace GitHub.Unity
 
         public void Refresh()
         {
-            if (enabled)
-            {
-                enabled = false;
-                if (historyTab == null)
-                    historyTab = new HistoryView();
-                historyTab.Show(this);
-                if (changesTab == null)
-                    changesTab = new ChangesView();
-                changesTab.Show(this);
-                if (branchesTab == null)
-                    branchesTab = new BranchesView();
-                branchesTab.Show(this);
-                if (settingsTab == null)
-                    settingsTab = new SettingsView();
-                settingsTab.Show(this);
-                if (authTab == null)
-                    authTab = new AuthenticationView();
-                authTab.Show(this);
-            }
-
             EvaluateProjectConfigurationTask.Schedule();
 
             if (Utility.ActiveRepository)
             {
                 ActiveTab.Refresh();
             }
+        }
+
+        private void CreateViews()
+        {
+            if (historyTab == null)
+                historyTab = new HistoryView();
+            historyTab.Show(this);
+            if (changesTab == null)
+                changesTab = new ChangesView();
+            changesTab.Show(this);
+            if (branchesTab == null)
+                branchesTab = new BranchesView();
+            branchesTab.Show(this);
+            if (settingsTab == null)
+                settingsTab = new SettingsView();
+            settingsTab.Show(this);
         }
 
         public void Redraw()
@@ -211,8 +203,6 @@ namespace GitHub.Unity
                         return changesTab;
                     case SubTab.Branches:
                         return branchesTab;
-                    case SubTab.Authentication:
-                        return authTab;
                     case SubTab.Settings:
                     default:
                         return settingsTab;
@@ -255,8 +245,7 @@ namespace GitHub.Unity
             History,
             Changes,
             Branches,
-            Settings,
-            Authentication
+            Settings
         }
     }
 }

@@ -90,15 +90,14 @@ namespace GitHub.Api
             }
             catch (TwoFactorAuthorizationException e)
             {
-                logger.Debug(e);
                 var result = e is TwoFactorRequiredException ? LoginResultCodes.CodeRequired : LoginResultCodes.CodeFailed;
                 return new LoginResultData(result, e.Message, client, hostAddress, newAuth);
             }
             catch (Exception e)
             {
                 logger.Debug(e);
-                // Some enterpise instances don't support OAUTH, so fall back to using the
-                // supplied password - on intances that don't support OAUTH the user should
+                // Some enterprise instances don't support OAUTH, so fall back to using the
+                // supplied password - on instances that don't support OAUTH the user should
                 // be using a personal access token as the password.
                 if (EnterpriseWorkaround(hostAddress, e))
                 {
@@ -107,13 +106,13 @@ namespace GitHub.Api
                 else
                 {
                     await credentialCache.Delete(hostAddress).ConfigureAwait(false);
-                    throw;
+                    return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, hostAddress);
                 }
             }
 
             credential.UpdateToken(auth.Token);
             await credentialCache.Save(credential).ConfigureAwait(false);
-            return new LoginResultData(LoginResultCodes.Success, "", hostAddress);
+            return new LoginResultData(LoginResultCodes.Success, "Success", hostAddress);
         }
 
         public async Task<LoginResultData> ContinueLogin(LoginResultData loginResultData, string twofacode)
@@ -139,14 +138,12 @@ namespace GitHub.Api
             }
             catch (TwoFactorAuthorizationException e)
             {
-                logger.Debug(e);
-                return new LoginResultData(LoginResultCodes.CodeFailed, e.Message, client, host, newAuth);
+                return new LoginResultData(LoginResultCodes.CodeFailed, Localization.Wrong2faCode, client, host, newAuth);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                logger.Debug(ex);
                 await credentialCache.Delete(host).ConfigureAwait(false);
-                return new LoginResultData(LoginResultCodes.Failed, ex.Message, host);
+                return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
             }
         }
 
@@ -250,7 +247,7 @@ namespace GitHub.Api
         {
             this.Code = code;
             this.Message = message;
-            this.NewAuth = NewAuth;
+            this.NewAuth = newAuth;
             this.Host = host;
             this.Client = client;
         }

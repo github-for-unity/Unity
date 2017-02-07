@@ -36,8 +36,11 @@ namespace GitHub.Unity
 
         public static void RegisterReadyCallback(Action callback)
         {
-            onReady += callback;
-            if (ready)
+            if (!ready)
+            {
+                onReady += callback;
+            }
+            else
             {
                 callback();
             }

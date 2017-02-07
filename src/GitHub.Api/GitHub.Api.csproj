@@ -68,6 +68,11 @@
     <Compile Include="Api\ApplicationInfo.cs" />
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
+    <Compile Include="Localization.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Localization.resx</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
@@ -120,6 +125,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Logging\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Localization.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
