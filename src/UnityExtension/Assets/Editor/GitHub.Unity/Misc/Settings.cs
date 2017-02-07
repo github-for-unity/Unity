@@ -69,12 +69,14 @@ namespace GitHub.Unity
                 cacheData.LocalSettings.Add(key, value);
             else
                 cacheData.LocalSettings[key] = value;
+            SaveToCache(localCachePath);
         }
 
         public void Unset(string key)
         {
             if (cacheData.LocalSettings.ContainsKey(key))
                 cacheData.LocalSettings.Remove(key);
+            SaveToCache(localCachePath);
         }
 
         public void Rename(string oldKey, string newKey)
@@ -85,6 +87,7 @@ namespace GitHub.Unity
                 cacheData.LocalSettings.Remove(oldKey);
                 Set(newKey, value);
             }
+            SaveToCache(localCachePath);
         }
 
         private void LoadFromCache(string cachePath)
