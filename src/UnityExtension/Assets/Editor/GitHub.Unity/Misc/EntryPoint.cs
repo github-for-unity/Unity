@@ -70,15 +70,19 @@ namespace GitHub.Unity
             Window.Initialize();
         }
 
+        // TODO: Move these out to a proper location
         private static void DetermineGitRepoRoot(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
         {
-            var fullProjectRoot = fs.GetFullPath(Environment.UnityProjectPath);
+            var fullProjectRoot = FileSystem.GetFullPath(Environment.UnityProjectPath);
             environment.GitRoot = gitEnvironment.FindRoot(fullProjectRoot);
         }
 
+        // TODO: Move these out to a proper location
         private static void DeterminePaths(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
         {
             // Unity paths
+            environment.UnityAssetsPath = Application.dataPath;
+            environment.UnityProjectPath = environment.UnityAssetsPath.Substring(0, environment.UnityAssetsPath.Length - "Assets".Length - 1);
 
             // Juggling to find out where we got installed
             var instance = FindObjectOfType(typeof(EntryPoint)) as EntryPoint;
@@ -103,10 +107,9 @@ namespace GitHub.Unity
 
             DestroyImmediate(instance);
 
-            environment.UnityAssetsPath = Application.dataPath;
-            environment.UnityProjectPath = environment.UnityAssetsPath.Substring(0, environment.UnityAssetsPath.Length - "Assets".Length - 1);
         }
 
+        // TODO: Move these out to a proper location
         private static void DetermineGitInstallationPath(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs,
             ISettings settings)
         {

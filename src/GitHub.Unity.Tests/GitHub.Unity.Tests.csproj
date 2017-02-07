@@ -79,6 +79,7 @@
   <ItemGroup>
     <Compile Include="Auth\LoginTests.cs" />
     <Compile Include="IO\BranchListOutputProcessorTests.cs" />
+    <Compile Include="IO\RemoteListOutputProcessorTests.cs" />
     <Compile Include="Helpers\AssertExtensions.cs" />
     <Compile Include="IO\BaseOutputProcessorTests.cs" />
     <Compile Include="IO\GitEnvironmentTestsBase.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="IO\GitStatusEntryFactoryTests.cs" />
     <Compile Include="IO\GitStatusEntryListTests.cs" />
     <Compile Include="IO\GitStatusEntryTests.cs" />
+    <Compile Include="IO\LogEntryOutputProcessorTests.cs" />
     <Compile Include="IO\BaseIntegrationTest.cs" />
     <Compile Include="IO\StatusOutputProcessorTests.cs" />
     <Compile Include="IO\MacBasedGitEnvironmentTests.cs" />

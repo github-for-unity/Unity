@@ -52,24 +52,17 @@ namespace GitHub.Unity
         private const string GitIgnoreRulesDescription = "Description";
         private const string NewGitIgnoreRuleButton = "New";
         private const string DeleteGitIgnoreRuleButton = "Delete";
-        private const string RemotesTitle = "Remotes";
-        private const string RemoteNameTitle = "Name";
-        private const string RemoteUserTitle = "User";
-        private const string RemoteHostTitle = "Host";
-        private const string RemoteAccessTitle = "Access";
 
         [NonSerialized] private int newGitIgnoreRulesSelection = -1;
 
         [SerializeField] private int gitIgnoreRulesSelection = 0;
         [SerializeField] private string initDirectory;
-        [SerializeField] private List<GitRemote> remotes = new List<GitRemote>();
         [SerializeField] private Vector2 scroll;
 
         private static readonly ILogging logger = Logging.GetLogger<SettingsView>();
 
         public override void Refresh()
         {
-            GitListRemotesTask.Schedule();
             StatusService.Instance.Run();
         }
 
@@ -85,12 +78,6 @@ namespace GitHub.Unity
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
                     GUILayout.Label("TODO: Favourite branches settings?");
-
-                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                    // Remotes
-
-                    OnRemotesGUI();
 
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
@@ -156,19 +143,10 @@ namespace GitHub.Unity
 
         protected override void OnShow()
         {
-            GitListRemotesTask.RegisterCallback(OnRemotesUpdate);
         }
 
         protected override void OnHide()
         {
-            GitListRemotesTask.UnregisterCallback(OnRemotesUpdate);
-        }
-
-        private void OnRemotesUpdate(IList<GitRemote> entries)
-        {
-            remotes.Clear();
-            remotes.AddRange(entries);
-            Redraw();
         }
 
         private bool OnIssuesGUI()
@@ -293,43 +271,6 @@ namespace GitHub.Unity
             }
 
             return true;
-        }
-
-        private void OnRemotesGUI()
-        {
-            var remotesWith = Position.width - Styles.RemotesTotalHorizontalMargin - 16f;
-            var nameWidth = remotesWith * Styles.RemotesNameRatio;
-            var userWidth = remotesWith * Styles.RemotesUserRatio;
-            var hostWidth = remotesWith * Styles.RemotesHostRation;
-            var accessWidth = remotesWith * Styles.RemotesAccessRatio;
-
-            GUILayout.Label(RemotesTitle, EditorStyles.boldLabel);
-            GUILayout.BeginVertical(GUI.skin.box);
-            {
-                GUILayout.BeginHorizontal(EditorStyles.toolbar);
-                {
-                    TableCell(RemoteNameTitle, nameWidth);
-                    TableCell(RemoteUserTitle, userWidth);
-                    TableCell(RemoteHostTitle, hostWidth);
-                    TableCell(RemoteAccessTitle, accessWidth);
-                }
-                GUILayout.EndHorizontal();
-
-                for (var index = 0; index < remotes.Count; ++index)
-                {
-                    var remote = remotes[index];
-                    GUILayout.BeginHorizontal();
-                    {
-                        TableCell(remote.Name, nameWidth);
-                        TableCell(remote.User, userWidth);
-                        TableCell(remote.Host, hostWidth);
-                        TableCell(remote.Function.ToString(), accessWidth);
-                    }
-                    GUILayout.EndHorizontal();
-                }
-            }
-
-            GUILayout.EndVertical();
         }
 
         private void OnGitIgnoreRulesGUI()
