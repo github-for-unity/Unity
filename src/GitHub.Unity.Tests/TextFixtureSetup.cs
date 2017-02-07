@@ -6,7 +6,7 @@ namespace GitHub.Unity.Tests
     [SetUpFixture]
     class TextFixtureSetup
     {
-        [SetUp]
+        [OneTimeSetUp]
         public void SetUp()
         {
             //Changing the Logger Instance to avoid calling Unity application libraries from nunit
