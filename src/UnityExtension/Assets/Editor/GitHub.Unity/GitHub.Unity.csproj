@@ -98,6 +98,7 @@
     <Compile Include="Tasks\FindGitTask.cs" />
     <Compile Include="Tasks\GitAddTask.cs" />
     <Compile Include="Tasks\GitBranch.cs" />
+    <Compile Include="Tasks\GitRemoteAddTask.cs" />
     <Compile Include="Tasks\GitBranchCreateTask.cs" />
     <Compile Include="Tasks\GitCommitTask.cs" />
     <Compile Include="Tasks\GitFileStatus.cs" />
@@ -108,6 +109,7 @@
     <Compile Include="Tasks\GitRemote.cs" />
     <Compile Include="Tasks\GitRemoteFunction.cs" />
     <Compile Include="IO\GitStatus.cs" />
+    <Compile Include="Tasks\GitRemoteRemoveTask.cs" />
     <Compile Include="Tasks\GitStatusTask.cs" />
     <Compile Include="Tasks\GitSwitchBranchesTask.cs" />
     <Compile Include="Tasks\GitTask.cs" />
