@@ -1,8 +1,10 @@
+using GitHub.Api;
 using System;
+using System.Linq;
 
-namespace GitHub.Unity.Logging
+namespace GitHub.Unity
 {
-    class UnityLogAdapter : ILogger
+    class UnityLogAdapter : ILogging
     {
         private readonly string contextPrefix;
 
@@ -49,6 +51,15 @@ namespace GitHub.Unity.Logging
 #if DEBUG
             UnityEngine.Debug.LogFormat(Prefix + format, objects);
 #endif
+        }
+        public void Debug(Exception ex)
+        {
+            UnityEngine.Debug.LogException(ex);
+            var caller = Environment.StackTrace;
+            var stack = caller.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            if (stack.Length > 2)
+                caller = String.Join(Environment.NewLine, stack.Skip(2).ToArray());
+            UnityEngine.Debug.Log(caller);
         }
 
         public void Warning(string message)

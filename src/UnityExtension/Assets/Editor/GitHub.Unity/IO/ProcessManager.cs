@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using GitHub.Api;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
     class ProcessManager: IProcessManager
     {
-        private static readonly ILogger logger = Logger.GetLogger<ProcessManager>();
+        private static readonly ILogging logger = Logging.GetLogger<ProcessManager>();
 
         private readonly IEnvironment environment;
         private readonly IGitEnvironment gitEnvironment;

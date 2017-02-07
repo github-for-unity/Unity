@@ -1,14 +1,14 @@
 using System;
 using System.Diagnostics;
-using GitHub.Unity.Logging;
 using System.Text;
 using System.ComponentModel;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
     class ProcessWrapper : IProcess
     {
-        private static readonly ILogger logger = Logger.GetLogger<ProcessWrapper>();
+        private static readonly ILogging logger = Logging.GetLogger<ProcessWrapper>();
 
         public event Action<string> OnOutputData;
         public event Action<string> OnErrorData;

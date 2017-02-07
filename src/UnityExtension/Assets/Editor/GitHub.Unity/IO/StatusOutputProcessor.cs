@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using UnityEngine;
-using ILogger = GitHub.Unity.Logging.ILogger;
-using Logger = GitHub.Unity.Logging.Logger;
 
 namespace GitHub.Unity
 {
