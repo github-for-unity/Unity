@@ -74,6 +74,7 @@
     <Compile Include="IO\GitStatusEntryFactoryTests.cs" />
     <Compile Include="IO\GitStatusEntryListTests.cs" />
     <Compile Include="IO\GitStatusEntryTests.cs" />
+    <Compile Include="IO\LogEntryOutputProcessorTests.cs" />
     <Compile Include="IO\BaseIntegrationTest.cs" />
     <Compile Include="IO\StatusOutputProcessorTests.cs" />
     <Compile Include="IO\MacBasedGitEnvironmentTests.cs" />
