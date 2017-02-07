@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using Octokit;
 
-namespace GitHub.Models
+namespace GitHub.Api
 {
     // Represents the currently executing program.
     public interface IProgram
