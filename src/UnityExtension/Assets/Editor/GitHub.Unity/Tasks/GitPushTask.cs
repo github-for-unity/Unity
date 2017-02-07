@@ -5,19 +5,20 @@ namespace GitHub.Unity
 {
     class GitPushTask : GitTask
     {
+        private readonly string branch;
         private readonly string repository;
         private readonly bool? setUpstream;
-        private readonly string branch;
 
-        private GitPushTask(Action onSuccess, Action onFailure, string repository = null, bool? setUpstream = null, string branch = null)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
+        private GitPushTask(Action onSuccess, Action onFailure, string repository = null, bool? setUpstream = null,
+            string branch = null) : base(str => onSuccess.SafeInvoke(), onFailure)
         {
             this.repository = repository;
             this.setUpstream = setUpstream;
             this.branch = branch;
         }
 
-        public static void Schedule(Action onSuccess, string repository = null, bool? setUpstream = null, string branch = null, Action onFailure = null)
+        public static void Schedule(Action onSuccess, string repository = null, bool? setUpstream = null,
+            string branch = null, Action onFailure = null)
         {
             Tasks.Add(new GitPushTask(onSuccess, onFailure, repository, setUpstream, branch));
         }

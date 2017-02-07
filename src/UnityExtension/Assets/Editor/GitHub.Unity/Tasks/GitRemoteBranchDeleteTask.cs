@@ -4,8 +4,8 @@ namespace GitHub.Unity
 {
     class GitRemoteBranchDeleteTask : GitTask
     {
-        private readonly string repository;
         private readonly string branch;
+        private readonly string repository;
 
         private GitRemoteBranchDeleteTask(Action onSuccess, Action onFailure, string repository, string branch)
             : base(str => onSuccess.SafeInvoke(), onFailure)
@@ -46,10 +46,7 @@ namespace GitHub.Unity
 
         protected override string ProcessArguments
         {
-            get
-            {
-                return string.Format("push {0} --delete {1}", repository, branch);
-            }
+            get { return string.Format("push {0} --delete {1}", repository, branch); }
         }
     }
 }

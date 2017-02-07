@@ -4,10 +4,8 @@ namespace GitHub.Unity
 {
     class GitInitTask : GitTask
     {
-        private GitInitTask(Action onSuccess, Action onFailure)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
-        {
-        }
+        private GitInitTask(Action onSuccess, Action onFailure) : base(str => onSuccess.SafeInvoke(), onFailure)
+        {}
 
         public static void Schedule(Action onSuccess, Action onFailure = null)
         {
