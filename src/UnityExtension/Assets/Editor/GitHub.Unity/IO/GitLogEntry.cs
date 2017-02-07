@@ -9,8 +9,17 @@ namespace GitHub.Unity
         private const string Today = "Today";
         private const string Yesterday = "Yesterday";
 
-        public string CommitID, MergeA, MergeB, AuthorName, AuthorEmail, Summary, Description;
+        public string CommitID;
+        public string MergeA;
+        public string MergeB;
+        public string AuthorName;
+        public string AuthorEmail;
+        public string CommitEmail;
+        public string CommitName;
+        public string Summary;
+        public string Description;
         public DateTimeOffset Time;
+        public DateTimeOffset CommitTime;
         public List<GitStatusEntry> Changes;
 
         public string ShortID
