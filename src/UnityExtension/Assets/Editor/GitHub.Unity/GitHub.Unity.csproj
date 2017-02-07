@@ -57,6 +57,7 @@
     <Compile Include="IO\DefaultEnvironment.cs" />
     <Compile Include="IO\FileSystem.cs" />
     <Compile Include="IO\GitEnvironment.cs" />
+    <Compile Include="IO\GitRemote.cs" />
     <Compile Include="IO\GitStatusEntry.cs" />
     <Compile Include="IO\GitStatusEntryFactory.cs" />
     <Compile Include="IO\IEnvironment.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="IO\ProcessOutputManager.cs" />
     <Compile Include="IO\ProcessWrapper.cs" />
     <Compile Include="IO\WindowsGitEnvironment.cs" />
+    <Compile Include="IO\RemoteListOutputProcessor.cs" />
     <Compile Include="IO\StatusOutputProcessor.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -106,8 +108,7 @@
     <Compile Include="Tasks\GitListRemotesTask.cs" />
     <Compile Include="IO\GitLogEntry.cs" />
     <Compile Include="Tasks\GitLogTask.cs" />
-    <Compile Include="Tasks\GitRemote.cs" />
-    <Compile Include="Tasks\GitRemoteFunction.cs" />
+    <Compile Include="IO\GitRemoteFunction.cs" />
     <Compile Include="IO\GitStatus.cs" />
     <Compile Include="Tasks\GitStatusTask.cs" />
     <Compile Include="Tasks\GitSwitchBranchesTask.cs" />
