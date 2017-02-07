@@ -11,7 +11,8 @@ namespace GitHub.Unity
         public readonly GitFileStatus Status;
         public readonly bool Staged;
 
-        public GitStatusEntry(string path, string fullPath, string projectPath, GitFileStatus status, string originalPath = null, bool staged = false)
+        public GitStatusEntry(string path, string fullPath, string projectPath, GitFileStatus status,
+            string originalPath = null, bool staged = false)
         {
             Path = path;
             Status = status;

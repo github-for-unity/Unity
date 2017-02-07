@@ -11,15 +11,15 @@ namespace GitHub.Unity.Tests
             var gitStatusEntryFactory = Substitute.For<IGitStatusEntryFactory>();
 
             gitStatusEntryFactory.Create(Arg.Any<string>(), Arg.Any<GitFileStatus>(), Arg.Any<string>(), Arg.Any<bool>())
-                .Returns(info =>
-                {
-                    var path = (string) info[0];
-                    var status = (GitFileStatus) info[1];
-                    var originalPath = (string) info[2];
-                    var staged = (bool) info[3];
+                                 .Returns(info => {
+                                     var path = (string)info[0];
+                                     var status = (GitFileStatus)info[1];
+                                     var originalPath = (string)info[2];
+                                     var staged = (bool)info[3];
 
-                    return new GitStatusEntry(path, TestRootPath + @"\" + path, null, status, originalPath, staged);
-                });
+                                     return new GitStatusEntry(path, TestRootPath + @"\" + path, null, status,
+                                         originalPath, staged);
+                                 });
             return gitStatusEntryFactory;
         }
     }
