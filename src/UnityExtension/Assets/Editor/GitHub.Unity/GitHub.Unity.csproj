@@ -11,7 +11,7 @@
     <AssemblyName>GitHub.Unity</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <OutputPath>$(SolutionDir)unity\TestProject\Assets\Editor\</OutputPath>
+    <OutputPath>$(SolutionDir)\unity\TestProject\Assets\Editor\</OutputPath>
     <IntermediateOutputPath>..\obj\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
