@@ -42,7 +42,7 @@ namespace GitHub.Unity
 
         public override string Label
         {
-            get { return "git remote"; }
+            get { return "git remote add"; }
         }
 
         protected override string ProcessArguments
