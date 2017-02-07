@@ -16,7 +16,6 @@ namespace GitHub.Unity
         string GetParentDirectory(string path);
         string ChangeExtension(string path, string extension);
         string GetFileNameWithoutExtension(string fileName);
-        char DirectorySeparatorChar { get; }
         IEnumerable<string> GetFiles(string path, string pattern, SearchOption searchOption);
         void WriteAllBytes(string path, byte[] bytes);
         void CreateDirectory(string toString);
@@ -31,5 +30,6 @@ namespace GitHub.Unity
         void WriteAllLines(string path, string[] contents);
         string[] ReadAllLines(string path);
         IEnumerable<string> GetDirectories(string path, string pattern);
+        char DirectorySeparatorChar { get; }
     }
 }
