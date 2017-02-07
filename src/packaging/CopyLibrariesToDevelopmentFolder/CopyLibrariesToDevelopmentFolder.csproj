@@ -49,10 +49,10 @@
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
-      <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
-      <Name>GitHub.Unity</Name>
-    </ProjectReference>
+    <Reference Include="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)\lib\5.5\Mono.Security.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
