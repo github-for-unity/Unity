@@ -92,7 +92,7 @@
     <Compile Include="LambdaComparer.cs" />
     <Compile Include="Platform\LinuxCredentialManager.cs" />
     <Compile Include="Platform\MacCredentialManager.cs" />
-    <Compile Include="Models\IProgram.cs" />
+    <Compile Include="IProgram.cs" />
     <Compile Include="Primitives\HostAddress.cs" />
     <Compile Include="Primitives\StringEquivalent.cs" />
     <Compile Include="Primitives\UriString.cs" />
@@ -123,9 +123,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Logging\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="Localization.resx">
       <Generator>ResXFileCodeGenerator</Generator>
