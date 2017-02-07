@@ -58,11 +58,12 @@ namespace GitHub.Unity
         {
             if (historyTarget != null)
             {
-                GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)));
+                //TODO: Create a task that can get the log of one target
+                //GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)),);
             }
             else
             {
-                GitLogTask.Schedule();
+                GitLogTask.Schedule(OnLogUpdate);
             }
 
             StatusService.Instance.Run();
@@ -343,7 +344,6 @@ namespace GitHub.Unity
             lastWidth = Position.width;
             selectionIndex = newSelectionIndex = -1;
 
-            GitLogTask.RegisterCallback(OnLogUpdate);
             StatusService.Instance.RegisterCallback(OnStatusUpdate);
 
             changesetTree.Show(this);
@@ -353,7 +353,6 @@ namespace GitHub.Unity
         protected override void OnHide()
         {
             StatusService.Instance.UnregisterCallback(OnStatusUpdate);
-            GitLogTask.UnregisterCallback(OnLogUpdate);
         }
 
         private void OnStatusUpdate(GitStatus update)
