@@ -51,74 +51,14 @@ namespace GitHub.Unity
 
         public static void Initialize()
         {
-            // Unity paths
-            UnityAssetsPath = Application.dataPath;
-            UnityProjectPath = UnityAssetsPath.Substring(0, UnityAssetsPath.Length - "Assets".Length - 1);
-
-            // Secure settings here so other threads don't try to reload
-            Settings.Reload();
-
-            // Juggling to find out where we got installed
-            var instance = FindObjectOfType(typeof(Utility)) as Utility;
-            if (instance == null)
-            {
-                instance = CreateInstance<Utility>();
-            }
-
-            var script = MonoScript.FromScriptableObject(instance);
-            if (script == null)
-            {
-                ExtensionInstallPath = string.Empty;
-            }
-            else
-            {
-                ExtensionInstallPath = AssetDatabase.GetAssetPath(script);
-                ExtensionInstallPath = ExtensionInstallPath.Substring(0, ExtensionInstallPath.LastIndexOf('/'));
-                ExtensionInstallPath = ExtensionInstallPath.Substring(0, ExtensionInstallPath.LastIndexOf('/'));
-            }
-
-            DestroyImmediate(instance);
-
             // Evaluate project settings
             Issues = new List<ProjectConfigurationIssue>();
-            EvaluateProjectConfigurationTask.UnregisterCallback(OnEvaluationResult);
-            EvaluateProjectConfigurationTask.RegisterCallback(OnEvaluationResult);
-            EvaluateProjectConfigurationTask.Schedule();
-
-            // Root paths
-            if (string.IsNullOrEmpty(GitInstallPath) || !File.Exists(GitInstallPath))
-            {
-                FindGitTask.Schedule(path =>
-                    {
-                        logger.Debug("found " + path);
-                        if (!string.IsNullOrEmpty(path))
-                        {
-                            GitInstallPath = path;
-                            DetermineGitRoot();
-                            OnPrepareCompleted();
-                        }
-                    },
-                    () => logger.Debug("NOT FOUND")
-                );
-            }
-            else
-            {
-                DetermineGitRoot();
-                OnPrepareCompleted();
-            }
         }
 
-        public static string RepositoryPathToAbsolute(string repositoryPath)
+        public static void Run()
         {
-            return Path.Combine(GitRoot, repositoryPath);
-        }
-
-        public static string RepositoryPathToAsset(string repositoryPath)
-        {
-            var localDataPath = UnityAssetsPath.Substring(GitRoot.Length + 1);
-            return repositoryPath.IndexOf(localDataPath) == 0
-                ? ("Assets" + repositoryPath.Substring(localDataPath.Length)).Replace(Path.DirectorySeparatorChar, '/')
-                : null;
+            ready = true;
+            onReady.SafeInvoke();
         }
 
         public static string AssetPathToRepository(string assetPath)
@@ -171,35 +111,31 @@ namespace GitHub.Unity
             return commonPath;
         }
 
-        private static void OnPrepareCompleted()
-        {
-            ready = true;
-            if (onReady != null)
-            {
-                onReady();
-            }
-        }
-
-        private static void OnEvaluationResult(IEnumerable<ProjectConfigurationIssue> result)
-        {
-            Issues = new List<ProjectConfigurationIssue>(result);
-        }
-
-        private static void DetermineGitRoot()
-        {
-            GitRoot = EntryPoint.GitEnvironment.FindRoot(UnityAssetsPath);
-        }
-
         public static string GitInstallPath
         {
-            get { return Settings.Get("GitInstallPath"); }
-            set { Settings.Set("GitInstallPath", value); }
+            get { return EntryPoint.Environment.GitInstallPath; }
         }
 
-        public static string GitRoot { get; protected set; }
-        public static string UnityAssetsPath { get; protected set; }
-        public static string UnityProjectPath { get; protected set; }
-        public static string ExtensionInstallPath { get; protected set; }
+        public static string GitRoot
+        {
+            get { return EntryPoint.Environment.GitRoot; }
+        }
+
+        public static string UnityAssetsPath
+        {
+            get { return EntryPoint.Environment.UnityAssetsPath; }
+        }
+
+        public static string UnityProjectPath
+        {
+            get { return EntryPoint.Environment.UnityProjectPath; }
+        }
+
+        public static string ExtensionInstallPath
+        {
+            get { return EntryPoint.Environment.ExtensionInstallPath; }
+        }
+
         public static List<ProjectConfigurationIssue> Issues { get; protected set; }
 
         public static bool GitFound
@@ -210,21 +146,6 @@ namespace GitHub.Unity
         public static bool ActiveRepository
         {
             get { return !string.IsNullOrEmpty(GitRoot); }
-        }
-
-        public static bool IsWindows
-        {
-            get
-            {
-                switch (Application.platform)
-                {
-                    case RuntimePlatform.WindowsPlayer:
-                    case RuntimePlatform.WindowsEditor:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
         }
 
         public static bool IsDevelopmentBuild

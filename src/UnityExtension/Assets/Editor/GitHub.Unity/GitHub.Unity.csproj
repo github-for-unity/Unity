@@ -84,6 +84,7 @@
     <Compile Include="Misc\Ensure.cs" />
     <Compile Include="Misc\EntryPoint.cs" />
     <Compile Include="Misc\Installer.cs" />
+    <Compile Include="Misc\ISettings.cs" />
     <Compile Include="Misc\ProjectWindowInterface.cs" />
     <Compile Include="Misc\Settings.cs" />
     <Compile Include="Misc\SimpleJson.cs" />
