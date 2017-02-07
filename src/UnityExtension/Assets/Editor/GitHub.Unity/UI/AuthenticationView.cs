@@ -101,22 +101,28 @@ namespace GitHub.Unity
             if (busy) GUI.enabled = false;
             if (GUILayout.Button(loginButton))
             {
+                busy = true;
                 authenticationService.LoginWith2fa(two2fa);
             }
             GUI.enabled = true;
+
         }
 
         private void DoRequire2fa(string msg)
         {
             need2fa = true;
-            busy = false;
             message = msg;
+            busy = false;
+            parent.Redraw();
         }
 
         private void DoResult(bool success, string msg)
         {
-            busy = false;
+            need2fa = false;
+            finished = true;
             message = msg;
+            busy = false;
+            parent.Redraw();
         }
     }
 }

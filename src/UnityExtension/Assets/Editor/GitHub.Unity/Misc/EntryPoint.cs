@@ -1,9 +1,12 @@
 ﻿using GitHub.Api;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,6 +23,10 @@ namespace GitHub.Unity
             Logging.LoggerFactory = s => new UnityLogAdapter(s);
             logger = Logging.GetLogger<EntryPoint>();
             logger.Debug("EntryPoint Initialize");
+
+            var syncCtx = new SingleThreadSynchronizationContext();
+            SynchronizationContext.SetSynchronizationContext(syncCtx);
+
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
         }
@@ -69,6 +76,7 @@ namespace GitHub.Unity
 
             Window.Initialize();
         }
+
 
         // TODO: Move these out to a proper location
         private static void DetermineGitRepoRoot(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
@@ -156,5 +164,14 @@ namespace GitHub.Unity
         public static GitStatusEntryFactory GitStatusEntryFactory { get; private set; }
         public static ISettings Settings { get; private set; }
         public static IPlatform Platform { get; private set; }
+    }
+
+
+    class SingleThreadSynchronizationContext : SynchronizationContext
+    {
+        public override void Post(SendOrPostCallback d, object state)
+        {
+            EditorApplication.delayCall += () => d(state);
+        }
     }
 }

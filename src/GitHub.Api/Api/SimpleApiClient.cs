@@ -2,28 +2,33 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Octokit;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace GitHub.Api
 {
     public class LoginResult
     {
-        public bool NeedTwoFA { get { return Data.Code == LoginResultCodes.CodeRequired; } }
+        public bool NeedTwoFA { get { return Data.Code == LoginResultCodes.CodeRequired || Data.Code == LoginResultCodes.CodeFailed; } }
         public bool Success { get { return Data.Code == LoginResultCodes.Success; } }
+        public bool Failed { get { return Data.Code == LoginResultCodes.Failed; } }
         public string Message { get { return Data.Message; } }
 
         internal LoginResultData Data { get; set; }
         internal Action<bool, string> Callback { get; set; }
+        internal Action<LoginResult> TwoFACallback { get; set; }
 
-        internal LoginResult(LoginResultData data, Action<bool, string> callback)
+        internal LoginResult(LoginResultData data, Action<bool, string> callback, Action<LoginResult> twofaCallback)
         {
             this.Data = data;
             this.Callback = callback;
+            this.TwoFACallback = twofaCallback;
         }
     }
 
     public class SimpleApiClient : ISimpleApiClient
     {
+        private static readonly Unity.ILogging logger = Unity.Logging.GetLogger<SimpleApiClient>();
         public HostAddress HostAddress { get; }
         public UriString OriginalUrl { get; }
 
@@ -61,41 +66,46 @@ namespace GitHub.Api
             Guard.ArgumentNotNull(need2faCode, "need2faCode");
             Guard.ArgumentNotNull(result, "result");
 
+            LoginResultData res = null;
             try
             {
-                var res = await loginManager.Login(HostAddress, githubClient, username, password);
-                if (res.Code == LoginResultCodes.Success)
-                {
-                    result(true, "");
-                }
-                else if (res.Code == LoginResultCodes.CodeRequired)
-                {
-                    var resultCache = new LoginResult(res, result);
-                    need2faCode(resultCache);
-                }
+                res = await loginManager.Login(HostAddress, githubClient, username, password);
             }
             catch (Exception ex)
             {
                 result(false, ex.Message);
                 return;
             }
-            result(true, "");
+
+            if (res.Code == LoginResultCodes.CodeRequired)
+            {
+                var resultCache = new LoginResult(res, result, need2faCode);
+                need2faCode(resultCache);
+            }
+            else
+            {
+                result(res.Code == LoginResultCodes.Success, res.Message);
+            }
         }
 
         public async void ContinueLogin(LoginResult loginResult, string code)
         {
+            LoginResultData result = null;
             try
             {
-                await loginManager.ContinueLogin(loginResult.Data, code);
+                result = await loginManager.ContinueLogin(loginResult.Data, code);
             }
             catch (Exception ex)
             {
                 loginResult.Callback(false, ex.Message);
                 return;
             }
-            loginResult.Callback(true, "");
+            if (result.Code == LoginResultCodes.CodeFailed)
+            {
+                loginResult.TwoFACallback(new LoginResult(result, loginResult.Callback, loginResult.TwoFACallback));
+            }
+            loginResult.Callback(result.Code == LoginResultCodes.Success, result.Message);
         }
-
 
         async Task<Repository> GetRepositoryInternal()
         {
