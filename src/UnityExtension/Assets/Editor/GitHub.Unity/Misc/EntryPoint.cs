@@ -5,7 +5,7 @@ using ILogger = GitHub.Unity.Logging.ILogger;
 namespace GitHub.Unity
 {
     [InitializeOnLoad]
-    class EntryPoint
+    class EntryPoint : ScriptableObject
     {
         private static readonly ILogger logger = Logging.Logger.GetLogger<EntryPoint>();
 
@@ -18,6 +18,8 @@ namespace GitHub.Unity
         // we do this so we're guaranteed to run on the main thread, not the loader thread
         private static void Initialize()
         {
+            EditorApplication.update -= Initialize;
+
             logger.Debug("Initialize");
 
             FileSystem = new FileSystem();
@@ -32,21 +34,86 @@ namespace GitHub.Unity
 
             ProcessManager = new ProcessManager(Environment, GitEnvironment, FileSystem);
 
-            GitStatusEntryFactory = new GitStatusEntryFactory(Environment, FileSystem, GitEnvironment);
+            Settings = new Settings();
 
-            EditorApplication.update -= Initialize;
+            DetermineInstallationPath(Environment);
+
+            DetermineGitRepoRoot(FileSystem, Environment, GitEnvironment);
+
+            Settings.Initialize();
 
             Tasks.Initialize();
 
+            DetermineGitInstallationPath(Environment, GitEnvironment, FileSystem, Settings);
+
+            GitStatusEntryFactory = new GitStatusEntryFactory(Environment, FileSystem, GitEnvironment);
+
             Utility.Initialize();
 
-            Installer.Initialize();
-
             Tasks.Run();
+
+            Utility.Run();
 
             ProjectWindowInterface.Initialize();
 
             Window.Initialize();
+        }
+
+        // TODO: Move these out to a proper location
+        private static void DetermineGitRepoRoot(IFileSystem fs, IEnvironment environment, IGitEnvironment gitEnvironment)
+        {
+            var fullProjectRoot = fs.GetFullPath(environment.UnityProjectPath);
+            environment.GitRoot = gitEnvironment.FindRoot(fullProjectRoot);
+        }
+
+        // TODO: Move these out to a proper location
+        private static void DetermineInstallationPath(IEnvironment environment)
+        {
+            // Unity paths
+            environment.UnityAssetsPath = Application.dataPath;
+            environment.UnityProjectPath = environment.UnityAssetsPath.Substring(0, environment.UnityAssetsPath.Length - "Assets".Length - 1);
+
+            // Juggling to find out where we got installed
+            var instance = FindObjectOfType(typeof(EntryPoint)) as EntryPoint;
+            if (instance == null)
+            {
+                instance = CreateInstance<EntryPoint>();
+            }
+
+            var script = MonoScript.FromScriptableObject(instance);
+            if (script == null)
+            {
+                environment.ExtensionInstallPath = string.Empty;
+            }
+            else
+            {
+                environment.ExtensionInstallPath = AssetDatabase.GetAssetPath(script);
+                environment.ExtensionInstallPath = environment.ExtensionInstallPath.Substring(0,
+                    environment.ExtensionInstallPath.LastIndexOf('/'));
+                environment.ExtensionInstallPath = environment.ExtensionInstallPath.Substring(0,
+                    environment.ExtensionInstallPath.LastIndexOf('/'));
+            }
+
+            DestroyImmediate(instance);
+        }
+
+        // TODO: Move these out to a proper location
+        private static void DetermineGitInstallationPath(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs,
+            ISettings settings)
+        {
+            var cachedGitInstallPath = settings.Get("GitInstallPath");
+
+            // Root paths
+            if (string.IsNullOrEmpty(cachedGitInstallPath) || !fs.FileExists(cachedGitInstallPath))
+            {
+                FindGitTask.Schedule(path => {
+                    logger.Debug("found " + path);
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        environment.GitInstallPath = path;
+                    }
+                }, () => logger.Debug("NOT FOUND"));
+            }
         }
 
         public static IEnvironment Environment { get; private set; }
@@ -56,5 +123,6 @@ namespace GitHub.Unity
         public static IProcessManager ProcessManager { get; private set; }
 
         public static GitStatusEntryFactory GitStatusEntryFactory { get; private set; }
+        public static ISettings Settings { get; private set; }
     }
 }
