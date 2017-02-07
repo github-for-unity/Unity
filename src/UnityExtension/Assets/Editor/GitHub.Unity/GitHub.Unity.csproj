@@ -11,7 +11,8 @@
     <AssemblyName>GitHub.Unity</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <OutputPath>$(SolutionDir)unity\TestProject\Assets\Editor\$(Configuration)</OutputPath>
+    <OutputPath>$(SolutionDir)unity\TestProject\Assets\Editor\</OutputPath>
+    <IntermediateOutputPath>..\obj\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,7 +24,6 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CodeAnalysisRuleSet>$(SolutionDir)common\GitHub.ruleset</CodeAnalysisRuleSet>
     <LangVersion>4</LangVersion>
-    <OutputPath>$(SolutionDir)\unity\TestProject\Assets\Editor\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,7 +31,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <OutputPath>$(SolutionDir)\unity\TestProject\Assets\Editor\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
@@ -200,7 +199,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent Condition="$(OS) != 'Unix'">$(ProjectDir)post-build-copy.cmd $(ProjectDir) $(TargetDir)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
