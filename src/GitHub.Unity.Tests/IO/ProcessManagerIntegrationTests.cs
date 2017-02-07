@@ -53,10 +53,10 @@ namespace GitHub.Unity.Tests
             {
                 new GitLogEntry
                 {
-                    AuthorEmail = "Stanley.Goldman@gmail.com",
-                    CommitEmail = "Stanley.Goldman@gmail.com",
-                    AuthorName = "Stanley Goldman",
-                    CommitName = "Stanley Goldman",
+                    AuthorEmail = "author@example.com",
+                    CommitEmail = "author@example.com",
+                    AuthorName = "Author Person",
+                    CommitName = "Author Person",
                     Changes = new List<GitStatusEntry>
                     {
                         new GitStatusEntry("Assets/TestDocument.txt",
@@ -71,10 +71,10 @@ namespace GitHub.Unity.Tests
                 },
                 new GitLogEntry
                 {
-                    AuthorEmail = "Stanley.Goldman@gmail.com",
-                    CommitEmail = "Stanley.Goldman@gmail.com",
-                    AuthorName = "Stanley Goldman",
-                    CommitName = "Stanley Goldman",
+                    AuthorEmail = "author@example.com",
+                    CommitEmail = "author@example.com",
+                    AuthorName = "Author Person",
+                    CommitName = "Author Person",
                     Changes = new List<GitStatusEntry>
                     {
                         new GitStatusEntry("TestDocument.txt",

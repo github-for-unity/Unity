@@ -27,11 +27,11 @@ namespace GitHub.Unity.Tests
             {
                 "1cd4b9154a88bc8c7b09cb8cacc79bf1d5bde8cf",
                 "865b8d9d6e5e3bd6d7a4dc9c9f3588192314942c",
-                "Andreia Gaita",
-                "shana@spoiledcat.net",
+                "Author Person",
+                "author@example.com",
                 "2017-01-06T15:36:57+01:00",
-                "Andreia Gaita",
-                "shana@spoiledcat.net",
+                "Author Person",
+                "author@example.com",
                 "2017-01-06T15:36:57+01:00",
                 "Rename RepositoryModelBase to RepositoryModel",
                 "---GHUBODYEND---",
@@ -44,10 +44,10 @@ namespace GitHub.Unity.Tests
                 new GitLogEntry
                 {
                     CommitID = "1cd4b9154a88bc8c7b09cb8cacc79bf1d5bde8cf",
-                    AuthorEmail = "shana@spoiledcat.net",
-                    AuthorName = "Andreia Gaita",
-                    CommitEmail = "shana@spoiledcat.net",
-                    CommitName = "Andreia Gaita",
+                    AuthorEmail = "author@example.com",
+                    AuthorName = "Author Person",
+                    CommitEmail = "author@example.com",
+                    CommitName = "Author Person",
                     Changes = new List<GitStatusEntry>
                     {
                         new GitStatusEntry("src/GitHub.App/Models/RemoteRepositoryModel.cs",
