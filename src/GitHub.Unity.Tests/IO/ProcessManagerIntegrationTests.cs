@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
@@ -26,6 +28,66 @@ namespace GitHub.Unity.Tests
             gitBranches.Should().BeEquivalentTo(
                 new GitBranch("master", string.Empty, true),
                 new GitBranch("feature/document", string.Empty, false));
+        }
+
+        [Test]
+        public void LogEntriesTest()
+        {
+            var fileSystem = new FileSystem();
+
+            var defaultEnvironment = new DefaultEnvironment();
+
+            var environment = Substitute.For<IEnvironment>();
+            environment.UnityProjectPath.Returns(TestGitRepoPath);
+
+            var gitEnvironment = defaultEnvironment.IsWindows
+                ? (IGitEnvironment) new WindowsGitEnvironment(fileSystem, environment)
+                : new LinuxBasedGitEnvironment(fileSystem, environment);
+
+            var processManager = new ProcessManager(environment, gitEnvironment, fileSystem);
+            var logEntries =
+                processManager.GetGitLogEntries(TestGitRepoPath, environment, fileSystem, gitEnvironment, 2)
+                    .ToArray();
+
+            logEntries.AssertEqual(new[]
+            {
+                new GitLogEntry
+                {
+                    AuthorEmail = "author@example.com",
+                    CommitEmail = "author@example.com",
+                    AuthorName = "Author Person",
+                    CommitName = "Author Person",
+                    Changes = new List<GitStatusEntry>
+                    {
+                        new GitStatusEntry("Assets/TestDocument.txt",
+                            TestGitRepoPath + "Assets/TestDocument.txt", null,
+                            GitFileStatus.Renamed, "TestDocument.txt"),
+                    },
+                    CommitID = "018997938335742f8be694240a7c2b352ec0835f",
+                    Description = "Moving project files where they should be kept",
+                    Summary = "Moving project files where they should be kept",
+                    Time = new DateTimeOffset(2017, 1, 27, 17, 19, 32, TimeSpan.FromHours(-5)),
+                    CommitTime = new DateTimeOffset(2017, 1, 27, 17, 19, 32, TimeSpan.FromHours(-5)),
+                },
+                new GitLogEntry
+                {
+                    AuthorEmail = "author@example.com",
+                    CommitEmail = "author@example.com",
+                    AuthorName = "Author Person",
+                    CommitName = "Author Person",
+                    Changes = new List<GitStatusEntry>
+                    {
+                        new GitStatusEntry("TestDocument.txt",
+                            TestGitRepoPath + "TestDocument.txt", null,
+                            GitFileStatus.Added),
+                    },
+                    CommitID = "03939ffb3eb8486dba0259b43db00842bbe6eca1",
+                    Description = "Initial Commit",
+                    Summary = "Initial Commit",
+                    Time = new DateTimeOffset(2017, 1, 17, 11, 46, 16, TimeSpan.FromHours(-8)),
+                    CommitTime = new DateTimeOffset(2017, 1, 17, 11, 46, 16, TimeSpan.FromHours(-8)),
+                },
+            });
         }
 
         [Test]
