@@ -1,13 +1,13 @@
+using GitHub.Unity;
 using System;
-using GitHub.Unity.Logging;
 
-namespace GitHub.Unity.Tests
+namespace GitHub.Logging
 {
-    class TestLogAdapter : ILogger
+    class ConsoleLogAdapter : ILogging
     {
         private readonly string prefix;
 
-        public TestLogAdapter(string context = null)
+        public ConsoleLogAdapter(string context = null)
         {
             prefix = string.IsNullOrEmpty(context) 
                 ? string.Empty 
@@ -32,6 +32,11 @@ namespace GitHub.Unity.Tests
         public void Debug(string format, params object[] objects)
         {
             Console.WriteLine(prefix + format, objects);
+        }
+
+        public void Debug(Exception ex)
+        {
+            Console.WriteLine(ex);
         }
 
         public void Warning(string message)

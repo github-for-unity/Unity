@@ -1,3 +1,5 @@
+using GitHub.Api;
+using GitHub.Unity;
 using System.Collections.Generic;
 
 namespace GitHub.Unity.Tests

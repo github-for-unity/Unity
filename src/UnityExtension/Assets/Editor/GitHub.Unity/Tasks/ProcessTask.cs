@@ -1,17 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using GitHub.Unity.Logging;
-using System.Threading;
 using UnityEditor;
 
 namespace GitHub.Unity
 {
     class ProcessTask : ITask, IDisposable
     {
-        protected ILogger Logger { get; private set; }
-
         private const int ExitMonitorSleep = 100;
 
         private readonly StringWriter error = new StringWriter();
@@ -24,7 +19,7 @@ namespace GitHub.Unity
 
         protected ProcessTask(Action<string> onSuccess = null, Action onFailure = null)
         {
-            Logger = Logging.Logger.GetLogger(GetType());
+            Logger = Logging.GetLogger(GetType());
             this.onSuccess = onSuccess;
             this.onFailure = onFailure;
         }
@@ -263,5 +258,6 @@ namespace GitHub.Unity
 
         protected virtual Action<string> OnSuccess { get { return onSuccess; } }
         protected virtual Action OnFailure { get { return onFailure; } }
+        protected ILogging Logger { get; private set; }
     }
 }
