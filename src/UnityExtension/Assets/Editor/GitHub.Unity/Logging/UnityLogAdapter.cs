@@ -1,5 +1,6 @@
 using GitHub.Api;
 using System;
+using System.Linq;
 
 namespace GitHub.Unity
 {
@@ -53,6 +54,11 @@ namespace GitHub.Unity
         }
         public void Debug(Exception ex)
         {
+            var caller = Environment.StackTrace;
+            var stack = caller.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            if (stack.Length > 2)
+                caller = String.Join(Environment.NewLine, stack.Skip(2).ToArray());
+            UnityEngine.Debug.Log(caller);
             UnityEngine.Debug.LogException(ex);
         }
 
