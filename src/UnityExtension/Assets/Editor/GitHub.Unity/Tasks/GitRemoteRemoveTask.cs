@@ -39,12 +39,12 @@ namespace GitHub.Unity
 
         public override string Label
         {
-            get { return "git remote"; }
+            get { return "git remote rm"; }
         }
 
         protected override string ProcessArguments
         {
-            get { return String.Format("remote remove {0}", name); }
+            get { return String.Format("remote rm {0}", name); }
         }
     }
 }
