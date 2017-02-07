@@ -100,6 +100,7 @@
     <Compile Include="Tasks\GitBranch.cs" />
     <Compile Include="Tasks\GitInitTask.cs" />
     <Compile Include="Tasks\GitPullTask.cs" />
+    <Compile Include="Tasks\GitDeleteRemoteTask.cs" />
     <Compile Include="Tasks\GitRemoteAddTask.cs" />
     <Compile Include="Tasks\GitBranchCreateTask.cs" />
     <Compile Include="Tasks\GitCommitTask.cs" />
