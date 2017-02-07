@@ -89,7 +89,6 @@
     <Compile Include="Authentication\IPlatform.cs" />
     <Compile Include="Authentication\ICredentialManager.cs" />
     <Compile Include="IEnvironment.cs" />
-    <Compile Include="LambdaComparer.cs" />
     <Compile Include="Platform\LinuxCredentialManager.cs" />
     <Compile Include="Platform\MacCredentialManager.cs" />
     <Compile Include="IProgram.cs" />
