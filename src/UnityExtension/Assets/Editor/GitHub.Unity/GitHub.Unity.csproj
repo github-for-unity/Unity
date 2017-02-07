@@ -57,6 +57,7 @@
     <Compile Include="IO\DefaultEnvironment.cs" />
     <Compile Include="IO\FileSystem.cs" />
     <Compile Include="IO\GitEnvironment.cs" />
+    <Compile Include="IO\GitRemote.cs" />
     <Compile Include="IO\GitStatusEntry.cs" />
     <Compile Include="IO\GitStatusEntryFactory.cs" />
     <Compile Include="IO\IEnvironment.cs" />
@@ -67,11 +68,13 @@
     <Compile Include="IO\IProcess.cs" />
     <Compile Include="Helpers\LineProcessor.cs" />
     <Compile Include="IO\IProcessManager.cs" />
+    <Compile Include="IO\LogEntryOutputProcessor.cs" />
     <Compile Include="IO\MacBasedGitEnvironment.cs" />
     <Compile Include="IO\LinuxBasedGitEnvironment.cs" />
     <Compile Include="IO\ProcessOutputManager.cs" />
     <Compile Include="IO\ProcessWrapper.cs" />
     <Compile Include="IO\WindowsGitEnvironment.cs" />
+    <Compile Include="IO\RemoteListOutputProcessor.cs" />
     <Compile Include="IO\StatusOutputProcessor.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -84,12 +87,12 @@
     <Compile Include="Misc\Ensure.cs" />
     <Compile Include="Misc\EntryPoint.cs" />
     <Compile Include="Misc\Installer.cs" />
+    <Compile Include="Misc\ISettings.cs" />
     <Compile Include="Misc\ProjectWindowInterface.cs" />
     <Compile Include="Misc\Settings.cs" />
     <Compile Include="Misc\SimpleJson.cs" />
     <Compile Include="Misc\Styles.cs" />
     <Compile Include="Misc\Utility.cs" />
-    <Compile Include="Misc\Window.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\StatusService.cs" />
     <Compile Include="Tasks\CachedTask.cs" />
@@ -103,10 +106,9 @@
     <Compile Include="Tasks\GitFileStatus.cs" />
     <Compile Include="Tasks\GitListBranchesTask.cs" />
     <Compile Include="Tasks\GitListRemotesTask.cs" />
-    <Compile Include="Tasks\GitLogEntry.cs" />
+    <Compile Include="IO\GitLogEntry.cs" />
     <Compile Include="Tasks\GitLogTask.cs" />
-    <Compile Include="Tasks\GitRemote.cs" />
-    <Compile Include="Tasks\GitRemoteFunction.cs" />
+    <Compile Include="IO\GitRemoteFunction.cs" />
     <Compile Include="IO\GitStatus.cs" />
     <Compile Include="Tasks\GitStatusTask.cs" />
     <Compile Include="Tasks\GitSwitchBranchesTask.cs" />
@@ -118,13 +120,14 @@
     <Compile Include="Tasks\TaskQueueSetting.cs" />
     <Compile Include="Tasks\Tasks.cs" />
     <Compile Include="Tasks\TestTask.cs" />
-    <Compile Include="Views\BranchesView.cs" />
-    <Compile Include="Views\ChangesetTreeView.cs" />
-    <Compile Include="Views\ChangesView.cs" />
-    <Compile Include="Views\HistoryView.cs" />
-    <Compile Include="Views\IView.cs" />
-    <Compile Include="Views\SettingsView.cs" />
-    <Compile Include="Views\View.cs" />
+    <Compile Include="UI\BranchesView.cs" />
+    <Compile Include="UI\ChangesetTreeView.cs" />
+    <Compile Include="UI\ChangesView.cs" />
+    <Compile Include="UI\HistoryView.cs" />
+    <Compile Include="UI\IView.cs" />
+    <Compile Include="UI\SettingsView.cs" />
+    <Compile Include="UI\View.cs" />
+    <Compile Include="UI\Window.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Localization.resx">
