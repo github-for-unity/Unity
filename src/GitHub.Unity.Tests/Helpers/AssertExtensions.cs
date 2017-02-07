@@ -62,6 +62,7 @@ namespace GitHub.Unity.Tests
             gitStatusEntry.OriginalPath.Should().Be(other.OriginalPath);
             gitStatusEntry.ProjectPath.Should().Be(other.ProjectPath);
             gitStatusEntry.Status.Should().Be(other.Status);
+            gitStatusEntry.Staged.Should().Be(other.Staged);
         }
 
         public static void AssertNotEqual(this GitStatusEntry gitStatusEntry, GitStatusEntry other)
