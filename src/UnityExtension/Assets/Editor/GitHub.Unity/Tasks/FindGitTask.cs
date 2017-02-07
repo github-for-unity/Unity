@@ -40,7 +40,7 @@ namespace GitHub.Unity
 
         protected override string ProcessName
         {
-            get { return Utility.IsWindows ? "where" : "which"; }
+            get { return EntryPoint.Environment.IsWindows ? "where" : "which"; }
         }
 
         protected override string ProcessArguments

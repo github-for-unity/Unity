@@ -220,7 +220,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            if (settingsIssues != null && !Settings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
+            if (settingsIssues != null && !EntryPoint.Settings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
             {
                 var binary = settingsIssues.WasCaught(ProjectSettingsEvaluation.BinarySerialization);
                 var mixed = settingsIssues.WasCaught(ProjectSettingsEvaluation.MixedSerialization);
@@ -234,7 +234,7 @@ namespace GitHub.Unity
                     {
                         if (GUILayout.Button(IgnoreSerialisationSettingsButton))
                         {
-                            Settings.Set(IgnoreSerialisationIssuesSetting, "1");
+                            EntryPoint.Settings.Set(IgnoreSerialisationIssuesSetting, "1");
                         }
 
                         GUILayout.FlexibleSpace();
@@ -391,7 +391,7 @@ namespace GitHub.Unity
             }
             if (EditorGUI.EndChangeCheck())
             {
-                Utility.GitInstallPath = gitInstallPath;
+                EntryPoint.Environment.GitInstallPath = gitInstallPath;
             }
 
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
@@ -404,7 +404,7 @@ namespace GitHub.Unity
                     FindGitTask.Schedule(path => {
                         if (!string.IsNullOrEmpty(path))
                         {
-                            Utility.GitInstallPath = path;
+                            EntryPoint.Environment.GitInstallPath = path;
                             GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
                         }
                     });
