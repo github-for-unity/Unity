@@ -7,7 +7,7 @@ namespace GitHub.Unity
     class GitListBranchesTask : GitTask
     {
         private const string LocalArguments = "branch -vv";
-        private const string RemoteArguments = "branch -r";
+        private const string RemoteArguments = "branch -vvr";
         private const string UnmatchedLineError = "Unable to match the line '{0}'";
         private List<GitBranch> branches = new List<GitBranch>();
         private Mode mode;
