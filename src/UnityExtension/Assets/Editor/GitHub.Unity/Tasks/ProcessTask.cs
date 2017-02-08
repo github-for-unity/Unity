@@ -5,7 +5,7 @@ using UnityEditor;
 
 namespace GitHub.Unity
 {
-    class ProcessTask : ITask, IDisposable
+    class ProcessTask : BaseTask
     {
         private const int ExitMonitorSleep = 100;
 
@@ -55,7 +55,7 @@ namespace GitHub.Unity
             };
         }
 
-        public virtual void Run()
+        public override void Run()
         {
             Logger.Debug("{0} {1}", Label, process == null ? "start" : "reconnect");
 
@@ -135,7 +135,7 @@ namespace GitHub.Unity
             OnEnd.SafeInvoke(this);
         }
 
-        public void Abort()
+        public override void Abort()
         {
             Logger.Debug("Aborting {0}", Label);
 
@@ -151,17 +151,14 @@ namespace GitHub.Unity
             OnEnd.SafeInvoke(this);
         }
 
-        public void Disconnect()
+        public override void Disconnect()
         {
             Logger.Debug("Disconnect {0}", Label);
 
             process = null;
         }
 
-        public void Reconnect()
-        {}
-
-        public void WriteCache(TextWriter cache)
+        public override void WriteCache(TextWriter cache)
         {
             Logger.Debug("Writing cache for {0}", Label);
 
@@ -217,7 +214,7 @@ namespace GitHub.Unity
         }
 
         bool disposed = false;
-        public virtual void Dispose(bool disposing)
+        public override void Dispose(bool disposing)
         {
             if (disposing)
             {
@@ -229,24 +226,14 @@ namespace GitHub.Unity
                 }
             }
         }
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
 
-        public virtual float Progress { get; protected set; }
-        public virtual bool Done { get; protected set; }
+        public override bool Blocking { get { return true; } }
+        public override bool Critical { get { return true; } }
+        public override bool Cached { get { return true; } }
 
-        public virtual bool Blocking { get { return true; } }
-        public virtual bool Critical { get { return true; } }
-        public virtual bool Cached { get { return true; } }
+        public override TaskQueueSetting Queued { get { return TaskQueueSetting.Queue; } }
 
-        public virtual TaskQueueSetting Queued { get { return TaskQueueSetting.Queue; } }
-
-        public virtual Action<ITask> OnBegin { get; set; }
-        public virtual Action<ITask> OnEnd { get; set; }
-        public virtual string Label { get { return "Process task"; } }
+        public override string Label { get { return "Process task"; } }
 
         protected virtual string ProcessName { get { return "sleep"; } }
         protected virtual string ProcessArguments { get { return "20"; } }

@@ -26,8 +26,16 @@ namespace GitHub.Unity
                 {
                     state = ProcessState.Finished;
                 }
-                logger.Debug("Output - \"" + e.Data + "\" exited:" + process.HasExited);
-                OnOutputData.SafeInvoke(e.Data);
+                //logger.Debug("Output - \"" + e.Data + "\" exited:" + process.HasExited);
+                try
+                {
+                    OnOutputData.SafeInvoke(e.Data);
+                }
+                catch(Exception ex)
+                {
+                    logger.Debug(ex);
+                }
+
             };
             process.ErrorDataReceived += (s, e) =>
             {

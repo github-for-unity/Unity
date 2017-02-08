@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace GitHub.Api
 {
-    static class Guard
+    public static class Guard
     {
         public static void ArgumentNotNull(object value, string name)
         {
