@@ -98,7 +98,7 @@ namespace GitHub.Unity
             // TODO: In stead of completely rebuilding the tree structure, figure out a way to migrate open/closed states from the old tree to the new
 
             // Build tree structure
-            tree = new FileTreeNode(Utility.FindCommonPath("" + Path.DirectorySeparatorChar, entries.Select(e => e.Path)));
+            tree = new FileTreeNode(Utility.FindCommonPath("/", entries.Select(e => e.Path)));
             tree.RepositoryPath = tree.Path;
             for (var index = 0; index < entries.Count; index++)
             {
@@ -189,7 +189,7 @@ namespace GitHub.Unity
             parent.Open = !foldedTreeEntries.Contains(parent.RepositoryPath);
 
             // Is this node inside a folder?
-            var index = node.Label.IndexOf(Path.DirectorySeparatorChar);
+            var index = node.Label.IndexOf("/");
             if (index > 0)
             {
                 // Figure out what the root folder is and chop it from the path
