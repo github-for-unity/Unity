@@ -26,7 +26,7 @@ namespace GitHub.Unity
             }
         }
 
-        public GitStatusEntry Create(string path, GitFileStatus status, string originalPath = null)
+        public GitStatusEntry Create(string path, GitFileStatus status, string originalPath = null, bool staged = false)
         {
             var fullPath = fileSystem.Combine(gitRoot, path);
 
@@ -34,7 +34,7 @@ namespace GitHub.Unity
             //var projectPath = fileSystem.Combine(projectRoot, path);
             string projectPath = null;
 
-            return new GitStatusEntry(path, fullPath, projectPath, status, originalPath);
+            return new GitStatusEntry(path, fullPath, projectPath, status, originalPath, staged);
         }
     }
 }
