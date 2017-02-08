@@ -40,7 +40,8 @@ namespace GitHub.Unity
         [MenuItem(LaunchMenu)]
         public static void Launch()
         {
-            GetWindow<Window>().Show();
+            var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.InspectorWindow");
+            GetWindow<Window>(type).Show();
         }
 
         public void OnGUI()
