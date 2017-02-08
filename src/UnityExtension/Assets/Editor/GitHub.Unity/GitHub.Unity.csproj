@@ -58,6 +58,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\ActionExtensions.cs" />
+    <Compile Include="Logging\FileLogAdapter.cs" />
+    <Compile Include="Threading\SingleThreadSynchronizationContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
@@ -105,6 +107,7 @@
     <Compile Include="Misc\Utility.cs" />
     <Compile Include="Services\AuthenticationService.cs" />
     <Compile Include="Services\StatusService.cs" />
+    <Compile Include="Tasks\BaseTask.cs" />
     <Compile Include="Tasks\CachedTask.cs" />
     <Compile Include="Tasks\EvaluateProjectConfigurationTask.cs" />
     <Compile Include="Tasks\FailureSeverity.cs" />
@@ -137,6 +140,7 @@
     <Compile Include="Tasks\TaskQueueSetting.cs" />
     <Compile Include="Tasks\Tasks.cs" />
     <Compile Include="Tasks\TestTask.cs" />
+    <Compile Include="Threading\ThreadUtils.cs" />
     <Compile Include="Tools\MozRoots.cs" />
     <Compile Include="UI\AuthenticationView.cs" />
     <Compile Include="UI\AuthenticationWindow.cs" />

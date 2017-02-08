@@ -1,3 +1,4 @@
+using GitHub.Api;
 using System;
 using System.Text;
 
@@ -5,75 +6,40 @@ namespace GitHub.Unity
 {
     class GitPushTask : GitTask
     {
-        private readonly string branch;
-        private readonly string repository;
-        private readonly bool? setUpstream;
+        private readonly string arguments;
 
-        private GitPushTask(Action onSuccess, Action onFailure, string repository = null, bool? setUpstream = null,
-            string branch = null) : base(str => onSuccess.SafeInvoke(), onFailure)
+        private GitPushTask(Action onSuccess, Action onFailure)
+            : base(str => onSuccess.SafeInvoke(), onFailure)
         {
-            this.repository = repository;
-            this.setUpstream = setUpstream;
-            this.branch = branch;
+            arguments = "push";
         }
 
-        public static void Schedule(Action onSuccess, string repository = null, bool? setUpstream = null,
-            string branch = null, Action onFailure = null)
+        private GitPushTask(string remote, string branch, bool setUpstream,
+            Action onSuccess, Action onFailure)
+            : base(str => onSuccess.SafeInvoke(), onFailure)
         {
-            Tasks.Add(new GitPushTask(onSuccess, onFailure, repository, setUpstream, branch));
+            Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
+            Guard.ArgumentNotNullOrWhiteSpace(branch, "branch");
+
+            arguments = String.Format("push {0} {1} {2}:{2}",
+                setUpstream ? "-u" : "",
+                remote, branch);
         }
 
-        public override bool Blocking
+        public static void Schedule(Action onSuccess, Action onFailure = null)
         {
-            get { return false; }
+            Tasks.Add(new GitPushTask(onSuccess, onFailure));
         }
 
-        public override TaskQueueSetting Queued
+        public static void Schedule(string remote, bool setUpstream, string branch,
+            Action onSuccess, Action onFailure = null)
         {
-            get { return TaskQueueSetting.Queue; }
+            Tasks.Add(new GitPushTask(remote, branch, setUpstream, onSuccess, onFailure));
         }
 
-        public override bool Critical
-        {
-            get { return false; }
-        }
-
-        public override bool Cached
-        {
-            get { return true; }
-        }
-
-        public override string Label
-        {
-            get { return "git push"; }
-        }
-
-        protected override string ProcessArguments
-        {
-            get
-            {
-                var stringBuilder = new StringBuilder();
-                stringBuilder.Append("push");
-
-                if (setUpstream.HasValue)
-                {
-                    stringBuilder.Append(" -u");
-                }
-
-                if (repository != null)
-                {
-                    stringBuilder.Append(" ");
-                    stringBuilder.Append(repository);
-                }
-
-                if (!string.IsNullOrEmpty(branch))
-                {
-                    stringBuilder.Append(" ");
-                    stringBuilder.Append(branch);
-                }
-
-                return stringBuilder.ToString();
-            }
-        }
+        public override bool Blocking { get { return false; } }
+        public override bool Critical { get { return false; } }
+        public override string Label { get { return "git push"; } }
+        protected override string ProcessArguments { get { return arguments; } }
     }
 }

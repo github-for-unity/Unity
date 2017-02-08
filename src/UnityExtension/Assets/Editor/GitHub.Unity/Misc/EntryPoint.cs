@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
@@ -16,16 +17,19 @@ namespace GitHub.Unity
     class EntryPoint : ScriptableObject
     {
         private static readonly ILogging logger;
+        private static bool cctorCalled = false;
 
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
         {
+            if (cctorCalled)
+            {
+                return;
+            }
+            cctorCalled = true;
             Logging.LoggerFactory = s => new UnityLogAdapter(s);
             logger = Logging.GetLogger<EntryPoint>();
             logger.Debug("EntryPoint Initialize");
-
-            var syncCtx = new SingleThreadSynchronizationContext();
-            SynchronizationContext.SetSynchronizationContext(syncCtx);
 
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
@@ -34,6 +38,25 @@ namespace GitHub.Unity
         // we do this so we're guaranteed to run on the main thread, not the loader thread
         private static void Initialize()
         {
+            var persistentPath = Application.persistentDataPath;
+            var filepath = Path.Combine(persistentPath, "github-unity-log.txt");
+            try
+            {
+
+                if (File.Exists(filepath))
+                {
+                    File.Move(filepath, filepath + "-old");
+                }
+            }
+            catch
+            {
+            }
+            Logging.LoggerFactory = s => new FileLogAdapter(filepath, s);
+
+            ThreadUtils.SetMainThread();
+            var syncCtx = new MainThreadSynchronizationContext();
+            SynchronizationContext.SetSynchronizationContext(syncCtx);
+
             EditorApplication.update -= Initialize;
 
             logger.Debug("Initialize");
@@ -60,7 +83,7 @@ namespace GitHub.Unity
 
             Settings.Initialize();
 
-            Tasks.Initialize();
+            Tasks.Initialize(syncCtx);
 
             DetermineGitInstallationPath(Environment, GitEnvironment, FileSystem, Settings);
 
@@ -165,14 +188,5 @@ namespace GitHub.Unity
         public static GitStatusEntryFactory GitStatusEntryFactory { get; private set; }
         public static ISettings Settings { get; private set; }
         public static IPlatform Platform { get; private set; }
-    }
-
-
-    class SingleThreadSynchronizationContext : SynchronizationContext
-    {
-        public override void Post(SendOrPostCallback d, object state)
-        {
-            EditorApplication.delayCall += () => d(state);
-        }
     }
 }

@@ -1,17 +1,19 @@
+using GitHub.Api;
 using System;
 
 namespace GitHub.Unity
 {
     class GitRemoteAddTask : GitTask
     {
-        private readonly string name;
-        private readonly string url;
+        private readonly string arguments;
 
         private GitRemoteAddTask(string name, string url, Action onSuccess, Action onFailure)
             : base(str => onSuccess.SafeInvoke(), onFailure)
         {
-            this.name = name;
-            this.url = url;
+            Guard.ArgumentNotNullOrWhiteSpace(name, "name");
+            Guard.ArgumentNotNullOrWhiteSpace(url, "url");
+
+            arguments = String.Format("remote add {0} {1}", name, url);
         }
 
         public static void Schedule(string name, string url, Action onSuccess, Action onFailure = null)
@@ -19,34 +21,9 @@ namespace GitHub.Unity
             Tasks.Add(new GitRemoteAddTask(name, url, onSuccess, onFailure));
         }
 
-        public override bool Blocking
-        {
-            get { return false; }
-        }
-
-        public override TaskQueueSetting Queued
-        {
-            get { return TaskQueueSetting.Queue; }
-        }
-
-        public override bool Critical
-        {
-            get { return false; }
-        }
-
-        public override bool Cached
-        {
-            get { return true; }
-        }
-
-        public override string Label
-        {
-            get { return "git remote add"; }
-        }
-
-        protected override string ProcessArguments
-        {
-            get { return String.Format("remote add {0} {1}", name, url); }
-        }
+        public override bool Blocking { get { return false; } }
+        public override bool Critical { get { return false; } }
+        public override string Label { get { return "git remote add"; } }
+        protected override string ProcessArguments { get { return arguments; } }
     }
 }

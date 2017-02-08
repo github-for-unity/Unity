@@ -1,52 +1,29 @@
 using System;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
     class GitRemoteBranchDeleteTask : GitTask
     {
-        private readonly string branch;
-        private readonly string repository;
+        private readonly string arguments;
 
-        private GitRemoteBranchDeleteTask(Action onSuccess, Action onFailure, string repository, string branch)
+        private GitRemoteBranchDeleteTask(string remote, string branch, Action onSuccess, Action onFailure)
             : base(str => onSuccess.SafeInvoke(), onFailure)
         {
-            this.repository = repository;
-            this.branch = branch;
+            Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
+            Guard.ArgumentNotNullOrWhiteSpace(branch, "branch");
+
+            arguments = String.Format("push {0} --delete {1}", remote, branch);
         }
 
-        public static void Schedule(Action onSuccess, string repository, string branch, Action onFailure = null)
+        public static void Schedule(string repository, string branch, Action onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitRemoteBranchDeleteTask(onSuccess, onFailure, repository, branch));
+            Tasks.Add(new GitRemoteBranchDeleteTask(repository, branch, onSuccess, onFailure));
         }
 
-        public override bool Blocking
-        {
-            get { return false; }
-        }
-
-        public override TaskQueueSetting Queued
-        {
-            get { return TaskQueueSetting.Queue; }
-        }
-
-        public override bool Critical
-        {
-            get { return false; }
-        }
-
-        public override bool Cached
-        {
-            get { return true; }
-        }
-
-        public override string Label
-        {
-            get { return "git push --delete"; }
-        }
-
-        protected override string ProcessArguments
-        {
-            get { return string.Format("push {0} --delete {1}", repository, branch); }
-        }
+        public override bool Blocking { get { return false; } }
+        public override bool Critical { get { return false; } }
+        public override string Label { get { return "git push --delete"; } }
+        protected override string ProcessArguments { get { return arguments; } }
     }
 }
