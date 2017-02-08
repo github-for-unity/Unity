@@ -8,6 +8,8 @@ namespace GitHub.Unity
     class Styles
     {
         public const float
+            // Baseline spacing for margins and padding
+            BaseSpacing = 10f,
             BroadModeLimit = 500f,
             NarrowModeLimit = 300f,
             ModeNotificationDelay = .5f,
@@ -15,7 +17,7 @@ namespace GitHub.Unity
             BroadModeBranchesRatio = .4f,
             InitialStateAreaWidth = 200f,
             BrowseFolderButtonHorizontalPadding = -4f,
-            HistoryEntryHeight = 30f,
+            HistoryEntryHeight = 40f,
             HistorySummaryHeight = 16f,
             HistoryDetailsHeight = 16f,
             HistoryEntryPadding = 16f,
@@ -72,7 +74,11 @@ namespace GitHub.Unity
             favouriteIconOff,
             titleIcon,
             defaultAssetIcon,
-            folderIcon;
+            folderIcon,
+            mergeIcon,
+            dotIcon;
+       static Color
+           timelineBarColor;
 
 
         public static GUIStyle Label
@@ -265,6 +271,19 @@ namespace GitHub.Unity
             }
         }
 
+		public static Color TimelineBarColor
+		{
+			get
+			{
+				if (timelineBarColor == null)
+				{
+					timelineBarColor = new Color(0.51F, 0.51F, 0.51F, 0.2F);
+				}
+
+				return timelineBarColor;
+			}
+		}
+
 
         public static Texture2D ActiveBranchIcon
         {
@@ -335,6 +354,31 @@ namespace GitHub.Unity
             }
         }
 
+		public static Texture2D MergeIcon
+		{
+			get
+			{
+				if (mergeIcon == null)
+				{
+					mergeIcon = Utility.GetIcon("git-merge.png", "git-merge@2x.png");
+				}
+
+				return mergeIcon;
+			}
+		}
+
+		public static Texture2D DotIcon
+		{
+			get
+			{
+				if (dotIcon == null)
+				{
+					dotIcon = Utility.GetIcon("dot.png", "dot@2x.png");
+				}
+
+				return dotIcon;
+			}
+		}
 
         public static Texture2D DefaultAssetIcon
         {
