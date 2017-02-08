@@ -9,6 +9,18 @@ namespace GitHub.Unity.Tests
     [TestFixture]
     public class LogEntryOutputProcessorTests : BaseOutputProcessorTests
     {
+        //[Test]
+        public void IntegrationTest_MonoRepo()
+        {
+            var fs = new FileSystem();
+            var env = new DefaultEnvironment();
+            env.UnityProjectPath = @"D:\code\github\UnityInternal\src\UnityExtension";
+            var genv = new WindowsGitEnvironment(fs, env);
+            var fact = new GitStatusEntryFactory(env, fs, genv);
+            var pm = new ProcessManager(env, genv, fs);
+            var results = pm.GetGitLogEntries(@"D:\code\github\mono", env, fs, genv);
+        }
+
         [Test]
         public void ShouldParseZeroCommits()
         {

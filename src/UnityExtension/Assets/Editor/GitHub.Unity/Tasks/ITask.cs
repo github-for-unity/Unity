@@ -16,8 +16,8 @@ namespace GitHub.Unity
         TaskQueueSetting Queued { get; }
         bool Critical { get; }
         bool Cached { get; }
-        Action<ITask> OnBegin { set; }
-        Action<ITask> OnEnd { set; }
+        Action<ITask> OnBegin { get; set; }
+        Action<ITask> OnEnd { get; set; }
         string Label { get; }
     };
 }

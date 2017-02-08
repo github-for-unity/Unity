@@ -1,15 +1,17 @@
 using System;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
     class GitRemoteRemoveTask : GitTask
     {
-        private readonly string name;
+        private readonly string arguments;
 
-        private GitRemoteRemoveTask(string name, Action onSuccess, Action onFailure)
+        private GitRemoteRemoveTask(string remote, Action onSuccess, Action onFailure)
             : base(str => onSuccess.SafeInvoke(), onFailure)
         {
-            this.name = name;
+            Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
+            arguments = String.Format("remote rm {0}", remote);
         }
 
         public static void Schedule(string name, Action onSuccess, Action onFailure = null)
@@ -17,34 +19,9 @@ namespace GitHub.Unity
             Tasks.Add(new GitRemoteRemoveTask(name, onSuccess, onFailure));
         }
 
-        public override bool Blocking
-        {
-            get { return false; }
-        }
-
-        public override TaskQueueSetting Queued
-        {
-            get { return TaskQueueSetting.Queue; }
-        }
-
-        public override bool Critical
-        {
-            get { return false; }
-        }
-
-        public override bool Cached
-        {
-            get { return true; }
-        }
-
-        public override string Label
-        {
-            get { return "git remote rm"; }
-        }
-
-        protected override string ProcessArguments
-        {
-            get { return String.Format("remote rm {0}", name); }
-        }
+        public override bool Blocking { get { return false; } }
+        public override bool Critical { get { return false; } }
+        public override string Label { get { return "git remote rm"; } }
+        protected override string ProcessArguments { get { return arguments; } }
     }
 }

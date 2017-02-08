@@ -5,68 +5,45 @@ namespace GitHub.Unity
 {
     class GitPullTask : GitTask
     {
-        private readonly string branch;
-        private readonly string repository;
+        private readonly string arguments;
 
-        private GitPullTask(Action onSuccess, Action onFailure, string repository = null, string branch = null)
+        private GitPullTask(Action onSuccess, Action onFailure)
             : base(str => onSuccess.SafeInvoke(), onFailure)
         {
-            this.repository = repository;
-            this.branch = branch;
+            arguments = "pull";
         }
 
-        public static void Schedule(Action onSuccess, string repository = null, string branch = null,
-            Action onFailure = null)
+        private GitPullTask(string repository, string branch,
+            Action onSuccess, Action onFailure)
+            : base(str => onSuccess.SafeInvoke(), onFailure)
         {
-            Tasks.Add(new GitPullTask(onSuccess, onFailure, repository, branch));
-        }
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append("pull");
 
-        public override bool Blocking
-        {
-            get { return false; }
-        }
-
-        public override TaskQueueSetting Queued
-        {
-            get { return TaskQueueSetting.Queue; }
-        }
-
-        public override bool Critical
-        {
-            get { return false; }
-        }
-
-        public override bool Cached
-        {
-            get { return true; }
-        }
-
-        public override string Label
-        {
-            get { return "git pull"; }
-        }
-
-        protected override string ProcessArguments
-        {
-            get
+            if (!String.IsNullOrEmpty(repository))
             {
-                var stringBuilder = new StringBuilder();
-                stringBuilder.Append("pull");
-
-                if (repository != null)
-                {
-                    stringBuilder.Append(" ");
-                    stringBuilder.Append(repository);
-                }
-
-                if (!string.IsNullOrEmpty(branch))
-                {
-                    stringBuilder.Append(" ");
-                    stringBuilder.Append(branch);
-                }
-
-                return stringBuilder.ToString();
+                stringBuilder.Append(" ");
+                stringBuilder.Append(repository);
             }
+
+            if (!String.IsNullOrEmpty(branch))
+            {
+                stringBuilder.Append(" ");
+                stringBuilder.Append(branch);
+            }
+
+            arguments = stringBuilder.ToString();
         }
+
+        public static void Schedule(string repository, string branch,
+            Action onSuccess, Action onFailure = null)
+        {
+            Tasks.Add(new GitPullTask(repository, branch, onSuccess, onFailure));
+        }
+
+        public override bool Blocking { get { return false; } }
+        public override bool Critical { get { return false; } }
+        public override string Label { get { return "git pull"; } }
+        protected override string ProcessArguments { get { return arguments; } }
     }
 }

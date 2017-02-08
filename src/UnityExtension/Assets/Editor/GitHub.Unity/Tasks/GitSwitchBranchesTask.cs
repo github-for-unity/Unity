@@ -1,5 +1,5 @@
 using System;
-using System.IO;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
@@ -7,12 +7,15 @@ namespace GitHub.Unity
     {
         private const string SwitchConfirmedMessage = "Switched to branch '{0}'";
 
-        private string branch;
+        private readonly string arguments;
+        private readonly string branch;
 
-        private GitSwitchBranchesTask(string branch, Action onSuccess, Action onFailure = null)
+        private GitSwitchBranchesTask(string branch, Action onSuccess, Action onFailure = null) 
             : base(_ => onSuccess(), onFailure)
         {
+            Guard.ArgumentNotNullOrWhiteSpace(branch, "branch");
             this.branch = branch;
+            arguments = String.Format("checkout {0}", branch);
         }
 
         public static void Schedule(string branch, Action onSuccess, Action onFailure = null)
@@ -22,11 +25,6 @@ namespace GitHub.Unity
 
         protected override void OnProcessOutputUpdate()
         {
-            if (!Done)
-            {
-                return;
-            }
-
             // Handle failure / success
             var buffer = ErrorBuffer.GetStringBuilder();
             if (buffer.Length > 0)
@@ -39,37 +37,13 @@ namespace GitHub.Unity
                     return;
                 }
             }
+
             ReportSuccess(null);
         }
 
-        public override bool Blocking
-        {
-            get { return true; }
-        }
-
-        public override TaskQueueSetting Queued
-        {
-            get { return TaskQueueSetting.QueueSingle; }
-        }
-
-        public override bool Critical
-        {
-            get { return true; }
-        }
-
-        public override bool Cached
-        {
-            get { return false; }
-        }
-
-        public override string Label
-        {
-            get { return "git checkout"; }
-        }
-
-        protected override string ProcessArguments
-        {
-            get { return String.Format("checkout {0}", branch); }
-        }
+        public override TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; } }
+        public override bool Cached { get { return false; } }
+        public override string Label { get { return "git checkout"; } }
+        protected override string ProcessArguments { get { return arguments; } }
     }
 }
