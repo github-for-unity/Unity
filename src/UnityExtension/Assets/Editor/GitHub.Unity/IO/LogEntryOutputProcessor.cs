@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
 {
@@ -21,6 +24,10 @@ namespace GitHub.Unity
         private string committerName;
         private string committerEmail;
         private DateTimeOffset? committerTime;
+        private bool seenBodyEnd = false;
+        private Regex hashRegex = new Regex("[0-9a-fA-F]{40}");
+
+        private StringBuilder sb;
 
         public LogEntryOutputProcessor(IGitStatusEntryFactory gitStatusEntryFactory)
         {
@@ -30,6 +37,7 @@ namespace GitHub.Unity
 
         private void Reset()
         {
+            sb = new StringBuilder();
             phase = ProcessingPhase.CommitHash;
             authorName = null;
             mergeA = null;
@@ -41,13 +49,15 @@ namespace GitHub.Unity
             commitId = null;
             time = null;
             newlineCount = 0;
+            committerName = null;
+            committerEmail = null;
+            committerTime = null;
+            seenBodyEnd = false;
         }
 
         public override void LineReceived(string line)
         {
             base.LineReceived(line);
-
-            Logger.Debug(@"LineReceived: ""{0}""", line);
 
             if (OnLogEntry == null)
                 return;
@@ -56,6 +66,19 @@ namespace GitHub.Unity
             {
                 ReturnGitLogEntry();
                 return;
+            }
+            sb.AppendLine(line);
+            //Logger.Debug(@"Phase {0} - LineReceived: ""{1}""", phase, line == null ? "null" : line);
+
+            if (phase == ProcessingPhase.Files && seenBodyEnd)
+            {
+                seenBodyEnd = false;
+                var proc = new LineParser(line);
+                if (proc.Matches(hashRegex))
+                {
+                    // there's no files on this commit, it's a new one!
+                    ReturnGitLogEntry();
+                }
             }
 
             switch (phase)
@@ -88,7 +111,16 @@ namespace GitHub.Unity
                     break;
 
                 case ProcessingPhase.AuthorDate:
-                    time = DateTimeOffset.Parse(line);
+                    DateTimeOffset t;
+                    if (DateTimeOffset.TryParse(line, out t))
+                    {
+                        time = t;
+                    }
+                    else
+                    {
+                        Logger.Error("ERROR {0}", sb.ToString());
+                        throw new FormatException("Invalid line");
+                    }
                     phase++;
                     break;
 
@@ -108,9 +140,24 @@ namespace GitHub.Unity
                     break;
 
                 case ProcessingPhase.Summary:
-                    summary = line;
-                    descriptionLines.Add(line);
-                    phase++;
+                    {
+                        var idx = line.IndexOf("---GHUBODYEND---", StringComparison.InvariantCulture);
+                        var oneliner = idx >= 0;
+                        if (oneliner)
+                        {
+                            line = line.Substring(0, idx);
+                        }
+
+                        summary = line;
+                        descriptionLines.Add(line);
+                        phase++;
+                        // there's no description so skip it
+                        if (oneliner)
+                        {
+                            phase++;
+                            seenBodyEnd = true;
+                        }
+                    }
                     break;
 
                 case ProcessingPhase.Description:
@@ -122,12 +169,14 @@ namespace GitHub.Unity
                     else if (indexOf == 0)
                     {
                         phase++;
+                        seenBodyEnd = true;
                     }
                     else
                     {
                         var substring = line.Substring(0, indexOf);
                         descriptionLines.Add(substring);
                         phase++;
+                        seenBodyEnd = true;
                     }
                     break;
 
@@ -135,6 +184,12 @@ namespace GitHub.Unity
                     if (line == string.Empty)
                     {
                         ReturnGitLogEntry();
+                        return;
+                    }
+
+                    if (line.IndexOf("---GHUBODYEND---", StringComparison.InvariantCulture) >= 0)
+                    {
+                        seenBodyEnd = true;
                         return;
                     }
 
@@ -159,6 +214,32 @@ namespace GitHub.Unity
                     else if (proc.Matches('R'))
                     {
                         status = GitFileStatus.Renamed;
+                    }
+                    else if (proc.Matches('C'))
+                    {
+                        status = GitFileStatus.Copied;
+                    }
+                    else if (proc.Matches('T'))
+                    {
+                        status = GitFileStatus.TypeChange;
+                    }
+                    else if (proc.Matches('U'))
+                    {
+                        status = GitFileStatus.Unmerged;
+                    }
+                    else if (proc.Matches('X'))
+                    {
+                        status = GitFileStatus.Unknown;
+                    }
+                    else if (proc.Matches('B'))
+                    {
+                        status = GitFileStatus.Broken;
+                    }
+                    else if (String.IsNullOrEmpty(line))
+                    {
+                        // there's no files on this commit, it's a new one!
+                        ReturnGitLogEntry();
+                        return;
                     }
                     else
                     {
@@ -196,7 +277,17 @@ namespace GitHub.Unity
                             break;
 
                         default:
-                            throw new ArgumentOutOfRangeException();
+                            proc.SkipWhitespace();
+
+                            file = proc.Matches('"')
+                                ? proc.ReadUntil('"')
+                                : proc.ReadUntilWhitespace();
+                            if (file == null)
+                            {
+                                file = proc.ReadToEnd();
+                            }
+
+                            break;
                     }
 
                     changes.Add(gitStatusEntryFactory.Create(file, status, originalPath));
@@ -204,7 +295,8 @@ namespace GitHub.Unity
                     break;
 
                 default:
-                    throw new Exception("Unexpected phase:" + phase);
+                    HandleUnexpected(line);
+                    break;
             }
         }
 
@@ -225,7 +317,7 @@ namespace GitHub.Unity
 
         private void ReturnGitLogEntry()
         {
-            Logger.Debug("ReturnGitLogEntry commitId:" + commitId);
+            //Logger.Debug("ReturnGitLogEntry commitId:" + commitId);
 
             PopNewlines();
 

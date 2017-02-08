@@ -7,6 +7,18 @@ namespace GitHub.Unity.Tests
     [TestFixture]
     public class BranchListOutputProcessorTests
     {
+        //[Test]
+        public void IntegrationTest_MonoRepo()
+        {
+            var fs = new FileSystem();
+            var env = new DefaultEnvironment();
+            env.UnityProjectPath = @"D:\code\github\UnityInternal\src\UnityExtension";
+            var genv = new WindowsGitEnvironment(fs, env);
+            var fact = new GitStatusEntryFactory(env, fs, genv);
+            var pm = new ProcessManager(env, genv, fs);
+            var results = pm.GetGitBranches(@"D:\code\github\UnityInternal");
+        }
+
         [Test]
         public void ShouldProcessOutput()
         {

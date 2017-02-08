@@ -119,8 +119,6 @@ namespace GitHub.Unity
 
         public void Refresh()
         {
-            EvaluateProjectConfigurationTask.Schedule();
-
             if (Utility.ActiveRepository)
             {
                 ActiveTab.Refresh();

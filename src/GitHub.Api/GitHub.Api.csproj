@@ -49,6 +49,9 @@
       <HintPath>$(SolutionDir)packages\AsyncBridge.Net35.0.2.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Mono.Security">
+      <HintPath>..\..\lib\5.5\Mono.Security.dll</HintPath>
+    </Reference>
     <Reference Include="ReadOnlyCollectionsInterfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET20\ReadOnlyCollectionsInterfaces.dll</HintPath>
       <Private>True</Private>
