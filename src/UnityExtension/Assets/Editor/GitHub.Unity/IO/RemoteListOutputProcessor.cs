@@ -2,14 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
     class RemoteListOutputProcessor : BaseOutputProcessor
     {
-        private static readonly ILogger logger = Logger.GetLogger<RemoteListOutputProcessor>();
-
         private string currentName;
         private string currentUrl;
         private List<string> currentModes;

@@ -1,17 +1,33 @@
-﻿using UnityEditor;
+﻿using GitHub.Api;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using UnityEditor;
 using UnityEngine;
-using ILogger = GitHub.Unity.Logging.ILogger;
 
 namespace GitHub.Unity
 {
     [InitializeOnLoad]
     class EntryPoint : ScriptableObject
     {
-        private static readonly ILogger logger = Logging.Logger.GetLogger<EntryPoint>();
+        private static readonly ILogging logger;
 
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
         {
+            Logging.LoggerFactory = s => new UnityLogAdapter(s);
+            logger = Logging.GetLogger<EntryPoint>();
+            logger.Debug("EntryPoint Initialize");
+
+            var syncCtx = new SingleThreadSynchronizationContext();
+            SynchronizationContext.SetSynchronizationContext(syncCtx);
+
+            ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
         }
 
@@ -26,6 +42,8 @@ namespace GitHub.Unity
 
             Environment = new DefaultEnvironment();
 
+            Platform = new Platform(Environment);
+
             GitEnvironment = Environment.IsWindows
                 ? new WindowsGitEnvironment(FileSystem, Environment)
                 : (Environment.IsLinux
@@ -34,11 +52,11 @@ namespace GitHub.Unity
 
             ProcessManager = new ProcessManager(Environment, GitEnvironment, FileSystem);
 
-            Settings = new Settings();
+            DeterminePaths(Environment, GitEnvironment, FileSystem);
 
-            DetermineInstallationPath(Environment);
+            DetermineGitRepoRoot(Environment, GitEnvironment, FileSystem);
 
-            DetermineGitRepoRoot(FileSystem, Environment, GitEnvironment);
+            Settings = new Settings(Environment);
 
             Settings.Initialize();
 
@@ -59,15 +77,16 @@ namespace GitHub.Unity
             Window.Initialize();
         }
 
+
         // TODO: Move these out to a proper location
-        private static void DetermineGitRepoRoot(IFileSystem fs, IEnvironment environment, IGitEnvironment gitEnvironment)
+        private static void DetermineGitRepoRoot(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
         {
-            var fullProjectRoot = fs.GetFullPath(environment.UnityProjectPath);
+            var fullProjectRoot = FileSystem.GetFullPath(Environment.UnityProjectPath);
             environment.GitRoot = gitEnvironment.FindRoot(fullProjectRoot);
         }
 
         // TODO: Move these out to a proper location
-        private static void DetermineInstallationPath(IEnvironment environment)
+        private static void DeterminePaths(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
         {
             // Unity paths
             environment.UnityAssetsPath = Application.dataPath;
@@ -95,6 +114,7 @@ namespace GitHub.Unity
             }
 
             DestroyImmediate(instance);
+
         }
 
         // TODO: Move these out to a proper location
@@ -116,6 +136,26 @@ namespace GitHub.Unity
             }
         }
 
+        private static bool ServerCertificateValidationCallback(object sender, X509Certificate certificate,
+            X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            var success = true;
+            // TODO: Invoke MozRoots.Process() to populate the certificate store and make this code work properly.
+            // If there are errors in the certificate chain, look at each error to determine the cause.
+            //if (sslPolicyErrors != SslPolicyErrors.None)
+            //{
+            //    foreach (var status in chain.ChainStatus.Where(st => st.Status != X509ChainStatusFlags.RevocationStatusUnknown))
+            //    {
+            //        chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
+            //        chain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+            //        chain.ChainPolicy.UrlRetrievalTimeout = new TimeSpan(0, 1, 0);
+            //        chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllFlags;
+            //        success &= chain.Build((X509Certificate2)certificate);
+            //    }
+            //}
+            return success;
+        }
+
         public static IEnvironment Environment { get; private set; }
         public static IGitEnvironment GitEnvironment { get; private set; }
 
@@ -124,5 +164,15 @@ namespace GitHub.Unity
 
         public static GitStatusEntryFactory GitStatusEntryFactory { get; private set; }
         public static ISettings Settings { get; private set; }
+        public static IPlatform Platform { get; private set; }
+    }
+
+
+    class SingleThreadSynchronizationContext : SynchronizationContext
+    {
+        public override void Post(SendOrPostCallback d, object state)
+        {
+            EditorApplication.delayCall += () => d(state);
+        }
     }
 }

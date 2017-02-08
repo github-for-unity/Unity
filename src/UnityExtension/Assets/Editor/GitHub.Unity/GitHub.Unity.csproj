@@ -11,7 +11,8 @@
     <AssemblyName>GitHub.Unity</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <OutputPath>$(SolutionDir)unity\TestProject\Assets\Editor\$(Configuration)</OutputPath>
+    <OutputPath>$(SolutionDir)\unity\TestProject\Assets\Editor\</OutputPath>
+    <IntermediateOutputPath>..\..\..\obj\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,7 +24,6 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CodeAnalysisRuleSet>$(SolutionDir)common\GitHub.ruleset</CodeAnalysisRuleSet>
     <LangVersion>4</LangVersion>
-    <OutputPath>..\..\..\..\..\unity\TestProject\Assets\Editor\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,11 +31,18 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <OutputPath>..\..\..\..\..\unity\TestProject\Assets\Editor\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)\lib\5.5\Mono.Security.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Threading, Version=1.0.2856.102, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\TaskParallelLibrary.1.0.2856.0\lib\Net35\System.Threading.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
@@ -50,8 +57,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Helpers\StringExtensions.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Helpers\StringExtensions.cs" />
     <Compile Include="IO\BaseOutputProcessor.cs" />
     <Compile Include="IO\BranchListOutputProcessor.cs" />
     <Compile Include="IO\DefaultEnvironment.cs" />
@@ -60,7 +73,6 @@
     <Compile Include="IO\GitRemote.cs" />
     <Compile Include="IO\GitStatusEntry.cs" />
     <Compile Include="IO\GitStatusEntryFactory.cs" />
-    <Compile Include="IO\IEnvironment.cs" />
     <Compile Include="IO\IFileSystem.cs" />
     <Compile Include="IO\IGitEnvironment.cs" />
     <Compile Include="IO\IGitStatusEntryFactory.cs" />
@@ -81,8 +93,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Localization.resx</DependentUpon>
     </Compile>
-    <Compile Include="Logging\ILogger.cs" />
-    <Compile Include="Logging\Logger.cs" />
     <Compile Include="Logging\UnityLogAdapter.cs" />
     <Compile Include="Misc\Ensure.cs" />
     <Compile Include="Misc\EntryPoint.cs" />
@@ -93,7 +103,7 @@
     <Compile Include="Misc\SimpleJson.cs" />
     <Compile Include="Misc\Styles.cs" />
     <Compile Include="Misc\Utility.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\AuthenticationService.cs" />
     <Compile Include="Services\StatusService.cs" />
     <Compile Include="Tasks\CachedTask.cs" />
     <Compile Include="Tasks\EvaluateProjectConfigurationTask.cs" />
@@ -127,13 +137,16 @@
     <Compile Include="Tasks\TaskQueueSetting.cs" />
     <Compile Include="Tasks\Tasks.cs" />
     <Compile Include="Tasks\TestTask.cs" />
+    <Compile Include="Tools\MozRoots.cs" />
+    <Compile Include="UI\AuthenticationView.cs" />
+    <Compile Include="UI\AuthenticationWindow.cs" />
     <Compile Include="UI\BranchesView.cs" />
     <Compile Include="UI\ChangesetTreeView.cs" />
     <Compile Include="UI\ChangesView.cs" />
     <Compile Include="UI\HistoryView.cs" />
     <Compile Include="UI\IView.cs" />
     <Compile Include="UI\SettingsView.cs" />
-    <Compile Include="UI\View.cs" />
+    <Compile Include="UI\Subview.cs" />
     <Compile Include="UI\Window.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -171,9 +184,29 @@
     <None Include="$(SolutionDir)common\GitHub.ruleset">
       <Link>GitHub.ruleset</Link>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">
+      <Project>{eb4b074e-62a7-4f1d-8f95-e64b7aea0236}</Project>
+      <Name>Octokit-Extensions35</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\submodules\octokit.net\Octokit\Octokit-35.csproj">
+      <Project>{49ef16a2-5ed1-480f-80a1-d1d05d6c1be4}</Project>
+      <Name>Octokit-35</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\GitHub.Api\GitHub.Api.csproj">
+      <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
+      <Name>GitHub.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\GitHub.Logging\GitHub.Logging.csproj">
+      <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
+      <Name>GitHub.Logging</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
