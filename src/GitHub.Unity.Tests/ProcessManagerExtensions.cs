@@ -13,7 +13,7 @@ namespace GitHub.Unity.Tests
             var processor = new BranchListOutputProcessor();
             processor.OnBranch += data => results.Add(data);
 
-            var process = processManager.Configure("git", "branch -vvr", workingDirectory);
+            var process = processManager.Configure("git", "branch -vv", workingDirectory);
             var outputManager = new ProcessOutputManager(process, processor);
 
             process.Run();
