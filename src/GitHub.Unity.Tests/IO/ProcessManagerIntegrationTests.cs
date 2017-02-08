@@ -135,11 +135,11 @@ namespace GitHub.Unity.Tests
                 {
                     new GitStatusEntry("Assets/Added Document.txt",
                         TestGitRepoPath + @"Assets/Added Document.txt", null,
-                        GitFileStatus.Added),
+                        GitFileStatus.Added, staged: true),
 
                     new GitStatusEntry("Assets/Renamed TestDocument.txt",
                         TestGitRepoPath + @"Assets/Renamed TestDocument.txt", null,
-                        GitFileStatus.Renamed, "Assets/TestDocument.txt"),
+                        GitFileStatus.Renamed, "Assets/TestDocument.txt", true),
 
                     new GitStatusEntry("Assets/Untracked Document.txt",
                         TestGitRepoPath + @"Assets/Untracked Document.txt", null,
