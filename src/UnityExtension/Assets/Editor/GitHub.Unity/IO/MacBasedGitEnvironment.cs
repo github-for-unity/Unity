@@ -1,3 +1,5 @@
+using GitHub.Api;
+
 namespace GitHub.Unity
 {
     class MacBasedGitEnvironment : GitEnvironment

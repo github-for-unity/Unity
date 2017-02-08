@@ -1,6 +1,5 @@
 using System;
 using System.Text.RegularExpressions;
-using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
@@ -8,7 +7,7 @@ namespace GitHub.Unity
     {
         private static readonly Regex trackingBranchRegex = new Regex(@"\[[\w]+\/.*\]");
 
-        private static readonly ILogger logger = Logger.GetLogger<BranchListOutputProcessor>();
+        private static readonly ILogging logger = Logging.GetLogger<BranchListOutputProcessor>();
 
         public event Action<GitBranch> OnBranch;
 

@@ -1,16 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
     class LogEntryOutputProcessor : BaseOutputProcessor
     {
-        private static readonly ILogger logger = Logger.GetLogger<LogEntryOutputProcessor>();
-
         private readonly IGitStatusEntryFactory gitStatusEntryFactory;
         public event Action<GitLogEntry> OnLogEntry;
         private ProcessingPhase phase;
@@ -53,7 +47,7 @@ namespace GitHub.Unity
         {
             base.LineReceived(line);
 
-            logger.Debug(@"LineReceived: ""{0}""", line);
+            Logger.Debug(@"LineReceived: ""{0}""", line);
 
             if (OnLogEntry == null)
                 return;
@@ -225,13 +219,13 @@ namespace GitHub.Unity
 
         private void HandleUnexpected(string line)
         {
-            logger.Error(@"Unexpected input in phase: {0}{1}""{2}""", phase, Environment.NewLine, line);
+            Logger.Error(@"Unexpected input in phase: {0}{1}""{2}""", phase, Environment.NewLine, line);
             Reset();
         }
 
         private void ReturnGitLogEntry()
         {
-            logger.Debug("ReturnGitLogEntry commitId:" + commitId);
+            Logger.Debug("ReturnGitLogEntry commitId:" + commitId);
 
             PopNewlines();
 

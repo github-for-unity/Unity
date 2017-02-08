@@ -1,3 +1,4 @@
+using GitHub.Api;
 using System;
 
 namespace GitHub.Unity

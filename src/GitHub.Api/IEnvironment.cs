@@ -1,8 +1,8 @@
 using System;
 
-namespace GitHub.Unity
+namespace GitHub.Api
 {
-    interface IEnvironment
+    public interface IEnvironment
     {
         string ExpandEnvironmentVariables(string name);
         string GetEnvironmentVariable(string v);
