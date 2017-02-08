@@ -8,6 +8,18 @@ namespace GitHub.Unity.Tests
     [TestFixture]
     public class StatusOutputProcessorTests : BaseOutputProcessorTests
     {
+        //[Test]
+        public void IntegrationTest()
+        {
+            var fs = new FileSystem();
+            var env = new DefaultEnvironment();
+            env.UnityProjectPath = @"D:\code\github\UnityInternal\src\UnityExtension";
+            var genv = new WindowsGitEnvironment(fs, env);
+            var fact = new GitStatusEntryFactory(env, fs, genv);
+            var pm = new ProcessManager(env, genv, fs);
+            var results = pm.GetGitStatus(@"D:\code\github\UnityInternal", env, fs, genv);
+        }
+
         [Test]
         public void ShouldParseDirtyWorkingTreeUntracked()
         {

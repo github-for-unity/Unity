@@ -9,8 +9,6 @@ namespace GitHub.Unity.Tests
         [Test]
         public async void SimpleLogin()
         {
-            var success = false;
-
             var program = new Program();
             var credentialManager = new WindowsCredentialManager();
             var api = new SimpleApiClientFactory(program, credentialManager);
