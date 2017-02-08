@@ -54,6 +54,7 @@ namespace GitHub.Unity
                             //master...origin/master [ahead 1, behind 1]
 
                             branchesString = proc.ReadUntilWhitespace();
+
                             proc.MoveToAfter('[');
 
                             var deltaString = proc.ReadUntil(']');
