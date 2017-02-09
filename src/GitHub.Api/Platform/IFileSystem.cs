@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace GitHub.Api
 {
-    public interface IFileSystem
+    interface IFileSystem
     {
         bool FileExists(string filename);
         string Combine(string path1, string path2);
