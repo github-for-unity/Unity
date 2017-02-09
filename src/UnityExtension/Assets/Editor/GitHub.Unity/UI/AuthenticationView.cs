@@ -50,6 +50,27 @@ namespace GitHub.Unity
 
             scroll = GUILayout.BeginScrollView(scroll);
             {
+              GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
+              {
+                  GUILayout.Space(3);
+                  GUILayout.BeginVertical(GUILayout.Width(16));
+                  {
+                      GUILayout.Space(9);
+                      GUILayout.Label(Styles.TitleIcon, GUILayout.Height(20), GUILayout.Width(20));
+                  }
+                  GUILayout.EndVertical();
+
+                  GUILayout.BeginVertical();
+                  {
+                      GUILayout.Space(3);
+                      GUILayout.Label(authTitle, Styles.HeaderRepoLabelStyle);
+                      GUILayout.Space(-2);
+                      GUILayout.Label(authDescription, Styles.HeaderBranchLabelStyle);
+                  }
+                  GUILayout.EndVertical();
+              }
+              GUILayout.EndHorizontal();
+              GUILayout.Space(Styles.BaseSpacing);
                 GUILayout.BeginVertical();
                 {
                     if (!need2fa)
@@ -77,27 +98,6 @@ namespace GitHub.Unity
 
         private void OnGUILogin()
         {
-            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
-            {
-                GUILayout.Space(3);
-                GUILayout.BeginVertical(GUILayout.Width(16));
-                {
-                    GUILayout.Space(9);
-                    GUILayout.Label(Styles.TitleIcon, GUILayout.Height(20), GUILayout.Width(20));
-                }
-                GUILayout.EndVertical();
-
-                GUILayout.BeginVertical();
-                {
-                    GUILayout.Space(3);
-                    GUILayout.Label(authTitle, Styles.HeaderRepoLabelStyle);
-                    GUILayout.Space(-2);
-                    GUILayout.Label(authDescription, Styles.HeaderBranchLabelStyle);
-                }
-                GUILayout.EndVertical();
-            }
-            GUILayout.EndHorizontal();
-            GUILayout.Space(Styles.BaseSpacing);
             GUILayout.BeginHorizontal();
             {
                 GUILayout.Label(usernameLabel, GUILayout.Width(cellWidth));
