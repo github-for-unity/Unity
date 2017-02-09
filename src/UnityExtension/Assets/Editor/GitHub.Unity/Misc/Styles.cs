@@ -61,6 +61,9 @@ namespace GitHub.Unity
             boldLabel,
             deletedFileLabel,
             longMessageStyle,
+            headerBoxStyle,
+            headerBranchLabelStyle,
+            headerRepoLabelStyle,
             historyToolbarButtonStyle,
             historyLockStyle,
             historyEntryDetailsStyle,
@@ -84,7 +87,10 @@ namespace GitHub.Unity
             defaultAssetIcon,
             folderIcon,
             mergeIcon,
-            dotIcon;
+            dotIcon,
+            repoIcon,
+            lockIcon;
+
        static Color
            timelineBarColor;
 
@@ -109,6 +115,58 @@ namespace GitHub.Unity
             }
         }
 
+		public static GUIStyle HeaderBranchLabelStyle
+		{
+			get
+			{
+				if (headerBranchLabelStyle == null)
+				{
+					headerBranchLabelStyle = new GUIStyle(EditorStyles.label);
+					headerBranchLabelStyle.name = "HeaderBranchLabelStyle";
+					headerBranchLabelStyle.margin = new RectOffset(0,0,0,0);
+					headerBranchLabelStyle.normal.textColor = new Color(0f,0f,0f,0.6f);
+				}
+
+				return headerBranchLabelStyle;
+			}
+		}
+
+		public static GUIStyle HeaderRepoLabelStyle
+		{
+			get
+			{
+				if (headerRepoLabelStyle == null)
+				{
+					headerRepoLabelStyle = new GUIStyle(EditorStyles.boldLabel);
+					headerRepoLabelStyle.name = "HeaderRepoLabelStyle";
+					headerRepoLabelStyle.margin = new RectOffset(0,0,0,0);
+				}
+
+				return headerRepoLabelStyle;
+			}
+		}
+
+		public static GUIStyle HeaderBoxStyle
+		{
+			get
+			{
+				if (headerBoxStyle == null)
+				{
+					headerBoxStyle = new GUIStyle();
+					headerBoxStyle.name = "HeaderBoxStyle";
+					headerBoxStyle.padding = new RectOffset(5,5,5,5);
+
+					Texture2D backgroundTexture = new Texture2D(1,1);
+					Color color = new Color(0.878f, 0.878f, 0.878f, 1.0f);
+					backgroundTexture.SetPixel(1, 1, color);
+					backgroundTexture.Apply();
+
+					headerBoxStyle.normal.background = backgroundTexture;
+				}
+
+				return headerBoxStyle;
+			}
+		}
 
         public static GUIStyle BoldLabel
         {
@@ -446,6 +504,32 @@ namespace GitHub.Unity
             }
         }
 
+
+        public static Texture2D RepoIcon
+        {
+            get
+            {
+                if (repoIcon == null)
+                {
+                    repoIcon = Utility.GetIcon("repo.png", "repo@2x.png");
+                }
+ 
+                return repoIcon;
+            }
+        }
+
+        public static Texture2D LockIcon
+        {
+            get
+            {
+                if (lockIcon == null)
+                {
+                        lockIcon = Utility.GetIcon("lock.png", "lock@2x.png");
+                }
+
+                return lockIcon;
+            }
+        }
 
         public static Texture2D GetGitFileStatusIcon(GitFileStatus status)
         {
