@@ -116,9 +116,7 @@ namespace GitHub.Unity.Tests
         {
             gitLock.Path.Should().Be(other.Path);
             gitLock.FullPath.Should().Be(other.FullPath);
-            gitLock.Server.Should().Be(other.Server);
             gitLock.User.Should().Be(other.User);
-            gitLock.UserId.Should().Be(other.UserId);
         }
 
         public static void AssertNotEqual(this GitLock gitLock, GitLock other)

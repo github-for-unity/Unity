@@ -42,11 +42,10 @@ namespace GitHub.Unity
                 file = proc.ReadUntilWhitespace();
             }
 
-            var server = proc.ReadUntilWhitespace();
-            var user = proc.ReadUntilWhitespace();
-            var userId = Convert.ToInt32(proc.ReadUntilWhitespace());
+            proc.SkipWhitespace();
+            var user = proc.ReadUntil('<').TrimEnd();
 
-            var gitLock = gitStatusEntryFactory.CreateGitLock(file, server, user, userId);
+            var gitLock = gitStatusEntryFactory.CreateGitLock(file, user);
             OnGitLock.SafeInvoke(gitLock);
         }
 
