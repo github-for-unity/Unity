@@ -3,4 +3,4 @@
 	url = https://github.com/editor-tools/octokit.net.git
 [submodule "submodules/dotnet-httpclient35"]
 	path = submodules/dotnet-httpclient35
-	url = https://github.com/shana/dotnet-httpClient35
+	url = https://github.com/StanleyGoldman/dotnet-httpClient35
