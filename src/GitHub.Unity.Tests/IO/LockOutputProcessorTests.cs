@@ -46,8 +46,8 @@ namespace GitHub.Unity.Tests
             };
 
             var expected = new[] {
-                new GitLock("folder/somefile.png", TestRootPath + @"\folder/somefile.png", "GitHub", "User", 12),
-                new GitLock("somezip.zip", TestRootPath + @"\somezip.zip", "GitHub", "User", 21)
+                new GitLock("folder/somefile.png", TestRootPath + @"\folder/somefile.png", "GitHub User 12"),
+                new GitLock("somezip.zip", TestRootPath + @"\somezip.zip", "GitHub User 21")
             };
 
             AssertProcessOutput(output, expected);

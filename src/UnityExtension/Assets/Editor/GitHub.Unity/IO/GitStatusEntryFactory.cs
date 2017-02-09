@@ -25,11 +25,11 @@ namespace GitHub.Unity
             return new GitStatusEntry(path, fullPath, projectPath, status, originalPath, staged);
         }
 
-        public GitLock CreateGitLock(string path, string server, string user, int userId)
+        public GitLock CreateGitLock(string path, string user)
         {
             var fullPath = GetFullPath(path);
 
-            return new GitLock(path, fullPath, server, user, userId);
+            return new GitLock(path, fullPath, user);
         }
 
         private string GetFullGitRoot()

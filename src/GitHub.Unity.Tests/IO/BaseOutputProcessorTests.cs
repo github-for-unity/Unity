@@ -21,14 +21,12 @@ namespace GitHub.Unity.Tests
                                          originalPath, staged);
                                  });
 
-            gitStatusEntryFactory.CreateGitLock(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
+            gitStatusEntryFactory.CreateGitLock(Arg.Any<string>(), Arg.Any<string>())
                                  .Returns(info => {
                                      var path = (string)info[0];
-                                     var server = (string)info[1];
-                                     var user = (string)info[2];
-                                     var userId = (int)info[3];
+                                     var user = (string)info[1];
 
-                                     return new GitLock(path, TestRootPath + @"\" + path, server, user, userId);
+                                     return new GitLock(path, TestRootPath + @"\" + path, user);
                                  });
 
             return gitStatusEntryFactory;
