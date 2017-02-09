@@ -16,6 +16,8 @@ namespace GitHub.Unity
         const string authTitle = "You're currently not signed in";
         const string authDescription = "Log into GitHub to start collaborating together";
 
+        int cellWidth;
+
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string username = "";
         [SerializeField] private string password = "";
@@ -37,6 +39,12 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
+            // Ensure a nice looking grid for our auth UI
+            // Not really sure why I need to divide by 4... Retina perhaps??
+            // If so, seems very brittle...
+            cellWidth = (Screen.width / 4) - Convert.ToInt32(Styles.BaseSpacing * 2);
+            Debug.Log(cellWidth);
+
             scroll = GUILayout.BeginScrollView(scroll);
             {
                 GUILayout.BeginVertical();
@@ -59,6 +67,7 @@ namespace GitHub.Unity
                     GUILayout.Label(message);
                 }
                 GUILayout.EndVertical();
+                GUILayout.Space(Styles.BaseSpacing);
             }
             GUILayout.EndScrollView();
         }
@@ -85,23 +94,26 @@ namespace GitHub.Unity
                 GUILayout.EndVertical();
             }
             GUILayout.EndHorizontal();
+            GUILayout.Space(Styles.BaseSpacing);
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Label(usernameLabel, GUILayout.Width(cellWidth));
+                if (busy) GUI.enabled = false;
+                username = GUILayout.TextField(username, GUILayout.Width(cellWidth));
+                GUI.enabled = true;
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.Space(Styles.BaseSpacing);
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Label(passwordLabel, GUILayout.Width(cellWidth));
+                if (busy) GUI.enabled = false;
+                password = GUILayout.PasswordField(password, '*', GUILayout.Width(cellWidth));
+                GUI.enabled = true;
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.Space(Styles.BaseSpacing);
 
-            GUILayout.BeginHorizontal();
-            {
-                GUILayout.Label(usernameLabel);
-                if (busy) GUI.enabled = false;
-                username = GUILayout.TextField(username);
-                GUI.enabled = true;
-            }
-            GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
-            {
-                GUILayout.Label(passwordLabel);
-                if (busy) GUI.enabled = false;
-                password = GUILayout.PasswordField(password, '*');
-                GUI.enabled = true;
-            }
-            GUILayout.EndHorizontal();
             if (busy) GUI.enabled = false;
             if (GUILayout.Button(loginButton))
             {
