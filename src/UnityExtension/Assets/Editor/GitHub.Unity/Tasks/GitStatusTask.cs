@@ -4,53 +4,20 @@ namespace GitHub.Unity
 {
     class GitStatusTask : GitTask
     {
-        public static void Schedule(Action<GitStatus> onSuccess, Action onFailure = null)
-        {
-            Tasks.Add(new GitStatusTask(onSuccess, EntryPoint.GitStatusEntryFactory, onFailure));
-        }
-
         private readonly StatusOutputProcessor processor;
-
         private Action<GitStatus> callback;
-
         private GitStatus gitStatus;
 
-        private GitStatusTask(Action<GitStatus> onSuccess, IGitStatusEntryFactory gitStatusEntryFactory,
-            Action onFailure = null)
+        private GitStatusTask(IGitStatusEntryFactory gitStatusEntryFactory, Action<GitStatus> onSuccess, Action onFailure = null)
             : base(null, onFailure)
         {
             callback = onSuccess;
             processor = new StatusOutputProcessor(gitStatusEntryFactory);
         }
 
-        public override bool Blocking
+        public static void Schedule(Action<GitStatus> onSuccess, Action onFailure = null)
         {
-            get { return false; }
-        }
-
-        public override TaskQueueSetting Queued
-        {
-            get { return TaskQueueSetting.QueueSingle; }
-        }
-
-        public override bool Critical
-        {
-            get { return false; }
-        }
-
-        public override bool Cached
-        {
-            get { return false; }
-        }
-
-        public override string Label
-        {
-            get { return "git status"; }
-        }
-
-        protected override string ProcessArguments
-        {
-            get { return "status -b -u --porcelain"; }
+            Tasks.Add(new GitStatusTask(EntryPoint.GitStatusEntryFactory, onSuccess, onFailure));
         }
 
         protected override void OnProcessOutputUpdate()
@@ -59,17 +26,26 @@ namespace GitHub.Unity
             Tasks.ScheduleMainThread(() => DeliverResult());
         }
 
+        protected override ProcessOutputManager HookupOutput(IProcess process)
+        {
+            processor.OnStatus += status => { gitStatus = status; };
+            return new ProcessOutputManager(process, processor);
+        }
+
         private void DeliverResult()
         {
             callback.SafeInvoke(gitStatus);
         }
 
-        protected override ProcessOutputManager HookupOutput(IProcess process)
+        public override bool Blocking { get { return false; } }
+        public override TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; } }
+        public override bool Critical { get { return false; } }
+        public override bool Cached { get { return false; } }
+        public override string Label { get { return "git status"; } }
+
+        protected override string ProcessArguments
         {
-            processor.OnStatus += status => {
-                gitStatus = status;
-            };
-            return new ProcessOutputManager(process, processor);
+            get { return "status -b -u --porcelain"; }
         }
     }
 }

@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
     class GitListBranchesTask : GitTask
     {
         private const string LocalArguments = "branch -vv";
-        private const string RemoteArguments = "branch -r";
+        private const string RemoteArguments = "branch -vvr";
         private const string UnmatchedLineError = "Unable to match the line '{0}'";
         private List<GitBranch> branches = new List<GitBranch>();
         private Mode mode;
@@ -60,30 +59,12 @@ namespace GitHub.Unity
             callback.SafeInvoke(branches);
         }
 
-        public override bool Blocking
-        {
-            get { return false; }
-        }
+        public override bool Blocking { get { return false; } }
+        public override bool Critical { get { return false; } }
 
-        public override TaskQueueSetting Queued
-        {
-            get { return TaskQueueSetting.Queue; }
-        }
+        public override bool Cached { get { return false; } }
 
-        public override bool Critical
-        {
-            get { return false; }
-        }
-
-        public override bool Cached
-        {
-            get { return false; }
-        }
-
-        public override string Label
-        {
-            get { return "git list branch"; }
-        }
+        public override string Label { get { return "git list branch"; } }
 
         protected override string ProcessArguments
         {

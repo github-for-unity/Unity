@@ -167,7 +167,7 @@ namespace GitHub.Unity
         public string TriggerText { get; private set; }
     }
 
-    class EvaluateProjectConfigurationTask : ITask
+    class EvaluateProjectConfigurationTask : BaseTask
     {
         private const string GitIgnoreFilePattern = ".gitignore";
         private const string VCSPropertyName = "m_ExternalVersionControlSupport";
@@ -203,17 +203,14 @@ namespace GitHub.Unity
             return InternalEditorUtility.LoadSerializedFileAndForget(EditorSettingsPath).FirstOrDefault();
         }
 
-        public void Run()
+        public override void Run()
         {
             Done = false;
             Progress = 0f;
 
             issues.Clear();
 
-            if (OnBegin != null)
-            {
-                OnBegin(this);
-            }
+            OnBegin.SafeInvoke(this);
 
             // Unity project config
             Tasks.ScheduleMainThread(EvaluateLocalConfiguration);
@@ -230,30 +227,14 @@ namespace GitHub.Unity
             Progress = 1f;
             Done = true;
 
-            if (OnEnd != null)
-            {
-                OnEnd(this);
-            }
-
-            if (onEvaluationResult != null)
-            {
-                onEvaluationResult(issues);
-            }
+            OnEnd.SafeInvoke(this);
+            onEvaluationResult.SafeInvoke(issues);
         }
 
-        public void Abort()
+        public override void Abort()
         {
             Done = true;
         }
-
-        public void Disconnect()
-        {}
-
-        public void Reconnect()
-        {}
-
-        public void WriteCache(TextWriter cache)
-        {}
 
         private void EvaluateLocalConfiguration()
         {
@@ -374,36 +355,11 @@ namespace GitHub.Unity
             }
         }
 
-        public bool Blocking
-        {
-            get { return false; }
-        }
-
-        public float Progress { get; protected set; }
-        public bool Done { get; protected set; }
-
-        public TaskQueueSetting Queued
-        {
-            get { return TaskQueueSetting.QueueSingle; }
-        }
-
-        public bool Critical
-        {
-            get { return false; }
-        }
-
-        public bool Cached
-        {
-            get { return false; }
-        }
-
-        public Action<ITask> OnBegin { set; protected get; }
-        public Action<ITask> OnEnd { set; protected get; }
-
-        public string Label
-        {
-            get { return "Project Evaluation"; }
-        }
+        public override bool Blocking { get { return false; } }
+        public override TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; }}
+        public override bool Critical { get { return false; } }
+        public override bool Cached { get { return false; } }
+        public override string Label { get { return "Project Evaluation"; } }
 
         private enum SerializationSetting
         {

@@ -1,3 +1,4 @@
+using GitHub.Api;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,6 +12,8 @@ namespace GitHub.Unity
         private GitAddTask(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
             : base(str => onSuccess.SafeInvoke(), onFailure)
         {
+            Guard.ArgumentNotNull(files, "files");
+
             arguments = "add ";
             arguments += " -- ";
 
@@ -33,29 +36,8 @@ namespace GitHub.Unity
             StatusService.Instance.Run();
         }
 
-        public override bool Blocking
-        {
-            get { return false; }
-        }
-
-        public override bool Critical
-        {
-            get { return true; }
-        }
-
-        public override bool Cached
-        {
-            get { return true; }
-        }
-
-        public override string Label
-        {
-            get { return "git add"; }
-        }
-
-        protected override string ProcessArguments
-        {
-            get { return arguments; }
-        }
+        public override bool Blocking { get { return false; } }
+        public override string Label { get { return "git add"; } }
+        protected override string ProcessArguments { get { return arguments; } }
     }
 }
