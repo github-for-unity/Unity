@@ -98,6 +98,7 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal();
             {
                 GUILayout.Label(usernameLabel, GUILayout.Width(cellWidth));
+                GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
                 username = GUILayout.TextField(username, GUILayout.Width(cellWidth));
                 GUI.enabled = true;
@@ -107,6 +108,7 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal();
             {
                 GUILayout.Label(passwordLabel, GUILayout.Width(cellWidth));
+                GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
                 password = GUILayout.PasswordField(password, '*', GUILayout.Width(cellWidth));
                 GUI.enabled = true;
