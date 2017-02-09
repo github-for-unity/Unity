@@ -24,12 +24,14 @@ namespace GitHub.Unity
             HistoryChangesIndentation = 8f,
             CommitAreaMinHeight = 16f,
             CommitAreaDefaultRatio = .4f,
-            CommitAreaMaxHeight = 10 * 15f,
+            CommitAreaMaxHeight = 12 * 15f,
+            CommitAreaPadding = 5f,
             MinCommitTreePadding = 20f,
             FoldoutWidth = 11f,
             FoldoutIndentation = -2f,
             TreeIndentation = 17f,
             TreeRootIndentation = -5f,
+            TreeVerticalSpacing = 3f,
             CommitIconSize = 16f,
             CommitIconHorizontalPadding = -5f,
             BranchListIndentation = 20f,
@@ -45,6 +47,9 @@ namespace GitHub.Unity
             GitIgnoreRulesFileRatio = .3f,
             GitIgnoreRulesLineRatio = .5f;
 
+        public const int
+            HalfSpacing = (int)(BaseSpacing / 2);
+
 
         const string
             BrowseButton = "...",
@@ -54,6 +59,7 @@ namespace GitHub.Unity
         static GUIStyle
             label,
             boldLabel,
+            deletedFileLabel,
             longMessageStyle,
             historyToolbarButtonStyle,
             historyLockStyle,
@@ -61,6 +67,7 @@ namespace GitHub.Unity
             historyEntryDetailsRightStyle,
             commitFileAreaStyle,
             commitButtonStyle,
+            textFieldStyle,
             commitDescriptionFieldStyle,
             toggleMixedStyle;
         static Texture2D
@@ -68,6 +75,7 @@ namespace GitHub.Unity
             addedStatusIcon,
             deletedStatusIcon,
             renamedStatusIcon,
+            untrackedStatusIcon,
             activeBranchIcon,
             trackingBranchIcon,
             favouriteIconOn,
@@ -117,6 +125,21 @@ namespace GitHub.Unity
                 return boldLabel;
             }
         }
+
+		public static GUIStyle DeletedFileLabel
+		{
+			get
+			{
+				if (deletedFileLabel == null)
+				{
+					deletedFileLabel = new GUIStyle(EditorStyles.label);
+					deletedFileLabel.name = "DeletedFileLabel";
+					deletedFileLabel.normal.textColor = Color.gray;
+				}
+
+				return deletedFileLabel;
+			}
+		}
 
 
         public static GUIStyle LongMessageStyle
@@ -241,6 +264,21 @@ namespace GitHub.Unity
             }
         }
 
+		public static GUIStyle TextFieldStyle
+		{
+			get
+			{
+				if (textFieldStyle == null)
+				{
+					textFieldStyle = new GUIStyle(GUI.skin.textField);
+					textFieldStyle.name = "TextFieldStyle";
+					textFieldStyle.fixedHeight = 21;
+					textFieldStyle.padding = new RectOffset(HalfSpacing, HalfSpacing, 4, 0);
+				}
+
+				return textFieldStyle;
+			}
+		}
 
         public static GUIStyle CommitDescriptionFieldStyle
         {
@@ -250,6 +288,7 @@ namespace GitHub.Unity
                 {
                     commitDescriptionFieldStyle = new GUIStyle(GUI.skin.textArea);
                     commitDescriptionFieldStyle.name = "CommitDescriptionFieldStyle";
+                    commitDescriptionFieldStyle.padding = new RectOffset(HalfSpacing, HalfSpacing, HalfSpacing, HalfSpacing);
                     commitDescriptionFieldStyle.wordWrap = true;
                 }
 
@@ -420,6 +459,8 @@ namespace GitHub.Unity
                 return deletedStatusIcon = deletedStatusIcon ?? Utility.GetIcon("removed.png", "removed@2x.png");
                 case GitFileStatus.Renamed:
                 return renamedStatusIcon = renamedStatusIcon ?? Utility.GetIcon("renamed.png", "renamed@2x.png");
+                case GitFileStatus.Untracked:
+                return untrackedStatusIcon = untrackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
                 default:
                 return null;
             }
