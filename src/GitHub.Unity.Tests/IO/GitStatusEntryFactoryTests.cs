@@ -103,16 +103,5 @@ namespace GitHub.Unity.Tests
 
             result.Should().Be(expected);
         }
-
-//        [Test]
-//        public void ConstructorThrowsWhenProjectRootIsOutsideOfGitRoot()
-//        {
-//            var filesystem = CreateFileSystem();
-//            var gitEnvironment = CreateGitEnvironment(@"c:\Source\Project");
-//            var environment = CreateEnvironment(@"c:\Source\");
-//
-//            Action action = () => { new GitStatusEntryFactory(environment, filesystem, gitEnvironment); };
-//            action.ShouldThrow<Exception>();
-//        }
     }
 }
