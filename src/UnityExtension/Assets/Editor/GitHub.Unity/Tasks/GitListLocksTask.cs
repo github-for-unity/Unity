@@ -1,33 +1,28 @@
 using System;
 using System.Collections.Generic;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
     class GitListLocksTask : GitTask
     {
-        private readonly LockOutputProcessor processor = new LockOutputProcessor();
-        private List<GitLock> gitLocks = new List<GitLock>();
+        private readonly LockOutputProcessor processor;
         private Action<IEnumerable<GitLock>> callback;
+        private List<GitLock> gitLocks = new List<GitLock>();
 
-        private GitListLocksTask(Action<IEnumerable<GitLock>> onSuccess, Action onFailure = null)
-            : base(null, onFailure)
+        private GitListLocksTask(Action<IEnumerable<GitLock>> onSuccess, IGitStatusEntryFactory gitStatusEntryFactory,
+            Action onFailure = null) : base(null, onFailure)
         {
+            Guard.ArgumentNotNull(gitStatusEntryFactory, "gitStatusEntryFactory");
+
+            processor = new LockOutputProcessor(gitStatusEntryFactory);
             callback = onSuccess;
         }
 
-        public static void ScheduleLocal(Action<IEnumerable<GitLock>> onSuccess, Action onFailure = null)
+        public static void Schedule(Action<IEnumerable<GitLock>> onSuccess, IGitStatusEntryFactory gitStatusEntryFactory,
+            Action onFailure = null)
         {
-            Schedule(onSuccess, onFailure);
-        }
-
-        public static void ScheduleRemote(Action<IEnumerable<GitLock>> onSuccess, Action onFailure = null)
-        {
-            Schedule(onSuccess, onFailure);
-        }
-
-        private static void Schedule(Action<IEnumerable<GitLock>> onSuccess, Action onFailure = null)
-        {
-            Tasks.Add(new GitListLocksTask(onSuccess, onFailure));
+            Tasks.Add(new GitListLocksTask(onSuccess, gitStatusEntryFactory, onFailure));
         }
 
         protected override ProcessOutputManager HookupOutput(IProcess process)
@@ -39,7 +34,7 @@ namespace GitHub.Unity
         protected override void OnProcessOutputUpdate()
         {
             Logger.Debug("Done");
-            Tasks.ScheduleMainThread(() => DeliverResult());
+            Tasks.ScheduleMainThread(DeliverResult);
         }
 
         private void AddLock(GitLock gitLock)
