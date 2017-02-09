@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 
-namespace GitHub.Unity
+namespace GitHub.Api
 {
-    interface IFileSystem
+    public interface IFileSystem
     {
         bool FileExists(string filename);
         string Combine(string path1, string path2);

@@ -1,8 +1,8 @@
 using System.Diagnostics;
 
-namespace GitHub.Unity
+namespace GitHub.Api
 {
-    interface IGitEnvironment
+    public interface IGitEnvironment
     {
         string FindGitInstallationPath();
 

@@ -1,21 +1,21 @@
-using GitHub.Api;
+using GitHub.Unity;
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 
-namespace GitHub.Unity
+namespace GitHub.Api
 {
-    abstract class GitEnvironment: IGitEnvironment
+    public abstract class GitEnvironment: IGitEnvironment
     {
-        protected ILogging Logger { get; private set; }
-        protected IFileSystem FileSystem { get; private set; }
         protected IEnvironment Environment { get; private set; }
+        protected IFileSystem FileSystem { get; private set; }
+        protected ILogging Logger { get; private set; }
 
-        protected GitEnvironment(IFileSystem fileSystem, IEnvironment environment)
+        protected GitEnvironment(IEnvironment environment, IFileSystem filesystem)
         {
-            FileSystem = fileSystem;
             Environment = environment;
+            FileSystem = filesystem;
             Logger = Logging.GetLogger(GetType());
         }
 
@@ -44,7 +44,7 @@ namespace GitHub.Unity
 
         public void Configure(ProcessStartInfo psi, string workingDirectory)
         {
-            Ensure.ArgumentNotNull(psi, "psi");
+            Guard.ArgumentNotNull(psi, "psi");
 
             // We need to essentially fake up what git-cmd.bat does
             string homeDir = Environment.UserProfilePath;

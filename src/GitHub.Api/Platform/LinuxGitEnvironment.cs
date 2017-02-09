@@ -1,12 +1,13 @@
 using GitHub.Api;
 
-namespace GitHub.Unity
+namespace GitHub.Api
 {
-    class LinuxBasedGitEnvironment : GitEnvironment
+    class LinuxGitEnvironment : GitEnvironment
     {
         public const string DefaultGitPath = "/usr/bin/git";
 
-        public LinuxBasedGitEnvironment(IFileSystem fileSystem, IEnvironment environment) : base(fileSystem, environment)
+        public LinuxGitEnvironment(IEnvironment environment, IFileSystem filesystem)
+            : base(environment, filesystem)
         {
         }
 
