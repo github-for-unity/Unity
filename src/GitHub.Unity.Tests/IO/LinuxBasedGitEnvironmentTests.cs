@@ -7,11 +7,11 @@ using GitHub.Api;
 namespace GitHub.Unity.Tests
 {
     [TestFixture]
-    public class LinuxBasedGitEnvironmentTests: GitEnvironmentTestsBase
+    public class LinuxGitEnvironmentTests: GitEnvironmentTestsBase
     {
         public static IEnumerable<TestCaseData> GetDefaultGitPath_TestCases()
         {
-            var testCase = new TestCaseData(true, LinuxBasedGitEnvironment.DefaultGitPath);
+            var testCase = new TestCaseData(true, LinuxGitEnvironment.DefaultGitPath);
             testCase.SetName("Should be found");
             yield return testCase;
 
@@ -25,10 +25,10 @@ namespace GitHub.Unity.Tests
         {
             var environment = Substitute.For<IEnvironment>();
 
-            var fileSystem = Substitute.For<IFileSystem>();
-            fileSystem.FileExists(Arg.Any<string>()).Returns(fileFound);
+            var filesystem = Substitute.For<IFileSystem>();
+            filesystem.FileExists(Arg.Any<string>()).Returns(fileFound);
 
-            var linuxBasedGitInstallationStrategy = new LinuxBasedGitEnvironment(fileSystem, environment);
+            var linuxBasedGitInstallationStrategy = new LinuxGitEnvironment(environment, filesystem);
             linuxBasedGitInstallationStrategy.FindGitInstallationPath().Should().Be(filePath);
         }
 
@@ -48,10 +48,10 @@ namespace GitHub.Unity.Tests
         {
             var environment = Substitute.For<IEnvironment>();
 
-            var fileSystem = Substitute.For<IFileSystem>();
-            fileSystem.FileExists(Arg.Any<string>()).Returns(inFileSystem);
+            var filesystem = Substitute.For<IFileSystem>();
+            filesystem.FileExists(Arg.Any<string>()).Returns(inFileSystem);
 
-            var linuxBasedGitInstallationStrategy = new LinuxBasedGitEnvironment(fileSystem, environment);
+            var linuxBasedGitInstallationStrategy = new LinuxGitEnvironment(environment, filesystem);
             linuxBasedGitInstallationStrategy.ValidateGitInstall("asdf").Should().Be(found);
         }
 
@@ -60,11 +60,11 @@ namespace GitHub.Unity.Tests
         [TestCase(@"c:\file.txt", null, TestName = "file outside root inside sibling should not be found")]
         public void FindRoot(string input, string expected)
         {
-            var fileSystem = (IFileSystem)BuildFindRootFileSystem();
+            var filesystem = (IFileSystem)BuildFindRootFileSystem();
 
             var environment = Substitute.For<IEnvironment>();
 
-            var windowsGitEnvironment = new LinuxBasedGitEnvironment(fileSystem, environment);
+            var windowsGitEnvironment = new LinuxGitEnvironment(environment, filesystem);
             var result = windowsGitEnvironment.FindRoot(input);
 
             if (expected == null)

@@ -12,13 +12,13 @@ namespace GitHub.Unity
 
         private readonly IEnvironment environment;
         private readonly IGitEnvironment gitEnvironment;
-        private readonly IFileSystem fileSystem;
+        private readonly IFileSystem filesystem;
 
-        public ProcessManager(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fileSystem)
+        public ProcessManager(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem filesystem)
         {
             this.environment = environment;
             this.gitEnvironment = gitEnvironment;
-            this.fileSystem = fileSystem;
+            this.filesystem = filesystem;
         }
 
         public IProcess Configure(string executableFileName, string arguments, string workingDirectory)
@@ -71,7 +71,7 @@ namespace GitHub.Unity
                     }
                 })
                 .Where(x => x != null)
-                .FirstOrDefault(x => fileSystem.FileExists(x));
+                .FirstOrDefault(x => filesystem.FileExists(x));
 
             return executablePath;
         }

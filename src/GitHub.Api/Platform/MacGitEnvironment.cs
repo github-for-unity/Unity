@@ -1,12 +1,11 @@
-using GitHub.Api;
-
-namespace GitHub.Unity
+namespace GitHub.Api
 {
-    class MacBasedGitEnvironment : GitEnvironment
+    class MacGitEnvironment : GitEnvironment
     {
         public const string DefaultGitPath = "/usr/bin/git";
 
-        public MacBasedGitEnvironment(IFileSystem fileSystem, IEnvironment environment) : base(fileSystem, environment)
+        public MacGitEnvironment(IEnvironment environment, IFileSystem filesystem)
+            : base(environment, filesystem)
         {
         }
 

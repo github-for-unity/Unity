@@ -1,14 +1,14 @@
-using GitHub.Api;
 using System;
 using System.Linq;
 
-namespace GitHub.Unity
+namespace GitHub.Api
 {
     class WindowsGitEnvironment : GitEnvironment
     {
         private string defaultGitPath;
 
-        public WindowsGitEnvironment(IFileSystem fileSystem, IEnvironment environment):base(fileSystem, environment)
+        public WindowsGitEnvironment(IEnvironment environment, IFileSystem filesystem)
+            : base(environment, filesystem)
         {
         }
 

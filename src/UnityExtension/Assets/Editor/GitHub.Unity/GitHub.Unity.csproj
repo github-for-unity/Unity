@@ -71,23 +71,17 @@
     <Compile Include="IO\BranchListOutputProcessor.cs" />
     <Compile Include="IO\DefaultEnvironment.cs" />
     <Compile Include="IO\FileSystem.cs" />
-    <Compile Include="IO\GitEnvironment.cs" />
     <Compile Include="IO\GitRemote.cs" />
     <Compile Include="IO\GitStatusEntry.cs" />
     <Compile Include="IO\GitStatusEntryFactory.cs" />
-    <Compile Include="IO\IFileSystem.cs" />
-    <Compile Include="IO\IGitEnvironment.cs" />
     <Compile Include="IO\IGitStatusEntryFactory.cs" />
     <Compile Include="IO\IOutputProcessor.cs" />
     <Compile Include="IO\IProcess.cs" />
     <Compile Include="Helpers\LineProcessor.cs" />
     <Compile Include="IO\IProcessManager.cs" />
     <Compile Include="IO\LogEntryOutputProcessor.cs" />
-    <Compile Include="IO\MacBasedGitEnvironment.cs" />
-    <Compile Include="IO\LinuxBasedGitEnvironment.cs" />
     <Compile Include="IO\ProcessOutputManager.cs" />
     <Compile Include="IO\ProcessWrapper.cs" />
-    <Compile Include="IO\WindowsGitEnvironment.cs" />
     <Compile Include="IO\RemoteListOutputProcessor.cs" />
     <Compile Include="IO\StatusOutputProcessor.cs" />
     <Compile Include="Localization.Designer.cs">
@@ -207,6 +201,18 @@
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Icons\dot%402x.png" />
+    <EmbeddedResource Include="Icons\dot.png" />
+    <EmbeddedResource Include="Icons\git-merge%402x.png" />
+    <EmbeddedResource Include="Icons\git-merge.png" />
+    <EmbeddedResource Include="Icons\lock%402x.png" />
+    <EmbeddedResource Include="Icons\lock.png" />
+    <EmbeddedResource Include="Icons\repo%402x.png" />
+    <EmbeddedResource Include="Icons\repo.png" />
+    <EmbeddedResource Include="Icons\untracked%402x.png" />
+    <EmbeddedResource Include="Icons\untracked.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

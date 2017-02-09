@@ -1,4 +1,3 @@
-using GitHub.Logging;
 using GitHub.Unity;
 using NUnit.Framework;
 
