@@ -1,12 +1,25 @@
 using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;
+using GitHub.Api;
 
 namespace GitHub.Unity.Tests
 {
     [TestFixture]
     public class BranchListOutputProcessorTests
     {
+        //[Test]
+        public void IntegrationTest_MonoRepo()
+        {
+            var filesystem = new FileSystem();
+            var environment = new DefaultEnvironment();
+            environment.UnityProjectPath = @"D:\code\github\UnityInternal\src\UnityExtension";
+            var gitEnvironment = new WindowsGitEnvironment(environment, filesystem);
+            var fact = new GitStatusEntryFactory(environment, filesystem, gitEnvironment);
+            var pm = new ProcessManager(environment, gitEnvironment, filesystem);
+            var results = pm.GetGitBranches(@"D:\code\github\UnityInternal");
+        }
+
         [Test]
         public void ShouldProcessOutput()
         {

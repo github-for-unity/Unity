@@ -2,15 +2,16 @@ using System.Collections.Generic;
 using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
+using GitHub.Api;
 
 namespace GitHub.Unity.Tests
 {
     [TestFixture]
-    public class MacBasedGitEnvironmentTests
+    public class MacGitEnvironmentTests
     {
         public static IEnumerable<TestCaseData> GetDefaultGitPath_TestCases()
         {
-            var testCase = new TestCaseData(true, MacBasedGitEnvironment.DefaultGitPath);
+            var testCase = new TestCaseData(true, MacGitEnvironment.DefaultGitPath);
             testCase.SetName("Should be found");
             yield return testCase;
 
@@ -24,10 +25,10 @@ namespace GitHub.Unity.Tests
         {
             var environment = Substitute.For<IEnvironment>();
 
-            var fileSystem = Substitute.For<IFileSystem>();
-            fileSystem.FileExists(Arg.Any<string>()).Returns(fileFound);
+            var filesystem = Substitute.For<IFileSystem>();
+            filesystem.FileExists(Arg.Any<string>()).Returns(fileFound);
 
-            var linuxBasedGitInstallationStrategy = new MacBasedGitEnvironment(fileSystem, environment);
+            var linuxBasedGitInstallationStrategy = new MacGitEnvironment(environment, filesystem);
             linuxBasedGitInstallationStrategy.FindGitInstallationPath().Should().Be(filePath);
         }
 
@@ -47,10 +48,10 @@ namespace GitHub.Unity.Tests
         {
             var environment = Substitute.For<IEnvironment>();
 
-            var fileSystem = Substitute.For<IFileSystem>();
-            fileSystem.FileExists(Arg.Any<string>()).Returns(inFileSystem);
+            var filesystem = Substitute.For<IFileSystem>();
+            filesystem.FileExists(Arg.Any<string>()).Returns(inFileSystem);
 
-            var linuxBasedGitInstallationStrategy = new MacBasedGitEnvironment(fileSystem, environment);
+            var linuxBasedGitInstallationStrategy = new MacGitEnvironment(environment, filesystem);
             linuxBasedGitInstallationStrategy.ValidateGitInstall("asdf").Should().Be(found);
         }
     }

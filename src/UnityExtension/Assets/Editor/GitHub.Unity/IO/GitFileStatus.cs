@@ -7,6 +7,10 @@ namespace GitHub.Unity
         Added,
         Deleted,
         Renamed,
-        Copied
+        Copied,
+        TypeChange,
+        Unmerged,
+        Unknown,
+        Broken
     }
 }
