@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEditor;
 
 namespace GitHub.Unity
 {
@@ -11,10 +12,12 @@ namespace GitHub.Unity
         const string serverLabel = "Server";
         const string usernameLabel = "Username";
         const string passwordLabel = "Password";
-        const string twofaLabel = "Code";
+        const string twofaLabel = "Authentication code";
         const string loginButton = "Login";
         const string authTitle = "You're currently not signed in";
         const string authDescription = "Log into GitHub to start collaborating together";
+        const string twofaTitle = "Two-factor authentication";
+        const string twofaDescription = "Open the two-factor authentication app on your device to view your authentication code and verify your identity.";
 
         int cellWidth;
 
@@ -127,11 +130,16 @@ namespace GitHub.Unity
 
         private void OnGUI2FA()
         {
+            GUILayout.BeginVertical();
+            GUILayout.Label(twofaTitle, EditorStyles.boldLabel);
+            GUILayout.Label(twofaDescription, EditorStyles.wordWrappedLabel, GUILayout.Width(Screen.width / 2));
+
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label(twofaLabel);
+                GUILayout.Label(twofaLabel, GUILayout.Width(cellWidth));
+                GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                two2fa = GUILayout.TextField(two2fa);
+                two2fa = GUILayout.TextField(two2fa, GUILayout.Width(cellWidth));
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
@@ -142,7 +150,7 @@ namespace GitHub.Unity
                 authenticationService.LoginWith2fa(two2fa);
             }
             GUI.enabled = true;
-
+            GUILayout.EndVertical();
         }
 
         private void DoRequire2fa(string msg)
