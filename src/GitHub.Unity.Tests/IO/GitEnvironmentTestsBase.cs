@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using NSubstitute;
+using GitHub.Api;
 
 namespace GitHub.Unity.Tests
 {
@@ -9,16 +10,16 @@ namespace GitHub.Unity.Tests
         //Intentionally returning object here
         protected object BuildFindRootFileSystem()
         {
-            var fileSystem = Substitute.For<IFileSystem>();
+            var filesystem = Substitute.For<IFileSystem>();
 
-            fileSystem
+            filesystem
                 .GetDirectoryName(Arg.Any<string>())
                 .Returns(info => Path.GetDirectoryName((string) info[0]));
 
-            fileSystem.Combine(Arg.Any<string>(), Arg.Any<string>())
+            filesystem.Combine(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(info => Path.Combine((string) info[0], (string) info[1]));
 
-            fileSystem.GetParentDirectory(Arg.Any<string>())
+            filesystem.GetParentDirectory(Arg.Any<string>())
                 .Returns(info =>
                 {
                     switch ((string) info[0])
@@ -42,7 +43,7 @@ namespace GitHub.Unity.Tests
                     }
                 });
 
-            fileSystem.DirectoryExists(Arg.Any<string>())
+            filesystem.DirectoryExists(Arg.Any<string>())
                 .Returns(info =>
                 {
                     switch ((string) info[0])
@@ -54,7 +55,7 @@ namespace GitHub.Unity.Tests
                             return false;
                     }
                 });
-            return fileSystem;
+            return filesystem;
         }
     }
 }

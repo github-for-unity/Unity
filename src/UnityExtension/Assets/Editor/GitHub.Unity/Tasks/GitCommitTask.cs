@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
@@ -10,8 +11,13 @@ namespace GitHub.Unity
         private GitCommitTask(string message, string body, Action onSuccess = null, Action onFailure = null)
             : base(str => onSuccess.SafeInvoke(), onFailure)
         {
+            Guard.ArgumentNotNullOrWhiteSpace(message, "message");
+
             arguments = "commit ";
-            arguments += String.Format(@" -m ""{0}{1}{2}""", message, Environment.NewLine, body);
+            arguments += String.Format(" -m \"{0}", message);
+            if (!String.IsNullOrEmpty(body))
+                arguments += String.Format("{0}{1}", Environment.NewLine, body);
+            arguments += "\"";
         }
 
         public static void Schedule(IEnumerable<string> files, string message, string body, Action onSuccess = null, Action onFailure = null)
@@ -32,29 +38,8 @@ namespace GitHub.Unity
             StatusService.Instance.Run();
         }
 
-        public override bool Blocking
-        {
-            get { return false; }
-        }
-
-        public override bool Critical
-        {
-            get { return true; }
-        }
-
-        public override bool Cached
-        {
-            get { return true; }
-        }
-
-        public override string Label
-        {
-            get { return "git commit"; }
-        }
-
-        protected override string ProcessArguments
-        {
-            get { return arguments; }
-        }
+        public override bool Blocking { get { return false; } }
+        public override string Label { get { return "git commit"; } }
+        protected override string ProcessArguments { get { return arguments; } }
     }
 }

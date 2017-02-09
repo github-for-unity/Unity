@@ -14,34 +14,17 @@ namespace GitHub.Unity
             Tasks.Add(new FindGitTask(onSuccess, onFailure));
         }
 
-        public override bool Blocking
-        {
-            get { return false; }
-        }
+        public override bool Blocking { get { return false; } }
+        public override bool Critical { get { return false; } }
+        public override bool Cached { get { return false; } }
 
-        public override bool Critical
-        {
-            get { return false; }
-        }
-
-        public override bool Cached
-        {
-            get { return false; }
-        }
-
-        public override string Label
-        {
-            get { return "find git"; }
-        }
+        public override string Label { get { return "find git"; } }
 
         protected override string ProcessName
         {
-            get { return Utility.IsWindows ? "where" : "which"; }
+            get { return EntryPoint.Environment.IsWindows ? "where" : "which"; }
         }
 
-        protected override string ProcessArguments
-        {
-            get { return "git"; }
-        }
+        protected override string ProcessArguments { get { return "git"; } }
     }
 }

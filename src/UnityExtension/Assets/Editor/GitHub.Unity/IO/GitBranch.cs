@@ -1,3 +1,5 @@
+using GitHub.Api;
+
 namespace GitHub.Unity
 {
     struct GitBranch
@@ -8,6 +10,9 @@ namespace GitHub.Unity
 
         public GitBranch(string name, string tracking, bool active)
         {
+            Guard.ArgumentNotNullOrWhiteSpace(name, "name");
+            Guard.ArgumentNotNull(tracking, "tracking");
+
             Name = name;
             Tracking = tracking;
             Active = active;

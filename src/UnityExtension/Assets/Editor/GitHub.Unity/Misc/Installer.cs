@@ -1,13 +1,12 @@
 using System;
 using UnityEditor;
 using UnityEngine;
-using ILogger = GitHub.Unity.Logging.ILogger;
 
 namespace GitHub.Unity
 {
     class Installer : ScriptableObject
     {
-        private static readonly ILogger logger = Logging.Logger.GetLogger<Installer>();
+        private static readonly ILogging logger = Logging.GetLogger<Installer>();
 
         private const string PackageName = "GitHub extensions";
         private const string QueryTitle = "Embed " + PackageName + "?";

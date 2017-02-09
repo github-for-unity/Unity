@@ -2,12 +2,25 @@ using System.Collections.Generic;
 using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
+using GitHub.Api;
 
 namespace GitHub.Unity.Tests
 {
     [TestFixture]
     public class StatusOutputProcessorTests : BaseOutputProcessorTests
     {
+        //[Test]
+        public void IntegrationTest()
+        {
+            var fs = new FileSystem();
+            var env = new DefaultEnvironment();
+            env.UnityProjectPath = @"D:\code\github\UnityInternal\src\UnityExtension";
+            var genv = new WindowsGitEnvironment(env, fs);
+            var fact = new GitStatusEntryFactory(env, fs, genv);
+            var pm = new ProcessManager(env, genv, fs);
+            var results = pm.GetGitStatus(@"D:\code\github\UnityInternal", env, fs, genv);
+        }
+
         [Test]
         public void ShouldParseDirtyWorkingTreeUntracked()
         {
@@ -22,15 +35,15 @@ namespace GitHub.Unity.Tests
                 null
             };
 
-            AssertProcessOutput(output, new GitStatus()
+            AssertProcessOutput(output, new GitStatus
             {
                 LocalBranch = "master",
                 Entries = new List<GitStatusEntry>
                 {
                     new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.Modified),
-                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md"),
+                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md", true),
                     new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.Deleted),
-                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added),
+                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, staged: true),
                     new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked),
                 }
             });
@@ -50,7 +63,7 @@ namespace GitHub.Unity.Tests
                 null
             };
 
-            AssertProcessOutput(output, new GitStatus()
+            AssertProcessOutput(output, new GitStatus
             {
                 LocalBranch = "master",
                 RemoteBranch = "origin/master",
@@ -59,9 +72,9 @@ namespace GitHub.Unity.Tests
                 Entries = new List<GitStatusEntry>
                 {
                     new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.Modified),
-                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md"),
+                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md", true),
                     new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.Deleted),
-                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added),
+                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, staged: true),
                     new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked),
                 }
             });
@@ -81,7 +94,7 @@ namespace GitHub.Unity.Tests
                 null
             };
 
-            AssertProcessOutput(output, new GitStatus()
+            AssertProcessOutput(output, new GitStatus
             {
                 LocalBranch = "master",
                 RemoteBranch = "origin/master",
@@ -89,9 +102,9 @@ namespace GitHub.Unity.Tests
                 Entries = new List<GitStatusEntry>
                 {
                     new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.Modified),
-                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md"),
+                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md", true),
                     new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.Deleted),
-                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added),
+                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, staged: true),
                     new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked),
                 }
             });
@@ -111,7 +124,7 @@ namespace GitHub.Unity.Tests
                 null
             };
 
-            AssertProcessOutput(output, new GitStatus()
+            AssertProcessOutput(output, new GitStatus
             {
                 LocalBranch = "master",
                 RemoteBranch = "origin/master",
@@ -119,9 +132,9 @@ namespace GitHub.Unity.Tests
                 Entries = new List<GitStatusEntry>
                 {
                     new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.Modified),
-                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md"),
+                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md", true),
                     new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.Deleted),
-                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added),
+                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, staged: true),
                     new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked),
                 }
             });
@@ -141,16 +154,16 @@ namespace GitHub.Unity.Tests
                 null
             };
 
-            AssertProcessOutput(output, new GitStatus()
+            AssertProcessOutput(output, new GitStatus
             {
                 LocalBranch = "master",
                 RemoteBranch = "origin/master",
                 Entries = new List<GitStatusEntry>
                 {
                     new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.Modified),
-                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md"),
+                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md", true),
                     new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.Deleted),
-                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added),
+                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, staged: true),
                     new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked),
                 }
             });

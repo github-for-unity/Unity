@@ -1,111 +1,54 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using GitHub.Unity.Logging;
 
 namespace GitHub.Unity
 {
     class GitListRemotesTask : GitTask
     {
-        private const string ParseFailedError = "Remote parse error in line: '{0}'";
+        private Action<IList<GitRemote>> callback;
+        private RemoteListOutputProcessor processor;
 
-        private static Action<IList<GitRemote>> onRemotesListed;
-        private List<GitRemote> entries = new List<GitRemote>();
-        private Action<string> onSuccess;
+        private List<GitRemote> remotes = new List<GitRemote>();
 
-        public GitListRemotesTask()
-            : base(null, null)
+        private GitListRemotesTask(Action<IList<GitRemote>> onSuccess, Action onFailure = null)
+            : base(null, onFailure)
         {
-            this.onSuccess = ProcessOutput;
+            processor = new RemoteListOutputProcessor();
+            callback = onSuccess;
         }
 
-        public static void RegisterCallback(Action<IList<GitRemote>> callback)
+        public static void Schedule(Action<IList<GitRemote>> onSuccess, Action onFailure = null)
         {
-            onRemotesListed += callback;
+            Tasks.Add(new GitListRemotesTask(onSuccess, onFailure));
         }
 
-        public static void UnregisterCallback(Action<IList<GitRemote>> callback)
+        protected override void OnProcessOutputUpdate()
         {
-            onRemotesListed -= callback;
+            Logger.Debug("Done");
+            Tasks.ScheduleMainThread(DeliverResult);
         }
 
-        public static void Schedule()
+        protected override ProcessOutputManager HookupOutput(IProcess process)
         {
-            Tasks.Add(new GitListRemotesTask());
+            processor.OnRemote += AddRemote;
+            return new ProcessOutputManager(process, processor);
         }
 
         private void DeliverResult()
         {
-            if (onRemotesListed != null)
-            {
-                onRemotesListed(entries);
-            }
-
-            entries.Clear();
+            callback.SafeInvoke(remotes);
         }
 
-        private void ProcessOutput(string value)
+        private void AddRemote(GitRemote remote)
         {
-            foreach (var line in value.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
-            {
-                // Parse line as a remote
-                GitRemote remote;
-                if (GitRemote.TryParse(line, out remote))
-                {
-                    // Join Fetch/Push entries into single Both entries
-                    if (remote.Function != GitRemoteFunction.Unknown &&
-                        entries.RemoveAll(
-                            e => e.Function != GitRemoteFunction.Unknown && e.Function != remote.Function && e.Name.Equals(remote.Name)) > 0)
-                    {
-                        remote.Function = GitRemoteFunction.Both;
-                    }
-
-                    // Whatever the case, list the remote
-                    entries.Add(remote);
-                }
-                else
-                {
-                    Logger.Warning(ParseFailedError, line);
-                }
-            }
-            InternalInvoke();
+            remotes.Add(remote);
         }
 
-        private void InternalInvoke()
-        {
-            Tasks.ScheduleMainThread(DeliverResult);
-        }
-
-        public override bool Blocking
-        {
-            get { return false; }
-        }
-
-        public override TaskQueueSetting Queued
-        {
-            get { return TaskQueueSetting.QueueSingle; }
-        }
-
-        public override bool Critical
-        {
-            get { return false; }
-        }
-
-        public override bool Cached
-        {
-            get { return false; }
-        }
-
-        public override string Label
-        {
-            get { return "git remote"; }
-        }
-
-        protected override string ProcessArguments
-        {
-            get { return "remote -v"; }
-        }
-
-        protected override Action<string> OnSuccess { get { return onSuccess; } }
+        public override TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; } }
+        public override bool Blocking { get { return false; } }
+        public override bool Critical { get { return false; } }
+        public override bool Cached { get { return false; } }
+        public override string Label { get { return "git remote"; } }
+        protected override string ProcessArguments { get { return "remote -v"; } }
     }
 }

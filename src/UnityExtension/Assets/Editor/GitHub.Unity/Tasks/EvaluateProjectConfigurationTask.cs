@@ -82,14 +82,14 @@ namespace GitHub.Unity
             result = new GitIgnoreRule();
 
             int effect;
-            if (!int.TryParse(Settings.Get(String.Format(EffectKey, index), "-1"), out effect) || effect < 0)
+            if (!int.TryParse(EntryPoint.Settings.Get(String.Format(EffectKey, index), "-1"), out effect) || effect < 0)
             {
                 return false;
             }
 
             result.Effect = (GitIgnoreRuleEffect)effect;
 
-            result.FileString = Settings.Get(String.Format(FileKey, index));
+            result.FileString = EntryPoint.Settings.Get(String.Format(FileKey, index));
 
             try
             {
@@ -100,7 +100,7 @@ namespace GitHub.Unity
                 result.File = null;
             }
 
-            result.LineString = Settings.Get(String.Format(LineKey, index));
+            result.LineString = EntryPoint.Settings.Get(String.Format(LineKey, index));
 
             try
             {
@@ -111,42 +111,42 @@ namespace GitHub.Unity
                 result.Line = null;
             }
 
-            result.TriggerText = Settings.Get(String.Format(TriggerTextKey, index));
+            result.TriggerText = EntryPoint.Settings.Get(String.Format(TriggerTextKey, index));
 
             return true;
         }
 
         public static void Save(int index, GitIgnoreRuleEffect effect, string file, string line, string triggerText)
         {
-            Settings.Set(String.Format(EffectKey, index), ((int)effect).ToString(), true);
-            Settings.Set(String.Format(FileKey, index), file, true);
-            Settings.Set(String.Format(LineKey, index), line, true);
-            Settings.Set(String.Format(TriggerTextKey, index), triggerText);
+            EntryPoint.Settings.Set(String.Format(EffectKey, index), ((int)effect).ToString());
+            EntryPoint.Settings.Set(String.Format(FileKey, index), file);
+            EntryPoint.Settings.Set(String.Format(LineKey, index), line);
+            EntryPoint.Settings.Set(String.Format(TriggerTextKey, index), triggerText);
         }
 
         public static void New()
         {
             Save(Count, GitIgnoreRuleEffect.Require, "", "", "");
-            Settings.Set(CountKey, (Count + 1).ToString());
+            EntryPoint.Settings.Set(CountKey, (Count + 1));
         }
 
         public static void Delete(int index)
         {
-            Settings.Unset(String.Format(EffectKey, index), true);
-            Settings.Unset(String.Format(FileKey, index), true);
-            Settings.Unset(String.Format(LineKey, index), true);
-            Settings.Unset(String.Format(TriggerTextKey, index), true);
+            EntryPoint.Settings.Unset(String.Format(EffectKey, index));
+            EntryPoint.Settings.Unset(String.Format(FileKey, index));
+            EntryPoint.Settings.Unset(String.Format(LineKey, index));
+            EntryPoint.Settings.Unset(String.Format(TriggerTextKey, index));
 
             var count = Count;
             for (; index < count; ++index)
             {
-                Settings.Rename(String.Format(EffectKey, index), String.Format(EffectKey, index - 1), true);
-                Settings.Rename(String.Format(FileKey, index), String.Format(FileKey, index - 1), true);
-                Settings.Rename(String.Format(LineKey, index), String.Format(LineKey, index - 1), true);
-                Settings.Rename(String.Format(TriggerTextKey, index), String.Format(TriggerTextKey, index - 1), true);
+                EntryPoint.Settings.Rename(String.Format(EffectKey, index), String.Format(EffectKey, index - 1));
+                EntryPoint.Settings.Rename(String.Format(FileKey, index), String.Format(FileKey, index - 1));
+                EntryPoint.Settings.Rename(String.Format(LineKey, index), String.Format(LineKey, index - 1));
+                EntryPoint.Settings.Rename(String.Format(TriggerTextKey, index), String.Format(TriggerTextKey, index - 1));
             }
 
-            Settings.Set(CountKey, (count - 1).ToString());
+            EntryPoint.Settings.Set(CountKey, (count - 1));
         }
 
         public override string ToString()
@@ -156,7 +156,7 @@ namespace GitHub.Unity
 
         public static int Count
         {
-            get { return Mathf.Max(0, int.Parse(Settings.Get(CountKey, "0"))); }
+            get { return Mathf.Max(0, EntryPoint.Settings.Get(CountKey, 0)); }
         }
 
         public GitIgnoreRuleEffect Effect { get; private set; }
@@ -167,7 +167,7 @@ namespace GitHub.Unity
         public string TriggerText { get; private set; }
     }
 
-    class EvaluateProjectConfigurationTask : ITask
+    class EvaluateProjectConfigurationTask : BaseTask
     {
         private const string GitIgnoreFilePattern = ".gitignore";
         private const string VCSPropertyName = "m_ExternalVersionControlSupport";
@@ -203,17 +203,14 @@ namespace GitHub.Unity
             return InternalEditorUtility.LoadSerializedFileAndForget(EditorSettingsPath).FirstOrDefault();
         }
 
-        public void Run()
+        public override void Run()
         {
             Done = false;
             Progress = 0f;
 
             issues.Clear();
 
-            if (OnBegin != null)
-            {
-                OnBegin(this);
-            }
+            OnBegin.SafeInvoke(this);
 
             // Unity project config
             Tasks.ScheduleMainThread(EvaluateLocalConfiguration);
@@ -230,30 +227,14 @@ namespace GitHub.Unity
             Progress = 1f;
             Done = true;
 
-            if (OnEnd != null)
-            {
-                OnEnd(this);
-            }
-
-            if (onEvaluationResult != null)
-            {
-                onEvaluationResult(issues);
-            }
+            OnEnd.SafeInvoke(this);
+            onEvaluationResult.SafeInvoke(issues);
         }
 
-        public void Abort()
+        public override void Abort()
         {
             Done = true;
         }
-
-        public void Disconnect()
-        {}
-
-        public void Reconnect()
-        {}
-
-        public void WriteCache(TextWriter cache)
-        {}
 
         private void EvaluateLocalConfiguration()
         {
@@ -374,36 +355,11 @@ namespace GitHub.Unity
             }
         }
 
-        public bool Blocking
-        {
-            get { return false; }
-        }
-
-        public float Progress { get; protected set; }
-        public bool Done { get; protected set; }
-
-        public TaskQueueSetting Queued
-        {
-            get { return TaskQueueSetting.QueueSingle; }
-        }
-
-        public bool Critical
-        {
-            get { return false; }
-        }
-
-        public bool Cached
-        {
-            get { return false; }
-        }
-
-        public Action<ITask> OnBegin { set; protected get; }
-        public Action<ITask> OnEnd { set; protected get; }
-
-        public string Label
-        {
-            get { return "Project Evaluation"; }
-        }
+        public override bool Blocking { get { return false; } }
+        public override TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; }}
+        public override bool Critical { get { return false; } }
+        public override bool Cached { get { return false; } }
+        public override string Label { get { return "Project Evaluation"; } }
 
         private enum SerializationSetting
         {
