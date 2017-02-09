@@ -61,18 +61,6 @@ namespace GitHub.Unity
 
             logger.Debug("Initialize");
 
-            FileSystem = new FileSystem();
-
-            Environment = new DefaultEnvironment();
-
-            Platform = new Platform(Environment);
-
-            GitEnvironment = Environment.IsWindows
-                ? new WindowsGitEnvironment(FileSystem, Environment)
-                : (Environment.IsLinux
-                    ? (IGitEnvironment)new LinuxBasedGitEnvironment(FileSystem, Environment)
-                    : new MacBasedGitEnvironment(FileSystem, Environment));
-
             ProcessManager = new ProcessManager(Environment, GitEnvironment, FileSystem);
 
             DeterminePaths(Environment, GitEnvironment, FileSystem);
@@ -179,14 +167,56 @@ namespace GitHub.Unity
             return success;
         }
 
-        public static IEnvironment Environment { get; private set; }
-        public static IGitEnvironment GitEnvironment { get; private set; }
+        private static IEnvironment environment;
+        public static IEnvironment Environment
+        {
+            get
+            {
+                if (environment == null)
+                {
+                    environment = new DefaultEnvironment();
+                }
+                return environment;
+            }
+        }
+        private static IGitEnvironment gitEnvironment;
+        public static IGitEnvironment GitEnvironment
+        {
+            get
+            {
+                return Platform.GitEnvironment;
+            }
+        }
 
-        public static IFileSystem FileSystem { get; private set; }
+        private static IFileSystem filesystem;
+        public static IFileSystem FileSystem
+        {
+            get
+            {
+                if (filesystem == null)
+                {
+                    filesystem = new FileSystem();
+                }
+                return filesystem;
+            }
+        }
+
+        private static IPlatform platform;
+        public static IPlatform Platform
+        {
+            get
+            {
+                if (platform == null)
+                {
+                    platform = new Platform(Environment, FileSystem);
+                }
+                return platform;
+            }
+        }
+
         public static IProcessManager ProcessManager { get; private set; }
 
         public static GitStatusEntryFactory GitStatusEntryFactory { get; private set; }
         public static ISettings Settings { get; private set; }
-        public static IPlatform Platform { get; private set; }
     }
 }

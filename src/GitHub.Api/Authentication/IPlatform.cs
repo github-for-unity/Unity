@@ -3,5 +3,6 @@
     public interface IPlatform
     {
         ICredentialManager CredentialManager { get; }
+        IGitEnvironment GitEnvironment { get; }
     }
 }
