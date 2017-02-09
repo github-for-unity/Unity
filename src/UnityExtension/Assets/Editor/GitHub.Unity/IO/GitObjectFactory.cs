@@ -3,14 +3,14 @@ using GitHub.Api;
 
 namespace GitHub.Unity
 {
-    class GitStatusEntryFactory : IGitStatusEntryFactory
+    class GitObjectFactory : IGitObjectFactory
     {
         private readonly IEnvironment environment;
         private readonly IFileSystem filesystem;
         private readonly IGitEnvironment gitEnvironment;
         private string fullGitRoot;
 
-        public GitStatusEntryFactory(IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment)
+        public GitObjectFactory(IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment)
         {
             this.environment = environment;
             this.filesystem = filesystem;

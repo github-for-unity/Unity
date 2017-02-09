@@ -6,11 +6,11 @@ namespace GitHub.Unity.Tests
     {
         protected const string TestRootPath = @"c:\TestSource";
 
-        internal IGitStatusEntryFactory CreateGitStatusEntryFactory()
+        internal IGitObjectFactory CreateGitObjectFactory()
         {
-            var gitStatusEntryFactory = Substitute.For<IGitStatusEntryFactory>();
+            var gitObjectFactory = Substitute.For<IGitObjectFactory>();
 
-            gitStatusEntryFactory.CreateGitStatusEntry(Arg.Any<string>(), Arg.Any<GitFileStatus>(), Arg.Any<string>(), Arg.Any<bool>())
+            gitObjectFactory.CreateGitStatusEntry(Arg.Any<string>(), Arg.Any<GitFileStatus>(), Arg.Any<string>(), Arg.Any<bool>())
                                  .Returns(info => {
                                      var path = (string)info[0];
                                      var status = (GitFileStatus)info[1];
@@ -21,7 +21,7 @@ namespace GitHub.Unity.Tests
                                          originalPath, staged);
                                  });
 
-            gitStatusEntryFactory.CreateGitLock(Arg.Any<string>(), Arg.Any<string>())
+            gitObjectFactory.CreateGitLock(Arg.Any<string>(), Arg.Any<string>())
                                  .Returns(info => {
                                      var path = (string)info[0];
                                      var user = (string)info[1];
@@ -29,7 +29,7 @@ namespace GitHub.Unity.Tests
                                      return new GitLock(path, TestRootPath + @"\" + path, user);
                                  });
 
-            return gitStatusEntryFactory;
+            return gitObjectFactory;
         }
     }
 }

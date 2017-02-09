@@ -8,10 +8,10 @@ namespace GitHub.Unity.Tests
     {
         private void AssertProcessOutput(IEnumerable<string> lines, GitLock[] expected)
         {
-            var gitStatusEntryFactory = CreateGitStatusEntryFactory();
+            var gitObjectFactory = CreateGitObjectFactory();
 
             var results = new List<GitLock>();
-            var outputProcessor = new LockOutputProcessor(gitStatusEntryFactory);
+            var outputProcessor = new LockOutputProcessor(gitObjectFactory);
             outputProcessor.OnGitLock += gitLock => { results.Add(gitLock); };
 
             foreach (var line in lines)

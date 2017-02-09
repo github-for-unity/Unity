@@ -10,19 +10,19 @@ namespace GitHub.Unity
         private Action<IEnumerable<GitLock>> callback;
         private List<GitLock> gitLocks = new List<GitLock>();
 
-        private GitListLocksTask(Action<IEnumerable<GitLock>> onSuccess, IGitStatusEntryFactory gitStatusEntryFactory,
+        private GitListLocksTask(Action<IEnumerable<GitLock>> onSuccess, IGitObjectFactory gitObjectFactory,
             Action onFailure = null) : base(null, onFailure)
         {
-            Guard.ArgumentNotNull(gitStatusEntryFactory, "gitStatusEntryFactory");
+            Guard.ArgumentNotNull(gitObjectFactory, "gitStatusEntryFactory");
 
-            processor = new LockOutputProcessor(gitStatusEntryFactory);
+            processor = new LockOutputProcessor(gitObjectFactory);
             callback = onSuccess;
         }
 
-        public static void Schedule(Action<IEnumerable<GitLock>> onSuccess, IGitStatusEntryFactory gitStatusEntryFactory,
+        public static void Schedule(Action<IEnumerable<GitLock>> onSuccess, IGitObjectFactory gitObjectFactory,
             Action onFailure = null)
         {
-            Tasks.Add(new GitListLocksTask(onSuccess, gitStatusEntryFactory, onFailure));
+            Tasks.Add(new GitListLocksTask(onSuccess, gitObjectFactory, onFailure));
         }
 
         protected override ProcessOutputManager HookupOutput(IProcess process)
