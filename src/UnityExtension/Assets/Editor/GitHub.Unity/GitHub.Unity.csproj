@@ -61,6 +61,7 @@
     <Compile Include="IO\GitLock.cs" />
     <Compile Include="IO\LockOutputProcessor.cs" />
     <Compile Include="Logging\FileLogAdapter.cs" />
+    <Compile Include="Tasks\GitListLocksTask.cs" />
     <Compile Include="Threading\SingleThreadSynchronizationContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
