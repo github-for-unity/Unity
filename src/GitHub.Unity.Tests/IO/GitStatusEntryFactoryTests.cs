@@ -51,7 +51,7 @@ namespace GitHub.Unity.Tests
             var expected = new GitStatusEntry(path, fullPath, projectPath, status);
 
             var filesystem = CreateFileSystem();
-            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, filesystem, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment, filesystem, gitEnvironment);
 
             var result = gitStatusEntryFactory.CreateGitStatusEntry(path, status);
 
@@ -74,7 +74,7 @@ namespace GitHub.Unity.Tests
 
             var filesystem = CreateFileSystem();
 
-            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, filesystem, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment, filesystem, gitEnvironment);
 
             var result = gitStatusEntryFactory.CreateGitStatusEntry(path, status);
 
@@ -97,7 +97,7 @@ namespace GitHub.Unity.Tests
 
             var filesystem = CreateFileSystem();
 
-            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, filesystem, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment, filesystem, gitEnvironment);
 
             var result = gitStatusEntryFactory.CreateGitStatusEntry(path, status);
 

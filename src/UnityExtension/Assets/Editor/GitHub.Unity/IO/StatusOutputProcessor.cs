@@ -10,16 +10,16 @@ namespace GitHub.Unity
         private static readonly Regex branchTrackedAndDelta = new Regex(@"(.*)\.\.\.(.*)\s\[(.*)\]",
             RegexOptions.Compiled);
 
-        private readonly IGitStatusEntryFactory gitStatusEntryFactory;
+        private readonly IGitObjectFactory gitObjectFactory;
         private int ahead;
         private int behind;
         private List<GitStatusEntry> entries;
         private string localBranch;
         private string remoteBranch;
 
-        public StatusOutputProcessor(IGitStatusEntryFactory gitStatusEntryFactory)
+        public StatusOutputProcessor(IGitObjectFactory gitObjectFactory)
         {
-            this.gitStatusEntryFactory = gitStatusEntryFactory;
+            this.gitObjectFactory = gitObjectFactory;
             Reset();
         }
 
@@ -176,7 +176,7 @@ namespace GitHub.Unity
                         }
                     }
 
-                    var gitStatusEntry = gitStatusEntryFactory.CreateGitStatusEntry(path, status, originalPath, staged);
+                    var gitStatusEntry = gitObjectFactory.CreateGitStatusEntry(path, status, originalPath, staged);
                     entries.Add(gitStatusEntry);
                 }
             }

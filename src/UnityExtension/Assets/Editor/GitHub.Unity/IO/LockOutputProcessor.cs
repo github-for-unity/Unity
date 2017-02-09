@@ -4,11 +4,11 @@ namespace GitHub.Unity
 {
     class LockOutputProcessor : BaseOutputProcessor
     {
-        private IGitStatusEntryFactory gitStatusEntryFactory;
+        private IGitObjectFactory gitObjectFactory;
 
-        public LockOutputProcessor(IGitStatusEntryFactory gitStatusEntryFactory)
+        public LockOutputProcessor(IGitObjectFactory gitObjectFactory)
         {
-            this.gitStatusEntryFactory = gitStatusEntryFactory;
+            this.gitObjectFactory = gitObjectFactory;
         }
 
         public override void LineReceived(string line)
@@ -45,7 +45,7 @@ namespace GitHub.Unity
             proc.SkipWhitespace();
             var user = proc.ReadUntil('<').TrimEnd();
 
-            var gitLock = gitStatusEntryFactory.CreateGitLock(file, user);
+            var gitLock = gitObjectFactory.CreateGitLock(file, user);
             OnGitLock.SafeInvoke(gitLock);
         }
 

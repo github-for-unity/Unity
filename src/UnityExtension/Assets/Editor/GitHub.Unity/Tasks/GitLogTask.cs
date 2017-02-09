@@ -10,20 +10,20 @@ namespace GitHub.Unity
         private List<GitLogEntry> gitLogEntries;
         private LogEntryOutputProcessor processor;
 
-        private GitLogTask(IGitStatusEntryFactory gitStatusEntryFactory,
+        private GitLogTask(IGitObjectFactory gitObjectFactory,
             Action<IList<GitLogEntry>> onSuccess, Action onFailure)
             : base(null, onFailure)
         {
-            Guard.ArgumentNotNull(gitStatusEntryFactory, "gitStatusEntryFactory");
+            Guard.ArgumentNotNull(gitObjectFactory, "gitStatusEntryFactory");
 
             gitLogEntries = new List<GitLogEntry>();
             callback = onSuccess;
-            processor = new LogEntryOutputProcessor(gitStatusEntryFactory);
+            processor = new LogEntryOutputProcessor(gitObjectFactory);
         }
 
         public static void Schedule(Action<IList<GitLogEntry>> onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitLogTask(EntryPoint.GitStatusEntryFactory, onSuccess, onFailure));
+            Tasks.Add(new GitLogTask(EntryPoint.GitObjectFactory, onSuccess, onFailure));
         }
 
         protected override void OnProcessOutputUpdate()

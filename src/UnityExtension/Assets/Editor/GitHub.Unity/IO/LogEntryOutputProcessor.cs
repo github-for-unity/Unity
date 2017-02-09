@@ -8,7 +8,7 @@ namespace GitHub.Unity
 {
     class LogEntryOutputProcessor : BaseOutputProcessor
     {
-        private readonly IGitStatusEntryFactory gitStatusEntryFactory;
+        private readonly IGitObjectFactory gitObjectFactory;
         public event Action<GitLogEntry> OnLogEntry;
         private ProcessingPhase phase;
         private string authorName;
@@ -29,9 +29,9 @@ namespace GitHub.Unity
 
         private StringBuilder sb;
 
-        public LogEntryOutputProcessor(IGitStatusEntryFactory gitStatusEntryFactory)
+        public LogEntryOutputProcessor(IGitObjectFactory gitObjectFactory)
         {
-            this.gitStatusEntryFactory = gitStatusEntryFactory;
+            this.gitObjectFactory = gitObjectFactory;
             Reset();
         }
 
@@ -290,7 +290,7 @@ namespace GitHub.Unity
                             break;
                     }
 
-                    changes.Add(gitStatusEntryFactory.CreateGitStatusEntry(file, status, originalPath));
+                    changes.Add(gitObjectFactory.CreateGitStatusEntry(file, status, originalPath));
 
                     break;
 

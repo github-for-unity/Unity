@@ -78,8 +78,8 @@
     <Compile Include="IO\FileSystem.cs" />
     <Compile Include="IO\GitRemote.cs" />
     <Compile Include="IO\GitStatusEntry.cs" />
-    <Compile Include="IO\GitStatusEntryFactory.cs" />
-    <Compile Include="IO\IGitStatusEntryFactory.cs" />
+    <Compile Include="IO\GitObjectFactory.cs" />
+    <Compile Include="IO\IGitObjectFactory.cs" />
     <Compile Include="IO\IOutputProcessor.cs" />
     <Compile Include="IO\IProcess.cs" />
     <Compile Include="Helpers\LineProcessor.cs" />
