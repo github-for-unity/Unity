@@ -59,6 +59,28 @@ namespace GitHub.Unity
             //    activeTab = SubTab.Settings; // If we do complete init, make sure that we return to the settings tab for further setup
             //}
 
+
+            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
+            {
+                GUILayout.Space(3);
+                GUILayout.BeginVertical(GUILayout.Width(16));
+                {
+                    GUILayout.Space(9);
+                    GUILayout.Label(Styles.RepoIcon, GUILayout.Height(20), GUILayout.Width(20));
+                }
+                GUILayout.EndVertical();
+
+                GUILayout.BeginVertical();
+                {
+                    GUILayout.Space(3);
+                    GUILayout.Label("fake-org/fake-repo-name", Styles.HeaderRepoLabelStyle);
+                    GUILayout.Space(-2);
+                    GUILayout.Label("donokuda/totally-fake-branch-name", Styles.HeaderBranchLabelStyle);
+                }
+                GUILayout.EndVertical();
+            }
+            GUILayout.EndHorizontal();
+
             // Subtabs & toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
