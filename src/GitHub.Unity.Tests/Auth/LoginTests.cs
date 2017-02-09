@@ -7,7 +7,7 @@ namespace GitHub.Unity.Tests
     public class LoginTests
     {
         [Test]
-        public async void SimpleLogin()
+        public void SimpleLogin()
         {
             var program = new Program();
             var credentialManager = new WindowsCredentialManager();
@@ -17,7 +17,7 @@ namespace GitHub.Unity.Tests
             var githubclient = new Octokit.GitHubClient(program.ProductHeader,
                         new SimpleCredentialStore(hostAddress, credentialManager),
                         hostAddress.ApiUri);
-            var repo = await githubclient.Repository.Get("github", "VisualStudio");
+            var repo = githubclient.Repository.Get("github", "VisualStudio").Result;
             Assert.NotNull(repo);
             Assert.AreEqual("VisualStudio", repo.Name);
         }
