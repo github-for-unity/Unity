@@ -13,6 +13,8 @@ namespace GitHub.Unity
         const string passwordLabel = "Password";
         const string twofaLabel = "Code";
         const string loginButton = "Login";
+        const string authTitle = "You're currently not signed in";
+        const string authDescription = "Log into GitHub to start collaborating together";
 
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string username = "";
@@ -76,9 +78,9 @@ namespace GitHub.Unity
                 GUILayout.BeginVertical();
                 {
                     GUILayout.Space(3);
-                    GUILayout.Label("You're currently not signed in", Styles.HeaderRepoLabelStyle);
+                    GUILayout.Label(authTitle, Styles.HeaderRepoLabelStyle);
                     GUILayout.Space(-2);
-                    GUILayout.Label("Log into GitHub to start collaborating together", Styles.HeaderBranchLabelStyle);
+                    GUILayout.Label(authDescription, Styles.HeaderBranchLabelStyle);
                 }
                 GUILayout.EndVertical();
             }
