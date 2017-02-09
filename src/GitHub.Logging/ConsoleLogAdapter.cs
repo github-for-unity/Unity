@@ -1,7 +1,6 @@
-using GitHub.Unity;
 using System;
 
-namespace GitHub.Logging
+namespace GitHub.Unity
 {
     class ConsoleLogAdapter : ILogging
     {

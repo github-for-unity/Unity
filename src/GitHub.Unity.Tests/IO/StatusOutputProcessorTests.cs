@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
+using GitHub.Api;
 
 namespace GitHub.Unity.Tests
 {
@@ -14,7 +15,7 @@ namespace GitHub.Unity.Tests
             var fs = new FileSystem();
             var env = new DefaultEnvironment();
             env.UnityProjectPath = @"D:\code\github\UnityInternal\src\UnityExtension";
-            var genv = new WindowsGitEnvironment(fs, env);
+            var genv = new WindowsGitEnvironment(env, fs);
             var fact = new GitStatusEntryFactory(env, fs, genv);
             var pm = new ProcessManager(env, genv, fs);
             var results = pm.GetGitStatus(@"D:\code\github\UnityInternal", env, fs, genv);

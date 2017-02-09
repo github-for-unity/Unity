@@ -23,12 +23,12 @@ namespace GitHub.Unity.Tests
         }
 
         public static IEnumerable<GitLogEntry> GetGitLogEntries(this ProcessManager processManager, string workingDirectory,
-            IEnvironment environment, IFileSystem fileSystem, IGitEnvironment gitEnvironment,
+            IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment,
             int? logCount = null)
         {
             var results = new List<GitLogEntry>();
 
-            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, fileSystem, gitEnvironment);
+            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, filesystem, gitEnvironment);
 
             var processor = new LogEntryOutputProcessor(gitStatusEntryFactory);
             processor.OnLogEntry += data => results.Add(data);
@@ -49,11 +49,11 @@ namespace GitHub.Unity.Tests
             return results;
         }
 
-        public static GitStatus GetGitStatus(this ProcessManager processManager, string workingDirectory, IEnvironment environment, IFileSystem fileSystem, IGitEnvironment gitEnvironment)
+        public static GitStatus GetGitStatus(this ProcessManager processManager, string workingDirectory, IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment)
         {
             var result = new GitStatus();
 
-            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, fileSystem, gitEnvironment);
+            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, filesystem, gitEnvironment);
 
             var processor = new StatusOutputProcessor(gitStatusEntryFactory);
             processor.OnStatus += data => result = data;
