@@ -1,2 +1,16 @@
-# UnityInternal
-GitHub for Unity project, internal repository for bootstrapping and communication with external partners and contractors
+# GitHub for Unity
+
+## How to install
+
+### Requirements
+
+- [Unity 5.4 or higher](https://store.unity.com/download). Personal edition is fine.
+
+### Installation
+
+- Create a new Unity project.
+- Download the latest release from the [releases page](https://github.com/github/UnityInternal/releases) and double-click the unitypackage file. The package will install itself into the project currently opened in Unity, and Unity will automatically load it once all the files are in the project.
+
+### Where is the UI
+
+Go to the "Window" top level menu and select "GitHub".
