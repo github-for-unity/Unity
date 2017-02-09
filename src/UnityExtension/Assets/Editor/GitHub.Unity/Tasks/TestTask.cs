@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using GitHub.Unity.Logging;
 using UnityEditor;
 
 namespace GitHub.Unity
 {
     class TestTask : ITask
     {
+        private static readonly ILogging logger = Logging.GetLogger<TestTask>();
         private bool reconnecting = false;
 
         private TestTask(bool shouldBlock)
@@ -17,8 +17,6 @@ namespace GitHub.Unity
             Done = false;
             Progress = 0.0f;
         }
-
-        private static readonly ILogger logger = Logger.GetLogger<TestTask>();
 
         public static TestTask Parse(IDictionary<string, object> data)
         {

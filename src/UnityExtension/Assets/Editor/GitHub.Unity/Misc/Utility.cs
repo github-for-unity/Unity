@@ -6,13 +6,12 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
-using ILogger = GitHub.Unity.Logging.ILogger;
 
 namespace GitHub.Unity
 {
     class Utility : ScriptableObject
     {
-        private static readonly ILogger logger = Logging.Logger.GetLogger<Utility>();
+        private static readonly ILogging logger = Logging.GetLogger<Utility>();
 
         public const string StatusRenameDivider = "->";
         public static readonly Regex ListBranchesRegex =
@@ -37,8 +36,11 @@ namespace GitHub.Unity
 
         public static void RegisterReadyCallback(Action callback)
         {
-            onReady += callback;
-            if (ready)
+            if (!ready)
+            {
+                onReady += callback;
+            }
+            else
             {
                 callback();
             }

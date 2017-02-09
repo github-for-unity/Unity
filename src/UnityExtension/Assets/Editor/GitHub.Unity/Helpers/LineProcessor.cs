@@ -88,8 +88,6 @@ namespace GitHub.Unity
                     break;
                 }
             }
-            if (end == line.Length)
-                return null;
             LastSubstring = line.Substring(current, end - current);
             current = end;
             return LastSubstring;
