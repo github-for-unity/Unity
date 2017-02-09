@@ -8,7 +8,6 @@ namespace GitHub.Unity
     class Styles
     {
         public const float
-            // Baseline spacing for margins and padding
             BaseSpacing = 10f,
             BroadModeLimit = 500f,
             NarrowModeLimit = 300f,
@@ -513,7 +512,7 @@ namespace GitHub.Unity
                 {
                     repoIcon = Utility.GetIcon("repo.png", "repo@2x.png");
                 }
- 
+
                 return repoIcon;
             }
         }
