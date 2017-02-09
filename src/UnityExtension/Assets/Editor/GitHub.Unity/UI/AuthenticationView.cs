@@ -63,6 +63,27 @@ namespace GitHub.Unity
 
         private void OnGUILogin()
         {
+            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
+            {
+                GUILayout.Space(3);
+                GUILayout.BeginVertical(GUILayout.Width(16));
+                {
+                    GUILayout.Space(9);
+                    GUILayout.Label(Styles.TitleIcon, GUILayout.Height(20), GUILayout.Width(20));
+                }
+                GUILayout.EndVertical();
+
+                GUILayout.BeginVertical();
+                {
+                    GUILayout.Space(3);
+                    GUILayout.Label("You're currently not signed in", Styles.HeaderRepoLabelStyle);
+                    GUILayout.Space(-2);
+                    GUILayout.Label("Log into GitHub to start collaborating together", Styles.HeaderBranchLabelStyle);
+                }
+                GUILayout.EndVertical();
+            }
+            GUILayout.EndHorizontal();
+
             GUILayout.BeginHorizontal();
             {
                 GUILayout.Label(usernameLabel);
