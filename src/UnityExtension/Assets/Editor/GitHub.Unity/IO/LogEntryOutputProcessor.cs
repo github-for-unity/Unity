@@ -290,7 +290,7 @@ namespace GitHub.Unity
                             break;
                     }
 
-                    changes.Add(gitStatusEntryFactory.Create(file, status, originalPath));
+                    changes.Add(gitStatusEntryFactory.CreateGitStatusEntry(file, status, originalPath));
 
                     break;
 

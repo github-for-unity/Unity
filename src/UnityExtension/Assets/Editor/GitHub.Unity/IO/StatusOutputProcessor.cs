@@ -176,7 +176,7 @@ namespace GitHub.Unity
                         }
                     }
 
-                    var gitStatusEntry = gitStatusEntryFactory.Create(path, status, originalPath, staged);
+                    var gitStatusEntry = gitStatusEntryFactory.CreateGitStatusEntry(path, status, originalPath, staged);
                     entries.Add(gitStatusEntry);
                 }
             }
