@@ -58,6 +58,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\ActionExtensions.cs" />
+    <Compile Include="IO\GitLock.cs" />
+    <Compile Include="IO\LockOutputProcessor.cs" />
     <Compile Include="Logging\FileLogAdapter.cs" />
     <Compile Include="Threading\SingleThreadSynchronizationContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

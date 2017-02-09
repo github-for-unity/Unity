@@ -36,5 +36,10 @@ namespace GitHub.Unity
 
             return new GitStatusEntry(path, fullPath, projectPath, status, originalPath, staged);
         }
+
+        public GitLock CreateGitLock(string file, string server, string user, int userId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
