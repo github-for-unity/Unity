@@ -71,10 +71,7 @@ namespace GitHub.Unity
               }
               GUILayout.EndHorizontal();
 
-                GUIStyle GenericBoxStyle = new GUIStyle();
-                GenericBoxStyle.padding = new RectOffset(10,10,15,10);
-
-                GUILayout.BeginVertical(GenericBoxStyle);
+                GUILayout.BeginVertical(Styles.GenericBoxStyle);
                 {
                     if (!need2fa)
                     {
@@ -133,7 +130,6 @@ namespace GitHub.Unity
 
         private void OnGUI2FA()
         {
-            GUILayout.Space(Styles.BaseSpacing);
             GUILayout.BeginVertical();
             GUILayout.Label(twofaTitle, EditorStyles.boldLabel);
             GUILayout.Label(twofaDescription, EditorStyles.wordWrappedLabel, GUILayout.Width(Screen.width / 2));

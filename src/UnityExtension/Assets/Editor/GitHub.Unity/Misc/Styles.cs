@@ -71,7 +71,8 @@ namespace GitHub.Unity
             commitButtonStyle,
             textFieldStyle,
             commitDescriptionFieldStyle,
-            toggleMixedStyle;
+            toggleMixedStyle,
+            genericBoxStyle;
         static Texture2D
             modifiedStatusIcon,
             addedStatusIcon,
@@ -365,6 +366,20 @@ namespace GitHub.Unity
 
                 return toggleMixedStyle;
             }
+        }
+
+        public static GUIStyle GenericBoxStyle
+        {
+          get
+          {
+            if (genericBoxStyle == null)
+            {
+                genericBoxStyle = new GUIStyle();
+                genericBoxStyle.padding = new RectOffset(10,10,15,10);
+            }
+
+            return genericBoxStyle;
+          }
         }
 
 		public static Color TimelineBarColor
