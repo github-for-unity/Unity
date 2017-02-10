@@ -13,8 +13,8 @@ namespace GitHub.Unity
         const string usernameLabel = "Username";
         const string passwordLabel = "Password";
         const string twofaLabel = "Authentication code";
-        const string loginButton = "Login";
-        const string authTitle = "You're currently not signed in";
+        const string loginButton = "Sign in";
+        const string authTitle = "Sign in to GitHub";
         const string twofaTitle = "Two-factor authentication";
         const string twofaDescription = "Open the two-factor authentication app on your device to view your authentication code and verify your identity.";
 
