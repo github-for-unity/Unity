@@ -15,8 +15,12 @@ using System.Runtime.InteropServices;
 [assembly: NeutralResourcesLanguage("en-US")]
 
 [assembly: InternalsVisibleTo("GitHub.Unity.Tests", AllInternalsVisible = true)]
+
 //Required for NSubstitute
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2", AllInternalsVisible = true)]
+
+//Required for Unity compilation
+[assembly: InternalsVisibleTo("Assembly-CSharp-Editor.dll", AllInternalsVisible = true)]
 
 namespace System
 {
