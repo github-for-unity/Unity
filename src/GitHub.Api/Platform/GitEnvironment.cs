@@ -6,7 +6,7 @@ using System.Text;
 
 namespace GitHub.Api
 {
-    public abstract class GitEnvironment: IGitEnvironment
+    abstract class GitEnvironment: IGitEnvironment
     {
         protected IEnvironment Environment { get; private set; }
         protected IFileSystem FileSystem { get; private set; }

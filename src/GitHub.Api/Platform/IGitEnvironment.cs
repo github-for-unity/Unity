@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace GitHub.Api
 {
-    public interface IGitEnvironment
+    interface IGitEnvironment
     {
         string FindGitInstallationPath();
 
