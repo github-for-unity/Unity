@@ -64,7 +64,7 @@ namespace GitHub.Unity
 
         public void Run()
         {
-            logger.Debug("Run: ");
+            logger.Debug("Run");
 
             try
             {
@@ -95,7 +95,7 @@ namespace GitHub.Unity
 
         public bool WaitForExit(int milliseconds)
         {
-            logger.Debug("WaitForExit - time: " + milliseconds + "ms");
+            logger.Debug("WaitForExit - time: {0}ms", milliseconds);
 
             // Workaround for a bug in which some data may still be processed AFTER this method returns true, thus losing the data.
             // http://connect.microsoft.com/VisualStudio/feedback/details/272125/waitforexit-and-waitforexit-int32-provide-different-and-undocumented-implementations
