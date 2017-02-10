@@ -57,7 +57,7 @@ namespace GitHub.Unity
 
         public override void Run()
         {
-            Logger.Debug("{0} {1}", Label, process == null ? "start" : "reconnect");
+            Logger.Debug("Run: `{0}` Type:{1}", Label, process == null ? "start" : "reconnect");
 
             Done = false;
             Progress = 0.0f;
@@ -74,7 +74,7 @@ namespace GitHub.Unity
 
             process.OnExit += p =>
             {
-                Logger.Debug("OnExit");
+                Logger.Debug("Exit: `{0}`", Label);
                 Finished();
             };
 
@@ -130,14 +130,14 @@ namespace GitHub.Unity
 
             OnProcessOutputUpdate();
 
-            Logger.Debug("{0} end", Label);
+            Logger.Debug("Finished: `{0}`", Label);
 
             OnEnd.SafeInvoke(this);
         }
 
         public override void Abort()
         {
-            Logger.Debug("Aborting {0}", Label);
+            Logger.Debug("Aborting: `{0}`", Label);
 
             try
             {
@@ -153,14 +153,14 @@ namespace GitHub.Unity
 
         public override void Disconnect()
         {
-            Logger.Debug("Disconnect {0}", Label);
+            Logger.Debug("Disconnect: `{0}`", Label);
 
             process = null;
         }
 
         public override void WriteCache(TextWriter cache)
         {
-            Logger.Debug("Writing cache for {0}", Label);
+            Logger.Debug("WritingCache: `{0}`", Label);
 
             cache.WriteLine("{");
             cache.WriteLine(String.Format("\"{0}\": \"{1}\",", Tasks.TypeKey, CachedTaskType));
@@ -197,7 +197,7 @@ namespace GitHub.Unity
         {
             if (OnSuccess != null)
             {
-                Logger.Debug("Success - \"" + msg + "\"");
+                Logger.Debug("Success: `{0}`", Label);
                 Tasks.ScheduleMainThread(() => OnSuccess(msg));
             }
         }
@@ -208,7 +208,7 @@ namespace GitHub.Unity
 
             if (OnFailure != null)
             {
-                Logger.Debug("Failure - \"" + msg + "\"");
+                Logger.Debug("Failure: `{0}`", msg);
                 Tasks.ScheduleMainThread(() => OnFailure());
             }
         }

@@ -137,7 +137,7 @@ namespace GitHub.Unity
         {
             scheduledCalls.Enqueue(action);
             var ellapsed = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalMilliseconds;
-            logger.Debug("queued action {0} {1} {2} {3}", readyForMoreCalls, ellapsed - lastMainThreadCall, lastMainThreadCall, ellapsed);
+            logger.Debug("QueuedAction ReadyForMore:{0} Delta:{1}ms LastCall:{2}ms ThisCall:{3}ms", readyForMoreCalls, ellapsed - lastMainThreadCall, lastMainThreadCall, ellapsed);
             PumpMainThread();
         }
 
@@ -506,7 +506,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            logger.Debug(task.Label);
+            logger.Debug("Waiting for task: `{0}`", task.Label);
 
             // Unintrusive background process
             if (mode == WaitMode.Background)
