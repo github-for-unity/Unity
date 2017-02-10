@@ -375,7 +375,7 @@ namespace GitHub.Unity
             if (genericBoxStyle == null)
             {
                 genericBoxStyle = new GUIStyle();
-                genericBoxStyle.padding = new RectOffset(10,10,15,10);
+                genericBoxStyle.padding = new RectOffset(10,10,10,10);
             }
 
             return genericBoxStyle;

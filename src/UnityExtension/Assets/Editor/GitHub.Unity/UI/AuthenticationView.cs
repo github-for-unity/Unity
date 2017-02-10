@@ -98,12 +98,13 @@ namespace GitHub.Unity
 
         private void OnGUILogin()
         {
+            GUILayout.Space(3);
             GUILayout.BeginHorizontal();
             {
                 GUILayout.Label(usernameLabel, GUILayout.Width(cellWidth));
                 GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                username = GUILayout.TextField(username, GUILayout.Width(cellWidth));
+                username = GUILayout.TextField(username, Styles.TextFieldStyle, GUILayout.Width(cellWidth));
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
@@ -113,11 +114,11 @@ namespace GitHub.Unity
                 GUILayout.Label(passwordLabel, GUILayout.Width(cellWidth));
                 GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                password = GUILayout.PasswordField(password, '*', GUILayout.Width(cellWidth));
+                password = GUILayout.PasswordField(password, '•', Styles.TextFieldStyle, GUILayout.Width(cellWidth));
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
-            GUILayout.Space(Styles.BaseSpacing);
+            GUILayout.Space(Styles.BaseSpacing + 3);
 
             if (busy) GUI.enabled = false;
             if (GUILayout.Button(loginButton))
@@ -141,7 +142,7 @@ namespace GitHub.Unity
                 GUILayout.Label(twofaLabel, GUILayout.Width(cellWidth));
                 GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                two2fa = GUILayout.TextField(two2fa, GUILayout.Width(cellWidth - 10));
+                two2fa = GUILayout.TextField(two2fa, Styles.TextFieldStyle, GUILayout.Width(cellWidth - 10));
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
@@ -155,6 +156,7 @@ namespace GitHub.Unity
                 authenticationService.LoginWith2fa(two2fa);
             }
             GUI.enabled = true;
+            GUILayout.Space(Styles.BaseSpacing);
             GUILayout.EndVertical();
             GUILayout.Space(Styles.BaseSpacing);
         }
