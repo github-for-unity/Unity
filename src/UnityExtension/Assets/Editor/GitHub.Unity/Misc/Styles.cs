@@ -72,6 +72,7 @@ namespace GitHub.Unity
             textFieldStyle,
             commitDescriptionFieldStyle,
             toggleMixedStyle,
+            authHeaderBoxStyle,
             genericBoxStyle;
         static Texture2D
             modifiedStatusIcon,
@@ -366,6 +367,21 @@ namespace GitHub.Unity
 
                 return toggleMixedStyle;
             }
+        }
+
+        public static GUIStyle AuthHeaderBoxStyle
+        {
+          get
+          {
+            if (authHeaderBoxStyle == null)
+            {
+              authHeaderBoxStyle = new GUIStyle(HeaderBoxStyle);
+              authHeaderBoxStyle.name = "AuthHeaderBoxStyle";
+              authHeaderBoxStyle.padding = new RectOffset(10,10,0,5);
+            }
+
+            return authHeaderBoxStyle;
+          }
         }
 
         public static GUIStyle GenericBoxStyle

@@ -45,12 +45,10 @@ namespace GitHub.Unity
             // Not really sure why I need to divide by 4... Retina perhaps??
             // If so, seems very brittle...
             cellWidth = (Screen.width / 4) - Convert.ToInt32(Styles.BaseSpacing * 2);
-            Debug.Log(cellWidth);
 
             scroll = GUILayout.BeginScrollView(scroll);
             {
-              Styles.HeaderBoxStyle.padding = new RectOffset(10,10,5,10);
-              Rect authHeader = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
+              Rect authHeader = EditorGUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
               {
                   GUILayout.BeginVertical(GUILayout.Width(16));
                   {
