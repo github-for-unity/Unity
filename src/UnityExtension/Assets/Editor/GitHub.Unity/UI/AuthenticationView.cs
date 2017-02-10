@@ -132,7 +132,7 @@ namespace GitHub.Unity
         {
             GUILayout.BeginVertical();
             GUILayout.Label(twofaTitle, EditorStyles.boldLabel);
-            GUILayout.Label(twofaDescription, EditorStyles.wordWrappedLabel, GUILayout.Width(Screen.width / 2));
+            GUILayout.Label(twofaDescription, EditorStyles.wordWrappedLabel, GUILayout.Width(cellWidth * 2));
 
             GUILayout.Space(Styles.BaseSpacing);
 
@@ -141,7 +141,7 @@ namespace GitHub.Unity
                 GUILayout.Label(twofaLabel, GUILayout.Width(cellWidth));
                 GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                two2fa = GUILayout.TextField(two2fa, GUILayout.Width(cellWidth));
+                two2fa = GUILayout.TextField(two2fa, GUILayout.Width(cellWidth - 10));
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
