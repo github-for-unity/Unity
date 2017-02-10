@@ -15,7 +15,6 @@ namespace GitHub.Unity
         const string twofaLabel = "Authentication code";
         const string loginButton = "Login";
         const string authTitle = "You're currently not signed in";
-        const string authDescription = "Log into GitHub to start collaborating together";
         const string twofaTitle = "Two-factor authentication";
         const string twofaDescription = "Open the two-factor authentication app on your device to view your authentication code and verify your identity.";
 
@@ -62,10 +61,8 @@ namespace GitHub.Unity
 
                   GUILayout.BeginVertical();
                   {
-                      GUILayout.Space(3);
+                      GUILayout.Space(11);
                       GUILayout.Label(authTitle, Styles.HeaderRepoLabelStyle);
-                      GUILayout.Space(-2);
-                      GUILayout.Label(authDescription, Styles.HeaderBranchLabelStyle);
                   }
                   GUILayout.EndVertical();
               }
