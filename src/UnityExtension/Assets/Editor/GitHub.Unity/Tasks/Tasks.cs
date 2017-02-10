@@ -506,7 +506,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            logger.Debug("Waiting for task: `{0}`", task.Label);
+            logger.Debug("WaitForTask: `{0}`", task.Label);
 
             // Unintrusive background process
             if (mode == WaitMode.Background)
