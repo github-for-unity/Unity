@@ -50,9 +50,9 @@ namespace GitHub.Unity
 
             scroll = GUILayout.BeginScrollView(scroll);
             {
+              Styles.HeaderBoxStyle.padding = new RectOffset(10,10,5,10);
               GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
               {
-                  GUILayout.Space(3);
                   GUILayout.BeginVertical(GUILayout.Width(16));
                   {
                       GUILayout.Space(9);
@@ -70,8 +70,11 @@ namespace GitHub.Unity
                   GUILayout.EndVertical();
               }
               GUILayout.EndHorizontal();
-              GUILayout.Space(Styles.BaseSpacing);
-                GUILayout.BeginVertical();
+
+                GUIStyle GenericBoxStyle = new GUIStyle();
+                GenericBoxStyle.padding = new RectOffset(10,10,15,10);
+
+                GUILayout.BeginVertical(GenericBoxStyle);
                 {
                     if (!need2fa)
                     {
@@ -130,9 +133,12 @@ namespace GitHub.Unity
 
         private void OnGUI2FA()
         {
+            GUILayout.Space(Styles.BaseSpacing);
             GUILayout.BeginVertical();
             GUILayout.Label(twofaTitle, EditorStyles.boldLabel);
             GUILayout.Label(twofaDescription, EditorStyles.wordWrappedLabel, GUILayout.Width(Screen.width / 2));
+
+            GUILayout.Space(Styles.BaseSpacing);
 
             GUILayout.BeginHorizontal();
             {
@@ -143,6 +149,9 @@ namespace GitHub.Unity
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
+
+            GUILayout.Space(Styles.BaseSpacing);
+
             if (busy) GUI.enabled = false;
             if (GUILayout.Button(loginButton))
             {
@@ -151,6 +160,7 @@ namespace GitHub.Unity
             }
             GUI.enabled = true;
             GUILayout.EndVertical();
+            GUILayout.Space(Styles.BaseSpacing);
         }
 
         private void DoRequire2fa(string msg)
