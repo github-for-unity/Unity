@@ -51,7 +51,7 @@ namespace GitHub.Unity
             scroll = GUILayout.BeginScrollView(scroll);
             {
               Styles.HeaderBoxStyle.padding = new RectOffset(10,10,5,10);
-              GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
+              Rect authHeader = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
               {
                   GUILayout.BeginVertical(GUILayout.Width(16));
                   {
@@ -69,7 +69,13 @@ namespace GitHub.Unity
                   }
                   GUILayout.EndVertical();
               }
+
               GUILayout.EndHorizontal();
+              EditorGUI.DrawRect(
+                new Rect(authHeader.x, authHeader.yMax, authHeader.xMax, 1),
+                new Color(0.455F, 0.455F, 0.455F, 1F)
+              );
+              Debug.Log(authHeader.yMax);
 
                 GUILayout.BeginVertical(Styles.GenericBoxStyle);
                 {
