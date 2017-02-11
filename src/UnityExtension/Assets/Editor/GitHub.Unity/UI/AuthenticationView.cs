@@ -70,7 +70,6 @@ namespace GitHub.Unity
                 new Rect(authHeader.x, authHeader.yMax, authHeader.xMax, 1),
                 new Color(0.455F, 0.455F, 0.455F, 1F)
               );
-              Debug.Log(authHeader.yMax);
 
                 GUILayout.BeginVertical(Styles.GenericBoxStyle);
                 {
@@ -143,7 +142,7 @@ namespace GitHub.Unity
                 GUILayout.Label(twofaLabel, GUILayout.Width(cellWidth));
                 GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                two2fa = GUILayout.TextField(two2fa, Styles.TextFieldStyle, GUILayout.Width(cellWidth - 10));
+                two2fa = GUILayout.TextField(two2fa, Styles.TextFieldStyle, GUILayout.Width(55));
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
