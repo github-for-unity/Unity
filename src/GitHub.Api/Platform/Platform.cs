@@ -1,6 +1,6 @@
 namespace GitHub.Api
 {
-    public class Platform : IPlatform
+    class Platform : IPlatform
     {
         public Platform(IEnvironment environment, IFileSystem fs)
         {
