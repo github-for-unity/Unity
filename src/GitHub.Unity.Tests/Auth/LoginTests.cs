@@ -7,7 +7,7 @@ namespace GitHub.Unity.Tests
     public class LoginTests
     {
         //[Test]
-        public async Task SimpleLogin()
+        public async void SimpleLogin()
         {
             var program = new Program();
             var credentialManager = new WindowsCredentialManager();
