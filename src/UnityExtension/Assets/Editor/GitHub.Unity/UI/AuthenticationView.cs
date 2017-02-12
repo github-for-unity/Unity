@@ -171,7 +171,7 @@ namespace GitHub.Unity
 
         private void DoResult(bool success, string msg)
         {
-            need2fa = false;
+            need2fa = true;
             finished = true;
             message = msg;
             busy = false;
