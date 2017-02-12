@@ -175,7 +175,15 @@ namespace GitHub.Unity
             finished = true;
             message = msg;
             busy = false;
-            parent.Redraw();
+
+            if (success == true)
+            {
+              parent.Close();
+            }
+            else
+            {
+              parent.Redraw();
+            }
         }
     }
 }
