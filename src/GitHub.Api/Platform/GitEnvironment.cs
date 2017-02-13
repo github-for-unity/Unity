@@ -64,6 +64,9 @@ namespace GitHub.Api
             psi.EnvironmentVariables["github_git"] = gitPath;
             psi.EnvironmentVariables["PLINK_PROTOCOL"] = "ssh";
             psi.EnvironmentVariables["TERM"] = "msys";
+
+            //TODO: Remove with Git LFS Locking becomes standard
+            psi.EnvironmentVariables["GITLFSLOCKSENABLED"] = "1";
             
             if (Environment.IsWindows)
             {

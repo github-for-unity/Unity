@@ -75,7 +75,7 @@ namespace GitHub.Unity
 
             DetermineGitInstallationPath(Environment, GitEnvironment, FileSystem, Settings);
 
-            GitStatusEntryFactory = new GitStatusEntryFactory(Environment, FileSystem, GitEnvironment);
+            GitObjectFactory = new GitObjectFactory(Environment, FileSystem, GitEnvironment);
 
             Utility.Initialize();
 
@@ -216,7 +216,7 @@ namespace GitHub.Unity
 
         public static IProcessManager ProcessManager { get; private set; }
 
-        public static GitStatusEntryFactory GitStatusEntryFactory { get; private set; }
+        public static GitObjectFactory GitObjectFactory { get; private set; }
         public static ISettings Settings { get; private set; }
     }
 }
