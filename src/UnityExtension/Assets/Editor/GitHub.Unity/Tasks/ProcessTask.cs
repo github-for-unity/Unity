@@ -57,7 +57,7 @@ namespace GitHub.Unity
 
         public override void Run()
         {
-            Logger.Debug("Run: Label:\"{0}\" Type:{1}", Label, process == null ? "start" : "reconnect");
+            Logger.Debug("RunTask Label:\"{0}\" Type:{1}", Label, process == null ? "start" : "reconnect");
 
             Done = false;
             Progress = 0.0f;
