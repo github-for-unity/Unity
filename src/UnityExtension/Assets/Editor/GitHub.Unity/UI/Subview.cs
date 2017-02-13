@@ -19,6 +19,11 @@ namespace GitHub.Unity
             parent.Redraw();
         }
 
+        public void Close()
+        {
+          parent.Close();
+        }
+
         public void Show(IView parentView)
         {
             Debug.Assert(parentView != null, NullParentError);
