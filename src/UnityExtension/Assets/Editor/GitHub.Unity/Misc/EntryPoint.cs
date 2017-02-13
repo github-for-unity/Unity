@@ -16,7 +16,7 @@ namespace GitHub.Unity
     [InitializeOnLoad]
     class EntryPoint : ScriptableObject
     {
-        private static readonly ILogging logger;
+        private static ILogging logger;
         private static bool cctorCalled = false;
 
         // this may run on the loader thread if it's an appdomain restart
@@ -28,8 +28,7 @@ namespace GitHub.Unity
             }
             cctorCalled = true;
             Logging.LoggerFactory = s => new UnityLogAdapter(s);
-            logger = Logging.GetLogger<EntryPoint>();
-            logger.Debug("EntryPoint Initialize");
+            Logging.Debug("EntryPoint Initialize");
 
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
@@ -52,6 +51,7 @@ namespace GitHub.Unity
             {
             }
             Logging.LoggerFactory = s => new FileLogAdapter(filepath, s);
+            logger = Logging.GetLogger<EntryPoint>();
 
             ThreadUtils.SetMainThread();
             var syncCtx = new MainThreadSynchronizationContext();
