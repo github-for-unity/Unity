@@ -109,7 +109,7 @@ namespace GitHub.Unity
 
         private void AddTask(ITask task)
         {
-            logger.Debug("Adding task " + task.GetType() + " " + task.Label);
+            logger.Debug("Adding Task: \"{0}\" Label: \"{1}\"", task.GetType().Name, task.Label);
             lock (tasksLock)
             {
                 if ((task.Queued == TaskQueueSetting.NoQueue && tasks.Count > 0) ||
@@ -137,7 +137,7 @@ namespace GitHub.Unity
         {
             scheduledCalls.Enqueue(action);
             var ellapsed = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalMilliseconds;
-            logger.Debug("queued action {0} {1} {2} {3}", readyForMoreCalls, ellapsed - lastMainThreadCall, lastMainThreadCall, ellapsed);
+            logger.Trace("QueuedAction ReadyForMore:{0} Delta:{1}ms LastCall:{2}ms ThisCall:{3}ms", readyForMoreCalls, ellapsed - lastMainThreadCall, lastMainThreadCall, ellapsed);
             PumpMainThread();
         }
 
@@ -175,7 +175,7 @@ namespace GitHub.Unity
         {
             if (severity == FailureSeverity.Moderate)
             {
-                logger.Error(TaskFailureMessage, task.Label, error);
+                logger.Error("Failure: \"{0}\" Reason:\"{1}\"", task.Label, error);
             }
             else
             {
@@ -506,7 +506,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            logger.Debug(task.Label);
+            logger.Trace("WaitForTask: \"{0}\"", task.Label);
 
             // Unintrusive background process
             if (mode == WaitMode.Background)

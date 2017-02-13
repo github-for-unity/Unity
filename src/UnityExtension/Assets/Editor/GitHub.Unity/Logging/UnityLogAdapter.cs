@@ -1,85 +1,33 @@
-using GitHub.Api;
-using System;
-using System.Linq;
-
 namespace GitHub.Unity
 {
-    class UnityLogAdapter : ILogging
+    class UnityLogAdapter : LogAdapterBase
     {
-        private readonly string contextPrefix;
+        public UnityLogAdapter(string context) : base(context)
+        {}
 
-        private string Prefix
+        public override void Info(string message)
         {
-            get
-            {
-                var time = DateTime.Now.ToString("HH:mm:ss tt");
-                var threadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                return string.Format("{0} [{1}] <{2}> ", time, threadId, contextPrefix);
-            }
+            UnityEngine.Debug.Log(message);
         }
 
-        public UnityLogAdapter(string context)
+        public override void Debug(string message)
         {
-            contextPrefix = string.IsNullOrEmpty(context) 
-                ? "GitHub" 
-                : string.Format("GitHub:{0}", context);
+            UnityEngine.Debug.Log(message);
         }
 
-        public UnityLogAdapter() : this(string.Empty)
+        public override void Trace(string message)
         {
+            UnityEngine.Debug.Log(message);
         }
 
-        public void Info(string message)
+        public override void Warning(string message)
         {
-            UnityEngine.Debug.Log(Prefix + message);
+            UnityEngine.Debug.LogWarning(message);
         }
 
-        public void Info(string format, params object[] objects)
+        public override void Error(string message)
         {
-            UnityEngine.Debug.LogFormat(Prefix + format, objects);
-        }
-
-        public void Debug(string message)
-        {
-#if DEBUG
-            UnityEngine.Debug.Log(Prefix + message);
-#endif
-        }
-
-        public void Debug(string format, params object[] objects)
-        {
-#if DEBUG
-            UnityEngine.Debug.LogFormat(Prefix + format, objects);
-#endif
-        }
-        public void Debug(Exception ex)
-        {
-            UnityEngine.Debug.LogException(ex);
-            var caller = Environment.StackTrace;
-            var stack = caller.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
-            if (stack.Length > 2)
-                caller = String.Join(Environment.NewLine, stack.Skip(2).ToArray());
-            UnityEngine.Debug.Log(caller);
-        }
-
-        public void Warning(string message)
-        {
-            UnityEngine.Debug.LogWarning(Prefix + message);
-        }
-
-        public void Warning(string format, params object[] objects)
-        {
-            UnityEngine.Debug.LogWarningFormat(Prefix + format, objects);
-        }
-
-        public void Error(string message)
-        {
-            UnityEngine.Debug.LogError(Prefix + message);
-        }
-
-        public void Error(string format, params object[] objects)
-        {
-            UnityEngine.Debug.LogErrorFormat(Prefix + format, objects);
+            UnityEngine.Debug.LogError(message);
         }
     }
 }

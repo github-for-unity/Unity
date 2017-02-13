@@ -49,7 +49,6 @@ namespace GitHub.Unity
 
         private void AddBranch(GitBranch branch)
         {
-            Logger.Debug("AddBranch " + branch);
             branches.Add(branch);
         }
 
