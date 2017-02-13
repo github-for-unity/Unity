@@ -1,13 +1,12 @@
 using GitHub.Api;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace GitHub.Unity
 {
     class GitAddTask : GitTask
     {
-        private string arguments = "";
+        private readonly string arguments;
 
         private GitAddTask(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
             : base(str => onSuccess.SafeInvoke(), onFailure)
