@@ -23,11 +23,29 @@ using UnityEngine.Events;
 
 namespace GitHub.Unity
 {
+    class TaskResultDispatcher : ITaskResultDispatcher
+    {
+        public void ReportFailure(Action callback)
+        {
+            Tasks.ScheduleMainThread(callback);
+        }
+
+        public void ReportFailure(FailureSeverity severity, ITask task, string error)
+        {
+            Tasks.ReportFailure(severity, task, error);
+        }
+
+        public void ReportSuccess(Action callback)
+        {
+            Tasks.ScheduleMainThread(callback);
+        }
+    }
+
     class Tasks
     {
         private static readonly ILogging logger = Logging.GetLogger<Tasks>();
 
-        internal const string TypeKey = "type", ProcessKey = "process";
+        internal const string TypeKey = "type";
 
         private const int NoTasksSleep = 15;
         private const int BlockingTaskWaitSleep = 10;
@@ -137,7 +155,7 @@ namespace GitHub.Unity
         {
             scheduledCalls.Enqueue(action);
             var ellapsed = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalMilliseconds;
-            logger.Trace("QueuedAction ReadyForMore:{0} Delta:{1}ms LastCall:{2}ms ThisCall:{3}ms", readyForMoreCalls, ellapsed - lastMainThreadCall, lastMainThreadCall, ellapsed);
+            //logger.Trace("QueuedAction ReadyForMore:{0} Delta:{1}ms LastCall:{2}ms ThisCall:{3}ms", readyForMoreCalls, ellapsed - lastMainThreadCall, lastMainThreadCall, ellapsed);
             PumpMainThread();
         }
 
@@ -169,6 +187,11 @@ namespace GitHub.Unity
                     callerFlag = 0;
                 }
             }
+        }
+
+        public static void ReportSuccess(Action callback)
+        {
+            Tasks.ScheduleMainThread(callback);
         }
 
         public static void ReportFailure(FailureSeverity severity, ITask task, string error)
@@ -342,9 +365,21 @@ namespace GitHub.Unity
                             }
                             //activeTask.OnBegin = task => ScheduleMainThread(WriteCache);
                             if (activeTask.Blocking)
-                                activeTask.OnEnd = OnWaitingModalTaskEnd;
+                            {
+                                activeTask.OnEnd = t => {
+                                    logger.Trace("DONE");
+                                    activeTask = null;
+                                    OnWaitingModalTaskEnd(t);
+                                };
+                            }
                             else
-                                activeTask.OnEnd = OnWaitingBackgroundTaskEnd;
+                            {
+                                activeTask.OnEnd = t => {
+                                    logger.Trace("DONE");
+                                    activeTask = null;
+                                    OnWaitingBackgroundTaskEnd(t);
+                                };
+                            }
                         }
                     }
                 }
@@ -356,7 +391,7 @@ namespace GitHub.Unity
                     {
                         if (activeTask != null)
                         {
-                            WaitForTask(activeTask, activeTask.Blocking ? WaitMode.Modal : WaitMode.Background);
+                            //WaitForTask(activeTask, activeTask.Blocking ? WaitMode.Modal : WaitMode.Background);
                         }
                     });
 
@@ -481,10 +516,10 @@ namespace GitHub.Unity
             {
                 switch (type)
                 {
-                    case CachedTask.TestTask:
-                        return TestTask.Parse(data);
                     case CachedTask.ProcessTask:
-                        return ProcessTask.Parse(data);
+                        return ProcessTask.Parse(
+                            EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                            data);
                     default:
                         logger.Error(TaskParseUnhandledTypeError, type);
                         return null;
@@ -513,17 +548,17 @@ namespace GitHub.Unity
             {
                 DisplayBackgroundProgressBar(task.Label, task.Progress);
 
-                if (!task.Done)
-                {
-                    ScheduleMainThreadInternal(() => WaitForTask(task, mode));
-                }
+                //if (!task.Done)
+                //{
+                //    ScheduleMainThreadInternal(() => WaitForTask(task, mode));
+                //}
             }
             // Obstruct editor interface, while offering cancel button
             else if (mode == WaitMode.Modal)
             {
                 if (!EditorUtility.DisplayCancelableProgressBar(TaskProgressTitle, task.Label, task.Progress) && !task.Done)
                 {
-                    ScheduleMainThreadInternal(() => WaitForTask(task, mode));
+                    //ScheduleMainThreadInternal(() => WaitForTask(task, mode));
                 }
                 else if (!task.Done)
                 {
@@ -586,5 +621,17 @@ namespace GitHub.Unity
         };
 
         private delegate void ProgressBarDisplayMethod(string text, float progress);
+    }
+
+    static class TaskDispatcher
+    {
+        public static void ScheduleGitRemoteList(Action<IList<GitRemote>> onSuccess, Action onFailure = null)
+        {
+            Tasks.Add(new GitRemoteListTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                onSuccess, onFailure));
+        }
+
+
     }
 }

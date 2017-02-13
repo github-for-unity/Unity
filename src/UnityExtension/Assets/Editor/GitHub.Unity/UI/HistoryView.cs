@@ -503,7 +503,7 @@ namespace GitHub.Unity
 
         private void Pull()
         {
-            logger.Debug("TODO: Pull");
+            GitPullTask.Schedule("origin-http", null, null, null);
         }
 
         private void Push()

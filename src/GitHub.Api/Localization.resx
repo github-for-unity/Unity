@@ -120,6 +120,9 @@
   <data name="LoginFailed" xml:space="preserve">
     <value>Login failed</value>
   </data>
+  <data name="NoGitError" xml:space="preserve">
+    <value>Tried to run git task while git was not found.</value>
+  </data>
   <data name="Wrong2faCode" xml:space="preserve">
     <value>Wrong 2FA code</value>
   </data>

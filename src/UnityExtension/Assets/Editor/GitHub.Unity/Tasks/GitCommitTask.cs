@@ -8,8 +8,10 @@ namespace GitHub.Unity
     {
         private readonly string arguments;
 
-        private GitCommitTask(string message, string body, Action onSuccess = null, Action onFailure = null)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
+        private GitCommitTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+                            string message, string body, Action onSuccess = null, Action onFailure = null)
+            : base(environment, processManager, resultDispatcher,
+                  str => onSuccess.SafeInvoke(), onFailure)
         {
             Guard.ArgumentNotNullOrWhiteSpace(message, "message");
 
@@ -27,12 +29,14 @@ namespace GitHub.Unity
 
         public static void Schedule(string message, string body, Action onSuccess = null, Action onFailure = null)
         {
-            Tasks.Add(new GitCommitTask(message, body, onSuccess, onFailure));
+            Tasks.Add(new GitCommitTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                message, body, onSuccess, onFailure));
         }
 
-        protected override void OnProcessOutputUpdate()
+        protected override void OnOutputComplete(string output, string errors)
         {
-            base.OnProcessOutputUpdate();
+            base.OnOutputComplete(output, errors);
 
             // Always update
             StatusService.Instance.Run();

@@ -6,12 +6,12 @@ namespace GitHub.Api
     {
         public Credential(HostAddress host)
         {
-            this.Host = host.CredentialCacheKeyHost;
+            this.Host = host;
         }
 
         public Credential(HostAddress host, string username, string token)
         {
-            this.Host = host.CredentialCacheKeyHost;
+            this.Host = host;
             this.Username = username;
             this.Token = token;
         }
@@ -21,7 +21,7 @@ namespace GitHub.Api
             this.Token = token;
         }
 
-        public string Host { get; private set; }
+        public HostAddress Host { get; private set; }
         public string Username { get; private set; }
         public string Token { get; private set; }
 

@@ -26,7 +26,7 @@ namespace GitHub.Api
         }
     }
 
-    public class SimpleApiClient : ISimpleApiClient
+    class SimpleApiClient : ISimpleApiClient
     {
         private static readonly Unity.ILogging logger = Unity.Logging.GetLogger<SimpleApiClient>();
         public HostAddress HostAddress { get; }

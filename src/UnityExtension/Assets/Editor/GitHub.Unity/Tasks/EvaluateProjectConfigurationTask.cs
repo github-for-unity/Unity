@@ -82,14 +82,14 @@ namespace GitHub.Unity
             result = new GitIgnoreRule();
 
             int effect;
-            if (!int.TryParse(EntryPoint.Settings.Get(String.Format(EffectKey, index), "-1"), out effect) || effect < 0)
+            if (!int.TryParse(EntryPoint.LocalSettings.Get(String.Format(EffectKey, index), "-1"), out effect) || effect < 0)
             {
                 return false;
             }
 
             result.Effect = (GitIgnoreRuleEffect)effect;
 
-            result.FileString = EntryPoint.Settings.Get(String.Format(FileKey, index));
+            result.FileString = EntryPoint.LocalSettings.Get(String.Format(FileKey, index));
 
             try
             {
@@ -100,7 +100,7 @@ namespace GitHub.Unity
                 result.File = null;
             }
 
-            result.LineString = EntryPoint.Settings.Get(String.Format(LineKey, index));
+            result.LineString = EntryPoint.LocalSettings.Get(String.Format(LineKey, index));
 
             try
             {
@@ -111,42 +111,42 @@ namespace GitHub.Unity
                 result.Line = null;
             }
 
-            result.TriggerText = EntryPoint.Settings.Get(String.Format(TriggerTextKey, index));
+            result.TriggerText = EntryPoint.LocalSettings.Get(String.Format(TriggerTextKey, index));
 
             return true;
         }
 
         public static void Save(int index, GitIgnoreRuleEffect effect, string file, string line, string triggerText)
         {
-            EntryPoint.Settings.Set(String.Format(EffectKey, index), ((int)effect).ToString());
-            EntryPoint.Settings.Set(String.Format(FileKey, index), file);
-            EntryPoint.Settings.Set(String.Format(LineKey, index), line);
-            EntryPoint.Settings.Set(String.Format(TriggerTextKey, index), triggerText);
+            EntryPoint.LocalSettings.Set(String.Format(EffectKey, index), ((int)effect).ToString());
+            EntryPoint.LocalSettings.Set(String.Format(FileKey, index), file);
+            EntryPoint.LocalSettings.Set(String.Format(LineKey, index), line);
+            EntryPoint.LocalSettings.Set(String.Format(TriggerTextKey, index), triggerText);
         }
 
         public static void New()
         {
             Save(Count, GitIgnoreRuleEffect.Require, "", "", "");
-            EntryPoint.Settings.Set(CountKey, (Count + 1));
+            EntryPoint.LocalSettings.Set(CountKey, (Count + 1));
         }
 
         public static void Delete(int index)
         {
-            EntryPoint.Settings.Unset(String.Format(EffectKey, index));
-            EntryPoint.Settings.Unset(String.Format(FileKey, index));
-            EntryPoint.Settings.Unset(String.Format(LineKey, index));
-            EntryPoint.Settings.Unset(String.Format(TriggerTextKey, index));
+            EntryPoint.LocalSettings.Unset(String.Format(EffectKey, index));
+            EntryPoint.LocalSettings.Unset(String.Format(FileKey, index));
+            EntryPoint.LocalSettings.Unset(String.Format(LineKey, index));
+            EntryPoint.LocalSettings.Unset(String.Format(TriggerTextKey, index));
 
             var count = Count;
             for (; index < count; ++index)
             {
-                EntryPoint.Settings.Rename(String.Format(EffectKey, index), String.Format(EffectKey, index - 1));
-                EntryPoint.Settings.Rename(String.Format(FileKey, index), String.Format(FileKey, index - 1));
-                EntryPoint.Settings.Rename(String.Format(LineKey, index), String.Format(LineKey, index - 1));
-                EntryPoint.Settings.Rename(String.Format(TriggerTextKey, index), String.Format(TriggerTextKey, index - 1));
+                EntryPoint.LocalSettings.Rename(String.Format(EffectKey, index), String.Format(EffectKey, index - 1));
+                EntryPoint.LocalSettings.Rename(String.Format(FileKey, index), String.Format(FileKey, index - 1));
+                EntryPoint.LocalSettings.Rename(String.Format(LineKey, index), String.Format(LineKey, index - 1));
+                EntryPoint.LocalSettings.Rename(String.Format(TriggerTextKey, index), String.Format(TriggerTextKey, index - 1));
             }
 
-            EntryPoint.Settings.Set(CountKey, (count - 1));
+            EntryPoint.LocalSettings.Set(CountKey, (count - 1));
         }
 
         public override string ToString()
@@ -156,7 +156,7 @@ namespace GitHub.Unity
 
         public static int Count
         {
-            get { return Mathf.Max(0, EntryPoint.Settings.Get(CountKey, 0)); }
+            get { return Mathf.Max(0, EntryPoint.LocalSettings.Get(CountKey, 0)); }
         }
 
         public GitIgnoreRuleEffect Effect { get; private set; }
