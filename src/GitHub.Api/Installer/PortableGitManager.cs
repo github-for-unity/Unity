@@ -85,10 +85,11 @@ namespace GitHub.PortableGit.Helpers
         /// <returns>An IObservable which will yield progress values from 0-100
         ///   or return the Exception if an error occurs. If PGit is already 
         ///   extracted, this will return 100 and Complete.</returns>
-//        public IObservable<ProgressResult> ExtractGitIfNeeded()
-//        {
-//            return Observable.Defer(() => ExtractPackageIfNeeded("PortableGit.7z", KillAllSSHAgent, ExecuteBashLogin, 5221));
-//        }
+        public void ExtractGitIfNeeded()
+        {
+            //TODO: Look here next
+//            Observable.Defer(() => ExtractPackageIfNeeded("PortableGit.7z", KillAllSSHAgent, ExecuteBashLogin, 5221));
+        }
 
         void ExecuteBashLogin()
         {
@@ -128,8 +129,9 @@ namespace GitHub.PortableGit.Helpers
             return GetPackageDestinationDirectory(createIfNeeded);
         }
 
-//        public IObservable<IFile> EnsureSystemConfigFileExtracted()
-//        {
+        public void EnsureSystemConfigFileExtracted()
+        {
+            //TODO: Look here next
 //            var configFile = systemConfigFile.Value;
 //            if (configFile.Exists) return Observable.Return(configFile);
 //
@@ -137,7 +139,7 @@ namespace GitHub.PortableGit.Helpers
 //            configFile.Refresh();
 //            Debug.Assert(configFile.Exists, "After extracting the system config file, we expect it to exist.");
 //            return Observable.Return(configFile);
-//        }
+        }
 
         public string ExtractSuggestedGitAttributes(string targetDirectory)
         {

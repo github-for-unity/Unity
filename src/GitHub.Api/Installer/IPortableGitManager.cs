@@ -2,8 +2,8 @@ namespace GitHub.PortableGit.Helpers
 {
     public interface IPortableGitManager
     {
-//        IObservable<ProgressResult> ExtractGitIfNeeded();
-//        IObservable<IFile> EnsureSystemConfigFileExtracted();
+        void ExtractGitIfNeeded();
+        void EnsureSystemConfigFileExtracted();
         string ExtractSuggestedGitAttributes(string targetDirectory);
         bool IsExtracted();
         string GetPortableGitDestinationDirectory(bool createIfNeeded = false);
