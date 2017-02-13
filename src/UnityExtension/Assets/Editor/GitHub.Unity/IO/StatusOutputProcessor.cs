@@ -212,7 +212,7 @@ namespace GitHub.Unity
 
         private void HandleUnexpected(string line)
         {
-            throw new Exception(string.Format(@"Unexpected input{0}""{1}""", Environment.NewLine, line));
+            Logger.Error("Unexpected Input:\"{0}\"", line);
         }
 
         public event Action<GitStatus> OnStatus;

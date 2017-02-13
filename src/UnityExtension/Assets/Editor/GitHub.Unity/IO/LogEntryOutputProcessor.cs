@@ -311,7 +311,7 @@ namespace GitHub.Unity
 
         private void HandleUnexpected(string line)
         {
-            Logger.Error(@"Unexpected input in phase: {0}{1}""{2}""", phase, Environment.NewLine, line);
+            Logger.Error("Unexpected Input:\"{0}\" Phase:{1}", line, phase);
             Reset();
         }
 
