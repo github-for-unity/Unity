@@ -18,7 +18,7 @@ namespace GitHub.Unity
         {
             var time = DateTime.Now.ToString("HH:mm:ss tt");
             var threadId = Thread.CurrentThread.ManagedThreadId;
-            return string.Format("{0} {1} {2,-35} [{3,2}] {4}{5}", time, level, ContextPrefix, threadId, message, Environment.NewLine);
+            return string.Format("{0} {1} [{2,2}] {3,-35} {4}{5}", time, level, threadId, ContextPrefix, message, Environment.NewLine);
         }
 
         public override void Info(string message)
