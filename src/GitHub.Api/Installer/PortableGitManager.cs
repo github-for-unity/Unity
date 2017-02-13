@@ -87,8 +87,7 @@ namespace GitHub.PortableGit.Helpers
         ///   extracted, this will return 100 and Complete.</returns>
         public void ExtractGitIfNeeded()
         {
-            //TODO: Look here next
-//            Observable.Defer(() => ExtractPackageIfNeeded("PortableGit.7z", KillAllSSHAgent, ExecuteBashLogin, 5221));
+            ExtractPackageIfNeeded("PortableGit.7z", KillAllSSHAgent, ExecuteBashLogin, 5221);
         }
 
         void ExecuteBashLogin()
