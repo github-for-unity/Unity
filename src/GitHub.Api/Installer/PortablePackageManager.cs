@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Globalization;
+using System.IO;
 using GitHub.Api;
 using GitHub.Unity;
 
@@ -82,8 +84,10 @@ namespace GitHub.Helpers
 //            get { return operatingSystem.Environment.LocalGitHubApplicationDataPath; }
 //        }
 
-//        protected IObservable<ProgressResult> ExtractPackageIfNeeded(string fileName, Action preExtract = null, Action postExtract = null, int? estimatedFileCount = null)
-//        {
+        protected void ExtractPackageIfNeeded(string fileName, Action preExtract = null, Action postExtract = null, int? estimatedFileCount = null)
+        {
+            //TODO: Which brings me here
+
 //            var newResult = new ReplaySubject<ProgressResult>(bufferSize: 1);
 //
 //            var extractResult = extractResults.GetOrAdd(fileName, newResult);
@@ -189,7 +193,7 @@ namespace GitHub.Helpers
 //                        }
 //                    });
 //            });
-//        }
+        }
 
 //        IObservable<ProgressResult> MoveTemporaryPackageToFinalDestination(IDirectory temporaryDirectory)
 //        {
