@@ -46,7 +46,7 @@ namespace GitHub.Unity
 
                 if (e.Data == null) return;
 
-                logger.Debug("Error - \"" + e.Data + "\" exited:" + process.HasExited);
+                logger.Debug("ProcessError Data:\"{0}\" exited:{1}", e.Data, process.HasExited);
 
                 OnErrorData.SafeInvoke(e.Data);
                 if (process.HasExited)
