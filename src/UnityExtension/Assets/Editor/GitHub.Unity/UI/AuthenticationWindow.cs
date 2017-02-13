@@ -12,7 +12,9 @@ namespace GitHub.Unity
         [MenuItem("GitHub/Authenticate")]
         public static void Launch()
         {
-            GetWindow<AuthenticationWindow>().Show();
+            AuthenticationWindow authWindow = GetWindow<AuthenticationWindow>();
+            authWindow.minSize = new Vector2(290,290);
+            authWindow.Show();
         }
 
         public void OnGUI()
