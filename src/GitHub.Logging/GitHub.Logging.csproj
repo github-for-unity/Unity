@@ -7,7 +7,7 @@
     <ProjectGuid>{BB6A8EDA-15D8-471B-A6ED-EE551E0B3BA0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GitHub.Logging</RootNamespace>
+    <RootNamespace>GitHub.Unity</RootNamespace>
     <AssemblyName>GitHub.Logging</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
