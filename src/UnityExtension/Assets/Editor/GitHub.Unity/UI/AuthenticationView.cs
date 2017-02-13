@@ -18,6 +18,7 @@ namespace GitHub.Unity
         const string authTitle = "Sign in to GitHub";
         const string twofaTitle = "Two-factor authentication";
         const string twofaDescription = "Open the two-factor authentication app on your device to view your authentication code and verify your identity.";
+        const string twofaButton = "Verify";
 
         int cellWidth;
 
@@ -166,7 +167,7 @@ namespace GitHub.Unity
 
               GUILayout.Space(Styles.BaseSpacing);
 
-              if (GUILayout.Button(loginButton))
+              if (GUILayout.Button(twofaButton))
               {
                   busy = true;
                   authenticationService.LoginWith2fa(two2fa);
