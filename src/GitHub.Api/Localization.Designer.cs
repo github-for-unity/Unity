@@ -70,6 +70,15 @@ namespace GitHub.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tried to run git task while git was not found..
+        /// </summary>
+        internal static string NoGitError {
+            get {
+                return ResourceManager.GetString("NoGitError", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Wrong 2FA code.
         /// </summary>
         internal static string Wrong2faCode {

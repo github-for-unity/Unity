@@ -22,23 +22,32 @@ namespace GitHub.Unity
 
         int cellWidth;
 
-        [SerializeField] private Vector2 scroll;
-        [SerializeField] private string username = "";
-        [SerializeField] private string password = "";
-        [SerializeField] private string two2fa = "";
+        [SerializeField]
+        private Vector2 scroll;
+        [SerializeField]
+        private string username = "";
+        [SerializeField]
+        private string password = "";
+        [SerializeField]
+        private string two2fa = "";
 
-        [NonSerialized] private bool need2fa;
-        [NonSerialized] private bool busy;
-        [NonSerialized] private bool finished;
-        [NonSerialized] private string message;
-        [NonSerialized] private AuthenticationService authenticationService;
+        [NonSerialized]
+        private bool need2fa;
+        [NonSerialized]
+        private bool busy;
+        [NonSerialized]
+        private bool finished;
+        [NonSerialized]
+        private string message;
+        [NonSerialized]
+        private AuthenticationService authenticationService;
 
         protected override void OnShow()
         {
             base.OnShow();
             logger.Debug("OnEnable");
             need2fa = busy = finished = false;
-            authenticationService = new AuthenticationService(new Program(), EntryPoint.Platform.CredentialManager);
+            authenticationService = new AuthenticationService(new AppConfiguration(), EntryPoint.Platform.GetCredentialManager(EntryPoint.ProcessManager));
         }
 
         public override void OnGUI()
@@ -50,28 +59,28 @@ namespace GitHub.Unity
 
             scroll = GUILayout.BeginScrollView(scroll);
             {
-              Rect authHeader = EditorGUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
-              {
-                  GUILayout.BeginVertical(GUILayout.Width(16));
-                  {
-                      GUILayout.Space(9);
-                      GUILayout.Label(Styles.TitleIcon, GUILayout.Height(20), GUILayout.Width(20));
-                  }
-                  GUILayout.EndVertical();
+                Rect authHeader = EditorGUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
+                {
+                    GUILayout.BeginVertical(GUILayout.Width(16));
+                    {
+                        GUILayout.Space(9);
+                        GUILayout.Label(Styles.TitleIcon, GUILayout.Height(20), GUILayout.Width(20));
+                    }
+                    GUILayout.EndVertical();
 
-                  GUILayout.BeginVertical();
-                  {
-                      GUILayout.Space(11);
-                      GUILayout.Label(authTitle, Styles.HeaderRepoLabelStyle);
-                  }
-                  GUILayout.EndVertical();
-              }
+                    GUILayout.BeginVertical();
+                    {
+                        GUILayout.Space(11);
+                        GUILayout.Label(authTitle, Styles.HeaderRepoLabelStyle);
+                    }
+                    GUILayout.EndVertical();
+                }
 
-              GUILayout.EndHorizontal();
-              EditorGUI.DrawRect(
-                new Rect(authHeader.x, authHeader.yMax, authHeader.xMax, 1),
-                new Color(0.455F, 0.455F, 0.455F, 1F)
-              );
+                GUILayout.EndHorizontal();
+                EditorGUI.DrawRect(
+                  new Rect(authHeader.x, authHeader.yMax, authHeader.xMax, 1),
+                  new Color(0.455F, 0.455F, 0.455F, 1F)
+                );
 
                 GUILayout.BeginVertical(Styles.GenericBoxStyle);
                 {
@@ -124,12 +133,12 @@ namespace GitHub.Unity
 
             if (busy) GUI.enabled = false;
             GUILayout.BeginHorizontal();
-              GUILayout.FlexibleSpace();
-              if (GUILayout.Button(loginButton))
-              {
-                  busy = true;
-                  authenticationService.Login(username, password, DoRequire2fa, DoResult);
-              }
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button(loginButton))
+            {
+                busy = true;
+                authenticationService.Login(username, password, DoRequire2fa, DoResult);
+            }
             GUILayout.EndHorizontal();
             GUI.enabled = true;
         }
@@ -158,20 +167,20 @@ namespace GitHub.Unity
 
             if (busy) GUI.enabled = false;
             GUILayout.BeginHorizontal();
-              GUILayout.FlexibleSpace();
-              if (GUILayout.Button(backButton))
-              {
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button(backButton))
+            {
                 need2fa = false;
                 parent.Redraw();
-              }
+            }
 
-              GUILayout.Space(Styles.BaseSpacing);
+            GUILayout.Space(Styles.BaseSpacing);
 
-              if (GUILayout.Button(twofaButton))
-              {
-                  busy = true;
-                  authenticationService.LoginWith2fa(two2fa);
-              }
+            if (GUILayout.Button(twofaButton))
+            {
+                busy = true;
+                authenticationService.LoginWith2fa(two2fa);
+            }
             GUILayout.EndHorizontal();
 
             GUI.enabled = true;
@@ -197,27 +206,27 @@ namespace GitHub.Unity
 
             if (success == true && need2fa == false)
             {
-              Debug.Log("DoResult Success");
-              parent.Close();
+                logger.Debug("DoResult Success");
+                parent.Close();
             }
             else if (success == true && need2fa == true)
             {
-              Debug.Log("DoResult Success Need2fa");
-              parent.Close();
+                logger.Debug("DoResult Success Need2fa");
+                parent.Close();
             }
             else
             {
-              Debug.Log("DoResult Else");
-              parent.Redraw();
+                logger.Debug("DoResult Else");
+                parent.Redraw();
             }
         }
 
         private void ShowMessage(string message, GUIStyle style)
         {
-          if (message != null)
-          {
-              GUILayout.Label(message, style);
-          }
+            if (message != null)
+            {
+                GUILayout.Label(message, style);
+            }
         }
     }
 }

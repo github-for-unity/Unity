@@ -1,17 +1,21 @@
 using System;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
     class FindGitTask : ProcessTask
     {
-        private FindGitTask(Action<string> onSuccess, Action onFailure = null)
-            : base(onSuccess, onFailure)
+        public FindGitTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+            Action<string> onSuccess, Action onFailure = null)
+            : base(environment, processManager, resultDispatcher, onSuccess, onFailure)
         {
         }
 
         public static void Schedule(Action<string> onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new FindGitTask(onSuccess, onFailure));
+            Tasks.Add(new FindGitTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                onSuccess, onFailure));
         }
 
         public override bool Blocking { get { return false; } }

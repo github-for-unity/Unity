@@ -7,13 +7,21 @@ namespace GitHub.Unity
     [Serializable]
     class AuthenticationWindow : EditorWindow, IView
     {
+        private static Action callbackOnClose;
+
         [SerializeField] private AuthenticationView authView;
 
         [MenuItem("GitHub/Authenticate")]
         public static void Launch()
         {
+            Open();
+        }
+
+        public static void Open(Action onClose = null)
+        {
+            callbackOnClose = onClose;
             AuthenticationWindow authWindow = GetWindow<AuthenticationWindow>();
-            authWindow.minSize = new Vector2(290,290);
+            authWindow.minSize = new Vector2(290, 290);
             authWindow.Show();
         }
 
@@ -39,6 +47,11 @@ namespace GitHub.Unity
 
             Utility.UnregisterReadyCallback(Refresh);
             Utility.RegisterReadyCallback(Refresh);
+        }
+
+        private void OnDestroy()
+        {
+            callbackOnClose.SafeInvoke();
         }
 
         private void CreateViews()

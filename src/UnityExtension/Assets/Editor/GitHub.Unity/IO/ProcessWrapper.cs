@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using System.ComponentModel;
-using GitHub.Api;
+using System.IO;
 
 namespace GitHub.Unity
 {
@@ -12,21 +12,27 @@ namespace GitHub.Unity
 
         public event Action<string> OnOutputData;
         public event Action<string> OnErrorData;
+        public event Action<IProcess> OnStart;
         public event Action<IProcess> OnExit;
 
         private Process process;
         private ProcessState state;
+        private bool hasOutputData;
+        private StreamWriter input;
 
         public ProcessWrapper(ProcessStartInfo psi)
         {
             process = new Process { StartInfo = psi, EnableRaisingEvents = true };
             process.OutputDataReceived += (s, e) =>
             {
+                //logger.Trace("OutputData \"" + (e.Data == null ? "'null'" : e.Data) + "\" exited:" + process.HasExited);
+
+                hasOutputData = true;
                 if (process.HasExited)
                 {
                     state = ProcessState.Finished;
                 }
-                //logger.Debug("Output - \"" + e.Data + "\" exited:" + process.HasExited);
+                
                 try
                 {
                     OnOutputData.SafeInvoke(e.Data);
@@ -35,10 +41,16 @@ namespace GitHub.Unity
                 {
                     logger.Debug(ex);
                 }
-
+                if (e.Data == null)
+                {
+                    Finished();
+                }
             };
+
             process.ErrorDataReceived += (s, e) =>
             {
+                logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\" exited:" + process.HasExited);
+
                 if (process.HasExited)
                 {
                     state = ProcessState.Finished;
@@ -46,19 +58,22 @@ namespace GitHub.Unity
 
                 if (e.Data == null) return;
 
-                logger.Debug("ProcessError Data:\"{0}\" exited:{1}", e.Data, process.HasExited);
-
                 OnErrorData.SafeInvoke(e.Data);
                 if (process.HasExited)
                 {
-                    OnExit.SafeInvoke(this);
+                    Finished();
                 }
             };
             process.Exited += (s, e) =>
             {
-                state = ProcessState.Finished;
-                logger.Debug("Exit");
-                OnExit.SafeInvoke(this);
+                logger.Trace("Exited");
+
+                if (!hasOutputData)
+                {
+                    state = ProcessState.Finished;
+                    logger.Debug("Exit");
+                    Finished();
+                }
             };
         }
 
@@ -86,11 +101,14 @@ namespace GitHub.Unity
                     sb.AppendLine();
                 }
                 OnErrorData.SafeInvoke(String.Format("{0} {1}", ex.Message, sb.ToString()));
-                OnExit.SafeInvoke(this);
+                Finished();
                 return;
             }
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+            input = new StreamWriter(process.StandardInput.BaseStream, new UTF8Encoding(false));
+
+            OnStart.SafeInvoke(this);
         }
 
         public bool WaitForExit(int milliseconds)
@@ -109,7 +127,7 @@ namespace GitHub.Unity
 
         public void WaitForExit()
         {
-            logger.Debug("WaitForExit");
+            //logger.Debug("WaitForExit");
             process.WaitForExit();
         }
 
@@ -123,9 +141,19 @@ namespace GitHub.Unity
             process.Kill();
         }
 
+        private void Finished()
+        {
+            logger.Trace("Finished");
+            HasFinished = true;
+            OnExit.SafeInvoke(this);
+        }
+
         public int Id { get { return process.Id; } }
 
         public bool HasExited { get { return state == ProcessState.Finished || state == ProcessState.Exception; } }
+        public bool HasFinished { get; private set; }
+
+        public StreamWriter StandardInput { get { return input; } }
 
         enum ProcessState
         {

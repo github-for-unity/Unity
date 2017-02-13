@@ -18,7 +18,7 @@ namespace GitHub.Unity
             {
                 return;
             }
-            OnData.SafeInvoke(line);
+            OnData?.Invoke(line);
         }
 
         protected ILogging Logger { get; private set; }

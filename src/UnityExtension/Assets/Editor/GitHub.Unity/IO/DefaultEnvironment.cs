@@ -7,6 +7,8 @@ namespace GitHub.Unity
 {
     class DefaultEnvironment : IEnvironment
     {
+        private static readonly ILogging logger = Logging.GetLogger<DefaultEnvironment>();
+
         public string GetSpecialFolder(Environment.SpecialFolder folder)
         {
             return Environment.GetFolderPath(folder);
@@ -29,7 +31,17 @@ namespace GitHub.Unity
         public string UserProfilePath { get { return Environment.GetEnvironmentVariable("USERPROFILE"); } }
         public string Path { get { return Environment.GetEnvironmentVariable("PATH"); } }
         public string NewLine { get { return Environment.NewLine; } }
-        public string GitInstallPath { get; set; }
+
+        private string gitInstallPath;
+        public string GitInstallPath
+        {
+            get { return gitInstallPath; }
+            set
+            {
+                logger.Trace("Setting GitInstallPath to " + value);
+                gitInstallPath = value;
+            }
+        }
         public string GitRoot { get; set; }
 
         public bool IsWindows

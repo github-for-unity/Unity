@@ -3,17 +3,16 @@ using System.Collections.Concurrent;
 
 namespace GitHub.Api
 {
-    public class SimpleApiClientFactory : ISimpleApiClientFactory
+    class SimpleApiClientFactory : ISimpleApiClientFactory
     {
         private static readonly ConcurrentDictionary<UriString, ISimpleApiClient> cache = new ConcurrentDictionary<UriString, ISimpleApiClient>();
 
         private readonly ProductHeaderValue productHeader;
         private readonly ICredentialManager credentialManager;
 
-
-        public SimpleApiClientFactory(IProgram program, ICredentialManager credentialManager)
+        public SimpleApiClientFactory(IAppConfiguration appConfiguration, ICredentialManager credentialManager)
         {
-            productHeader = program.ProductHeader;
+            productHeader = appConfiguration.ProductHeader;
             this.credentialManager = credentialManager; ;
         }
 
@@ -34,5 +33,7 @@ namespace GitHub.Api
             ISimpleApiClient c;
             cache.TryRemove(client.OriginalUrl, out c);
         }
+
+        public static ISimpleApiClientFactory Instance { get; set; }
     }
 }

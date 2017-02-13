@@ -59,35 +59,35 @@ namespace GitHub.Api
             //var developerPaths = StringExtensions.JoinForAppending(";", developerEnvironment.GetPaths());
             var developerPaths = "";
 
-            psi.EnvironmentVariables["github_shell"] = "true";
-            psi.EnvironmentVariables["git_install_root"] = gitPath; // todo: remove in favor of github_git
-            psi.EnvironmentVariables["github_git"] = gitPath;
-            psi.EnvironmentVariables["PLINK_PROTOCOL"] = "ssh";
-            psi.EnvironmentVariables["TERM"] = "msys";
+            //psi.EnvironmentVariables["github_shell"] = "true";
+            //psi.EnvironmentVariables["git_install_root"] = gitPath; // todo: remove in favor of github_git
+            //psi.EnvironmentVariables["github_git"] = gitPath;
+            //psi.EnvironmentVariables["PLINK_PROTOCOL"] = "ssh";
+            //psi.EnvironmentVariables["TERM"] = "msys";
 
             //TODO: Remove with Git LFS Locking becomes standard
             psi.EnvironmentVariables["GITLFSLOCKSENABLED"] = "1";
             
             if (Environment.IsWindows)
             {
-                psi.EnvironmentVariables["PATH"] = String.Format(CultureInfo.InvariantCulture, @"{0}\cmd;{0}\usr\bin;{0}\usr\share\git-tfs;{1};{2};{3}{4}", gitPath, appPath, gitLfsPath, userPath, developerPaths);
+                //psi.EnvironmentVariables["PATH"] = String.Format(CultureInfo.InvariantCulture, @"{0}\cmd;{0}\usr\bin;{0}\usr\share\git-tfs;{1};{2};{3}{4}", gitPath, appPath, gitLfsPath, userPath, developerPaths);
             }
             else
             {
                 psi.EnvironmentVariables["PATH"] = String.Format(CultureInfo.InvariantCulture, @"{0}:{1}:{2}:{3}{4}", gitPath, appPath, gitLfsPath, userPath, developerPaths);
             }
-            psi.EnvironmentVariables["GIT_EXEC_PATH"] = gitPath;
+            //psi.EnvironmentVariables["GIT_EXEC_PATH"] = gitPath;
 
-            psi.EnvironmentVariables["HOME"] = homeDir;
-            psi.EnvironmentVariables["TMP"] = psi.EnvironmentVariables["TEMP"] = FileSystem.GetTempPath();
-            psi.EnvironmentVariables["EDITOR"] = Environment.GetEnvironmentVariable("EDITOR");
+            //psi.EnvironmentVariables["HOME"] = homeDir;
+            //psi.EnvironmentVariables["TMP"] = psi.EnvironmentVariables["TEMP"] = FileSystem.GetTempPath();
+            //psi.EnvironmentVariables["EDITOR"] = Environment.GetEnvironmentVariable("EDITOR");
 
-            var httpProxy = Environment.GetEnvironmentVariable("HTTP_PROXY");
-            if (!String.IsNullOrEmpty(httpProxy))
-                psi.EnvironmentVariables["HTTP_PROXY"] = httpProxy;
-            var httpsProxy = Environment.GetEnvironmentVariable("HTTPS_PROXY");
-            if (!String.IsNullOrEmpty(httpsProxy))
-                psi.EnvironmentVariables["HTTPS_PROXY"] = httpsProxy;
+            //var httpProxy = Environment.GetEnvironmentVariable("HTTP_PROXY");
+            //if (!String.IsNullOrEmpty(httpProxy))
+            //    psi.EnvironmentVariables["HTTP_PROXY"] = httpProxy;
+            //var httpsProxy = Environment.GetEnvironmentVariable("HTTPS_PROXY");
+            //if (!String.IsNullOrEmpty(httpsProxy))
+            //    psi.EnvironmentVariables["HTTPS_PROXY"] = httpsProxy;
 
             //var existingSshAgentProcess = sshAgentBridge.GetRunningSshAgentInfo();
             //if (existingSshAgentProcess != null)

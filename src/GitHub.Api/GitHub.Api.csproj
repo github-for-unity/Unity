@@ -14,6 +14,7 @@
     <BuildType Condition="Exists('..\..\script\src\ApiClientConfiguration.cs')">Internal</BuildType>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <TargetFrameworkProfile />
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -71,6 +72,17 @@
     <Compile Include="Api\ApplicationInfo.cs" />
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
+    <Compile Include="Extensions\AsyncExtensions.cs" />
+    <Compile Include="Helpers\LineProcessor.cs" />
+    <Compile Include="Helpers\StringExtensions.cs" />
+    <Compile Include="IO\BaseOutputProcessor.cs" />
+    <Compile Include="IO\GitRemote.cs" />
+    <Compile Include="IO\GitRemoteFunction.cs" />
+    <Compile Include="IO\IOutputProcessor.cs" />
+    <Compile Include="IO\IProcess.cs" />
+    <Compile Include="IO\IProcessManager.cs" />
+    <Compile Include="IO\ProcessOutputManager.cs" />
+    <Compile Include="IO\RemoteListOutputProcessor.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -86,6 +98,18 @@
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="Tasks\BaseTask.cs" />
+    <Compile Include="Tasks\CachedTask.cs" />
+    <Compile Include="Tasks\FailureSeverity.cs" />
+    <Compile Include="Tasks\GitConfigGetTask.cs" />
+    <Compile Include="Tasks\GitConfigSource.cs" />
+    <Compile Include="Tasks\GitNetworkTask.cs" />
+    <Compile Include="Tasks\GitRemoteListTask.cs" />
+    <Compile Include="Tasks\GitTask.cs" />
+    <Compile Include="Tasks\ITask.cs" />
+    <Compile Include="Tasks\ITaskResultDispatcher.cs" />
+    <Compile Include="Tasks\ProcessTask.cs" />
+    <Compile Include="Tasks\TaskQueueSetting.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\ISimpleApiClient.cs" />

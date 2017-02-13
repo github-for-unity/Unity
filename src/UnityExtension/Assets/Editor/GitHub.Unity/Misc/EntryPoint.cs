@@ -37,6 +37,8 @@ namespace GitHub.Unity
         // we do this so we're guaranteed to run on the main thread, not the loader thread
         private static void Initialize()
         {
+            EditorApplication.update -= Initialize;
+
             var persistentPath = Application.persistentDataPath;
             var filepath = Path.Combine(persistentPath, "github-unity-log.txt");
             try
@@ -57,25 +59,16 @@ namespace GitHub.Unity
             var syncCtx = new MainThreadSynchronizationContext();
             SynchronizationContext.SetSynchronizationContext(syncCtx);
 
-            EditorApplication.update -= Initialize;
-
             logger.Debug("Initialize");
 
-            ProcessManager = new ProcessManager(Environment, GitEnvironment, FileSystem);
-
-            DeterminePaths(Environment, GitEnvironment, FileSystem);
-
+            DetermineUnityPaths(Environment, GitEnvironment, FileSystem);
             DetermineGitRepoRoot(Environment, GitEnvironment, FileSystem);
 
-            Settings = new Settings(Environment);
-
-            Settings.Initialize();
+            SimpleApiClientFactory.Instance = new SimpleApiClientFactory(new AppConfiguration(), Platform.GetCredentialManager(ProcessManager));
 
             Tasks.Initialize(syncCtx);
 
-            DetermineGitInstallationPath(Environment, GitEnvironment, FileSystem, Settings);
-
-            GitObjectFactory = new GitObjectFactory(Environment, FileSystem, GitEnvironment);
+            DetermineGitInstallationPath(Environment, GitEnvironment, FileSystem, LocalSettings);
 
             Utility.Initialize();
 
@@ -88,7 +81,6 @@ namespace GitHub.Unity
             Window.Initialize();
         }
 
-
         // TODO: Move these out to a proper location
         private static void DetermineGitRepoRoot(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
         {
@@ -97,7 +89,7 @@ namespace GitHub.Unity
         }
 
         // TODO: Move these out to a proper location
-        private static void DeterminePaths(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
+        private static void DetermineUnityPaths(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
         {
             // Unity paths
             environment.UnityAssetsPath = Application.dataPath;
@@ -137,13 +129,15 @@ namespace GitHub.Unity
             // Root paths
             if (string.IsNullOrEmpty(cachedGitInstallPath) || !fs.FileExists(cachedGitInstallPath))
             {
-                FindGitTask.Schedule(path => {
-                    logger.Debug("found " + path);
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        environment.GitInstallPath = path;
-                    }
-                }, () => logger.Debug("NOT FOUND"));
+                var task = new FindGitTask(Environment, ProcessManager, null,
+                    path => {
+                        logger.Debug("found " + path);
+                        if (!string.IsNullOrEmpty(path))
+                        {
+                            environment.GitInstallPath = path;
+                        }
+                    }, () => logger.Debug("NOT FOUND"));
+                Tasks.Add(task);
             }
         }
 
@@ -179,7 +173,7 @@ namespace GitHub.Unity
                 return environment;
             }
         }
-        private static IGitEnvironment gitEnvironment;
+
         public static IGitEnvironment GitEnvironment
         {
             get
@@ -214,9 +208,72 @@ namespace GitHub.Unity
             }
         }
 
-        public static IProcessManager ProcessManager { get; private set; }
+        private static IProcessManager processManager;
+        public static IProcessManager ProcessManager
+        {
+            get
+            {
+                if (processManager == null)
+                {
+                    processManager = new ProcessManager(Environment, GitEnvironment, FileSystem);
+                }
+                return processManager;
+            }
+        }
 
-        public static GitObjectFactory GitObjectFactory { get; private set; }
-        public static ISettings Settings { get; private set; }
+
+        private static GitObjectFactory gitObjectFactory;
+        public static GitObjectFactory GitObjectFactory
+        {
+            get
+            {
+                if (gitObjectFactory == null)
+                {
+                    gitObjectFactory = new GitObjectFactory(Environment, GitEnvironment, FileSystem);
+                }
+                return gitObjectFactory;
+            }
+        }
+
+        private static ISettings localSettings;
+        public static ISettings LocalSettings
+        {
+            get
+            {
+                if (localSettings == null)
+                {
+                    localSettings = new LocalSettings(Environment);
+                    localSettings.Initialize();
+                }
+                return localSettings;
+            }
+        }
+
+        private static ISettings userSettings;
+        public static ISettings UserSettings
+        {
+            get
+            {
+                if (userSettings == null)
+                {
+                    userSettings = new UserSettings(Environment, new AppConfiguration());
+                    userSettings.Initialize();
+                }
+                return userSettings;
+            }
+        }
+
+        private static ITaskResultDispatcher taskResultDispatcher;
+        public static ITaskResultDispatcher TaskResultDispatcher
+        {
+            get
+            {
+                if (taskResultDispatcher == null)
+                {
+                    taskResultDispatcher = new TaskResultDispatcher();
+                }
+                return taskResultDispatcher;
+            }
+        }
     }
 }

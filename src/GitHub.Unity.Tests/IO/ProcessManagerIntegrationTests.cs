@@ -102,7 +102,7 @@ namespace GitHub.Unity.Tests
             gitRemotes.Should().BeEquivalentTo(new GitRemote()
             {
                 Name = "origin",
-                URL = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git",
+                Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git",
                 Host = "github.com",
                 Function = GitRemoteFunction.Both
             });

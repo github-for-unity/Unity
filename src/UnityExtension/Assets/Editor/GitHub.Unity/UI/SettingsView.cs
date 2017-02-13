@@ -219,7 +219,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            if (settingsIssues != null && !EntryPoint.Settings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
+            if (settingsIssues != null && !EntryPoint.LocalSettings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
             {
                 var binary = settingsIssues.WasCaught(ProjectSettingsEvaluation.BinarySerialization);
                 var mixed = settingsIssues.WasCaught(ProjectSettingsEvaluation.MixedSerialization);
@@ -233,7 +233,7 @@ namespace GitHub.Unity
                     {
                         if (GUILayout.Button(IgnoreSerialisationSettingsButton))
                         {
-                            EntryPoint.Settings.Set(IgnoreSerialisationIssuesSetting, "1");
+                            EntryPoint.LocalSettings.Set(IgnoreSerialisationIssuesSetting, "1");
                         }
 
                         GUILayout.FlexibleSpace();
