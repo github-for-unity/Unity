@@ -197,7 +197,7 @@ namespace GitHub.Unity
         {
             if (OnSuccess != null)
             {
-                Logger.Debug("Success: `{0}`", msg);
+                Logger.Debug("Success: \"{0}\"", msg);
                 Tasks.ScheduleMainThread(() => OnSuccess(msg));
             }
         }
@@ -208,7 +208,7 @@ namespace GitHub.Unity
 
             if (OnFailure != null)
             {
-                Logger.Debug("Failure: `{0}`", msg);
+                Logger.Debug("Failure: \"{0}\"", msg);
                 Tasks.ScheduleMainThread(() => OnFailure());
             }
         }
