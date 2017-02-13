@@ -14,6 +14,7 @@ namespace GitHub.Unity
         const string passwordLabel = "Password";
         const string twofaLabel = "Authentication code";
         const string loginButton = "Sign in";
+        const string backButton = "Back";
         const string authTitle = "Sign in to GitHub";
         const string twofaTitle = "Two-factor authentication";
         const string twofaDescription = "Open the two-factor authentication app on your device to view your authentication code and verify your identity.";
@@ -121,11 +122,14 @@ namespace GitHub.Unity
             GUILayout.Space(Styles.BaseSpacing + 3);
 
             if (busy) GUI.enabled = false;
-            if (GUILayout.Button(loginButton))
-            {
-                busy = true;
-                authenticationService.Login(username, password, DoRequire2fa, DoResult);
-            }
+            GUILayout.BeginHorizontal();
+              GUILayout.FlexibleSpace();
+              if (GUILayout.Button(loginButton))
+              {
+                  busy = true;
+                  authenticationService.Login(username, password, DoRequire2fa, DoResult);
+              }
+            GUILayout.EndHorizontal();
             GUI.enabled = true;
         }
 
@@ -152,11 +156,23 @@ namespace GitHub.Unity
             GUILayout.Space(Styles.BaseSpacing);
 
             if (busy) GUI.enabled = false;
-            if (GUILayout.Button(loginButton))
-            {
-                busy = true;
-                authenticationService.LoginWith2fa(two2fa);
-            }
+            GUILayout.BeginHorizontal();
+              GUILayout.FlexibleSpace();
+              if (GUILayout.Button(backButton))
+              {
+                need2fa = false;
+                parent.Redraw();
+              }
+
+              GUILayout.Space(Styles.BaseSpacing);
+
+              if (GUILayout.Button(loginButton))
+              {
+                  busy = true;
+                  authenticationService.LoginWith2fa(two2fa);
+              }
+            GUILayout.EndHorizontal();
+
             GUI.enabled = true;
             GUILayout.Space(Styles.BaseSpacing);
             GUILayout.EndVertical();
