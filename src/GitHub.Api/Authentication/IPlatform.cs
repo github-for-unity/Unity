@@ -1,6 +1,6 @@
 ﻿namespace GitHub.Api
 {
-    public interface IPlatform
+    interface IPlatform
     {
         ICredentialManager CredentialManager { get; }
         IGitEnvironment GitEnvironment { get; }

@@ -6,7 +6,7 @@ namespace GitHub.Unity.Tests
     [TestFixture]
     public class LoginTests
     {
-        [Test]
+        //[Test]
         public async void SimpleLogin()
         {
             var program = new Program();
