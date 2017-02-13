@@ -58,6 +58,7 @@ namespace GitHub.Unity
         static GUIStyle
             label,
             boldLabel,
+            errorLabel,
             deletedFileLabel,
             longMessageStyle,
             headerBoxStyle,
@@ -200,6 +201,21 @@ namespace GitHub.Unity
 			}
 		}
 
+    public static GUIStyle ErrorLabel
+    {
+      get
+      {
+        if (errorLabel == null)
+        {
+          errorLabel = new GUIStyle(EditorStyles.label);
+          errorLabel.name = "ErrorLabel";
+
+          errorLabel.normal.textColor = Color.red;
+        }
+
+        return errorLabel;
+      }
+    }
 
         public static GUIStyle LongMessageStyle
         {
