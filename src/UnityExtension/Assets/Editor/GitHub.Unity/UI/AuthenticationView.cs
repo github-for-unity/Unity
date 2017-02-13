@@ -85,7 +85,7 @@ namespace GitHub.Unity
 
                 if (finished)
                 {
-                    Debug.Log("finished");
+                    // Debug.Log("finished");
                 }
                 GUILayout.EndVertical();
                 GUILayout.Space(Styles.BaseSpacing);
@@ -165,6 +165,7 @@ namespace GitHub.Unity
 
         private void DoRequire2fa(string msg)
         {
+            Debug.Log("DoRequire2fa");
             need2fa = true;
             message = msg;
             busy = false;
@@ -173,17 +174,23 @@ namespace GitHub.Unity
 
         private void DoResult(bool success, string msg)
         {
-            need2fa = true;
             finished = true;
             message = msg;
             busy = false;
 
-            if (success == true)
+            if (success == true && need2fa == false)
             {
+              Debug.Log("DoResult Success");
+              parent.Close();
+            }
+            else if (success == true && need2fa == true)
+            {
+              Debug.Log("DoResult Success Need2fa");
               parent.Close();
             }
             else
             {
+              Debug.Log("DoResult Else");
               parent.Redraw();
             }
         }
