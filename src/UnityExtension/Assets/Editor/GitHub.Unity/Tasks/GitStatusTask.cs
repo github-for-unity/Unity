@@ -8,16 +8,16 @@ namespace GitHub.Unity
         private Action<GitStatus> callback;
         private GitStatus gitStatus;
 
-        private GitStatusTask(IGitStatusEntryFactory gitStatusEntryFactory, Action<GitStatus> onSuccess, Action onFailure = null)
+        private GitStatusTask(IGitObjectFactory gitObjectFactory, Action<GitStatus> onSuccess, Action onFailure = null)
             : base(null, onFailure)
         {
             callback = onSuccess;
-            processor = new StatusOutputProcessor(gitStatusEntryFactory);
+            processor = new StatusOutputProcessor(gitObjectFactory);
         }
 
         public static void Schedule(Action<GitStatus> onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitStatusTask(EntryPoint.GitStatusEntryFactory, onSuccess, onFailure));
+            Tasks.Add(new GitStatusTask(EntryPoint.GitObjectFactory, onSuccess, onFailure));
         }
 
         protected override void OnProcessOutputUpdate()
