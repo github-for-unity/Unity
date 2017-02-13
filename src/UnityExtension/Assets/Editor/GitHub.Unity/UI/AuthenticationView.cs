@@ -82,9 +82,10 @@ namespace GitHub.Unity
                         OnGUI2FA();
                     }
                 }
+
                 if (finished)
                 {
-                    GUILayout.Label("Finished");
+                    Debug.Log("finished");
                 }
                 GUILayout.EndVertical();
                 GUILayout.Space(Styles.BaseSpacing);
