@@ -86,10 +86,6 @@ namespace GitHub.Unity
                 {
                     GUILayout.Label("Finished");
                 }
-                if (message != null)
-                {
-                    GUILayout.Label(message);
-                }
                 GUILayout.EndVertical();
                 GUILayout.Space(Styles.BaseSpacing);
             }
@@ -118,6 +114,9 @@ namespace GitHub.Unity
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
+
+            ShowMessage(message, Styles.ErrorLabel);
+
             GUILayout.Space(Styles.BaseSpacing + 3);
 
             if (busy) GUI.enabled = false;
@@ -146,6 +145,8 @@ namespace GitHub.Unity
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
+
+            ShowMessage(message, Styles.ErrorLabel);
 
             GUILayout.Space(Styles.BaseSpacing);
 
@@ -184,6 +185,14 @@ namespace GitHub.Unity
             {
               parent.Redraw();
             }
+        }
+
+        private void ShowMessage(string message, GUIStyle style)
+        {
+          if (message != null)
+          {
+              GUILayout.Label(message, style);
+          }
         }
     }
 }
