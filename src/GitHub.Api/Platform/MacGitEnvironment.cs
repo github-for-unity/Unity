@@ -1,19 +1,22 @@
+using System.Threading.Tasks;
+using GitHub.Unity;
+using System;
+
 namespace GitHub.Api
 {
     class MacGitEnvironment : GitEnvironment
     {
-        public const string DefaultGitPath = "/usr/bin/git";
-
         public MacGitEnvironment(IEnvironment environment, IFileSystem filesystem)
             : base(environment, filesystem)
         {
         }
 
-        public override string FindGitInstallationPath()
+        public override Task<string> FindGitInstallationPath(IProcessManager processManager)
         {
-            return FileSystem.FileExists(DefaultGitPath)
-                ? DefaultGitPath :
-                null;
+            if (!String.IsNullOrEmpty(Environment.GitExecutablePath))
+                return TaskEx.FromResult(Environment.GitExecutablePath);
+
+            return base.FindGitInstallationPath(processManager); ;
         }
 
         public override string GetGitExecutableExtension()

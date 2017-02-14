@@ -7,8 +7,10 @@ namespace GitHub.Unity
     {
         private readonly string arguments;
 
-        private GitBranchDeleteTask(string branch, Action onSuccess, Action onFailure)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
+        private GitBranchDeleteTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+                                    string branch, Action onSuccess, Action onFailure)
+            : base(environment, processManager, resultDispatcher,
+                  str => onSuccess.SafeInvoke(), onFailure)
         {
             Guard.ArgumentNotNullOrWhiteSpace(branch, "branch");
             arguments = String.Format("branch -d {0}", branch);
@@ -16,7 +18,9 @@ namespace GitHub.Unity
 
         public static void Schedule(string branch, Action onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitBranchDeleteTask(branch, onSuccess, onFailure));
+            Tasks.Add(new GitBranchDeleteTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                branch, onSuccess, onFailure));
         }
 
         public override bool Blocking { get { return false; } }

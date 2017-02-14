@@ -1,27 +1,50 @@
+using GitHub.Unity;
+
 namespace GitHub.Api
 {
     class Platform : IPlatform
     {
+        private readonly IEnvironment environment;
+
+        private ICredentialManager credentialManager;
+
         public Platform(IEnvironment environment, IFileSystem fs)
         {
+            this.environment = environment;
             if (environment.IsWindows)
             {
-                CredentialManager =  new WindowsCredentialManager();
                 GitEnvironment = new WindowsGitEnvironment(environment, fs);
             }
             else if (environment.IsMac)
             {
-                CredentialManager = new MacCredentialManager();
                 GitEnvironment = new MacGitEnvironment(environment, fs);
             }
             else
             {
-                CredentialManager = new LinuxCredentialManager();
                 GitEnvironment = new LinuxGitEnvironment(environment, fs);
             }
         }
 
-        public ICredentialManager CredentialManager { get; private set; }
+        public ICredentialManager GetCredentialManager(IProcessManager processManager)
+        {
+            if (credentialManager == null)
+            {
+                if (environment.IsWindows)
+                {
+                    credentialManager = new WindowsCredentialManager(environment, processManager);
+                }
+                else if (environment.IsMac)
+                {
+                    credentialManager = new MacCredentialManager();
+                }
+                else
+                {
+                    credentialManager = new LinuxCredentialManager();
+                }
+            }
+            return credentialManager;
+        }
+
         public IGitEnvironment GitEnvironment { get; private set; }
     }
 }

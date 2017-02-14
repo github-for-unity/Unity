@@ -24,7 +24,7 @@ namespace GitHub.Unity.Tests
                     Function = GitRemoteFunction.Both,
                     Name = "origin",
                     Host = "github.com",
-                    URL = "https://github.com/github/VisualStudio.git",
+                    Url = "https://github.com/github/VisualStudio.git",
                 }
             });
         }
@@ -45,7 +45,7 @@ namespace GitHub.Unity.Tests
                     Function = GitRemoteFunction.Fetch,
                     Name = "origin",
                     Host = "github.com",
-                    URL = "https://github.com/github/VisualStudio.git",
+                    Url = "https://github.com/github/VisualStudio.git",
                 }
             });
         }
@@ -66,7 +66,7 @@ namespace GitHub.Unity.Tests
                     Function = GitRemoteFunction.Push,
                     Name = "origin",
                     Host = "github.com",
-                    URL = "https://github.com/github/VisualStudio.git",
+                    Url = "https://github.com/github/VisualStudio.git",
                 }
             });
         }
@@ -88,7 +88,7 @@ namespace GitHub.Unity.Tests
                     Function = GitRemoteFunction.Both,
                     Name = "origin",
                     Host = "github.com",
-                    URL = "github.com:StanleyGoldman/VisualStudio.git",
+                    Url = "github.com:StanleyGoldman/VisualStudio.git",
                     User = "git"
                 },
             });
@@ -114,14 +114,14 @@ namespace GitHub.Unity.Tests
                     Function = GitRemoteFunction.Both,
                     Name = "origin",
                     Host = "github.com",
-                    URL = "https://github.com/github/VisualStudio.git",
+                    Url = "https://github.com/github/VisualStudio.git",
                 },
                 new GitRemote
                 {
                     Function = GitRemoteFunction.Both,
                     Name = "stanleygoldman",
                     Host = "github.com",
-                    URL = "github.com:StanleyGoldman/VisualStudio.git",
+                    Url = "github.com:StanleyGoldman/VisualStudio.git",
                     User = "git"
                 },
                 new GitRemote
@@ -129,7 +129,7 @@ namespace GitHub.Unity.Tests
                     Function = GitRemoteFunction.Fetch,
                     Name = "fetchOnly",
                     Host = "github.com",
-                    URL = "github.com:StanleyGoldman/VisualStudio2.git",
+                    Url = "github.com:StanleyGoldman/VisualStudio2.git",
                     User = "git"
                 },
             });

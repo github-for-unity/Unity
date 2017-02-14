@@ -114,7 +114,7 @@ namespace GitHub.Unity
             {
                 Name = currentName,
                 Host = host,
-                URL = currentUrl,
+                Url = currentUrl,
                 User = user,
                 Function = remoteFunction
             });

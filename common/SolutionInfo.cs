@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("GitHub for Unity")]
 [assembly: AssemblyVersion(System.AssemblyVersionInformation.Version)]
 [assembly: AssemblyFileVersion(System.AssemblyVersionInformation.Version)]
+[assembly: AssemblyInformationalVersion(System.AssemblyVersionInformation.Version)]
 [assembly: ComVisible(false)]
 [assembly: AssemblyCompany("GitHub, Inc.")]
 [assembly: AssemblyCopyright("Copyright © GitHub, Inc. 2017")]
@@ -21,7 +22,7 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2", AllInternalsVisible = true)]
 
 //Required for Unity compilation
-[assembly: InternalsVisibleTo("Assembly-CSharp-Editor.dll", AllInternalsVisible = true)]
+[assembly: InternalsVisibleTo("Assembly-CSharp-Editor", AllInternalsVisible = true)]
 
 namespace System
 {

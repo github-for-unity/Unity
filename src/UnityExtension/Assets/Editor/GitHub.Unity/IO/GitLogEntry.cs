@@ -4,6 +4,7 @@ using System.Text;
 
 namespace GitHub.Unity
 {
+    [Serializable]
     struct GitLogEntry
     {
         private const string Today = "Today";

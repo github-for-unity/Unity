@@ -58,8 +58,8 @@
       <HintPath>$(SolutionDir)packages\NSubstitute.2.0.1-rc\lib\net45\NSubstitute.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="nunit.framework, Version=3.6.0.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\NUnit.3.6.0\lib\net45\nunit.framework.dll</HintPath>
+    <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Rackspace.Threading, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bb62785d398726f0, processorArchitecture=MSIL">

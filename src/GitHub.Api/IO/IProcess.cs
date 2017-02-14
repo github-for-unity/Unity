@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 namespace GitHub.Unity
 {
@@ -13,6 +14,9 @@ namespace GitHub.Unity
         void Kill();
         int Id { get; }
         bool HasExited { get; }
+        StreamWriter StandardInput { get; }
+        bool Successful { get; }
+        event Action<IProcess> OnStart;
         event Action<IProcess> OnExit;
     }
 }

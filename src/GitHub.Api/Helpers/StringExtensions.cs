@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GitHub.Api;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,7 +22,7 @@ namespace GitHub.Unity
 
         public static string RemoveSurroundingQuotes(this string s)
         {
-            Ensure.ArgumentNotNull(s, "string");
+            Guard.ArgumentNotNull(s, "string");
 
             if (s.Length < 2)
                 return s;
