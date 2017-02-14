@@ -61,6 +61,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\GitHub.Api\GitHub.Api.csproj">
       <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
       <Name>GitHub.Api</Name>
@@ -69,9 +72,6 @@
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
