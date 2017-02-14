@@ -8,7 +8,5 @@ namespace GitHub.Api
         bool IsExtracted();
         string GetPortableGitDestinationDirectory(bool createIfNeeded = false);
         string GetPackageNameWithVersion();
-        string GitExecutablePath { get; }
-        string EtcDirectoryPath { get; }
     }
 }
