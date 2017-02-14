@@ -8,8 +8,10 @@ namespace GitHub.Unity
     {
         private readonly string arguments;
 
-        private GitUnlockTask(string path, Action onSuccess, Action onFailure = null, bool force = false)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
+        private GitUnlockTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher, 
+                string path, Action onSuccess, Action onFailure = null, bool force = false)
+            : base(environment, processManager, resultDispatcher, 
+                  str => onSuccess.SafeInvoke(), onFailure)
         {
             Guard.ArgumentNotNullOrWhiteSpace(path, "path");
 
@@ -27,7 +29,9 @@ namespace GitHub.Unity
 
         public static void Schedule(string path, Action onSuccess, Action onFailure = null, bool force = false)
         {
-            Tasks.Add(new GitUnlockTask(path, onSuccess, onFailure, force));
+            Tasks.Add(new GitUnlockTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                path, onSuccess, onFailure, force));
         }
 
         public override bool Blocking

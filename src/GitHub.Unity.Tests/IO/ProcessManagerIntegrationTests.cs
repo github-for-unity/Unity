@@ -12,14 +12,16 @@ namespace GitHub.Unity.Tests
     class ProcessManagerIntegrationTests : BaseIntegrationTest
     {
         [Test]
-        public void BranchListTest()
+        public async void BranchListTest()
         {
             var filesystem = new FileSystem();
-
             var environment = new DefaultEnvironment();
+            environment.UnityProjectPath = TestGitRepoPath;
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
+
             var gitBranches = processManager.GetGitBranches(TestGitRepoPath);
 
             gitBranches.Should().BeEquivalentTo(
@@ -28,20 +30,16 @@ namespace GitHub.Unity.Tests
         }
 
         [Test]
-        public void LogEntriesTest()
+        public async void LogEntriesTest()
         {
             var filesystem = new FileSystem();
-
-            var defaultEnvironment = new DefaultEnvironment();
-
-            var environment = Substitute.For<IEnvironment>();
-            environment.UnityProjectPath.Returns(TestGitRepoPath);
-
-            var gitEnvironment = defaultEnvironment.IsWindows
-                ? (IGitEnvironment) new WindowsGitEnvironment(environment, filesystem)
-                : new LinuxGitEnvironment(environment, filesystem);
-
+            var environment = new DefaultEnvironment();
+            environment.UnityProjectPath = TestGitRepoPath;
+            var platform = new Platform(environment, filesystem);
+            var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
+
             var logEntries =
                 processManager.GetGitLogEntries(TestGitRepoPath, environment, filesystem, gitEnvironment, 2)
                     .ToArray();
@@ -88,39 +86,38 @@ namespace GitHub.Unity.Tests
         }
 
         [Test]
-        public void RemoteListTest()
+        public async void RemoteListTest()
         {
             var filesystem = new FileSystem();
-
             var environment = new DefaultEnvironment();
+            environment.UnityProjectPath = TestGitRepoPath;
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
-
             var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
+
             var gitRemotes = processManager.GetGitRemoteEntries(TestGitRepoPath);
 
             gitRemotes.Should().BeEquivalentTo(new GitRemote()
             {
                 Name = "origin",
-                URL = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git",
+                Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git",
                 Host = "github.com",
                 Function = GitRemoteFunction.Both
             });
         }
     
         [Test]
-        public void StatusTest()
+        public async void StatusTest()
         {
             var filesystem = new FileSystem();
-
-            var environment = Substitute.For<IEnvironment>();
-            environment.UnityProjectPath.Returns(TestGitRepoPath);
-
-            var gitEnvironment = environment.IsWindows
-                ? (IGitEnvironment) new WindowsGitEnvironment(environment, filesystem)
-                : new LinuxGitEnvironment(environment, filesystem);
-
+            var environment = new DefaultEnvironment();
+            environment.UnityProjectPath = TestGitRepoPath;
+            var platform = new Platform(environment, filesystem);
+            var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
+
             var gitStatus = processManager.GetGitStatus(TestGitRepoPath, environment, filesystem, gitEnvironment);
 
             gitStatus.AssertEqual(new GitStatus()
@@ -141,6 +138,20 @@ namespace GitHub.Unity.Tests
                         GitFileStatus.Untracked),
                 }
             });
+        }
+
+        //[Test]
+        public async void CredentialHelperGetTest()
+        {
+            var filesystem = new FileSystem();
+            var environment = new DefaultEnvironment();
+            environment.UnityProjectPath = TestGitRepoPath;
+            var platform = new Platform(environment, filesystem);
+            var gitEnvironment = platform.GitEnvironment;
+            var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
+
+            var s = processManager.GetGitCreds(TestGitRepoPath, environment, filesystem, gitEnvironment);
         }
     }
 }

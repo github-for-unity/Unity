@@ -33,7 +33,7 @@ namespace GitHub.Unity
         {
             current++;
         }
-        
+
         public void MoveToAfter(char c)
         {
             if (IsAtEnd)

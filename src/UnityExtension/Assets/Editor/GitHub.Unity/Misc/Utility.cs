@@ -36,13 +36,23 @@ namespace GitHub.Unity
 
         public static void RegisterReadyCallback(Action callback)
         {
+            logger.Debug("RegisterReadyCallback {0} {1}", ready, callback);
             if (!ready)
             {
                 onReady += callback;
             }
             else
             {
-                callback();
+                logger.Debug("RegisterReadyCallback calling callback {0} {1}", ready, callback);
+                try
+                {
+                    callback();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+                
             }
         }
 
@@ -115,12 +125,12 @@ namespace GitHub.Unity
 
         public static string GitInstallPath
         {
-            get { return EntryPoint.Environment.GitInstallPath; }
+            get { return EntryPoint.Environment.GitExecutablePath; }
         }
 
         public static string GitRoot
         {
-            get { return EntryPoint.Environment.GitRoot; }
+            get { return EntryPoint.Environment.RepositoryRoot; }
         }
 
         public static string UnityAssetsPath

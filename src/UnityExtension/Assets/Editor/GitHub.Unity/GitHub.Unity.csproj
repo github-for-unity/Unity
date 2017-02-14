@@ -59,11 +59,18 @@
   <ItemGroup>
     <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="IO\GitLock.cs" />
+    <Compile Include="IO\GitObjectFactory.cs" />
+    <Compile Include="IO\IGitObjectFactory.cs" />
     <Compile Include="IO\LockOutputProcessor.cs" />
     <Compile Include="Logging\FileLogAdapter.cs" />
     <Compile Include="Tasks\GitListLocksTask.cs" />
     <Compile Include="Tasks\GitLockTask.cs" />
     <Compile Include="Tasks\GitUnlockTask.cs" />
+    <Compile Include="IO\ConfigOutputProcessor.cs" />
+    <Compile Include="Misc\LocalSettings.cs" />
+    <Compile Include="Services\AppConfiguration.cs" />
+    <Compile Include="Services\AuthenticationUIDispatcher.cs" />
+    <Compile Include="Tasks\GitConfigListTask.cs" />
     <Compile Include="Threading\SingleThreadSynchronizationContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
@@ -71,23 +78,12 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Helpers\StringExtensions.cs" />
-    <Compile Include="IO\BaseOutputProcessor.cs" />
     <Compile Include="IO\BranchListOutputProcessor.cs" />
     <Compile Include="IO\DefaultEnvironment.cs" />
     <Compile Include="IO\FileSystem.cs" />
-    <Compile Include="IO\GitRemote.cs" />
     <Compile Include="IO\GitStatusEntry.cs" />
-    <Compile Include="IO\GitObjectFactory.cs" />
-    <Compile Include="IO\IGitObjectFactory.cs" />
-    <Compile Include="IO\IOutputProcessor.cs" />
-    <Compile Include="IO\IProcess.cs" />
-    <Compile Include="Helpers\LineProcessor.cs" />
-    <Compile Include="IO\IProcessManager.cs" />
     <Compile Include="IO\LogEntryOutputProcessor.cs" />
-    <Compile Include="IO\ProcessOutputManager.cs" />
     <Compile Include="IO\ProcessWrapper.cs" />
-    <Compile Include="IO\RemoteListOutputProcessor.cs" />
     <Compile Include="IO\StatusOutputProcessor.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -100,17 +96,12 @@
     <Compile Include="Misc\Installer.cs" />
     <Compile Include="Misc\ISettings.cs" />
     <Compile Include="Misc\ProjectWindowInterface.cs" />
-    <Compile Include="Misc\Settings.cs" />
     <Compile Include="Misc\SimpleJson.cs" />
     <Compile Include="Misc\Styles.cs" />
     <Compile Include="Misc\Utility.cs" />
     <Compile Include="Services\AuthenticationService.cs" />
     <Compile Include="Services\StatusService.cs" />
-    <Compile Include="Tasks\BaseTask.cs" />
-    <Compile Include="Tasks\CachedTask.cs" />
     <Compile Include="Tasks\EvaluateProjectConfigurationTask.cs" />
-    <Compile Include="Tasks\FailureSeverity.cs" />
-    <Compile Include="Tasks\FindGitTask.cs" />
     <Compile Include="Tasks\GitAddTask.cs" />
     <Compile Include="IO\GitBranch.cs" />
     <Compile Include="Tasks\GitBranchDeleteTask.cs" />
@@ -122,21 +113,15 @@
     <Compile Include="Tasks\GitCommitTask.cs" />
     <Compile Include="IO\GitFileStatus.cs" />
     <Compile Include="Tasks\GitListBranchesTask.cs" />
-    <Compile Include="Tasks\GitListRemotesTask.cs" />
     <Compile Include="IO\GitLogEntry.cs" />
     <Compile Include="Tasks\GitLogTask.cs" />
-    <Compile Include="IO\GitRemoteFunction.cs" />
     <Compile Include="IO\GitStatus.cs" />
     <Compile Include="Tasks\GitPushTask.cs" />
     <Compile Include="Tasks\GitRemoteRemoveTask.cs" />
     <Compile Include="Tasks\GitStatusTask.cs" />
     <Compile Include="Tasks\GitSwitchBranchesTask.cs" />
-    <Compile Include="Tasks\GitTask.cs" />
-    <Compile Include="Tasks\ITask.cs" />
     <Compile Include="IO\ProcessManager.cs" />
-    <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskException.cs" />
-    <Compile Include="Tasks\TaskQueueSetting.cs" />
     <Compile Include="Tasks\Tasks.cs" />
     <Compile Include="Tasks\TestTask.cs" />
     <Compile Include="Threading\ThreadUtils.cs" />
@@ -146,6 +131,7 @@
     <Compile Include="UI\BranchesView.cs" />
     <Compile Include="UI\ChangesetTreeView.cs" />
     <Compile Include="UI\ChangesView.cs" />
+    <Compile Include="UI\GitCommitTarget.cs" />
     <Compile Include="UI\HistoryView.cs" />
     <Compile Include="UI\IView.cs" />
     <Compile Include="UI\SettingsView.cs" />

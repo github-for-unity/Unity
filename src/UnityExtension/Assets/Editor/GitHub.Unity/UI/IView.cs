@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace GitHub.Unity
@@ -6,8 +7,9 @@ namespace GitHub.Unity
     {
         void Refresh();
         void Redraw();
-        void OnGUI();
-        void Close();
         Rect Position { get; }
+
+        void Finish(bool result);
+        event Action<bool> OnClose;
     }
 }
