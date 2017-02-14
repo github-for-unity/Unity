@@ -41,6 +41,7 @@ namespace GitHub.Unity
                 {
                     logger.Debug(ex);
                 }
+
                 if (e.Data == null)
                 {
                     Finished();
@@ -56,10 +57,16 @@ namespace GitHub.Unity
                     state = ProcessState.Finished;
                 }
 
-                if (e.Data == null) return;
+                try
+                {
+                    OnErrorData.SafeInvoke(e.Data);
+                }
+                catch (Exception ex)
+                {
+                    logger.Debug(ex);
+                }
 
-                OnErrorData.SafeInvoke(e.Data);
-                if (process.HasExited)
+                if (e.Data == null && !hasOutputData)
                 {
                     Finished();
                 }
@@ -143,6 +150,11 @@ namespace GitHub.Unity
 
         private void Finished()
         {
+            if (HasFinished)
+            {
+                return;
+            }
+
             logger.Trace("Finished");
             HasFinished = true;
             OnExit.SafeInvoke(this);
