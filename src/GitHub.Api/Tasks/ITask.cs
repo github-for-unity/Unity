@@ -17,6 +17,7 @@ namespace GitHub.Unity
         bool Critical { get; }
         bool Cached { get; }
         Action<ITask> OnBegin { get; set; }
+
         Action<ITask> OnEnd { get; set; }
         string Label { get; }
     };

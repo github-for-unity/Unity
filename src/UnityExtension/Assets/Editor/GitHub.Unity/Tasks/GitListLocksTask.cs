@@ -10,8 +10,12 @@ namespace GitHub.Unity
         private Action<IEnumerable<GitLock>> callback;
         private List<GitLock> gitLocks = new List<GitLock>();
 
-        private GitListLocksTask(Action<IEnumerable<GitLock>> onSuccess, IGitObjectFactory gitObjectFactory,
-            Action onFailure = null) : base(null, onFailure)
+        private GitListLocksTask(
+            IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+            IGitObjectFactory gitObjectFactory,
+            Action<IEnumerable<GitLock>> onSuccess, Action onFailure = null)
+            : base(environment, processManager, resultDispatcher,
+                  null, onFailure)
         {
             Guard.ArgumentNotNull(gitObjectFactory, "gitStatusEntryFactory");
 
@@ -19,10 +23,12 @@ namespace GitHub.Unity
             callback = onSuccess;
         }
 
-        public static void Schedule(Action<IEnumerable<GitLock>> onSuccess, IGitObjectFactory gitObjectFactory,
-            Action onFailure = null)
+        public static void Schedule(IGitObjectFactory gitObjectFactory,
+            Action<IEnumerable<GitLock>> onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitListLocksTask(onSuccess, gitObjectFactory, onFailure));
+            Tasks.Add(new GitListLocksTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                gitObjectFactory, onSuccess, onFailure));
         }
 
         protected override ProcessOutputManager HookupOutput(IProcess process)
@@ -31,7 +37,7 @@ namespace GitHub.Unity
             return new ProcessOutputManager(process, processor);
         }
 
-        protected override void OnProcessOutputUpdate()
+        protected override void OnOutputComplete(string output, string errors)
         {
             Logger.Debug("Done");
             Tasks.ScheduleMainThread(DeliverResult);

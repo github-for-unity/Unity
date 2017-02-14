@@ -10,8 +10,10 @@ namespace GitHub.Unity
         private readonly string arguments;
         private readonly string branch;
 
-        private GitSwitchBranchesTask(string branch, Action onSuccess, Action onFailure = null) 
-            : base(_ => onSuccess(), onFailure)
+        private GitSwitchBranchesTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+                string branch, Action onSuccess, Action onFailure = null)
+            : base(environment, processManager, resultDispatcher,
+                  _ => onSuccess(), onFailure)
         {
             Guard.ArgumentNotNullOrWhiteSpace(branch, "branch");
             this.branch = branch;
@@ -20,10 +22,12 @@ namespace GitHub.Unity
 
         public static void Schedule(string branch, Action onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitSwitchBranchesTask(branch, onSuccess, onFailure));
+            Tasks.Add(new GitSwitchBranchesTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                branch, onSuccess, onFailure));
         }
 
-        protected override void OnProcessOutputUpdate()
+        protected override void OnOutputComplete(string output, string errors)
         {
             // Handle failure / success
             var buffer = ErrorBuffer.GetStringBuilder();
@@ -33,12 +37,12 @@ namespace GitHub.Unity
 
                 if (!message.Equals(String.Format(SwitchConfirmedMessage, branch)))
                 {
-                    ReportFailure(message);
+                    RaiseOnFailure(message);
                     return;
                 }
             }
 
-            ReportSuccess(null);
+            RaiseOnSuccess(null);
         }
 
         public override TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; } }

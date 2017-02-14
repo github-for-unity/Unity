@@ -11,7 +11,8 @@ namespace GitHub.Api
         Failed,
         Success,
         CodeRequired,
-        CodeFailed
+        CodeFailed,
+        LockedOut
     }
 
     /// <summary>
@@ -19,10 +20,10 @@ namespace GitHub.Api
     /// </summary>
     class LoginManager : ILoginManager
     {
-        private static readonly ILogging logger = Unity.Logging.GetLogger<LoginManager>();
+        private static readonly ILogging logger = Logging.GetLogger<LoginManager>();
 
         private readonly string[] scopes = { "user", "repo", "gist", "write:public_key" };
-        private readonly ICredentialManager credentialCache;
+        private readonly ICredentialManager credentialManager;
         private readonly string clientId;
         private readonly string clientSecret;
         private readonly string authorizationNote;
@@ -38,17 +39,17 @@ namespace GitHub.Api
         /// <param name="authorizationNote">An note to store with the authorization.</param>
         /// <param name="fingerprint">The machine fingerprint.</param>
         public LoginManager(
-            ICredentialManager credentialCache,
+            ICredentialManager credentialManager,
             string clientId,
             string clientSecret,
             string authorizationNote = null,
             string fingerprint = null)
         {
-            Guard.ArgumentNotNull(credentialCache, nameof(credentialCache));
+            Guard.ArgumentNotNull(credentialManager, nameof(credentialManager));
             Guard.ArgumentNotNullOrWhiteSpace(clientId, nameof(clientId));
             Guard.ArgumentNotNullOrWhiteSpace(clientSecret, nameof(clientSecret));
 
-            this.credentialCache = credentialCache;
+            this.credentialManager = credentialManager;
             this.clientId = clientId;
             this.clientSecret = clientSecret;
             this.authorizationNote = authorizationNote;
@@ -57,21 +58,21 @@ namespace GitHub.Api
 
         /// <inheritdoc/>
         public async Task<LoginResultData> Login(
-            HostAddress hostAddress,
+            UriString host,
             IGitHubClient client,
             string username,
             string password)
         {
-            Guard.ArgumentNotNull(hostAddress, nameof(hostAddress));
+            Guard.ArgumentNotNull(host, nameof(host));
             Guard.ArgumentNotNull(client, nameof(client));
             Guard.ArgumentNotNullOrWhiteSpace(username, nameof(username));
             Guard.ArgumentNotNullOrWhiteSpace(password, nameof(password));
 
-            var credential = new Credential(hostAddress, username, password);
+            var credential = new Credential(host, username, password);
 
             // Start by saving the username and password, these will be used by the `IGitHubClient`
             // until an authorization token has been created and acquired:
-            await credentialCache.Save(credential).ConfigureAwait(false);
+            await credentialManager.Save(credential);
 
             var newAuth = new NewAuthorization
             {
@@ -84,14 +85,24 @@ namespace GitHub.Api
 
             try
             {
-                auth = await CreateAndDeleteExistingApplicationAuthorization(client, newAuth, null)
-                    .ConfigureAwait(false);
+                auth = await CreateAndDeleteExistingApplicationAuthorization(client, newAuth, null);
                 EnsureNonNullAuthorization(auth);
             }
             catch (TwoFactorAuthorizationException e)
             {
                 var result = e is TwoFactorRequiredException ? LoginResultCodes.CodeRequired : LoginResultCodes.CodeFailed;
-                return new LoginResultData(result, e.Message, client, hostAddress, newAuth);
+                return new LoginResultData(result, e.Message, client, host, newAuth);
+            }
+            catch(LoginAttemptsExceededException)
+            {
+                await credentialManager.Delete(host);
+                return new LoginResultData(LoginResultCodes.LockedOut, Localization.LockedOut, host);
+            }
+            catch (ApiValidationException e)
+            {
+                var message = e.ApiError.FirstErrorMessageSafe();
+                await credentialManager.Delete(host);
+                return new LoginResultData(LoginResultCodes.Failed, message, host);
             }
             catch (Exception e)
             {
@@ -99,20 +110,20 @@ namespace GitHub.Api
                 // Some enterprise instances don't support OAUTH, so fall back to using the
                 // supplied password - on instances that don't support OAUTH the user should
                 // be using a personal access token as the password.
-                if (EnterpriseWorkaround(hostAddress, e))
+                if (EnterpriseWorkaround(host, e))
                 {
                     auth = new ApplicationAuthorization(password);
                 }
                 else
                 {
-                    await credentialCache.Delete(hostAddress).ConfigureAwait(false);
-                    return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, hostAddress);
+                    await credentialManager.Delete(host);
+                    return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
                 }
             }
 
             credential.UpdateToken(auth.Token);
-            await credentialCache.Save(credential).ConfigureAwait(false);
-            return new LoginResultData(LoginResultCodes.Success, "Success", hostAddress);
+            await credentialManager.Save(credential);
+            return new LoginResultData(LoginResultCodes.Success, "Success", host);
         }
 
         public async Task<LoginResultData> ContinueLogin(LoginResultData loginResultData, string twofacode)
@@ -126,46 +137,37 @@ namespace GitHub.Api
                 var auth = await CreateAndDeleteExistingApplicationAuthorization(
                     client,
                     newAuth,
-                    twofacode)
-                    .ConfigureAwait(false);
+                    twofacode);
                 EnsureNonNullAuthorization(auth);
 
-                var credential = await credentialCache.Load(host);
+                var credential = await credentialManager.Load(host);
                 credential.UpdateToken(auth.Token);
                 
-                await credentialCache.Save(credential).ConfigureAwait(false);
+                await credentialManager.Save(credential);
                 return new LoginResultData(LoginResultCodes.Success, "", host);
             }
-            catch (TwoFactorAuthorizationException e)
+            catch (TwoFactorAuthorizationException)
             {
                 return new LoginResultData(LoginResultCodes.CodeFailed, Localization.Wrong2faCode, client, host, newAuth);
             }
-            catch (Exception e)
+            catch (ApiValidationException e)
             {
-                await credentialCache.Delete(host).ConfigureAwait(false);
-                return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
+                var message = e.ApiError.FirstErrorMessageSafe();
+                await credentialManager.Delete(host);
+                return new LoginResultData(LoginResultCodes.Failed, message, host);
             }
         }
 
         /// <inheritdoc/>
-        public Task<User> LoginFromCache(HostAddress hostAddress, IGitHubClient client)
+        public async Task Logout(UriString hostAddress, IGitHubClient client)
         {
             Guard.ArgumentNotNull(hostAddress, nameof(hostAddress));
             Guard.ArgumentNotNull(client, nameof(client));
 
-            return client.User.Current();
+            await credentialManager.Delete(hostAddress);
         }
 
-        /// <inheritdoc/>
-        public async Task Logout(HostAddress hostAddress, IGitHubClient client)
-        {
-            Guard.ArgumentNotNull(hostAddress, nameof(hostAddress));
-            Guard.ArgumentNotNull(client, nameof(client));
-
-            await credentialCache.Delete(hostAddress);
-        }
-
-        async Task<ApplicationAuthorization> CreateAndDeleteExistingApplicationAuthorization(
+        private async Task<ApplicationAuthorization> CreateAndDeleteExistingApplicationAuthorization(
             IGitHubClient client,
             NewAuthorization newAuth,
             string twoFactorAuthenticationCode)
@@ -180,7 +182,7 @@ namespace GitHub.Api
                     result = await client.Authorization.GetOrCreateApplicationAuthentication(
                         clientId,
                         clientSecret,
-                        newAuth).ConfigureAwait(false);
+                        newAuth);
                 }
                 else
                 {
@@ -188,7 +190,7 @@ namespace GitHub.Api
                         clientId,
                         clientSecret,
                         newAuth,
-                        twoFactorAuthenticationCode).ConfigureAwait(false);
+                        twoFactorAuthenticationCode);
                 }
 
                 if (result.Token == string.Empty)
@@ -220,14 +222,14 @@ namespace GitHub.Api
             return auth;
         }
 
-        bool EnterpriseWorkaround(HostAddress hostAddress, Exception e)
+        bool EnterpriseWorkaround(UriString hostAddress, Exception e)
         {
             // Older Enterprise hosts either don't have the API end-point to PUT an authorization, or they
             // return 422 because they haven't white-listed our client ID. In that case, we just ignore
             // the failure, using basic authentication (with username and password) instead of trying
             // to get an authorization token.
             var apiException = e as ApiException;
-            return !hostAddress.IsGitHubDotCom() &&
+            return !HostAddress.IsGitHubDotComUri(hostAddress.ToUri()) &&
                 (e is NotFoundException ||
                  e is ForbiddenException ||
                  apiException?.StatusCode == (HttpStatusCode)422);
@@ -239,11 +241,11 @@ namespace GitHub.Api
         public LoginResultCodes Code;
         public string Message;
         internal NewAuthorization NewAuth { get; set; }
-        internal HostAddress Host { get; set; }
+        internal UriString Host { get; set; }
         internal IGitHubClient Client { get; set; }
 
         internal LoginResultData(LoginResultCodes code, string message,
-            IGitHubClient client, HostAddress host, NewAuthorization newAuth)
+            IGitHubClient client, UriString host, NewAuthorization newAuth)
         {
             this.Code = code;
             this.Message = message;
@@ -252,7 +254,7 @@ namespace GitHub.Api
             this.Client = client;
         }
 
-        internal LoginResultData(LoginResultCodes code, string message, HostAddress host)
+        internal LoginResultData(LoginResultCodes code, string message, UriString host)
             : this(code, message, null, host, null)
         {
         }

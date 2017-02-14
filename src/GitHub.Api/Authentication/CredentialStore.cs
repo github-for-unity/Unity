@@ -3,12 +3,12 @@ using Octokit;
 
 namespace GitHub.Api
 {
-    class SimpleCredentialStore : ICredentialStore
+    class CredentialStore : ICredentialStore
     {
-        private readonly HostAddress hostAddress;
+        private readonly UriString hostAddress;
         private readonly ICredentialManager credentialBackend;
 
-        public SimpleCredentialStore(HostAddress hostAddress, ICredentialManager credentialBackend)
+        public CredentialStore(UriString hostAddress, ICredentialManager credentialBackend)
         {
             this.hostAddress = hostAddress;
             this.credentialBackend = credentialBackend;

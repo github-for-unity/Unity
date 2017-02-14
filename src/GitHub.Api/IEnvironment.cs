@@ -11,13 +11,16 @@ namespace GitHub.Api
         string Path { get; }
         string UserProfilePath { get; }
         string NewLine { get; }
-        string GitInstallPath { get; set; }
+        string GitExecutablePath { get; set; }
         bool IsWindows { get; }
         bool IsLinux { get; }
         bool IsMac { get; }
         string UnityAssetsPath { get; set; }
         string UnityProjectPath { get; set; }
         string ExtensionInstallPath { get; set; }
-        string GitRoot { get; set; }
+        string RepositoryRoot { get; set; }
+        string GitInstallPath { get; }
+        string DefaultRemote { get; set; }
+        UriString RepositoryHost { get; set; }
     }
 }
