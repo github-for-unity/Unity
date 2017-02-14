@@ -68,7 +68,7 @@ namespace GitHub.Api
 
         public bool IsExtracted()
         {
-            var target = GetPackageDestinationDirectory();
+            var target = PackageDestinationDirectory;
 
             var git = FileSystem.Combine(target, "cmd", "git.exe");
             if (!FileSystem.FileExists(git))
@@ -103,23 +103,7 @@ namespace GitHub.Api
             return true;
         }
 
-        public string GetPortableGitDestinationDirectory(bool createIfNeeded = false)
-        {
-            return GetPackageDestinationDirectory(createIfNeeded);
-        }
-
-        public string GetPackageDestinationDirectory(bool createIfNeeded = false, bool includeExpectedVersion = true)
-        {
-            var packageName = includeExpectedVersion ? PackageNameWithVersion : PackageName;
-
-            var packageDestinationPath = FileSystem.Combine(Environment.ExtensionInstallPath, packageName);
-            if (createIfNeeded)
-            {
-                FileSystem.CreateDirectory(packageDestinationPath);
-            }
-
-            return packageDestinationPath;
-        }
+        public string PackageDestinationDirectory => FileSystem.Combine(Environment.ExtensionInstallPath, PackageNameWithVersion);
 
         public string PackageNameWithVersion => PackageName + "_" + ExpectedVersion;
 

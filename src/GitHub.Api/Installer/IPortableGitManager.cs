@@ -4,8 +4,7 @@ namespace GitHub.Api
     {
         void ExtractGitIfNeeded();
         bool IsExtracted();
-        string GetPortableGitDestinationDirectory(bool createIfNeeded = false);
-        string GetPackageDestinationDirectory(bool createIfNeeded = false, bool includeExpectedVersion = true);
+        string PackageDestinationDirectory { get; }
         string PackageNameWithVersion { get; }
     }
 }
