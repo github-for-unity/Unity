@@ -83,7 +83,6 @@
     <Compile Include="Installer\ISharpZipLibHelper.cs" />
     <Compile Include="Installer\PortableGitManager.cs" />
     <Compile Include="Installer\PortablePackageManager.cs" />
-    <Compile Include="Installer\ProgressResult.cs" />
     <Compile Include="Installer\SharpZipLibHelper.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
