@@ -44,6 +44,10 @@
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="AsyncBridge.Net35, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\AsyncBridge.Net35.0.2.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
@@ -76,15 +80,17 @@
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="Installer\ICleanupService.cs" />
     <Compile Include="Installer\IPortableGitManager.cs" />
+    <Compile Include="Installer\ISharpZipLibHelper.cs" />
     <Compile Include="Installer\PortableGitManager.cs" />
     <Compile Include="Installer\PortablePackageManager.cs" />
     <Compile Include="Installer\ProgressResult.cs" />
-    <Compile Include="Installer\Util.cs" />
+    <Compile Include="Installer\SharpZipLibHelper.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Localization.resx</DependentUpon>
     </Compile>
+    <Compile Include="Platform\FileSystem.cs" />
     <Compile Include="Platform\GitEnvironment.cs" />
     <Compile Include="Platform\IFileSystem.cs" />
     <Compile Include="Platform\IGitEnvironment.cs" />

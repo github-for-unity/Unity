@@ -1,15 +1,11 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using GitHub.Api;
-using GitHub.Helpers;
 
-namespace GitHub.PortableGit.Helpers
+namespace GitHub.Api
 {
-    public class PortableGitManager : PortablePackageManager, IPortableGitManager
+    class PortableGitManager : PortablePackageManager, IPortableGitManager
     {
         readonly Lazy<string> gitExecutablePath;
         readonly Lazy<string> gitEtcDirPath;
@@ -67,8 +63,8 @@ namespace GitHub.PortableGit.Helpers
 //                () => operatingSystem.GetFile(Path.Combine(EtcDirectoryPath, "gitconfig")));
 //        }
 
-        public PortableGitManager(IEnvironment environment) 
-            : base(environment)
+        public PortableGitManager(IEnvironment environment, IFileSystem fileSystem, ISharpZipLibHelper sharpZipLibHelper) 
+            : base(environment, fileSystem, sharpZipLibHelper)
         {
             
         }
@@ -94,7 +90,7 @@ namespace GitHub.PortableGit.Helpers
         ///   extracted, this will return 100 and Complete.</returns>
         public void ExtractGitIfNeeded()
         {
-            ExtractPackageIfNeeded("PortableGit.zip", null, null, 5221);
+            ExtractPackageIfNeeded("PortableGit.zip", null, null);
         }
 
         void ExecuteBashLogin()

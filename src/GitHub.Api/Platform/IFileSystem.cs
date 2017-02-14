@@ -12,5 +12,7 @@ namespace GitHub.Api
         string GetDirectoryName(string path);
         bool DirectoryExists(string path);
         string GetParentDirectory(string path);
+        string GetRandomFileName();
+        void CreateDirectory(string path);
     }
 }

@@ -1,6 +1,6 @@
-namespace GitHub.PortableGit.Helpers
+namespace GitHub.Api
 {
-    public interface IPortableGitManager
+    interface IPortableGitManager
     {
 //        void ExtractGitIfNeeded();
 //        void EnsureSystemConfigFileExtracted();

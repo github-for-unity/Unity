@@ -75,7 +75,6 @@
     <Compile Include="IO\BaseOutputProcessor.cs" />
     <Compile Include="IO\BranchListOutputProcessor.cs" />
     <Compile Include="IO\DefaultEnvironment.cs" />
-    <Compile Include="IO\FileSystem.cs" />
     <Compile Include="IO\GitRemote.cs" />
     <Compile Include="IO\GitStatusEntry.cs" />
     <Compile Include="IO\GitObjectFactory.cs" />
@@ -223,7 +222,7 @@
   <PropertyGroup>
   </PropertyGroup>
   <Target Name="CleanUnityFiles" AfterTargets="Clean">
-    <Exec Command="for %%i in ($(SolutionDir)unity\TestProject\Assets\Editor\*) do if not %%i == $(SolutionDir)unity\TestProject\Assets\Editor\.placeholder echo %%i"/>
+    <Exec Command="for %%i in ($(SolutionDir)unity\TestProject\Assets\Editor\*) do if not %%i == $(SolutionDir)unity\TestProject\Assets\Editor\.placeholder echo %%i" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
