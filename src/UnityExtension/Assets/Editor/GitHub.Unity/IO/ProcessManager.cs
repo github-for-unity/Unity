@@ -52,7 +52,7 @@ namespace GitHub.Unity
 
         private string FindExecutableInPath(string executable, string path = null)
         {
-            Ensure.ArgumentNotNullOrEmpty(executable, "executable");
+            Guard.ArgumentNotNullOrWhiteSpace(executable, "executable");
 
             if (Path.IsPathRooted(executable)) return executable;
 
