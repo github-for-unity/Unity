@@ -1,8 +1,7 @@
-using GitHub.Api;
 using System.Collections.Generic;
 using System.IO;
 
-namespace GitHub.Unity
+namespace GitHub.Api
 {
     class FileSystem : IFileSystem
     {
@@ -44,6 +43,16 @@ namespace GitHub.Unity
         public string GetParentDirectory(string path)
         {
             return Directory.GetParent(path).FullName;
+        }
+
+        public string GetRandomFileName()
+        {
+            return Path.GetRandomFileName();
+        }
+
+        public void CreateDirectory(string path)
+        {
+            Directory.CreateDirectory(path);
         }
     }
 }

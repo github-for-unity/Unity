@@ -1,47 +1,49 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Globalization;
 using System.IO;
-using GitHub.Api;
 using GitHub.Unity;
 
-namespace GitHub.Helpers
+namespace GitHub.Api
 {
-    public abstract class PortablePackageManager : ICleanupService
+    abstract class PortablePackageManager : ICleanupService
     {
         private readonly IEnvironment environment;
-        private readonly ILogging log = Logging.GetLogger<PortablePackageManager>();
+        private readonly IFileSystem fileSystem;
+        private readonly ISharpZipLibHelper sharpZipLibHelper;
+        private readonly ILogging logger;
 
         private const string TemporaryFolderSuffix = ".deleteme";
+        private const string WindowsPortableGitZip = @"resources\windows\PortableGit.zip";
 
-        readonly ConcurrentDictionary<string, ProgressResult> extractResults =
-            new ConcurrentDictionary<string, ProgressResult>();
+        readonly ConcurrentDictionary<string, bool> extractResults =
+            new ConcurrentDictionary<string, bool>();
 
 //        readonly IOperatingSystem operatingSystem;
         readonly IProgram program;
 //        readonly IZipArchive zipArchive;
 
 //        protected PortablePackageManager(IOperatingSystem operatingSystem, IProgram program, IZipArchive zipArchive)
-        protected PortablePackageManager(IEnvironment environment)
+        protected PortablePackageManager(IEnvironment environment, IFileSystem fileSystem, ISharpZipLibHelper sharpZipLibHelper)
         {
-            this.environment = environment;
+            Guard.ArgumentNotNull(environment, nameof(environment));
+            Guard.ArgumentNotNull(fileSystem, nameof(fileSystem));
+            Guard.ArgumentNotNull(sharpZipLibHelper, nameof(sharpZipLibHelper));
 
-//            Ensure.ArgumentNotNull(operatingSystem, "operatingSystem");
-//            Ensure.ArgumentNotNull(program, "program");
-//            Ensure.ArgumentNotNull(zipArchive, "zipArchive");
-//
-//            this.operatingSystem = operatingSystem;
-//            this.program = program;
-//            this.zipArchive = zipArchive;
+            logger = Logging.GetLogger(GetType());
+
+            this.environment = environment;
+            this.fileSystem = fileSystem;
+            this.sharpZipLibHelper = sharpZipLibHelper;
         }
 
 //        protected IOperatingSystem OperatingSystem { get { return operatingSystem; } }
 
         public bool IsPackageExtracted()
         {
+            var target = GetPackageDestinationDirectory();
+
             throw new NotImplementedException();
 
-//            var target = GetPackageDestinationDirectory();
 //            var canaryFile = operatingSystem.GetFile(GetPathToCanary(target));
 //            if (!canaryFile.Exists) return false;
 //
@@ -85,18 +87,15 @@ namespace GitHub.Helpers
 //            return GetPackageName() + "_" + GetExpectedVersion();
         }
 
-//        protected PathString RootPackageDirectory
-//        {
-//            get { return operatingSystem.Environment.LocalGitHubApplicationDataPath; }
-//        }
-
-        protected void ExtractPackageIfNeeded(string fileName, Action preExtract = null, Action postExtract = null,
-            int? estimatedFileCount = null)
+        protected string RootPackageDirectory
         {
-            var newResult = new ProgressResult();
+            get { throw new NotImplementedException();}
+        }
 
-            var extractResult = extractResults.GetOrAdd(fileName, newResult);
-            if (extractResult != newResult)
+        protected void ExtractPackageIfNeeded(string fileName, Action preExtract = null, Action postExtract = null)
+        {
+            var extractResult = extractResults.GetOrAdd(fileName, false);
+            if (!extractResult)
             {
                 return;
             }
@@ -104,101 +103,54 @@ namespace GitHub.Helpers
             // First, check to see if we're already done
             if (IsPackageExtracted())
             {
-                log.Info("Already extracted {0}, returning", fileName);
+                logger.Info("Already extracted {0}, returning", fileName);
                 return;
             }
-
-//            return Observable.Defer(() =>
-//            {
 
             if (preExtract != null)
             {
                 preExtract();
             }
 
-            string environmentPath = null;
-            var tempPath = Path.Combine(environmentPath, Path.GetRandomFileName());
+            var environmentPath = environment.ExtensionInstallPath;
+            var tempPath = Path.Combine(environmentPath, fileSystem.GetRandomFileName() + TemporaryFolderSuffix);
+            var archiveFilePath = Path.Combine(environmentPath, WindowsPortableGitZip);
+                
+            try
+            {
+                fileSystem.CreateDirectory(tempPath);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Couldn't create temp dir: " + tempPath);
 
-//                IDirectory temporaryDirectory;
-//                try
-//                {
-//                    temporaryDirectory = operatingSystem.GetDirectory(tempPath);
-//                    temporaryDirectory.Create();
-//                }
-//                catch (Exception ex)
-//                {
-//                    log.Error("Couldn't create temp dir: " + tempPath, ex);
-//                    extractResult.OnError(ex);
-//                    return extractResult;
-//                }
-//
-//                var archiveFilePath = Path.Combine(program.ExecutingAssemblyDirectory, fileName);
-//                var archiveFile = operatingSystem.GetFile(archiveFilePath);
-//                if (!archiveFile.Exists)
-//                {
-//                    var exception = new FileNotFoundException("Could not find file", archiveFilePath);
-//                    log.Error(String.Format(CultureInfo.InvariantCulture, "Trying to extract {0}, but it doesn't exist", archiveFilePath), exception);
-//                    extractResult.OnError(exception);
-//                    return extractResult;
-//                }
-//
-//                var proc = zipArchive.ExtractToDirectory(archiveFilePath, temporaryDirectory.FullName);
-//
-//                IObservable<ProgressResult> progress;
-//                if (estimatedFileCount != null)
-//                {
-//                    progress = proc.CombinedOutput
-//                        .TakeUntil(proc)
-//                        .Scan(0, (acc, _) => acc + 1)
-//                        .Select(x => (int)(((double)x / estimatedFileCount) * 95.0))
-//                        .Select(x => new ProgressResult(x));
-//                }
-//                else
-//                {
-//                    progress = Observable.Timer(DateTimeOffset.MinValue, TimeSpan.FromSeconds(0.5), RxApp.TaskpoolScheduler)
-//                        .TakeUntil(proc)
-//                        .Select(x => (int)Math.Min(x * 5, 95))
-//                        .Select(x => new ProgressResult(x));
-//                }
-//
-//                progress = progress
-//                    .Concat(Observable.Return(new ProgressResult(95)))
-//                    .Concat(Observable.Defer(() => 
-//                        // It's conceivable that during the time we've been extracting the
-//                        // package another process of GHfW has completed the extract so
-//                        // right before we do the final move we'll do another check to see
-//                        // if it's already extracted. If it is we'll bail and let the scavenger
-//                        // take care of cleaning us up on the next run.
-//                        IsPackageExtracted() 
-//                            ? Observable.Return(new ProgressResult(100))
-//                            : MoveTemporaryPackageToFinalDestination(temporaryDirectory)));
-//
-//                var ret = progress
-//                    .Multicast(extractResult);
-//
-//                // We Multicast so if someone subscribes later, they'll just see 
-//                // "100, Finished" as fast as possible (since the op already finished)
-//                log.Info(CultureInfo.InvariantCulture, "Extracting {0} is (so far) successful", fileName);
-//                ret.Connect();
-//
-//                return extractResult.Do(_ => {},
-//                    ex =>
-//                    {
-//                        log.Warn("Failed to extract package successfully: " + fileName, ex); 
-//                        ReplaySubject<ProgressResult> res;
-//                        extractResults.TryRemove(fileName, out res);
-//                    }, () =>
-//                    {
-//                        ReplaySubject<ProgressResult> res;
-//                        extractResults.TryRemove(fileName, out res);
-//                        log.Info("Extracted package successfully: " + fileName);
-//
-//                        if (postExtract != null)
-//                        {
-//                            postExtract();
-//                        }
-//                    });
-//            });
+                extractResults.TryRemove(fileName, out extractResult);
+
+                throw;
+            }
+
+            if (!fileSystem.FileExists(archiveFilePath))
+            {
+                var exception = new FileNotFoundException("Could not find file", archiveFilePath);
+                logger.Error(exception, "Trying to extract {0}, but it doesn't exist", archiveFilePath);
+
+                extractResults.TryRemove(fileName, out extractResult);
+
+                throw exception;
+            }
+
+            try
+            {
+                sharpZipLibHelper.ExtractZipFile(archiveFilePath, tempPath);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
+
+                extractResults.TryRemove(fileName, out extractResult);
+
+                throw;
+            }
         }
 
 //        IObservable<ProgressResult> MoveTemporaryPackageToFinalDestination(IDirectory temporaryDirectory)

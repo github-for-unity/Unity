@@ -1,9 +1,9 @@
-﻿namespace GitHub.Helpers
+﻿namespace GitHub.Api
 {
     /// <summary>
     /// Represents a service that needs to perform some cleanup when the app starts up.
     /// </summary>
-    public interface ICleanupService
+    interface ICleanupService
     {
         /// <summary>
         /// Called when the app starts, this method performs some cleanup.
