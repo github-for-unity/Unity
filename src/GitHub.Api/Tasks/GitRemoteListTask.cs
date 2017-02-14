@@ -1,42 +1,42 @@
 using System;
 using System.Collections.Generic;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
-    class GitListRemotesTask : GitTask
+    class GitRemoteListTask : GitTask
     {
         private Action<IList<GitRemote>> callback;
         private RemoteListOutputProcessor processor;
 
         private List<GitRemote> remotes = new List<GitRemote>();
 
-        private GitListRemotesTask(Action<IList<GitRemote>> onSuccess, Action onFailure = null)
-            : base(null, onFailure)
+        public GitRemoteListTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+                Action<IList<GitRemote>> onSuccess, Action onFailure = null)
+            : base(environment, processManager, resultDispatcher,
+                  null, onFailure)
         {
             processor = new RemoteListOutputProcessor();
             callback = onSuccess;
         }
 
-        public static void Schedule(Action<IList<GitRemote>> onSuccess, Action onFailure = null)
-        {
-            Tasks.Add(new GitListRemotesTask(onSuccess, onFailure));
-        }
-
-        protected override void OnProcessOutputUpdate()
+        protected override void OnOutputComplete(string output, string errors)
         {
             Logger.Debug("Done");
-            Tasks.ScheduleMainThread(DeliverResult);
+            if (TaskResultDispatcher != null)
+            {
+                TaskResultDispatcher.ReportSuccess(() => callback?.Invoke(remotes));
+            }
+            else
+            {
+                callback?.Invoke(remotes);
+            }
         }
 
         protected override ProcessOutputManager HookupOutput(IProcess process)
         {
             processor.OnRemote += AddRemote;
             return new ProcessOutputManager(process, processor);
-        }
-
-        private void DeliverResult()
-        {
-            callback.SafeInvoke(remotes);
         }
 
         private void AddRemote(GitRemote remote)

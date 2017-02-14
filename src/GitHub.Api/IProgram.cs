@@ -4,7 +4,7 @@ using Octokit;
 namespace GitHub.Api
 {
     // Represents the currently executing program.
-    public interface IProgram
+    interface IAppConfiguration
     {
         string ApplicationName { get; }
         string ApplicationDescription { get; }

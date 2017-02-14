@@ -10,11 +10,12 @@ namespace GitHub.Unity
         private List<GitLogEntry> gitLogEntries;
         private LogEntryOutputProcessor processor;
 
-        private GitLogTask(IGitObjectFactory gitObjectFactory,
-            Action<IList<GitLogEntry>> onSuccess, Action onFailure)
-            : base(null, onFailure)
+        private GitLogTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+            IGitObjectFactory gitObjectFactory, Action<IList<GitLogEntry>> onSuccess, Action onFailure)
+            : base(environment, processManager, resultDispatcher,
+                  null, onFailure)
         {
-            Guard.ArgumentNotNull(gitObjectFactory, "gitStatusEntryFactory");
+            Guard.ArgumentNotNull(gitObjectFactory, "gitObjectFactory");
 
             gitLogEntries = new List<GitLogEntry>();
             callback = onSuccess;
@@ -23,10 +24,12 @@ namespace GitHub.Unity
 
         public static void Schedule(Action<IList<GitLogEntry>> onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitLogTask(EntryPoint.GitObjectFactory, onSuccess, onFailure));
+            Tasks.Add(new GitLogTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                EntryPoint.GitObjectFactory, onSuccess, onFailure));
         }
 
-        protected override void OnProcessOutputUpdate()
+        protected override void OnOutputComplete(string output, string errors)
         {
             Logger.Debug("Done");
             Tasks.ScheduleMainThread(DeliverResult);

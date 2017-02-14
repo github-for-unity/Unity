@@ -8,8 +8,10 @@ namespace GitHub.Unity
     {
         private readonly string arguments;
 
-        private GitBranchCreateTask(string newBranch, string baseBranch, Action onSuccess, Action onFailure)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
+        private GitBranchCreateTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+                                    string newBranch, string baseBranch, Action onSuccess, Action onFailure)
+            : base(environment, processManager, resultDispatcher,
+                   str => onSuccess.SafeInvoke(), onFailure)
         {
             Guard.ArgumentNotNullOrWhiteSpace(newBranch, "newBranch");
             Guard.ArgumentNotNullOrWhiteSpace(baseBranch, "baseBranch");
@@ -19,7 +21,9 @@ namespace GitHub.Unity
 
         public static void Schedule(string newBranch, string baseBranch, Action onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitBranchCreateTask(newBranch, baseBranch, onSuccess, onFailure));
+            Tasks.Add(new GitBranchCreateTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                newBranch, baseBranch, onSuccess, onFailure));
         }
 
         public override bool Blocking { get { return false; } }

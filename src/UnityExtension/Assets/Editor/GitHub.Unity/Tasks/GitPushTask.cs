@@ -8,15 +8,20 @@ namespace GitHub.Unity
     {
         private readonly string arguments;
 
-        private GitPushTask(Action onSuccess, Action onFailure)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
+        private GitPushTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+                            Action onSuccess, Action onFailure)
+            : base(environment, processManager, resultDispatcher,
+                    str => onSuccess.SafeInvoke(), onFailure)
         {
             arguments = "push";
         }
 
-        private GitPushTask(string remote, string branch, bool setUpstream,
-            Action onSuccess, Action onFailure)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
+        private GitPushTask(
+                IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+                string remote, string branch, bool setUpstream,
+                Action onSuccess, Action onFailure)
+            : base(environment, processManager, resultDispatcher,
+                  str => onSuccess.SafeInvoke(), onFailure)
         {
             Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
             Guard.ArgumentNotNullOrWhiteSpace(branch, "branch");
@@ -28,13 +33,17 @@ namespace GitHub.Unity
 
         public static void Schedule(Action onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitPushTask(onSuccess, onFailure));
+            Tasks.Add(new GitPushTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                onSuccess, onFailure));
         }
 
         public static void Schedule(string remote, bool setUpstream, string branch,
             Action onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitPushTask(remote, branch, setUpstream, onSuccess, onFailure));
+            Tasks.Add(new GitPushTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                remote, branch, setUpstream, onSuccess, onFailure));
         }
 
         public override bool Blocking { get { return false; } }

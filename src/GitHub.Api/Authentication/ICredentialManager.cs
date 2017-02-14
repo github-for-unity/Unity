@@ -3,18 +3,18 @@ using System.Threading.Tasks;
 
 namespace GitHub.Api
 {
-    public interface ICredential : IDisposable
+    interface ICredential : IDisposable
     {
-        string Host { get; }
+        UriString Host { get; }
         string Username { get; }
         string Token { get; }
         void UpdateToken(string token);
     }
 
-    public interface ICredentialManager
+    interface ICredentialManager
     {
-        Task<ICredential> Load(HostAddress host);
+        Task<ICredential> Load(UriString host);
         Task Save(ICredential credential);
-        Task Delete(HostAddress host);
+        Task Delete(UriString host);
     }
 }

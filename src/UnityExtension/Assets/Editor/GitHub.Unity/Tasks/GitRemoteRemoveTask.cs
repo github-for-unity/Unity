@@ -7,8 +7,9 @@ namespace GitHub.Unity
     {
         private readonly string arguments;
 
-        private GitRemoteRemoveTask(string remote, Action onSuccess, Action onFailure)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
+        private GitRemoteRemoveTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+            string remote, Action onSuccess, Action onFailure)
+            : base(environment, processManager, resultDispatcher, str => onSuccess.SafeInvoke(), onFailure)
         {
             Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
             arguments = String.Format("remote rm {0}", remote);
@@ -16,7 +17,9 @@ namespace GitHub.Unity
 
         public static void Schedule(string name, Action onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitRemoteRemoveTask(name, onSuccess, onFailure));
+            Tasks.Add(new GitRemoteRemoveTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                name, onSuccess, onFailure));
         }
 
         public override bool Blocking { get { return false; } }

@@ -1,16 +1,21 @@
 using System;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
     class GitInitTask : GitTask
     {
-        private GitInitTask(Action onSuccess, Action onFailure)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
+        private GitInitTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+            Action onSuccess, Action onFailure)
+            : base(environment, processManager, resultDispatcher,
+                    str => onSuccess.SafeInvoke(), onFailure)
         {}
 
         public static void Schedule(Action onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitInitTask(onSuccess, onFailure));
+            Tasks.Add(new GitInitTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                onSuccess, onFailure));
         }
 
         public override bool Blocking { get { return false; } }
