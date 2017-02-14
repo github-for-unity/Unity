@@ -1,3 +1,5 @@
+#pragma warning disable 649
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +12,16 @@ namespace GitHub.Unity
     [Serializable]
     class HistoryView : Subview
     {
-        private static readonly ILogging logger = Logging.GetLogger<HistoryView>();
+        private static ILogging logger;
+        private static ILogging Logger
+        {
+            get
+            {
+                if (logger == null)
+                    logger = Logging.GetLogger<HistoryView>();
+                return logger;
+            }
+        }
 
         private const string HistoryFocusAll = "(All)";
         private const string HistoryFocusSingle = "Focus: <b>{0}</b>";
@@ -45,13 +56,38 @@ namespace GitHub.Unity
         [NonSerialized] private bool useScrollTime;
 
         [SerializeField] private bool broadMode;
-        [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
         [SerializeField] private Vector2 detailsScroll;
-        [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
         [SerializeField] private bool historyLocked = true;
         [SerializeField] private Object historyTarget;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string selectionID;
+
+        [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
+        [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
+
+        public override void Initialize(IView parent)
+        {
+            base.Initialize(parent);
+
+            lastWidth = Position.width;
+            selectionIndex = newSelectionIndex = -1;
+
+            changesetTree.Initialize(this);
+            changesetTree.Readonly = true;
+        }
+
+        public override void OnShow()
+        {
+            base.OnShow();
+            StatusService.Instance.RegisterCallback(OnStatusUpdate);
+        }
+
+        public override void OnHide()
+        {
+            base.OnHide();
+            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
+        }
+
 
         public override void Refresh()
         {
@@ -69,7 +105,7 @@ namespace GitHub.Unity
 
             if (broadMode)
             {
-                ((Window)parent).BranchesTab.RefreshEmbedded();
+                ((Window)Parent).BranchesTab.RefreshEmbedded();
             }
         }
 
@@ -97,7 +133,7 @@ namespace GitHub.Unity
             }
 
             // Show the layout notification while scaling
-            var window = (Window)parent;
+            var window = (Window)Parent;
             var scaled = Position.width != lastWidth;
             lastWidth = Position.width;
 
@@ -136,7 +172,7 @@ namespace GitHub.Unity
                     GUILayout.MaxWidth(Mathf.Max(Styles.BroadModeBranchesMinWidth, Position.width * Styles.BroadModeBranchesRatio))
                 );
                 {
-                    ((Window)parent).BranchesTab.OnEmbeddedGUI();
+                    ((Window)Parent).BranchesTab.OnEmbeddedGUI();
                 }
                 GUILayout.EndVertical();
                 GUILayout.BeginVertical();
@@ -269,7 +305,7 @@ namespace GitHub.Unity
             GUILayout.EndScrollView();
 
             // Selection info
-            if (selectionIndex >= 0)
+            if (selectionIndex >= 0 && history.Count > selectionIndex)
             {
                 var selection = history[selectionIndex];
 
@@ -328,28 +364,12 @@ namespace GitHub.Unity
 
                     if (selectionIndex >= 0)
                     {
-                        changesetTree.Update(history[selectionIndex].Changes);
+                        changesetTree.UpdateEntries(history[selectionIndex].Changes);
                     }
 
                     Redraw();
                 }
             }
-        }
-
-        protected override void OnShow()
-        {
-            lastWidth = Position.width;
-            selectionIndex = newSelectionIndex = -1;
-
-            StatusService.Instance.RegisterCallback(OnStatusUpdate);
-
-            changesetTree.Show(this);
-            changesetTree.Readonly = true;
-        }
-
-        protected override void OnHide()
-        {
-            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
         }
 
         private void OnStatusUpdate(GitStatus update)
@@ -508,7 +528,7 @@ namespace GitHub.Unity
 
         private void Push()
         {
-            logger.Debug("TODO: Push");
+            Logger.Debug("TODO: Push");
         }
 
 

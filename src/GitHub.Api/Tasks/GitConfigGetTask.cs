@@ -6,23 +6,50 @@ namespace GitHub.Unity
     class GitConfigGetTask : GitTask
     {
         private readonly string arguments;
+        private string result;
 
         public GitConfigGetTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
             string key, GitConfigSource configSource, Action<string> onSuccess, Action onFailure)
             : base(environment, processManager, resultDispatcher,
-                  onSuccess, onFailure)
+                  str =>
+                  {
+                      var logger = Logging.GetLogger<GitConfigGetTask>();
+                      logger.Debug("WTF {0}", str);
+                      onSuccess(str);
+                  }, onFailure)
         {
             var source = "";
-            if (configSource != GitConfigSource.NonSpecified)
+            source +=
+                configSource == GitConfigSource.NonSpecified ? "--get-all" :
+                configSource == GitConfigSource.Local ? "--get --local" :
+                configSource == GitConfigSource.User ? "--get --global" :
+                "--get --system";
+            arguments = String.Format("config {0} {1}", source, key);
+        }
+
+        protected override ProcessOutputManager HookupOutput(IProcess process)
+        {
+            var processor = new BaseOutputProcessor();
+            processor.OnData += s =>
             {
-                source = "--";
-                source += configSource == GitConfigSource.Local
-                    ? "local"
-                    : (configSource == GitConfigSource.User
-                        ? "system"
-                        : "global");
+                if (String.IsNullOrEmpty(result))
+                {
+                    result = s;
+                }
+            };
+            return new ProcessOutputManager(process, processor);
+        }
+
+        protected override void RaiseOnSuccess(string msg)
+        {
+            if (String.IsNullOrEmpty(result))
+            {
+                RaiseOnFailure("No value returned for " + arguments);
             }
-            arguments = String.Format("config {0} --get {1}", key, source);
+            else
+            {
+                base.RaiseOnSuccess(result);
+            }
         }
 
         public override bool Blocking { get { return false; } }

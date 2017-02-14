@@ -1,3 +1,5 @@
+#pragma warning disable 649
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,30 +10,19 @@ using UnityEngine;
 namespace GitHub.Unity
 {
     [Serializable]
-    class GitCommitTarget
+    class ChangesetTreeView : Subview
     {
-        [SerializeField] public bool All = false;
-
-        public void Clear()
-        {
-            All = false;
-            // TODO: Add line tracking here
-        }
-
-        // TODO: Add line tracking here
-
-        public bool Any
+        private static ILogging logger;
+        private static ILogging Logger
         {
             get
             {
-                return All; // TODO: Add line tracking here
+                if (logger == null)
+                    logger = Logging.GetLogger<ChangesetTreeView>();
+                return logger;
             }
         }
-    }
 
-    [Serializable]
-    class ChangesetTreeView : Subview
-    {
         private const string BasePathLabel = "{0}";
         private const string NoChangesLabel = "No changes found";
 
@@ -40,7 +31,7 @@ namespace GitHub.Unity
         [SerializeField] private List<string> foldedTreeEntries = new List<string>();
         [SerializeField] private FileTreeNode tree;
 
-        public void Update(IList<GitStatusEntry> newEntries)
+        public void UpdateEntries(IList<GitStatusEntry> newEntries)
         {
             // Handle the empty list scenario
             if (!newEntries.Any())
@@ -320,9 +311,13 @@ namespace GitHub.Unity
                     // Current status (if any)
                     if (target != null)
                     {
-                        status = entries[entryCommitTargets.IndexOf(target)].Status;
-                        var statusIcon = Styles.GetGitFileStatusIcon(status.Value);
-                        GUI.DrawTexture(statusRect, statusIcon);
+                        var idx = entryCommitTargets.IndexOf(target);
+                        if (idx > 0)
+                        {
+                            status = entries[idx].Status;
+                            var statusIcon = Styles.GetGitFileStatusIcon(status.Value);
+                            GUI.DrawTexture(statusRect, statusIcon);
+                        }
                     }
 
                     GUILayout.Space(Styles.CommitIconHorizontalPadding);

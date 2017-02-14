@@ -32,17 +32,32 @@ namespace GitHub.Unity
         public string Path { get { return Environment.GetEnvironmentVariable("PATH"); } }
         public string NewLine { get { return Environment.NewLine; } }
 
-        private string gitInstallPath;
-        public string GitInstallPath
+        private string gitExecutablePath;
+        public string GitExecutablePath
         {
-            get { return gitInstallPath; }
+            get { return gitExecutablePath; }
             set
             {
                 logger.Trace("Setting GitInstallPath to " + value);
-                gitInstallPath = value;
+                gitExecutablePath = value;
             }
         }
-        public string GitRoot { get; set; }
+
+        public string GitInstallPath
+        {
+            get
+            {
+                if (!String.IsNullOrEmpty(GitExecutablePath))
+                {
+                    return System.IO.Path.GetDirectoryName(GitExecutablePath);
+                }
+                return GitExecutablePath;
+            }
+        }
+
+        public string RepositoryRoot { get; set; }
+        public string DefaultRemote { get; set; }
+        public UriString RepositoryHost { get; set; }
 
         public bool IsWindows
         {

@@ -61,6 +61,15 @@ namespace GitHub.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Maximum number of logins exceeded. Please wait a few minutes before trying again..
+        /// </summary>
+        internal static string LockedOut {
+            get {
+                return ResourceManager.GetString("LockedOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Login failed.
         /// </summary>
         internal static string LoginFailed {
@@ -77,7 +86,16 @@ namespace GitHub.Api {
                 return ResourceManager.GetString("NoGitError", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You need to log in..
+        /// </summary>
+        internal static string NotLoggedIn {
+            get {
+                return ResourceManager.GetString("NotLoggedIn", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Looks up a localized string similar to Wrong 2FA code.
         /// </summary>

@@ -173,10 +173,10 @@ namespace GitHub.Unity
                 {
                     lastMainThreadCall = ellapsed;
                     readyForMoreCalls = false;
-                    logger.Debug("Scheduling a thing");
+                    //logger.Trace("Scheduling a thing");
                     context.Schedule(() =>
                     {
-                        logger.Debug("Executing actions");
+                        //logger.Trace("Executing actions");
                         readyForMoreCalls = true;
                         Action act = null;
                         while (scheduledCalls.TryDequeue(out act))

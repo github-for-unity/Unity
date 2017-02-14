@@ -7,32 +7,14 @@ using System.Collections.Generic;
 
 namespace GitHub.Api
 {
-    public class LoginResult
+    class ApiClient : IApiClient
     {
-        public bool NeedTwoFA { get { return Data.Code == LoginResultCodes.CodeRequired || Data.Code == LoginResultCodes.CodeFailed; } }
-        public bool Success { get { return Data.Code == LoginResultCodes.Success; } }
-        public bool Failed { get { return Data.Code == LoginResultCodes.Failed; } }
-        public string Message { get { return Data.Message; } }
-
-        internal LoginResultData Data { get; set; }
-        internal Action<bool, string> Callback { get; set; }
-        internal Action<LoginResult> TwoFACallback { get; set; }
-
-        internal LoginResult(LoginResultData data, Action<bool, string> callback, Action<LoginResult> twofaCallback)
-        {
-            this.Data = data;
-            this.Callback = callback;
-            this.TwoFACallback = twofaCallback;
-        }
-    }
-
-    class SimpleApiClient : ISimpleApiClient
-    {
-        private static readonly Unity.ILogging logger = Unity.Logging.GetLogger<SimpleApiClient>();
+        private static readonly Unity.ILogging logger = Unity.Logging.GetLogger<ApiClient>();
         public HostAddress HostAddress { get; }
         public UriString OriginalUrl { get; }
 
         private readonly IGitHubClient githubClient;
+        private readonly IGitHubClient githubAppClient;
         private readonly ICredentialManager credentialManager;
         private readonly ILoginManager loginManager;
         private static readonly SemaphoreSlim sem = new SemaphoreSlim(1);
@@ -41,15 +23,16 @@ namespace GitHub.Api
         string owner;
         bool? isEnterprise;
 
-        public SimpleApiClient(UriString repoUrl, ICredentialManager credentialManager, IGitHubClient githubClient)
+        public ApiClient(UriString hostUrl, ICredentialManager credentialManager, IGitHubClient githubClient, IGitHubClient githubAppClient)
         {
-            Guard.ArgumentNotNull(repoUrl, nameof(repoUrl));
+            Guard.ArgumentNotNull(hostUrl, nameof(hostUrl));
             Guard.ArgumentNotNull(credentialManager, nameof(credentialManager));
             Guard.ArgumentNotNull(githubClient, nameof(githubClient));
 
-            HostAddress = HostAddress.Create(repoUrl);
-            OriginalUrl = repoUrl;
+            HostAddress = HostAddress.Create(hostUrl);
+            OriginalUrl = hostUrl;
             this.githubClient = githubClient;
+            this.githubAppClient = githubAppClient;
             this.credentialManager = credentialManager;
             loginManager = new LoginManager(credentialManager, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
         }
@@ -61,7 +44,7 @@ namespace GitHub.Api
             callback(repo);
         }
 
-        public async void Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result)
+        public async Task Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result)
         {
             Guard.ArgumentNotNull(need2faCode, "need2faCode");
             Guard.ArgumentNotNull(result, "result");
@@ -69,7 +52,7 @@ namespace GitHub.Api
             LoginResultData res = null;
             try
             {
-                res = await loginManager.Login(HostAddress, githubClient, username, password);
+                res = await loginManager.Login(OriginalUrl, githubClient, username, password);
             }
             catch (Exception ex)
             {
@@ -88,7 +71,7 @@ namespace GitHub.Api
             }
         }
 
-        public async void ContinueLogin(LoginResult loginResult, string code)
+        public async Task ContinueLogin(LoginResult loginResult, string code)
         {
             LoginResultData result = null;
             try
@@ -107,7 +90,56 @@ namespace GitHub.Api
             loginResult.Callback(result.Code == LoginResultCodes.Success, result.Message);
         }
 
-        async Task<Repository> GetRepositoryInternal()
+        public async Task<bool> LoginAsync(string username, string password, Func<LoginResult, string> need2faCode)
+        {
+            Guard.ArgumentNotNull(need2faCode, "need2faCode");
+
+            LoginResultData res = null;
+            try
+            {
+                res = await loginManager.Login(OriginalUrl, githubClient, username, password);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            if (res.Code == LoginResultCodes.CodeRequired)
+            {
+                var resultCache = new LoginResult(res, null, null);
+                var code = need2faCode(resultCache);
+                return await ContinueLoginAsync(resultCache, need2faCode, code);
+            }
+            else
+            {
+                return res.Code == LoginResultCodes.Success;
+            }
+        }
+
+        public async Task<bool> ContinueLoginAsync(LoginResult loginResult, Func<LoginResult, string> need2faCode, string code)
+        {
+            LoginResultData result = null;
+            try
+            {
+                result = await loginManager.ContinueLogin(loginResult.Data, code);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            if (result.Code == LoginResultCodes.CodeFailed)
+            {
+                var resultCache = new LoginResult(result, null, null);
+                code = need2faCode(resultCache);
+                if (String.IsNullOrEmpty(code))
+                    return false;
+                return await ContinueLoginAsync(resultCache, need2faCode, code);
+            }
+            return result.Code == LoginResultCodes.Success;
+        }
+
+        private async Task<Repository> GetRepositoryInternal()
         {
             try
             {
@@ -140,6 +172,23 @@ namespace GitHub.Api
             }
 
             return repositoryCache;
+        }
+
+        public async Task<bool> ValidateCredentials()
+        {
+            try
+            {
+                var credential = await credentialManager.Load(OriginalUrl);
+                if (credential != null)
+                {
+                    await githubAppClient.Authorization.CheckApplicationAuthentication(ApplicationInfo.ClientId, credential.Token);
+                }
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

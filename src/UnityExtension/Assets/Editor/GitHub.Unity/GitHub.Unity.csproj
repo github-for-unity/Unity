@@ -69,7 +69,7 @@
     <Compile Include="IO\ConfigOutputProcessor.cs" />
     <Compile Include="Misc\LocalSettings.cs" />
     <Compile Include="Services\AppConfiguration.cs" />
-    <Compile Include="Services\UIDispatcher.cs" />
+    <Compile Include="Services\AuthenticationUIDispatcher.cs" />
     <Compile Include="Tasks\GitConfigListTask.cs" />
     <Compile Include="Threading\SingleThreadSynchronizationContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -102,7 +102,6 @@
     <Compile Include="Services\AuthenticationService.cs" />
     <Compile Include="Services\StatusService.cs" />
     <Compile Include="Tasks\EvaluateProjectConfigurationTask.cs" />
-    <Compile Include="Tasks\FindGitTask.cs" />
     <Compile Include="Tasks\GitAddTask.cs" />
     <Compile Include="IO\GitBranch.cs" />
     <Compile Include="Tasks\GitBranchDeleteTask.cs" />
@@ -132,6 +131,7 @@
     <Compile Include="UI\BranchesView.cs" />
     <Compile Include="UI\ChangesetTreeView.cs" />
     <Compile Include="UI\ChangesView.cs" />
+    <Compile Include="UI\GitCommitTarget.cs" />
     <Compile Include="UI\HistoryView.cs" />
     <Compile Include="UI\IView.cs" />
     <Compile Include="UI\SettingsView.cs" />

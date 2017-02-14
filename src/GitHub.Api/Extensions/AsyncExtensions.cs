@@ -1,9 +1,19 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using GitHub.Unity;
 
 namespace GitHub.Api
 {
+    static class TaskRunnerExtensions
+    {
+        public static Task<bool> Run(this ProcessTask task, string arguments)
+        {
+            task.SetArguments(arguments);
+            return task.RunAsync(CancellationToken.None);
+        }
+    }
+
     static class AsyncExtensions
     {
         public static void Forget(this Task task)

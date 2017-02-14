@@ -95,7 +95,7 @@ namespace GitHub.Unity
             {
                 result.File = new Regex(result.FileString);
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 result.File = null;
             }
@@ -106,7 +106,7 @@ namespace GitHub.Unity
             {
                 result.Line = new Regex(result.LineString);
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 result.Line = null;
             }

@@ -50,6 +50,11 @@ namespace GitHub.Unity
         public virtual void Run()
         {}
 
+        public Task<bool> RunAsync()
+        {
+            return RunAsync(CancellationToken.None);
+        }
+
         public virtual Task<bool> RunAsync(CancellationToken cancel)
         {
             return TaskEx.FromResult(true);

@@ -5,7 +5,7 @@ namespace GitHub.Api
 {
     interface ICredential : IDisposable
     {
-        HostAddress Host { get; }
+        UriString Host { get; }
         string Username { get; }
         string Token { get; }
         void UpdateToken(string token);
@@ -13,8 +13,8 @@ namespace GitHub.Api
 
     interface ICredentialManager
     {
-        Task<ICredential> Load(HostAddress host);
+        Task<ICredential> Load(UriString host);
         Task Save(ICredential credential);
-        Task Delete(HostAddress host);
+        Task Delete(UriString host);
     }
 }

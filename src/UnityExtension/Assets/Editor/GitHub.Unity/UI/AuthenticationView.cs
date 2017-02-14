@@ -7,7 +7,16 @@ namespace GitHub.Unity
     [Serializable]
     class AuthenticationView : Subview
     {
-        private static readonly ILogging logger = Logging.GetLogger<AuthenticationView>();
+        private static ILogging logger;
+        private static ILogging Logger
+        {
+            get
+            {
+                if (logger == null)
+                    logger = Logging.GetLogger<AuthenticationView>();
+                return logger;
+            }
+        }
 
         const string serverLabel = "Server";
         const string usernameLabel = "Username";
@@ -22,32 +31,34 @@ namespace GitHub.Unity
 
         int cellWidth;
 
-        [SerializeField]
-        private Vector2 scroll;
-        [SerializeField]
-        private string username = "";
-        [SerializeField]
-        private string password = "";
-        [SerializeField]
-        private string two2fa = "";
+        [SerializeField] private Vector2 scroll;
+        [SerializeField] private string username = "";
+        [SerializeField] private string password = "";
+        [SerializeField] private string two2fa = "";
 
-        [NonSerialized]
-        private bool need2fa;
-        [NonSerialized]
-        private bool busy;
-        [NonSerialized]
-        private bool finished;
-        [NonSerialized]
-        private string message;
-        [NonSerialized]
-        private AuthenticationService authenticationService;
+        [NonSerialized] private bool need2fa;
+        [NonSerialized] private bool busy;
+        [NonSerialized] private bool finished;
+        [NonSerialized] private string message;
+        [NonSerialized] private AuthenticationService authenticationService;
 
-        protected override void OnShow()
+        public override void Initialize(IView parent)
         {
-            base.OnShow();
-            logger.Debug("OnEnable");
+            base.Initialize(parent);
+
+            Logger.Debug("OnEnable");
             need2fa = busy = finished = false;
             authenticationService = new AuthenticationService(new AppConfiguration(), EntryPoint.Platform.GetCredentialManager(EntryPoint.ProcessManager));
+        }
+
+        public override void OnShow()
+        {
+            base.OnShow();
+        }
+
+        public override void OnHide()
+        {
+            base.OnHide();
         }
 
         public override void OnGUI()
@@ -171,7 +182,7 @@ namespace GitHub.Unity
             if (GUILayout.Button(backButton))
             {
                 need2fa = false;
-                parent.Redraw();
+                Redraw();
             }
 
             GUILayout.Space(Styles.BaseSpacing);
@@ -195,7 +206,7 @@ namespace GitHub.Unity
             need2fa = true;
             message = msg;
             busy = false;
-            parent.Redraw();
+            Redraw();
         }
 
         private void DoResult(bool success, string msg)
@@ -204,20 +215,19 @@ namespace GitHub.Unity
             message = msg;
             busy = false;
 
-            if (success == true && need2fa == false)
+            if (success == true)
             {
-                logger.Debug("DoResult Success");
-                parent.Close();
-            }
-            else if (success == true && need2fa == true)
-            {
-                logger.Debug("DoResult Success Need2fa");
-                parent.Close();
+                if (need2fa == false)
+                    Logger.Debug("DoResult Success");
+                else
+                    Logger.Debug("DoResult Success Need2fa");
+
+                Finish(true);
             }
             else
             {
-                logger.Debug("DoResult Else");
-                parent.Redraw();
+                Logger.Debug("DoResult Else");
+                Redraw();
             }
         }
 
