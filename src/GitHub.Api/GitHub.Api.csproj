@@ -79,6 +79,7 @@
     <Compile Include="Installer\PortableGitManager.cs" />
     <Compile Include="Installer\PortablePackageManager.cs" />
     <Compile Include="Installer\ProgressResult.cs" />
+    <Compile Include="Installer\Util.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
