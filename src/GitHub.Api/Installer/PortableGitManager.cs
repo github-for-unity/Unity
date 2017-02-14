@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.IO;
 using GitHub.Unity;
 
@@ -13,7 +12,6 @@ namespace GitHub.Api
         private const string ExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
 
         private const string PackageName = "PortableGit";
-        protected readonly ConcurrentDictionary<string, bool> extractResults = new ConcurrentDictionary<string, bool>();
 
         public PortableGitManager(IEnvironment environment, IFileSystem fileSystem, ISharpZipLibHelper sharpZipLibHelper)
         {
@@ -30,22 +28,10 @@ namespace GitHub.Api
 
         public void ExtractGitIfNeeded()
         {
-            var extractResult = extractResults.GetOrAdd(WindowsPortableGitZip, false);
-            if (extractResult)
-            {
-                return;
-            }
-
-            // First, check to see if we're already done
-            if (IsPackageExtracted())
+            if (IsExtracted())
             {
                 Logger.Info("Already extracted {0}, returning", WindowsPortableGitZip);
                 return;
-            }
-
-            if ((Action)null != null)
-            {
-                ((Action)null)();
             }
 
             var environmentPath = Environment.ExtensionInstallPath;
@@ -59,9 +45,6 @@ namespace GitHub.Api
             catch (Exception ex)
             {
                 Logger.Error(ex, "Couldn't create temp dir: " + tempPath);
-
-                extractResults.TryRemove(WindowsPortableGitZip, out extractResult);
-
                 throw;
             }
 
@@ -69,9 +52,6 @@ namespace GitHub.Api
             {
                 var exception = new FileNotFoundException("Could not find file", archiveFilePath);
                 Logger.Error(exception, "Trying to extract {0}, but it doesn't exist", archiveFilePath);
-
-                extractResults.TryRemove(WindowsPortableGitZip, out extractResult);
-
                 throw exception;
             }
 
@@ -82,24 +62,11 @@ namespace GitHub.Api
             catch (Exception ex)
             {
                 Logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
-
-                extractResults.TryRemove(WindowsPortableGitZip, out extractResult);
-
                 throw;
             }
         }
 
         public bool IsExtracted()
-        {
-            return IsPackageExtracted();
-        }
-
-        public string GetPortableGitDestinationDirectory(bool createIfNeeded = false)
-        {
-            return GetPackageDestinationDirectory(createIfNeeded);
-        }
-
-        public bool IsPackageExtracted()
         {
             var target = GetPackageDestinationDirectory();
 
@@ -134,6 +101,11 @@ namespace GitHub.Api
             }
 
             return true;
+        }
+
+        public string GetPortableGitDestinationDirectory(bool createIfNeeded = false)
+        {
+            return GetPackageDestinationDirectory(createIfNeeded);
         }
 
         public string GetPackageDestinationDirectory(bool createIfNeeded = false, bool includeExpectedVersion = true)
