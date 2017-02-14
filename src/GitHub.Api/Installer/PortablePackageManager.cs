@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.IO;
 using GitHub.Api;
@@ -8,18 +9,23 @@ namespace GitHub.Helpers
 {
     public abstract class PortablePackageManager : ICleanupService
     {
+        private readonly IEnvironment environment;
         private readonly ILogging log = Logging.GetLogger<PortablePackageManager>();
 
-//        readonly ConcurrentDictionary<string, ReplaySubject<ProgressResult>> extractResults =
-//            new ConcurrentDictionary<string, ReplaySubject<ProgressResult>>();
+        private const string TemporaryFolderSuffix = ".deleteme";
+
+        readonly ConcurrentDictionary<string, ProgressResult> extractResults =
+            new ConcurrentDictionary<string, ProgressResult>();
 
 //        readonly IOperatingSystem operatingSystem;
         readonly IProgram program;
 //        readonly IZipArchive zipArchive;
 
 //        protected PortablePackageManager(IOperatingSystem operatingSystem, IProgram program, IZipArchive zipArchive)
-        protected PortablePackageManager()
+        protected PortablePackageManager(IEnvironment environment)
         {
+            this.environment = environment;
+
 //            Ensure.ArgumentNotNull(operatingSystem, "operatingSystem");
 //            Ensure.ArgumentNotNull(program, "program");
 //            Ensure.ArgumentNotNull(zipArchive, "zipArchive");
@@ -84,35 +90,35 @@ namespace GitHub.Helpers
 //            get { return operatingSystem.Environment.LocalGitHubApplicationDataPath; }
 //        }
 
-        protected void ExtractPackageIfNeeded(string fileName, Action preExtract = null, Action postExtract = null, int? estimatedFileCount = null)
+        protected void ExtractPackageIfNeeded(string fileName, Action preExtract = null, Action postExtract = null,
+            int? estimatedFileCount = null)
         {
-            //TODO: Which brings me here
+            var newResult = new ProgressResult();
 
-//            var newResult = new ReplaySubject<ProgressResult>(bufferSize: 1);
-//
-//            var extractResult = extractResults.GetOrAdd(fileName, newResult);
-//            if (extractResult != newResult)
-//            {
-//                return extractResult;
-//            }
-//
-//            // First, check to see if we're already done
-//            if (IsPackageExtracted())
-//            {
-//                log.Info(CultureInfo.InvariantCulture, "Already extracted {0}, returning 100%", fileName);
-//                extractResult.OnNext(new ProgressResult(100));
-//                extractResult.OnCompleted();
-//
-//                return extractResult;
-//            }
-//
+            var extractResult = extractResults.GetOrAdd(fileName, newResult);
+            if (extractResult != newResult)
+            {
+                return;
+            }
+
+            // First, check to see if we're already done
+            if (IsPackageExtracted())
+            {
+                log.Info("Already extracted {0}, returning", fileName);
+                return;
+            }
+
 //            return Observable.Defer(() =>
 //            {
-//                if (preExtract != null) 
-//                { 
-//                    preExtract(); 
-//                }
-//                var tempPath = RootPackageDirectory.Combine(Path.GetRandomFileName() + GitHubDirectory.TemporaryFolderSuffix);
+
+            if (preExtract != null)
+            {
+                preExtract();
+            }
+
+            string environmentPath = null;
+            var tempPath = Path.Combine(environmentPath, Path.GetRandomFileName());
+
 //                IDirectory temporaryDirectory;
 //                try
 //                {
