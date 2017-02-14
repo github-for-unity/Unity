@@ -1,12 +1,11 @@
 namespace GitHub.Api
 {
-    interface IPortableGitManager
+    interface IPortableGitManager: IPortablePackageManager
     {
-//        void ExtractGitIfNeeded();
-//        void EnsureSystemConfigFileExtracted();
-        string ExtractSuggestedGitAttributes(string targetDirectory);
+        void ExtractGitIfNeeded();
         bool IsExtracted();
         string GetPortableGitDestinationDirectory(bool createIfNeeded = false);
-        string GetPackageNameWithVersion();
+        void EnsureSystemConfigFileExtracted();
+        string ExtractSuggestedGitAttributes(string targetDirectory);
     }
 }

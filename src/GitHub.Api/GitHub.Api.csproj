@@ -78,8 +78,8 @@
     <Compile Include="Api\ApplicationInfo.cs" />
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
-    <Compile Include="Installer\ICleanupService.cs" />
     <Compile Include="Installer\IPortableGitManager.cs" />
+    <Compile Include="Installer\IPortablePackageManager.cs" />
     <Compile Include="Installer\ISharpZipLibHelper.cs" />
     <Compile Include="Installer\PortableGitManager.cs" />
     <Compile Include="Installer\PortablePackageManager.cs" />
