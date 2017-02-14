@@ -49,9 +49,8 @@
       <HintPath>$(SolutionDir)packages\AsyncBridge.Net35.0.2.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="DotNetZip, Version=1.10.1.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\DotNetZip.1.10.1\lib\net20\DotNetZip.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\..\lib\5.5\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Security">
       <HintPath>..\..\lib\5.5\Mono.Security.dll</HintPath>
@@ -79,6 +78,7 @@
     <Compile Include="Installer\IPortableGitManager.cs" />
     <Compile Include="Installer\PortableGitManager.cs" />
     <Compile Include="Installer\PortablePackageManager.cs" />
+    <Compile Include="Installer\ProgressResult.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -138,10 +138,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\linux\.placeholder" />
-    <None Include="resources\mac\git-lfs-darwin-amd64-5d9dc1c.tar.gz" />
+    <None Include="resources\mac\git-lfs-darwin-amd64-5d9dc1c.tar.gz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
-    <None Include="resources\windows\git-lfs-windows-amd64-1.5.0-9f9dfcbb.zip" />
-    <None Include="resources\windows\PortableGit.zip" />
+    <None Include="resources\windows\git-lfs-windows-amd64-1.5.0-9f9dfcbb.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="resources\windows\PortableGit.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -151,7 +157,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="resources\windows\packages.txt" />
+    <Content Include="resources\windows\packages.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
