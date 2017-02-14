@@ -142,5 +142,18 @@ namespace GitHub.Unity.Tests
                 }
             });
         }
+
+        [Test]
+        public void CredentialHelperGetTest()
+        {
+            var filesystem = new FileSystem();
+
+            var environment = new DefaultEnvironment();
+            var platform = new Platform(environment, filesystem);
+            var gitEnvironment = platform.GitEnvironment;
+            var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+
+            var s = processManager.GetGitCreds(TestGitRepoPath, environment, filesystem, gitEnvironment);
+        }
     }
 }

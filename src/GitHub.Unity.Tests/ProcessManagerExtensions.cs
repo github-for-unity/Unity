@@ -1,6 +1,7 @@
 using GitHub.Api;
 using GitHub.Unity;
 using System.Collections.Generic;
+using System.Text;
 
 namespace GitHub.Unity.Tests
 {
@@ -81,6 +82,25 @@ namespace GitHub.Unity.Tests
             process.WaitForExit();
 
             return results;
+        }
+
+        public static string GetGitCreds(this ProcessManager processManager, string workingDirectory, IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment)
+        {
+            StringBuilder sb = new StringBuilder();
+            var processor = new BaseOutputProcessor();
+            processor.OnData += data => sb.AppendLine();
+            var process = processManager.Configure("git", "credential-wincred get", workingDirectory);
+            var outputManager = new ProcessOutputManager(process, processor);
+            process.OnStart += p =>
+            {
+                p.StandardInput.WriteLine("protocol=https");
+                p.StandardInput.WriteLine("host=github.com");
+                p.StandardInput.Close();
+            };
+            process.Run();
+            process.WaitForExit();
+
+            return sb.ToString();
         }
     }
 }
