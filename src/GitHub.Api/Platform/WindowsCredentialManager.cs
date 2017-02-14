@@ -141,9 +141,9 @@ namespace GitHub.Api
                     foreach (var line in lines)
                     {
                         logger.Trace(line);
-                        proc.StandardInput.WriteLine(lines);
+                        proc.StandardInput.WriteLine(line);
                     }
-                    proc.StandardInput.WriteLine();
+                    proc.StandardInput.Close();
                 };
             };
             return task.RunAsync(new System.Threading.CancellationToken());
