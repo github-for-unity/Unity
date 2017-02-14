@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 
 namespace GitHub.Api
 {
@@ -69,58 +66,14 @@ namespace GitHub.Api
             
         }
 
-        /// <summary>
-        /// The path to git.exe
-        /// </summary>
-        public string GitExecutablePath
-        {
-            get { return gitExecutablePath.Value; }
-        }
-
-        public string EtcDirectoryPath
-        {
-            get { return gitEtcDirPath.Value; }
-        }
-
-        /// <summary>
-        ///   Extracts Portable Git if it has not already been extracted.
-        /// </summary>
-        /// <returns>An IObservable which will yield progress values from 0-100
-        ///   or return the Exception if an error occurs. If PGit is already 
-        ///   extracted, this will return 100 and Complete.</returns>
         public void ExtractGitIfNeeded()
         {
             ExtractPackageIfNeeded("PortableGit.zip", null, null);
         }
 
-        void ExecuteBashLogin()
-        {
-            var destinationDirectory = GetPortableGitDestinationDirectory();
-            var gitBash = Path.Combine(destinationDirectory, "git-bash.exe");
-            var args = string.Format(CultureInfo.InvariantCulture, "--no-needs-console --hide --no-cd --command=usr\\bin\\dash.exe -c 'bash --login -c exit'");
-
-            var info = new ProcessStartInfo(gitBash, args)
-            {
-                WorkingDirectory = destinationDirectory,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-//            var process = processStarter.StartObservableProcess(info);
-
-//            process.Subscribe(
-//                _ => { },
-//                ex => { log.Warn("Git Bash login failed", ex); },
-//                () => { log.Info("Git Bash completed successfully"); });
-        }
-
         /// <summary>
         /// Indicates if PortableGit has been extracted or not.
         /// </summary>
-        /// <returns></returns>
         public bool IsExtracted()
         {
             return IsPackageExtracted();
