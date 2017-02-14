@@ -31,38 +31,35 @@ namespace GitHub.Unity
 
         public override async Task<bool> RunAsync(CancellationToken cancel)
         {
-            if (string.IsNullOrEmpty(Environment.GitInstallPath))
+            var canRun = !string.IsNullOrEmpty(Environment.GitExecutablePath);
+
+            if (!canRun)
             {
-                TaskResultDispatcher.ReportFailure(FailureSeverity.Moderate, this, Localization.NoGitError);
+                RaiseOnFailure(Localization.NoGitError, FailureSeverity.Moderate);
                 Abort();
-            }
-
-            string remoteUrl = null;
-            var task = new GitTask(Environment, ProcessManager, null, x => remoteUrl = x, null);
-            task.SetArguments("remote get-url origin-http");
-
-            var ret = await task.RunAsync(cancel);
-            if (!ret || remoteUrl == null)
-            {
-                Logger.Debug("Could not get url of 'origin' remote");
                 return false;
             }
 
-            var host = HostAddress.Create(remoteUrl);
-            var cred = await credentialManager.Load(host);
-
-            if (cred == null)
+            canRun = await credentialManager.Load(Environment.RepositoryHost) == null;
+            if (!canRun)
             {
-                ret = await uiDispatcher.RunUI("authentication");
+                canRun = await uiDispatcher.RunUI();
             }
 
+            if (!canRun)
+            {
+                RaiseOnFailure(Localization.NotLoggedIn, FailureSeverity.Moderate);
+                Abort();
+                return false;
+            }
+            
             return await base.RunAsync(cancel);
         }
     }
 
     interface IUIDispatcher
     {
-        Task<bool> RunUI(string ui);
+        Task<bool> RunUI();
     }
 
     class BaseUIDispatcher : IUIDispatcher
@@ -71,9 +68,10 @@ namespace GitHub.Unity
 
         public event Action<bool> OnClose;
 
-        public async Task<bool> RunUI(string ui)
+        public async Task<bool> RunUI()
         {
-            Action onClose = () => { RaiseOnClose(); };
+            Action<bool> onClose = RaiseOnClose;
+
             var ret = await TaskExt.FromEvent<Action<bool>, bool>(
                 getHandler: (completeAction, cancelAction, rejectAction) =>
                     (eventArgs) => completeAction(eventArgs),
@@ -82,20 +80,20 @@ namespace GitHub.Unity
                 unsubscribe: eventHandler =>
                     this.OnClose -= eventHandler,
                 initiate: (completeAction, cancelAction, rejectAction) =>
-                    { Run(onClose); },
+                    Run(onClose),
                 token: CancellationToken.None);
 
             logger.Debug("Authentication done");
             return ret;
         }
 
-        protected virtual void Run(Action onClose)
+        protected virtual void Run(Action<bool> onClose)
         {
         }
 
-        protected void RaiseOnClose()
+        protected void RaiseOnClose(bool result)
         {
-            OnClose?.Invoke(true);
+            OnClose?.Invoke(result);
         }
     }
 }

@@ -1,5 +1,7 @@
 using GitHub.Unity;
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitHub.Api
@@ -20,27 +22,46 @@ namespace GitHub.Api
             this.processManager = processManager;
         }
 
-        public Task Delete(HostAddress host)
+        public async Task Delete(UriString host)
         {
             // TODO: implement credential deletion
+            var ret = await RunCredentialHelper(
+                "erase",
+                new string[] {
+                        String.Format("protocol={0}", host.Protocol),
+                        String.Format("host={0}", host.Host)
+                },
+                x => {
+                    logger.Debug(x);
+                });
+
             credential = null;
-            return TaskEx.FromResult(true);
         }
 
-        public async Task<ICredential> Load(HostAddress host)
+        public async Task<ICredential> Load(UriString host)
         {
             if (credential == null)
             {
                 if (!await LoadCredentialHelper())
                     return null;
 
+                if (credHelper == "manager")
+                {
+                    // disable the prompt on gcm, we're handling it on this repo
+                    var args = String.Format("config --system credential.{0}.interactive never", host.Host);
+                    await GitTask.Run(environment, processManager, args);
+                    args = String.Format("config --system credential.{0}.validate false", host.Host);
+                    await GitTask.Run(environment, processManager, args);
+                    args = String.Format("config --system credential.{0}.modalPrompt false", host.Host);
+                }
+
                 string kvpCreds = null;
 
                 var ret = await RunCredentialHelper(
                     "get",
                     new string[] {
-                        String.Format("protocol={0}", host.WebUri.Scheme),
-                        String.Format("host={0}", host.WebUri.Host)
+                        String.Format("protocol={0}", host.Protocol),
+                        String.Format("host={0}", host.Host)
                     },
                     x => {
                         logger.Debug(x);
@@ -61,13 +82,22 @@ namespace GitHub.Api
                 }
 
                 var entries = kvpCreds.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-                if (entries.Length < 2)
+                var dict = new Dictionary<string, string>();
+                foreach (var entry in entries)
                 {
-                    logger.Error("Invalid result from credential helper");
+                    var parts = entry.Split('=');
+                    dict.Add(parts[0], parts[1]);
+                }
+
+                string password = null;
+                if (!dict.TryGetValue("password", out password))
+                {
+                    logger.Error("No password is stored");
                     return null;
                 }
-                var user = entries[0].Split('=')[1];
-                var password = entries[1].Split('=')[1];
+
+                string user = null;
+                dict.TryGetValue("user", out user);
                 credential = new Credential(host, user, password);
             }
             return credential;
@@ -83,14 +113,17 @@ namespace GitHub.Api
             var host = credential.Host;
 
             string result = null;
+            var data = new List<string>
+            {
+                String.Format("protocol={0}", credential.Host.Protocol),
+                String.Format("host={0}", credential.Host.Host),
+                String.Format("username={0}", credential.Username),
+                String.Format("password={0}", credential.Token)
+            };
+
             var ret = await RunCredentialHelper(
                 "store",
-                new string[] {
-                        String.Format("protocol={0}", credential.Host.WebUri.Scheme),
-                        String.Format("host={0}", credential.Host.WebUri.Host),
-                    String.Format("username={0}", credential.Username),
-                    String.Format("password={0}", credential.Token)
-                },
+                data.ToArray(),
                 x => {
                     logger.Debug(x);
                     result = x;
@@ -107,25 +140,29 @@ namespace GitHub.Api
             if (credHelper != null)
                 return true;
 
-            var task = new GitTask(environment, processManager, null, x => { credHelper = x; }, null);
-            task.SetArguments("config --get credential.helper");
+            var task = new GitConfigGetTask(environment, processManager, null,
+                    "credential.helper", GitConfigSource.NonSpecified,
+                    x => {
+                        credHelper = x;
+                        logger.Trace("credHelper: {0}", credHelper);
+                    }, null);
 
-            if (await task.RunAsync(new System.Threading.CancellationToken()) && credHelper != null)
+            if (await task.RunAsync() && credHelper != null)
             {
                 return true;
             }
+
             logger.Error("Failed to get the credential helper");
             return false;
         }
         private Task<bool> RunCredentialHelper(string action, string[] lines, Action<string> resultCallback)
         {
             ProcessTask task = null;
-            string app = null;
+            string app = "";
             if (credHelper.StartsWith('!'))
             {
                 // it's a separate app, run it as such
-                task = new ProcessTask(environment, processManager, null, resultCallback, null);
-                app = credHelper.Substring(1);
+                task = new ProcessTask(environment, processManager, credHelper.Substring(1), resultCallback);
             }
             else
             {

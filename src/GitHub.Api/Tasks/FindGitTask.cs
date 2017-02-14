@@ -11,13 +11,6 @@ namespace GitHub.Unity
         {
         }
 
-        public static void Schedule(Action<string> onSuccess, Action onFailure = null)
-        {
-            Tasks.Add(new FindGitTask(
-                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
-                onSuccess, onFailure));
-        }
-
         public override bool Blocking { get { return false; } }
         public override bool Critical { get { return false; } }
         public override bool Cached { get { return false; } }
@@ -26,7 +19,7 @@ namespace GitHub.Unity
 
         protected override string ProcessName
         {
-            get { return EntryPoint.Environment.IsWindows ? "where" : "which"; }
+            get { return Environment.IsWindows ? "where" : "which"; }
         }
 
         protected override string ProcessArguments { get { return "git"; } }

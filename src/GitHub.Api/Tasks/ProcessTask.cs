@@ -26,10 +26,30 @@ namespace GitHub.Unity
 
         private IProcess process;
         private CancellationToken cancellationToken;
-        private string arguments = null;
         private bool finishedRaised;
+        private string arguments = null;
+        private string processName = null;
 
         public ProcessTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+            string name,
+            Action<string> onSuccess = null, Action onFailure = null)
+        {
+            this.processName = name;
+            this.onSuccess = onSuccess;
+            this.onFailure = onFailure;
+            this.environment = environment;
+            this.processManager = processManager;
+            this.resultDispatcher = resultDispatcher;
+        }
+
+        public ProcessTask(IEnvironment environment, IProcessManager processManager,
+                string name,
+                Action<string> onSuccess = null, Action onFailure = null)
+            : this (environment, processManager, null, name, onSuccess, onFailure)
+        {
+        }
+
+        public ProcessTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher = null,
             Action<string> onSuccess = null, Action onFailure = null)
         {
             this.onSuccess = onSuccess;
@@ -79,12 +99,12 @@ namespace GitHub.Unity
             // Only start the process if we haven't already reconnected to an existing instance
             if (firstTime)
             {
-                process = processManager.Configure(ProcessName, ProcessArguments, environment.GitRoot);
+                process = processManager.Configure(ProcessName, ProcessArguments, environment.RepositoryRoot);
             }
 
             process.OnExit += p =>
             {
-                Logger.Debug("Exit");
+                //Logger.Debug("Exit");
                 Finished();
             };
 
@@ -140,14 +160,14 @@ namespace GitHub.Unity
             // Only start the process if we haven't already reconnected to an existing instance
             if (firstTime)
             {
-                process = processManager.Configure(ProcessName, ProcessArguments, environment.GitRoot);
+                process = processManager.Configure(ProcessName, ProcessArguments, environment.RepositoryRoot);
             }
 
-            process.OnExit += p =>
-            {
-                Logger.Debug("Exit");
-                Finished();
-            };
+            //process.OnExit += p =>
+            //{
+            //    //Logger.Debug("Exit");
+            //    //Finished();
+            //};
 
             ProcessOutputManager outputManager;
             try
@@ -195,7 +215,7 @@ namespace GitHub.Unity
                     Logger.Debug(ex);
                 }
             }
-            return TaskEx.FromResult(true);
+            return TaskEx.FromResult(process.Successful);
         }
 
         private void Finished()
@@ -206,7 +226,7 @@ namespace GitHub.Unity
             }
 
             finishedRaised = true;
-            Logger.Debug("Finished");
+            //Logger.Debug("Finished");
 
             Progress = 1.0f;
 
@@ -281,16 +301,17 @@ namespace GitHub.Unity
                 }
                 else
                 {
+                    Logger.Debug("Calling OnSuccess with '{0}'", msg);
                     OnSuccess(msg);
                 }
             }
         }
 
-        protected virtual void RaiseOnFailure(string msg)
+        protected virtual void RaiseOnFailure(string msg, FailureSeverity severity = FailureSeverity.Critical)
         {
             if (resultDispatcher != null)
             {
-                resultDispatcher.ReportFailure(FailureSeverity.Critical, this, msg);
+                resultDispatcher.ReportFailure(severity, this, msg);
             }
 
             if (OnFailure != null)
@@ -309,7 +330,7 @@ namespace GitHub.Unity
 
         private void RaiseOnEnd()
         {
-            Logger.Trace("RaiseOnEnd");
+            //Logger.Trace("RaiseOnEnd");
             OnEnd?.Invoke(this);
             Done = true;
         }
@@ -336,7 +357,7 @@ namespace GitHub.Unity
 
         public override string Label { get { return "Process task"; } }
 
-        protected virtual string ProcessName { get { return "sleep"; } }
+        protected virtual string ProcessName { get { return processName; } }
         protected virtual string ProcessArguments { get { return arguments; } }
 
         protected virtual CachedTask CachedTaskType { get { return CachedTask.ProcessTask; } }
@@ -348,6 +369,7 @@ namespace GitHub.Unity
         protected virtual Action OnFailure { get { return onFailure; } }
 
         protected IProcessManager ProcessManager => processManager;
+        protected IEnvironment Environment => environment;
         protected ITaskResultDispatcher TaskResultDispatcher => resultDispatcher;
     }
 }

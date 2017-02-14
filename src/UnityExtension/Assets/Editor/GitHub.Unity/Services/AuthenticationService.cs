@@ -7,7 +7,7 @@ namespace GitHub.Unity
     {
         private readonly IAppConfiguration appConfiguration;
         private readonly ICredentialManager credentialManager;
-        private ISimpleApiClient client;
+        private IApiClient client;
 
         private LoginResult loginResultData;
 
@@ -15,7 +15,7 @@ namespace GitHub.Unity
         {
             this.appConfiguration = appConfiguration;
             this.credentialManager = credentialManager;
-            this.client = SimpleApiClientFactory.Instance.Create(new UriString("https://github.com/github"));
+            this.client = ApiClientFactory.Instance.Create(new UriString("https://github.com/github"));
         }
 
         public void Login(string username, string password, Action<string> twofaRequired, Action<bool, string> authResult)

@@ -1,3 +1,5 @@
+#pragma warning disable 649
+
 using System;
 using System.Linq;
 using UnityEditor;
@@ -23,12 +25,30 @@ namespace GitHub.Unity
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
         [SerializeField] private Vector2 horizontalScroll;
-        [SerializeField] private ChangesetTreeView tree = new ChangesetTreeView();
         [SerializeField] private Vector2 verticalScroll;
+        [SerializeField] private ChangesetTreeView tree = new ChangesetTreeView();
 
         public override void Refresh()
         {
             StatusService.Instance.Run();
+        }
+
+        public override void Initialize(IView parent)
+        {
+            base.Initialize(parent);
+            tree.Initialize(this);
+        }
+
+        public override void OnShow()
+        {
+            base.OnShow();
+            StatusService.Instance.RegisterCallback(OnStatusUpdate);
+        }
+
+        public override void OnHide()
+        {
+            base.OnHide();
+            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
         }
 
         public override void OnGUI()
@@ -96,24 +116,13 @@ namespace GitHub.Unity
             GUILayout.EndScrollView();
         }
 
-        protected override void OnShow()
-        {
-            tree.Show(this);
-            StatusService.Instance.RegisterCallback(OnStatusUpdate);
-        }
-
-        protected override void OnHide()
-        {
-            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
-        }
-
         private void OnStatusUpdate(GitStatus update)
         {
             // Set branch state
             currentBranch = update.LocalBranch;
 
             // (Re)build tree
-            tree.Update(update.Entries);
+            tree.UpdateEntries(update.Entries);
 
             lockCommit = false;
         }

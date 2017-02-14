@@ -15,7 +15,6 @@ namespace GitHub.Unity.Tests
         public void BranchListTest()
         {
             var filesystem = new FileSystem();
-
             var environment = new DefaultEnvironment();
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;

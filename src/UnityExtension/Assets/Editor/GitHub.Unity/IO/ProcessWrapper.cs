@@ -50,7 +50,10 @@ namespace GitHub.Unity
 
             process.ErrorDataReceived += (s, e) =>
             {
-                logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\" exited:" + process.HasExited);
+                if (e.Data != null)
+                {
+                    logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\" exited:" + process.HasExited);
+                }
 
                 if (process.HasExited)
                 {
@@ -73,12 +76,12 @@ namespace GitHub.Unity
             };
             process.Exited += (s, e) =>
             {
-                logger.Trace("Exited");
+                //logger.Trace("Exited");
 
                 if (!hasOutputData)
                 {
                     state = ProcessState.Finished;
-                    logger.Debug("Exit");
+                    //logger.Debug("Exit");
                     Finished();
                 }
             };
@@ -86,7 +89,7 @@ namespace GitHub.Unity
 
         public void Run()
         {
-            logger.Debug("Run");
+            //logger.Debug("Run");
 
             try
             {
@@ -120,7 +123,7 @@ namespace GitHub.Unity
 
         public bool WaitForExit(int milliseconds)
         {
-            logger.Debug("WaitForExit - time: {0}ms", milliseconds);
+            //logger.Debug("WaitForExit - time: {0}ms", milliseconds);
 
             // Workaround for a bug in which some data may still be processed AFTER this method returns true, thus losing the data.
             // http://connect.microsoft.com/VisualStudio/feedback/details/272125/waitforexit-and-waitforexit-int32-provide-different-and-undocumented-implementations
@@ -155,7 +158,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            logger.Trace("Finished");
+            //logger.Trace("Finished");
             HasFinished = true;
             OnExit.SafeInvoke(this);
         }
@@ -164,6 +167,17 @@ namespace GitHub.Unity
 
         public bool HasExited { get { return state == ProcessState.Finished || state == ProcessState.Exception; } }
         public bool HasFinished { get; private set; }
+        public bool Successful
+        {
+            get
+            {
+                logger.Trace("Successful: {0} {1} {2}", HasExited, state, process.ExitCode);
+
+                if (!HasExited)
+                    return false;
+                return state != ProcessState.Exception && process.ExitCode == 0;
+            }
+        }
 
         public StreamWriter StandardInput { get { return input; } }
 

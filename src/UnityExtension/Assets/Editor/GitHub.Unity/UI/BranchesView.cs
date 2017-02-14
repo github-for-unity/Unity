@@ -35,9 +35,25 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private BranchTreeNode selectedNode;
 
+        public override void Initialize(IView parent)
+        {
+            base.Initialize(parent);
+            targetMode = mode;
+        }
+
+        public override void OnShow()
+        {
+            base.OnShow();
+        }
+
+        public override void OnHide()
+        {
+            base.OnHide();
+        }
+
         public override void Refresh()
         {
-            var historyView = ((Window)parent).HistoryTab;
+            var historyView = ((Window)Parent).HistoryTab;
 
             if (historyView.BroadMode)
             {
@@ -57,7 +73,7 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            var historyView = ((Window)parent).HistoryTab;
+            var historyView = ((Window)Parent).HistoryTab;
 
             if (historyView.BroadMode)
             {
@@ -220,11 +236,6 @@ namespace GitHub.Unity
             }
 
             return EntryPoint.LocalSettings.Get(FavouritesSetting, new List<string>()).Contains(branchName);
-        }
-
-        protected override void OnShow()
-        {
-            targetMode = mode;
         }
 
         private void OnLocalBranchesUpdate(IEnumerable<GitBranch> list)
