@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using GitHub.Api;
 using GitHub.Helpers;
 
 namespace GitHub.PortableGit.Helpers
@@ -66,6 +67,12 @@ namespace GitHub.PortableGit.Helpers
 //                () => operatingSystem.GetFile(Path.Combine(EtcDirectoryPath, "gitconfig")));
 //        }
 
+        public PortableGitManager(IEnvironment environment) 
+            : base(environment)
+        {
+            
+        }
+
         /// <summary>
         /// The path to git.exe
         /// </summary>
@@ -87,7 +94,7 @@ namespace GitHub.PortableGit.Helpers
         ///   extracted, this will return 100 and Complete.</returns>
         public void ExtractGitIfNeeded()
         {
-            ExtractPackageIfNeeded("PortableGit.7z", KillAllSSHAgent, ExecuteBashLogin, 5221);
+            ExtractPackageIfNeeded("PortableGit.zip", null, null, 5221);
         }
 
         void ExecuteBashLogin()
@@ -164,33 +171,6 @@ namespace GitHub.PortableGit.Helpers
         protected override string GetPackageName()
         {
             return "PortableGit";
-        }
-
-        protected void KillAllSSHAgent()
-        {
-            // NB: SSH Agent is often running when we attempt to extract a new
-            // version of PGit and our Rename dir trick is blocked because of
-            // it. So, kill off any SSH Agents we find.
-//            Process.GetProcesses()
-//                .Where(x => x.ProcessName.Contains("ssh-agent", StringComparison.OrdinalIgnoreCase))
-//                .ForEach(x =>
-//                {
-//                    try
-//                    {
-//                        x.Kill();
-//                    }
-//                    catch (Exception exception)
-//                    {
-//                        var win32Exception = exception as Win32Exception;
-//                        const int ERROR_ACCESS_DENIED = 5;
-//                        if (win32Exception != null && win32Exception.NativeErrorCode == ERROR_ACCESS_DENIED)
-//                        {
-//                            // This process is probably owned by another user.
-//                            return;
-//                        }
-//                        log.Info(string.Format(CultureInfo.InvariantCulture, "Failed to kill ssh-agent with PID {0}", x.Id), exception);
-//                    }
-//                });
         }
     }
 }
