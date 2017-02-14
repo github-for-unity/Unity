@@ -15,7 +15,7 @@ namespace GitHub.Api
 
         public override async Task<string> FindGitInstallationPath(IProcessManager processManager)
         {
-            if (Environment.GitExecutablePath != null)
+            if (!String.IsNullOrEmpty(Environment.GitExecutablePath))
                 return Environment.GitExecutablePath;
 
             var path = LookForPortableGit();
@@ -35,6 +35,9 @@ namespace GitHub.Api
             var gitHubLocalAppDataPath = System.IO.Path.Combine(localAppDataPath, "GitHub");
 
             var searchPath = System.IO.Path.Combine(gitHubLocalAppDataPath, "PortableGit_");
+
+            if (!FileSystem.DirectoryExists(gitHubLocalAppDataPath))
+                return null;
 
             var directories = FileSystem.GetDirectories(gitHubLocalAppDataPath).ToArray();
 

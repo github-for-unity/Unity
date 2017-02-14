@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using GitHub.Unity;
+using System;
 
 namespace GitHub.Api
 {
@@ -12,7 +13,7 @@ namespace GitHub.Api
 
         public override Task<string> FindGitInstallationPath(IProcessManager processManager)
         {
-            if (Environment.GitExecutablePath != null)
+            if (!String.IsNullOrEmpty(Environment.GitExecutablePath))
                 return TaskEx.FromResult(Environment.GitExecutablePath);
 
             return base.FindGitInstallationPath(processManager); ;
