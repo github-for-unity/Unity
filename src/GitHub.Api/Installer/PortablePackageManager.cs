@@ -11,8 +11,6 @@ namespace GitHub.Api
 
         private readonly ConcurrentDictionary<string, bool> extractResults = new ConcurrentDictionary<string, bool>();
 
-        private readonly IProgram program;
-
         protected PortablePackageManager(IEnvironment environment, IFileSystem fileSystem,
             ISharpZipLibHelper sharpZipLibHelper)
         {
