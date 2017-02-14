@@ -152,16 +152,12 @@ namespace GitHub.Api
 
         protected override string GetExpectedVersion()
         {
-            throw new NotImplementedException();
-
-//            return AppBuildInfo.PGitVersionSHA1;
+            return "f02737a78695063deace08e96d5042710d3e32db";
         }
 
         protected override string GetPathToCanary(string rootDir)
         {
-            throw new NotImplementedException();
-
-//            return Path.Combine(rootDir ?? @"C:\__NOTHERE", "cmd", "git.exe");
+            return FileSystem.Combine(rootDir, "cmd", "git.exe");
         }
 
         protected override string GetPackageName()

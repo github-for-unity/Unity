@@ -7,10 +7,10 @@ namespace GitHub.Api
 {
     abstract class PortablePackageManager : ICleanupService
     {
-        private readonly IEnvironment environment;
-        private readonly IFileSystem fileSystem;
-        private readonly ISharpZipLibHelper sharpZipLibHelper;
-        private readonly ILogging logger;
+        protected IEnvironment Environment { get; }
+        protected IFileSystem FileSystem { get; }
+        protected ISharpZipLibHelper SharpZipLibHelper { get; }
+        protected ILogging Logger { get; }
 
         private const string TemporaryFolderSuffix = ".deleteme";
         private const string WindowsPortableGitZip = @"resources\windows\PortableGit.zip";
@@ -29,11 +29,11 @@ namespace GitHub.Api
             Guard.ArgumentNotNull(fileSystem, nameof(fileSystem));
             Guard.ArgumentNotNull(sharpZipLibHelper, nameof(sharpZipLibHelper));
 
-            logger = Logging.GetLogger(GetType());
+            Logger = Logging.GetLogger(GetType());
 
-            this.environment = environment;
-            this.fileSystem = fileSystem;
-            this.sharpZipLibHelper = sharpZipLibHelper;
+            Environment = environment;
+            FileSystem = fileSystem;
+            SharpZipLibHelper = sharpZipLibHelper;
         }
 
 //        protected IOperatingSystem OperatingSystem { get { return operatingSystem; } }
@@ -42,60 +42,62 @@ namespace GitHub.Api
         {
             var target = GetPackageDestinationDirectory();
 
-            throw new NotImplementedException();
+            var canaryFile = GetPathToCanary(target);
+            if (!FileSystem.FileExists(canaryFile)) return false;
+            
+            var versionFile = FileSystem.Combine(target, "VERSION");
+            if (!FileSystem.FileExists(versionFile)) return false;
 
-//            var canaryFile = operatingSystem.GetFile(GetPathToCanary(target));
-//            if (!canaryFile.Exists) return false;
-//
-//            var versionFile = operatingSystem.GetFile(Path.Combine(target, "VERSION"));
-//            if (!versionFile.Exists) return false;
-//
-//            if (versionFile.ReadAllText().Trim() != GetExpectedVersion())
-//            {
-//                versionFile.Directory.FastDelete()
-//                    .Subscribe(
-//                        _ => log.Warn("Package '{0}' out of date, wanted {1}", target, GetExpectedVersion()),
-//                        ex => log.Warn("Failed to remove " + target, ex));
-//
-//                return false;
-//            }
-//
-//            return true;
+            var expectedVersion = GetExpectedVersion();
+            if (FileSystem.ReadAllText(versionFile).Trim() != expectedVersion)
+            {
+                Logger.Warning("Package '{0}' out of date, wanted {1}", target, expectedVersion);
+                    
+                try
+                {
+                    var parentDirectory = FileSystem.GetParentDirectory(versionFile);
+                    FileSystem.DeleteAllFiles(parentDirectory);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warning(ex, "Failed to remove {0}", target);
+                }
+            
+                return false;
+            }
+            
+            return true;
         }
 
         public string GetPackageDestinationDirectory(bool createIfNeeded = false, bool includeExpectedVersion = true)
         {
-            throw new NotImplementedException();
+            string packageName = includeExpectedVersion
+                ? GetPackageNameWithVersion()
+                : GetPackageName();
 
-//            string packageName = includeExpectedVersion
-//                ? GetPackageNameWithVersion()
-//                : GetPackageName();
-//            var packageDestinationPath = RootPackageDirectory.Combine(packageName);
-//            if (createIfNeeded)
-//            {
-//                var destination = operatingSystem.GetDirectory(packageDestinationPath);
-//                FuncExtensions.Retry(destination.Create);
-//            }
-//
-//            return packageDestinationPath;
+            var packageDestinationPath = FileSystem.Combine(RootPackageDirectory, packageName);
+            if (createIfNeeded)
+            {
+                FileSystem.CreateDirectory(packageDestinationPath);
+            }
+
+            return packageDestinationPath;
         }
 
         public string GetPackageNameWithVersion()
         {
-            throw new NotImplementedException();
-
-//            return GetPackageName() + "_" + GetExpectedVersion();
+            return GetPackageName() + "_" + GetExpectedVersion();
         }
 
         protected string RootPackageDirectory
         {
-            get { throw new NotImplementedException();}
+            get { return Environment.ExtensionInstallPath;}
         }
 
         protected void ExtractPackageIfNeeded(string fileName, Action preExtract = null, Action postExtract = null)
         {
             var extractResult = extractResults.GetOrAdd(fileName, false);
-            if (!extractResult)
+            if (extractResult)
             {
                 return;
             }
@@ -103,7 +105,7 @@ namespace GitHub.Api
             // First, check to see if we're already done
             if (IsPackageExtracted())
             {
-                logger.Info("Already extracted {0}, returning", fileName);
+                Logger.Info("Already extracted {0}, returning", fileName);
                 return;
             }
 
@@ -112,27 +114,27 @@ namespace GitHub.Api
                 preExtract();
             }
 
-            var environmentPath = environment.ExtensionInstallPath;
-            var tempPath = Path.Combine(environmentPath, fileSystem.GetRandomFileName() + TemporaryFolderSuffix);
+            var environmentPath = Environment.ExtensionInstallPath;
+            var tempPath = Path.Combine(environmentPath, FileSystem.GetRandomFileName() + TemporaryFolderSuffix);
             var archiveFilePath = Path.Combine(environmentPath, WindowsPortableGitZip);
                 
             try
             {
-                fileSystem.CreateDirectory(tempPath);
+                FileSystem.CreateDirectory(tempPath);
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Couldn't create temp dir: " + tempPath);
+                Logger.Error(ex, "Couldn't create temp dir: " + tempPath);
 
                 extractResults.TryRemove(fileName, out extractResult);
 
                 throw;
             }
 
-            if (!fileSystem.FileExists(archiveFilePath))
+            if (!FileSystem.FileExists(archiveFilePath))
             {
                 var exception = new FileNotFoundException("Could not find file", archiveFilePath);
-                logger.Error(exception, "Trying to extract {0}, but it doesn't exist", archiveFilePath);
+                Logger.Error(exception, "Trying to extract {0}, but it doesn't exist", archiveFilePath);
 
                 extractResults.TryRemove(fileName, out extractResult);
 
@@ -141,11 +143,11 @@ namespace GitHub.Api
 
             try
             {
-                sharpZipLibHelper.ExtractZipFile(archiveFilePath, tempPath);
+                SharpZipLibHelper.ExtractZipFile(archiveFilePath, tempPath);
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
+                Logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
 
                 extractResults.TryRemove(fileName, out extractResult);
 
