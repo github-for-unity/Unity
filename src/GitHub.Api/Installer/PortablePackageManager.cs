@@ -18,11 +18,8 @@ namespace GitHub.Api
         readonly ConcurrentDictionary<string, bool> extractResults =
             new ConcurrentDictionary<string, bool>();
 
-//        readonly IOperatingSystem operatingSystem;
         readonly IProgram program;
-//        readonly IZipArchive zipArchive;
 
-//        protected PortablePackageManager(IOperatingSystem operatingSystem, IProgram program, IZipArchive zipArchive)
         protected PortablePackageManager(IEnvironment environment, IFileSystem fileSystem, ISharpZipLibHelper sharpZipLibHelper)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));
@@ -35,8 +32,6 @@ namespace GitHub.Api
             FileSystem = fileSystem;
             SharpZipLibHelper = sharpZipLibHelper;
         }
-
-//        protected IOperatingSystem OperatingSystem { get { return operatingSystem; } }
 
         public bool IsPackageExtracted()
         {
