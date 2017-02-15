@@ -11,13 +11,15 @@ namespace GitHub.Unity.Tests
     public class PortableGitManagerTests
     {
         private const string ExtensionFolder = @"c:\ExtensionFolder";
+        private const string UserProfilePath = @"c:\UserProfile";
         private const string TemporaryPath = @"c:\temp";
         private const string WindowsPortableGitZip = ExtensionFolder + @"\resources\windows\PortableGit.zip";
 
-        private IEnvironment CreateEnvironment(string extensionfolder)
+        private IEnvironment CreateEnvironment(string extensionfolder, string userProfilePath)
         {
             var environment = Substitute.For<IEnvironment>();
             environment.ExtensionInstallPath.Returns(extensionfolder);
+            environment.UserProfilePath.Returns(userProfilePath);
             return environment;
         }
 
@@ -31,7 +33,7 @@ namespace GitHub.Unity.Tests
                 var path1 = (string)info[0];
                 var path2 = (string)info[1];
                 var combine = realFileSystem.Combine(path1, path2);
-                Logger.Debug(@"FileSystem.Combine(""{0}"", ""{1}"") -> ""{2}""", path1, path2, combine);
+                Logger.Trace(@"FileSystem.Combine(""{0}"", ""{1}"") -> ""{2}""", path1, path2, combine);
                 return combine;
             });
 
@@ -40,14 +42,14 @@ namespace GitHub.Unity.Tests
                 var path2 = (string)info[1];
                 var path3 = (string)info[2];
                 var combine = realFileSystem.Combine(path1, path2, path3);
-                Logger.Debug(@"FileSystem.Combine(""{0}"", ""{1}"", ""{2}"") -> ""{3}""", path1, path2, path3, combine);
+                Logger.Trace(@"FileSystem.Combine(""{0}"", ""{1}"", ""{2}"") -> ""{3}""", path1, path2, path3, combine);
                 return combine;
             });
 
             fileSystem.FileExists(Arg.Any<string>()).Returns(info => {
                 var path1 = (string)info[0];
                 var result = filesThatExist.Contains(path1);
-                Logger.Debug(@"FileSystem.FileExists(""{0}"") -> {1}", path1, result);
+                Logger.Trace(@"FileSystem.FileExists(""{0}"") -> {1}", path1, result);
                 return result;
             });
 
@@ -62,7 +64,7 @@ namespace GitHub.Unity.Tests
                     result = string.Join(string.Empty, fileContent);
                 }
 
-                Logger.Debug(@"FileSystem.ReadAllText(""{0}"") -> {1}", path1, result != null);
+                Logger.Trace(@"FileSystem.ReadAllText(""{0}"") -> {1}", path1, result != null);
 
                 if (result == null)
                 {
@@ -79,13 +81,13 @@ namespace GitHub.Unity.Tests
                 randomFileIndex++;
                 randomFileIndex = randomFileIndex % randomFileNames.Count;
 
-                Logger.Debug(@"FileSystem.GetRandomFileName() -> {0}", result);
+                Logger.Trace(@"FileSystem.GetRandomFileName() -> {0}", result);
 
                 return result;
             });
 
             fileSystem.GetTempPath().Returns(info => {
-                Logger.Debug(@"FileSystem.GetTempPath() -> {0}", temporaryPath);
+                Logger.Trace(@"FileSystem.GetTempPath() -> {0}", temporaryPath);
 
                 return temporaryPath;
             });
@@ -110,10 +112,12 @@ namespace GitHub.Unity.Tests
         [Test]
         public void ShouldExtractGitIfNeeded()
         {
-            var environment = CreateEnvironment(ExtensionFolder);
+            var environment = CreateEnvironment(ExtensionFolder, UserProfilePath);
             var sharpZipLibHelper = CreateSharpZipLibHelper();
 
-            var filesThatExist = new[] { ExtensionFolder + @"\resources\windows\PortableGit.zip" };
+            var filesThatExist = new[] {
+                WindowsPortableGitZip,
+            };
 
             var fileContents = new Dictionary<string, string[]>();
 
@@ -131,23 +135,23 @@ namespace GitHub.Unity.Tests
         [Test]
         public void ShouldNotExtractGitIfNotNeeded()
         {
-            var environment = CreateEnvironment(ExtensionFolder);
+            var environment = CreateEnvironment(ExtensionFolder, UserProfilePath);
             var sharpZipLibHelper = CreateSharpZipLibHelper();
 
             var filesThatExist = new[] {
                 WindowsPortableGitZip,
-                ExtensionFolder + @"\PortableGit_f02737a78695063deace08e96d5042710d3e32db\cmd\git.exe",
-                ExtensionFolder + @"\PortableGit_f02737a78695063deace08e96d5042710d3e32db\VERSION"
+                UserProfilePath + @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\cmd\git.exe",
+                UserProfilePath + @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\VERSION"
             };
 
             var fileContents = new Dictionary<string, string[]> {
                 {
-                    ExtensionFolder + @"\PortableGit_f02737a78695063deace08e96d5042710d3e32db\VERSION",
+                    UserProfilePath + @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\VERSION",
                     new[] { "f02737a78695063deace08e96d5042710d3e32db" }
                 }
             };
 
-            var randomFileNames = new string[] { };
+            var randomFileNames = new[] { "randomFolder1", "randomFolder2" };
 
             var fileSystem = CreateFileSystem(filesThatExist, fileContents, randomFileNames, TemporaryPath);
 
