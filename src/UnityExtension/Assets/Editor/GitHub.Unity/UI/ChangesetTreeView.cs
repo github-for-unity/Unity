@@ -12,17 +12,6 @@ namespace GitHub.Unity
     [Serializable]
     class ChangesetTreeView : Subview
     {
-        private static ILogging logger;
-        private static ILogging Logger
-        {
-            get
-            {
-                if (logger == null)
-                    logger = Logging.GetLogger<ChangesetTreeView>();
-                return logger;
-            }
-        }
-
         private const string BasePathLabel = "{0}";
         private const string NoChangesLabel = "No changes found";
 

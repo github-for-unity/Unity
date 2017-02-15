@@ -55,14 +55,12 @@ namespace GitHub.Unity
         {
             var historyView = ((Window)Parent).HistoryTab;
 
+#if ENABLE_BROADMODE
             if (historyView.BroadMode)
-            {
                 historyView.Refresh();
-            }
             else
-            {
+#endif
                 RefreshEmbedded();
-            }
         }
 
         public void RefreshEmbedded()
@@ -75,18 +73,20 @@ namespace GitHub.Unity
         {
             var historyView = ((Window)Parent).HistoryTab;
 
+#if ENABLE_BROADMODE
             if (historyView.BroadMode)
-            {
                 historyView.OnGUI();
-            }
             else
+#endif
             {
                 OnEmbeddedGUI();
 
+#if ENABLE_BROADMODE
                 if (Event.current.type == EventType.Repaint && historyView.EvaluateBroadMode())
                 {
                     Refresh();
                 }
+#endif
             }
         }
 

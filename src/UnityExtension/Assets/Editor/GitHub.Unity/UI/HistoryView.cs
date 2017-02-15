@@ -13,17 +13,6 @@ namespace GitHub.Unity
     [Serializable]
     class HistoryView : Subview
     {
-        private static ILogging logger;
-        private static ILogging Logger
-        {
-            get
-            {
-                if (logger == null)
-                    logger = Logging.GetLogger<HistoryView>();
-                return logger;
-            }
-        }
-
         private const string HistoryFocusAll = "(All)";
         private const string HistoryFocusSingle = "Focus: <b>{0}</b>";
         private const string PullButton = "Pull";
@@ -56,7 +45,9 @@ namespace GitHub.Unity
         [NonSerialized] private bool updated = true;
         [NonSerialized] private bool useScrollTime;
 
+#if ENABLE_BROADMODE
         [SerializeField] private bool broadMode;
+#endif
         [SerializeField] private Vector2 detailsScroll;
         [SerializeField] private bool historyLocked = true;
         [SerializeField] private Object historyTarget;
@@ -105,10 +96,12 @@ namespace GitHub.Unity
 
             StatusService.Instance.Run();
 
+#if ENABLE_BROADMODE
             if (broadMode)
             {
                 ((Window)Parent).BranchesTab.RefreshEmbedded();
             }
+#endif
         }
 
         public override void OnSelectionChange()
@@ -120,6 +113,7 @@ namespace GitHub.Unity
             }
         }
 
+#if ENABLE_BROADMODE
         public bool EvaluateBroadMode()
         {
             var past = broadMode;
@@ -147,24 +141,26 @@ namespace GitHub.Unity
             // Return whether we flipped
             return broadMode != past;
         }
+#endif
 
         public override void OnGUI()
         {
+#if ENABLE_BROADMODE
             if (broadMode)
-            {
                 OnBroadGUI();
-            }
             else
-            {
+#endif
                 OnEmbeddedGUI();
-            }
 
+#if ENABLE_BROADMODE
             if (Event.current.type == EventType.Repaint && EvaluateBroadMode())
             {
                 Refresh();
             }
+#endif
         }
 
+#if ENABLE_BROADMODE
         public void OnBroadGUI()
         {
             GUILayout.BeginHorizontal();
@@ -185,6 +181,7 @@ namespace GitHub.Unity
             }
             GUILayout.EndHorizontal();
         }
+#endif
 
         public void OnEmbeddedGUI()
         {
@@ -588,10 +585,12 @@ namespace GitHub.Unity
         }
 
 
+#if ENABLE_BROADMODE
         public bool BroadMode
         {
             get { return broadMode; }
         }
+#endif
 
         private float EntryHeight
         {
