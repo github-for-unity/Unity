@@ -81,6 +81,7 @@ namespace GitHub.Unity
         {
             base.OnShow();
             StatusService.Instance.RegisterCallback(OnStatusUpdate);
+            Refresh();
         }
 
         public override void OnHide()
