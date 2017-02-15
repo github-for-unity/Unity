@@ -12,6 +12,10 @@ namespace GitHub.Api
         private const string ExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
         private const string PackageName = "PortableGit";
 
+        private readonly ILogging logger;
+        private readonly IEnvironment environment;
+        private readonly IFileSystem fileSystem;
+        private readonly ISharpZipLibHelper sharpZipLibHelper;
         private readonly CancellationToken? cancellationToken;
 
         public PortableGitManager(IEnvironment environment, IFileSystem fileSystem, ISharpZipLibHelper sharpZipLibHelper,
@@ -21,11 +25,11 @@ namespace GitHub.Api
             Guard.ArgumentNotNull(fileSystem, nameof(fileSystem));
             Guard.ArgumentNotNull(sharpZipLibHelper, nameof(sharpZipLibHelper));
 
-            Logger = Logging.GetLogger(GetType());
+            logger = Logging.GetLogger(GetType());
 
-            Environment = environment;
-            FileSystem = fileSystem;
-            SharpZipLibHelper = sharpZipLibHelper;
+            this.environment = environment;
+            this.fileSystem = fileSystem;
+            this.sharpZipLibHelper = sharpZipLibHelper;
             this.cancellationToken = cancellationToken;
         }
 
@@ -33,38 +37,38 @@ namespace GitHub.Api
         {
             if (IsExtracted())
             {
-                Logger.Info("Already extracted {0}, returning", WindowsPortableGitZip);
+                logger.Info("Already extracted {0}, returning", WindowsPortableGitZip);
                 return;
             }
 
-            var environmentPath = Environment.ExtensionInstallPath;
-            var tempPath = Path.Combine(environmentPath, FileSystem.GetRandomFileName() + TemporaryFolderSuffix);
+            var environmentPath = environment.ExtensionInstallPath;
+            var tempPath = Path.Combine(environmentPath, fileSystem.GetRandomFileName() + TemporaryFolderSuffix);
             var archiveFilePath = Path.Combine(environmentPath, WindowsPortableGitZip);
 
             try
             {
-                FileSystem.CreateDirectory(tempPath);
+                fileSystem.CreateDirectory(tempPath);
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Couldn't create temp dir: " + tempPath);
+                logger.Error(ex, "Couldn't create temp dir: " + tempPath);
                 throw;
             }
 
-            if (!FileSystem.FileExists(archiveFilePath))
+            if (!fileSystem.FileExists(archiveFilePath))
             {
                 var exception = new FileNotFoundException("Could not find file", archiveFilePath);
-                Logger.Error(exception, "Trying to extract {0}, but it doesn't exist", archiveFilePath);
+                logger.Error(exception, "Trying to extract {0}, but it doesn't exist", archiveFilePath);
                 throw exception;
             }
 
             try
             {
-                SharpZipLibHelper.ExtractZipFile(archiveFilePath, tempPath, cancellationToken);
+                sharpZipLibHelper.ExtractZipFile(archiveFilePath, tempPath, cancellationToken);
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
+                logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
                 throw;
             }
         }
@@ -73,31 +77,31 @@ namespace GitHub.Api
         {
             var target = PackageDestinationDirectory;
 
-            var git = FileSystem.Combine(target, "cmd", "git.exe");
-            if (!FileSystem.FileExists(git))
+            var git = fileSystem.Combine(target, "cmd", "git.exe");
+            if (!fileSystem.FileExists(git))
             {
                 return false;
             }
 
-            var versionFile = FileSystem.Combine(target, "VERSION");
-            if (!FileSystem.FileExists(versionFile))
+            var versionFile = fileSystem.Combine(target, "VERSION");
+            if (!fileSystem.FileExists(versionFile))
             {
                 return false;
             }
 
             var expectedVersion = ExpectedVersion;
-            if (FileSystem.ReadAllText(versionFile).Trim() != expectedVersion)
+            if (fileSystem.ReadAllText(versionFile).Trim() != expectedVersion)
             {
-                Logger.Warning("Package '{0}' out of date, wanted {1}", target, expectedVersion);
+                logger.Warning("Package '{0}' out of date, wanted {1}", target, expectedVersion);
 
                 try
                 {
-                    var parentDirectory = FileSystem.GetParentDirectory(versionFile);
-                    FileSystem.DeleteAllFiles(parentDirectory);
+                    var parentDirectory = fileSystem.GetParentDirectory(versionFile);
+                    fileSystem.DeleteAllFiles(parentDirectory);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warning(ex, "Failed to remove {0}", target);
+                    logger.Warning(ex, "Failed to remove {0}", target);
                 }
 
                 return false;
@@ -107,14 +111,8 @@ namespace GitHub.Api
         }
 
         public string PackageDestinationDirectory
-            => FileSystem.Combine(Environment.ExtensionInstallPath, PackageNameWithVersion);
+            => fileSystem.Combine(environment.ExtensionInstallPath, PackageNameWithVersion);
 
         public string PackageNameWithVersion => PackageName + "_" + ExpectedVersion;
-
-        protected IEnvironment Environment { get; }
-        protected IFileSystem FileSystem { get; }
-        protected ISharpZipLibHelper SharpZipLibHelper { get; }
-
-        protected ILogging Logger { get; }
     }
 }
