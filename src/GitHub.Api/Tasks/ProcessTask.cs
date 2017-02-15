@@ -85,8 +85,9 @@ namespace GitHub.Unity
             };
         }
 
-        public override void Run()
+        public override void Run(CancellationToken cancellationToken)
         {
+            this.cancellationToken = cancellationToken;
             Logger.Debug("RunTask Label:\"{0}\" Type:{1}", Label, process == null ? "start" : "reconnect");
 
             Done = false;
@@ -123,6 +124,11 @@ namespace GitHub.Unity
             {
                 try
                 {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        RaiseOnEnd();
+                        return;
+                    }
                     process.Run();
                 }
                 catch (Exception ex)
@@ -144,9 +150,9 @@ namespace GitHub.Unity
             }
         }
 
-        public override Task<bool> RunAsync(CancellationToken cancel)
+        public override Task<bool> RunAsync(CancellationToken cancellationToken)
         {
-            cancellationToken = cancel;
+            this.cancellationToken = cancellationToken;
 
             Logger.Debug("RunTaskAsync Label:\"{0}\" Type:{1}", Label, process == null ? "start" : "reconnect");
 
@@ -184,6 +190,11 @@ namespace GitHub.Unity
             {
                 try
                 {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        RaiseOnEnd();
+                        return TaskEx.FromResult(false);
+                    }
                     process.Run();
                 }
                 catch (Exception ex)
@@ -196,7 +207,7 @@ namespace GitHub.Unity
             do
             {
                 processDone = process.WaitForExit(100);
-                if (cancellationToken.IsCancellationRequested)
+                if (this.cancellationToken.IsCancellationRequested)
                 {
                     Abort();
                     return TaskEx.FromResult(false);

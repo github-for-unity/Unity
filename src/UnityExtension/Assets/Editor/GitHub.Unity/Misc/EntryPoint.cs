@@ -6,11 +6,13 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace GitHub.Unity
 {
@@ -19,6 +21,8 @@ namespace GitHub.Unity
     {
         private static ILogging logger;
         private static bool cctorCalled = false;
+
+        [NonSerialized] private ApplicationManager appManager;
 
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
@@ -58,12 +62,11 @@ namespace GitHub.Unity
             catch
             {
             }
-            //Logging.LoggerFactory = s => new FileLogAdapter(filepath, s);
+            Logging.LoggerFactory = s => new FileLogAdapter(filepath, s);
             logger = Logging.GetLogger<EntryPoint>();
 
-            ThreadUtils.SetMainThread();
-            var syncCtx = new MainThreadSynchronizationContext();
-            SynchronizationContext.SetSynchronizationContext(syncCtx);
+            appManager = new ApplicationManager(new MainThreadSynchronizationContext());
+            processManager = new ProcessManager(Environment, GitEnvironment, FileSystem, appManager.CancellationToken);
 
             DetermineUnityPaths(Environment, GitEnvironment, FileSystem);
 
@@ -91,11 +94,7 @@ namespace GitHub.Unity
                     .RunAsync(CancellationToken.None)
                     .ContinueWith(_ =>
                     {
-                        Tasks.Initialize(syncCtx);
-
-                        Utility.Initialize();
-
-                        Tasks.Run();
+                        appManager.Run();
 
                         Utility.Run();
 
@@ -108,6 +107,7 @@ namespace GitHub.Unity
                 task.Wait();
             });
         }
+
 
         // TODO: Move these out to a proper location
         private static void DetermineGitRepoRoot(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
@@ -224,17 +224,7 @@ namespace GitHub.Unity
         }
 
         private static IProcessManager processManager;
-        public static IProcessManager ProcessManager
-        {
-            get
-            {
-                if (processManager == null)
-                {
-                    processManager = new ProcessManager(Environment, GitEnvironment, FileSystem);
-                }
-                return processManager;
-            }
-        }
+        public static IProcessManager ProcessManager { get { return processManager; } }
 
 
         private static GitObjectFactory gitObjectFactory;
@@ -292,5 +282,78 @@ namespace GitHub.Unity
         }
 
         public static bool Initialized { get; private set; }
+    }
+
+
+    class ApplicationManager
+    {
+        private const string QuitActionFieldName = "editorApplicationQuit";
+        private CancellationTokenSource cancellationTokenSource;
+        private FieldInfo quitActionField;
+        private const BindingFlags quitActionBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
+
+        private Tasks taskRunner;
+
+        public ApplicationManager(MainThreadSynchronizationContext syncCtx)
+        {
+            ThreadUtils.SetMainThread();
+            SynchronizationContext.SetSynchronizationContext(syncCtx);
+
+            cancellationTokenSource = new CancellationTokenSource();
+            EditorApplicationQuit = (UnityAction)Delegate.Combine(EditorApplicationQuit, new UnityAction(OnShutdown));
+            EditorApplication.playmodeStateChanged += () =>
+            {
+                if (EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
+                {
+                    OnShutdown();
+                }
+            };
+            taskRunner = new Tasks(syncCtx, cancellationTokenSource.Token);
+        }
+
+        public void Initialize()
+        {
+            Utility.Initialize();
+        }
+
+        public void Run()
+        {
+            taskRunner.Run();
+        }
+
+        private void OnShutdown()
+        {
+            taskRunner.Shutdown();
+            cancellationTokenSource.Cancel();
+        }
+
+        private UnityAction EditorApplicationQuit
+        {
+            get
+            {
+                SecureQuitActionField();
+                return (UnityAction)quitActionField.GetValue(null);
+            }
+            set
+            {
+                SecureQuitActionField();
+                quitActionField.SetValue(null, value);
+            }
+        }
+
+        private void SecureQuitActionField()
+        {
+            if (quitActionField == null)
+            {
+                quitActionField = typeof(EditorApplication).GetField(QuitActionFieldName, quitActionBindingFlags);
+
+                if (quitActionField == null)
+                {
+                    throw new InvalidOperationException("Unable to reflect EditorApplication." + QuitActionFieldName);
+                }
+            }
+        }
+
+        public CancellationToken CancellationToken { get { return cancellationTokenSource.Token; } }
     }
 }

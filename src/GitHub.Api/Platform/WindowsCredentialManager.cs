@@ -147,7 +147,7 @@ namespace GitHub.Api
                         logger.Trace("credHelper: {0}", credHelper);
                     }, null);
 
-            if (await task.RunAsync() && credHelper != null)
+            if (await task.RunAsync(processManager.CancellationToken) && credHelper != null)
             {
                 return true;
             }
@@ -183,7 +183,7 @@ namespace GitHub.Api
                     proc.StandardInput.Close();
                 };
             };
-            return task.RunAsync(new System.Threading.CancellationToken());
+            return task.RunAsync(processManager.CancellationToken);
         }
 
     }
