@@ -4,13 +4,23 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using ILogger = GitHub.Unity.Logging.ILogger;
 
 namespace GitHub.Unity
 {
     [Serializable]
     class SettingsView : Subview
     {
+        private static ILogging logger;
+        private static ILogging Logger
+        {
+            get
+            {
+                if (logger == null)
+                    logger = Logging.GetLogger<SettingsView>();
+                return logger;
+            }
+        }
+
         private const string EditorSettingsMissingTitle = "Missing editor settings";
         private const string EditorSettingsMissingMessage =
             "No valid editor settings found when looking in expected path '{0}'. Please save the project.";
@@ -60,7 +70,15 @@ namespace GitHub.Unity
         [SerializeField] private string initDirectory;
         [SerializeField] private Vector2 scroll;
 
-        private static readonly ILogger logger = Logging.Logger.GetLogger<SettingsView>();
+        public override void OnShow()
+        {
+            base.OnShow();
+        }
+
+        public override void OnHide()
+        {
+            base.OnHide();
+        }
 
         public override void Refresh()
         {
@@ -142,14 +160,6 @@ namespace GitHub.Unity
             return true;
         }
 
-        protected override void OnShow()
-        {
-        }
-
-        protected override void OnHide()
-        {
-        }
-
         private bool OnIssuesGUI()
         {
             var settingsIssues = Utility.Issues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
@@ -220,7 +230,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            if (settingsIssues != null && !EntryPoint.Settings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
+            if (settingsIssues != null && !EntryPoint.LocalSettings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
             {
                 var binary = settingsIssues.WasCaught(ProjectSettingsEvaluation.BinarySerialization);
                 var mixed = settingsIssues.WasCaught(ProjectSettingsEvaluation.MixedSerialization);
@@ -234,7 +244,7 @@ namespace GitHub.Unity
                     {
                         if (GUILayout.Button(IgnoreSerialisationSettingsButton))
                         {
-                            EntryPoint.Settings.Set(IgnoreSerialisationIssuesSetting, "1");
+                            EntryPoint.LocalSettings.Set(IgnoreSerialisationIssuesSetting, "1");
                         }
 
                         GUILayout.FlexibleSpace();
@@ -373,25 +383,21 @@ namespace GitHub.Unity
 
         private void OnInstallPathGUI()
         {
-            var gitInstallPath = Utility.GitInstallPath;
+            var gitExecPath = EntryPoint.Environment.GitExecutablePath;
             // Install path field
             EditorGUI.BeginChangeCheck();
             {
-                var defaultGitPath = EntryPoint.GitEnvironment.FindGitInstallationPath();
-
                 //TODO: Verify necessary value for a non Windows OS
                 var extension = EntryPoint.GitEnvironment.GetGitExecutableExtension();
 
-                var defaultGitInstallFolder = Path.GetDirectoryName(defaultGitPath);
-
-                Styles.PathField(ref gitInstallPath,
+                Styles.PathField(ref gitExecPath,
                     () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
-                        defaultGitInstallFolder,
+                        EntryPoint.Environment.GitInstallPath,
                         extension), ValidateGitInstall);
             }
             if (EditorGUI.EndChangeCheck())
             {
-                EntryPoint.Environment.GitInstallPath = gitInstallPath;
+                EntryPoint.Environment.GitExecutablePath = gitExecPath;
             }
 
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
@@ -401,10 +407,12 @@ namespace GitHub.Unity
                 // Find button - for attempting to locate a new install
                 if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
                 {
-                    FindGitTask.Schedule(path => {
+                    var task = new FindGitTask(
+                        EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                        path => {
                         if (!string.IsNullOrEmpty(path))
                         {
-                            EntryPoint.Environment.GitInstallPath = path;
+                            EntryPoint.Environment.GitExecutablePath = path;
                             GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
                         }
                     });
@@ -428,7 +436,7 @@ namespace GitHub.Unity
 
         private void Init()
         {
-            logger.Debug("TODO: Init '{0}'", initDirectory);
+            Logger.Debug("TODO: Init '{0}'", initDirectory);
         }
     }
 }

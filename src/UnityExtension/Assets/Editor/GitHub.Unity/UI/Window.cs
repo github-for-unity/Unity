@@ -1,3 +1,5 @@
+#pragma warning disable 649
+
 using System;
 using System.Linq;
 using UnityEditor;
@@ -7,8 +9,19 @@ using Debug = System.Diagnostics.Debug;
 namespace GitHub.Unity
 {
     [Serializable]
-    class Window : EditorWindow, IView
+    class Window : BaseWindow
     {
+        private static ILogging logger;
+        private static ILogging Logger
+        {
+            get
+            {
+                if (logger == null)
+                    logger = Logging.GetLogger<Window>();
+                return logger;
+            }
+        }
+
         private const float DefaultNotificationTimeout = 4f;
         private const string Title = "GitHub";
         private const string LaunchMenu = "Window/GitHub";
@@ -19,6 +32,7 @@ namespace GitHub.Unity
         private const string ChangesTitle = "Changes";
         private const string BranchesTitle = "Branches";
         private const string SettingsTitle = "Settings";
+        private const string AuthenticationTitle = "Auth";
 
         [NonSerialized] private double notificationClearTime = -1;
 
@@ -28,53 +42,132 @@ namespace GitHub.Unity
         [SerializeField] private HistoryView historyTab = new HistoryView();
         [SerializeField] private SettingsView settingsTab = new SettingsView();
 
-        private static bool initialized;
-
         public static void Initialize()
         {
             RefreshRunner.Initialize();
-            initialized = true;
         }
 
         [MenuItem(LaunchMenu)]
         public static void Launch()
         {
-            GetWindow<Window>().Show();
+            var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.InspectorWindow");
+            GetWindow<Window>(type).Show();
         }
 
-        public void OnGUI()
+        public override void OnEnable()
         {
+            base.OnEnable();
+            Selection.activeObject = this;
+
+            Utility.UnregisterReadyCallback(CreateViews);
+            Utility.RegisterReadyCallback(CreateViews);
+
+            Utility.UnregisterReadyCallback(ShowActiveView);
+            Utility.RegisterReadyCallback(ShowActiveView);
+        }
+
+        public override void Refresh()
+        {
+            if (ActiveTab != null)
+                ActiveTab.Refresh();
+        }
+
+        private void CreateViews()
+        {
+            historyTab.Initialize(this);
+            changesTab.Initialize(this);
+            branchesTab.Initialize(this);
+            settingsTab.Initialize(this);
+        }
+
+        private void ShowActiveView()
+        {
+            if (ActiveTab != null)
+                ActiveTab.OnShow();
+            Refresh();
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            if (ActiveTab != null)
+                ActiveTab.OnHide();
+        }
+
+
+        public override void OnGUI()
+        {
+            base.OnGUI();
+
             // Set window title
             titleContent = new GUIContent(Title, Styles.TitleIcon);
 
-            if (!initialized)
+            if (!EntryPoint.Initialized)
             {
+                DoNotInitializedGUI();
                 return;
             }
 
+            //if (!ValidateSettings())
+            //{
+            //    activeTab = SubTab.Settings; // If we do complete init, make sure that we return to the settings tab for further setup
+            //}
 
-            var settingsIssues = Utility.Issues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
 
-            // Initial state
-            if (!Utility.ActiveRepository || !Utility.GitFound ||
-                (settingsIssues != null &&
-                    (settingsIssues.WasCaught(ProjectSettingsEvaluation.EditorSettingsMissing) ||
-                        settingsIssues.WasCaught(ProjectSettingsEvaluation.BadVCSSettings))))
+            DoHeaderGUI();
+
+            // GUI for the active tab
+            if (ActiveTab != null)
+                ActiveTab.OnGUI();
+        }
+
+        private void DoNotInitializedGUI()
+        {
+            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
             {
-                activeTab = SubTab.Settings; // If we do complete init, make sure that we return to the settings tab for further setup
-                settingsTab.OnGUI();
-                return;
+                GUILayout.Space(3);
+                GUILayout.BeginVertical(GUILayout.Width(16));
+                {
+                    GUILayout.Space(9);
+                    GUILayout.Label(Styles.RepoIcon, GUILayout.Height(20), GUILayout.Width(20));
+                }
+                GUILayout.EndVertical();
             }
+            GUILayout.EndHorizontal();
+        }
+
+        private void DoHeaderGUI()
+        {
+            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
+            {
+                GUILayout.Space(3);
+                GUILayout.BeginVertical(GUILayout.Width(16));
+                {
+                    GUILayout.Space(9);
+                    GUILayout.Label(Styles.RepoIcon, GUILayout.Height(20), GUILayout.Width(20));
+                }
+                GUILayout.EndVertical();
+
+                GUILayout.BeginVertical();
+                {
+                    GUILayout.Space(3);
+                    GUILayout.Label("fake-org/fake-repo-name", Styles.HeaderRepoLabelStyle);
+                    GUILayout.Space(-2);
+                    GUILayout.Label("donokuda/totally-fake-branch-name", Styles.HeaderBranchLabelStyle);
+                }
+                GUILayout.EndVertical();
+            }
+            GUILayout.EndHorizontal();
 
             // Subtabs & toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
                 EditorGUI.BeginChangeCheck();
                 {
-                    TabButton(ref activeTab, SubTab.History, HistoryTitle);
-                    TabButton(ref activeTab, SubTab.Changes, ChangesTitle);
-                    TabButton(ref activeTab, SubTab.Branches, BranchesTitle);
-                    TabButton(ref activeTab, SubTab.Settings, SettingsTitle);
+                    activeTab = TabButton(SubTab.History, HistoryTitle, activeTab);
+                    activeTab = TabButton(SubTab.Changes, ChangesTitle, activeTab);
+                    activeTab = TabButton(SubTab.Branches, BranchesTitle, activeTab);
+                    activeTab = TabButton(SubTab.Settings, SettingsTitle, activeTab);
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -84,23 +177,25 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndHorizontal();
-
-            // GUI for the active tab
-            ActiveTab.OnGUI();
         }
 
-        public void OnEnable()
+        private bool ValidateSettings()
         {
-            historyTab.Show(this);
-            changesTab.Show(this);
-            branchesTab.Show(this);
-            settingsTab.Show(this);
+            var settingsIssues = Utility.Issues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
 
-            Utility.UnregisterReadyCallback(Refresh);
-            Utility.RegisterReadyCallback(Refresh);
+            // Initial state
+            if (!Utility.ActiveRepository || !Utility.GitFound ||
+                (settingsIssues != null &&
+                    (settingsIssues.WasCaught(ProjectSettingsEvaluation.EditorSettingsMissing) ||
+                        settingsIssues.WasCaught(ProjectSettingsEvaluation.BadVCSSettings))))
+            {
+                return false;
+            }
+
+            return true;
         }
 
-        public void Update()
+        public override void Update()
         {
             // Notification auto-clear timer override
             if (notificationClearTime > 0f && EditorApplication.timeSinceStartup > notificationClearTime)
@@ -109,21 +204,6 @@ namespace GitHub.Unity
                 RemoveNotification();
                 Redraw();
             }
-        }
-
-        public void Refresh()
-        {
-            EvaluateProjectConfigurationTask.Schedule();
-
-            if (Utility.ActiveRepository)
-            {
-                ActiveTab.Refresh();
-            }
-        }
-
-        public void Redraw()
-        {
-            Repaint();
         }
 
         public new void ShowNotification(GUIContent content)
@@ -139,14 +219,15 @@ namespace GitHub.Unity
             base.ShowNotification(content);
         }
 
-        private static void TabButton(ref SubTab activeTab, SubTab tab, string title)
+        private static SubTab TabButton(SubTab tab, string title, SubTab activeTab)
         {
-            activeTab = GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
+            return GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
         }
 
-        private void OnSelectionChange()
+        public override void OnSelectionChange()
         {
-            ActiveTab.OnSelectionChange();
+            if (ActiveTab != null)
+                ActiveTab.OnSelectionChange();
         }
 
         public HistoryView HistoryTab
@@ -189,8 +270,6 @@ namespace GitHub.Unity
             }
         }
 
-        public Rect Position { get { return position; } }
-
         private class RefreshRunner : AssetPostprocessor
         {
             public static void Initialize()
@@ -211,7 +290,7 @@ namespace GitHub.Unity
 
             private static void OnReady()
             {
-                foreach (Window window in FindObjectsOfTypeAll(typeof(Window)))
+                foreach (Window window in Resources.FindObjectsOfTypeAll(typeof(Window)))
                 {
                     window.Refresh();
                 }

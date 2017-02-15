@@ -1,0 +1,31 @@
+using System.Threading.Tasks;
+using Octokit;
+
+namespace GitHub.Api
+{
+    /// <summary>
+    /// Provides services for logging into a GitHub server.
+    /// </summary>
+    interface ILoginManager
+    {
+        /// <summary>
+        /// Attempts to log into a GitHub server.
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="client">An octokit client configured to access the server.</param>
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
+        /// <returns>The logged in user.</returns>
+        /// <exception cref="AuthorizationException">
+        /// The login authorization failed.
+        /// </exception>
+        Task<LoginResultData> Login(UriString host, IGitHubClient client, string username, string password);
+        Task<LoginResultData> ContinueLogin(LoginResultData loginResultData, string twofacode);
+
+        /// <summary>
+        /// Logs out of GitHub server.
+        /// </summary>
+        /// <param name="hostAddress">The address of the server.</param>
+        Task Logout(UriString hostAddress, IGitHubClient client);
+    }
+}

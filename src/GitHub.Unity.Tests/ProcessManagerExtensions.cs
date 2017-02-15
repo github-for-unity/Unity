@@ -1,4 +1,7 @@
+using GitHub.Api;
+using GitHub.Unity;
 using System.Collections.Generic;
+using System.Text;
 
 namespace GitHub.Unity.Tests
 {
@@ -21,12 +24,12 @@ namespace GitHub.Unity.Tests
         }
 
         public static IEnumerable<GitLogEntry> GetGitLogEntries(this ProcessManager processManager, string workingDirectory,
-            IEnvironment environment, IFileSystem fileSystem, IGitEnvironment gitEnvironment,
+            IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment,
             int? logCount = null)
         {
             var results = new List<GitLogEntry>();
 
-            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, fileSystem, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment, filesystem);
 
             var processor = new LogEntryOutputProcessor(gitStatusEntryFactory);
             processor.OnLogEntry += data => results.Add(data);
@@ -47,11 +50,11 @@ namespace GitHub.Unity.Tests
             return results;
         }
 
-        public static GitStatus GetGitStatus(this ProcessManager processManager, string workingDirectory, IEnvironment environment, IFileSystem fileSystem, IGitEnvironment gitEnvironment)
+        public static GitStatus GetGitStatus(this ProcessManager processManager, string workingDirectory, IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment)
         {
             var result = new GitStatus();
 
-            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, fileSystem, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment, filesystem);
 
             var processor = new StatusOutputProcessor(gitStatusEntryFactory);
             processor.OnStatus += data => result = data;
@@ -79,6 +82,25 @@ namespace GitHub.Unity.Tests
             process.WaitForExit();
 
             return results;
+        }
+
+        public static string GetGitCreds(this ProcessManager processManager, string workingDirectory, IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment)
+        {
+            StringBuilder sb = new StringBuilder();
+            var processor = new BaseOutputProcessor();
+            processor.OnData += data => sb.AppendLine();
+            var process = processManager.Configure("git", "credential-wincred get", workingDirectory);
+            var outputManager = new ProcessOutputManager(process, processor);
+            process.OnStart += p =>
+            {
+                p.StandardInput.WriteLine("protocol=https");
+                p.StandardInput.WriteLine("host=github.com");
+                p.StandardInput.Close();
+            };
+            process.Run();
+            process.WaitForExit();
+
+            return sb.ToString();
         }
     }
 }

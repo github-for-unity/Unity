@@ -27,6 +27,7 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
+build/
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -52,6 +53,7 @@ project.fragment.lock.json
 artifacts/
 **/Properties/launchSettings.json
 
+*.dll
 *_i.c
 *_p.c
 *_i.h
