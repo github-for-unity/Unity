@@ -33,7 +33,8 @@ namespace GitHub.Api
             this.cancellationToken = cancellationToken;
         }
 
-        public void ExtractGitIfNeeded()
+        public void ExtractGitIfNeeded(IProgress<float> zipFileProgress = null,
+            IProgress<long> estimatedDurationProgress = null)
         {
             if (IsExtracted())
             {
@@ -64,7 +65,8 @@ namespace GitHub.Api
 
             try
             {
-                sharpZipLibHelper.ExtractZipFile(archiveFilePath, tempPath, cancellationToken);
+                sharpZipLibHelper.ExtractZipFile(archiveFilePath, tempPath, cancellationToken, zipFileProgress,
+                    estimatedDurationProgress);
             }
             catch (Exception ex)
             {

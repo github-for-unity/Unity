@@ -78,10 +78,21 @@ namespace GitHub.Api
             return success;
         }
 
-        public void ExtractZipFile(string archive, string outFolder, CancellationToken? cancellationToken = null)
+        public void ExtractZipFile(string archive, string outFolder, CancellationToken? cancellationToken = null,
+            IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
         {
+            if (zipFileProgress == null)
+            {
+                zipFileProgress = new NullProgressReporter<float>();
+            }
+
+            if (estimatedDurationProgress == null)
+            {
+                estimatedDurationProgress = new NullProgressReporter<long>();
+            }
+
             ZipFile zf = null;
-//            EstimatedDuration = 1L;
+            var estimatedDuration = 1L;
             var startTime = DateTime.Now;
             var processed = 0;
             var totalBytes = 0L;
@@ -123,16 +134,19 @@ namespace GitHub.Api
 //                        }
 //                    }
 //#endif
+
                     // Unzip file in buffered chunks. This is just as fast as unpacking to a buffer the full size
                     // of the file, but does not waste memory.
                     // The "using" will close the stream even if an exception occurs.
                     var targetFile = new FileInfo(fullZipToPath);
                     using (var streamWriter = targetFile.OpenWrite())
                     {
-                        Copy(zipStream, streamWriter, 4096, targetFile.Length, (totalRead, timeToFinish) => {
-//                            EstimatedDuration = timeToFinish;
+                        const int chunkSize = 4096; // 4K is optimum
+                        Copy(zipStream, streamWriter, chunkSize, targetFile.Length, (totalRead, timeToFinish) => {
+                            estimatedDuration = timeToFinish;
 
-//                            UpdateProgress((float)(totalBytes + totalRead) / targetFile.Length);
+                            estimatedDurationProgress.Report(estimatedDuration);
+                            zipFileProgress.Report((float)(totalBytes + totalRead) / targetFile.Length);
 
                             var cancellationRequested = false;
                             if (cancellationToken.HasValue)
@@ -141,22 +155,19 @@ namespace GitHub.Api
                             }
 
                             return !cancellationRequested;
-
                         }, 100);
-
-                        //Utils.Copy (zipStream, streamWriter, 4096);// 4K is optimum
                     }
+
                     targetFile.LastWriteTime = zipEntry.DateTime;
                     processed++;
                     totalBytes += zipEntry.Size;
-                    //var elapsedMillisecondsPerFile = (DateTime.Now - startTime).TotalMilliseconds / processed;
-                    //EstimatedDuration = Math.Max(1L, (long)((fs.Length - totalBytes) * elapsedMillisecondsPerFile));
-                    //UpdateProgress((float)processed / zf.Size);
+
+                    var elapsedMillisecondsPerFile = (DateTime.Now - startTime).TotalMilliseconds / processed;
+                    estimatedDuration = Math.Max(1L, (long)((fs.Length - totalBytes) * elapsedMillisecondsPerFile));
+
+                    estimatedDurationProgress.Report(estimatedDuration);
+                    zipFileProgress.Report((float)processed / zf.Size);
                 }
-            }
-            catch
-            {
-                throw;
             }
             finally
             {
@@ -166,6 +177,12 @@ namespace GitHub.Api
                     zf.Close(); // Ensure we release resources
                 }
             }
+        }
+
+        private class NullProgressReporter<T> : IProgress<T>
+        {
+            public void Report(T value)
+            {}
         }
     }
 }
