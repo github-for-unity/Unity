@@ -11,17 +11,6 @@ namespace GitHub.Unity
     [Serializable]
     class Window : BaseWindow
     {
-        private static ILogging logger;
-        private static ILogging Logger
-        {
-            get
-            {
-                if (logger == null)
-                    logger = Logging.GetLogger<Window>();
-                return logger;
-            }
-        }
-
         private const float DefaultNotificationTimeout = 4f;
         private const string Title = "GitHub";
         private const string LaunchMenu = "Window/GitHub";
@@ -164,8 +153,8 @@ namespace GitHub.Unity
             {
                 EditorGUI.BeginChangeCheck();
                 {
-                    activeTab = TabButton(SubTab.History, HistoryTitle, activeTab);
                     activeTab = TabButton(SubTab.Changes, ChangesTitle, activeTab);
+                    activeTab = TabButton(SubTab.History, HistoryTitle, activeTab);
                     activeTab = TabButton(SubTab.Branches, BranchesTitle, activeTab);
                     activeTab = TabButton(SubTab.Settings, SettingsTitle, activeTab);
                 }
