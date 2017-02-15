@@ -118,6 +118,12 @@ namespace GitHub.Unity
 
         private void OnStatusUpdate(GitStatus update)
         {
+            if (update.Entries == null)
+            {
+                Refresh();
+                return;
+            }
+
             // Set branch state
             currentBranch = update.LocalBranch;
 
