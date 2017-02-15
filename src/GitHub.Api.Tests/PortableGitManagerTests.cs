@@ -17,7 +17,7 @@ namespace GitHub.Unity.Tests
         private const string WindowsGitLfsZip =
             ExtensionFolder + @"\resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip";
 
-        private IEnvironment CreateEnvironment(string extensionfolder = ExtensionFolder,
+        private static IEnvironment CreateEnvironment(string extensionfolder = ExtensionFolder,
             string userProfilePath = UserProfilePath)
         {
             var environment = Substitute.For<IEnvironment>();
@@ -26,7 +26,7 @@ namespace GitHub.Unity.Tests
             return environment;
         }
 
-        private IFileSystem CreateFileSystem(string[] filesThatExist = null,
+        private static IFileSystem CreateFileSystem(string[] filesThatExist = null,
             IDictionary<string, string[]> fileContents = null, IList<string> randomFileNames = null,
             string temporaryPath = @"c:\temp")
         {
@@ -108,19 +108,20 @@ namespace GitHub.Unity.Tests
             return fileSystem;
         }
 
-        private IZipHelper CreateSharpZipLibHelper()
+        private static IZipHelper CreateSharpZipLibHelper()
         {
             return Substitute.For<IZipHelper>();
         }
+        private static ILogging Logger { get; set; }
 
         [TestFixtureSetUp]
         public void TestFixtureSetup()
         {
+            NPathFileSystemProvider.Current = CreateFileSystem();
+
             Logging.LoggerFactory = s => new ConsoleLogAdapter(s);
             Logger = Logging.GetLogger<PortableGitManagerTests>();
         }
-
-        public ILogging Logger { get; set; }
 
         [Test]
         public void ShouldExtractGitIfNeeded()
@@ -213,6 +214,8 @@ namespace GitHub.Unity.Tests
             var fileContents = new Dictionary<string, string[]> { };
 
             var fileSystem = CreateFileSystem(filesThatExist, fileContents);
+
+            NPathFileSystemProvider.Current = fileSystem;
 
             var portableGitManager = new PortableGitManager(CreateEnvironment(), fileSystem, sharpZipLibHelper);
             portableGitManager.ExtractGitLfsIfNeeded();
