@@ -6,7 +6,7 @@ using ICSharpCode.SharpZipLib.Zip;
 
 namespace GitHub.Api
 {
-    class SharpZipLibHelper : ISharpZipLibHelper
+    class ZipHelper : IZipHelper
     {
         public static bool Copy(Stream source, Stream destination, int chunkSize, long totalSize,
             Func<long, long, bool> progress, int progressUpdateRate)

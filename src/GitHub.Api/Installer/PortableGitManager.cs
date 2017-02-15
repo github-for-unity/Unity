@@ -8,17 +8,18 @@ namespace GitHub.Api
     class PortableGitManager : IPortableGitManager
     {
         private const string WindowsPortableGitZip = @"resources\windows\PortableGit.zip";
+        private const string WindowsGitLfsZip = @"resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip";
         private const string TemporaryFolderSuffix = ".deleteme";
-        private const string ExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
+        private const string PortableGitExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
         private const string PackageName = "PortableGit";
 
         private readonly CancellationToken? cancellationToken;
         private readonly IEnvironment environment;
         private readonly IFileSystem fileSystem;
         private readonly ILogging logger;
-        private readonly ISharpZipLibHelper sharpZipLibHelper;
+        private readonly IZipHelper sharpZipLibHelper;
 
-        public PortableGitManager(IEnvironment environment, IFileSystem fileSystem, ISharpZipLibHelper sharpZipLibHelper,
+        public PortableGitManager(IEnvironment environment, IFileSystem fileSystem, IZipHelper sharpZipLibHelper,
             CancellationToken? cancellationToken = null)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));
@@ -36,14 +37,15 @@ namespace GitHub.Api
         public void ExtractGitIfNeeded(IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
-            if (IsExtracted())
+            if (IsPortableGitExtracted())
             {
                 logger.Info("Already extracted {0}, returning", WindowsPortableGitZip);
                 return;
             }
 
             var tempPath = GetTemporaryPath();
-            var archiveFilePath = ArchiveFilePath;
+
+            var archiveFilePath = fileSystem.Combine(environment.ExtensionInstallPath, WindowsPortableGitZip);
 
             try
             {
@@ -76,6 +78,22 @@ namespace GitHub.Api
 
         public bool IsExtracted()
         {
+            return IsPortableGitExtracted() && IsGitLfsExtracted();
+        }
+
+        public bool IsGitLfsExtracted()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ExtractGitLfsIfNeeded(IProgress<float> zipFileProgress = null,
+            IProgress<long> estimatedDurationProgress = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool IsPortableGitExtracted()
+        {
             var target = PackageDestinationDirectory;
 
             var git = fileSystem.Combine(target, "cmd", "git.exe");
@@ -92,7 +110,7 @@ namespace GitHub.Api
                 return false;
             }
 
-            var expectedVersion = ExpectedVersion;
+            var expectedVersion = PortableGitExpectedVersion;
             if (fileSystem.ReadAllText(versionFile).Trim() != expectedVersion)
             {
                 logger.Warning("Package '{0}' out of date, wanted {1}", target, expectedVersion);
@@ -118,16 +136,11 @@ namespace GitHub.Api
             return fileSystem.Combine(fileSystem.GetTempPath(), fileSystem.GetRandomFileName() + TemporaryFolderSuffix);
         }
 
-        public string PackageDestinationDirectory
-        {
-            get { return fileSystem.Combine(environment.UserProfilePath, "GitHubUnity", PackageNameWithVersion); }
-        }
+        public string PackageDestinationDirectory => fileSystem.Combine(environment.UserProfilePath, "GitHubUnity", PackageNameWithVersion);
 
-        public string ArchiveFilePath
-        {
-            get { return fileSystem.Combine(environment.ExtensionInstallPath, WindowsPortableGitZip); }
-        }
+        public string GitLfsDestinationDirectory
+            => fileSystem.Combine(PackageDestinationDirectory, @"mingw32\libexec\git-core\git-lfs.exe");
 
-        public string PackageNameWithVersion => PackageName + "_" + ExpectedVersion;
+        public string PackageNameWithVersion => PackageName + "_" + PortableGitExpectedVersion;
     }
 }
