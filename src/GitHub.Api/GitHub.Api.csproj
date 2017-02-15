@@ -57,10 +57,10 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
-      <HintPath>..\..\lib\5.5\ICSharpCode.SharpZipLib.dll</HintPath>
+      <HintPath>$(SolutionDir)lib\5.5\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Security">
-      <HintPath>..\..\lib\5.5\Mono.Security.dll</HintPath>
+      <HintPath>$(SolutionDir)lib\5.5\Mono.Security.dll</HintPath>
     </Reference>
     <Reference Include="Rackspace.Threading, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bb62785d398726f0, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\Rackspace.Threading.2.0.0-alpha001\lib\net35-client\Rackspace.Threading.dll</HintPath>
@@ -88,9 +88,9 @@
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="Installer\IPortableGitManager.cs" />
-    <Compile Include="Installer\ISharpZipLibHelper.cs" />
+    <Compile Include="Installer\IZipHelper.cs" />
     <Compile Include="Installer\PortableGitManager.cs" />
-    <Compile Include="Installer\SharpZipLibHelper.cs" />
+    <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
     <Compile Include="Helpers\LineProcessor.cs" />
     <Compile Include="Helpers\StringExtensions.cs" />
@@ -179,9 +179,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
-    <None Include="resources\windows\git-lfs-windows-amd64-1.5.0-9f9dfcbb.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip" />
     <None Include="resources\windows\PortableGit.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
