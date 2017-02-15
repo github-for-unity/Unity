@@ -85,6 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auth\LoginTests.cs" />
+    <Compile Include="Git\GitClientTests.cs" />
     <Compile Include="IO\BranchListOutputProcessorTests.cs" />
     <Compile Include="IO\LockOutputProcessorTests.cs" />
     <Compile Include="IO\RemoteListOutputProcessorTests.cs" />

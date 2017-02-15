@@ -66,55 +66,46 @@ namespace GitHub.Unity
             logger = Logging.GetLogger<EntryPoint>();
 
             appManager = new ApplicationManager(new MainThreadSynchronizationContext());
-            processManager = new ProcessManager(Environment, GitEnvironment, FileSystem, appManager.CancellationToken);
 
             DetermineUnityPaths(Environment, GitEnvironment, FileSystem);
 
+            processManager = new ProcessManager(Environment, GitEnvironment, FileSystem, appManager.CancellationToken);
+
             var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
+
             Task.Factory.StartNew(() =>
             {
-                DetermineGitRepoRoot(Environment, GitEnvironment, FileSystem);
+                try
+                {
+                    GitClient = new GitClient(Environment.UnityProjectPath, FileSystem, processManager);
 
-                ApiClientFactory.Instance = new ApiClientFactory(new AppConfiguration(), Platform.GetCredentialManager(ProcessManager));
+                    Environment.RepositoryRoot = GitClient.RepositoryPath;
+                    Environment.Repository = GitClient.GetRepository();
 
-                DetermineGitInstallationPath(Environment, GitEnvironment, FileSystem, ProcessManager, LocalSettings);
+                    ApiClientFactory.Instance = new ApiClientFactory(new AppConfiguration(), Platform.GetCredentialManager(ProcessManager));
 
-                var remotesTask = new GitRemoteListTask(Environment, ProcessManager, null,
-                    list =>
-                    {
-                        var remote = list.FirstOrDefault(x => x.Name == "origin");
-                        if (remote.Name != null)
-                        {
-                            Environment.DefaultRemote = remote.Name;
-                            Environment.RepositoryHost = remote.Host;
-                        }
-                    });
+                    DetermineGitInstallationPath(Environment, GitEnvironment, FileSystem, ProcessManager, LocalSettings);
+                }
+                catch (Exception ex)
+                {
+                    new UnityLogAdapter("EntryPoint").Error(ex);
+                }
+            })
+            .ContinueWith(_ =>
+            {
+                appManager.Run();
 
-                var task = remotesTask
-                    .RunAsync(CancellationToken.None)
-                    .ContinueWith(_ =>
-                    {
-                        appManager.Run();
+                Utility.Run();
 
-                        Utility.Run();
+                ProjectWindowInterface.Initialize();
 
-                        ProjectWindowInterface.Initialize();
+                Window.Initialize();
 
-                        Window.Initialize();
+                Initialized = true;
+            }, scheduler);
 
-                        Initialized = true;
-                    }, scheduler);
-                task.Wait();
-            });
         }
 
-
-        // TODO: Move these out to a proper location
-        private static void DetermineGitRepoRoot(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
-        {
-            var fullProjectRoot = FileSystem.GetFullPath(Environment.UnityProjectPath);
-            environment.RepositoryRoot = gitEnvironment.FindRoot(fullProjectRoot);
-        }
 
         // TODO: Move these out to a proper location
         private void DetermineUnityPaths(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
@@ -175,6 +166,8 @@ namespace GitHub.Unity
             //}
             return success;
         }
+
+        public static IGitClient GitClient { get; private set; }
 
         private static IEnvironment environment;
         public static IEnvironment Environment

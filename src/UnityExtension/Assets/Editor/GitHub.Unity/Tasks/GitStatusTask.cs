@@ -9,7 +9,7 @@ namespace GitHub.Unity
         private Action<GitStatus> callback;
         private GitStatus gitStatus;
 
-        private GitStatusTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+        public GitStatusTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
                 IGitObjectFactory gitObjectFactory, Action<GitStatus> onSuccess, Action onFailure = null)
             : base(environment, processManager, resultDispatcher,
                   null, onFailure)
@@ -27,7 +27,14 @@ namespace GitHub.Unity
 
         protected override void OnOutputComplete(string output, string errors)
         {
-            Tasks.ScheduleMainThread(() => DeliverResult());
+            if (TaskResultDispatcher != null)
+            {
+                TaskResultDispatcher.ReportSuccess(DeliverResult);
+            }
+            else
+            {
+                DeliverResult();
+            }
         }
 
         protected override ProcessOutputManager HookupOutput(IProcess process)

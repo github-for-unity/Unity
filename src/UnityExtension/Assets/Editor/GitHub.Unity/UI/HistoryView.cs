@@ -1,5 +1,6 @@
 #pragma warning disable 649
 
+using GitHub.Api;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -205,9 +206,12 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
+
                 // Pull / Push buttons
                 var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
+                GUI.enabled = currentRemote != null;
                 var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
+                GUI.enabled = true;
                 if (pullClicked &&
                     EditorUtility.DisplayDialog(PullConfirmTitle,
                         String.Format(PullConfirmDescription, currentRemote),
@@ -219,7 +223,9 @@ namespace GitHub.Unity
                 }
 
                 var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
+                GUI.enabled = statusAhead > 0 && statusBehind == 0;
                 var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
+                GUI.enabled = true;
                 if (pushClicked &&
                     EditorUtility.DisplayDialog(PushConfirmTitle,
                         String.Format(PushConfirmDescription, currentRemote),
@@ -376,6 +382,12 @@ namespace GitHub.Unity
         {
             // Set branch state
             // TODO: Update currentRemote
+
+            var remote = EntryPoint.GitClient.GetActiveRemote(update.RemoteBranch);
+            if (remote.HasValue)
+                currentRemote = remote.Value.Name;
+            else
+                currentRemote = null;
             statusAhead = update.Ahead;
             statusBehind = update.Behind;
         }
@@ -523,12 +535,24 @@ namespace GitHub.Unity
 
         private void Pull()
         {
-            GitPullTask.Schedule("origin-http", null, null, null);
+            var task = new GitStatusTask(EntryPoint.Environment, EntryPoint.ProcessManager, null,
+                EntryPoint.GitObjectFactory, status =>
+                {
+                    if (status.Entries.Count > 0 )
+                    {
+                        EntryPoint.TaskResultDispatcher.ReportFailure(FailureSeverity.Critical, "Pull", "You need to commit your changes before pulling.");
+                    }
+                    else
+                    {
+                        GitPullTask.Schedule(EntryPoint.Environment.Repository.CurrentRemote, null, null, null);
+                    }
+                });
+            Tasks.Add(task);
         }
 
         private void Push()
         {
-            Logger.Debug("TODO: Push");
+            //GitPushTask.Schedule(EntryPoint.Environment.Repository.CurrentRemote, null, null, null);
         }
 
 
