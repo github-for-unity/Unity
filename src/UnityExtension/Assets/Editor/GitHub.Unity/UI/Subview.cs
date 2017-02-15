@@ -31,17 +31,14 @@ namespace GitHub.Unity
 
         public virtual void Awake()
         {
-            Debug.LogFormat("Awake {0}", this.GetType());
         }
 
         public virtual void OnEnable()
         {
-            Debug.LogFormat("OnEnable {0}", this.GetType());
         }
 
         public virtual void OnDisable()
         {
-            Debug.LogFormat("OnDisable {0}", this.GetType());
         }
 
         public virtual void Update() {}

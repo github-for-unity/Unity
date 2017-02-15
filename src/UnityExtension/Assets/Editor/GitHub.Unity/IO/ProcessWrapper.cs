@@ -171,8 +171,6 @@ namespace GitHub.Unity
         {
             get
             {
-                logger.Trace("Successful: {0} {1} {2}", HasExited, state, process.ExitCode);
-
                 if (!HasExited)
                     return false;
                 return state != ProcessState.Exception && process.ExitCode == 0;

@@ -24,15 +24,11 @@ namespace GitHub.Api
 
         public async Task Delete(UriString host)
         {
-            // TODO: implement credential deletion
             var ret = await RunCredentialHelper(
                 "erase",
                 new string[] {
                         String.Format("protocol={0}", host.Protocol),
                         String.Format("host={0}", host.Host)
-                },
-                x => {
-                    logger.Debug(x);
                 });
 
             credential = null;
@@ -64,7 +60,6 @@ namespace GitHub.Api
                         String.Format("host={0}", host.Host)
                     },
                     x => {
-                        logger.Debug(x);
                         kvpCreds = x;
                     });
 
@@ -125,7 +120,6 @@ namespace GitHub.Api
                 "store",
                 data.ToArray(),
                 x => {
-                    logger.Debug(x);
                     result = x;
                 });
 
@@ -144,10 +138,9 @@ namespace GitHub.Api
                     "credential.helper", GitConfigSource.NonSpecified,
                     x => {
                         credHelper = x;
-                        logger.Trace("credHelper: {0}", credHelper);
                     }, null);
 
-            if (await task.RunAsync() && credHelper != null)
+            if (await task.RunAsync(processManager.CancellationToken) && credHelper != null)
             {
                 return true;
             }
@@ -155,7 +148,7 @@ namespace GitHub.Api
             logger.Error("Failed to get the credential helper");
             return false;
         }
-        private Task<bool> RunCredentialHelper(string action, string[] lines, Action<string> resultCallback)
+        private Task<bool> RunCredentialHelper(string action, string[] lines, Action<string> resultCallback = null)
         {
             ProcessTask task = null;
             string app = "";
@@ -177,13 +170,12 @@ namespace GitHub.Api
                 {
                     foreach (var line in lines)
                     {
-                        logger.Trace(line);
                         proc.StandardInput.WriteLine(line);
                     }
                     proc.StandardInput.Close();
                 };
             };
-            return task.RunAsync(new System.Threading.CancellationToken());
+            return task.RunAsync(processManager.CancellationToken);
         }
 
     }

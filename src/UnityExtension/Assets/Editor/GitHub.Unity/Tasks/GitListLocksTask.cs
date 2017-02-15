@@ -39,13 +39,12 @@ namespace GitHub.Unity
 
         protected override void OnOutputComplete(string output, string errors)
         {
-            Logger.Debug("Done");
             Tasks.ScheduleMainThread(DeliverResult);
         }
 
         private void AddLock(GitLock gitLock)
         {
-            Logger.Debug("AddLock " + gitLock);
+            Logger.Trace("AddLock " + gitLock);
             gitLocks.Add(gitLock);
         }
 
