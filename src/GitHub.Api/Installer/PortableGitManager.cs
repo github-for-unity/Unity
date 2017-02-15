@@ -7,7 +7,7 @@ namespace GitHub.Api
 {
     class PortableGitManager : IPortableGitManager
     {
-        private const string WindowsPortableGitZip = @"resources\windows\PortableGit.zip";
+        private const string WindowsPortableGitZip = @"resources\windows\PortableGit-2.11.1-32-bit.zip";
         private const string WindowsGitLfsZip = @"resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip";
         private const string TemporaryFolderSuffix = ".deleteme";
         private const string PortableGitExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
