@@ -321,7 +321,7 @@ namespace GitHub.Unity
         {
             if (resultDispatcher != null)
             {
-                resultDispatcher.ReportFailure(severity, this, msg);
+                resultDispatcher.ReportFailure(severity, Label, msg);
             }
 
             if (OnFailure != null)
