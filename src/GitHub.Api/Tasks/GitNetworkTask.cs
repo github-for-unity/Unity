@@ -24,18 +24,24 @@ namespace GitHub.Unity
             this.uiDispatcher = uiDispatcher;
         }
 
-        public override async void Run()
+        public override async void Run(CancellationToken cancellationToken)
         {
-            await RunAsync(new CancellationToken());
+            await RunAsync(cancellationToken);
         }
 
-        public override async Task<bool> RunAsync(CancellationToken cancel)
+        public override async Task<bool> RunAsync(CancellationToken cancellationToken)
         {
             var canRun = !string.IsNullOrEmpty(Environment.GitExecutablePath);
 
             if (!canRun)
             {
                 RaiseOnFailure(Localization.NoGitError, FailureSeverity.Moderate);
+                Abort();
+                return false;
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
                 Abort();
                 return false;
             }
@@ -53,7 +59,7 @@ namespace GitHub.Unity
                 return false;
             }
             
-            return await base.RunAsync(cancel);
+            return await base.RunAsync(cancellationToken);
         }
     }
 
