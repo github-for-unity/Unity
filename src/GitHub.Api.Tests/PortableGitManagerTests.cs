@@ -20,7 +20,8 @@ namespace GitHub.Unity.Tests
             return environment;
         }
 
-        private IFileSystem CreateFileSystem(string[] thatExist, Dictionary<string, string[]> dictionary, string[] randomFileNames)
+        private IFileSystem CreateFileSystem(string[] filesThatExist, IDictionary<string, string[]> fileContents,
+            IList<string> randomFileNames)
         {
             var fileSystem = Substitute.For<IFileSystem>();
             var realFileSystem = new FileSystem();
@@ -44,7 +45,7 @@ namespace GitHub.Unity.Tests
 
             fileSystem.FileExists(Arg.Any<string>()).Returns(info => {
                 var path1 = (string)info[0];
-                var result = thatExist.Contains(path1);
+                var result = filesThatExist.Contains(path1);
                 Logger.Debug(@"FileSystem.FileExists(""{0}"") -> {1}", path1, result);
                 return result;
             });
@@ -55,7 +56,7 @@ namespace GitHub.Unity.Tests
                 string result = null;
 
                 string[] fileContent;
-                if (dictionary.TryGetValue(path1, out fileContent))
+                if (fileContents.TryGetValue(path1, out fileContent))
                 {
                     result = string.Join(string.Empty, fileContent);
                 }
@@ -76,7 +77,7 @@ namespace GitHub.Unity.Tests
                 var result = randomFileNames[randomFileIndex];
 
                 randomFileIndex++;
-                randomFileIndex = randomFileIndex % randomFileNames.Length;
+                randomFileIndex = randomFileIndex % randomFileNames.Count;
 
                 Logger.Debug(@"FileSystem.GetRandomFileName() -> {0}", result);
 
@@ -105,14 +106,11 @@ namespace GitHub.Unity.Tests
             var environment = CreateEnvironment(ExtensionFolder);
             var sharpZipLibHelper = CreateSharpZipLibHelper();
 
-            var filesThatExist = new[] { ExtensionFolder + @"\resources\windows\PortableGit.zip", };
+            var filesThatExist = new[] { ExtensionFolder + @"\resources\windows\PortableGit.zip" };
 
-            var fileContents = new Dictionary<string, string[]> { };
+            var fileContents = new Dictionary<string, string[]>();
 
-            var randomFileNames = new string[] {
-                "randomFolder1",
-                "randomFolder2",
-            };
+            var randomFileNames = new[] { "randomFolder1", "randomFolder2" };
 
             var fileSystem = CreateFileSystem(filesThatExist, fileContents, randomFileNames);
 
@@ -142,8 +140,7 @@ namespace GitHub.Unity.Tests
                 }
             };
 
-            var randomFileNames = new string[] {
-            };
+            var randomFileNames = new string[] { };
 
             var fileSystem = CreateFileSystem(filesThatExist, fileContents, randomFileNames);
 
