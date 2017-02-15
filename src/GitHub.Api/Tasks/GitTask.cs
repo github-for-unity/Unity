@@ -21,10 +21,10 @@ namespace GitHub.Unity
         {
             var task = new GitTask(environment, processManager, null, onSuccess, onFailure);
             task.SetArguments(arguments);
-            return task.RunAsync(CancellationToken.None);
+            return task.RunAsync(processManager.CancellationToken);
         }
 
-        public override Task<bool> RunAsync(CancellationToken cancel)
+        public override Task<bool> RunAsync(CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(environment.GitExecutablePath))
             {
@@ -32,7 +32,7 @@ namespace GitHub.Unity
                 Abort();
             }
 
-            return base.RunAsync(cancel);
+            return base.RunAsync(cancellationToken);
         }
 
         protected override string ProcessName

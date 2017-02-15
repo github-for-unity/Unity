@@ -36,14 +36,12 @@ namespace GitHub.Unity
 
         public static void RegisterReadyCallback(Action callback)
         {
-            logger.Debug("RegisterReadyCallback {0} {1}", ready, callback);
             if (!ready)
             {
                 onReady += callback;
             }
             else
             {
-                logger.Debug("RegisterReadyCallback calling callback {0} {1}", ready, callback);
                 try
                 {
                     callback();

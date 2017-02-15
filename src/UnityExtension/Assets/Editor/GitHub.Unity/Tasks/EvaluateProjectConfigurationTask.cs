@@ -203,7 +203,7 @@ namespace GitHub.Unity
             return InternalEditorUtility.LoadSerializedFileAndForget(EditorSettingsPath).FirstOrDefault();
         }
 
-        public override void Run()
+        public override void Run(CancellationToken cancellationToken)
         {
             Done = false;
             Progress = 0f;

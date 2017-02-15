@@ -14,7 +14,6 @@ namespace GitHub.Unity
                   str =>
                   {
                       var logger = Logging.GetLogger<GitConfigGetTask>();
-                      logger.Debug("WTF {0}", str);
                       onSuccess(str);
                   }, onFailure)
         {
