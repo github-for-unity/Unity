@@ -4,6 +4,7 @@ using System.IO;
 using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
+using GitHub.Api;
 
 namespace GitHub.Unity.Tests
 {
@@ -12,13 +13,13 @@ namespace GitHub.Unity.Tests
     {
         private static IFileSystem CreateFileSystem()
         {
-            var fileSystem = Substitute.For<IFileSystem>();
-            fileSystem.Combine(Arg.Any<string>(), Arg.Any<string>())
+            var filesystem = Substitute.For<IFileSystem>();
+            filesystem.Combine(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(info => Path.Combine((string)info[0], (string)info[1]));
 
-            fileSystem.GetFullPath(Arg.Any<string>())
+            filesystem.GetFullPath(Arg.Any<string>())
                 .Returns(info => Path.GetFullPath((string)info[0]));
-            return fileSystem;
+            return filesystem;
         }
 
         private static IGitEnvironment CreateGitEnvironment(string gitRoot)
@@ -49,10 +50,10 @@ namespace GitHub.Unity.Tests
 
             var expected = new GitStatusEntry(path, fullPath, projectPath, status);
 
-            var fileSystem = CreateFileSystem();
-            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, fileSystem, gitEnvironment);
+            var filesystem = CreateFileSystem();
+            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment, filesystem);
 
-            var result = gitStatusEntryFactory.Create(path, status);
+            var result = gitStatusEntryFactory.CreateGitStatusEntry(path, status);
 
             result.Should().Be(expected);
         }
@@ -71,11 +72,11 @@ namespace GitHub.Unity.Tests
 
             var expected = new GitStatusEntry(path, fullPath, projectPath, status);
 
-            var fileSystem = CreateFileSystem();
+            var filesystem = CreateFileSystem();
 
-            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, fileSystem, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment, filesystem);
 
-            var result = gitStatusEntryFactory.Create(path, status);
+            var result = gitStatusEntryFactory.CreateGitStatusEntry(path, status);
 
             result.Should().Be(expected);
         }
@@ -94,24 +95,13 @@ namespace GitHub.Unity.Tests
 
             var expected = new GitStatusEntry(path, fullPath, projectPath, status);
 
-            var fileSystem = CreateFileSystem();
+            var filesystem = CreateFileSystem();
 
-            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, fileSystem, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment, filesystem);
 
-            var result = gitStatusEntryFactory.Create(path, status);
+            var result = gitStatusEntryFactory.CreateGitStatusEntry(path, status);
 
             result.Should().Be(expected);
-        }
-
-        [Test]
-        public void ConstructorThrowsWhenProjectRootIsOutsideOfGitRoot()
-        {
-            var fileSystem = CreateFileSystem();
-            var gitEnvironment = CreateGitEnvironment(@"c:\Source\Project");
-            var environment = CreateEnvironment(@"c:\Source\");
-
-            Action action = () => { new GitStatusEntryFactory(environment, fileSystem, gitEnvironment); };
-            action.ShouldThrow<Exception>();
         }
     }
 }

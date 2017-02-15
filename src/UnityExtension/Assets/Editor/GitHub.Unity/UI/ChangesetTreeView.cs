@@ -1,3 +1,5 @@
+#pragma warning disable 649
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,30 +10,19 @@ using UnityEngine;
 namespace GitHub.Unity
 {
     [Serializable]
-    class GitCommitTarget
+    class ChangesetTreeView : Subview
     {
-        [SerializeField] public bool All = false;
-
-        public void Clear()
-        {
-            All = false;
-            // TODO: Add line tracking here
-        }
-
-        // TODO: Add line tracking here
-
-        public bool Any
+        private static ILogging logger;
+        private static ILogging Logger
         {
             get
             {
-                return All; // TODO: Add line tracking here
+                if (logger == null)
+                    logger = Logging.GetLogger<ChangesetTreeView>();
+                return logger;
             }
         }
-    }
 
-    [Serializable]
-    class ChangesetTreeView : Subview
-    {
         private const string BasePathLabel = "{0}";
         private const string NoChangesLabel = "No changes found";
 
@@ -40,7 +31,7 @@ namespace GitHub.Unity
         [SerializeField] private List<string> foldedTreeEntries = new List<string>();
         [SerializeField] private FileTreeNode tree;
 
-        public void Update(IList<GitStatusEntry> newEntries)
+        public void UpdateEntries(IList<GitStatusEntry> newEntries)
         {
             // Handle the empty list scenario
             if (!newEntries.Any())
@@ -98,7 +89,7 @@ namespace GitHub.Unity
             // TODO: In stead of completely rebuilding the tree structure, figure out a way to migrate open/closed states from the old tree to the new
 
             // Build tree structure
-            tree = new FileTreeNode(Utility.FindCommonPath("" + Path.DirectorySeparatorChar, entries.Select(e => e.Path)));
+            tree = new FileTreeNode(Utility.FindCommonPath("/", entries.Select(e => e.Path)));
             tree.RepositoryPath = tree.Path;
             for (var index = 0; index < entries.Count; index++)
             {
@@ -124,7 +115,17 @@ namespace GitHub.Unity
                     // Base path label
                     if (!string.IsNullOrEmpty(tree.Path))
                     {
-                        GUILayout.Label(String.Format(BasePathLabel, tree.Path));
+                        GUILayout.BeginHorizontal();
+                        {
+                            var iconRect = GUILayoutUtility.GetRect(Styles.CommitIconSize, Styles.CommitIconSize, GUILayout.ExpandWidth(false));
+                            iconRect.y += 2;
+                            iconRect.x += 2;
+
+                            GUI.DrawTexture(iconRect, Styles.FolderIcon, ScaleMode.ScaleToFit);
+
+                            GUILayout.Label(string.Format(BasePathLabel, tree.Path));
+                        }
+                        GUILayout.EndHorizontal();
                     }
 
                     GUILayout.BeginHorizontal();
@@ -189,7 +190,7 @@ namespace GitHub.Unity
             parent.Open = !foldedTreeEntries.Contains(parent.RepositoryPath);
 
             // Is this node inside a folder?
-            var index = node.Label.IndexOf(Path.DirectorySeparatorChar);
+            var index = node.Label.IndexOf("/");
             if (index > 0)
             {
                 // Figure out what the root folder is and chop it from the path
@@ -224,6 +225,7 @@ namespace GitHub.Unity
 
         private void TreeNode(FileTreeNode node)
         {
+            GUILayout.Space(Styles.TreeVerticalSpacing);
             var target = node.Target;
             var isFolder = node.Children.Any();
 
@@ -283,31 +285,58 @@ namespace GitHub.Unity
                     }
                 }
 
+                GitFileStatus? status = null;
+
                 // Node icon and label
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.Space(Styles.CommitIconHorizontalPadding);
                     var iconRect = GUILayoutUtility.GetRect(Styles.CommitIconSize, Styles.CommitIconSize, GUILayout.ExpandWidth(false));
+                    iconRect.y += 2;
+                    iconRect.x -= 2;
+
                     if (Event.current.type == EventType.Repaint)
                     {
-                        GUI.DrawTexture(iconRect, node.Icon ?? (isFolder ? Styles.FolderIcon : Styles.DefaultAssetIcon),
+                        GUI.DrawTexture(iconRect,
+                            node.Icon ?? (isFolder ? Styles.FolderIcon : Styles.DefaultAssetIcon),
                             ScaleMode.ScaleToFit);
                     }
+
+                    var statusRect = new Rect(
+                        iconRect.xMax - 9,
+                        iconRect.yMax - 7,
+                        9,
+                        9);
+
+                    // Current status (if any)
+                    if (target != null)
+                    {
+                        var idx = entryCommitTargets.IndexOf(target);
+                        if (idx > 0)
+                        {
+                            status = entries[idx].Status;
+                            var statusIcon = Styles.GetGitFileStatusIcon(status.Value);
+                            GUI.DrawTexture(statusRect, statusIcon);
+                        }
+                    }
+
                     GUILayout.Space(Styles.CommitIconHorizontalPadding);
                 }
                 GUILayout.EndHorizontal();
-                GUILayout.Label(new GUIContent(node.Label, node.RepositoryPath), GUILayout.ExpandWidth(true));
 
-                GUILayout.FlexibleSpace();
-
-                // Current status (if any)
-                if (target != null)
+                // Make the text gray and strikethrough if the file is deleted
+                if (status == GitFileStatus.Deleted)
                 {
-                    var status = entries[entryCommitTargets.IndexOf(target)].Status;
-                    var statusIcon = Styles.GetGitFileStatusIcon(status);
-                    GUILayout.Label(statusIcon != null ? new GUIContent(statusIcon) : new GUIContent(status.ToString()),
-                        GUILayout.ExpandWidth(false), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
+                    GUILayout.Label(new GUIContent(node.Label, node.RepositoryPath), Styles.DeletedFileLabel, GUILayout.ExpandWidth(true));
+                    var labelRect = GUILayoutUtility.GetLastRect();
+                    var strikeRect = new Rect(labelRect.xMin, labelRect.center.y, labelRect.width, 1);
+                    EditorGUI.DrawRect(strikeRect, Color.gray);
                 }
+                else
+                {
+                    GUILayout.Label(new GUIContent(node.Label, node.RepositoryPath), GUILayout.ExpandWidth(true));
+                }
+                GUILayout.FlexibleSpace();
             }
             GUILayout.EndHorizontal();
 

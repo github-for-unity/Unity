@@ -1,9 +1,10 @@
+#pragma warning disable 649
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using ILogger = GitHub.Unity.Logging.ILogger;
 using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
@@ -11,6 +12,17 @@ namespace GitHub.Unity
     [Serializable]
     class HistoryView : Subview
     {
+        private static ILogging logger;
+        private static ILogging Logger
+        {
+            get
+            {
+                if (logger == null)
+                    logger = Logging.GetLogger<HistoryView>();
+                return logger;
+            }
+        }
+
         private const string HistoryFocusAll = "(All)";
         private const string HistoryFocusSingle = "Focus: <b>{0}</b>";
         private const string PullButton = "Pull";
@@ -44,15 +56,38 @@ namespace GitHub.Unity
         [NonSerialized] private bool useScrollTime;
 
         [SerializeField] private bool broadMode;
-        [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
         [SerializeField] private Vector2 detailsScroll;
-        [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
         [SerializeField] private bool historyLocked = true;
         [SerializeField] private Object historyTarget;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string selectionID;
 
-        private static readonly ILogger logger = Logging.Logger.GetLogger<HistoryView>();
+        [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
+        [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
+
+        public override void Initialize(IView parent)
+        {
+            base.Initialize(parent);
+
+            lastWidth = Position.width;
+            selectionIndex = newSelectionIndex = -1;
+
+            changesetTree.Initialize(this);
+            changesetTree.Readonly = true;
+        }
+
+        public override void OnShow()
+        {
+            base.OnShow();
+            StatusService.Instance.RegisterCallback(OnStatusUpdate);
+        }
+
+        public override void OnHide()
+        {
+            base.OnHide();
+            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
+        }
+
 
         public override void Refresh()
         {
@@ -70,7 +105,7 @@ namespace GitHub.Unity
 
             if (broadMode)
             {
-                ((Window)parent).BranchesTab.RefreshEmbedded();
+                ((Window)Parent).BranchesTab.RefreshEmbedded();
             }
         }
 
@@ -98,7 +133,7 @@ namespace GitHub.Unity
             }
 
             // Show the layout notification while scaling
-            var window = (Window)parent;
+            var window = (Window)Parent;
             var scaled = Position.width != lastWidth;
             lastWidth = Position.width;
 
@@ -137,7 +172,7 @@ namespace GitHub.Unity
                     GUILayout.MaxWidth(Mathf.Max(Styles.BroadModeBranchesMinWidth, Position.width * Styles.BroadModeBranchesRatio))
                 );
                 {
-                    ((Window)parent).BranchesTab.OnEmbeddedGUI();
+                    ((Window)Parent).BranchesTab.OnEmbeddedGUI();
                 }
                 GUILayout.EndVertical();
                 GUILayout.BeginVertical();
@@ -232,8 +267,6 @@ namespace GitHub.Unity
                         newSelectionIndex = index;
                         GUIUtility.keyboardControl = listID;
                     }
-
-                    GUILayout.Space(Styles.HistoryEntryPadding);
                 }
 
                 GUILayout.Space((history.Count - stop) * EntryHeight);
@@ -272,7 +305,7 @@ namespace GitHub.Unity
             GUILayout.EndScrollView();
 
             // Selection info
-            if (selectionIndex >= 0)
+            if (selectionIndex >= 0 && history.Count > selectionIndex)
             {
                 var selection = history[selectionIndex];
 
@@ -331,28 +364,12 @@ namespace GitHub.Unity
 
                     if (selectionIndex >= 0)
                     {
-                        changesetTree.Update(history[selectionIndex].Changes);
+                        changesetTree.UpdateEntries(history[selectionIndex].Changes);
                     }
 
                     Redraw();
                 }
             }
-        }
-
-        protected override void OnShow()
-        {
-            lastWidth = Position.width;
-            selectionIndex = newSelectionIndex = -1;
-
-            StatusService.Instance.RegisterCallback(OnStatusUpdate);
-
-            changesetTree.Show(this);
-            changesetTree.Readonly = true;
-        }
-
-        protected override void OnHide()
-        {
-            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
         }
 
         private void OnStatusUpdate(GitStatus update)
@@ -436,25 +453,37 @@ namespace GitHub.Unity
         private bool HistoryEntry(GitLogEntry entry, LogEntryState state, bool selected)
         {
             var entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
+            var timelineBarRect = new Rect(entryRect.x + Styles.BaseSpacing, 0, 2, Styles.HistoryDetailsHeight);
 
             if (Event.current.type == EventType.Repaint)
             {
                 var keyboardFocus = GUIUtility.keyboardControl == listID;
 
-                var summaryRect = new Rect(entryRect.x, entryRect.y, entryRect.width, Styles.HistorySummaryHeight);
-                var timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight, entryRect.width * .5f,
-                    Styles.HistoryDetailsHeight);
+                var summaryRect = new Rect(entryRect.x, entryRect.y + (Styles.BaseSpacing / 2), entryRect.width, Styles.HistorySummaryHeight + Styles.BaseSpacing);
+                var timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight - (Styles.BaseSpacing / 2), entryRect.width, Styles.HistoryDetailsHeight);
                 var authorRect = new Rect(timestampRect.xMax, timestampRect.y, timestampRect.width, timestampRect.height);
+
+                var contentOffset = new Vector2(Styles.BaseSpacing * 2, 0);
+
+                Styles.Label.Draw(entryRect, "", false, false, selected, keyboardFocus);
+
+                Styles.Label.contentOffset = contentOffset;
+                Styles.HistoryEntryDetailsStyle.contentOffset = contentOffset;
+
+                Styles.Label.Draw(summaryRect, entry.Summary, false, false, selected, keyboardFocus);
+                Styles.HistoryEntryDetailsStyle.Draw(timestampRect, entry.PrettyTimeString + "     " + entry.AuthorName, false, false, selected, keyboardFocus);
 
                 if (!string.IsNullOrEmpty(entry.MergeA))
                 {
-                    const float MergeIndicatorSize = 40f;
-                    var mergeIndicatorRect = new Rect(summaryRect.x, summaryRect.y, MergeIndicatorSize, summaryRect.height);
+                    const float MergeIndicatorWidth = 10.28f;
+                    const float MergeIndicatorHeight = 12f;
+                    var mergeIndicatorRect = new Rect(entryRect.x + 7, summaryRect.y, MergeIndicatorWidth, MergeIndicatorHeight);
 
-                    // TODO: Get an icon or something here
-                    Styles.HistoryEntryDetailsStyle.Draw(mergeIndicatorRect, "Merge:", false, false, selected, keyboardFocus);
+                    GUI.DrawTexture(mergeIndicatorRect, Styles.MergeIcon);
 
-                    summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorSize, summaryRect.height);
+                    drawTimelineRectAroundIconRect(entryRect, mergeIndicatorRect);
+
+                    summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorWidth, summaryRect.height);
                 }
 
                 if (state == LogEntryState.Local)
@@ -468,9 +497,20 @@ namespace GitHub.Unity
                     summaryRect.Set(localIndicatorRect.xMax, summaryRect.y, summaryRect.width - LocalIndicatorSize, summaryRect.height);
                 }
 
-                Styles.Label.Draw(summaryRect, entry.Summary, false, false, selected, keyboardFocus);
-                Styles.HistoryEntryDetailsStyle.Draw(timestampRect, entry.PrettyTimeString, false, false, selected, keyboardFocus);
-                Styles.HistoryEntryDetailsStyle.Draw(authorRect, entry.AuthorName, false, false, selected, keyboardFocus);
+                if (state == LogEntryState.Normal && string.IsNullOrEmpty(entry.MergeA))
+                {
+                    const float NormalIndicatorWidth = 6f;
+                    const float NormalIndicatorHeight = 6f;
+
+                    Rect normalIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2),
+                        summaryRect.y + 5,
+                        NormalIndicatorWidth,
+                        NormalIndicatorHeight);
+
+                    drawTimelineRectAroundIconRect(entryRect, normalIndicatorRect);
+
+                    GUI.DrawTexture(normalIndicatorRect, Styles.DotIcon);
+                }
             }
             else if (Event.current.type == EventType.MouseDown && entryRect.Contains(Event.current.mousePosition))
             {
@@ -483,13 +523,45 @@ namespace GitHub.Unity
 
         private void Pull()
         {
-            logger.Debug("TODO: Pull");
+            GitPullTask.Schedule("origin-http", null, null, null);
         }
 
         private void Push()
         {
-            logger.Debug("TODO: Push");
+            Logger.Debug("TODO: Push");
         }
+
+
+        void drawTimelineRectAroundIconRect(Rect parentRect, Rect iconRect)
+        {
+            Color timelineBarColor = new Color(0.51F, 0.51F, 0.51F, 0.2F);
+
+            // Draw them lines
+            //
+            // First I need to figure out how large to make the top one:
+            // I'll subtract the entryRect.y from the mergeIndicatorRect.y to
+            // get the difference in length. then subtract a little more for padding
+            float topTimelineRectHeight = iconRect.y - parentRect.y - 2;
+            // Now let's create the rect
+            Rect topTimelineRect = new Rect(
+                parentRect.x + Styles.BaseSpacing,
+                parentRect.y,
+                2,
+                topTimelineRectHeight);
+
+            // And draw it
+            EditorGUI.DrawRect(topTimelineRect, timelineBarColor);
+
+            // Let's do the same for the bottom
+            float bottomTimelineRectHeight = parentRect.yMax - iconRect.yMax - 2;
+            Rect bottomTimelineRect = new Rect(
+                parentRect.x + Styles.BaseSpacing,
+                parentRect.yMax - bottomTimelineRectHeight,
+                2,
+                bottomTimelineRectHeight);
+            EditorGUI.DrawRect(bottomTimelineRect, timelineBarColor);
+        }
+
 
         public bool BroadMode
         {

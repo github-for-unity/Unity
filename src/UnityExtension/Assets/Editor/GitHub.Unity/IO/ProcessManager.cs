@@ -1,25 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using GitHub.Api;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using GitHub.Unity.Logging;
+using System.Text;
+using System.Threading;
 
 namespace GitHub.Unity
 {
-    class ProcessManager: IProcessManager
+    class ProcessManager : IProcessManager
     {
-        private static readonly ILogger logger = Logger.GetLogger<ProcessManager>();
+        private static readonly ILogging logger = Logging.GetLogger<ProcessManager>();
 
         private readonly IEnvironment environment;
         private readonly IGitEnvironment gitEnvironment;
-        private readonly IFileSystem fileSystem;
+        private readonly IFileSystem filesystem;
+        private readonly CancellationToken cancellationToken;
 
-        public ProcessManager(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fileSystem)
+        public ProcessManager(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem filesystem)
+            : this(environment, gitEnvironment, filesystem, CancellationToken.None)
+        {
+        }
+
+        public ProcessManager(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem filesystem, CancellationToken cancellationToken)
         {
             this.environment = environment;
             this.gitEnvironment = gitEnvironment;
-            this.fileSystem = fileSystem;
+            this.filesystem = filesystem;
+            this.cancellationToken = cancellationToken;
         }
 
         public IProcess Configure(string executableFileName, string arguments, string workingDirectory)
@@ -31,7 +39,8 @@ namespace GitHub.Unity
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                StandardOutputEncoding = Encoding.UTF8
             };
 
             gitEnvironment.Configure(startInfo, workingDirectory);
@@ -51,7 +60,7 @@ namespace GitHub.Unity
 
         private string FindExecutableInPath(string executable, string path = null)
         {
-            Ensure.ArgumentNotNullOrEmpty(executable, "executable");
+            Guard.ArgumentNotNullOrWhiteSpace(executable, "executable");
 
             if (Path.IsPathRooted(executable)) return executable;
 
@@ -72,9 +81,11 @@ namespace GitHub.Unity
                     }
                 })
                 .Where(x => x != null)
-                .FirstOrDefault(x => fileSystem.FileExists(x));
+                .FirstOrDefault(x => filesystem.FileExists(x));
 
             return executablePath;
         }
+
+        public CancellationToken CancellationToken { get { return cancellationToken; } }
     }
 }

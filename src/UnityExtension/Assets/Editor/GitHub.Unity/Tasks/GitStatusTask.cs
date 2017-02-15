@@ -1,62 +1,39 @@
 using System;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
     class GitStatusTask : GitTask
     {
-        public static void Schedule(Action<GitStatus> onSuccess, Action onFailure = null)
-        {
-            Tasks.Add(new GitStatusTask(onSuccess, EntryPoint.GitStatusEntryFactory, onFailure));
-        }
-
         private readonly StatusOutputProcessor processor;
-
         private Action<GitStatus> callback;
-
         private GitStatus gitStatus;
 
-        private GitStatusTask(Action<GitStatus> onSuccess, IGitStatusEntryFactory gitStatusEntryFactory,
-            Action onFailure = null)
-            : base(null, onFailure)
+        private GitStatusTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+                IGitObjectFactory gitObjectFactory, Action<GitStatus> onSuccess, Action onFailure = null)
+            : base(environment, processManager, resultDispatcher,
+                  null, onFailure)
         {
             callback = onSuccess;
-            processor = new StatusOutputProcessor(gitStatusEntryFactory);
+            processor = new StatusOutputProcessor(gitObjectFactory);
         }
 
-        public override bool Blocking
+        public static void Schedule(Action<GitStatus> onSuccess, Action onFailure = null)
         {
-            get { return false; }
+            Tasks.Add(new GitStatusTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                EntryPoint.GitObjectFactory, onSuccess, onFailure));
         }
 
-        public override TaskQueueSetting Queued
+        protected override void OnOutputComplete(string output, string errors)
         {
-            get { return TaskQueueSetting.QueueSingle; }
-        }
-
-        public override bool Critical
-        {
-            get { return false; }
-        }
-
-        public override bool Cached
-        {
-            get { return false; }
-        }
-
-        public override string Label
-        {
-            get { return "git status"; }
-        }
-
-        protected override string ProcessArguments
-        {
-            get { return "status -b -u --porcelain"; }
-        }
-
-        protected override void OnProcessOutputUpdate()
-        {
-            Logger.Debug("Done");
             Tasks.ScheduleMainThread(() => DeliverResult());
+        }
+
+        protected override ProcessOutputManager HookupOutput(IProcess process)
+        {
+            processor.OnStatus += status => { gitStatus = status; };
+            return new ProcessOutputManager(process, processor);
         }
 
         private void DeliverResult()
@@ -64,12 +41,15 @@ namespace GitHub.Unity
             callback.SafeInvoke(gitStatus);
         }
 
-        protected override ProcessOutputManager HookupOutput(IProcess process)
+        public override bool Blocking { get { return false; } }
+        public override TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; } }
+        public override bool Critical { get { return false; } }
+        public override bool Cached { get { return false; } }
+        public override string Label { get { return "git status"; } }
+
+        protected override string ProcessArguments
         {
-            processor.OnStatus += status => {
-                gitStatus = status;
-            };
-            return new ProcessOutputManager(process, processor);
+            get { return "status -b -u --porcelain"; }
         }
     }
 }

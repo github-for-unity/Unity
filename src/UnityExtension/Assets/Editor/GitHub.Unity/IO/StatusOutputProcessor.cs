@@ -2,29 +2,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using UnityEngine;
-using ILogger = GitHub.Unity.Logging.ILogger;
-using Logger = GitHub.Unity.Logging.Logger;
 
 namespace GitHub.Unity
 {
     class StatusOutputProcessor : BaseOutputProcessor
     {
-        private static readonly Regex branchTrackedAndDelta = new Regex(@"(.*)\.\.\.(.*)\s\[(.*)\]", RegexOptions.Compiled);
+        private static readonly Regex branchTrackedAndDelta = new Regex(@"(.*)\.\.\.(.*)\s\[(.*)\]",
+            RegexOptions.Compiled);
 
-        private readonly IGitStatusEntryFactory gitStatusEntryFactory;
-
-        public event Action<GitStatus> OnStatus;
-
-        private string localBranch;
-        private string remoteBranch;
+        private readonly IGitObjectFactory gitObjectFactory;
         private int ahead;
         private int behind;
         private List<GitStatusEntry> entries;
+        private string localBranch;
+        private string remoteBranch;
 
-        public StatusOutputProcessor(IGitStatusEntryFactory gitStatusEntryFactory)
+        public StatusOutputProcessor(IGitObjectFactory gitObjectFactory)
         {
-            this.gitStatusEntryFactory = gitStatusEntryFactory;
+            this.gitObjectFactory = gitObjectFactory;
             Reset();
         }
 
@@ -33,7 +28,9 @@ namespace GitHub.Unity
             base.LineReceived(line);
 
             if (OnStatus == null)
+            {
                 return;
+            }
 
             if (line == null)
             {
@@ -57,10 +54,11 @@ namespace GitHub.Unity
                             //master...origin/master [ahead 1, behind 1]
 
                             branchesString = proc.ReadUntilWhitespace();
+
                             proc.MoveToAfter('[');
 
                             var deltaString = proc.ReadUntil(']');
-                            var deltas = deltaString.Split(new[] {", "}, StringSplitOptions.RemoveEmptyEntries);
+                            var deltas = deltaString.Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
                             foreach (var delta in deltas)
                             {
                                 var deltaComponents = delta.Split(' ');
@@ -83,7 +81,7 @@ namespace GitHub.Unity
                             branchesString = proc.ReadToEnd();
                         }
 
-                        var branches = branchesString.Split(new[] {"..."}, StringSplitOptions.RemoveEmptyEntries);
+                        var branches = branchesString.Split(new[] { "..." }, StringSplitOptions.RemoveEmptyEntries);
                         localBranch = branches[0];
                         if (branches.Length == 2)
                         {
@@ -105,14 +103,32 @@ namespace GitHub.Unity
 
                     string originalPath = null;
                     string path = null;
-                    GitFileStatus status = GitFileStatus.Added;
+                    var status = GitFileStatus.Added;
+                    var staged = false;
 
-                    if (proc.IsAtWhitespace)
+                    if (proc.Matches('?'))
                     {
+                        //?? something.txt
+                        proc.MoveToAfter('?');
                         proc.SkipWhitespace();
+
+                        path = proc.ReadToEnd().Trim('"');
+                        status = GitFileStatus.Untracked;
+                    }
+                    else
+                    {
+                        if (proc.IsAtWhitespace)
+                        {
+                            proc.SkipWhitespace();
+                        }
+                        else
+                        {
+                            staged = true;
+                        }
+
                         if (proc.Matches('M'))
                         {
-                            // M GitHubVS.sln
+                            //M  GitHubVS.sln
                             proc.MoveNext();
                             proc.SkipWhitespace();
 
@@ -121,31 +137,25 @@ namespace GitHub.Unity
                         }
                         else if (proc.Matches('D'))
                         {
-                            // D deploy.cmd
+                            //D  deploy.cmd
                             proc.MoveNext();
                             proc.SkipWhitespace();
 
                             path = proc.ReadToEnd().Trim('"');
                             status = GitFileStatus.Deleted;
                         }
-                        else
-                        {
-                            HandleUnexpected(line);
-                        }
-                    }
-                    else
-                    {
-                        if (proc.Matches('R'))
+                        else if (proc.Matches('R'))
                         {
                             //R  README.md -> README2.md
                             proc.MoveNext();
                             proc.SkipWhitespace();
 
-                            var files = proc.ReadToEnd()
-                                .Split(new[] {"->"}, StringSplitOptions.RemoveEmptyEntries)
-                                .Select(s => s.Trim())
-                                .Select(s => s.Trim('"'))
-                                .ToArray();
+                            var files =
+                                proc.ReadToEnd()
+                                    .Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(s => s.Trim())
+                                    .Select(s => s.Trim('"'))
+                                    .ToArray();
 
                             originalPath = files[0];
                             path = files[1];
@@ -160,22 +170,13 @@ namespace GitHub.Unity
                             path = proc.ReadToEnd().Trim('"');
                             status = GitFileStatus.Added;
                         }
-                        else if (proc.Matches('?'))
-                        {
-                            //?? something.txt
-                            proc.MoveToAfter('?');
-                            proc.SkipWhitespace();
-
-                            path = proc.ReadToEnd().Trim('"');
-                            status = GitFileStatus.Untracked;
-                        }
                         else
                         {
                             HandleUnexpected(line);
                         }
                     }
 
-                    var gitStatusEntry = gitStatusEntryFactory.Create(path, status, originalPath);
+                    var gitStatusEntry = gitObjectFactory.CreateGitStatusEntry(path, status, originalPath, staged);
                     entries.Add(gitStatusEntry);
                 }
             }
@@ -183,8 +184,7 @@ namespace GitHub.Unity
 
         private void ReturnStatus()
         {
-            var gitStatus = new GitStatus
-            {
+            var gitStatus = new GitStatus {
                 LocalBranch = localBranch,
                 RemoteBranch = remoteBranch,
                 Ahead = ahead,
@@ -212,7 +212,9 @@ namespace GitHub.Unity
 
         private void HandleUnexpected(string line)
         {
-            throw new Exception(string.Format(@"Unexpected input{0}""{1}""", Environment.NewLine, line));
+            Logger.Error("Unexpected Input:\"{0}\"", line);
         }
+
+        public event Action<GitStatus> OnStatus;
     }
 }
