@@ -65,7 +65,9 @@ namespace GitHub.Api
                 try
                 {
                     var parentDirectory = fileSystem.GetParentDirectory(versionFile);
-                    fileSystem.DeleteAllFiles(parentDirectory);
+
+                    var nPath = new NPath(parentDirectory);
+                    nPath.DeleteContents();
                 }
                 catch (Exception ex)
                 {

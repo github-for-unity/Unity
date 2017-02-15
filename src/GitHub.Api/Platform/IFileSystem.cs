@@ -16,7 +16,6 @@ namespace GitHub.Api
         bool DirectoryExists(string path);
         string GetParentDirectory(string path);
         string GetRandomFileName();
-        void DeleteAllFiles(string path);
         string ChangeExtension(string path, string extension);
         string GetFileNameWithoutExtension(string fileName);
         IEnumerable<string> GetFiles(string path, string pattern, SearchOption searchOption);
