@@ -11,6 +11,7 @@ namespace GitHub.Unity.Tests
     public class PortableGitManagerTests
     {
         private const string ExtensionFolder = @"c:\ExtensionFolder";
+        private const string TemporaryPath = @"c:\temp";
         private const string WindowsPortableGitZip = ExtensionFolder + @"\resources\windows\PortableGit.zip";
 
         private IEnvironment CreateEnvironment(string extensionfolder)
@@ -21,7 +22,7 @@ namespace GitHub.Unity.Tests
         }
 
         private IFileSystem CreateFileSystem(string[] filesThatExist, IDictionary<string, string[]> fileContents,
-            IList<string> randomFileNames)
+            IList<string> randomFileNames, string temporaryPath)
         {
             var fileSystem = Substitute.For<IFileSystem>();
             var realFileSystem = new FileSystem();
@@ -72,7 +73,6 @@ namespace GitHub.Unity.Tests
             });
 
             var randomFileIndex = 0;
-
             fileSystem.GetRandomFileName().Returns(info => {
                 var result = randomFileNames[randomFileIndex];
 
@@ -83,6 +83,13 @@ namespace GitHub.Unity.Tests
 
                 return result;
             });
+
+            fileSystem.GetTempPath().Returns(info => {
+                Logger.Debug(@"FileSystem.GetTempPath() -> {0}", temporaryPath);
+
+                return temporaryPath;
+            });
+
             return fileSystem;
         }
 
@@ -112,12 +119,12 @@ namespace GitHub.Unity.Tests
 
             var randomFileNames = new[] { "randomFolder1", "randomFolder2" };
 
-            var fileSystem = CreateFileSystem(filesThatExist, fileContents, randomFileNames);
+            var fileSystem = CreateFileSystem(filesThatExist, fileContents, randomFileNames, TemporaryPath);
 
             var portableGitManager = new PortableGitManager(environment, fileSystem, sharpZipLibHelper);
             portableGitManager.ExtractGitIfNeeded();
 
-            const string shouldExtractTo = @"c:\ExtensionFolder\randomFolder1.deleteme";
+            const string shouldExtractTo = @"c:\temp\randomFolder1.deleteme";
             sharpZipLibHelper.Received().ExtractZipFile(WindowsPortableGitZip, shouldExtractTo);
         }
 
@@ -142,7 +149,7 @@ namespace GitHub.Unity.Tests
 
             var randomFileNames = new string[] { };
 
-            var fileSystem = CreateFileSystem(filesThatExist, fileContents, randomFileNames);
+            var fileSystem = CreateFileSystem(filesThatExist, fileContents, randomFileNames, TemporaryPath);
 
             var portableGitManager = new PortableGitManager(environment, fileSystem, sharpZipLibHelper);
             portableGitManager.ExtractGitIfNeeded();
