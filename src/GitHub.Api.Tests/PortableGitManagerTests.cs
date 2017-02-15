@@ -143,17 +143,9 @@ namespace GitHub.Unity.Tests
             var filesThatExist = new[] {
                 WindowsPortableGitZip,
                 UserProfilePath + @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\cmd\git.exe",
-                UserProfilePath + @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\VERSION"
             };
 
-            var fileContents = new Dictionary<string, string[]> {
-                {
-                    UserProfilePath + @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\VERSION",
-                    new[] { "f02737a78695063deace08e96d5042710d3e32db" }
-                }
-            };
-
-            var fileSystem = CreateFileSystem(filesThatExist, fileContents);
+            var fileSystem = CreateFileSystem(filesThatExist);
 
             var portableGitManager = new PortableGitManager(CreateEnvironment(), fileSystem, CreateSharpZipLibHelper());
             portableGitManager.ExtractGitIfNeeded();
