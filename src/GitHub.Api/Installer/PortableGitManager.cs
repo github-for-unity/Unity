@@ -81,12 +81,14 @@ namespace GitHub.Api
             var git = fileSystem.Combine(target, "cmd", "git.exe");
             if (!fileSystem.FileExists(git))
             {
+                logger.Debug("git.exe not found");
                 return false;
             }
 
             var versionFile = fileSystem.Combine(target, "VERSION");
             if (!fileSystem.FileExists(versionFile))
             {
+                logger.Debug("VERSION not found");
                 return false;
             }
 
@@ -118,7 +120,7 @@ namespace GitHub.Api
 
         public string PackageDestinationDirectory
         {
-            get { return fileSystem.Combine(environment.ExtensionInstallPath, PackageNameWithVersion); }
+            get { return fileSystem.Combine(environment.UserProfilePath, "GitHubUnity", PackageNameWithVersion); }
         }
 
         public string ArchiveFilePath
