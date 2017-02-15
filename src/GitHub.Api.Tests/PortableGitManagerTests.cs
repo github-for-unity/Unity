@@ -90,7 +90,7 @@ namespace GitHub.Unity.Tests
             return Substitute.For<ISharpZipLibHelper>();
         }
 
-        [OneTimeSetUp]
+        [TestFixtureSetUp]
         public void TestFixtureSetup()
         {
             Logging.LoggerFactory = s => new ConsoleLogAdapter(s);
