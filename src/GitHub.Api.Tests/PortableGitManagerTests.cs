@@ -13,7 +13,8 @@ namespace GitHub.Unity.Tests
         private SubstituteFactory Factory { get; set; }
 
         private const string WindowsPortableGitZip =
-            CreateEnvironmentOptions.DefaultExtensionFolder + @"\resources\windows\PortableGit.zip";
+            CreateEnvironmentOptions.DefaultExtensionFolder + @"\resources\windows\PortableGit-2.11.1-32-bit.zip";
+
         private const string WindowsGitLfsZip =
             CreateEnvironmentOptions.DefaultExtensionFolder +
             @"\resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip";
@@ -119,18 +120,19 @@ namespace GitHub.Unity.Tests
         [Test]
         public void ShouldNotExtractGitIfAlreadyPresent()
         {
-            var fileSystem = Factory.CreateFileSystem(new CreateFileSystemOptions() {
-                FilesThatExist = new[] {
-                    WindowsPortableGitZip,
-                    CreateEnvironmentOptions.DefaultUserProfilePath +
-                    @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\cmd\git.exe"
-                }
-            });
+            var fileSystem =
+                Factory.CreateFileSystem(new CreateFileSystemOptions() {
+                    FilesThatExist =
+                        new[] {
+                            WindowsPortableGitZip,
+                            CreateEnvironmentOptions.DefaultUserProfilePath +
+                            @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\cmd\git.exe"
+                        }
+                });
 
             var sharpZipLibHelper = Factory.CreateSharpZipLibHelper();
 
-            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(),
-                fileSystem, sharpZipLibHelper);
+            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(), fileSystem, sharpZipLibHelper);
             portableGitManager.ExtractGitIfNeeded();
 
             sharpZipLibHelper.DidNotReceiveWithAnyArgs().ExtractZipFile(Arg.Any<string>(), Arg.Any<string>());
@@ -141,13 +143,15 @@ namespace GitHub.Unity.Tests
         {
             var sharpZipLibHelper = Factory.CreateSharpZipLibHelper();
 
-            var fileSystem = Factory.CreateFileSystem(new CreateFileSystemOptions() {
-                FilesThatExist = new[] {
-                    CreateEnvironmentOptions.DefaultUserProfilePath +
-                    @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\mingw32\libexec\git-core\git-lfs.exe"
-                },
-                FileContents = new Dictionary<string, string[]>()
-            });
+            var fileSystem =
+                Factory.CreateFileSystem(new CreateFileSystemOptions() {
+                    FilesThatExist =
+                        new[] {
+                            CreateEnvironmentOptions.DefaultUserProfilePath +
+                            @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\mingw32\libexec\git-core\git-lfs.exe"
+                        },
+                    FileContents = new Dictionary<string, string[]>()
+                });
 
             NPathFileSystemProvider.Current = fileSystem;
 

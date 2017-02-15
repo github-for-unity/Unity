@@ -181,9 +181,7 @@
     </None>
     <None Include="packages.config" />
     <None Include="resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip" />
-    <None Include="resources\windows\PortableGit.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="resources\windows\PortableGit-2.11.1-32-bit.zip" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
