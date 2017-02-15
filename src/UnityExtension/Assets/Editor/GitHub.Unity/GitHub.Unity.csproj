@@ -80,11 +80,9 @@
   <ItemGroup>
     <Compile Include="IO\BranchListOutputProcessor.cs" />
     <Compile Include="IO\DefaultEnvironment.cs" />
-    <Compile Include="IO\FileSystem.cs" />
     <Compile Include="IO\GitStatusEntry.cs" />
     <Compile Include="IO\LogEntryOutputProcessor.cs" />
     <Compile Include="IO\ProcessWrapper.cs" />
-    <Compile Include="IO\NiceIO.cs" />
     <Compile Include="IO\StatusOutputProcessor.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
