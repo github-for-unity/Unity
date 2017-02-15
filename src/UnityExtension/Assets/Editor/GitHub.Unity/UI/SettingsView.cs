@@ -10,17 +10,6 @@ namespace GitHub.Unity
     [Serializable]
     class SettingsView : Subview
     {
-        private static ILogging logger;
-        private static ILogging Logger
-        {
-            get
-            {
-                if (logger == null)
-                    logger = Logging.GetLogger<SettingsView>();
-                return logger;
-            }
-        }
-
         private const string EditorSettingsMissingTitle = "Missing editor settings";
         private const string EditorSettingsMissingMessage =
             "No valid editor settings found when looking in expected path '{0}'. Please save the project.";

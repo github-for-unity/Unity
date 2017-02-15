@@ -7,17 +7,6 @@ namespace GitHub.Unity
     [Serializable]
     class AuthenticationView : Subview
     {
-        private static ILogging logger;
-        private static ILogging Logger
-        {
-            get
-            {
-                if (logger == null)
-                    logger = Logging.GetLogger<AuthenticationView>();
-                return logger;
-            }
-        }
-
         const string serverLabel = "Server";
         const string usernameLabel = "Username";
         const string passwordLabel = "Password";
