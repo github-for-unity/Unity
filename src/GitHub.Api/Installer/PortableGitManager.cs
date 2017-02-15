@@ -72,7 +72,7 @@ namespace GitHub.Api
         {
             if (IsPortableGitExtracted())
             {
-                logger.Info("Already extracted {0}, returning", WindowsPortableGitZip);
+                logger.Debug("Already extracted {0}, returning", WindowsPortableGitZip);
                 return;
             }
 
@@ -107,6 +107,17 @@ namespace GitHub.Api
                 logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
                 throw;
             }
+
+            try
+            {
+                var nPath = new NPath(tempPath);
+                nPath.CopyFiles(new NPath(PackageDestinationDirectory), true);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
+                throw;
+            }
         }
 
         public void ExtractGitLfsIfNeeded(IProgress<float> zipFileProgress = null,
@@ -114,7 +125,7 @@ namespace GitHub.Api
         {
             if (IsGitLfsExtracted())
             {
-                logger.Info("Already extracted {0}, returning", WindowsPortableGitZip);
+                logger.Debug("Already extracted {0}, returning", WindowsGitLfsZip);
                 return;
             }
 
