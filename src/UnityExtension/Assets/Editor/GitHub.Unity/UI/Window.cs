@@ -74,7 +74,6 @@ namespace GitHub.Unity
 
         private void CreateViews()
         {
-            Logger.Debug("CreateViews {0}", historyTab);
             historyTab.Initialize(this);
             changesTab.Initialize(this);
             branchesTab.Initialize(this);

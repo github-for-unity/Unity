@@ -117,7 +117,7 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Logger.Debug(ex);
+                Logger.Error(ex);
             }
 
             if (firstTime)
@@ -133,7 +133,7 @@ namespace GitHub.Unity
                 }
                 catch (Exception ex)
                 {
-                    Logger.Debug(ex);
+                    Logger.Error(ex);
                 }
             }
 
@@ -145,7 +145,7 @@ namespace GitHub.Unity
                 }
                 catch (Exception ex)
                 {
-                    Logger.Debug(ex);
+                    Logger.Error(ex);
                 }
             }
         }
@@ -154,7 +154,7 @@ namespace GitHub.Unity
         {
             this.cancellationToken = cancellationToken;
 
-            Logger.Debug("RunTaskAsync Label:\"{0}\" Type:{1}", Label, process == null ? "start" : "reconnect");
+            Logger.Trace("RunTaskAsync Label:\"{0}\" Type:{1}", Label, process == null ? "start" : "reconnect");
 
             Done = false;
             Progress = 0.0f;
@@ -183,7 +183,7 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Logger.Debug(ex);
+                Logger.Error(ex);
             }
 
             if (firstTime)
@@ -199,7 +199,7 @@ namespace GitHub.Unity
                 }
                 catch (Exception ex)
                 {
-                    Logger.Debug(ex);
+                    Logger.Error(ex);
                 }
             }
 
@@ -223,7 +223,7 @@ namespace GitHub.Unity
                 }
                 catch (Exception ex)
                 {
-                    Logger.Debug(ex);
+                    Logger.Error(ex);
                 }
             }
             return TaskEx.FromResult(process.Successful);
@@ -248,7 +248,7 @@ namespace GitHub.Unity
 
         public override void Abort()
         {
-            Logger.Debug("Aborting");
+            Logger.Trace("Aborting");
 
             try
             {
@@ -262,7 +262,7 @@ namespace GitHub.Unity
 
         public override void Disconnect()
         {
-            Logger.Debug("Disconnect");
+            Logger.Trace("Disconnect");
 
             process = null;
         }
@@ -274,7 +274,7 @@ namespace GitHub.Unity
 
         public override void WriteCache(TextWriter cache)
         {
-            Logger.Debug("WritingCache");
+            Logger.Trace("WritingCache");
 
             cache.WriteLine("{");
             cache.WriteLine(String.Format("\"{0}\": \"{1}\",", TypeKey, CachedTaskType));
@@ -305,14 +305,13 @@ namespace GitHub.Unity
         {
             if (OnSuccess != null)
             {
-                Logger.Debug("Success: \"{0}\"", msg);
+                Logger.Trace("Success: \"{0}\"", msg);
                 if (resultDispatcher != null)
                 {
                     resultDispatcher.ReportSuccess(() => OnSuccess(msg));
                 }
                 else
                 {
-                    Logger.Debug("Calling OnSuccess with '{0}'", msg);
                     OnSuccess(msg);
                 }
             }
@@ -327,7 +326,7 @@ namespace GitHub.Unity
 
             if (OnFailure != null)
             {
-                Logger.Debug("Failure: \"{0}\"", msg);
+                Logger.Trace("Failure: \"{0}\"", msg);
                 if (resultDispatcher != null)
                 {
                     resultDispatcher.ReportFailure(OnFailure);

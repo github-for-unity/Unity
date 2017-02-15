@@ -89,7 +89,7 @@ namespace GitHub.Unity
                     Run(onClose),
                 token: CancellationToken.None);
 
-            logger.Debug("Authentication done");
+            //logger.Trace("Authentication done");
             return ret;
         }
 

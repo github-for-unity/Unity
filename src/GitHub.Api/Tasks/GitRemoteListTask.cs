@@ -22,7 +22,6 @@ namespace GitHub.Unity
 
         protected override void OnOutputComplete(string output, string errors)
         {
-            Logger.Debug("Done");
             if (TaskResultDispatcher != null)
             {
                 TaskResultDispatcher.ReportSuccess(() => callback?.Invoke(remotes));

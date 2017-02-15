@@ -48,7 +48,6 @@ namespace GitHub.Unity
 
         protected override void OnOutputComplete(string output, string errors)
         {
-            Logger.Debug("Done");
             Tasks.ScheduleMainThread(DeliverResult);
         }
 
