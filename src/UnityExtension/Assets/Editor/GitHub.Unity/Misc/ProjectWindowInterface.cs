@@ -39,6 +39,11 @@ namespace GitHub.Unity
 
         private static void OnStatusUpdate(GitStatus update)
         {
+            if (update.Entries == null)
+            {
+                Refresh();
+                return;
+            }
             entries.Clear();
             entries.AddRange(update.Entries);
 

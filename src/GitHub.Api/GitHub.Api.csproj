@@ -92,8 +92,11 @@
     <Compile Include="Installer\PortableGitManager.cs" />
     <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
+    <Compile Include="GitClient.cs" />
+    <Compile Include="GitConfig.cs" />
     <Compile Include="Helpers\LineProcessor.cs" />
     <Compile Include="Helpers\StringExtensions.cs" />
+    <Compile Include="IGitClient.cs" />
     <Compile Include="IO\BaseOutputProcessor.cs" />
     <Compile Include="IO\FileSystem.cs" />
     <Compile Include="IO\GitRemote.cs" />
@@ -104,6 +107,7 @@
     <Compile Include="IO\NiceIO.cs" />
     <Compile Include="IO\ProcessOutputManager.cs" />
     <Compile Include="IO\RemoteListOutputProcessor.cs" />
+    <Compile Include="IRepository.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -119,6 +123,7 @@
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="Repository.cs" />
     <Compile Include="Tasks\BaseTask.cs" />
     <Compile Include="Tasks\CachedTask.cs" />
     <Compile Include="Tasks\FailureSeverity.cs" />
@@ -146,7 +151,7 @@
     <Compile Include="IEnvironment.cs" />
     <Compile Include="Platform\LinuxCredentialManager.cs" />
     <Compile Include="Platform\MacCredentialManager.cs" />
-    <Compile Include="IProgram.cs" />
+    <Compile Include="IAppConfiguration.cs" />
     <Compile Include="Primitives\HostAddress.cs" />
     <Compile Include="Primitives\StringEquivalent.cs" />
     <Compile Include="Primitives\UriString.cs" />

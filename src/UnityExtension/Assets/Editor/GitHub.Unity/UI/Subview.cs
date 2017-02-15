@@ -55,6 +55,17 @@ namespace GitHub.Unity
         {}
 
         public virtual Rect Position { get { return position; } }
+
+        private ILogging logger;
+        protected ILogging Logger
+        {
+            get
+            {
+                if (logger == null)
+                    logger = Logging.GetLogger(GetType());
+                return logger;
+            }
+        }
     }
 
     abstract class Subview : IView
@@ -102,5 +113,17 @@ namespace GitHub.Unity
         }
 
         public virtual Rect Position { get { return Parent.Position; } }
+
+
+        private ILogging logger;
+        protected ILogging Logger
+        {
+            get
+            {
+                if (logger == null)
+                    logger = Logging.GetLogger(GetType());
+                return logger;
+            }
+        }
     }
 }
