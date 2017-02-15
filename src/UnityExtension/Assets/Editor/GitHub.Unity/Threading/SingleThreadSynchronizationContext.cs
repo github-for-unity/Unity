@@ -19,7 +19,7 @@ namespace GitHub.Unity
 
         public virtual void Schedule(Action action)
         {
-            logger.Debug("Scheduling action");
+            //logger.Debug("Scheduling action");
 
             Guard.ArgumentNotNull(action, "action");
             Post(_ => action.SafeInvoke(), null);
