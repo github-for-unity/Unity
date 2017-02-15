@@ -137,7 +137,7 @@ namespace GitHub.Api
         /// Attempts a best-effort to convert the remote origin to a GitHub Repository URL.
         /// </summary>
         /// <returns>A converted uri, or the existing one if we can't convert it (which might be null)</returns>
-        public Uri ToRepositoryUrl()
+        public Uri ToRepositoryUri()
         {
             // we only want to process urls that represent network resources
             if (!IsScpUri && (!IsValidUri || IsFileUri)) return url;
@@ -156,6 +156,31 @@ namespace GitHub.Api
                 Path = NameWithOwner,
                 Port = port
             }.Uri;
+        }
+
+        /// <summary>
+        /// Attempts a best-effort to convert the remote origin to a GitHub Repository URL.
+        /// </summary>
+        /// <returns>A converted uri, or the existing one if we can't convert it (which might be null)</returns>
+        public UriString ToRepositoryUrl()
+        {
+            // we only want to process urls that represent network resources
+            if (!IsScpUri && (!IsValidUri || IsFileUri)) return this;
+
+            var scheme = url != null && IsHypertextTransferProtocol
+                ? url.Scheme
+                : Uri.UriSchemeHttps;
+
+            var port = url?.Port == 80
+                    ? -1
+                    : (url?.Port ?? -1);
+            return new UriString(new UriBuilder
+            {
+                Scheme = scheme,
+                Host = Host,
+                Path = NameWithOwner,
+                Port = port
+            }.Uri.ToString());
         }
 
         /// <summary>
