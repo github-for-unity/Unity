@@ -46,7 +46,6 @@ namespace GitHub.Unity
         {
             base.Initialize(parent);
 
-            Logger.Debug("OnEnable");
             need2fa = busy = finished = false;
             authenticationService = new AuthenticationService(new AppConfiguration(), EntryPoint.Platform.GetCredentialManager(EntryPoint.ProcessManager));
         }
@@ -105,10 +104,6 @@ namespace GitHub.Unity
                     }
                 }
 
-                if (finished)
-                {
-                    // Debug.Log("finished");
-                }
                 GUILayout.EndVertical();
                 GUILayout.Space(Styles.BaseSpacing);
             }
@@ -202,7 +197,6 @@ namespace GitHub.Unity
 
         private void DoRequire2fa(string msg)
         {
-            Debug.Log("DoRequire2fa");
             need2fa = true;
             message = msg;
             busy = false;
@@ -217,16 +211,10 @@ namespace GitHub.Unity
 
             if (success == true)
             {
-                if (need2fa == false)
-                    Logger.Debug("DoResult Success");
-                else
-                    Logger.Debug("DoResult Success Need2fa");
-
                 Finish(true);
             }
             else
             {
-                Logger.Debug("DoResult Else");
                 Redraw();
             }
         }

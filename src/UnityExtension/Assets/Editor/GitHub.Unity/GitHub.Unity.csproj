@@ -91,7 +91,6 @@
       <DependentUpon>Localization.resx</DependentUpon>
     </Compile>
     <Compile Include="Logging\UnityLogAdapter.cs" />
-    <Compile Include="Misc\Ensure.cs" />
     <Compile Include="Misc\EntryPoint.cs" />
     <Compile Include="Misc\Installer.cs" />
     <Compile Include="Misc\ISettings.cs" />
@@ -123,7 +122,6 @@
     <Compile Include="IO\ProcessManager.cs" />
     <Compile Include="Tasks\TaskException.cs" />
     <Compile Include="Tasks\Tasks.cs" />
-    <Compile Include="Tasks\TestTask.cs" />
     <Compile Include="Threading\ThreadUtils.cs" />
     <Compile Include="Tools\MozRoots.cs" />
     <Compile Include="UI\AuthenticationView.cs" />
