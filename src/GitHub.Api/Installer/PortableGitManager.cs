@@ -50,33 +50,6 @@ namespace GitHub.Api
                 return false;
             }
 
-            var versionFile = fileSystem.Combine(target, "VERSION");
-            if (!fileSystem.FileExists(versionFile))
-            {
-                logger.Debug("VERSION not found");
-                return false;
-            }
-
-            var expectedVersion = PortableGitExpectedVersion;
-            if (fileSystem.ReadAllText(versionFile).Trim() != expectedVersion)
-            {
-                logger.Warning("Package '{0}' out of date, wanted {1}", target, expectedVersion);
-
-                try
-                {
-                    var parentDirectory = fileSystem.GetParentDirectory(versionFile);
-
-                    var nPath = new NPath(parentDirectory);
-                    nPath.DeleteContents();
-                }
-                catch (Exception ex)
-                {
-                    logger.Warning(ex, "Failed to remove {0}", target);
-                }
-
-                return false;
-            }
-
             return true;
         }
 
