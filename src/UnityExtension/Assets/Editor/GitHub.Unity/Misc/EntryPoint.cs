@@ -89,6 +89,7 @@ namespace GitHub.Unity
                 catch (Exception ex)
                 {
                     new UnityLogAdapter("EntryPoint").Error(ex);
+                    throw;
                 }
             })
             .ContinueWith(_ =>
