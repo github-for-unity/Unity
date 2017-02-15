@@ -110,8 +110,9 @@ namespace GitHub.Api
 
             try
             {
-                var nPath = new NPath(tempPath);
-                nPath.CopyFiles(new NPath(PackageDestinationDirectory), true);
+                var nPath = new NPath(tempPath + @"\");
+                var destination = new NPath(PackageDestinationDirectory + @"\");
+                nPath.CopyFiles(destination, true);
             }
             catch (Exception ex)
             {

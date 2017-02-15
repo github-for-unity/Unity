@@ -17,7 +17,7 @@ namespace GitHub.Unity.Tests
         private const string WindowsGitLfsZip =
             ExtensionFolder + @"\resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip";
 
-        private static IEnvironment CreateEnvironment(string extensionfolder = ExtensionFolder,
+        private static IEnvironment CreateEnvironment(ILogging logger, string extensionfolder = ExtensionFolder,
             string userProfilePath = UserProfilePath)
         {
             var environment = Substitute.For<IEnvironment>();
@@ -26,9 +26,9 @@ namespace GitHub.Unity.Tests
             return environment;
         }
 
-        private static IFileSystem CreateFileSystem(string[] filesThatExist = null,
+        private static IFileSystem CreateFileSystem(ILogging logger, string[] filesThatExist = null,
             IDictionary<string, string[]> fileContents = null, IList<string> randomFileNames = null,
-            string temporaryPath = @"c:\temp")
+            string temporaryPath = @"c:\temp", string[] directoriesThatExist = null)
         {
             var fileSystem = Substitute.For<IFileSystem>();
             var realFileSystem = new FileSystem();
@@ -37,7 +37,7 @@ namespace GitHub.Unity.Tests
                 var path1 = (string)info[0];
                 var path2 = (string)info[1];
                 var combine = realFileSystem.Combine(path1, path2);
-                Logger.Trace(@"FileSystem.Combine(""{0}"", ""{1}"") -> ""{2}""", path1, path2, combine);
+                logger.Trace(@"FileSystem.Combine(""{0}"", ""{1}"") -> ""{2}""", path1, path2, combine);
                 return combine;
             });
 
@@ -46,7 +46,7 @@ namespace GitHub.Unity.Tests
                 var path2 = (string)info[1];
                 var path3 = (string)info[2];
                 var combine = realFileSystem.Combine(path1, path2, path3);
-                Logger.Trace(@"FileSystem.Combine(""{0}"", ""{1}"", ""{2}"") -> ""{3}""", path1, path2, path3, combine);
+                logger.Trace(@"FileSystem.Combine(""{0}"", ""{1}"", ""{2}"") -> ""{3}""", path1, path2, path3, combine);
                 return combine;
             });
 
@@ -55,7 +55,17 @@ namespace GitHub.Unity.Tests
                 fileSystem.FileExists(Arg.Any<string>()).Returns(info => {
                     var path1 = (string)info[0];
                     var result = filesThatExist.Contains(path1);
-                    Logger.Trace(@"FileSystem.FileExists(""{0}"") -> {1}", path1, result);
+                    logger.Trace(@"FileSystem.FileExists(""{0}"") -> {1}", path1, result);
+                    return result;
+                });
+            }
+
+            if (directoriesThatExist != null)
+            {
+                fileSystem.DirectoryExists(Arg.Any<string>()).Returns(info => {
+                    var path1 = (string)info[0];
+                    var result = directoriesThatExist.Contains(path1);
+                    logger.Trace(@"FileSystem.DirectoryExists(""{0}"") -> {1}", path1, result);
                     return result;
                 });
             }
@@ -73,7 +83,7 @@ namespace GitHub.Unity.Tests
                         result = string.Join(string.Empty, fileContent);
                     }
 
-                    Logger.Trace(@"FileSystem.ReadAllText(""{0}"") -> {1}", path1, result != null);
+                    logger.Trace(@"FileSystem.ReadAllText(""{0}"") -> {1}", path1, result != null);
 
                     if (result == null)
                     {
@@ -93,14 +103,14 @@ namespace GitHub.Unity.Tests
                     randomFileIndex++;
                     randomFileIndex = randomFileIndex % randomFileNames.Count;
 
-                    Logger.Trace(@"FileSystem.GetRandomFileName() -> {0}", result);
+                    logger.Trace(@"FileSystem.GetRandomFileName() -> {0}", result);
 
                     return result;
                 });
             }
 
             fileSystem.GetTempPath().Returns(info => {
-                Logger.Trace(@"FileSystem.GetTempPath() -> {0}", temporaryPath);
+                logger.Trace(@"FileSystem.GetTempPath() -> {0}", temporaryPath);
 
                 return temporaryPath;
             });
@@ -112,12 +122,13 @@ namespace GitHub.Unity.Tests
         {
             return Substitute.For<IZipHelper>();
         }
-        private static ILogging Logger { get; set; }
+
+        private ILogging Logger { get; set; }
 
         [TestFixtureSetUp]
         public void TestFixtureSetup()
         {
-            NPathFileSystemProvider.Current = CreateFileSystem();
+            NPathFileSystemProvider.Current = CreateFileSystem(Logger);
 
             Logging.LoggerFactory = s => new ConsoleLogAdapter(s);
             Logger = Logging.GetLogger<PortableGitManagerTests>();
@@ -128,30 +139,18 @@ namespace GitHub.Unity.Tests
         {
             var sharpZipLibHelper = CreateSharpZipLibHelper();
 
-            var fileSystem = CreateFileSystem(new[] { WindowsPortableGitZip },
-                randomFileNames: new string[] { "randomFile1", "randomFile2" });
+            var fileSystem = CreateFileSystem(Logger, new[] { WindowsPortableGitZip },
+                randomFileNames: new[] { "randomFile1", "randomFile2" }, directoriesThatExist: new string[] {
+                    @"c:\UserProfile\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\"
+                });
 
-            var portableGitManager = new PortableGitManager(CreateEnvironment(), fileSystem, sharpZipLibHelper);
+            NPathFileSystemProvider.Current = fileSystem;
+
+            var portableGitManager = new PortableGitManager(CreateEnvironment(Logger), fileSystem, sharpZipLibHelper);
             portableGitManager.ExtractGitIfNeeded();
 
             const string shouldExtractTo = @"c:\temp\randomFile1.deleteme";
             sharpZipLibHelper.Received().ExtractZipFile(WindowsPortableGitZip, shouldExtractTo);
-        }
-
-        [Test]
-        public void ShouldNotExtractGitIfNotNeeded()
-        {
-            var filesThatExist = new[] {
-                WindowsPortableGitZip,
-                UserProfilePath + @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\cmd\git.exe",
-            };
-
-            var fileSystem = CreateFileSystem(filesThatExist);
-
-            var portableGitManager = new PortableGitManager(CreateEnvironment(), fileSystem, CreateSharpZipLibHelper());
-            portableGitManager.ExtractGitIfNeeded();
-
-            CreateSharpZipLibHelper().DidNotReceiveWithAnyArgs().ExtractZipFile(Arg.Any<string>(), Arg.Any<string>());
         }
 
         [Test]
@@ -163,9 +162,9 @@ namespace GitHub.Unity.Tests
 
             var fileContents = new Dictionary<string, string[]>();
 
-            var fileSystem = CreateFileSystem(filesThatExist, fileContents, new[] { "randomFile1", "randomFile2" });
+            var fileSystem = CreateFileSystem(Logger, filesThatExist, fileContents, new[] { "randomFile1", "randomFile2" });
 
-            var portableGitManager = new PortableGitManager(CreateEnvironment(), fileSystem, sharpZipLibHelper);
+            var portableGitManager = new PortableGitManager(CreateEnvironment(Logger), fileSystem, sharpZipLibHelper);
             portableGitManager.ExtractGitLfsIfNeeded();
 
             const string shouldExtractTo = @"c:\temp\randomFile1.deleteme";
@@ -177,23 +176,23 @@ namespace GitHub.Unity.Tests
         {
             var sharpZipLibHelper = CreateSharpZipLibHelper();
 
-            var filesThatExist = new string[] {
+            var filesThatExist = new[] {
                 UserProfilePath +
-                @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\mingw32\libexec\git-core\git-lfs.exe",
+                @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\mingw32\libexec\git-core\git-lfs.exe"
             };
 
-            var fileContents = new Dictionary<string, string[]> { };
+            var fileContents = new Dictionary<string, string[]>();
 
-            var fileSystem = CreateFileSystem(filesThatExist, fileContents);
+            var fileSystem = CreateFileSystem(Logger, filesThatExist, fileContents);
 
-            var portableGitManager = new PortableGitManager(CreateEnvironment(), fileSystem, sharpZipLibHelper);
+            var portableGitManager = new PortableGitManager(CreateEnvironment(Logger), fileSystem, sharpZipLibHelper);
             portableGitManager.IsGitLfsExtracted().Should().BeTrue();
         }
 
         [Test]
         public void ShouldKnowGitLfsDestinationDirectory()
         {
-            var portableGitManager = new PortableGitManager(CreateEnvironment(), CreateFileSystem(),
+            var portableGitManager = new PortableGitManager(CreateEnvironment(Logger), CreateFileSystem(Logger),
                 CreateSharpZipLibHelper());
 
             portableGitManager.GitLfsDestinationDirectory.Should()
@@ -202,22 +201,38 @@ namespace GitHub.Unity.Tests
         }
 
         [Test]
+        public void ShouldNotExtractGitIfNotNeeded()
+        {
+            var filesThatExist = new[] {
+                WindowsPortableGitZip,
+                UserProfilePath + @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\cmd\git.exe"
+            };
+
+            var fileSystem = CreateFileSystem(Logger, filesThatExist);
+
+            var portableGitManager = new PortableGitManager(CreateEnvironment(Logger), fileSystem, CreateSharpZipLibHelper());
+            portableGitManager.ExtractGitIfNeeded();
+
+            CreateSharpZipLibHelper().DidNotReceiveWithAnyArgs().ExtractZipFile(Arg.Any<string>(), Arg.Any<string>());
+        }
+
+        [Test]
         public void ShouldNotExtractGitLfsIfNotNeeded()
         {
             var sharpZipLibHelper = CreateSharpZipLibHelper();
 
-            var filesThatExist = new string[] {
+            var filesThatExist = new[] {
                 UserProfilePath +
-                @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\mingw32\libexec\git-core\git-lfs.exe",
+                @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\mingw32\libexec\git-core\git-lfs.exe"
             };
 
-            var fileContents = new Dictionary<string, string[]> { };
+            var fileContents = new Dictionary<string, string[]>();
 
-            var fileSystem = CreateFileSystem(filesThatExist, fileContents);
+            var fileSystem = CreateFileSystem(Logger, filesThatExist, fileContents);
 
             NPathFileSystemProvider.Current = fileSystem;
 
-            var portableGitManager = new PortableGitManager(CreateEnvironment(), fileSystem, sharpZipLibHelper);
+            var portableGitManager = new PortableGitManager(CreateEnvironment(Logger), fileSystem, sharpZipLibHelper);
             portableGitManager.ExtractGitLfsIfNeeded();
 
             CreateSharpZipLibHelper().DidNotReceiveWithAnyArgs().ExtractZipFile(Arg.Any<string>(), Arg.Any<string>());
