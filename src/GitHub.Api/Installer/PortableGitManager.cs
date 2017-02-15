@@ -12,11 +12,11 @@ namespace GitHub.Api
         private const string ExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
         private const string PackageName = "PortableGit";
 
-        private readonly ILogging logger;
+        private readonly CancellationToken? cancellationToken;
         private readonly IEnvironment environment;
         private readonly IFileSystem fileSystem;
+        private readonly ILogging logger;
         private readonly ISharpZipLibHelper sharpZipLibHelper;
-        private readonly CancellationToken? cancellationToken;
 
         public PortableGitManager(IEnvironment environment, IFileSystem fileSystem, ISharpZipLibHelper sharpZipLibHelper,
             CancellationToken? cancellationToken = null)
@@ -42,9 +42,8 @@ namespace GitHub.Api
                 return;
             }
 
-            var environmentPath = environment.ExtensionInstallPath;
-            var tempPath = Path.Combine(environmentPath, fileSystem.GetRandomFileName() + TemporaryFolderSuffix);
-            var archiveFilePath = Path.Combine(environmentPath, WindowsPortableGitZip);
+            var tempPath = GetTemporaryPath();
+            var archiveFilePath = ArchiveFilePath;
 
             try
             {
@@ -112,8 +111,20 @@ namespace GitHub.Api
             return true;
         }
 
+        private string GetTemporaryPath()
+        {
+            return fileSystem.Combine(fileSystem.GetTempPath(), fileSystem.GetRandomFileName() + TemporaryFolderSuffix);
+        }
+
         public string PackageDestinationDirectory
-            => fileSystem.Combine(environment.ExtensionInstallPath, PackageNameWithVersion);
+        {
+            get { return fileSystem.Combine(environment.ExtensionInstallPath, PackageNameWithVersion); }
+        }
+
+        public string ArchiveFilePath
+        {
+            get { return fileSystem.Combine(environment.ExtensionInstallPath, WindowsPortableGitZip); }
+        }
 
         public string PackageNameWithVersion => PackageName + "_" + ExpectedVersion;
     }
