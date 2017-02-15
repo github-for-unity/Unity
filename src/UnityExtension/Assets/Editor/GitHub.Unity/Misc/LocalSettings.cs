@@ -137,7 +137,7 @@ namespace GitHub.Unity
             catch (Exception ex)
             {
                 logger.Error(SettingsParseError, cachePath);
-                logger.Debug("{0}", ex);
+                logger.Error(ex);
                 return false;
             }
 

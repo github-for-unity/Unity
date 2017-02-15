@@ -30,7 +30,6 @@ namespace GitHub.Unity
             }
             set
             {
-                Logger.Trace("Register OnEnd to " + value);
                 onEnd = value;
             }
         }
