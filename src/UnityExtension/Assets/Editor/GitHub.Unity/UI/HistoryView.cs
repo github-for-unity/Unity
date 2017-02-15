@@ -1,5 +1,6 @@
 #pragma warning disable 649
 
+using GitHub.Api;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,17 +13,6 @@ namespace GitHub.Unity
     [Serializable]
     class HistoryView : Subview
     {
-        private static ILogging logger;
-        private static ILogging Logger
-        {
-            get
-            {
-                if (logger == null)
-                    logger = Logging.GetLogger<HistoryView>();
-                return logger;
-            }
-        }
-
         private const string HistoryFocusAll = "(All)";
         private const string HistoryFocusSingle = "Focus: <b>{0}</b>";
         private const string PullButton = "Pull";
@@ -55,7 +45,9 @@ namespace GitHub.Unity
         [NonSerialized] private bool updated = true;
         [NonSerialized] private bool useScrollTime;
 
+#if ENABLE_BROADMODE
         [SerializeField] private bool broadMode;
+#endif
         [SerializeField] private Vector2 detailsScroll;
         [SerializeField] private bool historyLocked = true;
         [SerializeField] private Object historyTarget;
@@ -80,6 +72,7 @@ namespace GitHub.Unity
         {
             base.OnShow();
             StatusService.Instance.RegisterCallback(OnStatusUpdate);
+            Refresh();
         }
 
         public override void OnHide()
@@ -103,10 +96,12 @@ namespace GitHub.Unity
 
             StatusService.Instance.Run();
 
+#if ENABLE_BROADMODE
             if (broadMode)
             {
                 ((Window)Parent).BranchesTab.RefreshEmbedded();
             }
+#endif
         }
 
         public override void OnSelectionChange()
@@ -118,6 +113,7 @@ namespace GitHub.Unity
             }
         }
 
+#if ENABLE_BROADMODE
         public bool EvaluateBroadMode()
         {
             var past = broadMode;
@@ -145,24 +141,26 @@ namespace GitHub.Unity
             // Return whether we flipped
             return broadMode != past;
         }
+#endif
 
         public override void OnGUI()
         {
+#if ENABLE_BROADMODE
             if (broadMode)
-            {
                 OnBroadGUI();
-            }
             else
-            {
+#endif
                 OnEmbeddedGUI();
-            }
 
+#if ENABLE_BROADMODE
             if (Event.current.type == EventType.Repaint && EvaluateBroadMode())
             {
                 Refresh();
             }
+#endif
         }
 
+#if ENABLE_BROADMODE
         public void OnBroadGUI()
         {
             GUILayout.BeginHorizontal();
@@ -183,6 +181,7 @@ namespace GitHub.Unity
             }
             GUILayout.EndHorizontal();
         }
+#endif
 
         public void OnEmbeddedGUI()
         {
@@ -205,9 +204,12 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
+
                 // Pull / Push buttons
                 var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
+                GUI.enabled = currentRemote != null;
                 var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
+                GUI.enabled = true;
                 if (pullClicked &&
                     EditorUtility.DisplayDialog(PullConfirmTitle,
                         String.Format(PullConfirmDescription, currentRemote),
@@ -219,7 +221,9 @@ namespace GitHub.Unity
                 }
 
                 var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
+                GUI.enabled = statusAhead > 0 && statusBehind == 0;
                 var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
+                GUI.enabled = true;
                 if (pushClicked &&
                     EditorUtility.DisplayDialog(PushConfirmTitle,
                         String.Format(PushConfirmDescription, currentRemote),
@@ -374,8 +378,20 @@ namespace GitHub.Unity
 
         private void OnStatusUpdate(GitStatus update)
         {
+            if (update.Entries == null)
+            {
+                Refresh();
+                return;
+            }
+
             // Set branch state
             // TODO: Update currentRemote
+
+            var remote = EntryPoint.GitClient.GetActiveRemote(update.RemoteBranch);
+            if (remote.HasValue)
+                currentRemote = remote.Value.Name;
+            else
+                currentRemote = null;
             statusAhead = update.Ahead;
             statusBehind = update.Behind;
         }
@@ -523,12 +539,24 @@ namespace GitHub.Unity
 
         private void Pull()
         {
-            GitPullTask.Schedule("origin-http", null, null, null);
+            var task = new GitStatusTask(EntryPoint.Environment, EntryPoint.ProcessManager, null,
+                EntryPoint.GitObjectFactory, status =>
+                {
+                    if (status.Entries.Count > 0 )
+                    {
+                        EntryPoint.TaskResultDispatcher.ReportFailure(FailureSeverity.Critical, "Pull", "You need to commit your changes before pulling.");
+                    }
+                    else
+                    {
+                        GitPullTask.Schedule(EntryPoint.Environment.Repository.CurrentRemote, null, null, null);
+                    }
+                });
+            Tasks.Add(task);
         }
 
         private void Push()
         {
-            Logger.Debug("TODO: Push");
+            //GitPushTask.Schedule(EntryPoint.Environment.Repository.CurrentRemote, null, null, null);
         }
 
 
@@ -563,10 +591,12 @@ namespace GitHub.Unity
         }
 
 
+#if ENABLE_BROADMODE
         public bool BroadMode
         {
             get { return broadMode; }
         }
+#endif
 
         private float EntryHeight
         {

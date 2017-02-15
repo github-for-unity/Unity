@@ -30,9 +30,9 @@ namespace GitHub.Unity
             Tasks.ScheduleMainThread(callback);
         }
 
-        public void ReportFailure(FailureSeverity severity, ITask task, string error)
+        public void ReportFailure(FailureSeverity severity, string title, string error)
         {
-            Tasks.ReportFailure(severity, task, error);
+            Tasks.ReportFailure(severity, title, error);
         }
 
         public void ReportSuccess(Action callback)
@@ -183,15 +183,15 @@ namespace GitHub.Unity
             Tasks.ScheduleMainThread(callback);
         }
 
-        public static void ReportFailure(FailureSeverity severity, ITask task, string error)
+        public static void ReportFailure(FailureSeverity severity, string title, string error)
         {
             if (severity == FailureSeverity.Moderate)
             {
-                logger.Error("Failure: \"{0}\" Reason:\"{1}\"", task.Label, error);
+                logger.Error("Failure: \"{0}\" Reason:\"{1}\"", title, error);
             }
             else
             {
-                ScheduleMainThread(() => EditorUtility.DisplayDialog(TaskFailureTitle, String.Format(TaskFailureMessage, task.Label, error), TaskFailureOK));
+                ScheduleMainThread(() => EditorUtility.DisplayDialog(TaskFailureTitle, String.Format(TaskFailureMessage, title, error), TaskFailureOK));
             }
         }
 

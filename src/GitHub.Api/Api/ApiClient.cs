@@ -2,8 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Octokit;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 
 namespace GitHub.Api
 {
@@ -19,7 +17,7 @@ namespace GitHub.Api
         private readonly ILoginManager loginManager;
         private static readonly SemaphoreSlim sem = new SemaphoreSlim(1);
 
-        Repository repositoryCache = new Repository();
+        Octokit.Repository repositoryCache = new Octokit.Repository();
         string owner;
         bool? isEnterprise;
 
@@ -37,7 +35,7 @@ namespace GitHub.Api
             loginManager = new LoginManager(credentialManager, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
         }
 
-        public async void GetRepository(Action<Repository> callback)
+        public async void GetRepository(Action<Octokit.Repository> callback)
         {
             Guard.ArgumentNotNull(callback, "callback");
             var repo = await GetRepositoryInternal();
@@ -139,7 +137,7 @@ namespace GitHub.Api
             return result.Code == LoginResultCodes.Success;
         }
 
-        private async Task<Repository> GetRepositoryInternal()
+        private async Task<Octokit.Repository> GetRepositoryInternal()
         {
             try
             {
@@ -162,7 +160,7 @@ namespace GitHub.Api
             // it'll throw if it's private or an enterprise instance requiring authentication
             catch (ApiException apiex)
             {
-                if (!HostAddress.IsGitHubDotComUri(OriginalUrl.ToRepositoryUrl()))
+                if (!HostAddress.IsGitHubDotComUri(OriginalUrl.ToRepositoryUri()))
                     isEnterprise = apiex.IsGitHubApiException();
             }
             catch {}

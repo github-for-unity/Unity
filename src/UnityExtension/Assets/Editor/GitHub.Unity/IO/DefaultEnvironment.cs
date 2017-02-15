@@ -56,8 +56,7 @@ namespace GitHub.Unity
         }
 
         public string RepositoryRoot { get; set; }
-        public string DefaultRemote { get; set; }
-        public UriString RepositoryHost { get; set; }
+        public IRepository Repository { get; set; }
 
         public bool IsWindows
         {

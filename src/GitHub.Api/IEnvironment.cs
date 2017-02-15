@@ -2,7 +2,7 @@ using System;
 
 namespace GitHub.Api
 {
-    public interface IEnvironment
+    interface IEnvironment
     {
         string ExpandEnvironmentVariables(string name);
         string GetEnvironmentVariable(string v);
@@ -20,7 +20,6 @@ namespace GitHub.Api
         string ExtensionInstallPath { get; set; }
         string RepositoryRoot { get; set; }
         string GitInstallPath { get; }
-        string DefaultRemote { get; set; }
-        UriString RepositoryHost { get; set; }
+        IRepository Repository { get; set; }
     }
 }

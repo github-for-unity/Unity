@@ -41,7 +41,16 @@ namespace GitHub.Unity
 
     public class NPath : IEquatable<NPath>, IComparable
     {
-        private static readonly StringComparison PathStringComparison = IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+        private static StringComparison? pathStringComparison;
+        private static StringComparison PathStringComparison
+        {
+            get
+            {
+                if (!pathStringComparison.HasValue)
+                    pathStringComparison = IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+                return pathStringComparison.Value;
+            }
+        }
 
         private readonly string[] _elements;
         private readonly bool _isRelative;
@@ -325,7 +334,9 @@ namespace GitHub.Unity
                 case SlashMode.Forward:
                     return '/';
                 default:
-                    return NPathFileSystemProvider.Current.DirectorySeparatorChar;
+                    if (NPathFileSystemProvider.Current != null)
+                        return NPathFileSystemProvider.Current.DirectorySeparatorChar;
+                    return Path.DirectorySeparatorChar;
             }
         }
 
@@ -860,6 +871,18 @@ namespace GitHub.Unity
         private static bool IsLinux()
         {
             return NPathFileSystemProvider.Current.DirectoryExists("/proc");
+        }
+
+        public static implicit operator NPath(string value)
+        {
+            if (value == null) return null;
+
+            return new NPath(value);
+        }
+
+        public static implicit operator string(NPath path)
+        {
+            return path?.ToString();
         }
     }
 
