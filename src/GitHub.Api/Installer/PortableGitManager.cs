@@ -104,7 +104,7 @@ namespace GitHub.Api
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
+                logger.Error(ex, "Error ExtractingArchive Source:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
                 throw;
             }
 
@@ -116,7 +116,7 @@ namespace GitHub.Api
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
+                logger.Error(ex, "Error CopyingArchive Source:\"{0}\" OutDir:\"{1}\"", tempPath, PackageDestinationDirectory);
                 throw;
             }
         }
@@ -131,6 +131,7 @@ namespace GitHub.Api
             }
 
             var tempPath = GetTemporaryPath();
+            var tempGitLfsPath = fileSystem.Combine(tempPath, "git-lfs.exe");
 
             var archiveFilePath = fileSystem.Combine(environment.ExtensionInstallPath, WindowsGitLfsZip);
 
@@ -161,6 +162,16 @@ namespace GitHub.Api
                 logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
                 throw;
             }
+
+            try
+            {
+                fileSystem.FileCopy(tempGitLfsPath, GitLfsDestinationPath, false);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error Copying git-lfs Source:\"{0}\" Destination:\"{1}\"", tempGitLfsPath, GitLfsDestinationPath);
+                throw;
+            }
         }
 
         private string GetTemporaryPath()
@@ -170,7 +181,7 @@ namespace GitHub.Api
 
         public string PackageDestinationDirectory => fileSystem.Combine(environment.UserProfilePath, "GitHubUnity", PackageNameWithVersion);
 
-        public string GitLfsDestinationDirectory
+        public string GitLfsDestinationPath
             => fileSystem.Combine(PackageDestinationDirectory, @"mingw32\libexec\git-core\git-lfs.exe");
 
         public string PackageNameWithVersion => PackageName + "_" + PortableGitExpectedVersion;
