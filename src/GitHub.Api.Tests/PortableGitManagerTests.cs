@@ -261,7 +261,7 @@ namespace GitHub.Unity.Tests
         }
 
         [Test]
-        public void ShouldNotExtractGitIfNotNeeded()
+        public void ShouldNotExtractGitIfAlreadyPresent()
         {
             var filesThatExist = new[] {
                 WindowsPortableGitZip,
@@ -278,7 +278,7 @@ namespace GitHub.Unity.Tests
         }
 
         [Test]
-        public void ShouldNotExtractGitLfsIfNotNeeded()
+        public void ShouldNotExtractGitLfsIfAlreadyPresent()
         {
             var sharpZipLibHelper = CreateSharpZipLibHelper();
 
