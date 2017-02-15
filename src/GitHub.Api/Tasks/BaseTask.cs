@@ -46,19 +46,8 @@ namespace GitHub.Unity
         public virtual void Reconnect()
         {}
 
-        //public void Run()
-        //{
-        //    Run(CancellationToken.None);
-        //}
-
         public virtual void Run(CancellationToken cancel)
         {}
-
-        
-        //public Task<bool> RunAsync()
-        //{
-        //    return RunAsync(CancellationToken.None);
-        //}
 
         public virtual Task<bool> RunAsync(CancellationToken cancellationToken)
         {
