@@ -16,7 +16,7 @@ namespace GitHub.Unity
                   str => onSuccess.SafeInvoke(), onFailure)
         {
             var stringBuilder = new StringBuilder();
-            stringBuilder.Append("fetch");
+            stringBuilder.Append("pull");
 
             if (!String.IsNullOrEmpty(remote))
             {
