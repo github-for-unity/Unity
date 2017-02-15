@@ -109,7 +109,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Localization.resx</DependentUpon>
     </Compile>
-    <Compile Include="Platform\FileSystem.cs" />
     <Compile Include="Platform\GitEnvironment.cs" />
     <Compile Include="Platform\IFileSystem.cs" />
     <Compile Include="Platform\IGitEnvironment.cs" />

@@ -26,6 +26,11 @@ namespace GitHub.Unity
             return Path.Combine(path1, path2);
         }
 
+        public string Combine(string path1, string path2, string path3)
+        {
+            return Path.Combine(Path.Combine(path1, path2), path3);
+        }
+
         public string GetFullPath(string path)
         {
             return Path.GetFullPath(path);
@@ -134,6 +139,11 @@ namespace GitHub.Unity
         public char DirectorySeparatorChar
         {
             get { return Path.DirectorySeparatorChar; }
+        }
+
+        public string GetRandomFileName()
+        {
+            return Path.GetRandomFileName();
         }
     }
 }
