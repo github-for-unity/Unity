@@ -153,8 +153,8 @@ namespace GitHub.Unity
             {
                 EditorGUI.BeginChangeCheck();
                 {
-                    activeTab = TabButton(SubTab.History, HistoryTitle, activeTab);
                     activeTab = TabButton(SubTab.Changes, ChangesTitle, activeTab);
+                    activeTab = TabButton(SubTab.History, HistoryTitle, activeTab);
                     activeTab = TabButton(SubTab.Branches, BranchesTitle, activeTab);
                     activeTab = TabButton(SubTab.Settings, SettingsTitle, activeTab);
                 }
