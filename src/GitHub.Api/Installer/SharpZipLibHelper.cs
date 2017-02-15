@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using ICSharpCode.SharpZipLib.Zip;
 
 namespace GitHub.Api
@@ -77,7 +78,7 @@ namespace GitHub.Api
             return success;
         }
 
-        public void ExtractZipFile(string archive, string outFolder)
+        public void ExtractZipFile(string archive, string outFolder, CancellationToken? cancellationToken = null)
         {
             ZipFile zf = null;
 //            EstimatedDuration = 1L;
@@ -132,9 +133,14 @@ namespace GitHub.Api
 //                            EstimatedDuration = timeToFinish;
 
 //                            UpdateProgress((float)(totalBytes + totalRead) / targetFile.Length);
-//                            return !CancelRequested;
 
-                            return true;
+                            var cancellationRequested = false;
+                            if (cancellationToken.HasValue)
+                            {
+                                cancellationRequested = cancellationToken.Value.IsCancellationRequested;
+                            }
+
+                            return !cancellationRequested;
 
                         }, 100);
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using GitHub.Unity;
 
 namespace GitHub.Api
@@ -7,13 +8,14 @@ namespace GitHub.Api
     class PortableGitManager : IPortableGitManager
     {
         private const string WindowsPortableGitZip = @"resources\windows\PortableGit.zip";
-        protected const string TemporaryFolderSuffix = ".deleteme";
-
+        private const string TemporaryFolderSuffix = ".deleteme";
         private const string ExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
-
         private const string PackageName = "PortableGit";
 
-        public PortableGitManager(IEnvironment environment, IFileSystem fileSystem, ISharpZipLibHelper sharpZipLibHelper)
+        private readonly CancellationToken? cancellationToken;
+
+        public PortableGitManager(IEnvironment environment, IFileSystem fileSystem, ISharpZipLibHelper sharpZipLibHelper,
+            CancellationToken? cancellationToken = null)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));
             Guard.ArgumentNotNull(fileSystem, nameof(fileSystem));
@@ -24,6 +26,7 @@ namespace GitHub.Api
             Environment = environment;
             FileSystem = fileSystem;
             SharpZipLibHelper = sharpZipLibHelper;
+            this.cancellationToken = cancellationToken;
         }
 
         public void ExtractGitIfNeeded()
@@ -57,7 +60,7 @@ namespace GitHub.Api
 
             try
             {
-                SharpZipLibHelper.ExtractZipFile(archiveFilePath, tempPath);
+                SharpZipLibHelper.ExtractZipFile(archiveFilePath, tempPath, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -103,7 +106,8 @@ namespace GitHub.Api
             return true;
         }
 
-        public string PackageDestinationDirectory => FileSystem.Combine(Environment.ExtensionInstallPath, PackageNameWithVersion);
+        public string PackageDestinationDirectory
+            => FileSystem.Combine(Environment.ExtensionInstallPath, PackageNameWithVersion);
 
         public string PackageNameWithVersion => PackageName + "_" + ExpectedVersion;
 
