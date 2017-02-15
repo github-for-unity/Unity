@@ -14,6 +14,8 @@ namespace GitHub.Unity.Tests
         private const string ExtensionFolder = @"c:\ExtensionFolder";
         private const string UserProfilePath = @"c:\UserProfile";
         private const string WindowsPortableGitZip = ExtensionFolder + @"\resources\windows\PortableGit.zip";
+        private const string WindowsGitLfsZip =
+            ExtensionFolder + @"\resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip";
 
         private IEnvironment CreateEnvironment(string extensionfolder = ExtensionFolder,
             string userProfilePath = UserProfilePath)
@@ -136,10 +138,50 @@ namespace GitHub.Unity.Tests
         }
 
         [Test]
+        public void ShouldExtractGitLfsIfNeeded()
+        {
+            var sharpZipLibHelper = CreateSharpZipLibHelper();
+
+            var filesThatExist = new[] { WindowsGitLfsZip };
+
+            var fileContents = new Dictionary<string, string[]>();
+
+            var fileSystem = CreateFileSystem(filesThatExist, fileContents, new[] { "randomFile1", "randomFile2" });
+
+            var portableGitManager = new PortableGitManager(CreateEnvironment(), fileSystem, sharpZipLibHelper);
+            portableGitManager.ExtractGitLfsIfNeeded();
+
+            const string shouldExtractTo = @"c:\temp\randomFile1.deleteme";
+            sharpZipLibHelper.Received().ExtractZipFile(WindowsGitLfsZip, shouldExtractTo);
+        }
+
+        [Test]
+        public void ShouldKnoowIfGitLfsIsExtracted()
+        {
+            var sharpZipLibHelper = CreateSharpZipLibHelper();
+
+            var filesThatExist = new string[] {
+                UserProfilePath +
+                @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\mingw32\libexec\git-core\git-lfs.exe",
+            };
+
+            var fileContents = new Dictionary<string, string[]> { };
+
+            var fileSystem = CreateFileSystem(filesThatExist, fileContents);
+
+            var portableGitManager = new PortableGitManager(CreateEnvironment(), fileSystem, sharpZipLibHelper);
+            portableGitManager.IsGitLfsExtracted().Should().BeTrue();
+        }
+
+        [Test]
         public void ShouldKnowGitLfsDestinationDirectory()
         {
-            var portableGitManager = new PortableGitManager(CreateEnvironment(), CreateFileSystem(), CreateSharpZipLibHelper());
-            portableGitManager.PackageDestinationDirectory.Should().Be("");
+            var portableGitManager = new PortableGitManager(CreateEnvironment(), CreateFileSystem(),
+                CreateSharpZipLibHelper());
+
+            portableGitManager.GitLfsDestinationDirectory.Should()
+                              .Be(
+                                  @"c:\UserProfile\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\mingw32\libexec\git-core\git-lfs.exe");
         }
 
         [Test]
@@ -167,26 +209,14 @@ namespace GitHub.Unity.Tests
         }
 
         [Test]
-        public void ShouldExtractGitLfsIfNeeded()
-        {
-            var sharpZipLibHelper = CreateSharpZipLibHelper();
-
-            var filesThatExist = new string[] { };
-
-            var fileContents = new Dictionary<string, string[]> { };
-
-            var fileSystem = CreateFileSystem(filesThatExist, fileContents);
-
-            var portableGitManager = new PortableGitManager(CreateEnvironment(), fileSystem, sharpZipLibHelper);
-            portableGitManager.ExtractGitLfsIfNeeded();
-        }
-
-        [Test]
         public void ShouldNotExtractGitLfsIfNotNeeded()
         {
             var sharpZipLibHelper = CreateSharpZipLibHelper();
 
-            var filesThatExist = new string[] { };
+            var filesThatExist = new string[] {
+                UserProfilePath +
+                @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\mingw32\libexec\git-core\git-lfs.exe",
+            };
 
             var fileContents = new Dictionary<string, string[]> { };
 
@@ -194,6 +224,8 @@ namespace GitHub.Unity.Tests
 
             var portableGitManager = new PortableGitManager(CreateEnvironment(), fileSystem, sharpZipLibHelper);
             portableGitManager.ExtractGitLfsIfNeeded();
+
+            CreateSharpZipLibHelper().DidNotReceiveWithAnyArgs().ExtractZipFile(Arg.Any<string>(), Arg.Any<string>());
         }
     }
 }

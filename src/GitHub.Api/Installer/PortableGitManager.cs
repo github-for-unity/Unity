@@ -34,6 +34,64 @@ namespace GitHub.Api
             this.cancellationToken = cancellationToken;
         }
 
+        public bool IsExtracted()
+        {
+            return IsPortableGitExtracted() && IsGitLfsExtracted();
+        }
+
+        private bool IsPortableGitExtracted()
+        {
+            var target = PackageDestinationDirectory;
+
+            var git = fileSystem.Combine(target, "cmd", "git.exe");
+            if (!fileSystem.FileExists(git))
+            {
+                logger.Debug("git.exe not found");
+                return false;
+            }
+
+            var versionFile = fileSystem.Combine(target, "VERSION");
+            if (!fileSystem.FileExists(versionFile))
+            {
+                logger.Debug("VERSION not found");
+                return false;
+            }
+
+            var expectedVersion = PortableGitExpectedVersion;
+            if (fileSystem.ReadAllText(versionFile).Trim() != expectedVersion)
+            {
+                logger.Warning("Package '{0}' out of date, wanted {1}", target, expectedVersion);
+
+                try
+                {
+                    var parentDirectory = fileSystem.GetParentDirectory(versionFile);
+                    fileSystem.DeleteAllFiles(parentDirectory);
+                }
+                catch (Exception ex)
+                {
+                    logger.Warning(ex, "Failed to remove {0}", target);
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool IsGitLfsExtracted()
+        {
+            logger.Debug("PackageDestinationDirectory: {0}", PackageDestinationDirectory);
+
+            var gitLfs = fileSystem.Combine(PackageDestinationDirectory, @"mingw32\libexec\git-core\git-lfs.exe");
+            if (!fileSystem.FileExists(gitLfs))
+            {
+                logger.Warning("git-lfs.exe not found");
+                return false;
+            }
+
+            return true;
+        }
+
         public void ExtractGitIfNeeded(IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
@@ -76,59 +134,46 @@ namespace GitHub.Api
             }
         }
 
-        public bool IsExtracted()
-        {
-            return IsPortableGitExtracted() && IsGitLfsExtracted();
-        }
-
-        public bool IsGitLfsExtracted()
-        {
-            throw new NotImplementedException();
-        }
-
         public void ExtractGitLfsIfNeeded(IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
-            throw new NotImplementedException();
-        }
-
-        private bool IsPortableGitExtracted()
-        {
-            var target = PackageDestinationDirectory;
-
-            var git = fileSystem.Combine(target, "cmd", "git.exe");
-            if (!fileSystem.FileExists(git))
+            if (IsGitLfsExtracted())
             {
-                logger.Debug("git.exe not found");
-                return false;
+                logger.Info("Already extracted {0}, returning", WindowsPortableGitZip);
+                return;
             }
 
-            var versionFile = fileSystem.Combine(target, "VERSION");
-            if (!fileSystem.FileExists(versionFile))
+            var tempPath = GetTemporaryPath();
+
+            var archiveFilePath = fileSystem.Combine(environment.ExtensionInstallPath, WindowsGitLfsZip);
+
+            try
             {
-                logger.Debug("VERSION not found");
-                return false;
+                fileSystem.CreateDirectory(tempPath);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Couldn't create temp dir: " + tempPath);
+                throw;
             }
 
-            var expectedVersion = PortableGitExpectedVersion;
-            if (fileSystem.ReadAllText(versionFile).Trim() != expectedVersion)
+            if (!fileSystem.FileExists(archiveFilePath))
             {
-                logger.Warning("Package '{0}' out of date, wanted {1}", target, expectedVersion);
-
-                try
-                {
-                    var parentDirectory = fileSystem.GetParentDirectory(versionFile);
-                    fileSystem.DeleteAllFiles(parentDirectory);
-                }
-                catch (Exception ex)
-                {
-                    logger.Warning(ex, "Failed to remove {0}", target);
-                }
-
-                return false;
+                var exception = new FileNotFoundException("Could not find file", archiveFilePath);
+                logger.Error(exception, "Trying to extract {0}, but it doesn't exist", archiveFilePath);
+                throw exception;
             }
 
-            return true;
+            try
+            {
+                sharpZipLibHelper.ExtractZipFile(archiveFilePath, tempPath, cancellationToken, zipFileProgress,
+                    estimatedDurationProgress);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
+                throw;
+            }
         }
 
         private string GetTemporaryPath()
