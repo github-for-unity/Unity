@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using System.ComponentModel;
-using GitHub.Api;
+using System.IO;
 
 namespace GitHub.Unity
 {
@@ -12,21 +12,27 @@ namespace GitHub.Unity
 
         public event Action<string> OnOutputData;
         public event Action<string> OnErrorData;
+        public event Action<IProcess> OnStart;
         public event Action<IProcess> OnExit;
 
         private Process process;
         private ProcessState state;
+        private bool hasOutputData;
+        private StreamWriter input;
 
         public ProcessWrapper(ProcessStartInfo psi)
         {
             process = new Process { StartInfo = psi, EnableRaisingEvents = true };
             process.OutputDataReceived += (s, e) =>
             {
+                //logger.Trace("OutputData \"" + (e.Data == null ? "'null'" : e.Data) + "\" exited:" + process.HasExited);
+
+                hasOutputData = true;
                 if (process.HasExited)
                 {
                     state = ProcessState.Finished;
                 }
-                //logger.Debug("Output - \"" + e.Data + "\" exited:" + process.HasExited);
+                
                 try
                 {
                     OnOutputData.SafeInvoke(e.Data);
@@ -36,35 +42,54 @@ namespace GitHub.Unity
                     logger.Debug(ex);
                 }
 
+                if (e.Data == null)
+                {
+                    Finished();
+                }
             };
+
             process.ErrorDataReceived += (s, e) =>
             {
+                if (e.Data != null)
+                {
+                    logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\" exited:" + process.HasExited);
+                }
+
                 if (process.HasExited)
                 {
                     state = ProcessState.Finished;
                 }
 
-                if (e.Data == null) return;
-
-                logger.Debug("Error - \"" + e.Data + "\" exited:" + process.HasExited);
-
-                OnErrorData.SafeInvoke(e.Data);
-                if (process.HasExited)
+                try
                 {
-                    OnExit.SafeInvoke(this);
+                    OnErrorData.SafeInvoke(e.Data);
+                }
+                catch (Exception ex)
+                {
+                    logger.Debug(ex);
+                }
+
+                if (e.Data == null && !hasOutputData)
+                {
+                    Finished();
                 }
             };
             process.Exited += (s, e) =>
             {
-                state = ProcessState.Finished;
-                logger.Debug("Exit");
-                OnExit.SafeInvoke(this);
+                //logger.Trace("Exited");
+
+                if (!hasOutputData)
+                {
+                    state = ProcessState.Finished;
+                    //logger.Debug("Exit");
+                    Finished();
+                }
             };
         }
 
         public void Run()
         {
-            logger.Debug("Run: ");
+            //logger.Debug("Run");
 
             try
             {
@@ -86,16 +111,19 @@ namespace GitHub.Unity
                     sb.AppendLine();
                 }
                 OnErrorData.SafeInvoke(String.Format("{0} {1}", ex.Message, sb.ToString()));
-                OnExit.SafeInvoke(this);
+                Finished();
                 return;
             }
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+            input = new StreamWriter(process.StandardInput.BaseStream, new UTF8Encoding(false));
+
+            OnStart.SafeInvoke(this);
         }
 
         public bool WaitForExit(int milliseconds)
         {
-            logger.Debug("WaitForExit - time: " + milliseconds + "ms");
+            //logger.Debug("WaitForExit - time: {0}ms", milliseconds);
 
             // Workaround for a bug in which some data may still be processed AFTER this method returns true, thus losing the data.
             // http://connect.microsoft.com/VisualStudio/feedback/details/272125/waitforexit-and-waitforexit-int32-provide-different-and-undocumented-implementations
@@ -109,7 +137,7 @@ namespace GitHub.Unity
 
         public void WaitForExit()
         {
-            logger.Debug("WaitForExit");
+            //logger.Debug("WaitForExit");
             process.WaitForExit();
         }
 
@@ -123,9 +151,33 @@ namespace GitHub.Unity
             process.Kill();
         }
 
+        private void Finished()
+        {
+            if (HasFinished)
+            {
+                return;
+            }
+
+            //logger.Trace("Finished");
+            HasFinished = true;
+            OnExit.SafeInvoke(this);
+        }
+
         public int Id { get { return process.Id; } }
 
         public bool HasExited { get { return state == ProcessState.Finished || state == ProcessState.Exception; } }
+        public bool HasFinished { get; private set; }
+        public bool Successful
+        {
+            get
+            {
+                if (!HasExited)
+                    return false;
+                return state != ProcessState.Exception && process.ExitCode == 0;
+            }
+        }
+
+        public StreamWriter StandardInput { get { return input; } }
 
         enum ProcessState
         {

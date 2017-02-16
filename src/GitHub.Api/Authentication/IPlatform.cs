@@ -1,8 +1,10 @@
-﻿namespace GitHub.Api
+﻿using GitHub.Unity;
+
+namespace GitHub.Api
 {
-    public interface IPlatform
+    interface IPlatform
     {
-        ICredentialManager CredentialManager { get; }
+        ICredentialManager GetCredentialManager(IProcessManager processManager);
         IGitEnvironment GitEnvironment { get; }
     }
 }

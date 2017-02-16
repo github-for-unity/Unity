@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("GitHub for Unity")]
 [assembly: AssemblyVersion(System.AssemblyVersionInformation.Version)]
 [assembly: AssemblyFileVersion(System.AssemblyVersionInformation.Version)]
+[assembly: AssemblyInformationalVersion(System.AssemblyVersionInformation.Version)]
 [assembly: ComVisible(false)]
 [assembly: AssemblyCompany("GitHub, Inc.")]
 [assembly: AssemblyCopyright("Copyright © GitHub, Inc. 2017")]
@@ -15,8 +16,13 @@ using System.Runtime.InteropServices;
 [assembly: NeutralResourcesLanguage("en-US")]
 
 [assembly: InternalsVisibleTo("GitHub.Unity.Tests", AllInternalsVisible = true)]
+[assembly: InternalsVisibleTo("GitHub.Api.Tests", AllInternalsVisible = true)]
+
 //Required for NSubstitute
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2", AllInternalsVisible = true)]
+
+//Required for Unity compilation
+[assembly: InternalsVisibleTo("Assembly-CSharp-Editor", AllInternalsVisible = true)]
 
 namespace System
 {

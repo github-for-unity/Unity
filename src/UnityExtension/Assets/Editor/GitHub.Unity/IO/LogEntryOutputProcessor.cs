@@ -8,7 +8,7 @@ namespace GitHub.Unity
 {
     class LogEntryOutputProcessor : BaseOutputProcessor
     {
-        private readonly IGitStatusEntryFactory gitStatusEntryFactory;
+        private readonly IGitObjectFactory gitObjectFactory;
         public event Action<GitLogEntry> OnLogEntry;
         private ProcessingPhase phase;
         private string authorName;
@@ -29,9 +29,9 @@ namespace GitHub.Unity
 
         private StringBuilder sb;
 
-        public LogEntryOutputProcessor(IGitStatusEntryFactory gitStatusEntryFactory)
+        public LogEntryOutputProcessor(IGitObjectFactory gitObjectFactory)
         {
-            this.gitStatusEntryFactory = gitStatusEntryFactory;
+            this.gitObjectFactory = gitObjectFactory;
             Reset();
         }
 
@@ -290,7 +290,7 @@ namespace GitHub.Unity
                             break;
                     }
 
-                    changes.Add(gitStatusEntryFactory.Create(file, status, originalPath));
+                    changes.Add(gitObjectFactory.CreateGitStatusEntry(file, status, originalPath));
 
                     break;
 
@@ -311,7 +311,7 @@ namespace GitHub.Unity
 
         private void HandleUnexpected(string line)
         {
-            Logger.Error(@"Unexpected input in phase: {0}{1}""{2}""", phase, Environment.NewLine, line);
+            Logger.Error("Unexpected Input:\"{0}\" Phase:{1}", line, phase);
             Reset();
         }
 

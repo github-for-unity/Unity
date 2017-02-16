@@ -1,4 +1,5 @@
 using System;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
@@ -8,22 +9,32 @@ namespace GitHub.Unity
         private Action<GitStatus> callback;
         private GitStatus gitStatus;
 
-        private GitStatusTask(IGitStatusEntryFactory gitStatusEntryFactory, Action<GitStatus> onSuccess, Action onFailure = null)
-            : base(null, onFailure)
+        public GitStatusTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+                IGitObjectFactory gitObjectFactory, Action<GitStatus> onSuccess, Action onFailure = null)
+            : base(environment, processManager, resultDispatcher,
+                  null, onFailure)
         {
             callback = onSuccess;
-            processor = new StatusOutputProcessor(gitStatusEntryFactory);
+            processor = new StatusOutputProcessor(gitObjectFactory);
         }
 
         public static void Schedule(Action<GitStatus> onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitStatusTask(EntryPoint.GitStatusEntryFactory, onSuccess, onFailure));
+            Tasks.Add(new GitStatusTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                EntryPoint.GitObjectFactory, onSuccess, onFailure));
         }
 
-        protected override void OnProcessOutputUpdate()
+        protected override void OnOutputComplete(string output, string errors)
         {
-            Logger.Debug("Done");
-            Tasks.ScheduleMainThread(() => DeliverResult());
+            if (TaskResultDispatcher != null)
+            {
+                TaskResultDispatcher.ReportSuccess(DeliverResult);
+            }
+            else
+            {
+                DeliverResult();
+            }
         }
 
         protected override ProcessOutputManager HookupOutput(IProcess process)

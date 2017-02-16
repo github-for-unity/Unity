@@ -1,122 +1,71 @@
-using GitHub.Api;
 using System;
 using System.IO;
-using System.Linq;
-using UnityEngine;
+using System.Threading;
 
 namespace GitHub.Unity
 {
-    class FileLogAdapter : ILogging
+    class FileLogAdapter : LogAdapterBase
     {
         private static readonly object lk = new object();
-        private readonly string contextPrefix;
         private readonly string filePath;
 
-        private string Prefix
+        public FileLogAdapter(string path, string context) : base(context)
         {
-            get
-            {
-                var time = DateTime.Now.ToString("HH:mm:ss tt");
-                var threadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                return string.Format("{0} [{1}] <{2}> ", time, threadId, contextPrefix);
-            }
+            filePath = path;
         }
 
-        public FileLogAdapter(string path, string context)
+        private string GetMessage(string level, string message)
         {
-            contextPrefix = string.IsNullOrEmpty(context) 
-                ? "GitHub" 
-                : string.Format("GitHub:{0}", context);
-            filePath = path;
+            var time = DateTime.Now.ToString("HH:mm:ss tt");
+            var threadId = Thread.CurrentThread.ManagedThreadId;
+            return string.Format("{0} {1} [{2,2}] {3,-35} {4}{5}", time, level, threadId, ContextPrefix, message, Environment.NewLine);
+        }
+
+        public override void Info(string message)
+        {
+            WriteLine("INFO", message);
+        }
+
+        public override void Debug(string message)
+        {
+#if DEBUG
+            WriteLine("DEBUG", message);
+#endif
+        }
+
+        public override void Trace(string message)
+        {
+#if DEBUG
+            WriteLine("TRACE", message);
+#endif
+        }
+
+        public override void Warning(string message)
+        {
+            WriteLine("WARN", message);
+        }
+
+        public override void Error(string message)
+        {
+            WriteLine("ERROR", message);
+        }
+
+        private void WriteLine(string level, string message)
+        {
+            Write(GetMessage(level, message));
         }
 
         private void Write(string message)
         {
-            lock (lk)
+            lock(lk)
             {
                 try
                 {
                     File.AppendAllText(filePath, message);
                 }
-                catch { }
+                catch
+                {}
             }
-        }
-
-        private void WriteLine(string message)
-        {
-            message = message + Environment.NewLine;
-            Write(message);
-        }
-
-        private void Write(string format, params object[] objects)
-        {
-            WriteLine(String.Format(Prefix + format, objects));
-        }
-
-        public void Info(string message)
-        {
-            Write("INFO ");
-            WriteLine(message);
-        }
-
-        public void Info(string format, params object[] objects)
-        {
-            Write("INFO ");
-            Write(format, objects);
-        }
-
-        public void Debug(string message)
-        {
-#if DEBUG
-            Write("DEBUG ");
-            WriteLine(message);
-#endif
-        }
-
-        public void Debug(string format, params object[] objects)
-        {
-#if DEBUG
-            Write("DEBUG ");
-            Write(format, objects);
-#endif
-        }
-
-        public void Debug(Exception ex)
-        {
-#if DEBUG
-            Write("DEBUG ");
-            WriteLine(ex.Message);
-            WriteLine(ex.StackTrace);
-            var caller = Environment.StackTrace;
-            var stack = caller.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
-            if (stack.Length > 2)
-                caller = String.Join(Environment.NewLine, stack.Skip(2).ToArray());
-            WriteLine(caller);
-#endif
-        }
-
-        public void Warning(string message)
-        {
-            Write("WARN ");
-            WriteLine(message);
-        }
-
-        public void Warning(string format, params object[] objects)
-        {
-            Write("WARN ");
-            Write(format, objects);
-        }
-
-        public void Error(string message)
-        {
-            Write("ERROR ");
-            WriteLine(message);
-        }
-
-        public void Error(string format, params object[] objects)
-        {
-            Write("ERROR ");
-            Write(format, objects);
         }
     }
 }

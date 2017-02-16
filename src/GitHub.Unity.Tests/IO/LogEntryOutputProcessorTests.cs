@@ -17,7 +17,7 @@ namespace GitHub.Unity.Tests
             var env = new DefaultEnvironment();
             env.UnityProjectPath = @"D:\code\github\UnityInternal\src\UnityExtension";
             var genv = new WindowsGitEnvironment(env, fs);
-            var fact = new GitStatusEntryFactory(env, fs, genv);
+            var fact = new GitObjectFactory(env, genv, fs);
             var pm = new ProcessManager(env, genv, fs);
             var results = pm.GetGitLogEntries(@"D:\code\github\mono", env, fs, genv);
         }
@@ -79,10 +79,10 @@ namespace GitHub.Unity.Tests
 
         private void AssertProcessOutput(IEnumerable<string> lines, GitLogEntry[] expected)
         {
-            var gitStatusEntryFactory = CreateGitStatusEntryFactory();
+            var gitObjectFactory = CreateGitObjectFactory();
 
             var results = new List<GitLogEntry>();
-            var outputProcessor = new LogEntryOutputProcessor(gitStatusEntryFactory);
+            var outputProcessor = new LogEntryOutputProcessor(gitObjectFactory);
             outputProcessor.OnLogEntry += logEntry => { results.Add(logEntry); };
 
             foreach (var line in lines)

@@ -1,10 +1,12 @@
 using System.Diagnostics;
+using System.Threading.Tasks;
+using GitHub.Unity;
 
 namespace GitHub.Api
 {
-    public interface IGitEnvironment
+    interface IGitEnvironment
     {
-        string FindGitInstallationPath();
+        Task<string> FindGitInstallationPath(IProcessManager processManager);
 
         string GetGitExecutableExtension();
 

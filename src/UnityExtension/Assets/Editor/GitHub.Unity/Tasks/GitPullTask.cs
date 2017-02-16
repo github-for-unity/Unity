@@ -1,29 +1,27 @@
 using System;
 using System.Text;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
-    class GitPullTask : GitTask
+    class GitPullTask : GitNetworkTask
     {
         private readonly string arguments;
 
-        private GitPullTask(Action onSuccess, Action onFailure)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
-        {
-            arguments = "pull";
-        }
-
-        private GitPullTask(string repository, string branch,
+        private GitPullTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+            ICredentialManager credentialManager, IUIDispatcher uiDispatcher,
+            string remote, string branch,
             Action onSuccess, Action onFailure)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
+            : base(environment, processManager, resultDispatcher, credentialManager, uiDispatcher,
+                  str => onSuccess.SafeInvoke(), onFailure)
         {
             var stringBuilder = new StringBuilder();
             stringBuilder.Append("pull");
 
-            if (!String.IsNullOrEmpty(repository))
+            if (!String.IsNullOrEmpty(remote))
             {
                 stringBuilder.Append(" ");
-                stringBuilder.Append(repository);
+                stringBuilder.Append(remote);
             }
 
             if (!String.IsNullOrEmpty(branch))
@@ -35,10 +33,14 @@ namespace GitHub.Unity
             arguments = stringBuilder.ToString();
         }
 
-        public static void Schedule(string repository, string branch,
+        public static void Schedule(string remote, string branch,
             Action onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitPullTask(repository, branch, onSuccess, onFailure));
+            var uiDispatcher = new AuthenticationUIDispatcher();
+            Tasks.Add(new GitPullTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                EntryPoint.Platform.GetCredentialManager(EntryPoint.ProcessManager), uiDispatcher,
+                remote, branch, onSuccess, onFailure));
         }
 
         public override bool Blocking { get { return false; } }

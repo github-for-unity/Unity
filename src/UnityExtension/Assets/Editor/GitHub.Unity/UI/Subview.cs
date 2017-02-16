@@ -1,54 +1,129 @@
+using System;
+using UnityEditor;
 using UnityEngine;
-using Debug = System.Diagnostics.Debug;
 
 namespace GitHub.Unity
 {
-    abstract class Subview : IView
+    abstract class BaseWindow :  EditorWindow, IView
     {
-        private const string NullParentError = "Subview parent is null";
+        private bool finishCalled = false;
 
-        protected IView parent;
+        public event Action<bool> OnClose;
+
+        public virtual void Redraw()
+        {
+            Repaint();
+        }
 
         public virtual void Refresh()
+        {
+        }
+        public virtual void Finish(bool result)
+        {
+            finishCalled = true;
+            RaiseOnClose(result);
+        }
+
+        protected void RaiseOnClose(bool result)
+        {
+            OnClose.SafeInvoke(result);
+        }
+
+        public virtual void Awake()
+        {
+        }
+
+        public virtual void OnEnable()
+        {
+        }
+
+        public virtual void OnDisable()
+        {
+        }
+
+        public virtual void Update() {}
+        public virtual void OnGUI() {}
+        public virtual void OnDestroy()
+        {
+            if (!finishCalled)
+            {
+                RaiseOnClose(false);
+            }
+
+        }
+        public virtual void OnSelectionChange()
         {}
 
-        public abstract void OnGUI();
+        public virtual Rect Position { get { return position; } }
 
-        public void Redraw()
+        private ILogging logger;
+        protected ILogging Logger
         {
-            parent.Redraw();
+            get
+            {
+                if (logger == null)
+                    logger = Logging.GetLogger(GetType());
+                return logger;
+            }
+        }
+    }
+
+    abstract class Subview : IView
+    {
+        public event Action<bool> OnClose;
+
+        private const string NullParentError = "Subview parent is null";
+        protected IView Parent { get; private set; }
+
+        public virtual void Initialize(IView parent)
+        {
+            Debug.Assert(parent != null, NullParentError);
+            Parent = parent;
         }
 
-        public void Show(IView parentView)
-        {
-            Debug.Assert(parentView != null, NullParentError);
+        public virtual void OnShow()
+        {}
 
-            parent = parentView;
-            OnShow();
-        }
+        public virtual void OnHide()
+        {}
+
+        public virtual void OnUpdate()
+        {}
+
+        public virtual void OnGUI()
+        {}
+
+        public virtual void OnDestroy()
+        {}
 
         public virtual void OnSelectionChange()
         {}
 
-        protected virtual void OnShow()
+        public virtual void Refresh()
         {}
 
-        protected virtual void OnHide()
-        {}
-
-        private void OnEnable()
+        public virtual void Redraw()
         {
-            if (parent != null)
+            Parent.Redraw();
+        }
+
+        public virtual void Finish(bool result)
+        {
+            Parent.Finish(result);
+        }
+
+        public virtual Rect Position { get { return Parent.Position; } }
+
+
+        private ILogging logger;
+        protected ILogging Logger
+        {
+            get
             {
-                OnShow();
+                if (logger == null)
+                    logger = Logging.GetLogger(GetType());
+                return logger;
             }
         }
-
-        private void OnDisable()
-        {
-            OnHide();
-        }
-
-        public Rect Position { get { return parent.Position; } }
     }
 }
