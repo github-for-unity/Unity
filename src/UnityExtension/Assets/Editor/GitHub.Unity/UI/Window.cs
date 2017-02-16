@@ -50,11 +50,6 @@ namespace GitHub.Unity
             GetWindow<Window>(type).Show();
         }
 
-        private void OnAccountMenuClick(object obj)
-        {
-          Debug.Log("Click");
-        }
-
         public override void OnEnable()
         {
             base.OnEnable();
@@ -181,18 +176,26 @@ namespace GitHub.Unity
                 if(GUILayout.Button("•", Styles.AccountDropdownButtonStyle))
                   DoAccountDropdown();
             }
-            
+
             EditorGUILayout.EndHorizontal();
         }
 
-        public void DoAccountDropdown()
+        private void DoAccountDropdown()
         {
           GenericMenu accountMenu = new GenericMenu();
 
-          accountMenu.AddItem(new GUIContent("MenuItem1"), false, OnAccountMenuClick, "item 1");
+          accountMenu.AddItem(new GUIContent("Sign in"), false, OnAccountMenuClick, "sign in");
+          accountMenu.AddItem(new GUIContent("Go to Profile"), false, OnAccountMenuClick, "profile");
           accountMenu.AddSeparator("");
-          accountMenu.AddItem(new GUIContent("MenuItem2"), false, OnAccountMenuClick, "item 2");
+          accountMenu.AddItem(new GUIContent("Sign out"), false, OnAccountMenuClick, "sign out");
+
           accountMenu.ShowAsContext();
+        }
+
+        private void OnAccountMenuClick(object obj)
+        {
+          Debug.Log("Click:");
+          Debug.Log(obj);
         }
 
         private bool ValidateSettings()
