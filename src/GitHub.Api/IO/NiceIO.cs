@@ -36,21 +36,7 @@ namespace GitHub.Unity
 {
     class NPathFileSystemProvider
     {
-        private static IFileSystem current;
-
-        public static IFileSystem Current
-        {
-            get
-            {
-                if (current != null)
-                {
-                    current = new FileSystem();
-                }
-
-                return current;
-            }
-            set { current = value; }
-        }
+        public static IFileSystem Current { get; set; }
     }
 
     public class NPath : IEquatable<NPath>, IComparable

@@ -47,13 +47,24 @@
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="AsyncBridge.Net35, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\AsyncBridge.Net35.0.2.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>$(SolutionDir)lib\5.5\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
     <Reference Include="Mono.Security">
-      <HintPath>..\..\lib\5.5\Mono.Security.dll</HintPath>
+      <HintPath>$(SolutionDir)lib\5.5\Mono.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="Rackspace.Threading, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bb62785d398726f0, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)packages\Rackspace.Threading.2.0.0-alpha001\lib\net35-client\Rackspace.Threading.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="ReadOnlyCollectionsInterfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET20\ReadOnlyCollectionsInterfaces.dll</HintPath>
@@ -76,6 +87,10 @@
     <Compile Include="Authentication\AppCredentialStore.cs" />
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
+    <Compile Include="Installer\IPortableGitManager.cs" />
+    <Compile Include="Installer\IZipHelper.cs" />
+    <Compile Include="Installer\PortableGitManager.cs" />
+    <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
     <Compile Include="GitClient.cs" />
     <Compile Include="GitConfig.cs" />
@@ -165,7 +180,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="resources\linux\.placeholder" />
+    <None Include="resources\mac\git-lfs-darwin-amd64-5d9dc1c.tar.gz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
+    <None Include="resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip" />
+    <None Include="resources\windows\PortableGit-2.11.1-32-bit.zip" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
