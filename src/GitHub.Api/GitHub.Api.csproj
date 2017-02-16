@@ -99,6 +99,8 @@
     <Compile Include="IGitClient.cs" />
     <Compile Include="IO\BaseOutputProcessor.cs" />
     <Compile Include="IO\FileSystem.cs" />
+    <Compile Include="IO\Watches\DefaultFileSystemWatchStrategy.cs" />
+    <Compile Include="IO\Watches\FileSystemWatch.cs" />
     <Compile Include="IO\GitRemote.cs" />
     <Compile Include="IO\GitRemoteFunction.cs" />
     <Compile Include="IO\IOutputProcessor.cs" />
@@ -107,6 +109,11 @@
     <Compile Include="IO\NiceIO.cs" />
     <Compile Include="IO\ProcessOutputManager.cs" />
     <Compile Include="IO\RemoteListOutputProcessor.cs" />
+    <Compile Include="IO\Watches\FileSystemWatchFactory.cs" />
+    <Compile Include="IO\Watches\IFileSystemWatch.cs" />
+    <Compile Include="IO\Watches\IFileSystemWatchFactory.cs" />
+    <Compile Include="IO\Watches\IFileSystemWatchListener.cs" />
+    <Compile Include="IO\Watches\IFileSystemWatchStrategy.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
