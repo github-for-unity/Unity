@@ -49,7 +49,7 @@ namespace GitHub.Unity.Tests
             fileSystem.FileExists(Arg.Any<string>()).Returns(info => {
                 var path1 = (string)info[0];
 
-                var result = false;
+                var result = true;
                 if (createFileSystemOptions.FilesThatExist != null)
                 {
                     result = createFileSystemOptions.FilesThatExist.Contains(path1);
@@ -69,7 +69,7 @@ namespace GitHub.Unity.Tests
             fileSystem.DirectoryExists(Arg.Any<string>()).Returns(info => {
                 var path1 = (string)info[0];
 
-                var result = false;
+                var result = true;
                 if (createFileSystemOptions.DirectoriesThatExist != null)
                 {
                     result = createFileSystemOptions.DirectoriesThatExist.Contains(path1);
