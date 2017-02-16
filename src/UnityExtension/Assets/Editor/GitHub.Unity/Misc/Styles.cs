@@ -74,6 +74,7 @@ namespace GitHub.Unity
             commitDescriptionFieldStyle,
             toggleMixedStyle,
             authHeaderBoxStyle,
+            accountDropdownButtonStyle,
             genericBoxStyle;
         static Texture2D
             modifiedStatusIcon,
@@ -91,7 +92,8 @@ namespace GitHub.Unity
             mergeIcon,
             dotIcon,
             repoIcon,
-            lockIcon;
+            lockIcon,
+            dropdownListIcon;
 
        static Color
            timelineBarColor;
@@ -400,6 +402,24 @@ namespace GitHub.Unity
           }
         }
 
+        public static GUIStyle AccountDropdownButtonStyle
+        {
+            get
+            {
+                if (accountDropdownButtonStyle == null)
+                {
+                    accountDropdownButtonStyle = new GUIStyle(GUI.skin.FindStyle("IN LockButton"));
+                    accountDropdownButtonStyle.name = "AccountDropdownButtonStyle";
+                    accountDropdownButtonStyle.normal.background = DropdownListIcon;
+                    accountDropdownButtonStyle.active.background = DropdownListIcon;
+
+                }
+                accountDropdownButtonStyle.margin = new RectOffset(3, 3, 2, 2);
+
+                return accountDropdownButtonStyle;
+            }
+        }
+
         public static GUIStyle GenericBoxStyle
         {
           get
@@ -574,6 +594,19 @@ namespace GitHub.Unity
                 }
 
                 return lockIcon;
+            }
+        }
+
+        public static Texture2D DropdownListIcon
+        {
+            get
+            {
+                if (dropdownListIcon == null)
+                {
+                        dropdownListIcon = Utility.GetIcon("dropdown-list-icon.png", "dropdown-list-icon@2x.png");
+                }
+
+                return dropdownListIcon;
             }
         }
 

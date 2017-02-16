@@ -167,6 +167,10 @@ namespace GitHub.Unity
                 }
 
                 GUILayout.FlexibleSpace();
+
+                Rect dropdownRect = EditorGUILayout.BeginVertical();
+                  GUILayout.Button("•", Styles.AccountDropdownButtonStyle);
+                GUILayout.EndVertical();
             }
             GUILayout.EndHorizontal();
         }
