@@ -2,19 +2,27 @@
 using System.IO;
 using System.Linq;
 using GitHub.Unity;
+using System.Collections.Generic;
 
 namespace GitHub.Api
 {
-    class GitClient : IGitClient
+    class GitClient : IGitClient, IDisposable
     {
         private static string[] emptyContents = new string[0];
         private static Func<string, string[]> fileReadAllLines = s => { try { return File.ReadAllLines(s); } catch { return emptyContents; } };
 
-        public string RepositoryPath { get; }
-        private readonly string dotGitPath;
+        private readonly NPath dotGitPath;
+        private readonly NPath refsPath;
         private readonly IFileSystem fs;
         private readonly IProcessManager processManager;
         private readonly GitConfig config;
+
+        private readonly Dictionary<string, ConfigBranch> branches = new Dictionary<string, ConfigBranch>();
+
+        private FileSystemWatcher headWatcher;
+        private FileSystemWatcher branchesWatcher;
+        private string head;
+        private ConfigBranch? activeBranch;
 
         public GitClient(string localPath, IFileSystem fs, IProcessManager processManager)
         {
@@ -22,24 +30,43 @@ namespace GitHub.Api
             Guard.ArgumentNotNull(fs, nameof(fs));
             Guard.ArgumentNotNull(processManager, nameof(processManager));
 
-            if (!Path.IsPathRooted(localPath))
-                localPath = fs.GetFullPath(localPath);
-            var path = FindRepositoryRoot(fs, localPath, Path.GetPathRoot(localPath));
+            var path = new NPath(localPath).MakeAbsolute();
+            path = FindRepositoryRoot(fs, path);
 
             if (path != null)
             {
                 RepositoryPath = path;
-                this.dotGitPath = Path.Combine(RepositoryPath, ".git");
                 this.fs = fs;
                 this.processManager = processManager;
+                dotGitPath = path.Combine(".git");
+                refsPath = dotGitPath.Combine("refs", "heads");
+
                 if (fs.FileExists(dotGitPath))
                 {
-                    dotGitPath = fileReadAllLines(dotGitPath)
+                    dotGitPath = dotGitPath.ReadAllLines()
                         .Where(x => x.StartsWith("gitdir:"))
                         .Select(x => x.Substring(7).Trim())
                         .First();
                 }
-                config = new GitConfig(Path.Combine(dotGitPath, "config"));
+                config = new GitConfig(dotGitPath.Combine("config"));
+                LoadBranches(refsPath, config.GetBranches().Where(x => x.IsTracking), "");
+                RefreshCurrentBranch();
+
+                headWatcher = new FileSystemWatcher();
+                headWatcher.Path = dotGitPath;
+                headWatcher.Filter = "HEAD";
+                headWatcher.NotifyFilter = NotifyFilters.LastWrite;
+                headWatcher.Changed += (s, e) => RefreshCurrentBranch();
+                headWatcher.EnableRaisingEvents = true;
+
+                branchesWatcher = new FileSystemWatcher();
+                branchesWatcher.Path = refsPath;
+                branchesWatcher.IncludeSubdirectories = true;
+                branchesWatcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName;
+                branchesWatcher.Renamed += (s, e) => UpdateBranchList(e.Name, e.OldName);
+                branchesWatcher.Created += (s, e) => UpdateBranchList(e.Name);
+                branchesWatcher.Deleted += (s, e) => UpdateBranchList(null, e.Name);
+                branchesWatcher.EnableRaisingEvents = true;
             }
         }
 
@@ -54,7 +81,7 @@ namespace GitHub.Api
             UriString cloneUrl = "";
             if (remote.Url != null)
                 cloneUrl = new UriString(remote.Url).ToRepositoryUrl();
-            return new Repository(this, Path.GetDirectoryName(RepositoryPath), cloneUrl, RepositoryPath);
+            return new Repository(this, new NPath(RepositoryPath).FileName, cloneUrl, RepositoryPath);
         }
 
         public ConfigRemote? GetActiveRemote(string defaultRemote = "origin")
@@ -62,7 +89,7 @@ namespace GitHub.Api
             if (RepositoryPath == null)
                 return null;
 
-            var branch = GetActiveBranch();
+            var branch = ActiveBranch;
             if (branch.HasValue)
                 return branch.Value.Remote;
             var remote = config.GetRemote(defaultRemote);
@@ -71,38 +98,124 @@ namespace GitHub.Api
             return config.GetRemotes().FirstOrDefault();
         }
 
-        private string GetHead()
+        private void LoadBranches(NPath path, IEnumerable<ConfigBranch> configBranches, string prefix)
         {
-            return fileReadAllLines(Path.Combine(dotGitPath, "HEAD"))
-                .FirstOrDefault();
+            foreach (var file in path.Files())
+            {
+                var branchName = prefix + file.FileName;
+                var branch = configBranches.Where(x => x.Name == branchName).Select(x => x as ConfigBranch?).FirstOrDefault();
+                if (!branch.HasValue)
+                    branch = new ConfigBranch { Name = branchName };
+                branches.Add(branchName, branch.Value);
+            }
+
+            foreach (var dir in path.Directories())
+            {
+                LoadBranches(dir, configBranches, prefix + dir.FileName + "/");
+            }
         }
 
-        public ConfigBranch? GetActiveBranch()
+        private void UpdateBranchList(string name = null, string oldName = null)
+        {
+            name = name != null ? new NPath(name).MakeAbsolute().RelativeTo(refsPath).ToString(SlashMode.Forward) : null;
+            oldName = oldName != null ? new NPath(oldName).MakeAbsolute().RelativeTo(refsPath).ToString(SlashMode.Forward) : null;
+
+            // creation
+            if (name != null && oldName == null)
+            {
+                AddBranch(name);
+            }
+            // deletion
+            else if (name == null && oldName != null)
+            {
+                RemoveBranch(oldName);
+            }
+            // renaming
+            else if (name != null && oldName != null)
+            {
+                RemoveBranch(oldName);
+                AddBranch(name);
+            }
+            RefreshCurrentBranch();
+        }
+
+        private void RemoveBranch(string oldName)
+        {
+            if (branches.ContainsKey(oldName))
+                branches.Remove(oldName);
+        }
+
+        private void AddBranch(string name)
+        {
+            if (!branches.ContainsKey(name))
+            {
+                var branch = config.GetBranch(name);
+                if (!branch.HasValue)
+                    branch = new ConfigBranch { Name = name };
+                branches.Add(name, branch.Value);
+            }
+        }
+
+        private ConfigBranch? GetBranch(string name)
+        {
+            if (branches.ContainsKey(name))
+                return branches[name];
+            return null;
+        }
+
+        private void RefreshCurrentBranch()
         {
             if (RepositoryPath == null)
-                return null;
+                return;
 
-            var head = GetHead();
+            head = GetHead();
             if (head.StartsWith("ref:"))
             {
                 var branch = head.Substring(head.IndexOf("refs/heads/") + "refs/heads/".Length);
-                return config.GetBranch(branch);
+                activeBranch = GetBranch(branch);
             }
+            else
+                activeBranch = null;
+        }
+
+        private string GetHead()
+        {
+            return dotGitPath.Combine("HEAD")
+                .ReadAllLines()
+                .FirstOrDefault();
+        }
+
+        private static NPath FindRepositoryRoot(IFileSystem fs, NPath path)
+        {
+            if (path.Exists(".git"))
+                return path;
+
+            if (!path.IsRoot)
+                return FindRepositoryRoot(fs, path.Parent);
+
             return null;
         }
 
-        private static string FindRepositoryRoot(IFileSystem fs, string path, string root)
+        bool disposed;
+        void Dispose(bool disposing)
         {
-            var dotgit = Path.Combine(path, ".git");
-            if (fs.DirectoryExists(dotgit) || fs.FileExists(dotgit))
+            if (disposing)
             {
-                return path;
+                if (disposed) return;
+                branchesWatcher.Dispose();
+                headWatcher.Dispose();
+                disposed = true;
             }
-            if (path != root)
-            {
-                return FindRepositoryRoot(fs, fs.GetDirectoryName(path), root);
-            }
-            return null;
         }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected static ILogging Logger { get; } = Logging.GetLogger<GitClient>();
+        public string RepositoryPath { get; }
+        public ConfigBranch? ActiveBranch => activeBranch;
     }
 }

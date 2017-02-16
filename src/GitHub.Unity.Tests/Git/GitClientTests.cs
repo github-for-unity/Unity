@@ -15,14 +15,17 @@ namespace GitHub.Unity.Tests
         public void FindRepoRootTest()
         {
             var filesystem = new FileSystem();
+            NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = TestGitRepoPath;
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
 
-            var gitclient = new GitClient(environment.UnityProjectPath, filesystem, processManager);
-            Assert.AreEqual(TestGitRepoPath, gitclient.RepositoryPath);
+            using (var gitclient = new GitClient(environment.UnityProjectPath, filesystem, processManager))
+            {
+                Assert.AreEqual(new NPath(TestGitRepoPath).ToString(), gitclient.RepositoryPath);
+            }
         }
     }
 }

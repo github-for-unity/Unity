@@ -68,6 +68,7 @@ namespace GitHub.Unity
             appManager = new ApplicationManager(new MainThreadSynchronizationContext());
 
             DetermineUnityPaths(Environment, GitEnvironment, FileSystem);
+            NPathFileSystemProvider.Current = FileSystem;
 
             processManager = new ProcessManager(Environment, GitEnvironment, FileSystem, appManager.CancellationToken);
 
