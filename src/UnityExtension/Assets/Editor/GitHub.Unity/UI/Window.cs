@@ -118,32 +118,6 @@ namespace GitHub.Unity
 
             DoHeaderGUI();
 
-            Event currentEvent = Event.current;
-
-            if (currentEvent.type == EventType.MouseDown)
-            {
-              Vector2 mousePos = currentEvent.mousePosition;
-              Debug.Log("##############################");
-              Debug.Log("Mouse Position:");
-              Debug.Log(mousePos);
-
-              Debug.Log("dropdownButtonRect");
-              Debug.Log(dropdownButtonRect.position);
-              Debug.Log("##############################");
-
-              if (dropdownButtonRect.Contains(mousePos))
-              {
-                  Debug.Log("Contains");
-
-                  GenericMenu accountMenu = new GenericMenu();
-                  accountMenu.AddItem(new GUIContent("MenuItem1"), false, OnAccountMenuClick, "item 1");
-                  accountMenu.AddSeparator("");
-                  accountMenu.AddItem(new GUIContent("MenuItem2"), false, OnAccountMenuClick, "item 2");
-                  accountMenu.ShowAsContext();
-                  currentEvent.Use();
-              }
-            }
-
             // GUI for the active tab
             if (ActiveTab != null)
                 ActiveTab.OnGUI();
@@ -203,11 +177,22 @@ namespace GitHub.Unity
                 }
 
                 GUILayout.FlexibleSpace();
-            }
-            EditorGUILayout.EndHorizontal();
 
-            Rect mainNavButtonRect = new Rect(mainNavRect.xMax - 16, mainNavRect.y, 16, 16);
-            GUI.DrawTexture(mainNavButtonRect, Styles.DropdownListIcon);
+                if(GUILayout.Button("•", Styles.AccountDropdownButtonStyle))
+                  DoAccountDropdown();
+            }
+            
+            EditorGUILayout.EndHorizontal();
+        }
+
+        public void DoAccountDropdown()
+        {
+          GenericMenu accountMenu = new GenericMenu();
+
+          accountMenu.AddItem(new GUIContent("MenuItem1"), false, OnAccountMenuClick, "item 1");
+          accountMenu.AddSeparator("");
+          accountMenu.AddItem(new GUIContent("MenuItem2"), false, OnAccountMenuClick, "item 2");
+          accountMenu.ShowAsContext();
         }
 
         private bool ValidateSettings()
