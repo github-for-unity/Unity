@@ -1,11 +1,10 @@
-﻿using System.IO;
-using System.Linq;
-using GitHub.Unity;
+using System.IO;
 using NSubstitute;
+using System.Linq;
 
 namespace GitHub.Unity.Tests
 {
-    class SubstituteFactory
+    class TestBase
     {
         public IEnvironment CreateEnvironment(CreateEnvironmentOptions createEnvironmentOptions = null)
         {
@@ -22,6 +21,7 @@ namespace GitHub.Unity.Tests
             createFileSystemOptions = createFileSystemOptions ?? new CreateFileSystemOptions();
             if (currentDirectory == null)
                 currentDirectory = CreateFileSystemOptions.DefaultTemporaryPath;
+
             var fileSystem = Substitute.For<IFileSystem>();
             var realFileSystem = new FileSystem();
             var logger = Logging.GetLogger("TestFileSystem");
@@ -152,6 +152,7 @@ namespace GitHub.Unity.Tests
         {
             return Substitute.For<IZipHelper>();
         }
+
     }
     public struct FolderContentsKey
     {

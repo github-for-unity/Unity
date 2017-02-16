@@ -7,19 +7,8 @@ using GitHub.Unity;
 namespace GitHub.Unity.Tests
 {
     [TestFixture]
-    public class StatusOutputProcessorTests : BaseOutputProcessorTests
+    class StatusOutputProcessorTests : BaseOutputProcessorTests
     {
-        //[Test]
-        public void IntegrationTest()
-        {
-            var fs = new FileSystem();
-            var env = new DefaultEnvironment();
-            env.UnityProjectPath = @"D:\code\github\UnityInternal\src\UnityExtension";
-            var genv = new WindowsGitEnvironment(env, fs);
-            var fact = new GitObjectFactory(env, genv);
-            var pm = new ProcessManager(env, genv);
-            var results = pm.GetGitStatus(@"D:\code\github\UnityInternal", env, fs, genv);
-        }
 
         [Test]
         public void ShouldParseDirtyWorkingTreeUntracked()
@@ -180,7 +169,8 @@ namespace GitHub.Unity.Tests
 
             AssertProcessOutput(output, new GitStatus
             {
-                LocalBranch = "something"
+                LocalBranch = "something",
+                Entries = new List<GitStatusEntry>()
             });
         }
 
@@ -198,7 +188,8 @@ namespace GitHub.Unity.Tests
                 LocalBranch = "master",
                 RemoteBranch = "origin/master",
                 Ahead = 1,
-                Behind = 1
+                Behind = 1,
+                Entries = new List<GitStatusEntry>()
             });
         }
 
@@ -215,7 +206,8 @@ namespace GitHub.Unity.Tests
             {
                 LocalBranch = "master",
                 RemoteBranch = "origin/master",
-                Ahead = 1
+                Ahead = 1,
+                Entries = new List<GitStatusEntry>()
             });
         }
 
@@ -232,7 +224,8 @@ namespace GitHub.Unity.Tests
             {
                 LocalBranch = "master",
                 RemoteBranch = "origin/master",
-                Behind = 1
+                Behind = 1,
+                Entries = new List<GitStatusEntry>()
             });
         }
 
@@ -248,7 +241,8 @@ namespace GitHub.Unity.Tests
             AssertProcessOutput(output, new GitStatus
             {
                 LocalBranch = "master",
-                RemoteBranch = "origin/master"
+                RemoteBranch = "origin/master",
+                Entries = new List<GitStatusEntry>()
             });
         }
 

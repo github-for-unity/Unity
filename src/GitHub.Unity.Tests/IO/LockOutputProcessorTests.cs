@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace GitHub.Unity.Tests
 {
     [TestFixture]
-    public class LockOutputProcessorTests : BaseOutputProcessorTests
+    class LockOutputProcessorTests : BaseOutputProcessorTests
     {
         private void AssertProcessOutput(IEnumerable<string> lines, GitLock[] expected)
         {

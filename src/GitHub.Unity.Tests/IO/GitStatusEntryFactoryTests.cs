@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
@@ -9,23 +8,12 @@ using GitHub.Unity;
 namespace GitHub.Unity.Tests
 {
     [TestFixture]
-    public class GitStatusEntryFactoryTests
+    class GitStatusEntryFactoryTests : TestBase
     {
-        private static IFileSystem CreateFileSystem()
-        {
-            var filesystem = Substitute.For<IFileSystem>();
-            filesystem.Combine(Arg.Any<string>(), Arg.Any<string>())
-                .Returns(info => Path.Combine((string)info[0], (string)info[1]));
-
-            filesystem.GetFullPath(Arg.Any<string>())
-                .Returns(info => Path.GetFullPath((string)info[0]));
-            return filesystem;
-        }
-
-        private static IGitEnvironment CreateGitEnvironment(string gitRoot)
+        private static IGitEnvironment CreateGitEnvironment(string repositoryRoot)
         {
             var gitEnvironment = Substitute.For<IGitEnvironment>();
-            gitEnvironment.FindRoot(Arg.Any<string>()).Returns(gitRoot);
+            gitEnvironment.FindRoot(Arg.Any<string>()).Returns(repositoryRoot);
             return gitEnvironment;
         }
 
@@ -37,23 +25,29 @@ namespace GitHub.Unity.Tests
         }
 
         [Test]
-        public void CreateObjectWhenProjectRootIsChildOfGitRootFileInGitRoot()
+        public void CreateObjectWhenProjectRootIsChildOfGitRootAndFileInGitRoot()
         {
-            var gitEnvironment = CreateGitEnvironment(@"c:\Source\");
+            var repositoryRoot = "/Source".ToNPath();
+            var projectRoot = repositoryRoot.Combine("UnityProject");
 
-            var environment = CreateEnvironment(@"c:\Source\UnityProject");
+            var gitEnvironment = CreateGitEnvironment(repositoryRoot);
+            var environment = CreateEnvironment(projectRoot);
+            NPathFileSystemProvider.Current = CreateFileSystem(currentDirectory: repositoryRoot);
+            var root = repositoryRoot.ToString();
+            environment.RepositoryPath.Returns(root);
 
-            var path = @"Something.sln";
-            var fullPath = @"c:\Source\Something.sln";
-            string projectPath = null;
+            var filePath = "Something.sln";
+            var fullPath = repositoryRoot.Combine(filePath);
+            string projectPath = fullPath.RelativeTo(projectRoot);
+
+
             var status = GitFileStatus.Added;
 
-            var expected = new GitStatusEntry(path, fullPath, projectPath, status);
+            var expected = new GitStatusEntry(filePath, fullPath, projectPath, status);
 
-            var filesystem = CreateFileSystem();
             var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment);
 
-            var result = gitStatusEntryFactory.CreateGitStatusEntry(path, status);
+            var result = gitStatusEntryFactory.CreateGitStatusEntry(filePath, status);
 
             result.Should().Be(expected);
         }
@@ -61,22 +55,26 @@ namespace GitHub.Unity.Tests
         [Test]
         public void CreateObjectWhenProjectRootIsChildOfGitRootAndFileInProjectRoot()
         {
-            var gitEnvironment = CreateGitEnvironment(@"c:\Source\");
+            var repositoryRoot = "/Source".ToNPath();
+            var projectRoot = repositoryRoot.Combine("UnityProject");
 
-            var environment = CreateEnvironment(@"c:\Source\UnityProject");
+            var gitEnvironment = CreateGitEnvironment(repositoryRoot);
+            var environment = CreateEnvironment(projectRoot);
+            NPathFileSystemProvider.Current = CreateFileSystem(currentDirectory: repositoryRoot);
+            var root = repositoryRoot.ToString();
+            environment.RepositoryPath.Returns(root);
 
-            var path = @"UnityProject\Something.sln";
-            var fullPath = @"c:\Source\UnityProject\Something.sln";
-            string projectPath = null;
+            var filePath = "UnityProject/Something.sln".ToNPath();
+            var fullPath = repositoryRoot.Combine(filePath);
+            string projectPath = "Something.sln";
+
             var status = GitFileStatus.Added;
 
-            var expected = new GitStatusEntry(path, fullPath, projectPath, status);
-
-            var filesystem = CreateFileSystem();
+            var expected = new GitStatusEntry(filePath, fullPath, projectPath, status);
 
             var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment);
 
-            var result = gitStatusEntryFactory.CreateGitStatusEntry(path, status);
+            var result = gitStatusEntryFactory.CreateGitStatusEntry(filePath, status);
 
             result.Should().Be(expected);
         }
@@ -84,22 +82,26 @@ namespace GitHub.Unity.Tests
         [Test]
         public void CreateObjectWhenProjectRootIsSameAsGitRootAndFileInGitRoot()
         {
-            var gitEnvironment = CreateGitEnvironment(@"c:\UnityProject\");
+            var repositoryRoot = "/Source".ToNPath();
+            var projectRoot = repositoryRoot;
 
-            var environment = CreateEnvironment(@"c:\UnityProject\");
+            var gitEnvironment = CreateGitEnvironment(repositoryRoot);
+            var environment = CreateEnvironment(projectRoot);
+            NPathFileSystemProvider.Current = CreateFileSystem(currentDirectory: repositoryRoot);
+            var root = repositoryRoot.ToString();
+            environment.RepositoryPath.Returns(root);
 
-            var path = @"Something.sln";
-            var fullPath = @"c:\UnityProject\Something.sln";
-            string projectPath = null;
+            var filePath = "Something.sln";
+            var fullPath = repositoryRoot.Combine(filePath);
+
+            string projectPath = filePath;
             var status = GitFileStatus.Added;
 
-            var expected = new GitStatusEntry(path, fullPath, projectPath, status);
-
-            var filesystem = CreateFileSystem();
+            var expected = new GitStatusEntry(filePath, fullPath, projectPath, status);
 
             var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment);
 
-            var result = gitStatusEntryFactory.CreateGitStatusEntry(path, status);
+            var result = gitStatusEntryFactory.CreateGitStatusEntry(filePath, status);
 
             result.Should().Be(expected);
         }

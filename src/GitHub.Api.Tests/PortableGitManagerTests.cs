@@ -25,7 +25,7 @@ namespace GitHub.Unity.Tests
             Logging.LoggerFactory = s => new ConsoleLogAdapter(s);
 
             Factory = new SubstituteFactory();
-            NPathFileSystemProvider.Current = Factory.CreateFileSystem(new CreateFileSystemOptions());
+            NPathFileSystemProvider.Current = Factory.CreateFileSystem();
         }
 
         [Test]
@@ -40,9 +40,9 @@ namespace GitHub.Unity.Tests
                         new[] { @"c:\UserProfile\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db" },
                     RandomFileNames = new[] { "randomFile1", "randomFile2" },
                     FolderContents =
-                        new Dictionary<SubstituteFactory.FolderContentsKey, string[]> {
+                        new Dictionary<FolderContentsKey, string[]> {
                             {
-                                new SubstituteFactory.FolderContentsKey(
+                                new FolderContentsKey(
                                     CreateFileSystemOptions.DefaultTemporaryPath + @"\randomFile1.deleteme", "*",
                                     SearchOption.AllDirectories),
                                 new string[0]

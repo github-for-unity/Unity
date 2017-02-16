@@ -137,7 +137,23 @@ namespace GitHub.Unity
             };
 
             Environment = new DefaultEnvironment();
-            FileSystem = new FileSystem();
+
+            // figure out where we are
+            Environment.ExtensionInstallPath = DetermineInstallationPath();
+
+            // figure out where the project is
+            var assetsPath = Application.dataPath.ToNPath();
+            Environment.UnityAssetsPath = assetsPath.ToString(SlashMode.Forward);
+            Environment.UnityProjectPath = assetsPath.Parent.ToString(SlashMode.Forward);
+
+            // figure out where the repository root is
+            GitClient = new GitClient(Environment.UnityProjectPath);
+            Environment.Repository = GitClient.GetRepository();
+
+            // Make sure CurrentDirectory always returns the repository root, so all
+            // file system path calculations use it as a base
+            FileSystem = new FileSystem(Environment.Repository.LocalPath);
+
             Platform = new Platform(Environment, FileSystem);
             GitObjectFactory = new GitObjectFactory(Environment, GitEnvironment);
             ProcessManager = new ProcessManager(Environment, GitEnvironment, CancellationToken);
@@ -168,7 +184,7 @@ namespace GitHub.Unity
         {
             Utility.Initialize();
 
-            DetermineUnityPaths();
+            DetermineInstallationPath();
 
             var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
 
@@ -177,7 +193,7 @@ namespace GitHub.Unity
                 try
                 {
                     Environment.GitExecutablePath = DetermineGitInstallationPath();
-                    GitClient = new GitClient(Environment.UnityProjectPath, ProcessManager);
+                    
                     Environment.Repository = GitClient.GetRepository();
                 }
                 catch (Exception ex)
@@ -232,25 +248,18 @@ namespace GitHub.Unity
             }
         }
 
-        private void DetermineUnityPaths()
+        private string DetermineInstallationPath()
         {
-            var assetsPath = new NPath(Application.dataPath);
-            // Unity paths
-            Environment.UnityAssetsPath = assetsPath.ToString(SlashMode.Forward);
-            Environment.UnityProjectPath = assetsPath.Parent.ToString(SlashMode.Forward);
-
             // Juggling to find out where we got installed
             var shim = ScriptableObject.CreateInstance<RunLocationShim>();
             var script = MonoScript.FromScriptableObject(shim);
-            if (script == null)
+            string ret = String.Empty;
+            if (script != null)
             {
-                Environment.ExtensionInstallPath = string.Empty;
-            }
-            else
-            {
-                Environment.ExtensionInstallPath = new NPath(AssetDatabase.GetAssetPath(script)).Parent;
+                ret = new NPath(AssetDatabase.GetAssetPath(script)).Parent;
             }
             ScriptableObject.DestroyImmediate(shim);
+            return ret;
         }
 
         private string DetermineGitInstallationPath()

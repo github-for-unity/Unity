@@ -12,7 +12,6 @@ namespace GitHub.Unity
 
         private readonly NPath dotGitPath;
         private readonly NPath refsPath;
-        private readonly IProcessManager processManager;
         private readonly GitConfig config;
 
         private readonly Dictionary<string, ConfigBranch> branches = new Dictionary<string, ConfigBranch>();
@@ -22,18 +21,19 @@ namespace GitHub.Unity
         private string head;
         private ConfigBranch? activeBranch;
 
-        public GitClient(string localPath, IProcessManager processManager)
+        public GitClient(string localPath)
         {
             Guard.ArgumentNotNullOrWhiteSpace(localPath, nameof(localPath));
-            Guard.ArgumentNotNull(processManager, nameof(processManager));
 
-            var path = localPath.ToNPath().MakeAbsolute();
+            var path = localPath.ToNPath();
+            if (path.IsRelative)
+                throw new InvalidOperationException("GitClient localPath has to be absolute");
+
             path = FindRepositoryRoot(path);
 
             if (path != null)
             {
                 RepositoryPath = path;
-                this.processManager = processManager;
                 dotGitPath = path.Combine(".git");
                 refsPath = dotGitPath.Combine("refs", "heads");
 
@@ -45,25 +45,35 @@ namespace GitHub.Unity
                         .First();
                 }
                 config = new GitConfig(dotGitPath.Combine("config"));
-                LoadBranches(refsPath, config.GetBranches().Where(x => x.IsTracking), "");
-                RefreshCurrentBranch();
-
-                headWatcher = new FileSystemWatcher();
-                headWatcher.Path = dotGitPath;
-                headWatcher.Filter = "HEAD";
-                headWatcher.NotifyFilter = NotifyFilters.LastWrite;
-                headWatcher.Changed += (s, e) => RefreshCurrentBranch();
-                headWatcher.EnableRaisingEvents = true;
-
-                branchesWatcher = new FileSystemWatcher();
-                branchesWatcher.Path = refsPath;
-                branchesWatcher.IncludeSubdirectories = true;
-                branchesWatcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName;
-                branchesWatcher.Renamed += (s, e) => UpdateBranchList(e.Name, e.OldName);
-                branchesWatcher.Created += (s, e) => UpdateBranchList(e.Name);
-                branchesWatcher.Deleted += (s, e) => UpdateBranchList(null, e.Name);
-                branchesWatcher.EnableRaisingEvents = true;
             }
+        }
+
+        public void Start()
+        {
+            LoadBranches(refsPath, config.GetBranches().Where(x => x.IsTracking), "");
+            RefreshCurrentBranch();
+
+            headWatcher = new FileSystemWatcher();
+            headWatcher.Path = dotGitPath;
+            headWatcher.Filter = "HEAD";
+            headWatcher.NotifyFilter = NotifyFilters.LastWrite;
+            headWatcher.Changed += (s, e) => RefreshCurrentBranch();
+            headWatcher.EnableRaisingEvents = true;
+
+            branchesWatcher = new FileSystemWatcher();
+            branchesWatcher.Path = refsPath;
+            branchesWatcher.IncludeSubdirectories = true;
+            branchesWatcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName;
+            branchesWatcher.Renamed += (s, e) => UpdateBranchList(e.Name, e.OldName);
+            branchesWatcher.Created += (s, e) => UpdateBranchList(e.Name);
+            branchesWatcher.Deleted += (s, e) => UpdateBranchList(null, e.Name);
+            branchesWatcher.EnableRaisingEvents = true;
+        }
+
+        public void Stop()
+        {
+            headWatcher.EnableRaisingEvents = false;
+            branchesWatcher.EnableRaisingEvents = false;
         }
 
         public IRepository GetRepository()
@@ -198,8 +208,8 @@ namespace GitHub.Unity
             if (disposing)
             {
                 if (disposed) return;
-                branchesWatcher.Dispose();
-                headWatcher.Dispose();
+                branchesWatcher?.Dispose();
+                headWatcher?.Dispose();
                 disposed = true;
             }
         }

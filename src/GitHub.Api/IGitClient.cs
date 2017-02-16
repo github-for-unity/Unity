@@ -7,5 +7,7 @@ namespace GitHub.Unity
 
         ConfigRemote? GetActiveRemote(string defaultRemote = "origin");
         string RepositoryPath { get; }
+        void Start();
+        void Stop();
     }
 }
