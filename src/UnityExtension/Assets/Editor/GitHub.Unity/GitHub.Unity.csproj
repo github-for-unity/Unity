@@ -82,7 +82,7 @@
     <Compile Include="IO\ProcessWrapper.cs" />
     <Compile Include="IO\StatusOutputProcessor.cs" />
     <Compile Include="Logging\UnityLogAdapter.cs" />
-    <Compile Include="Misc\EntryPoint.cs" />
+    <Compile Include="EntryPoint.cs" />
     <Compile Include="Misc\Installer.cs" />
     <Compile Include="Misc\ProjectWindowInterface.cs" />
     <Compile Include="Misc\SimpleJson.cs" />
