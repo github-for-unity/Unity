@@ -316,7 +316,8 @@ namespace GitHub.Unity
                 // Top bar for scrolling to selection or clearing it
                 GUILayout.BeginHorizontal(EditorStyles.toolbar);
                 {
-                    if (GUILayout.Button(selection.ShortID, Styles.HistoryToolbarButtonStyle))
+                    // if (GUILayout.Button(selection.ShortID, Styles.HistoryToolbarButtonStyle))
+                    if (GUILayout.Button("Commit details", Styles.HistoryToolbarButtonStyle))
                     {
                         ScrollTo(selectionIndex);
                     }
@@ -331,7 +332,7 @@ namespace GitHub.Unity
                 if (changesetTree.Entries.Any())
                 {
                     detailsScroll = GUILayout.BeginScrollView(detailsScroll,
-                        GUILayout.MinHeight(Mathf.Min(changesetTree.Height, Position.height * MaxChangelistHeightRatio)));
+                        GUILayout.Height(250));
                     {
                         HistoryEntry(selection, GetEntryState(selectionIndex), false);
 
@@ -350,7 +351,7 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    HistoryEntry(selection, GetEntryState(selectionIndex), false);
+                    HistoryDetailsEntry(selection);
                 }
             }
 
@@ -536,6 +537,14 @@ namespace GitHub.Unity
 
             return false;
         }
+
+        private void HistoryDetailsEntry(GitLogEntry entry)
+        {
+            GUILayout.BeginVertical(GUILayout.Height(246));
+              GUILayout.Label("Hello");
+            GUILayout.EndVertical();
+        }
+
 
         private void Pull()
         {
