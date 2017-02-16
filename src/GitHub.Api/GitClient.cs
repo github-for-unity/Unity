@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using GitHub.Unity;
 using System.Collections.Generic;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     class GitClient : IGitClient, IDisposable
     {

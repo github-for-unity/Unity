@@ -7,7 +7,7 @@
     <ProjectGuid>{B389ADAF-62CC-486E-85B4-2D8B078DF763}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GitHub.Api</RootNamespace>
+    <RootNamespace>GitHub.Unity</RootNamespace>
     <AssemblyName>GitHub.Api</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -87,6 +87,12 @@
     <Compile Include="Authentication\AppCredentialStore.cs" />
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
+    <Compile Include="Git\GitFileStatus.cs" />
+    <Compile Include="Git\GitLock.cs" />
+    <Compile Include="Git\GitObjectFactory.cs" />
+    <Compile Include="Git\GitStatusEntry.cs" />
+    <Compile Include="Git\IGitObjectFactory.cs" />
+    <Compile Include="IApplicationManager.cs" />
     <Compile Include="Installer\IPortableGitManager.cs" />
     <Compile Include="Installer\IZipHelper.cs" />
     <Compile Include="Installer\PortableGitManager.cs" />
@@ -95,7 +101,6 @@
     <Compile Include="GitClient.cs" />
     <Compile Include="GitConfig.cs" />
     <Compile Include="Helpers\LineProcessor.cs" />
-    <Compile Include="Helpers\StringExtensions.cs" />
     <Compile Include="IGitClient.cs" />
     <Compile Include="IO\BaseOutputProcessor.cs" />
     <Compile Include="IO\FileSystem.cs" />
@@ -105,9 +110,11 @@
     <Compile Include="IO\IProcess.cs" />
     <Compile Include="IO\IProcessManager.cs" />
     <Compile Include="IO\NiceIO.cs" />
+    <Compile Include="IO\NPathFileSystemProvider.cs" />
     <Compile Include="IO\ProcessOutputManager.cs" />
     <Compile Include="IO\RemoteListOutputProcessor.cs" />
     <Compile Include="IRepository.cs" />
+    <Compile Include="ISettings.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -193,6 +200,7 @@
     <EmbeddedResource Include="Localization.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Localization.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using GitHub.Unity;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface IGitEnvironment
     {

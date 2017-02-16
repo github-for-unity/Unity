@@ -1,4 +1,4 @@
-﻿using GitHub.Api;
+﻿using GitHub.Unity;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -110,23 +110,6 @@ namespace GitHub.Unity
         public static ITaskResultDispatcher TaskResultDispatcher { get { return appManager.TaskResultDispatcher; } }
 
         public static bool Initialized { get; private set; }
-    }
-
-    interface IApplicationManager
-    {
-        CancellationToken CancellationToken { get; }
-        IEnvironment Environment { get; }
-        IFileSystem FileSystem { get; }
-        IPlatform Platform { get; }
-        IGitEnvironment GitEnvironment { get; }
-        IProcessManager ProcessManager { get; }
-        ICredentialManager CredentialManager { get; }
-        IGitClient GitClient { get; }
-        ITaskResultDispatcher TaskResultDispatcher { get; }
-        ISettings SystemSettings { get; }
-        ISettings LocalSettings { get; }
-        ISettings UserSettings { get; }
-        GitObjectFactory GitObjectFactory { get; }
     }
 
     class ApplicationManager : IApplicationManager

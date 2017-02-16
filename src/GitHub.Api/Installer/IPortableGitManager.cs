@@ -1,7 +1,7 @@
 using GitHub.Unity;
 using System;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface IPortableGitManager
     {

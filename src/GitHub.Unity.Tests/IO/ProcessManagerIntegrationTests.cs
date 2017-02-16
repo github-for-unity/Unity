@@ -4,7 +4,7 @@ using System.Linq;
 using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
-using GitHub.Api;
+using GitHub.Unity;
 
 namespace GitHub.Unity.Tests
 {

@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
-using GitHub.Api;
+using GitHub.Unity;
 using NSubstitute;
 
 namespace GitHub.Unity.Tests

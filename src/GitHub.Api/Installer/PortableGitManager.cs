@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using GitHub.Unity;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     class PortableGitManager : IPortableGitManager
     {
