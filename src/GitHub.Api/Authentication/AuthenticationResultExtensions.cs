@@ -1,4 +1,4 @@
-﻿namespace GitHub.Authentication
+﻿namespace GitHub.Api
 {
 
     static class AuthenticationResultExtensions
