@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
-using GitHub.Api;
+using GitHub.Unity;
 using NSubstitute;
 
 namespace GitHub.Unity.Tests
@@ -17,15 +17,17 @@ namespace GitHub.Unity.Tests
             return environment;
         }
 
-        public IFileSystem CreateFileSystem(CreateFileSystemOptions createFileSystemOptions = null)
+        public IFileSystem CreateFileSystem(CreateFileSystemOptions createFileSystemOptions = null, string currentDirectory = null)
         {
             createFileSystemOptions = createFileSystemOptions ?? new CreateFileSystemOptions();
-
+            if (currentDirectory == null)
+                currentDirectory = CreateFileSystemOptions.DefaultTemporaryPath;
             var fileSystem = Substitute.For<IFileSystem>();
             var realFileSystem = new FileSystem();
             var logger = Logging.GetLogger("TestFileSystem");
 
             fileSystem.DirectorySeparatorChar.Returns(realFileSystem.DirectorySeparatorChar);
+            fileSystem.GetCurrentDirectory().Returns(currentDirectory);
 
             fileSystem.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns(info => {
                 var path1 = (string)info[0];
@@ -47,7 +49,7 @@ namespace GitHub.Unity.Tests
             fileSystem.FileExists(Arg.Any<string>()).Returns(info => {
                 var path1 = (string)info[0];
 
-                var result = false;
+                var result = true;
                 if (createFileSystemOptions.FilesThatExist != null)
                 {
                     result = createFileSystemOptions.FilesThatExist.Contains(path1);
@@ -67,7 +69,7 @@ namespace GitHub.Unity.Tests
             fileSystem.DirectoryExists(Arg.Any<string>()).Returns(info => {
                 var path1 = (string)info[0];
 
-                var result = false;
+                var result = true;
                 if (createFileSystemOptions.DirectoriesThatExist != null)
                 {
                     result = createFileSystemOptions.DirectoriesThatExist.Contains(path1);
@@ -140,6 +142,9 @@ namespace GitHub.Unity.Tests
                 return result;
             });
 
+            fileSystem.GetFullPath(Arg.Any<string>())
+                      .Returns(info => Path.GetFullPath((string)info[0]));
+
             return fileSystem;
         }
 
@@ -147,19 +152,18 @@ namespace GitHub.Unity.Tests
         {
             return Substitute.For<IZipHelper>();
         }
+    }
+    public struct FolderContentsKey
+    {
+        public readonly string Path;
+        public readonly string Pattern;
+        public readonly SearchOption SearchOption;
 
-        public struct FolderContentsKey
+        public FolderContentsKey(string path, string pattern, SearchOption searchOption)
         {
-            public readonly string Path;
-            public readonly string Pattern;
-            public readonly SearchOption SearchOption;
-
-            public FolderContentsKey(string path, string pattern, SearchOption searchOption)
-            {
-                Path = path;
-                Pattern = pattern;
-                SearchOption = searchOption;
-            }
+            Path = path;
+            Pattern = pattern;
+            SearchOption = searchOption;
         }
     }
 }

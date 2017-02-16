@@ -1,4 +1,4 @@
-using GitHub.Api;
+using GitHub.Unity;
 using System.Collections.Generic;
 using System.IO;
 
@@ -6,6 +6,17 @@ namespace GitHub.Unity
 {
     class FileSystem : IFileSystem
     {
+        private readonly string currentDirectory;
+
+        public FileSystem()
+        {
+        }
+
+        public FileSystem(string currentDirectory)
+        {
+            this.currentDirectory = currentDirectory;
+        }
+
         public bool FileExists(string filename)
         {
             return File.Exists(filename);
@@ -113,6 +124,8 @@ namespace GitHub.Unity
 
         public string GetCurrentDirectory()
         {
+            if (currentDirectory != null)
+                return currentDirectory;
             return Directory.GetCurrentDirectory();
         }
 
