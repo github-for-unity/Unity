@@ -3,7 +3,8 @@ namespace GitHub.Api
     interface IGitClient
     {
         IRepository GetRepository();
-        ConfigBranch? GetActiveBranch();
+        ConfigBranch? ActiveBranch { get; }
+
         ConfigRemote? GetActiveRemote(string defaultRemote = "origin");
         string RepositoryPath { get; }
     }

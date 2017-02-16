@@ -69,7 +69,7 @@ namespace GitHub.Api
         {
             get
             {
-                return gitClient.GetActiveBranch()?.Name;
+                return gitClient.ActiveBranch?.Name;
             }
         }
 
