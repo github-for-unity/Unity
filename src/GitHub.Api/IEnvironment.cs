@@ -18,7 +18,7 @@ namespace GitHub.Api
         string UnityAssetsPath { get; set; }
         string UnityProjectPath { get; set; }
         string ExtensionInstallPath { get; set; }
-        string RepositoryRoot { get; set; }
+        string RepositoryPath { get; }
         string GitInstallPath { get; }
         IRepository Repository { get; set; }
     }

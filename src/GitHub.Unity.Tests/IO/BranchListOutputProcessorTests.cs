@@ -15,7 +15,7 @@ namespace GitHub.Unity.Tests
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = @"D:\code\github\UnityInternal\src\UnityExtension";
             var gitEnvironment = new WindowsGitEnvironment(environment, filesystem);
-            var fact = new GitObjectFactory(environment, gitEnvironment, filesystem);
+            var fact = new GitObjectFactory(environment, gitEnvironment);
             var pm = new ProcessManager(environment, gitEnvironment, filesystem);
             var results = pm.GetGitBranches(@"D:\code\github\UnityInternal");
         }

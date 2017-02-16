@@ -100,7 +100,7 @@ namespace GitHub.Unity
             // Only start the process if we haven't already reconnected to an existing instance
             if (firstTime)
             {
-                process = processManager.Configure(ProcessName, ProcessArguments, environment.RepositoryRoot);
+                process = processManager.Configure(ProcessName, ProcessArguments, environment.RepositoryPath);
             }
 
             process.OnExit += p =>
@@ -166,7 +166,7 @@ namespace GitHub.Unity
             // Only start the process if we haven't already reconnected to an existing instance
             if (firstTime)
             {
-                process = processManager.Configure(ProcessName, ProcessArguments, environment.RepositoryRoot);
+                process = processManager.Configure(ProcessName, ProcessArguments, environment.RepositoryPath);
             }
 
             //process.OnExit += p =>

@@ -22,7 +22,7 @@ namespace GitHub.Unity.Tests
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
 
-            using (var gitclient = new GitClient(environment.UnityProjectPath, filesystem, processManager))
+            using (var gitclient = new GitClient(environment.UnityProjectPath, processManager))
             {
                 Assert.AreEqual(new NPath(TestGitRepoPath).ToString(), gitclient.RepositoryPath);
             }
