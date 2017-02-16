@@ -71,6 +71,16 @@ namespace GitHub.Unity
             return Path.GetFileNameWithoutExtension(fileName);
         }
 
+        public IEnumerable<string> GetFiles(string path)
+        {
+            return Directory.GetFiles(path);
+        }
+
+        public IEnumerable<string> GetFiles(string path, string pattern)
+        {
+            return Directory.GetFiles(path, pattern);
+        }
+
         public IEnumerable<string> GetFiles(string path, string pattern, SearchOption searchOption)
         {
             return Directory.GetFiles(path, pattern, searchOption);

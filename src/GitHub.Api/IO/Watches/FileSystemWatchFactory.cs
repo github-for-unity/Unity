@@ -1,4 +1,4 @@
-namespace GitHub.Api.IO
+namespace GitHub.Api
 {
     class FileSystemWatchFactory : IFileSystemWatchFactory
     {

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace GitHub.Api.IO
+namespace GitHub.Api
 {
     interface IFileSystemWatch : IDisposable
     {

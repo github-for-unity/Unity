@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using GitHub.Api.IO;
+using GitHub.Api;
 
 namespace GitHub.Unity.Tests
 {

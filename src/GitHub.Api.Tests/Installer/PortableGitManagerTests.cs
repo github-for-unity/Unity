@@ -37,10 +37,10 @@ namespace GitHub.Unity.Tests
                     DirectoriesThatExist =
                         new[] { @"c:\UserProfile\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db" },
                     RandomFileNames = new[] { "randomFile1", "randomFile2" },
-                    FolderContents =
-                        new Dictionary<SubstituteFactory.FolderContentsKey, string[]> {
+                    ChildFiles =
+                        new Dictionary<SubstituteFactory.ContentsKey, string[]> {
                             {
-                                new SubstituteFactory.FolderContentsKey(
+                                new SubstituteFactory.ContentsKey(
                                     CreateFileSystemOptions.DefaultTemporaryPath + @"\randomFile1.deleteme", "*",
                                     SearchOption.AllDirectories),
                                 new string[0]
