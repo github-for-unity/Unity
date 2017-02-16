@@ -35,9 +35,9 @@ namespace GitHub.Unity.Tests
 
             var fileSystem =
                 Factory.CreateFileSystem(new CreateFileSystemOptions {
-                    FilesThatExist = new[] { WindowsPortableGitZip },
-                    DirectoriesThatExist =
-                        new[] { @"c:\UserProfile\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db" },
+                    //FilesThatExist = new[] { WindowsPortableGitZip },
+                    //DirectoriesThatExist =
+                    //    new[] { @"c:\UserProfile\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db" },
                     RandomFileNames = new[] { "randomFile1", "randomFile2" },
                     FolderContents =
                         new Dictionary<FolderContentsKey, string[]> {
@@ -49,15 +49,41 @@ namespace GitHub.Unity.Tests
                             }
                         }
                 });
-
+            
             NPathFileSystemProvider.Current = fileSystem;
+            var created = 0;
+            fileSystem.FileExists(Arg.Any<string>()).Returns(info =>
+            {
+                var path1 = (string)info[0];
 
+                if (path1 == @"c:\UserProfile\GitHubUnityDebug\PortableGit_f02737a78695063deace08e96d5042710d3e32db\cmd\git.exe")
+                    return false;
+                else if (path1.StartsWith(@"c:\tmp"))
+                {
+                    created++;
+                    var ret = created > 2;
+                    return ret;
+                }
+                return true;
+            });
+
+            fileSystem.DirectoryExists(Arg.Any<string>()).Returns(info =>
+            {
+                var path1 = (string)info[0];
+
+                if (path1.StartsWith(@"c:\tmp"))
+                {
+                    created++;
+                    var ret = created > 2;
+                    return ret;
+                }
+                return true;
+            });
             var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
-                sharpZipLibHelper);
+            sharpZipLibHelper);
             portableGitManager.ExtractGitIfNeeded();
 
-            const string shouldExtractTo = CreateFileSystemOptions.DefaultTemporaryPath + @"\randomFile1.deleteme";
-            sharpZipLibHelper.Received().ExtractZipFile(WindowsPortableGitZip, shouldExtractTo);
+            sharpZipLibHelper.Received().ExtractZipFile(WindowsPortableGitZip, Arg.Any<string>());
 
             //TODO: Write code to make sure NPath was used to copy files
         }
@@ -99,6 +125,7 @@ namespace GitHub.Unity.Tests
                     FileContents = new Dictionary<string, string[]>()
                 });
 
+            fileSystem.FileExists(Arg.Any<string>()).Returns(info => true);
             var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
                 sharpZipLibHelper);
             portableGitManager.IsGitLfsExtracted().Should().BeTrue();

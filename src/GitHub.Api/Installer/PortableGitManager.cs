@@ -76,7 +76,7 @@ namespace GitHub.Unity
 
             var archiveFilePath = environment.ExtensionInstallPath.ToNPath().Combine(WindowsPortableGitZip);
 
-            if (archiveFilePath.FileExists())
+            if (!archiveFilePath.FileExists())
             {
                 var exception = new FileNotFoundException("Could not find file", archiveFilePath);
                 logger.Error(exception, "Trying to extract {0}, but it doesn't exist", archiveFilePath);
