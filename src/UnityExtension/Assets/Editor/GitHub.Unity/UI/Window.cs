@@ -50,6 +50,11 @@ namespace GitHub.Unity
             GetWindow<Window>(type).Show();
         }
 
+        private void OnAccountMenuClick(object obj)
+        {
+          Debug.Log("Click");
+        }
+
         public override void OnEnable()
         {
             base.OnEnable();
@@ -114,7 +119,6 @@ namespace GitHub.Unity
             DoHeaderGUI();
 
             Event currentEvent = Event.current;
-            Debug.Log(currentEvent);
 
             if (currentEvent.type == EventType.MouseDown)
             {
@@ -201,9 +205,6 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
             }
             EditorGUILayout.EndHorizontal();
-
-            Debug.Log("mainNavRect YMax:");
-            Debug.Log(mainNavRect.xMax);
 
             Rect mainNavButtonRect = new Rect(mainNavRect.xMax - 16, mainNavRect.y, 16, 16);
             GUI.DrawTexture(mainNavButtonRect, Styles.DropdownListIcon);
