@@ -8,20 +8,8 @@ using GitHub.Unity;
 namespace GitHub.Unity.Tests
 {
     [TestFixture]
-    public class LogEntryOutputProcessorTests : BaseOutputProcessorTests
+    class LogEntryOutputProcessorTests : BaseOutputProcessorTests
     {
-        //[Test]
-        public void IntegrationTest_MonoRepo()
-        {
-            var fs = new FileSystem();
-            var env = new DefaultEnvironment();
-            env.UnityProjectPath = @"D:\code\github\UnityInternal\src\UnityExtension";
-            var genv = new WindowsGitEnvironment(env, fs);
-            var fact = new GitObjectFactory(env, genv);
-            var pm = new ProcessManager(env, genv);
-            var results = pm.GetGitLogEntries(@"D:\code\github\mono", env, fs, genv);
-        }
-
         [Test]
         public void ShouldParseZeroCommits()
         {

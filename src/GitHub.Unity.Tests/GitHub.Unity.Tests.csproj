@@ -83,6 +83,8 @@
     <Compile Include="Auth\LoginTests.cs" />
     <Compile Include="Git\GitClientTests.cs" />
     <Compile Include="IO\BranchListOutputProcessorTests.cs" />
+    <Compile Include="IO\CreateEnvironmentOptions.cs" />
+    <Compile Include="IO\CreateFileSystemOptions.cs" />
     <Compile Include="IO\LockOutputProcessorTests.cs" />
     <Compile Include="IO\RemoteListOutputProcessorTests.cs" />
     <Compile Include="Helpers\AssertExtensions.cs" />
@@ -99,6 +101,7 @@
     <Compile Include="IO\MacBasedGitEnvironmentTests.cs" />
     <Compile Include="IO\LinuxBasedGitEnvironmentTests.cs" />
     <Compile Include="IO\ProcessManagerIntegrationTests.cs" />
+    <Compile Include="IO\TestBase.cs" />
     <Compile Include="IO\WindowsGitEnvironmentTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="TestFixtureSetup.cs" />

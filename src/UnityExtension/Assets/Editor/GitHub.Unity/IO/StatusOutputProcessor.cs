@@ -11,16 +11,17 @@ namespace GitHub.Unity
             RegexOptions.Compiled);
 
         private readonly IGitObjectFactory gitObjectFactory;
-        private int ahead;
-        private int behind;
-        private List<GitStatusEntry> entries;
-        private string localBranch;
-        private string remoteBranch;
+        GitStatus gitStatus;
+        
+        //private int ahead;
+        //private int behind;
+        //private List<GitStatusEntry> entries;
+        //private string localBranch;
+        //private string remoteBranch;
 
         public StatusOutputProcessor(IGitObjectFactory gitObjectFactory)
         {
             this.gitObjectFactory = gitObjectFactory;
-            Reset();
         }
 
         public override void LineReceived(string line)
@@ -38,8 +39,10 @@ namespace GitHub.Unity
             }
             else
             {
+                Prepare();
+
                 var proc = new LineParser(line);
-                if (localBranch == null)
+                if (gitStatus.LocalBranch == null)
                 {
                     if (proc.Matches("##"))
                     {
@@ -64,11 +67,11 @@ namespace GitHub.Unity
                                 var deltaComponents = delta.Split(' ');
                                 if (deltaComponents[0] == "ahead")
                                 {
-                                    ahead = Int32.Parse(deltaComponents[1]);
+                                    gitStatus.Ahead = Int32.Parse(deltaComponents[1]);
                                 }
                                 else if (deltaComponents[0] == "behind")
                                 {
-                                    behind = Int32.Parse(deltaComponents[1]);
+                                    gitStatus.Behind = Int32.Parse(deltaComponents[1]);
                                 }
                                 else
                                 {
@@ -82,10 +85,10 @@ namespace GitHub.Unity
                         }
 
                         var branches = branchesString.Split(new[] { "..." }, StringSplitOptions.RemoveEmptyEntries);
-                        localBranch = branches[0];
+                        gitStatus.LocalBranch = branches[0];
                         if (branches.Length == 2)
                         {
-                            remoteBranch = branches[1];
+                            gitStatus.RemoteBranch = branches[1];
                         }
                     }
                     else
@@ -177,37 +180,30 @@ namespace GitHub.Unity
                     }
 
                     var gitStatusEntry = gitObjectFactory.CreateGitStatusEntry(path, status, originalPath, staged);
-                    entries.Add(gitStatusEntry);
+                    gitStatus.Entries.Add(gitStatusEntry);
                 }
             }
         }
 
         private void ReturnStatus()
         {
-            var gitStatus = new GitStatus {
-                LocalBranch = localBranch,
-                RemoteBranch = remoteBranch,
-                Ahead = ahead,
-                Behind = behind
-            };
-
-            if (entries.Any())
-            {
-                gitStatus.Entries = entries;
-            }
+            if (gitStatus.Entries == null)
+                return;
 
             OnStatus(gitStatus);
 
-            Reset();
+            gitStatus = new GitStatus();
         }
 
-        private void Reset()
+        private void Prepare()
         {
-            localBranch = null;
-            remoteBranch = null;
-            ahead = 0;
-            behind = 0;
-            entries = new List<GitStatusEntry>();
+            if (gitStatus.Entries == null)
+            {
+                gitStatus = new GitStatus
+                {
+                    Entries = new List<GitStatusEntry>()
+                };
+            }
         }
 
         private void HandleUnexpected(string line)

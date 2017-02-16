@@ -2,7 +2,7 @@ using NSubstitute;
 
 namespace GitHub.Unity.Tests
 {
-    public class BaseOutputProcessorTests
+    class BaseOutputProcessorTests : TestBase
     {
         protected const string TestRootPath = @"c:\TestSource";
 
