@@ -11,6 +11,7 @@ namespace GitHub.Unity.Tests
         public IList<string> RandomFileNames { get; set; }
         public string TemporaryPath { get; set; } = DefaultTemporaryPath;
         public string[] DirectoriesThatExist { get; set; }
-        public IDictionary<SubstituteFactory.FolderContentsKey, string[]> FolderContents { get; set; }
+        public IDictionary<SubstituteFactory.ContentsKey, string[]> ChildFiles { get; set; }
+        public IDictionary<SubstituteFactory.ContentsKey, string[]> ChildDirectories { get; set; }
     }
 }

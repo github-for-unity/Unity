@@ -61,6 +61,7 @@
   <ItemGroup>
     <Compile Include="IO\Watches\DefaultFileSystemWatchStrategyTests.cs" />
     <Compile Include="Installer\PortableGitManagerTests.cs" />
+    <Compile Include="IO\Watches\ResursiveFileSystemWatchStrategyTests.cs" />
     <Compile Include="IO\Watches\TestFileSystemWatch.cs" />
     <Compile Include="SetupFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

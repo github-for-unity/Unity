@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using GitHub.Api;
@@ -8,7 +8,7 @@ using NUnit.Framework;
 namespace GitHub.Unity.Tests
 {
     [TestFixture]
-    public class DefaultFileSystemWatchStrategyTests
+    public class ResursiveFileSystemWatchStrategyTests
     {
         private SubstituteFactory Factory { get; set; }
 
@@ -19,13 +19,20 @@ namespace GitHub.Unity.Tests
             NPathFileSystemProvider.Current = Factory.CreateFileSystem(new CreateFileSystemOptions());
         }
 
+    
+
         [Test]
         public void ShouldProperlyDetachListener()
         {
             TestFileSystemWatch testWatcher = null;
             var testWatchFactory = Factory.CreateTestWatchFactory(new CreateTestWatchFactoryOptions(createdWatch => { testWatcher = createdWatch; }));
 
-            var defaultFileSystemWatchStrategy = new DefaultFileSystemWatchStrategy(testWatchFactory);
+            var fileSystem = Factory.CreateFileSystem(new CreateFileSystemOptions
+            {
+                ChildDirectories = new Dictionary<SubstituteFactory.ContentsKey, string[]> { { new SubstituteFactory.ContentsKey(@"c:\temp"), new string[0] } }
+            });
+
+            var defaultFileSystemWatchStrategy = new RecursiveFileSystemWatchStrategy(testWatchFactory, fileSystem);
 
             var testWatchListener = Substitute.For<IFileSystemWatchListener>();
             defaultFileSystemWatchStrategy.AddListener(testWatchListener);
@@ -52,7 +59,11 @@ namespace GitHub.Unity.Tests
             var testWatchers = new List<TestFileSystemWatch>();
             var testWatchFactory = Factory.CreateTestWatchFactory(new CreateTestWatchFactoryOptions(createdWatch => { testWatchers.Add(createdWatch); }));
 
-            var defaultFileSystemWatchStrategy = new DefaultFileSystemWatchStrategy(testWatchFactory);
+            var fileSystem = Factory.CreateFileSystem(new CreateFileSystemOptions {
+                ChildDirectories = new Dictionary<SubstituteFactory.ContentsKey, string[]> { { new SubstituteFactory.ContentsKey(@"c:\temp"), new string[0] } }
+            });
+
+            var defaultFileSystemWatchStrategy = new RecursiveFileSystemWatchStrategy(testWatchFactory, fileSystem);
 
             var testWatchListener = Substitute.For<IFileSystemWatchListener>();
             defaultFileSystemWatchStrategy.AddListener(testWatchListener);
@@ -82,7 +93,12 @@ namespace GitHub.Unity.Tests
             TestFileSystemWatch testWatcher = null;
             var testWatchFactory = Factory.CreateTestWatchFactory(new CreateTestWatchFactoryOptions(createdWatch => { testWatcher = createdWatch; }));
 
-            var defaultFileSystemWatchStrategy = new DefaultFileSystemWatchStrategy(testWatchFactory);
+            var fileSystem = Factory.CreateFileSystem(new CreateFileSystemOptions
+            {
+                ChildDirectories = new Dictionary<SubstituteFactory.ContentsKey, string[]> { { new SubstituteFactory.ContentsKey(@"c:\temp"), new string[0] } }
+            });
+
+            var defaultFileSystemWatchStrategy = new RecursiveFileSystemWatchStrategy(testWatchFactory, fileSystem);
 
             var testWatchListener = Substitute.For<IFileSystemWatchListener>();
             defaultFileSystemWatchStrategy.AddListener(testWatchListener);

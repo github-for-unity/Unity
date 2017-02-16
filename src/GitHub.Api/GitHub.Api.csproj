@@ -110,10 +110,13 @@
     <Compile Include="IO\ProcessOutputManager.cs" />
     <Compile Include="IO\RemoteListOutputProcessor.cs" />
     <Compile Include="IO\Watches\FileSystemWatchFactory.cs" />
+    <Compile Include="IO\Watches\FileSystemWatchStrategyBase.cs" />
     <Compile Include="IO\Watches\IFileSystemWatch.cs" />
     <Compile Include="IO\Watches\IFileSystemWatchFactory.cs" />
     <Compile Include="IO\Watches\IFileSystemWatchListener.cs" />
     <Compile Include="IO\Watches\IFileSystemWatchStrategy.cs" />
+    <Compile Include="IO\Watches\PathAndFilter.cs" />
+    <Compile Include="IO\Watches\RecursiveFileSystemWatchStrategy.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>

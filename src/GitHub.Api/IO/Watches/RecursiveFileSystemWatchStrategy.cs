@@ -1,20 +1,22 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using GitHub.Unity;
+using System.IO;
 
 namespace GitHub.Api
 {
-    class DefaultFileSystemWatchStrategy : FileSystemWatchStrategyBase
+    class RecursiveFileSystemWatchStrategy: FileSystemWatchStrategyBase
     {
         private readonly object watchesLock = new object();
 
         private readonly IFileSystemWatchFactory watchFactory;
+        private readonly IFileSystem fileSystem;
 
         private Dictionary<PathAndFilter, IFileSystemWatch> watches = new Dictionary<PathAndFilter, IFileSystemWatch>();
 
-        public DefaultFileSystemWatchStrategy(IFileSystemWatchFactory watchFactory)
+        public RecursiveFileSystemWatchStrategy(IFileSystemWatchFactory watchFactory, IFileSystem fileSystem)
         {
             this.watchFactory = watchFactory;
+            this.fileSystem = fileSystem;
         }
 
         public override void Watch(string path, string filter = null)
@@ -24,7 +26,7 @@ namespace GitHub.Api
             var key = new PathAndFilter { Path = path, Filter = filter };
 
             IFileSystemWatch watch;
-            lock(watchesLock)
+            lock (watchesLock)
             {
                 if (watches.ContainsKey(key))
                 {
@@ -41,49 +43,20 @@ namespace GitHub.Api
                 {
                     watch = watchFactory.CreateWatch(path);
                 }
-
                 watches.Add(key, watch);
             }
 
             watch.AddListener(this);
+
+            var directories = fileSystem.GetDirectories(path);
+            foreach (var directory in directories)
+            {
+                Watch(directory, filter);
+            }
         }
 
         public override void ClearWatch(string path, string filter = null)
         {
-            var key = new PathAndFilter { Path = path, Filter = filter };
-
-            lock(watchesLock)
-            {
-                IFileSystemWatch value;
-                if (!watches.TryGetValue(key, out value))
-                {
-                    throw new Exception("path and filter combination not watched");
-                }
-
-                watches.Remove(key);
-
-                value.Enable = false;
-                value.RemoveListener(this);
-                value.Dispose();
-            }
-        }
-
-        public override void Dispose()
-        {
-            base.Dispose();
-
-            if (watches == null)
-            {
-                return;
-            }
-
-            var watchList = watches;
-            watches = null;
-
-            foreach (var watcher in watchList.Values)
-            {
-                watcher.Dispose();
-            }
         }
     }
 }
