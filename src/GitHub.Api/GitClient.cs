@@ -37,7 +37,7 @@ namespace GitHub.Unity
                 dotGitPath = path.Combine(".git");
                 refsPath = dotGitPath.Combine("refs", "heads");
 
-                if (dotGitPath.Exists())
+                if (dotGitPath.FileExists())
                 {
                     dotGitPath = dotGitPath.ReadAllLines()
                         .Where(x => x.StartsWith("gitdir:"))
