@@ -164,25 +164,37 @@ namespace GitHub.Unity
     class LocalSettings : JsonBackedSettings
     {
         private const string RelativeSettingsPath = "ProjectSettings";
-        private const string LocalSettingsName = "GitHub.local.json";
+        private const string settingsFileName = "GitHub.local.json";
 
         public LocalSettings(IEnvironment environment)
         {
-            SettingsPath = Path.Combine(environment.UnityProjectPath, RelativeSettingsPath);
+            SettingsPath = environment.UnityProjectPath.ToNPath().Combine(RelativeSettingsPath);
         }
 
-        protected override string SettingsFileName { get { return LocalSettingsName; } }
+        protected override string SettingsFileName { get { return settingsFileName; } }
     }
 
     class UserSettings : JsonBackedSettings
     {
-        private const string LocalSettingsName = "settings.json";
+        private const string settingsFileName = "settings.json";
 
-        public UserSettings(IEnvironment environment, IAppConfiguration appConfig)
+        public UserSettings(IEnvironment environment, string path)
         {
-            SettingsPath = Path.Combine(environment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData), appConfig.ApplicationName);
+            SettingsPath = environment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData).ToNPath().Combine(path);
         }
 
-        protected override string SettingsFileName { get { return LocalSettingsName; } }
+        protected override string SettingsFileName { get { return settingsFileName; } }
+    }
+
+    class SystemSettings : JsonBackedSettings
+    {
+        private const string settingsFileName = "settings.json";
+
+        public SystemSettings(IEnvironment environment, string path)
+        {
+            SettingsPath = environment.GetSpecialFolder(Environment.SpecialFolder.ApplicationData).ToNPath().Combine(path);
+        }
+
+        protected override string SettingsFileName { get { return settingsFileName; } }
     }
 }

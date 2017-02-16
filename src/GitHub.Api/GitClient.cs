@@ -13,7 +13,6 @@ namespace GitHub.Api
 
         private readonly NPath dotGitPath;
         private readonly NPath refsPath;
-        private readonly IFileSystem fs;
         private readonly IProcessManager processManager;
         private readonly GitConfig config;
 
@@ -24,24 +23,22 @@ namespace GitHub.Api
         private string head;
         private ConfigBranch? activeBranch;
 
-        public GitClient(string localPath, IFileSystem fs, IProcessManager processManager)
+        public GitClient(string localPath, IProcessManager processManager)
         {
             Guard.ArgumentNotNullOrWhiteSpace(localPath, nameof(localPath));
-            Guard.ArgumentNotNull(fs, nameof(fs));
             Guard.ArgumentNotNull(processManager, nameof(processManager));
 
-            var path = new NPath(localPath).MakeAbsolute();
-            path = FindRepositoryRoot(fs, path);
+            var path = localPath.ToNPath().MakeAbsolute();
+            path = FindRepositoryRoot(path);
 
             if (path != null)
             {
                 RepositoryPath = path;
-                this.fs = fs;
                 this.processManager = processManager;
                 dotGitPath = path.Combine(".git");
                 refsPath = dotGitPath.Combine("refs", "heads");
 
-                if (fs.FileExists(dotGitPath))
+                if (dotGitPath.Exists())
                 {
                     dotGitPath = dotGitPath.ReadAllLines()
                         .Where(x => x.StartsWith("gitdir:"))
@@ -185,13 +182,13 @@ namespace GitHub.Api
                 .FirstOrDefault();
         }
 
-        private static NPath FindRepositoryRoot(IFileSystem fs, NPath path)
+        private static NPath FindRepositoryRoot(NPath path)
         {
             if (path.Exists(".git"))
                 return path;
 
             if (!path.IsRoot)
-                return FindRepositoryRoot(fs, path.Parent);
+                return FindRepositoryRoot(path.Parent);
 
             return null;
         }

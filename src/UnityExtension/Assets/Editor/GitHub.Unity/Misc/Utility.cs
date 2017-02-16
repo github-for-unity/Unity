@@ -128,7 +128,7 @@ namespace GitHub.Unity
 
         public static string GitRoot
         {
-            get { return EntryPoint.Environment.RepositoryRoot; }
+            get { return EntryPoint.Environment.RepositoryPath; }
         }
 
         public static string UnityAssetsPath

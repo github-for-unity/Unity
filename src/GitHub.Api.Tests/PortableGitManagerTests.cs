@@ -53,7 +53,7 @@ namespace GitHub.Unity.Tests
             NPathFileSystemProvider.Current = fileSystem;
 
             var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
-                fileSystem, sharpZipLibHelper);
+                sharpZipLibHelper);
             portableGitManager.ExtractGitIfNeeded();
 
             const string shouldExtractTo = CreateFileSystemOptions.DefaultTemporaryPath + @"\randomFile1.deleteme";
@@ -75,7 +75,7 @@ namespace GitHub.Unity.Tests
                 });
 
             var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
-                fileSystem, sharpZipLibHelper);
+                sharpZipLibHelper);
             portableGitManager.ExtractGitLfsIfNeeded();
 
             const string shouldExtractTo = CreateFileSystemOptions.DefaultTemporaryPath + @"\randomFile1.deleteme";
@@ -100,7 +100,7 @@ namespace GitHub.Unity.Tests
                 });
 
             var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
-                fileSystem, sharpZipLibHelper);
+                sharpZipLibHelper);
             portableGitManager.IsGitLfsExtracted().Should().BeTrue();
 
             //TODO: Write code to make sure file was copied
@@ -109,8 +109,7 @@ namespace GitHub.Unity.Tests
         [Test]
         public void ShouldKnowGitLfsDestinationDirectory()
         {
-            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(), Factory.CreateFileSystem(),
-                Factory.CreateSharpZipLibHelper());
+            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(), Factory.CreateSharpZipLibHelper());
 
             portableGitManager.GitLfsDestinationPath.Should()
                               .Be(
@@ -132,7 +131,7 @@ namespace GitHub.Unity.Tests
 
             var sharpZipLibHelper = Factory.CreateSharpZipLibHelper();
 
-            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(), fileSystem, sharpZipLibHelper);
+            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(), sharpZipLibHelper);
             portableGitManager.ExtractGitIfNeeded();
 
             sharpZipLibHelper.DidNotReceiveWithAnyArgs().ExtractZipFile(Arg.Any<string>(), Arg.Any<string>());
@@ -156,7 +155,7 @@ namespace GitHub.Unity.Tests
             NPathFileSystemProvider.Current = fileSystem;
 
             var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
-                fileSystem, sharpZipLibHelper);
+                sharpZipLibHelper);
             portableGitManager.ExtractGitLfsIfNeeded();
 
             sharpZipLibHelper.DidNotReceiveWithAnyArgs().ExtractZipFile(Arg.Any<string>(), Arg.Any<string>());
