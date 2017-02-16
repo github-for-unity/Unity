@@ -60,6 +60,7 @@
     <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="IO\LockOutputProcessor.cs" />
     <Compile Include="Logging\FileLogAdapter.cs" />
+    <Compile Include="RunLocationShim.cs" />
     <Compile Include="Tasks\GitListLocksTask.cs" />
     <Compile Include="Tasks\GitLockTask.cs" />
     <Compile Include="Tasks\GitUnlockTask.cs" />
