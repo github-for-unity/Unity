@@ -20,7 +20,7 @@ namespace GitHub.Unity.Tests
             environment.UnityProjectPath = TestGitRepoPath;
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            var processManager = new ProcessManager(environment, gitEnvironment);
 
             using (var gitclient = new GitClient(environment.UnityProjectPath, processManager))
             {

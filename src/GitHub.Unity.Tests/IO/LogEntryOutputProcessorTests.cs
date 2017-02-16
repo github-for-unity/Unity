@@ -18,7 +18,7 @@ namespace GitHub.Unity.Tests
             env.UnityProjectPath = @"D:\code\github\UnityInternal\src\UnityExtension";
             var genv = new WindowsGitEnvironment(env, fs);
             var fact = new GitObjectFactory(env, genv);
-            var pm = new ProcessManager(env, genv, fs);
+            var pm = new ProcessManager(env, genv);
             var results = pm.GetGitLogEntries(@"D:\code\github\mono", env, fs, genv);
         }
 

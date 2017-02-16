@@ -19,7 +19,7 @@ namespace GitHub.Unity.Tests
             environment.UnityProjectPath = TestGitRepoPath;
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            var processManager = new ProcessManager(environment, gitEnvironment);
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
 
             var gitBranches = processManager.GetGitBranches(TestGitRepoPath);
@@ -37,7 +37,7 @@ namespace GitHub.Unity.Tests
             environment.UnityProjectPath = TestGitRepoPath;
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            var processManager = new ProcessManager(environment, gitEnvironment);
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
 
             var logEntries =
@@ -93,7 +93,7 @@ namespace GitHub.Unity.Tests
             environment.UnityProjectPath = TestGitRepoPath;
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            var processManager = new ProcessManager(environment, gitEnvironment);
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
 
             var gitRemotes = processManager.GetGitRemoteEntries(TestGitRepoPath);
@@ -115,7 +115,7 @@ namespace GitHub.Unity.Tests
             environment.UnityProjectPath = TestGitRepoPath;
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            var processManager = new ProcessManager(environment, gitEnvironment);
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
 
             var gitStatus = processManager.GetGitStatus(TestGitRepoPath, environment, filesystem, gitEnvironment);
@@ -148,7 +148,7 @@ namespace GitHub.Unity.Tests
             environment.UnityProjectPath = TestGitRepoPath;
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            var processManager = new ProcessManager(environment, gitEnvironment);
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
 
             var s = processManager.GetGitCreds(TestGitRepoPath, environment, filesystem, gitEnvironment);
