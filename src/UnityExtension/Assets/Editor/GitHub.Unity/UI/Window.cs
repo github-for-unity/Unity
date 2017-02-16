@@ -186,7 +186,7 @@ namespace GitHub.Unity
             GUILayout.EndHorizontal();
 
             // Subtabs & toolbar
-            GUILayout.BeginHorizontal(EditorStyles.toolbar);
+            Rect mainNavRect = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
                 EditorGUI.BeginChangeCheck();
                 {
@@ -201,12 +201,14 @@ namespace GitHub.Unity
                 }
 
                 GUILayout.FlexibleSpace();
-
-                dropdownButtonRect = EditorGUILayout.BeginVertical();
-                  GUILayout.Button("•", Styles.AccountDropdownButtonStyle);
-                GUILayout.EndVertical();
             }
-            GUILayout.EndHorizontal();
+            EditorGUILayout.EndHorizontal();
+
+            Debug.Log("mainNavRect YMax:");
+            Debug.Log(mainNavRect.xMax);
+
+            Rect mainNavButtonRect = new Rect(mainNavRect.xMax - 16, mainNavRect.y, 16, 16);
+            GUI.DrawTexture(mainNavButtonRect, Styles.DropdownListIcon);
         }
 
         private bool ValidateSettings()
