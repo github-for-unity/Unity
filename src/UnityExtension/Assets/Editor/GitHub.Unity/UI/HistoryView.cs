@@ -540,9 +540,14 @@ namespace GitHub.Unity
 
         private void HistoryDetailsEntry(GitLogEntry entry)
         {
-            GUILayout.BeginVertical(GUILayout.Height(246));
-              GUILayout.Label("Hello");
-            GUILayout.EndVertical();
+            detailsScroll = GUILayout.BeginScrollView(detailsScroll, GUILayout.Height(246));
+              GUILayout.Label(entry.Summary, EditorStyles.wordWrappedLabel);
+
+              GUILayout.BeginHorizontal();
+                GUILayout.Label(entry.PrettyTimeString, EditorStyles.miniLabel);
+                GUILayout.Label(entry.AuthorName, EditorStyles.miniLabel);
+              GUILayout.EndHorizontal();
+            GUILayout.EndScrollView();
         }
 
 
