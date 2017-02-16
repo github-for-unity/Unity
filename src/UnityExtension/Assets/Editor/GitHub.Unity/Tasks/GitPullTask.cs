@@ -1,6 +1,6 @@
 using System;
 using System.Text;
-using GitHub.Api;
+using GitHub.Unity;
 
 namespace GitHub.Unity
 {
@@ -39,7 +39,7 @@ namespace GitHub.Unity
             var uiDispatcher = new AuthenticationUIDispatcher();
             Tasks.Add(new GitPullTask(
                 EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
-                EntryPoint.Platform.GetCredentialManager(EntryPoint.ProcessManager), uiDispatcher,
+                EntryPoint.CredentialManager, uiDispatcher,
                 remote, branch, onSuccess, onFailure));
         }
 

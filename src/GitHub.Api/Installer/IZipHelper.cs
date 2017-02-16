@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface IZipHelper
     {

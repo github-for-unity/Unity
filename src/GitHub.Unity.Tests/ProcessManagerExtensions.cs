@@ -1,4 +1,3 @@
-using GitHub.Api;
 using GitHub.Unity;
 using System.Collections.Generic;
 using System.Text;
@@ -29,7 +28,7 @@ namespace GitHub.Unity.Tests
         {
             var results = new List<GitLogEntry>();
 
-            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment, filesystem);
+            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment);
 
             var processor = new LogEntryOutputProcessor(gitStatusEntryFactory);
             processor.OnLogEntry += data => results.Add(data);
@@ -54,7 +53,7 @@ namespace GitHub.Unity.Tests
         {
             var result = new GitStatus();
 
-            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment, filesystem);
+            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment);
 
             var processor = new StatusOutputProcessor(gitStatusEntryFactory);
             processor.OnStatus += data => result = data;

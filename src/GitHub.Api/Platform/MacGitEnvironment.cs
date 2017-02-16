@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using GitHub.Unity;
 using System;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     class MacGitEnvironment : GitEnvironment
     {

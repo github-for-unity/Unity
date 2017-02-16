@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface IFileSystem
     {
