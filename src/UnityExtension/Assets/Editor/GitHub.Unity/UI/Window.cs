@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Debug = System.Diagnostics.Debug;
+// using Debug = System.Diagnostics.Debug;
 
 namespace GitHub.Unity
 {
@@ -24,6 +24,8 @@ namespace GitHub.Unity
         private const string SettingsTitle = "Settings";
         private const string AuthenticationTitle = "Auth";
 
+        private Rect dropdownButtonRect;
+
         [NonSerialized] private double notificationClearTime = -1;
         [NonSerialized] private IRepository repository;
 
@@ -32,6 +34,11 @@ namespace GitHub.Unity
         [SerializeField] private ChangesView changesTab = new ChangesView();
         [SerializeField] private HistoryView historyTab = new HistoryView();
         [SerializeField] private SettingsView settingsTab = new SettingsView();
+
+        private void OnAccountMenuClick(object obj)
+        {
+          Debug.Log("Click");
+        }
 
         public static void Initialize()
         {
@@ -108,6 +115,33 @@ namespace GitHub.Unity
 
             DoHeaderGUI();
 
+            Event currentEvent = Event.current;
+            Debug.Log(currentEvent);
+
+            if (currentEvent.type == EventType.MouseDown)
+            {
+              Vector2 mousePos = currentEvent.mousePosition;
+              Debug.Log("##############################");
+              Debug.Log("Mouse Position:");
+              Debug.Log(mousePos);
+
+              Debug.Log("dropdownButtonRect");
+              Debug.Log(dropdownButtonRect.position);
+              Debug.Log("##############################");
+
+              if (dropdownButtonRect.Contains(mousePos))
+              {
+                  Debug.Log("Contains");
+
+                  GenericMenu accountMenu = new GenericMenu();
+                  accountMenu.AddItem(new GUIContent("MenuItem1"), false, OnAccountMenuClick, "item 1");
+                  accountMenu.AddSeparator("");
+                  accountMenu.AddItem(new GUIContent("MenuItem2"), false, OnAccountMenuClick, "item 2");
+                  accountMenu.ShowAsContext();
+                  currentEvent.Use();
+              }
+            }
+
             // GUI for the active tab
             if (ActiveTab != null)
                 ActiveTab.OnGUI();
@@ -168,7 +202,7 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-                Rect dropdownRect = EditorGUILayout.BeginVertical();
+                dropdownButtonRect = EditorGUILayout.BeginVertical();
                   GUILayout.Button("•", Styles.AccountDropdownButtonStyle);
                 GUILayout.EndVertical();
             }
