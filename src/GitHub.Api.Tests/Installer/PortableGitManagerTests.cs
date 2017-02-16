@@ -22,8 +22,6 @@ namespace GitHub.Unity.Tests
         [TestFixtureSetUp]
         public void TestFixtureSetup()
         {
-            Logging.LoggerFactory = s => new ConsoleLogAdapter(s);
-
             Factory = new SubstituteFactory();
             NPathFileSystemProvider.Current = Factory.CreateFileSystem(new CreateFileSystemOptions());
         }
