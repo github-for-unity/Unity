@@ -1,7 +1,7 @@
 ﻿using GitHub.Unity;
 using System.Threading.Tasks;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface IPlatform
     {

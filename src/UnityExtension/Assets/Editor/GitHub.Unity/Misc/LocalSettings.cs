@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using GitHub.Api;
+using GitHub.Unity;
 
 namespace GitHub.Unity
 {

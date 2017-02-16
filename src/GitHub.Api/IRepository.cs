@@ -1,6 +1,6 @@
 using System;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     /// <summary>
     /// Represents a repository, either local or retreived via the GitHub API.

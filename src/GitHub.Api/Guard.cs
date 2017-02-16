@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     public static class Guard
     {

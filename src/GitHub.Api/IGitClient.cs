@@ -1,4 +1,4 @@
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface IGitClient
     {

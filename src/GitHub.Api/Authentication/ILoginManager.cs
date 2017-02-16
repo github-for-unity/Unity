@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Octokit;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     /// <summary>
     /// Provides services for logging into a GitHub server.

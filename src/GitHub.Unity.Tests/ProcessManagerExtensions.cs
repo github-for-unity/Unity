@@ -1,4 +1,3 @@
-using GitHub.Api;
 using GitHub.Unity;
 using System.Collections.Generic;
 using System.Text;

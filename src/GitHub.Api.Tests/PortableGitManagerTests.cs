@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
-using GitHub.Api;
+using GitHub.Unity;
 using NSubstitute;
 using NUnit.Framework;
 

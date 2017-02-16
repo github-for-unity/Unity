@@ -1,6 +1,6 @@
 using System;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface IEnvironment
     {
