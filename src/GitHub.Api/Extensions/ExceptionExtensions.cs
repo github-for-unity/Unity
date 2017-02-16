@@ -3,7 +3,7 @@ using System.Linq;
 using Octokit;
 using System.Threading;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     static class ApiExceptionExtensions
     {

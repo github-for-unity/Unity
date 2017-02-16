@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     abstract class GitEnvironment : IGitEnvironment
     {
