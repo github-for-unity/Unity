@@ -33,8 +33,11 @@ namespace GitHub.Unity
         [SerializeField] private HistoryView historyTab = new HistoryView();
         [SerializeField] private SettingsView settingsTab = new SettingsView();
 
+        private static bool initialized;
+
         public static void Initialize()
         {
+            initialized = true;
             RefreshRunner.Initialize();
         }
 
@@ -94,7 +97,7 @@ namespace GitHub.Unity
             // Set window title
             titleContent = new GUIContent(Title, Styles.TitleIcon);
 
-            if (!EntryPoint.Initialized)
+            if (!initialized)
             {
                 DoNotInitializedGUI();
                 return;

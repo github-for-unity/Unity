@@ -44,11 +44,6 @@ namespace GitHub.Unity
         {
             EditorApplication.update -= Initialize;
 
-            CreateInstance<EntryPoint>().Run();
-        }
-
-        private void Run()
-        {
             var persistentPath = Application.persistentDataPath;
             var filepath = Path.Combine(persistentPath, "github-unity-log.txt");
             try
@@ -65,9 +60,7 @@ namespace GitHub.Unity
             Logging.LoggerFactory = s => new FileLogAdapter(filepath, s);
             logger = Logging.GetLogger<EntryPoint>();
 
-            appManager = new ApplicationManager(new MainThreadSynchronizationContext());
-            appManager.Run();
-
+            ApplicationManager.Run();
         }
 
         private static bool ServerCertificateValidationCallback(object sender, X509Certificate certificate,
@@ -90,30 +83,44 @@ namespace GitHub.Unity
             return success;
         }
 
-        public static IGitClient GitClient { get { return appManager.GitClient; } }
+        private static ApplicationManager ApplicationManager
+        {
+            get
+            {
+                if (appManager == null)
+                {
+                    appManager = new ApplicationManager(new MainThreadSynchronizationContext());
+                }
+                return appManager;
+            }
+        }
 
-        public static IEnvironment Environment { get { return appManager.Environment; } }
+        public static IGitClient GitClient { get { return ApplicationManager.GitClient; } }
 
-        public static IGitEnvironment GitEnvironment { get { return appManager.GitEnvironment; } }
+        public static IEnvironment Environment { get { return ApplicationManager.Environment; } }
 
-        public static IFileSystem FileSystem { get { return appManager.FileSystem; } }
+        public static IGitEnvironment GitEnvironment { get { return ApplicationManager.GitEnvironment; } }
 
-        public static IPlatform Platform { get { return appManager.Platform; } }
-        public static ICredentialManager CredentialManager { get { return appManager.CredentialManager; } }
+        public static IFileSystem FileSystem { get { return ApplicationManager.FileSystem; } }
 
-        public static IProcessManager ProcessManager { get { return appManager.ProcessManager; } }
-        public static GitObjectFactory GitObjectFactory { get { return appManager.GitObjectFactory; } }
+        public static IPlatform Platform { get { return ApplicationManager.Platform; } }
+        public static ICredentialManager CredentialManager { get { return ApplicationManager.CredentialManager; } }
 
-        public static ISettings LocalSettings { get { return appManager.LocalSettings; } }
-        public static ISettings UserSettings { get { return appManager.UserSettings; } }
-        public static ISettings SystemSettings { get { return appManager.SystemSettings; } }
-        public static ITaskResultDispatcher TaskResultDispatcher { get { return appManager.TaskResultDispatcher; } }
+        public static IProcessManager ProcessManager { get { return ApplicationManager.ProcessManager; } }
+        public static GitObjectFactory GitObjectFactory { get { return ApplicationManager.GitObjectFactory; } }
+
+        public static ISettings LocalSettings { get { return ApplicationManager.LocalSettings; } }
+        public static ISettings UserSettings { get { return ApplicationManager.UserSettings; } }
+        public static ISettings SystemSettings { get { return ApplicationManager.SystemSettings; } }
+        public static ITaskResultDispatcher TaskResultDispatcher { get { return ApplicationManager.TaskResultDispatcher; } }
 
         public static bool Initialized { get; private set; }
     }
 
     class ApplicationManager : IApplicationManager
     {
+        private static readonly ILogging logger = Logging.GetLogger<ApplicationManager>();
+
         private const string QuitActionFieldName = "editorApplicationQuit";
         private CancellationTokenSource cancellationTokenSource;
         private FieldInfo quitActionField;
@@ -136,24 +143,6 @@ namespace GitHub.Unity
                 }
             };
 
-            Environment = new DefaultEnvironment();
-
-            // figure out where we are
-            Environment.ExtensionInstallPath = DetermineInstallationPath();
-
-            // figure out where the project is
-            var assetsPath = Application.dataPath.ToNPath();
-            Environment.UnityAssetsPath = assetsPath.ToString(SlashMode.Forward);
-            Environment.UnityProjectPath = assetsPath.Parent.ToString(SlashMode.Forward);
-
-            // figure out where the repository root is
-            GitClient = new GitClient(Environment.UnityProjectPath);
-            Environment.Repository = GitClient.GetRepository();
-
-            // Make sure CurrentDirectory always returns the repository root, so all
-            // file system path calculations use it as a base
-            FileSystem = new FileSystem(Environment.Repository.LocalPath);
-
             Platform = new Platform(Environment, FileSystem);
             GitObjectFactory = new GitObjectFactory(Environment, GitEnvironment);
             ProcessManager = new ProcessManager(Environment, GitEnvironment, CancellationToken);
@@ -166,6 +155,32 @@ namespace GitHub.Unity
             SystemSettings = new SystemSettings(Environment, ApplicationInfo.ApplicationName);
 
             taskRunner = new Tasks(syncCtx, cancellationTokenSource.Token);
+        }
+
+        private void InitializeEnvironment()
+        {
+            NPathFileSystemProvider.Current = new FileSystem();
+
+            Environment = new DefaultEnvironment();
+
+            // figure out where we are
+            Environment.ExtensionInstallPath = DetermineInstallationPath();
+            
+            // figure out where the project is
+            var assetsPath = Application.dataPath.ToNPath();
+            var projectPath = assetsPath.Parent;
+
+            Environment.UnityAssetsPath = assetsPath.ToString(SlashMode.Forward);
+            Environment.UnityProjectPath = projectPath.ToString(SlashMode.Forward);
+
+            // figure out where the repository root is
+            GitClient = new GitClient(projectPath);
+            Environment.Repository = GitClient.GetRepository();
+
+            // Make sure CurrentDirectory always returns the repository root, so all
+            // file system path calculations use it as a base
+            FileSystem = new FileSystem(Environment.Repository.LocalPath);
+            NPathFileSystemProvider.Current = FileSystem;
         }
 
         // for unit testing
@@ -192,13 +207,12 @@ namespace GitHub.Unity
             {
                 try
                 {
-                    Environment.GitExecutablePath = DetermineGitInstallationPath();
-                    
+                    Environment.GitExecutablePath = DetermineGitInstallationPath();                   
                     Environment.Repository = GitClient.GetRepository();
                 }
                 catch (Exception ex)
                 {
-                    new UnityLogAdapter("EntryPoint").Error(ex);
+                    logger.Error(ex);
                     throw;
                 }
             })
@@ -211,7 +225,6 @@ namespace GitHub.Unity
                 ProjectWindowInterface.Initialize();
 
                 Window.Initialize();
-
             }, scheduler);
         }
 
@@ -254,9 +267,11 @@ namespace GitHub.Unity
             var shim = ScriptableObject.CreateInstance<RunLocationShim>();
             var script = MonoScript.FromScriptableObject(shim);
             string ret = String.Empty;
+            
             if (script != null)
             {
-                ret = new NPath(AssetDatabase.GetAssetPath(script)).Parent;
+                var scriptPath = AssetDatabase.GetAssetPath(script).ToNPath();
+                ret = scriptPath.Parent.ToString(SlashMode.Forward);
             }
             ScriptableObject.DestroyImmediate(shim);
             return ret;
@@ -278,7 +293,21 @@ namespace GitHub.Unity
         }
 
         public CancellationToken CancellationToken { get { return cancellationTokenSource.Token; } }
-        public IEnvironment Environment { get; private set; }
+
+        private IEnvironment environment;
+        public IEnvironment Environment
+        {
+            get
+            {
+                // if this is called while still null, it's because Unity wants
+                // to render something and we need to load icons, and that runs
+                // before EntryPoint. Do an early initialization
+                if (environment == null)
+                    InitializeEnvironment();
+                return environment;
+            }
+            set { environment = value; }
+        }
         public IFileSystem FileSystem { get; private set; }
         public IPlatform Platform { get; private set; }
         public IGitEnvironment GitEnvironment { get { return Platform.GitEnvironment; } }
@@ -290,9 +319,5 @@ namespace GitHub.Unity
         public ISettings LocalSettings { get; private set; }
         public ISettings UserSettings { get; private set; }
         public GitObjectFactory GitObjectFactory { get; private set; }
-    }
-
-    class RunLocationShim : ScriptableObject
-    {
     }
 }

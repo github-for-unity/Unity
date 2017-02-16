@@ -42,7 +42,9 @@ namespace GitHub.Unity
             };
 
             gitEnvironment.Configure(startInfo, workingDirectory);
-            startInfo.FileName = FindExecutableInPath(executableFileName, startInfo.EnvironmentVariables["PATH"]) ?? executableFileName;
+            if (executableFileName.ToNPath().IsRelative)
+                executableFileName = FindExecutableInPath(executableFileName, startInfo.EnvironmentVariables["PATH"]) ?? executableFileName;
+            startInfo.FileName = executableFileName;
             return new ProcessWrapper(startInfo);
         }
 
@@ -70,6 +72,7 @@ namespace GitHub.Unity
                     {
                         var unquoted = directory.RemoveSurroundingQuotes();
                         var expanded = environment.ExpandEnvironmentVariables(unquoted);
+                        logger.Debug("expanded:'{0}' executable:'{1}'", expanded, executable);
                         return expanded.ToNPath().Combine(executable);
                     }
                     catch (Exception e)
