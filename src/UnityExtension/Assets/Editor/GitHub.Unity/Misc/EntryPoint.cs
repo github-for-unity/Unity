@@ -140,7 +140,7 @@ namespace GitHub.Unity
             FileSystem = new FileSystem();
             Platform = new Platform(Environment, FileSystem);
             GitObjectFactory = new GitObjectFactory(Environment, GitEnvironment);
-            ProcessManager = new ProcessManager(Environment, GitEnvironment, FileSystem, CancellationToken);
+            ProcessManager = new ProcessManager(Environment, GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager);
             CredentialManager = Platform.CredentialManager;
             TaskResultDispatcher = new TaskResultDispatcher();
