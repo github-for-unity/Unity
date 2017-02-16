@@ -1,16 +1,16 @@
 using GitHub.Api;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace GitHub.Unity
 {
     class GitAddTask : GitTask
     {
-        private string arguments = "";
+        private readonly string arguments;
 
-        private GitAddTask(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
+        private GitAddTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+            IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
+            : base(environment, processManager, resultDispatcher, str => onSuccess.SafeInvoke(), onFailure)
         {
             Guard.ArgumentNotNull(files, "files");
 
@@ -25,12 +25,13 @@ namespace GitHub.Unity
 
         public static void Schedule(IEnumerable<string> files, Action onSuccess = null, Action onFailure = null)
         {
-            Tasks.Add(new GitAddTask(files, onSuccess, onFailure));
+            Tasks.Add(new GitAddTask(EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                files, onSuccess, onFailure));
         }
 
-        protected override void OnProcessOutputUpdate()
+        protected override void OnOutputComplete(string output, string errors)
         {
-            base.OnProcessOutputUpdate();
+            base.OnOutputComplete(output, errors);
 
             // Always update
             StatusService.Instance.Run();

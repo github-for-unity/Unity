@@ -23,18 +23,35 @@ using UnityEngine.Events;
 
 namespace GitHub.Unity
 {
+    class TaskResultDispatcher : ITaskResultDispatcher
+    {
+        public void ReportFailure(Action callback)
+        {
+            Tasks.ScheduleMainThread(callback);
+        }
+
+        public void ReportFailure(FailureSeverity severity, string title, string error)
+        {
+            Tasks.ReportFailure(severity, title, error);
+        }
+
+        public void ReportSuccess(Action callback)
+        {
+            Tasks.ScheduleMainThread(callback);
+        }
+    }
+
     class Tasks
     {
         private static readonly ILogging logger = Logging.GetLogger<Tasks>();
 
-        internal const string TypeKey = "type", ProcessKey = "process";
+        internal const string TypeKey = "type";
 
         private const int NoTasksSleep = 15;
         private const int BlockingTaskWaitSleep = 10;
         private const int FailureDelayDefault = 1;
         private const int FailureDelayLong = 5000;
         private const string CacheFileName = "GitHubCache";
-        private const string QuitActionFieldName = "editorApplicationQuit";
         private const string TaskThreadExceptionRestartError = "GitHub task thread restarting after encountering an exception: {0}";
         private const string TaskCacheWriteExceptionError = "GitHub: Exception when writing task cache: {0}";
         private const string TaskCacheParseError = "GitHub: Failed to parse task cache";
@@ -47,9 +64,7 @@ namespace GitHub.Unity
         private const string TaskBlockingDescription = "A critical GitHub task ({0}) has yet to complete. What would you like to do?";
         private const string TaskBlockingComplete = "Complete";
         private const string TaskBlockingInterrupt = "Interrupt";
-        private const BindingFlags kQuitActionBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
 
-        private static FieldInfo quitActionField;
         private static ProgressBarDisplayMethod displayBackgroundProgressBar;
         private static Action clearBackgroundProgressBar;
         private ITask activeTask;
@@ -60,22 +75,15 @@ namespace GitHub.Unity
         private object tasksLock = new object();
         private Thread thread;
         private readonly MainThreadSynchronizationContext context;
+        private readonly CancellationToken cancellationToken;
 
-        private Tasks(MainThreadSynchronizationContext context)
+        public Tasks(MainThreadSynchronizationContext context, CancellationToken cancellationToken)
         {
             this.context = context;
-
-            editorApplicationQuit = (UnityAction)Delegate.Combine(editorApplicationQuit, new UnityAction(OnQuit));
-            CacheFilePath = Path.Combine(Application.dataPath, Path.Combine("..", Path.Combine("Temp", CacheFileName)));
-            EditorApplication.playmodeStateChanged += () =>
-            {
-                if (EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
-                {
-                    OnPlaymodeEnter();
-                }
-            };
+            this.cancellationToken = cancellationToken;
 
             tasks = new ConcurrentQueue<ITask>();
+            Instance = this;
             //if (File.Exists(CacheFilePath))
             //{
             //    ReadCache();
@@ -85,18 +93,18 @@ namespace GitHub.Unity
             //}
         }
 
-        // "Everything is broken - let's rebuild from the ashes (read: cache)"
-        public static void Initialize(MainThreadSynchronizationContext context)
+        public void Shutdown()
         {
-            Instance = new Tasks(context);
+            // Stop the queue
+            running = false;
+
+            if (activeTask != null && activeTask.Critical)
+            {
+                WaitForTask(activeTask, WaitMode.Blocking);
+            }
         }
 
-        public static void Run()
-        {
-            Instance.RunInternal();
-        }
-
-        private void RunInternal()
+        public void Run()
         {
             thread = new Thread(Start);
             thread.Start();
@@ -109,7 +117,7 @@ namespace GitHub.Unity
 
         private void AddTask(ITask task)
         {
-            logger.Debug("Adding task " + task.GetType() + " " + task.Label);
+            //logger.Debug("Adding Task: \"{0}\" Label: \"{1}\"", task.GetType().Name, task.Label);
             lock (tasksLock)
             {
                 if ((task.Queued == TaskQueueSetting.NoQueue && tasks.Count > 0) ||
@@ -130,14 +138,13 @@ namespace GitHub.Unity
         public static void ScheduleMainThread(Action action)
         {
             Instance.ScheduleMainThreadInternal(action);
-            
         }
 
         private void ScheduleMainThreadInternal(Action action)
         {
             scheduledCalls.Enqueue(action);
             var ellapsed = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalMilliseconds;
-            logger.Debug("queued action {0} {1} {2} {3}", readyForMoreCalls, ellapsed - lastMainThreadCall, lastMainThreadCall, ellapsed);
+            //logger.Trace("QueuedAction ReadyForMore:{0} Delta:{1}ms LastCall:{2}ms ThisCall:{3}ms", readyForMoreCalls, ellapsed - lastMainThreadCall, lastMainThreadCall, ellapsed);
             PumpMainThread();
         }
 
@@ -155,10 +162,10 @@ namespace GitHub.Unity
                 {
                     lastMainThreadCall = ellapsed;
                     readyForMoreCalls = false;
-                    logger.Debug("Scheduling a thing");
+                    //logger.Trace("Scheduling a thing");
                     context.Schedule(() =>
                     {
-                        logger.Debug("Executing actions");
+                        //logger.Trace("Executing actions");
                         readyForMoreCalls = true;
                         Action act = null;
                         while (scheduledCalls.TryDequeue(out act))
@@ -171,28 +178,20 @@ namespace GitHub.Unity
             }
         }
 
-        public static void ReportFailure(FailureSeverity severity, ITask task, string error)
+        public static void ReportSuccess(Action callback)
+        {
+            Tasks.ScheduleMainThread(callback);
+        }
+
+        public static void ReportFailure(FailureSeverity severity, string title, string error)
         {
             if (severity == FailureSeverity.Moderate)
             {
-                logger.Error(TaskFailureMessage, task.Label, error);
+                logger.Error("Failure: \"{0}\" Reason:\"{1}\"", title, error);
             }
             else
             {
-                ScheduleMainThread(() => EditorUtility.DisplayDialog(TaskFailureTitle, String.Format(TaskFailureMessage, task.Label, error), TaskFailureOK));
-            }
-        }
-
-        private static void SecureQuitActionField()
-        {
-            if (quitActionField == null)
-            {
-                quitActionField = typeof(EditorApplication).GetField(QuitActionFieldName, kQuitActionBindingFlags);
-
-                if (quitActionField == null)
-                {
-                    throw new TaskException("Unable to reflect EditorApplication." + QuitActionFieldName);
-                }
+                ScheduleMainThread(() => EditorUtility.DisplayDialog(TaskFailureTitle, String.Format(TaskFailureMessage, title, error), TaskFailureOK));
             }
         }
 
@@ -284,6 +283,83 @@ namespace GitHub.Unity
             }
         }
 
+        private void RunLoop()
+        {
+            running = true;
+
+            while (running)
+            {
+                // Clear any completed task
+                if (activeTask != null && activeTask.Done)
+                {
+                    activeTask = null;
+                }
+
+                var runningNewTask = activeTask == null;
+                // Grab a new task
+                if (runningNewTask)
+                {
+                    lock(tasksLock)
+                    {
+                        if (tasks.Count > 0)
+                        {
+                            if (!tasks.TryDequeue(out activeTask))
+                            {
+                                logger.Error("Could not dequeue task");
+                            }
+                            //activeTask.OnBegin = task => ScheduleMainThread(WriteCache);
+                            if (activeTask.Blocking)
+                            {
+                                activeTask.OnEnd = t => {
+                                    activeTask = null;
+                                    OnWaitingModalTaskEnd(t);
+                                };
+                            }
+                            else
+                            {
+                                activeTask.OnEnd = t => {
+                                    activeTask = null;
+                                    OnWaitingBackgroundTaskEnd(t);
+                                };
+                            }
+                        }
+                    }
+                }
+
+                // Run and monitor active task
+                if (activeTask != null && runningNewTask)
+                {
+                    ScheduleMainThreadInternal(() =>
+                    {
+                        if (activeTask != null)
+                        {
+                            //WaitForTask(activeTask, activeTask.Blocking ? WaitMode.Modal : WaitMode.Background);
+                        }
+                    });
+
+                    ThreadPool.QueueUserWorkItem(_ =>
+                    {
+                        try
+                        {
+                            activeTask.Run(cancellationToken);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Error(ex);
+                            activeTask.OnEnd.SafeInvoke(activeTask);
+                            activeTask = null;
+                        }
+                    });
+                    //WriteCache();
+                }
+
+                PumpMainThread();
+                Thread.Sleep(NoTasksSleep);
+            }
+
+            thread.Abort();
+        }
+
         // About to enter playmode
         private void OnPlaymodeEnter()
         {
@@ -303,84 +379,6 @@ namespace GitHub.Unity
             {
                 activeTask.Reconnect();
             }
-        }
-
-        private void OnQuit()
-        {
-            // Stop the queue
-            running = false;
-
-            if (activeTask != null && activeTask.Critical)
-            {
-                WaitForTask(activeTask, WaitMode.Blocking);
-            }
-        }
-
-        private void RunLoop()
-        {
-            running = true;
-
-            while (running)
-            {                
-                // Clear any completed task
-                if (activeTask != null && activeTask.Done)
-                {
-                    activeTask = null;
-                }
-
-                var runningNewTask = activeTask == null;
-                // Grab a new task
-                if (runningNewTask)
-                {
-                    lock(tasksLock)
-                    {
-                        if (tasks.Count > 0)
-                        {
-                            if (!tasks.TryDequeue(out activeTask))
-                            {
-                                logger.Debug("Could not dequeue task");
-                            }
-                            //activeTask.OnBegin = task => ScheduleMainThread(WriteCache);
-                            if (activeTask.Blocking)
-                                activeTask.OnEnd = OnWaitingModalTaskEnd;
-                            else
-                                activeTask.OnEnd = OnWaitingBackgroundTaskEnd;
-                        }
-                    }
-                }
-
-                // Run and monitor active task
-                if (activeTask != null && runningNewTask)
-                {
-                    ScheduleMainThreadInternal(() =>
-                    {
-                        if (activeTask != null)
-                        {
-                            WaitForTask(activeTask, activeTask.Blocking ? WaitMode.Modal : WaitMode.Background);
-                        }
-                    });
-
-                    ThreadPool.QueueUserWorkItem(_ =>
-                    {
-                        try
-                        {
-                            activeTask.Run();
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.Debug(ex);
-                            activeTask.OnEnd.SafeInvoke(activeTask);
-                            activeTask = null;
-                        }
-                    });
-                    //WriteCache();
-                }
-
-                PumpMainThread();
-                Thread.Sleep(NoTasksSleep);
-            }
-
-            thread.Abort();
         }
 
         private void WriteCache()
@@ -481,10 +479,10 @@ namespace GitHub.Unity
             {
                 switch (type)
                 {
-                    case CachedTask.TestTask:
-                        return TestTask.Parse(data);
                     case CachedTask.ProcessTask:
-                        return ProcessTask.Parse(data);
+                        return ProcessTask.Parse(
+                            EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                            data);
                     default:
                         logger.Error(TaskParseUnhandledTypeError, type);
                         return null;
@@ -506,24 +504,24 @@ namespace GitHub.Unity
                 return;
             }
 
-            logger.Debug(task.Label);
+            //logger.Trace("WaitForTask: \"{0}\"", task.Label);
 
             // Unintrusive background process
             if (mode == WaitMode.Background)
             {
                 DisplayBackgroundProgressBar(task.Label, task.Progress);
 
-                if (!task.Done)
-                {
-                    ScheduleMainThreadInternal(() => WaitForTask(task, mode));
-                }
+                //if (!task.Done)
+                //{
+                //    ScheduleMainThreadInternal(() => WaitForTask(task, mode));
+                //}
             }
             // Obstruct editor interface, while offering cancel button
             else if (mode == WaitMode.Modal)
             {
                 if (!EditorUtility.DisplayCancelableProgressBar(TaskProgressTitle, task.Label, task.Progress) && !task.Done)
                 {
-                    ScheduleMainThreadInternal(() => WaitForTask(task, mode));
+                    //ScheduleMainThreadInternal(() => WaitForTask(task, mode));
                 }
                 else if (!task.Done)
                 {
@@ -564,20 +562,7 @@ namespace GitHub.Unity
         private static Tasks Instance { get; set; }
         private static string CacheFilePath { get; set; }
 
-        private static UnityAction editorApplicationQuit
-        {
-            get
-            {
-                SecureQuitActionField();
-                return (UnityAction)quitActionField.GetValue(null);
-            }
-            set
-            {
-                SecureQuitActionField();
-                quitActionField.SetValue(null, value);
-            }
-        }
-
+        
         private enum WaitMode
         {
             Background,
@@ -586,5 +571,17 @@ namespace GitHub.Unity
         };
 
         private delegate void ProgressBarDisplayMethod(string text, float progress);
+    }
+
+    static class TaskDispatcher
+    {
+        public static void ScheduleGitRemoteList(Action<IList<GitRemote>> onSuccess, Action onFailure = null)
+        {
+            Tasks.Add(new GitRemoteListTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                onSuccess, onFailure));
+        }
+
+
     }
 }

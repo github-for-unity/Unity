@@ -1,61 +1,52 @@
 using System;
+using System.Threading;
 
 namespace GitHub.Unity
 {
-    class ConsoleLogAdapter : ILogging
+    class ConsoleLogAdapter : LogAdapterBase
     {
-        private readonly string prefix;
+        public ConsoleLogAdapter(string context) : base(context)
+        {}
 
-        public ConsoleLogAdapter(string context = null)
+        private string GetMessage(string level, string message)
         {
-            prefix = string.IsNullOrEmpty(context) 
-                ? string.Empty 
-                : context + ": ";
+            var time = DateTime.Now.ToString("HH:mm:ss tt");
+            var threadId = Thread.CurrentThread.ManagedThreadId;
+            return string.Format("{0} {1} [{2,2}] {3} {4}", time, level, threadId, ContextPrefix, message);
         }
 
-        public void Info(string message)
+        public override void Info(string message)
         {
-            Console.WriteLine(prefix + message);
+            WriteLine("INFO", message);
         }
 
-        public void Info(string format, params object[] objects)
+        public override void Debug(string message)
         {
-            Console.WriteLine(prefix + format, objects);
+#if DEBUG
+            WriteLine("DEBUG", message);
+#endif
         }
 
-        public void Debug(string message)
+        public override void Trace(string message)
         {
-            Console.WriteLine(prefix + message);
+#if DEBUG
+            WriteLine("TRACE", message);
+#endif
         }
 
-        public void Debug(string format, params object[] objects)
+        public override void Warning(string message)
         {
-            Console.WriteLine(prefix + format, objects);
+            WriteLine("WARN", message);
         }
 
-        public void Debug(Exception ex)
+        public override void Error(string message)
         {
-            Console.WriteLine(ex);
+            WriteLine("ERROR", message);
         }
 
-        public void Warning(string message)
+        private void WriteLine(string level, string message)
         {
-            Console.WriteLine(prefix + message);
-        }
-
-        public void Warning(string format, params object[] objects)
-        {
-            Console.WriteLine(prefix + format, objects);
-        }
-
-        public void Error(string message)
-        {
-            Console.WriteLine(prefix + message);
-        }
-
-        public void Error(string format, params object[] objects)
-        {
-            Console.WriteLine(prefix + format, objects);
+            Console.WriteLine(GetMessage(level, message));
         }
     }
 }

@@ -42,7 +42,15 @@ namespace GitHub.Unity
             }
             else
             {
-                callback();
+                try
+                {
+                    callback();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+                
             }
         }
 
@@ -115,12 +123,12 @@ namespace GitHub.Unity
 
         public static string GitInstallPath
         {
-            get { return EntryPoint.Environment.GitInstallPath; }
+            get { return EntryPoint.Environment.GitExecutablePath; }
         }
 
         public static string GitRoot
         {
-            get { return EntryPoint.Environment.GitRoot; }
+            get { return EntryPoint.Environment.RepositoryRoot; }
         }
 
         public static string UnityAssetsPath

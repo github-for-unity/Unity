@@ -6,18 +6,23 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace GitHub.Unity
 {
     [InitializeOnLoad]
     class EntryPoint : ScriptableObject
     {
-        private static readonly ILogging logger;
+        private static ILogging logger;
         private static bool cctorCalled = false;
+
+        [NonSerialized] private ApplicationManager appManager;
 
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
@@ -28,8 +33,7 @@ namespace GitHub.Unity
             }
             cctorCalled = true;
             Logging.LoggerFactory = s => new UnityLogAdapter(s);
-            logger = Logging.GetLogger<EntryPoint>();
-            logger.Debug("EntryPoint Initialize");
+            Logging.Debug("EntryPoint Initialize");
 
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
@@ -37,6 +41,13 @@ namespace GitHub.Unity
 
         // we do this so we're guaranteed to run on the main thread, not the loader thread
         private static void Initialize()
+        {
+            EditorApplication.update -= Initialize;
+
+            CreateInstance<EntryPoint>().Run();
+        }
+
+        private void Run()
         {
             var persistentPath = Application.persistentDataPath;
             var filepath = Path.Combine(persistentPath, "github-unity-log.txt");
@@ -52,65 +63,61 @@ namespace GitHub.Unity
             {
             }
             Logging.LoggerFactory = s => new FileLogAdapter(filepath, s);
+            logger = Logging.GetLogger<EntryPoint>();
 
-            ThreadUtils.SetMainThread();
-            var syncCtx = new MainThreadSynchronizationContext();
-            SynchronizationContext.SetSynchronizationContext(syncCtx);
+            appManager = new ApplicationManager(new MainThreadSynchronizationContext());
 
-            EditorApplication.update -= Initialize;
+            DetermineUnityPaths(Environment, GitEnvironment, FileSystem);
+            NPathFileSystemProvider.Current = FileSystem;
 
-            logger.Debug("Initialize");
+            processManager = new ProcessManager(Environment, GitEnvironment, FileSystem, appManager.CancellationToken);
 
-            ProcessManager = new ProcessManager(Environment, GitEnvironment, FileSystem);
+            var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
 
-            DeterminePaths(Environment, GitEnvironment, FileSystem);
+            Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    GitClient = new GitClient(Environment.UnityProjectPath, FileSystem, processManager);
 
-            DetermineGitRepoRoot(Environment, GitEnvironment, FileSystem);
+                    Environment.RepositoryRoot = GitClient.RepositoryPath;
+                    Environment.Repository = GitClient.GetRepository();
 
-            Settings = new Settings(Environment);
+                    ApiClientFactory.Instance = new ApiClientFactory(new AppConfiguration(), Platform.GetCredentialManager(ProcessManager));
 
-            Settings.Initialize();
+                    DetermineGitInstallationPath(Environment, GitEnvironment, FileSystem, ProcessManager, LocalSettings);
+                }
+                catch (Exception ex)
+                {
+                    new UnityLogAdapter("EntryPoint").Error(ex);
+                    throw;
+                }
+            })
+            .ContinueWith(_ =>
+            {
+                appManager.Run();
 
-            Tasks.Initialize(syncCtx);
+                Utility.Run();
 
-            DetermineGitInstallationPath(Environment, GitEnvironment, FileSystem, Settings);
+                ProjectWindowInterface.Initialize();
 
-            GitStatusEntryFactory = new GitStatusEntryFactory(Environment, FileSystem, GitEnvironment);
+                Window.Initialize();
 
-            Utility.Initialize();
+                Initialized = true;
+            }, scheduler);
 
-            Tasks.Run();
-
-            Utility.Run();
-
-            ProjectWindowInterface.Initialize();
-
-            Window.Initialize();
         }
 
 
         // TODO: Move these out to a proper location
-        private static void DetermineGitRepoRoot(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
-        {
-            var fullProjectRoot = FileSystem.GetFullPath(Environment.UnityProjectPath);
-            environment.GitRoot = gitEnvironment.FindRoot(fullProjectRoot);
-        }
-
-        // TODO: Move these out to a proper location
-        private static void DeterminePaths(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
+        private void DetermineUnityPaths(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs)
         {
             // Unity paths
             environment.UnityAssetsPath = Application.dataPath;
             environment.UnityProjectPath = environment.UnityAssetsPath.Substring(0, environment.UnityAssetsPath.Length - "Assets".Length - 1);
 
             // Juggling to find out where we got installed
-            var instance = FindObjectOfType(typeof(EntryPoint)) as EntryPoint;
-            if (instance == null)
-            {
-                instance = CreateInstance<EntryPoint>();
-            }
-
-            var script = MonoScript.FromScriptableObject(instance);
+            var script = MonoScript.FromScriptableObject(this);
             if (script == null)
             {
                 environment.ExtensionInstallPath = string.Empty;
@@ -123,27 +130,22 @@ namespace GitHub.Unity
                 environment.ExtensionInstallPath = environment.ExtensionInstallPath.Substring(0,
                     environment.ExtensionInstallPath.LastIndexOf('/'));
             }
-
-            DestroyImmediate(instance);
-
         }
 
         // TODO: Move these out to a proper location
         private static void DetermineGitInstallationPath(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem fs,
-            ISettings settings)
+            IProcessManager processManager, ISettings settings)
         {
             var cachedGitInstallPath = settings.Get("GitInstallPath");
 
             // Root paths
             if (string.IsNullOrEmpty(cachedGitInstallPath) || !fs.FileExists(cachedGitInstallPath))
             {
-                FindGitTask.Schedule(path => {
-                    logger.Debug("found " + path);
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        environment.GitInstallPath = path;
-                    }
-                }, () => logger.Debug("NOT FOUND"));
+                environment.GitExecutablePath = gitEnvironment.FindGitInstallationPath(processManager).Result;
+            }
+            else
+            {
+                environment.GitExecutablePath = cachedGitInstallPath;
             }
         }
 
@@ -167,6 +169,8 @@ namespace GitHub.Unity
             return success;
         }
 
+        public static IGitClient GitClient { get; private set; }
+
         private static IEnvironment environment;
         public static IEnvironment Environment
         {
@@ -179,7 +183,7 @@ namespace GitHub.Unity
                 return environment;
             }
         }
-        private static IGitEnvironment gitEnvironment;
+
         public static IGitEnvironment GitEnvironment
         {
             get
@@ -214,9 +218,137 @@ namespace GitHub.Unity
             }
         }
 
-        public static IProcessManager ProcessManager { get; private set; }
+        private static IProcessManager processManager;
+        public static IProcessManager ProcessManager { get { return processManager; } }
 
-        public static GitStatusEntryFactory GitStatusEntryFactory { get; private set; }
-        public static ISettings Settings { get; private set; }
+
+        private static GitObjectFactory gitObjectFactory;
+        public static GitObjectFactory GitObjectFactory
+        {
+            get
+            {
+                if (gitObjectFactory == null)
+                {
+                    gitObjectFactory = new GitObjectFactory(Environment, GitEnvironment, FileSystem);
+                }
+                return gitObjectFactory;
+            }
+        }
+
+        private static ISettings localSettings;
+        public static ISettings LocalSettings
+        {
+            get
+            {
+                if (localSettings == null)
+                {
+                    localSettings = new LocalSettings(Environment);
+                    localSettings.Initialize();
+                }
+                return localSettings;
+            }
+        }
+
+        private static ISettings userSettings;
+        public static ISettings UserSettings
+        {
+            get
+            {
+                if (userSettings == null)
+                {
+                    userSettings = new UserSettings(Environment, new AppConfiguration());
+                    userSettings.Initialize();
+                }
+                return userSettings;
+            }
+        }
+
+        private static ITaskResultDispatcher taskResultDispatcher;
+        public static ITaskResultDispatcher TaskResultDispatcher
+        {
+            get
+            {
+                if (taskResultDispatcher == null)
+                {
+                    taskResultDispatcher = new TaskResultDispatcher();
+                }
+                return taskResultDispatcher;
+            }
+        }
+
+        public static bool Initialized { get; private set; }
+    }
+
+
+    class ApplicationManager
+    {
+        private const string QuitActionFieldName = "editorApplicationQuit";
+        private CancellationTokenSource cancellationTokenSource;
+        private FieldInfo quitActionField;
+        private const BindingFlags quitActionBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
+
+        private Tasks taskRunner;
+
+        public ApplicationManager(MainThreadSynchronizationContext syncCtx)
+        {
+            ThreadUtils.SetMainThread();
+            SynchronizationContext.SetSynchronizationContext(syncCtx);
+
+            cancellationTokenSource = new CancellationTokenSource();
+            EditorApplicationQuit = (UnityAction)Delegate.Combine(EditorApplicationQuit, new UnityAction(OnShutdown));
+            EditorApplication.playmodeStateChanged += () =>
+            {
+                if (EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
+                {
+                    OnShutdown();
+                }
+            };
+            taskRunner = new Tasks(syncCtx, cancellationTokenSource.Token);
+        }
+
+        public void Initialize()
+        {
+            Utility.Initialize();
+        }
+
+        public void Run()
+        {
+            taskRunner.Run();
+        }
+
+        private void OnShutdown()
+        {
+            taskRunner.Shutdown();
+            cancellationTokenSource.Cancel();
+        }
+
+        private UnityAction EditorApplicationQuit
+        {
+            get
+            {
+                SecureQuitActionField();
+                return (UnityAction)quitActionField.GetValue(null);
+            }
+            set
+            {
+                SecureQuitActionField();
+                quitActionField.SetValue(null, value);
+            }
+        }
+
+        private void SecureQuitActionField()
+        {
+            if (quitActionField == null)
+            {
+                quitActionField = typeof(EditorApplication).GetField(QuitActionFieldName, quitActionBindingFlags);
+
+                if (quitActionField == null)
+                {
+                    throw new InvalidOperationException("Unable to reflect EditorApplication." + QuitActionFieldName);
+                }
+            }
+        }
+
+        public CancellationToken CancellationToken { get { return cancellationTokenSource.Token; } }
     }
 }

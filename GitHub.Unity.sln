@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.Net.Http-net_3_5", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyLibrariesToDevelopmentFolder", "src\packaging\CopyLibrariesToDevelopmentFolder\CopyLibrariesToDevelopmentFolder.csproj", "{44257C81-EE4A-4817-9AF4-A26C02AA6DD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitHub.Api.Tests", "src\GitHub.Api.Tests\GitHub.Api.Tests.csproj", "{1AC3F82E-AEAE-4C84-825C-207BB264FCFA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,10 @@ Global
 		{44257C81-EE4A-4817-9AF4-A26C02AA6DD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44257C81-EE4A-4817-9AF4-A26C02AA6DD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44257C81-EE4A-4817-9AF4-A26C02AA6DD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AC3F82E-AEAE-4C84-825C-207BB264FCFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AC3F82E-AEAE-4C84-825C-207BB264FCFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AC3F82E-AEAE-4C84-825C-207BB264FCFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AC3F82E-AEAE-4C84-825C-207BB264FCFA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

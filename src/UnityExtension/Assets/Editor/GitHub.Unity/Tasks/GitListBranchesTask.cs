@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
+using GitHub.Api;
 
 namespace GitHub.Unity
 {
@@ -8,14 +8,16 @@ namespace GitHub.Unity
     {
         private const string LocalArguments = "branch -vv";
         private const string RemoteArguments = "branch -vvr";
-        private const string UnmatchedLineError = "Unable to match the line '{0}'";
-        private List<GitBranch> branches = new List<GitBranch>();
-        private Mode mode;
-        private Action<IEnumerable<GitBranch>> callback;
+
+        private readonly List<GitBranch> branches = new List<GitBranch>();
+        private readonly Mode mode;
+        private readonly Action<IEnumerable<GitBranch>> callback;
         private readonly BranchListOutputProcessor processor = new BranchListOutputProcessor();
 
-        private GitListBranchesTask(Mode mode, Action<IEnumerable<GitBranch>> onSuccess, Action onFailure = null)
-            : base(null, onFailure)
+        private GitListBranchesTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+                                Mode mode, Action<IEnumerable<GitBranch>> onSuccess, Action onFailure = null)
+            : base(environment, processManager, resultDispatcher,
+                  null, onFailure)
         {
             this.mode = mode;
             this.callback = onSuccess;
@@ -33,7 +35,9 @@ namespace GitHub.Unity
 
         private static void Schedule(Mode mode, Action<IEnumerable<GitBranch>> onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitListBranchesTask(mode, onSuccess, onFailure));
+            Tasks.Add(new GitListBranchesTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                mode, onSuccess, onFailure));
         }
 
         protected override ProcessOutputManager HookupOutput(IProcess process)
@@ -42,15 +46,13 @@ namespace GitHub.Unity
             return new ProcessOutputManager(process, processor);
         }
 
-        protected override void OnProcessOutputUpdate()
+        protected override void OnOutputComplete(string output, string errors)
         {
-            Logger.Debug("Done");
-            Tasks.ScheduleMainThread(() => DeliverResult());
+            Tasks.ScheduleMainThread(DeliverResult);
         }
 
         private void AddBranch(GitBranch branch)
         {
-            Logger.Debug("AddBranch " + branch);
             branches.Add(branch);
         }
 

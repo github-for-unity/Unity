@@ -59,7 +59,15 @@ namespace GitHub.Unity
         [SerializeField] private string initDirectory;
         [SerializeField] private Vector2 scroll;
 
-        private static readonly ILogging logger = Logging.GetLogger<SettingsView>();
+        public override void OnShow()
+        {
+            base.OnShow();
+        }
+
+        public override void OnHide()
+        {
+            base.OnHide();
+        }
 
         public override void Refresh()
         {
@@ -141,17 +149,19 @@ namespace GitHub.Unity
             return true;
         }
 
-        protected override void OnShow()
-        {
-        }
-
-        protected override void OnHide()
-        {
-        }
-
         private bool OnIssuesGUI()
         {
-            var settingsIssues = Utility.Issues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
+            IList<ProjectConfigurationIssue> projectConfigurationIssues;
+            if (Utility.Issues != null)
+            {
+                projectConfigurationIssues = Utility.Issues;
+            }
+            else
+            {
+                projectConfigurationIssues = new ProjectConfigurationIssue[0];
+            }
+
+            var settingsIssues = projectConfigurationIssues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
 
             if (settingsIssues != null)
             {
@@ -219,7 +229,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            if (settingsIssues != null && !EntryPoint.Settings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
+            if (settingsIssues != null && !EntryPoint.LocalSettings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
             {
                 var binary = settingsIssues.WasCaught(ProjectSettingsEvaluation.BinarySerialization);
                 var mixed = settingsIssues.WasCaught(ProjectSettingsEvaluation.MixedSerialization);
@@ -233,7 +243,7 @@ namespace GitHub.Unity
                     {
                         if (GUILayout.Button(IgnoreSerialisationSettingsButton))
                         {
-                            EntryPoint.Settings.Set(IgnoreSerialisationIssuesSetting, "1");
+                            EntryPoint.LocalSettings.Set(IgnoreSerialisationIssuesSetting, "1");
                         }
 
                         GUILayout.FlexibleSpace();
@@ -252,13 +262,13 @@ namespace GitHub.Unity
                 }
             }
 
-            var gitIgnoreException = Utility.Issues.Select(i => i as GitIgnoreException).FirstOrDefault(i => i != null);
+            var gitIgnoreException = projectConfigurationIssues.Select(i => i as GitIgnoreException).FirstOrDefault(i => i != null);
             if (gitIgnoreException != null)
             {
                 Styles.Warning(String.Format(GitIgnoreExceptionWarning, gitIgnoreException.Exception));
             }
 
-            foreach (var issue in Utility.Issues.Select(i => i as GitIgnoreIssue).Where(i => i != null))
+            foreach (var issue in projectConfigurationIssues.Select(i => i as GitIgnoreIssue).Where(i => i != null))
             {
                 if (string.IsNullOrEmpty(issue.Line))
                 {
@@ -372,25 +382,21 @@ namespace GitHub.Unity
 
         private void OnInstallPathGUI()
         {
-            var gitInstallPath = Utility.GitInstallPath;
+            var gitExecPath = EntryPoint.Environment.GitExecutablePath;
             // Install path field
             EditorGUI.BeginChangeCheck();
             {
-                var defaultGitPath = EntryPoint.GitEnvironment.FindGitInstallationPath();
-
                 //TODO: Verify necessary value for a non Windows OS
                 var extension = EntryPoint.GitEnvironment.GetGitExecutableExtension();
 
-                var defaultGitInstallFolder = Path.GetDirectoryName(defaultGitPath);
-
-                Styles.PathField(ref gitInstallPath,
+                Styles.PathField(ref gitExecPath,
                     () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
-                        defaultGitInstallFolder,
+                        EntryPoint.Environment.GitInstallPath,
                         extension), ValidateGitInstall);
             }
             if (EditorGUI.EndChangeCheck())
             {
-                EntryPoint.Environment.GitInstallPath = gitInstallPath;
+                EntryPoint.Environment.GitExecutablePath = gitExecPath;
             }
 
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
@@ -400,10 +406,12 @@ namespace GitHub.Unity
                 // Find button - for attempting to locate a new install
                 if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
                 {
-                    FindGitTask.Schedule(path => {
+                    var task = new FindGitTask(
+                        EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                        path => {
                         if (!string.IsNullOrEmpty(path))
                         {
-                            EntryPoint.Environment.GitInstallPath = path;
+                            EntryPoint.Environment.GitExecutablePath = path;
                             GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
                         }
                     });
@@ -427,7 +435,7 @@ namespace GitHub.Unity
 
         private void Init()
         {
-            logger.Debug("TODO: Init '{0}'", initDirectory);
+            Logger.Debug("TODO: Init '{0}'", initDirectory);
         }
     }
 }

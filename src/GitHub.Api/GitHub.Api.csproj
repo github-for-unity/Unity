@@ -14,6 +14,9 @@
     <BuildType Condition="Exists('..\..\script\src\ApiClientConfiguration.cs')">Internal</BuildType>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <TargetFrameworkProfile />
+    <LangVersion>6</LangVersion>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -44,13 +47,24 @@
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="AsyncBridge.Net35, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\AsyncBridge.Net35.0.2.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>$(SolutionDir)lib\5.5\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
     <Reference Include="Mono.Security">
-      <HintPath>..\..\lib\5.5\Mono.Security.dll</HintPath>
+      <HintPath>$(SolutionDir)lib\5.5\Mono.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="Rackspace.Threading, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bb62785d398726f0, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)packages\Rackspace.Threading.2.0.0-alpha001\lib\net35-client\Rackspace.Threading.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="ReadOnlyCollectionsInterfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET20\ReadOnlyCollectionsInterfaces.dll</HintPath>
@@ -69,8 +83,31 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\ApplicationInfo.cs" />
+    <Compile Include="Api\LoginResult.cs" />
+    <Compile Include="Authentication\AppCredentialStore.cs" />
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
+    <Compile Include="Installer\IPortableGitManager.cs" />
+    <Compile Include="Installer\IZipHelper.cs" />
+    <Compile Include="Installer\PortableGitManager.cs" />
+    <Compile Include="Installer\ZipHelper.cs" />
+    <Compile Include="Extensions\AsyncExtensions.cs" />
+    <Compile Include="GitClient.cs" />
+    <Compile Include="GitConfig.cs" />
+    <Compile Include="Helpers\LineProcessor.cs" />
+    <Compile Include="Helpers\StringExtensions.cs" />
+    <Compile Include="IGitClient.cs" />
+    <Compile Include="IO\BaseOutputProcessor.cs" />
+    <Compile Include="IO\FileSystem.cs" />
+    <Compile Include="IO\GitRemote.cs" />
+    <Compile Include="IO\GitRemoteFunction.cs" />
+    <Compile Include="IO\IOutputProcessor.cs" />
+    <Compile Include="IO\IProcess.cs" />
+    <Compile Include="IO\IProcessManager.cs" />
+    <Compile Include="IO\NiceIO.cs" />
+    <Compile Include="IO\ProcessOutputManager.cs" />
+    <Compile Include="IO\RemoteListOutputProcessor.cs" />
+    <Compile Include="IRepository.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -86,10 +123,24 @@
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="Repository.cs" />
+    <Compile Include="Tasks\BaseTask.cs" />
+    <Compile Include="Tasks\CachedTask.cs" />
+    <Compile Include="Tasks\FailureSeverity.cs" />
+    <Compile Include="Tasks\FindGitTask.cs" />
+    <Compile Include="Tasks\GitConfigGetTask.cs" />
+    <Compile Include="Tasks\GitConfigSource.cs" />
+    <Compile Include="Tasks\GitNetworkTask.cs" />
+    <Compile Include="Tasks\GitRemoteListTask.cs" />
+    <Compile Include="Tasks\GitTask.cs" />
+    <Compile Include="Tasks\ITask.cs" />
+    <Compile Include="Tasks\ITaskResultDispatcher.cs" />
+    <Compile Include="Tasks\ProcessTask.cs" />
+    <Compile Include="Tasks\TaskQueueSetting.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Api\ISimpleApiClient.cs" />
-    <Compile Include="Api\ISimpleApiClientFactory.cs" />
+    <Compile Include="Api\IApiClient.cs" />
+    <Compile Include="Api\IApiClientFactory.cs" />
     <Compile Include="Authentication\AuthenticationResult.cs" />
     <Compile Include="Authentication\AuthenticationResultExtensions.cs" />
     <Compile Include="Authentication\Credential.cs" />
@@ -100,19 +151,19 @@
     <Compile Include="IEnvironment.cs" />
     <Compile Include="Platform\LinuxCredentialManager.cs" />
     <Compile Include="Platform\MacCredentialManager.cs" />
-    <Compile Include="IProgram.cs" />
+    <Compile Include="IAppConfiguration.cs" />
     <Compile Include="Primitives\HostAddress.cs" />
     <Compile Include="Primitives\StringEquivalent.cs" />
     <Compile Include="Primitives\UriString.cs" />
-    <Compile Include="Authentication\SimpleCredentialStore.cs" />
+    <Compile Include="Authentication\CredentialStore.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="Platform\Platform.cs" />
     <Compile Include="Platform\WindowsCredentialManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Api\SimpleApiClient.cs" />
-    <Compile Include="Api\SimpleApiClientFactory.cs" />
+    <Compile Include="Api\ApiClient.cs" />
+    <Compile Include="Api\ApiClientFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">
@@ -129,7 +180,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="resources\linux\.placeholder" />
+    <None Include="resources\mac\git-lfs-darwin-amd64-5d9dc1c.tar.gz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
+    <None Include="resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip" />
+    <None Include="resources\windows\PortableGit-2.11.1-32-bit.zip" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

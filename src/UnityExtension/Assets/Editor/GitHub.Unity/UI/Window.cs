@@ -1,3 +1,6 @@
+#pragma warning disable 649
+
+using GitHub.Api;
 using System;
 using System.Linq;
 using UnityEditor;
@@ -7,7 +10,7 @@ using Debug = System.Diagnostics.Debug;
 namespace GitHub.Unity
 {
     [Serializable]
-    class Window : EditorWindow, IView
+    class Window : BaseWindow
     {
         private const float DefaultNotificationTimeout = 4f;
         private const string Title = "GitHub";
@@ -22,19 +25,17 @@ namespace GitHub.Unity
         private const string AuthenticationTitle = "Auth";
 
         [NonSerialized] private double notificationClearTime = -1;
+        [NonSerialized] private IRepository repository;
 
         [SerializeField] private SubTab activeTab = SubTab.History;
-        [SerializeField] private BranchesView branchesTab;
-        [SerializeField] private ChangesView changesTab;
-        [SerializeField] private HistoryView historyTab;
-        [SerializeField] private SettingsView settingsTab;
-
-        private static bool initialized;
+        [SerializeField] private BranchesView branchesTab = new BranchesView();
+        [SerializeField] private ChangesView changesTab = new ChangesView();
+        [SerializeField] private HistoryView historyTab = new HistoryView();
+        [SerializeField] private SettingsView settingsTab = new SettingsView();
 
         public static void Initialize()
         {
             RefreshRunner.Initialize();
-            initialized = true;
         }
 
         [MenuItem(LaunchMenu)]
@@ -44,13 +45,58 @@ namespace GitHub.Unity
             GetWindow<Window>(type).Show();
         }
 
-        public void OnGUI()
+        public override void OnEnable()
         {
+            base.OnEnable();
+            Selection.activeObject = this;
+
+            Utility.UnregisterReadyCallback(CreateViews);
+            Utility.RegisterReadyCallback(CreateViews);
+
+            Utility.UnregisterReadyCallback(ShowActiveView);
+            Utility.RegisterReadyCallback(ShowActiveView);
+        }
+
+        public override void Refresh()
+        {
+            if (ActiveTab != null)
+                ActiveTab.Refresh();
+        }
+
+        private void CreateViews()
+        {
+            repository = EntryPoint.Environment.Repository;
+            historyTab.Initialize(this);
+            changesTab.Initialize(this);
+            branchesTab.Initialize(this);
+            settingsTab.Initialize(this);
+        }
+
+        private void ShowActiveView()
+        {
+            if (ActiveTab != null)
+                ActiveTab.OnShow();
+            Refresh();
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            if (ActiveTab != null)
+                ActiveTab.OnHide();
+        }
+
+
+        public override void OnGUI()
+        {
+            base.OnGUI();
+
             // Set window title
             titleContent = new GUIContent(Title, Styles.TitleIcon);
 
-            if (!initialized)
+            if (!EntryPoint.Initialized)
             {
+                DoNotInitializedGUI();
                 return;
             }
 
@@ -60,6 +106,30 @@ namespace GitHub.Unity
             //}
 
 
+            DoHeaderGUI();
+
+            // GUI for the active tab
+            if (ActiveTab != null)
+                ActiveTab.OnGUI();
+        }
+
+        private void DoNotInitializedGUI()
+        {
+            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
+            {
+                GUILayout.Space(3);
+                GUILayout.BeginVertical(GUILayout.Width(16));
+                {
+                    GUILayout.Space(9);
+                    GUILayout.Label(Styles.RepoIcon, GUILayout.Height(20), GUILayout.Width(20));
+                }
+                GUILayout.EndVertical();
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        private void DoHeaderGUI()
+        {
             GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
             {
                 GUILayout.Space(3);
@@ -73,9 +143,9 @@ namespace GitHub.Unity
                 GUILayout.BeginVertical();
                 {
                     GUILayout.Space(3);
-                    GUILayout.Label("fake-org/fake-repo-name", Styles.HeaderRepoLabelStyle);
+                    GUILayout.Label(String.Format("{0}/{1}", repository.Owner, repository.Name), Styles.HeaderRepoLabelStyle);
                     GUILayout.Space(-2);
-                    GUILayout.Label("donokuda/totally-fake-branch-name", Styles.HeaderBranchLabelStyle);
+                    GUILayout.Label(repository.CurrentBranch, Styles.HeaderBranchLabelStyle);
                 }
                 GUILayout.EndVertical();
             }
@@ -86,8 +156,8 @@ namespace GitHub.Unity
             {
                 EditorGUI.BeginChangeCheck();
                 {
-                    activeTab = TabButton(SubTab.History, HistoryTitle, activeTab);
                     activeTab = TabButton(SubTab.Changes, ChangesTitle, activeTab);
+                    activeTab = TabButton(SubTab.History, HistoryTitle, activeTab);
                     activeTab = TabButton(SubTab.Branches, BranchesTitle, activeTab);
                     activeTab = TabButton(SubTab.Settings, SettingsTitle, activeTab);
                 }
@@ -99,9 +169,6 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndHorizontal();
-
-            // GUI for the active tab
-            ActiveTab.OnGUI();
         }
 
         private bool ValidateSettings()
@@ -120,16 +187,7 @@ namespace GitHub.Unity
             return true;
         }
 
-        public void OnEnable()
-        {
-            Utility.UnregisterReadyCallback(CreateViews);
-            Utility.RegisterReadyCallback(CreateViews);
-
-            Utility.UnregisterReadyCallback(Refresh);
-            Utility.RegisterReadyCallback(Refresh);
-        }
-
-        public void Update()
+        public override void Update()
         {
             // Notification auto-clear timer override
             if (notificationClearTime > 0f && EditorApplication.timeSinceStartup > notificationClearTime)
@@ -138,35 +196,6 @@ namespace GitHub.Unity
                 RemoveNotification();
                 Redraw();
             }
-        }
-
-        public void Refresh()
-        {
-            if (Utility.ActiveRepository)
-            {
-                ActiveTab.Refresh();
-            }
-        }
-
-        private void CreateViews()
-        {
-            if (historyTab == null)
-                historyTab = new HistoryView();
-            historyTab.Show(this);
-            if (changesTab == null)
-                changesTab = new ChangesView();
-            changesTab.Show(this);
-            if (branchesTab == null)
-                branchesTab = new BranchesView();
-            branchesTab.Show(this);
-            if (settingsTab == null)
-                settingsTab = new SettingsView();
-            settingsTab.Show(this);
-        }
-
-        public void Redraw()
-        {
-            Repaint();
         }
 
         public new void ShowNotification(GUIContent content)
@@ -187,9 +216,10 @@ namespace GitHub.Unity
             return GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
         }
 
-        private void OnSelectionChange()
+        public override void OnSelectionChange()
         {
-            ActiveTab.OnSelectionChange();
+            if (ActiveTab != null)
+                ActiveTab.OnSelectionChange();
         }
 
         public HistoryView HistoryTab
@@ -232,8 +262,6 @@ namespace GitHub.Unity
             }
         }
 
-        public Rect Position { get { return position; } }
-
         private class RefreshRunner : AssetPostprocessor
         {
             public static void Initialize()
@@ -254,7 +282,7 @@ namespace GitHub.Unity
 
             private static void OnReady()
             {
-                foreach (Window window in FindObjectsOfTypeAll(typeof(Window)))
+                foreach (Window window in Resources.FindObjectsOfTypeAll(typeof(Window)))
                 {
                     window.Refresh();
                 }

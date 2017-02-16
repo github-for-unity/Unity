@@ -8,7 +8,6 @@ namespace GitHub.Unity
     class Styles
     {
         public const float
-            // Baseline spacing for margins and padding
             BaseSpacing = 10f,
             BroadModeLimit = 500f,
             NarrowModeLimit = 300f,
@@ -59,6 +58,7 @@ namespace GitHub.Unity
         static GUIStyle
             label,
             boldLabel,
+            errorLabel,
             deletedFileLabel,
             longMessageStyle,
             headerBoxStyle,
@@ -72,7 +72,9 @@ namespace GitHub.Unity
             commitButtonStyle,
             textFieldStyle,
             commitDescriptionFieldStyle,
-            toggleMixedStyle;
+            toggleMixedStyle,
+            authHeaderBoxStyle,
+            genericBoxStyle;
         static Texture2D
             modifiedStatusIcon,
             addedStatusIcon,
@@ -199,6 +201,21 @@ namespace GitHub.Unity
 			}
 		}
 
+    public static GUIStyle ErrorLabel
+    {
+      get
+      {
+        if (errorLabel == null)
+        {
+          errorLabel = new GUIStyle(EditorStyles.label);
+          errorLabel.name = "ErrorLabel";
+
+          errorLabel.normal.textColor = Color.red;
+        }
+
+        return errorLabel;
+      }
+    }
 
         public static GUIStyle LongMessageStyle
         {
@@ -368,6 +385,35 @@ namespace GitHub.Unity
             }
         }
 
+        public static GUIStyle AuthHeaderBoxStyle
+        {
+          get
+          {
+            if (authHeaderBoxStyle == null)
+            {
+              authHeaderBoxStyle = new GUIStyle(HeaderBoxStyle);
+              authHeaderBoxStyle.name = "AuthHeaderBoxStyle";
+              authHeaderBoxStyle.padding = new RectOffset(10,10,0,5);
+            }
+
+            return authHeaderBoxStyle;
+          }
+        }
+
+        public static GUIStyle GenericBoxStyle
+        {
+          get
+          {
+            if (genericBoxStyle == null)
+            {
+                genericBoxStyle = new GUIStyle();
+                genericBoxStyle.padding = new RectOffset(10,10,10,10);
+            }
+
+            return genericBoxStyle;
+          }
+        }
+
 		public static Color TimelineBarColor
 		{
 			get
@@ -513,7 +559,7 @@ namespace GitHub.Unity
                 {
                     repoIcon = Utility.GetIcon("repo.png", "repo@2x.png");
                 }
- 
+
                 return repoIcon;
             }
         }

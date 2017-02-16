@@ -43,7 +43,7 @@ namespace GitHub.Unity
                 trackingName = proc.ReadChunk('[', ']');
             }
 
-            logger.Debug("Branch - Name: " + name + " TrackedAs: " + trackingName + " Active: " + active);
+            //logger.Debug("Branch Name:\"{0}\" TrackedAs:\"{1}\" Active:{2}", name, tracking ? trackingName : "[None]", active);
 
             var branch = new GitBranch(name, trackingName, active);
 

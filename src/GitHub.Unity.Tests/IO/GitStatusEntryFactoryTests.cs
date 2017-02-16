@@ -51,9 +51,9 @@ namespace GitHub.Unity.Tests
             var expected = new GitStatusEntry(path, fullPath, projectPath, status);
 
             var filesystem = CreateFileSystem();
-            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, filesystem, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment, filesystem);
 
-            var result = gitStatusEntryFactory.Create(path, status);
+            var result = gitStatusEntryFactory.CreateGitStatusEntry(path, status);
 
             result.Should().Be(expected);
         }
@@ -74,9 +74,9 @@ namespace GitHub.Unity.Tests
 
             var filesystem = CreateFileSystem();
 
-            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, filesystem, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment, filesystem);
 
-            var result = gitStatusEntryFactory.Create(path, status);
+            var result = gitStatusEntryFactory.CreateGitStatusEntry(path, status);
 
             result.Should().Be(expected);
         }
@@ -97,22 +97,11 @@ namespace GitHub.Unity.Tests
 
             var filesystem = CreateFileSystem();
 
-            var gitStatusEntryFactory = new GitStatusEntryFactory(environment, filesystem, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment, filesystem);
 
-            var result = gitStatusEntryFactory.Create(path, status);
+            var result = gitStatusEntryFactory.CreateGitStatusEntry(path, status);
 
             result.Should().Be(expected);
-        }
-
-        [Test]
-        public void ConstructorThrowsWhenProjectRootIsOutsideOfGitRoot()
-        {
-            var filesystem = CreateFileSystem();
-            var gitEnvironment = CreateGitEnvironment(@"c:\Source\Project");
-            var environment = CreateEnvironment(@"c:\Source\");
-
-            Action action = () => { new GitStatusEntryFactory(environment, filesystem, gitEnvironment); };
-            action.ShouldThrow<Exception>();
         }
     }
 }

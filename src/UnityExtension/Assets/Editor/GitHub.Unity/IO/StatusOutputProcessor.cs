@@ -10,16 +10,16 @@ namespace GitHub.Unity
         private static readonly Regex branchTrackedAndDelta = new Regex(@"(.*)\.\.\.(.*)\s\[(.*)\]",
             RegexOptions.Compiled);
 
-        private readonly IGitStatusEntryFactory gitStatusEntryFactory;
+        private readonly IGitObjectFactory gitObjectFactory;
         private int ahead;
         private int behind;
         private List<GitStatusEntry> entries;
         private string localBranch;
         private string remoteBranch;
 
-        public StatusOutputProcessor(IGitStatusEntryFactory gitStatusEntryFactory)
+        public StatusOutputProcessor(IGitObjectFactory gitObjectFactory)
         {
-            this.gitStatusEntryFactory = gitStatusEntryFactory;
+            this.gitObjectFactory = gitObjectFactory;
             Reset();
         }
 
@@ -176,7 +176,7 @@ namespace GitHub.Unity
                         }
                     }
 
-                    var gitStatusEntry = gitStatusEntryFactory.Create(path, status, originalPath, staged);
+                    var gitStatusEntry = gitObjectFactory.CreateGitStatusEntry(path, status, originalPath, staged);
                     entries.Add(gitStatusEntry);
                 }
             }
@@ -212,7 +212,7 @@ namespace GitHub.Unity
 
         private void HandleUnexpected(string line)
         {
-            throw new Exception(string.Format(@"Unexpected input{0}""{1}""", Environment.NewLine, line));
+            Logger.Error("Unexpected Input:\"{0}\"", line);
         }
 
         public event Action<GitStatus> OnStatus;

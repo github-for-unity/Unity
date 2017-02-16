@@ -7,8 +7,10 @@ namespace GitHub.Unity
     {
         private readonly string arguments;
 
-        private GitRemoteAddTask(string name, string url, Action onSuccess, Action onFailure)
-            : base(str => onSuccess.SafeInvoke(), onFailure)
+        private GitRemoteAddTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+                string name, string url, Action onSuccess, Action onFailure)
+            : base(environment, processManager, resultDispatcher,
+                  str => onSuccess.SafeInvoke(), onFailure)
         {
             Guard.ArgumentNotNullOrWhiteSpace(name, "name");
             Guard.ArgumentNotNullOrWhiteSpace(url, "url");
@@ -18,7 +20,9 @@ namespace GitHub.Unity
 
         public static void Schedule(string name, string url, Action onSuccess, Action onFailure = null)
         {
-            Tasks.Add(new GitRemoteAddTask(name, url, onSuccess, onFailure));
+            Tasks.Add(new GitRemoteAddTask(
+                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+                name, url, onSuccess, onFailure));
         }
 
         public override bool Blocking { get { return false; } }
