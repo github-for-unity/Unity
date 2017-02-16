@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     class WindowsGitEnvironment : GitEnvironment
     {

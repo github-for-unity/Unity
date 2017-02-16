@@ -1,4 +1,4 @@
-﻿using GitHub.Api;
+﻿using GitHub.Unity;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -14,19 +14,17 @@ namespace GitHub.Unity
 
         private readonly IEnvironment environment;
         private readonly IGitEnvironment gitEnvironment;
-        private readonly IFileSystem filesystem;
         private readonly CancellationToken cancellationToken;
 
-        public ProcessManager(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem filesystem)
-            : this(environment, gitEnvironment, filesystem, CancellationToken.None)
+        public ProcessManager(IEnvironment environment, IGitEnvironment gitEnvironment)
+            : this(environment, gitEnvironment, CancellationToken.None)
         {
         }
 
-        public ProcessManager(IEnvironment environment, IGitEnvironment gitEnvironment, IFileSystem filesystem, CancellationToken cancellationToken)
+        public ProcessManager(IEnvironment environment, IGitEnvironment gitEnvironment, CancellationToken cancellationToken)
         {
             this.environment = environment;
             this.gitEnvironment = gitEnvironment;
-            this.filesystem = filesystem;
             this.cancellationToken = cancellationToken;
         }
 
@@ -44,7 +42,9 @@ namespace GitHub.Unity
             };
 
             gitEnvironment.Configure(startInfo, workingDirectory);
-            startInfo.FileName = FindExecutableInPath(executableFileName, startInfo.EnvironmentVariables["PATH"]) ?? executableFileName;
+            if (executableFileName.ToNPath().IsRelative)
+                executableFileName = FindExecutableInPath(executableFileName, startInfo.EnvironmentVariables["PATH"]) ?? executableFileName;
+            startInfo.FileName = executableFileName;
             return new ProcessWrapper(startInfo);
         }
 
@@ -62,7 +62,7 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNullOrWhiteSpace(executable, "executable");
 
-            if (Path.IsPathRooted(executable)) return executable;
+            if (executable.ToNPath().IsRelative) return executable;
 
             path = path ?? environment.GetEnvironmentVariable("PATH");
             var executablePath = path.Split(Path.PathSeparator)
@@ -72,7 +72,8 @@ namespace GitHub.Unity
                     {
                         var unquoted = directory.RemoveSurroundingQuotes();
                         var expanded = environment.ExpandEnvironmentVariables(unquoted);
-                        return Path.Combine(expanded, executable);
+                        logger.Debug("expanded:'{0}' executable:'{1}'", expanded, executable);
+                        return expanded.ToNPath().Combine(executable);
                     }
                     catch (Exception e)
                     {
@@ -81,7 +82,7 @@ namespace GitHub.Unity
                     }
                 })
                 .Where(x => x != null)
-                .FirstOrDefault(x => filesystem.FileExists(x));
+                .FirstOrDefault(x => x.FileExists());
 
             return executablePath;
         }

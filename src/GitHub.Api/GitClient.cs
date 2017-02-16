@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using GitHub.Unity;
 using System.Collections.Generic;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     class GitClient : IGitClient, IDisposable
     {
@@ -13,8 +12,6 @@ namespace GitHub.Api
 
         private readonly NPath dotGitPath;
         private readonly NPath refsPath;
-        private readonly IFileSystem fs;
-        private readonly IProcessManager processManager;
         private readonly GitConfig config;
 
         private readonly Dictionary<string, ConfigBranch> branches = new Dictionary<string, ConfigBranch>();
@@ -24,24 +21,23 @@ namespace GitHub.Api
         private string head;
         private ConfigBranch? activeBranch;
 
-        public GitClient(string localPath, IFileSystem fs, IProcessManager processManager)
+        public GitClient(string localPath)
         {
             Guard.ArgumentNotNullOrWhiteSpace(localPath, nameof(localPath));
-            Guard.ArgumentNotNull(fs, nameof(fs));
-            Guard.ArgumentNotNull(processManager, nameof(processManager));
 
-            var path = new NPath(localPath).MakeAbsolute();
-            path = FindRepositoryRoot(fs, path);
+            var path = localPath.ToNPath();
+            if (path.IsRelative)
+                throw new InvalidOperationException("GitClient localPath has to be absolute");
+
+            path = FindRepositoryRoot(path);
 
             if (path != null)
             {
                 RepositoryPath = path;
-                this.fs = fs;
-                this.processManager = processManager;
                 dotGitPath = path.Combine(".git");
                 refsPath = dotGitPath.Combine("refs", "heads");
 
-                if (fs.FileExists(dotGitPath))
+                if (dotGitPath.FileExists())
                 {
                     dotGitPath = dotGitPath.ReadAllLines()
                         .Where(x => x.StartsWith("gitdir:"))
@@ -49,25 +45,35 @@ namespace GitHub.Api
                         .First();
                 }
                 config = new GitConfig(dotGitPath.Combine("config"));
-                LoadBranches(refsPath, config.GetBranches().Where(x => x.IsTracking), "");
-                RefreshCurrentBranch();
-
-                headWatcher = new FileSystemWatcher();
-                headWatcher.Path = dotGitPath;
-                headWatcher.Filter = "HEAD";
-                headWatcher.NotifyFilter = NotifyFilters.LastWrite;
-                headWatcher.Changed += (s, e) => RefreshCurrentBranch();
-                headWatcher.EnableRaisingEvents = true;
-
-                branchesWatcher = new FileSystemWatcher();
-                branchesWatcher.Path = refsPath;
-                branchesWatcher.IncludeSubdirectories = true;
-                branchesWatcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName;
-                branchesWatcher.Renamed += (s, e) => UpdateBranchList(e.Name, e.OldName);
-                branchesWatcher.Created += (s, e) => UpdateBranchList(e.Name);
-                branchesWatcher.Deleted += (s, e) => UpdateBranchList(null, e.Name);
-                branchesWatcher.EnableRaisingEvents = true;
             }
+        }
+
+        public void Start()
+        {
+            LoadBranches(refsPath, config.GetBranches().Where(x => x.IsTracking), "");
+            RefreshCurrentBranch();
+
+            headWatcher = new FileSystemWatcher();
+            headWatcher.Path = dotGitPath;
+            headWatcher.Filter = "HEAD";
+            headWatcher.NotifyFilter = NotifyFilters.LastWrite;
+            headWatcher.Changed += (s, e) => RefreshCurrentBranch();
+            headWatcher.EnableRaisingEvents = true;
+
+            branchesWatcher = new FileSystemWatcher();
+            branchesWatcher.Path = refsPath;
+            branchesWatcher.IncludeSubdirectories = true;
+            branchesWatcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName;
+            branchesWatcher.Renamed += (s, e) => UpdateBranchList(e.Name, e.OldName);
+            branchesWatcher.Created += (s, e) => UpdateBranchList(e.Name);
+            branchesWatcher.Deleted += (s, e) => UpdateBranchList(null, e.Name);
+            branchesWatcher.EnableRaisingEvents = true;
+        }
+
+        public void Stop()
+        {
+            headWatcher.EnableRaisingEvents = false;
+            branchesWatcher.EnableRaisingEvents = false;
         }
 
         public IRepository GetRepository()
@@ -185,13 +191,13 @@ namespace GitHub.Api
                 .FirstOrDefault();
         }
 
-        private static NPath FindRepositoryRoot(IFileSystem fs, NPath path)
+        private static NPath FindRepositoryRoot(NPath path)
         {
             if (path.Exists(".git"))
                 return path;
 
             if (!path.IsRoot)
-                return FindRepositoryRoot(fs, path.Parent);
+                return FindRepositoryRoot(path.Parent);
 
             return null;
         }
@@ -202,8 +208,8 @@ namespace GitHub.Api
             if (disposing)
             {
                 if (disposed) return;
-                branchesWatcher.Dispose();
-                headWatcher.Dispose();
+                branchesWatcher?.Dispose();
+                headWatcher?.Dispose();
                 disposed = true;
             }
         }

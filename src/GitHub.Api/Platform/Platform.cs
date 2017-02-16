@@ -1,12 +1,11 @@
 using GitHub.Unity;
+using System.Threading.Tasks;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     class Platform : IPlatform
     {
         private readonly IEnvironment environment;
-
-        private ICredentialManager credentialManager;
 
         public Platform(IEnvironment environment, IFileSystem fs)
         {
@@ -25,26 +24,27 @@ namespace GitHub.Api
             }
         }
 
-        public ICredentialManager GetCredentialManager(IProcessManager processManager)
+        public Task<IPlatform> Initialize(IProcessManager processManager)
         {
-            if (credentialManager == null)
+            if (CredentialManager == null)
             {
                 if (environment.IsWindows)
                 {
-                    credentialManager = new WindowsCredentialManager(environment, processManager);
+                    CredentialManager = new WindowsCredentialManager(environment, processManager);
                 }
                 else if (environment.IsMac)
                 {
-                    credentialManager = new MacCredentialManager();
+                    CredentialManager = new MacCredentialManager();
                 }
                 else
                 {
-                    credentialManager = new LinuxCredentialManager();
+                    CredentialManager = new LinuxCredentialManager();
                 }
             }
-            return credentialManager;
+            return TaskEx.FromResult(this as IPlatform);
         }
 
         public IGitEnvironment GitEnvironment { get; private set; }
+        public ICredentialManager CredentialManager { get; private set; }
     }
 }

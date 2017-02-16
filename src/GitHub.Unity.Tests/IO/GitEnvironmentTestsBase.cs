@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using NSubstitute;
-using GitHub.Api;
+using GitHub.Unity;
 
 namespace GitHub.Unity.Tests
 {

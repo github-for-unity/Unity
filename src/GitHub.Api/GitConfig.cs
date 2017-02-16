@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     public struct ConfigRemote
     {

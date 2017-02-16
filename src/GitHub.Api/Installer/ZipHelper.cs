@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading;
 using ICSharpCode.SharpZipLib.Zip;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     class ZipHelper : IZipHelper
     {

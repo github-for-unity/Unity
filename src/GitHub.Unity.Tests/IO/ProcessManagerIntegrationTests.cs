@@ -4,7 +4,7 @@ using System.Linq;
 using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
-using GitHub.Api;
+using GitHub.Unity;
 
 namespace GitHub.Unity.Tests
 {
@@ -15,11 +15,12 @@ namespace GitHub.Unity.Tests
         public async void BranchListTest()
         {
             var filesystem = new FileSystem();
+            NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = TestGitRepoPath;
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            var processManager = new ProcessManager(environment, gitEnvironment);
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
 
             var gitBranches = processManager.GetGitBranches(TestGitRepoPath);
@@ -33,11 +34,12 @@ namespace GitHub.Unity.Tests
         public async void LogEntriesTest()
         {
             var filesystem = new FileSystem();
+            NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = TestGitRepoPath;
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            var processManager = new ProcessManager(environment, gitEnvironment);
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
 
             var logEntries =
@@ -54,8 +56,8 @@ namespace GitHub.Unity.Tests
                     CommitName = "Author Person",
                     Changes = new List<GitStatusEntry>
                     {
-                        new GitStatusEntry("Assets/TestDocument.txt",
-                            TestGitRepoPath + "Assets/TestDocument.txt", null,
+                        new GitStatusEntry("Assets/TestDocument.txt".ToNPath(),
+                            TestGitRepoPath + "Assets/TestDocument.txt".ToNPath(), null,
                             GitFileStatus.Renamed, "TestDocument.txt"),
                     },
                     CommitID = "018997938335742f8be694240a7c2b352ec0835f",
@@ -89,11 +91,12 @@ namespace GitHub.Unity.Tests
         public async void RemoteListTest()
         {
             var filesystem = new FileSystem();
+            NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = TestGitRepoPath;
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            var processManager = new ProcessManager(environment, gitEnvironment);
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
 
             var gitRemotes = processManager.GetGitRemoteEntries(TestGitRepoPath);
@@ -110,12 +113,18 @@ namespace GitHub.Unity.Tests
         [Test]
         public async void StatusTest()
         {
-            var filesystem = new FileSystem();
+            var testRepo = TestGitRepoPath.ToNPath();
+            var filesystem = new FileSystem(TestGitRepoPath);
+            NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = TestGitRepoPath;
+            
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            var processManager = new ProcessManager(environment, gitEnvironment);
+            var gitClient = new GitClient(TestGitRepoPath);
+            environment.Repository = gitClient.GetRepository();
+
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
 
             var gitStatus = processManager.GetGitStatus(TestGitRepoPath, environment, filesystem, gitEnvironment);
@@ -125,16 +134,19 @@ namespace GitHub.Unity.Tests
                 LocalBranch = "master",
                 Entries = new List<GitStatusEntry>
                 {
-                    new GitStatusEntry("Assets/Added Document.txt",
-                        TestGitRepoPath + @"Assets/Added Document.txt", null,
+                    new GitStatusEntry("Assets/Added Document.txt".ToNPath(),
+                        testRepo.Combine("Assets/Added Document.txt"),
+                        "Assets/Added Document.txt".ToNPath(),
                         GitFileStatus.Added, staged: true),
 
-                    new GitStatusEntry("Assets/Renamed TestDocument.txt",
-                        TestGitRepoPath + @"Assets/Renamed TestDocument.txt", null,
-                        GitFileStatus.Renamed, "Assets/TestDocument.txt", true),
+                    new GitStatusEntry("Assets/Renamed TestDocument.txt".ToNPath(),
+                        testRepo.Combine("Assets/Renamed TestDocument.txt"),
+                        "Assets/Renamed TestDocument.txt".ToNPath(),
+                        GitFileStatus.Renamed, "Assets/TestDocument.txt".ToNPath(), true),
 
-                    new GitStatusEntry("Assets/Untracked Document.txt",
-                        TestGitRepoPath + @"Assets/Untracked Document.txt", null,
+                    new GitStatusEntry("Assets/Untracked Document.txt".ToNPath(),
+                        testRepo.Combine("Assets/Untracked Document.txt"),
+                        "Assets/Untracked Document.txt".ToNPath(),
                         GitFileStatus.Untracked),
                 }
             });
@@ -144,11 +156,12 @@ namespace GitHub.Unity.Tests
         public async void CredentialHelperGetTest()
         {
             var filesystem = new FileSystem();
+            NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = TestGitRepoPath;
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
+            var processManager = new ProcessManager(environment, gitEnvironment);
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
 
             var s = processManager.GetGitCreds(TestGitRepoPath, environment, filesystem, gitEnvironment);

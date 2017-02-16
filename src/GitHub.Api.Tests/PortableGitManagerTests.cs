@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
-using GitHub.Api;
+using GitHub.Unity;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -25,7 +25,7 @@ namespace GitHub.Unity.Tests
             Logging.LoggerFactory = s => new ConsoleLogAdapter(s);
 
             Factory = new SubstituteFactory();
-            NPathFileSystemProvider.Current = Factory.CreateFileSystem(new CreateFileSystemOptions());
+            NPathFileSystemProvider.Current = Factory.CreateFileSystem();
         }
 
         [Test]
@@ -35,29 +35,55 @@ namespace GitHub.Unity.Tests
 
             var fileSystem =
                 Factory.CreateFileSystem(new CreateFileSystemOptions {
-                    FilesThatExist = new[] { WindowsPortableGitZip },
-                    DirectoriesThatExist =
-                        new[] { @"c:\UserProfile\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db" },
+                    //FilesThatExist = new[] { WindowsPortableGitZip },
+                    //DirectoriesThatExist =
+                    //    new[] { @"c:\UserProfile\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db" },
                     RandomFileNames = new[] { "randomFile1", "randomFile2" },
                     FolderContents =
-                        new Dictionary<SubstituteFactory.FolderContentsKey, string[]> {
+                        new Dictionary<FolderContentsKey, string[]> {
                             {
-                                new SubstituteFactory.FolderContentsKey(
+                                new FolderContentsKey(
                                     CreateFileSystemOptions.DefaultTemporaryPath + @"\randomFile1.deleteme", "*",
                                     SearchOption.AllDirectories),
                                 new string[0]
                             }
                         }
                 });
-
+            
             NPathFileSystemProvider.Current = fileSystem;
+            var created = 0;
+            fileSystem.FileExists(Arg.Any<string>()).Returns(info =>
+            {
+                var path1 = (string)info[0];
 
+                if (path1 == @"c:\UserProfile\GitHubUnityDebug\PortableGit_f02737a78695063deace08e96d5042710d3e32db\cmd\git.exe")
+                    return false;
+                else if (path1.StartsWith(@"c:\tmp"))
+                {
+                    created++;
+                    var ret = created > 2;
+                    return ret;
+                }
+                return true;
+            });
+
+            fileSystem.DirectoryExists(Arg.Any<string>()).Returns(info =>
+            {
+                var path1 = (string)info[0];
+
+                if (path1.StartsWith(@"c:\tmp"))
+                {
+                    created++;
+                    var ret = created > 2;
+                    return ret;
+                }
+                return true;
+            });
             var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
-                fileSystem, sharpZipLibHelper);
+            sharpZipLibHelper);
             portableGitManager.ExtractGitIfNeeded();
 
-            const string shouldExtractTo = CreateFileSystemOptions.DefaultTemporaryPath + @"\randomFile1.deleteme";
-            sharpZipLibHelper.Received().ExtractZipFile(WindowsPortableGitZip, shouldExtractTo);
+            sharpZipLibHelper.Received().ExtractZipFile(WindowsPortableGitZip, Arg.Any<string>());
 
             //TODO: Write code to make sure NPath was used to copy files
         }
@@ -75,7 +101,7 @@ namespace GitHub.Unity.Tests
                 });
 
             var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
-                fileSystem, sharpZipLibHelper);
+                sharpZipLibHelper);
             portableGitManager.ExtractGitLfsIfNeeded();
 
             const string shouldExtractTo = CreateFileSystemOptions.DefaultTemporaryPath + @"\randomFile1.deleteme";
@@ -99,8 +125,9 @@ namespace GitHub.Unity.Tests
                     FileContents = new Dictionary<string, string[]>()
                 });
 
+            fileSystem.FileExists(Arg.Any<string>()).Returns(info => true);
             var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
-                fileSystem, sharpZipLibHelper);
+                sharpZipLibHelper);
             portableGitManager.IsGitLfsExtracted().Should().BeTrue();
 
             //TODO: Write code to make sure file was copied
@@ -109,8 +136,7 @@ namespace GitHub.Unity.Tests
         [Test]
         public void ShouldKnowGitLfsDestinationDirectory()
         {
-            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(), Factory.CreateFileSystem(),
-                Factory.CreateSharpZipLibHelper());
+            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(), Factory.CreateSharpZipLibHelper());
 
             portableGitManager.GitLfsDestinationPath.Should()
                               .Be(
@@ -132,7 +158,7 @@ namespace GitHub.Unity.Tests
 
             var sharpZipLibHelper = Factory.CreateSharpZipLibHelper();
 
-            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(), fileSystem, sharpZipLibHelper);
+            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(), sharpZipLibHelper);
             portableGitManager.ExtractGitIfNeeded();
 
             sharpZipLibHelper.DidNotReceiveWithAnyArgs().ExtractZipFile(Arg.Any<string>(), Arg.Any<string>());
@@ -156,7 +182,7 @@ namespace GitHub.Unity.Tests
             NPathFileSystemProvider.Current = fileSystem;
 
             var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
-                fileSystem, sharpZipLibHelper);
+                sharpZipLibHelper);
             portableGitManager.ExtractGitLfsIfNeeded();
 
             sharpZipLibHelper.DidNotReceiveWithAnyArgs().ExtractZipFile(Arg.Any<string>(), Arg.Any<string>());

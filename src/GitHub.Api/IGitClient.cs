@@ -1,4 +1,4 @@
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface IGitClient
     {
@@ -7,5 +7,7 @@ namespace GitHub.Api
 
         ConfigRemote? GetActiveRemote(string defaultRemote = "origin");
         string RepositoryPath { get; }
+        void Start();
+        void Stop();
     }
 }

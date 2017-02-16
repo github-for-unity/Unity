@@ -1,4 +1,4 @@
-using GitHub.Api;
+using GitHub.Unity;
 using System;
 using System.IO;
 using UnityEngine;
@@ -55,7 +55,7 @@ namespace GitHub.Unity
             }
         }
 
-        public string RepositoryRoot { get; set; }
+        public string RepositoryPath { get { return Repository.LocalPath; } }
         public IRepository Repository { get; set; }
 
         public bool IsWindows
