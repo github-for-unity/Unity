@@ -543,7 +543,7 @@ namespace GitHub.Unity
 
         private void HistoryDetailsEntry(GitLogEntry entry)
         {
-            GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle);
+            GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle, GUILayout.Width(Position.width));
 
             GUILayout.BeginHorizontal();
               GUILayout.Label(entry.PrettyTimeString, Styles.HistoryDetailsMetaInfoStyle);
