@@ -59,10 +59,6 @@ namespace GitHub.Unity
             throw new ArgumentOutOfRangeException(name, message);
         }
 
-        // Borrowed from Splat.
-        static bool InUnitTestRunner()
-        {
-            return false;
-        }
+        public static bool InUnitTestRunner { get; set; }
     }
 }
