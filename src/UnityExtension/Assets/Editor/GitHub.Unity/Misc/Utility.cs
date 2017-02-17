@@ -71,13 +71,6 @@ namespace GitHub.Unity
             onReady.SafeInvoke();
         }
 
-        public static string AssetPathToRepository(string assetPath)
-        {
-            var localDataPath = UnityAssetsPath.Substring(GitRoot.Length + 1);
-            return Path.Combine(localDataPath.Substring(0, localDataPath.Length - "Assets".Length),
-                assetPath.Replace('/', Path.DirectorySeparatorChar));
-        }
-
         public static Texture2D GetIcon(string filename, string filename2x = "")
         {
             if (EditorGUIUtility.pixelsPerPoint > 1f && !string.IsNullOrEmpty(filename2x))
@@ -88,7 +81,9 @@ namespace GitHub.Unity
             var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GitHub.Unity.Icons." + filename);
             if (stream != null)
                 return stream.ToTexture2D();
-            return AssetDatabase.LoadMainAssetAtPath(ExtensionInstallPath + "/Icons/" + filename) as Texture2D;
+
+            var iconPath = ExtensionInstallPath.ToNPath().Combine("Icons", filename).ToString(SlashMode.Forward);
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
         }
 
         // Based on: https://www.rosettacode.org/wiki/Find_common_directory_path#C.23
@@ -128,7 +123,7 @@ namespace GitHub.Unity
 
         public static string GitRoot
         {
-            get { return EntryPoint.Environment.RepositoryRoot; }
+            get { return EntryPoint.Environment.RepositoryPath; }
         }
 
         public static string UnityAssetsPath

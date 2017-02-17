@@ -151,7 +151,17 @@ namespace GitHub.Unity
 
         private bool OnIssuesGUI()
         {
-            var settingsIssues = Utility.Issues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
+            IList<ProjectConfigurationIssue> projectConfigurationIssues;
+            if (Utility.Issues != null)
+            {
+                projectConfigurationIssues = Utility.Issues;
+            }
+            else
+            {
+                projectConfigurationIssues = new ProjectConfigurationIssue[0];
+            }
+
+            var settingsIssues = projectConfigurationIssues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
 
             if (settingsIssues != null)
             {
@@ -252,13 +262,13 @@ namespace GitHub.Unity
                 }
             }
 
-            var gitIgnoreException = Utility.Issues.Select(i => i as GitIgnoreException).FirstOrDefault(i => i != null);
+            var gitIgnoreException = projectConfigurationIssues.Select(i => i as GitIgnoreException).FirstOrDefault(i => i != null);
             if (gitIgnoreException != null)
             {
                 Styles.Warning(String.Format(GitIgnoreExceptionWarning, gitIgnoreException.Exception));
             }
 
-            foreach (var issue in Utility.Issues.Select(i => i as GitIgnoreIssue).Where(i => i != null))
+            foreach (var issue in projectConfigurationIssues.Select(i => i as GitIgnoreIssue).Where(i => i != null))
             {
                 if (string.IsNullOrEmpty(issue.Line))
                 {

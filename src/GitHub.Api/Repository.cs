@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     class Repository : IRepository, IEquatable<Repository>
@@ -69,7 +69,7 @@ namespace GitHub.Api
         {
             get
             {
-                return gitClient.GetActiveBranch()?.Name;
+                return gitClient.ActiveBranch?.Name;
             }
         }
 

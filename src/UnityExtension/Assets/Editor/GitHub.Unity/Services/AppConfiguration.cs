@@ -1,5 +1,5 @@
 using System.Reflection;
-using GitHub.Api;
+using GitHub.Unity;
 using Octokit;
 
 namespace GitHub.Unity
