@@ -16,8 +16,11 @@ namespace GitHub.Unity
         private readonly IEnvironment environment;
         private readonly ILogging logger;
         private readonly IZipHelper sharpZipLibHelper;
+        private delegate void ExtractZipFile(string archive, string outFolder, CancellationToken? cancellationToken = null,
+    IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null);
+        private ExtractZipFile extractCallback;
 
-        public PortableGitManager(IEnvironment environment, IZipHelper sharpZipLibHelper,
+        public PortableGitManager(IEnvironment environment, IZipHelper sharpZipLibHelper = null,
             CancellationToken? cancellationToken = null)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));
@@ -26,7 +29,9 @@ namespace GitHub.Unity
             logger = Logging.GetLogger(GetType());
 
             this.environment = environment;
-            this.sharpZipLibHelper = sharpZipLibHelper;
+            this.extractCallback = sharpZipLibHelper != null
+                 ? (ExtractZipFile)sharpZipLibHelper.Extract
+                 : ZipHelper.ExtractZipFile;
             this.cancellationToken = cancellationToken;
 
             PackageDestinationDirectory = environment.UserProfilePath.ToNPath().Combine(ApplicationInfo.ApplicationName, PackageNameWithVersion);
@@ -87,7 +92,7 @@ namespace GitHub.Unity
 
             try
             {
-                sharpZipLibHelper.ExtractZipFile(archiveFilePath, tempPath, cancellationToken, zipFileProgress,
+                sharpZipLibHelper.Extract(archiveFilePath, tempPath, cancellationToken, zipFileProgress,
                     estimatedDurationProgress);
             }
             catch (Exception ex)
@@ -131,7 +136,7 @@ namespace GitHub.Unity
 
             try
             {
-                sharpZipLibHelper.ExtractZipFile(archiveFilePath, tempPath, cancellationToken, zipFileProgress,
+                sharpZipLibHelper.Extract(archiveFilePath, tempPath, cancellationToken, zipFileProgress,
                     estimatedDurationProgress);
             }
             catch (Exception ex)
