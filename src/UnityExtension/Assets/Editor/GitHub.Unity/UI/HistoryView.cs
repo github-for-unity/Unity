@@ -548,6 +548,7 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal();
               GUILayout.Label(entry.PrettyTimeString, Styles.HistoryDetailsMetaInfoStyle);
               GUILayout.Label(entry.AuthorName, Styles.HistoryDetailsMetaInfoStyle);
+              GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
 
