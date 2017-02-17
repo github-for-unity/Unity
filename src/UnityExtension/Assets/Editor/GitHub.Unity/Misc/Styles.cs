@@ -74,6 +74,7 @@ namespace GitHub.Unity
             commitDescriptionFieldStyle,
             toggleMixedStyle,
             authHeaderBoxStyle,
+            historyDetailsTitleBoxStyle,
             historyDetailsTitleStyle,
             historyDetailsMetaInfoStyle,
             genericBoxStyle;
@@ -160,12 +161,7 @@ namespace GitHub.Unity
 					headerBoxStyle.name = "HeaderBoxStyle";
 					headerBoxStyle.padding = new RectOffset(5,5,5,5);
 
-					Texture2D backgroundTexture = new Texture2D(1,1);
-					Color color = new Color(0.878f, 0.878f, 0.878f, 1.0f);
-					backgroundTexture.SetPixel(1, 1, color);
-					backgroundTexture.Apply();
-
-					headerBoxStyle.normal.background = backgroundTexture;
+					headerBoxStyle.normal.background = Utility.CreateColorTexture(new Color(0.878f, 0.878f, 0.878f, 1.0f));
 				}
 
 				return headerBoxStyle;
@@ -307,6 +303,21 @@ namespace GitHub.Unity
                 return historyEntryDetailsRightStyle;
             }
         }
+
+        public static GUIStyle HistoryDetailsTitleBoxStyle
+        {
+          get
+          {
+            if (historyDetailsTitleBoxStyle == null)
+            {
+              historyDetailsTitleBoxStyle = new GUIStyle();
+              historyDetailsTitleBoxStyle.name = "HistoryDetailsTitleBoxStyle";
+            }
+
+            return historyDetailsTitleBoxStyle;
+          }
+        }
+
 
         public static GUIStyle HistoryDetailsTitleStyle
         {
