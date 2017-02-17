@@ -3,35 +3,34 @@ using System.IO;
 using System.Threading;
 using GitHub.Unity;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     class PortableGitManager : IPortableGitManager
     {
         private const string WindowsPortableGitZip = @"resources\windows\PortableGit-2.11.1-32-bit.zip";
         private const string WindowsGitLfsZip = @"resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip";
-        private const string TemporaryFolderSuffix = ".deleteme";
         private const string PortableGitExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
         private const string PackageName = "PortableGit";
 
         private readonly CancellationToken? cancellationToken;
         private readonly IEnvironment environment;
-        private readonly IFileSystem fileSystem;
         private readonly ILogging logger;
         private readonly IZipHelper sharpZipLibHelper;
 
-        public PortableGitManager(IEnvironment environment, IFileSystem fileSystem, IZipHelper sharpZipLibHelper,
+        public PortableGitManager(IEnvironment environment, IZipHelper sharpZipLibHelper,
             CancellationToken? cancellationToken = null)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));
-            Guard.ArgumentNotNull(fileSystem, nameof(fileSystem));
             Guard.ArgumentNotNull(sharpZipLibHelper, nameof(sharpZipLibHelper));
 
             logger = Logging.GetLogger(GetType());
 
             this.environment = environment;
-            this.fileSystem = fileSystem;
             this.sharpZipLibHelper = sharpZipLibHelper;
             this.cancellationToken = cancellationToken;
+
+            PackageDestinationDirectory = environment.UserProfilePath.ToNPath().Combine(ApplicationInfo.ApplicationName, PackageNameWithVersion);
+            GitLfsDestinationPath = PackageDestinationDirectory.Combine(@"mingw32", "libexec", "git-core", "git-lfs.exe");
         }
 
         public bool IsExtracted()
@@ -43,8 +42,8 @@ namespace GitHub.Api
         {
             var target = PackageDestinationDirectory;
 
-            var git = fileSystem.Combine(target, "cmd", "git.exe");
-            if (!fileSystem.FileExists(git))
+            var git = target.Combine("cmd", "git.exe");
+            if (!git.FileExists())
             {
                 logger.Debug("git.exe not found");
                 return false;
@@ -57,8 +56,7 @@ namespace GitHub.Api
         {
             logger.Debug("PackageDestinationDirectory: {0}", PackageDestinationDirectory);
 
-            var gitLfs = fileSystem.Combine(PackageDestinationDirectory, @"mingw32\libexec\git-core\git-lfs.exe");
-            if (!fileSystem.FileExists(gitLfs))
+            if (!GitLfsDestinationPath.FileExists())
             {
                 logger.Warning("git-lfs.exe not found");
                 return false;
@@ -76,26 +74,16 @@ namespace GitHub.Api
                 return;
             }
 
-            var tempPath = GetTemporaryPath();
+            var archiveFilePath = environment.ExtensionInstallPath.ToNPath().Combine(WindowsPortableGitZip);
 
-            var archiveFilePath = fileSystem.Combine(environment.ExtensionInstallPath, WindowsPortableGitZip);
-
-            try
-            {
-                fileSystem.CreateDirectory(tempPath);
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Couldn't create temp dir: " + tempPath);
-                throw;
-            }
-
-            if (!fileSystem.FileExists(archiveFilePath))
+            if (!archiveFilePath.FileExists())
             {
                 var exception = new FileNotFoundException("Could not find file", archiveFilePath);
                 logger.Error(exception, "Trying to extract {0}, but it doesn't exist", archiveFilePath);
                 throw exception;
             }
+
+            var tempPath = GetTemporaryPath();
 
             try
             {
@@ -110,15 +98,14 @@ namespace GitHub.Api
 
             try
             {
-                var nPath = new NPath(tempPath + @"\");
-                var destination = new NPath(PackageDestinationDirectory + @"\");
-                nPath.CopyFiles(destination, true);
+                tempPath.Copy(PackageDestinationDirectory);
             }
             catch (Exception ex)
             {
                 logger.Error(ex, "Error CopyingArchive Source:\"{0}\" OutDir:\"{1}\"", tempPath, PackageDestinationDirectory);
                 throw;
             }
+            tempPath.DeleteIfExists();
         }
 
         public void ExtractGitLfsIfNeeded(IProgress<float> zipFileProgress = null,
@@ -130,27 +117,17 @@ namespace GitHub.Api
                 return;
             }
 
-            var tempPath = GetTemporaryPath();
-            var tempGitLfsPath = fileSystem.Combine(tempPath, "git-lfs.exe");
+            var archiveFilePath = environment.ExtensionInstallPath.ToNPath().Combine(WindowsGitLfsZip);
 
-            var archiveFilePath = fileSystem.Combine(environment.ExtensionInstallPath, WindowsGitLfsZip);
-
-            try
-            {
-                fileSystem.CreateDirectory(tempPath);
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Couldn't create temp dir: " + tempPath);
-                throw;
-            }
-
-            if (!fileSystem.FileExists(archiveFilePath))
+            if (!archiveFilePath.FileExists())
             {
                 var exception = new FileNotFoundException("Could not find file", archiveFilePath);
                 logger.Error(exception, "Trying to extract {0}, but it doesn't exist", archiveFilePath);
                 throw exception;
             }
+
+            var tempPath = GetTemporaryPath();
+            var tempGitLfsPath = tempPath.Combine("git-lfs.exe");
 
             try
             {
@@ -165,24 +142,24 @@ namespace GitHub.Api
 
             try
             {
-                fileSystem.FileCopy(tempGitLfsPath, GitLfsDestinationPath, false);
+                tempGitLfsPath.Copy(GitLfsDestinationPath);
             }
             catch (Exception ex)
             {
                 logger.Error(ex, "Error Copying git-lfs Source:\"{0}\" Destination:\"{1}\"", tempGitLfsPath, GitLfsDestinationPath);
                 throw;
             }
+            tempPath.DeleteIfExists();
         }
 
-        private string GetTemporaryPath()
+        private NPath GetTemporaryPath()
         {
-            return fileSystem.Combine(fileSystem.GetTempPath(), fileSystem.GetRandomFileName() + TemporaryFolderSuffix);
+            return NPath.CreateTempDirectory("github-unity-portable");
         }
 
-        public string PackageDestinationDirectory => fileSystem.Combine(environment.UserProfilePath, "GitHubUnity", PackageNameWithVersion);
+        public NPath PackageDestinationDirectory { get; private set; }
 
-        public string GitLfsDestinationPath
-            => fileSystem.Combine(PackageDestinationDirectory, @"mingw32\libexec\git-core\git-lfs.exe");
+        public NPath GitLfsDestinationPath { get; private set; }
 
         public string PackageNameWithVersion => PackageName + "_" + PortableGitExpectedVersion;
     }

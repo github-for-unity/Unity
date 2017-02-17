@@ -1,4 +1,4 @@
-﻿using GitHub.Api;
+﻿using GitHub.Unity;
 using NUnit.Framework;
 using System.Threading;
 using System.Threading.Tasks;

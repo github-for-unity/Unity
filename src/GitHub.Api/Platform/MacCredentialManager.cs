@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     class MacCredentialManager : ICredentialManager
     {
