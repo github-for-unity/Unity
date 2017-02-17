@@ -3,24 +3,56 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
+    enum ResourceType
+    {
+        Icon,
+        Platform
+    }
+
+    class AssemblyResources
+    {
+        public static NPath ToFile(ResourceType resourceType, string resource, NPath destinationPath)
+        {
+            var os = "";
+            if (resourceType == ResourceType.Platform)
+            {
+                os = DefaultEnvironment.OnWindows ? ".windows"
+                       : DefaultEnvironment.OnLinux ? ".linux"
+                       : ".mac";
+            }
+            var type = resourceType == ResourceType.Icon ? "Icons"
+                     : "PlatformResources";
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
+                String.Format("GitHub.Unity.{0}{1}.{2}", type, os, resource));
+            return destinationPath.Combine(resource).WriteAllBytes(stream.ToByteArray());
+        }
+    }
+
+
     class GitOtherClient
     {
         private readonly IEnvironment environment;
         private readonly CancellationToken cancellationToken;
+        private readonly PortableGitManager gitInstaller;
+        public NPath GitInstallationPath { get; private set; }
+        public NPath GitExecutablePath { get; private set; }
 
         public GitOtherClient(IEnvironment environment, CancellationToken cancellationToken)
         {
             this.environment = environment;
             this.cancellationToken = cancellationToken;
+            gitInstaller = new PortableGitManager(environment, cancellationToken: cancellationToken);
+            GitInstallationPath = gitInstaller.PackageDestinationDirectory;
+            GitExecutablePath = gitInstaller.GitDestinationPath;
         }
-        public void SetupIfNeeded(IProgress<float> percentage, IProgress<long> timeRemaining)
+        public Task<bool> SetupIfNeeded(IProgress<float> percentage = null, IProgress<long> timeRemaining = null)
         {
-            var gitInstaller = new PortableGitManager(environment, cancellationToken: cancellationToken);
-            gitInstaller.ExtractGitIfNeeded(percentage, timeRemaining);
-
+            return gitInstaller.Setup(percentage, timeRemaining);
         }
     }
 

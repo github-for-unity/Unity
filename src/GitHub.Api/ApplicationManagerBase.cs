@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rackspace.Threading;
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,22 +49,42 @@ namespace GitHub.Unity
         private async Task RunInternal()
         {
             await ThreadingHelper.SwitchToThreadAsync();
-            Environment.GitExecutablePath = DetermineGitInstallationPath();
+            var gitSetup = new GitOtherClient(Environment, CancellationToken);
+            var expectedPath = gitSetup.GitInstallationPath;
+
+            bool setupDone = false;
+            // Root paths
+            if (!gitSetup.GitExecutablePath.FileExists())
+            {
+                setupDone = await gitSetup.SetupIfNeeded(
+                    //new Progress<float>(x => logger.Trace("Percentage: {0}", x)),
+                    //new Progress<long>(x => logger.Trace("Remaining: {0}", x))
+                );
+            }
+
+            if (setupDone)
+                Environment.GitExecutablePath = gitSetup.GitExecutablePath;
+            else
+                Environment.GitExecutablePath = await DetermineGitInstallationPath();
             Environment.Repository = GitClient.GetRepository();
         }
 
-        private string DetermineGitInstallationPath()
+        private async Task<string> DetermineGitInstallationPath()
         {
-            var cachedGitInstallPath = SystemSettings.Get("GitInstallPath");
+            NPath cachedGitInstallPath = null;
+            var path = SystemSettings.Get("GitInstallPath");
+            if (!String.IsNullOrEmpty(path))
+                cachedGitInstallPath = path.ToNPath();
 
             // Root paths
-            if (string.IsNullOrEmpty(cachedGitInstallPath) || !cachedGitInstallPath.ToNPath().Exists())
+            if (cachedGitInstallPath == null ||
+               !cachedGitInstallPath.DirectoryExists())
             {
-                return GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
+                return await GitEnvironment.FindGitInstallationPath(ProcessManager);
             }
             else
             {
-                return cachedGitInstallPath;
+                return cachedGitInstallPath.ToString();
             }
         }
 

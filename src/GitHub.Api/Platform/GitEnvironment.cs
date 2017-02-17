@@ -29,7 +29,7 @@ namespace GitHub.Unity
 
         public virtual async Task<string> FindGitInstallationPath(IProcessManager processManager)
         {
-            return await LookForGitInPath(processManager).ConfigureAwait(false);
+            return await LookForGitInPath(processManager);
         }
 
         public abstract string GetGitExecutableExtension();
@@ -59,8 +59,8 @@ namespace GitHub.Unity
             var userPath = Environment.Path;
 
             var appPath = workingDirectory;
-            var gitPathRoot = Path.GetDirectoryName(Environment.GitInstallPath);
-            var gitLfsPath = Path.GetDirectoryName(Environment.GitInstallPath);
+            var gitPathRoot = Environment.GitInstallPath;
+            var gitLfsPath = Environment.GitInstallPath;
 
             // Paths to developer tools such as msbuild.exe
             //var developerPaths = StringExtensions.JoinForAppending(";", developerEnvironment.GetPaths());
@@ -91,7 +91,7 @@ namespace GitHub.Unity
             //{
             //    Logger.Debug("{0}={1}", k, psi.EnvironmentVariables[k]);
             //}
-            
+
 
             //psi.EnvironmentVariables["HOME"] = homeDir;
             //psi.EnvironmentVariables["TMP"] = psi.EnvironmentVariables["TEMP"] = FileSystem.GetTempPath();
@@ -131,7 +131,10 @@ namespace GitHub.Unity
         protected async Task<string> LookForGitInPath(IProcessManager processManager)
         {
             string gitPath = null;
-            var task = new FindGitTask(Environment, processManager, null, x => gitPath = x);
+            var task = new ProcessTask(Environment, processManager,
+                Environment.IsWindows ? "where" : "which",
+                "git",
+                x => gitPath = x);
             await task.RunAsync(CancellationToken.None);
             return gitPath;
         }

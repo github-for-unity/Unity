@@ -847,6 +847,14 @@ GitHub.Unity
             return NPathFileSystemProvider.Current.ReadAllLines(ToString());
         }
 
+        public NPath WriteAllBytes(byte[] contents)
+        {
+            ThrowIfRelative();
+            EnsureParentDirectoryExists();
+            NPathFileSystemProvider.Current.WriteAllBytes(ToString(), contents);
+            return this;
+        }
+
         public IEnumerable<NPath> CopyFiles(NPath destination, bool recurse, Func<NPath, bool> fileFilter = null)
         {
             destination.EnsureDirectoryExists();

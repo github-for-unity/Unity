@@ -87,16 +87,6 @@ namespace GitHub.Unity
         public static void ExtractZipFile(string archive, string outFolder, CancellationToken? cancellationToken = null,
             IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
         {
-            if (zipFileProgress == null)
-            {
-                zipFileProgress = new NullProgressReporter<float>();
-            }
-
-            if (estimatedDurationProgress == null)
-            {
-                estimatedDurationProgress = new NullProgressReporter<long>();
-            }
-
             ZipFile zf = null;
             var estimatedDuration = 1L;
             var startTime = DateTime.Now;
@@ -152,7 +142,7 @@ namespace GitHub.Unity
                             estimatedDuration = timeToFinish;
 
                             estimatedDurationProgress.Report(estimatedDuration);
-                            zipFileProgress.Report((float)(totalBytes + totalRead) / targetFile.Length);
+                            zipFileProgress?.Report((float)(totalBytes + totalRead) / targetFile.Length);
 
                             var cancellationRequested = false;
                             if (cancellationToken.HasValue)
@@ -171,7 +161,7 @@ namespace GitHub.Unity
                     var elapsedMillisecondsPerFile = (DateTime.Now - startTime).TotalMilliseconds / processed;
                     estimatedDuration = Math.Max(1L, (long)((fs.Length - totalBytes) * elapsedMillisecondsPerFile));
 
-                    estimatedDurationProgress.Report(estimatedDuration);
+                    estimatedDurationProgress?.Report(estimatedDuration);
                     zipFileProgress.Report((float)processed / zf.Count);
                 }
             }

@@ -1,7 +1,5 @@
-using GitHub.Unity;
 using System;
 using System.IO;
-using UnityEngine;
 
 namespace GitHub.Unity
 {
@@ -38,37 +36,49 @@ namespace GitHub.Unity
             get { return gitExecutablePath; }
             set
             {
-                logger.Trace("Setting GitInstallPath to " + value);
+                logger.Trace("Setting GitExecutablePath to " + value);
                 gitExecutablePath = value;
             }
         }
 
+        private string gitInstallPath;
         public string GitInstallPath
         {
             get
             {
-                if (!String.IsNullOrEmpty(GitExecutablePath))
+                if (gitInstallPath == null)
                 {
-                    return System.IO.Path.GetDirectoryName(GitExecutablePath);
+
+                    if (!String.IsNullOrEmpty(GitExecutablePath))
+                    {
+                        gitInstallPath = GitExecutablePath.ToNPath().Parent.Parent;
+                        logger.Trace("Setting GitInstallPath to " + gitInstallPath);
+                    }
+                    else
+                        gitInstallPath = GitExecutablePath;
                 }
-                return GitExecutablePath;
+                return gitInstallPath;
             }
         }
 
         public string RepositoryPath { get { return Repository.LocalPath; } }
         public IRepository Repository { get; set; }
 
-        public bool IsWindows
+        public bool IsWindows { get { return OnWindows; } }
+        public bool IsLinux { get { return OnLinux; } }
+        public bool IsMac { get { return OnMac; } }
+
+        public static bool OnWindows
         {
             get { return Environment.OSVersion.Platform != PlatformID.Unix && Environment.OSVersion.Platform != PlatformID.MacOSX; }
         }
 
-        public bool IsLinux
+        public static bool OnLinux
         {
             get { return Environment.OSVersion.Platform == PlatformID.Unix && Directory.Exists("/proc"); }
         }
 
-        public bool IsMac
+        public static bool OnMac
         {
             get
             {
