@@ -308,7 +308,6 @@ namespace GitHub.Unity
             }
         }
 
-
         public static GUIStyle HistoryDetailsTitleStyle
         {
           get

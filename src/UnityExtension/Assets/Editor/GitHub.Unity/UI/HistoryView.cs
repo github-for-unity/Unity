@@ -334,7 +334,7 @@ namespace GitHub.Unity
                     detailsScroll = GUILayout.BeginScrollView(detailsScroll,
                         GUILayout.Height(250));
                     {
-                        HistoryEntry(selection, GetEntryState(selectionIndex), false);
+                        HistoryDetailsEntry(selection);
 
                         GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
@@ -342,6 +342,7 @@ namespace GitHub.Unity
                         {
                             GUILayout.Space(Styles.HistoryChangesIndentation);
                             changesetTree.OnGUI();
+                            GUILayout.Space(Styles.HistoryChangesIndentation);
                         }
                         GUILayout.EndHorizontal();
 
@@ -351,7 +352,9 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    HistoryDetailsEntry(selection);
+                    detailsScroll = GUILayout.BeginScrollView(detailsScroll, GUILayout.Height(246));
+                      HistoryDetailsEntry(selection);
+                    GUILayout.EndScrollView();
                 }
             }
 
@@ -540,16 +543,13 @@ namespace GitHub.Unity
 
         private void HistoryDetailsEntry(GitLogEntry entry)
         {
-            detailsScroll = GUILayout.BeginScrollView(detailsScroll, GUILayout.Height(246));
-              GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle);
+            GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle);
 
-              GUILayout.BeginHorizontal();
-                GUILayout.Label(entry.PrettyTimeString, Styles.HistoryDetailsMetaInfoStyle);
-                GUILayout.Label(entry.AuthorName, Styles.HistoryDetailsMetaInfoStyle);
-              GUILayout.EndHorizontal();
-            GUILayout.EndScrollView();
+            GUILayout.BeginHorizontal();
+              GUILayout.Label(entry.PrettyTimeString, Styles.HistoryDetailsMetaInfoStyle);
+              GUILayout.Label(entry.AuthorName, Styles.HistoryDetailsMetaInfoStyle);
+            GUILayout.EndHorizontal();
         }
-
 
         private void Pull()
         {
