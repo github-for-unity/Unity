@@ -54,6 +54,8 @@ namespace GitHub.Unity
             BrowseButton = "...",
             WarningLabel = "<b>Warning:</b> {0}";
 
+        static Color
+          headerGreyColor = new Color(0.878f,0.878f,0.878f,1.0f);
 
         static GUIStyle
             label,
@@ -161,7 +163,7 @@ namespace GitHub.Unity
 					headerBoxStyle.name = "HeaderBoxStyle";
 					headerBoxStyle.padding = new RectOffset(5,5,5,5);
 
-					headerBoxStyle.normal.background = Utility.CreateColorTexture(new Color(0.878f, 0.878f, 0.878f, 1.0f));
+					headerBoxStyle.normal.background = Utility.CreateTextureFromColor(headerGreyColor);
 				}
 
 				return headerBoxStyle;
@@ -312,6 +314,7 @@ namespace GitHub.Unity
             {
               historyDetailsTitleBoxStyle = new GUIStyle();
               historyDetailsTitleBoxStyle.name = "HistoryDetailsTitleBoxStyle";
+              historyDetailsTitleBoxStyle.normal.background = Utility.CreateTextureFromColor(headerGreyColor);
             }
 
             return historyDetailsTitleBoxStyle;
