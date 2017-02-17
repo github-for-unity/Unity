@@ -115,7 +115,7 @@
     <Compile Include="IO\Watches\IFileSystemWatchFactory.cs" />
     <Compile Include="IO\Watches\IFileSystemWatchListener.cs" />
     <Compile Include="IO\Watches\IFileSystemWatchStrategy.cs" />
-    <Compile Include="IO\Watches\PathAndFilter.cs" />
+    <Compile Include="IO\Watches\WatchArguments.cs" />
     <Compile Include="IO\Watches\RecursiveFileSystemWatchStrategy.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="Localization.Designer.cs">
