@@ -20,23 +20,77 @@ namespace GitHub.Unity.Tests
         }
 
         [Test]
+        public void ShouldRaiseEvents()
+        {
+            TestFileSystemWatch testWatcher = null;
+            var fileSystemWatchStrategy = Factory.CreateTestWatchFactory(new CreateTestWatchFactoryOptions(createdWatch => { testWatcher = createdWatch; }));
+
+            var defaultFileSystemWatchStrategy = new DefaultFileSystemWatchStrategy(fileSystemWatchStrategy);
+
+            var testWatchListener = Substitute.For<IFileSystemWatchListener>();
+            defaultFileSystemWatchStrategy.AddListener(testWatchListener);
+
+            defaultFileSystemWatchStrategy.Watch(@"c:\temp");
+
+            testWatcher.RaiseCreated("file.txt");
+
+            testWatchListener.ReceivedWithAnyArgs(1).OnCreate(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnChange(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnDelete(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnRename(Arg.Any<object>(), Arg.Any<RenamedEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnError(Arg.Any<object>(), Arg.Any<ErrorEventArgs>());
+
+            testWatcher.RaiseChanged("file.txt");
+
+            testWatchListener.ReceivedWithAnyArgs(1).OnCreate(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(1).OnChange(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnDelete(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnRename(Arg.Any<object>(), Arg.Any<RenamedEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnError(Arg.Any<object>(), Arg.Any<ErrorEventArgs>());
+
+            testWatcher.RaiseDeleted("file.txt");
+
+            testWatchListener.ReceivedWithAnyArgs(1).OnCreate(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(1).OnChange(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(1).OnDelete(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnRename(Arg.Any<object>(), Arg.Any<RenamedEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnError(Arg.Any<object>(), Arg.Any<ErrorEventArgs>());
+
+            testWatcher.RaiseRenamed("file.txt", "file.txt");
+
+            testWatchListener.ReceivedWithAnyArgs(1).OnCreate(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(1).OnChange(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(1).OnDelete(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(1).OnRename(Arg.Any<object>(), Arg.Any<RenamedEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnError(Arg.Any<object>(), Arg.Any<ErrorEventArgs>());
+
+            testWatcher.RaiseError(new Exception());
+
+            testWatchListener.ReceivedWithAnyArgs(1).OnCreate(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(1).OnChange(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(1).OnDelete(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(1).OnRename(Arg.Any<object>(), Arg.Any<RenamedEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(1).OnError(Arg.Any<object>(), Arg.Any<ErrorEventArgs>());
+        }
+
+        [Test]
         public void ShouldProperlyDetachListener()
         {
             TestFileSystemWatch testWatcher = null;
             var testWatchFactory = Factory.CreateTestWatchFactory(new CreateTestWatchFactoryOptions(createdWatch => { testWatcher = createdWatch; }));
 
-            var defaultFileSystemWatchStrategy = new DefaultFileSystemWatchStrategy(testWatchFactory);
+            var fileSystemWatchStrategy = new DefaultFileSystemWatchStrategy(testWatchFactory);
 
             var testWatchListener = Substitute.For<IFileSystemWatchListener>();
-            defaultFileSystemWatchStrategy.AddListener(testWatchListener);
-            defaultFileSystemWatchStrategy.RemoveListener(testWatchListener);
+            fileSystemWatchStrategy.AddListener(testWatchListener);
+            fileSystemWatchStrategy.RemoveListener(testWatchListener);
 
-            defaultFileSystemWatchStrategy.Watch(@"c:\temp");
+            fileSystemWatchStrategy.Watch(@"c:\temp");
 
-            testWatcher.RaiseCreated(@"c:\temp", "file.txt");
-            testWatcher.RaiseChanged(@"c:\temp", "file.txt");
-            testWatcher.RaiseDeleted(@"c:\temp", "file.txt");
-            testWatcher.RaiseRenamed(@"c:\temp", "file.txt", "file.txt");
+            testWatcher.RaiseCreated("file.txt");
+            testWatcher.RaiseChanged("file.txt");
+            testWatcher.RaiseDeleted("file.txt");
+            testWatcher.RaiseRenamed("file.txt", "file.txt");
             testWatcher.RaiseError(new Exception());
 
             testWatchListener.ReceivedWithAnyArgs(0).OnCreate(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
@@ -52,21 +106,21 @@ namespace GitHub.Unity.Tests
             var testWatchers = new List<TestFileSystemWatch>();
             var testWatchFactory = Factory.CreateTestWatchFactory(new CreateTestWatchFactoryOptions(createdWatch => { testWatchers.Add(createdWatch); }));
 
-            var defaultFileSystemWatchStrategy = new DefaultFileSystemWatchStrategy(testWatchFactory);
+            var fileSystemWatchStrategy = new DefaultFileSystemWatchStrategy(testWatchFactory);
 
             var testWatchListener = Substitute.For<IFileSystemWatchListener>();
-            defaultFileSystemWatchStrategy.AddListener(testWatchListener);
+            fileSystemWatchStrategy.AddListener(testWatchListener);
 
             var directories = new[] { @"c:\temp", @"c:\temp1" };
             foreach (var directory in directories)
             {
-                defaultFileSystemWatchStrategy.Watch(directory);
+                fileSystemWatchStrategy.Watch(directory);
             }
 
             for (var index = 0; index < testWatchers.Count; index++)
             {
                 var testWatcher = testWatchers[index];
-                testWatcher.RaiseCreated(directories[index], "file.txt");
+                testWatcher.RaiseCreated("file.txt");
             }
 
             testWatchListener.ReceivedWithAnyArgs(2).OnCreate(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
@@ -82,24 +136,14 @@ namespace GitHub.Unity.Tests
             TestFileSystemWatch testWatcher = null;
             var testWatchFactory = Factory.CreateTestWatchFactory(new CreateTestWatchFactoryOptions(createdWatch => { testWatcher = createdWatch; }));
 
-            var defaultFileSystemWatchStrategy = new DefaultFileSystemWatchStrategy(testWatchFactory);
+            var fileSystemWatchStrategy = new DefaultFileSystemWatchStrategy(testWatchFactory);
 
             var testWatchListener = Substitute.For<IFileSystemWatchListener>();
-            defaultFileSystemWatchStrategy.AddListener(testWatchListener);
+            fileSystemWatchStrategy.AddListener(testWatchListener);
 
-            defaultFileSystemWatchStrategy.Watch(@"c:\temp");
+            fileSystemWatchStrategy.Watch(@"c:\temp");
 
-            testWatcher.RaiseCreated(@"c:\temp", "file.txt");
-
-            testWatchListener.ReceivedWithAnyArgs(1).OnCreate(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
-            testWatchListener.ReceivedWithAnyArgs(0).OnChange(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
-            testWatchListener.ReceivedWithAnyArgs(0).OnDelete(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
-            testWatchListener.ReceivedWithAnyArgs(0).OnRename(Arg.Any<object>(), Arg.Any<RenamedEventArgs>());
-            testWatchListener.ReceivedWithAnyArgs(0).OnError(Arg.Any<object>(), Arg.Any<ErrorEventArgs>());
-
-            defaultFileSystemWatchStrategy.RemoveListener(testWatchListener);
-
-            testWatcher.RaiseChanged(@"c:\temp", "file.txt");
+            testWatcher.RaiseCreated("file.txt");
 
             testWatchListener.ReceivedWithAnyArgs(1).OnCreate(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
             testWatchListener.ReceivedWithAnyArgs(0).OnChange(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
@@ -107,9 +151,19 @@ namespace GitHub.Unity.Tests
             testWatchListener.ReceivedWithAnyArgs(0).OnRename(Arg.Any<object>(), Arg.Any<RenamedEventArgs>());
             testWatchListener.ReceivedWithAnyArgs(0).OnError(Arg.Any<object>(), Arg.Any<ErrorEventArgs>());
 
-            defaultFileSystemWatchStrategy.AddListener(testWatchListener);
+            fileSystemWatchStrategy.RemoveListener(testWatchListener);
 
-            testWatcher.RaiseDeleted(@"c:\temp", "file.txt");
+            testWatcher.RaiseChanged("file.txt");
+
+            testWatchListener.ReceivedWithAnyArgs(1).OnCreate(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnChange(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnDelete(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnRename(Arg.Any<object>(), Arg.Any<RenamedEventArgs>());
+            testWatchListener.ReceivedWithAnyArgs(0).OnError(Arg.Any<object>(), Arg.Any<ErrorEventArgs>());
+
+            fileSystemWatchStrategy.AddListener(testWatchListener);
+
+            testWatcher.RaiseDeleted("file.txt");
 
             testWatchListener.ReceivedWithAnyArgs(1).OnCreate(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
             testWatchListener.ReceivedWithAnyArgs(0).OnChange(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
@@ -117,9 +171,9 @@ namespace GitHub.Unity.Tests
             testWatchListener.ReceivedWithAnyArgs(0).OnRename(Arg.Any<object>(), Arg.Any<RenamedEventArgs>());
             testWatchListener.ReceivedWithAnyArgs(0).OnError(Arg.Any<object>(), Arg.Any<ErrorEventArgs>());
 
-            defaultFileSystemWatchStrategy.RemoveListener(testWatchListener);
+            fileSystemWatchStrategy.RemoveListener(testWatchListener);
 
-            testWatcher.RaiseRenamed(@"c:\temp", "file.txt", "file.txt");
+            testWatcher.RaiseRenamed("file.txt", "file.txt");
 
             testWatchListener.ReceivedWithAnyArgs(1).OnCreate(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
             testWatchListener.ReceivedWithAnyArgs(0).OnChange(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
@@ -127,7 +181,7 @@ namespace GitHub.Unity.Tests
             testWatchListener.ReceivedWithAnyArgs(0).OnRename(Arg.Any<object>(), Arg.Any<RenamedEventArgs>());
             testWatchListener.ReceivedWithAnyArgs(0).OnError(Arg.Any<object>(), Arg.Any<ErrorEventArgs>());
 
-            defaultFileSystemWatchStrategy.AddListener(testWatchListener);
+            fileSystemWatchStrategy.AddListener(testWatchListener);
 
             testWatcher.RaiseError(new Exception());
 

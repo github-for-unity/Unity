@@ -48,10 +48,13 @@ namespace GitHub.Api
 
             watch.AddListener(this);
 
-            var directories = fileSystem.GetDirectories(path);
-            foreach (var directory in directories)
+            if (fileSystem.ExistingPathIsDirectory(path))
             {
-                Watch(directory, filter);
+                var directories = fileSystem.GetDirectories(path);
+                foreach (var directory in directories)
+                {
+                    Watch(directory, filter);
+                }
             }
         }
 

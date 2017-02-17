@@ -6,27 +6,33 @@ namespace GitHub.Unity.Tests
 {
     class TestFileSystemWatch : IFileSystemWatch
     {
+        public TestFileSystemWatch(string path, string filter = null)
+        {
+            Path = path;
+            Filter = filter;
+        }
+
         public void Dispose()
         {}
 
-        public void RaiseChanged(string directory, string name)
+        public void RaiseChanged(string name)
         {
-            Changed?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Changed, directory, name));
+            Changed?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Changed, Path, name));
         }
 
-        public void RaiseCreated(string directory, string name)
+        public void RaiseCreated(string name)
         {
-            Created?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Created, directory, name));
+            Created?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Created, Path, name));
         }
 
-        public void RaiseDeleted(string directory, string name)
+        public void RaiseDeleted(string name)
         {
-            Deleted?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Deleted, directory, name));
+            Deleted?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Deleted, Path, name));
         }
 
-        public void RaiseRenamed(string directory, string name, string oldName)
+        public void RaiseRenamed(string name, string oldName)
         {
-            Renamed?.Invoke(this, new RenamedEventArgs(WatcherChangeTypes.Renamed, directory, name, oldName));
+            Renamed?.Invoke(this, new RenamedEventArgs(WatcherChangeTypes.Renamed, Path, name, oldName));
         }
 
         public void RaiseError(Exception exception)
@@ -57,7 +63,16 @@ namespace GitHub.Unity.Tests
         public event FileSystemEventHandler Deleted;
         public event RenamedEventHandler Renamed;
         public event ErrorEventHandler Error;
+        public string Path { get; }
+        public string Filter { get; }
 
         public bool Enable { get; set; }
+
+        public override string ToString()
+        {
+            return Filter == null
+                ? string.Format("TestFileSystemWatch Path:\"{0}\"", Path)
+                : string.Format("TestFileSystemWatch Path:\"{0}\" Filter:\"{1}\"", Path, Filter);
+        }
     }
 }
