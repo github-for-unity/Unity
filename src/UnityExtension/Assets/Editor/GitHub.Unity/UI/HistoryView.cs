@@ -343,6 +343,9 @@ namespace GitHub.Unity
                           EditorGUI.DrawRect(separatorLine, Color.grey);
                         EditorGUILayout.EndHorizontal();
 
+                        GUILayout.Space(EditorGUIUtility.standardVerticalSpacing * 2);
+                        GUILayout.Label("Files changed", EditorStyles.boldLabel);
+
                         GUILayout.BeginHorizontal();
                         {
                             GUILayout.Space(Styles.HistoryChangesIndentation);
