@@ -10,6 +10,7 @@ namespace GitHub.Unity
 {
     class ApplicationManager : IApplicationManager
     {
+        private readonly MainThreadSynchronizationContext synchronizationContext;
         private static readonly ILogging logger = Logging.GetLogger<ApplicationManager>();
 
         private const string QuitActionFieldName = "editorApplicationQuit";
@@ -21,67 +22,7 @@ namespace GitHub.Unity
 
         private Tasks taskRunner;
 
-        public ApplicationManager(MainThreadSynchronizationContext syncCtx)
-        {
-            ThreadUtils.SetMainThread();
-            SynchronizationContext.SetSynchronizationContext(syncCtx);
-            scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-
-            cancellationTokenSource = new CancellationTokenSource();
-            EditorApplicationQuit = (UnityAction)Delegate.Combine(EditorApplicationQuit, new UnityAction(OnShutdown));
-            EditorApplication.playmodeStateChanged += () =>
-            {
-                if (EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
-                {
-                    OnShutdown();
-                }
-            };
-
-            Platform = new Platform(Environment, FileSystem);
-
-            var gitInstaller = new PortableGitManager(environment, cancellationToken: CancellationToken);
-
-
-            GitObjectFactory = new GitObjectFactory(Environment, GitEnvironment);
-            ProcessManager = new ProcessManager(Environment, GitEnvironment, CancellationToken);
-            Platform.Initialize(ProcessManager);
-            CredentialManager = Platform.CredentialManager;
-            TaskResultDispatcher = new TaskResultDispatcher();
-            ApiClientFactory.Instance = new ApiClientFactory(new AppConfiguration(), CredentialManager);
-            LocalSettings = new LocalSettings(Environment);
-            UserSettings = new UserSettings(Environment, ApplicationInfo.ApplicationName);
-            SystemSettings = new SystemSettings(Environment, ApplicationInfo.ApplicationName);
-
-            taskRunner = new Tasks(syncCtx, cancellationTokenSource.Token);
-        }
-
-        private void InitializeEnvironment()
-        {
-            NPathFileSystemProvider.Current = new FileSystem();
-
-            Environment = new DefaultEnvironment();
-
-            // figure out where we are
-            Environment.ExtensionInstallPath = DetermineInstallationPath();
-            
-            // figure out where the project is
-            var assetsPath = Application.dataPath.ToNPath();
-            var projectPath = assetsPath.Parent;
-
-            Environment.UnityAssetsPath = assetsPath.ToString(SlashMode.Forward);
-            Environment.UnityProjectPath = projectPath.ToString(SlashMode.Forward);
-
-            // figure out where the repository root is
-            GitClient = new GitClient(projectPath);
-            Environment.Repository = GitClient.GetRepository();
-
-            // Make sure CurrentDirectory always returns the repository root, so all
-            // file system path calculations use it as a base
-            FileSystem = new FileSystem(Environment.Repository.LocalPath);
-            NPathFileSystemProvider.Current = FileSystem;
-        }
-
-        // for unit testing
+        // for unit testing (TODO)
         public ApplicationManager(IEnvironment environment, IFileSystem fileSystem,
             IPlatform platform, IProcessManager processManager, ITaskResultDispatcher taskResultDispatcher)
         {
@@ -93,13 +34,39 @@ namespace GitHub.Unity
             TaskResultDispatcher = taskResultDispatcher;
         }
 
+        public ApplicationManager(MainThreadSynchronizationContext synchronizationContext)
+        {
+            this.synchronizationContext = synchronizationContext;
+            InitializeThreading(synchronizationContext);
+            ListenToUnityExit();
+            DetermineInstallationPath();
+
+            TaskResultDispatcher = new TaskResultDispatcher();
+
+            // accessing Environment triggers environment initialization if it hasn't happened yet
+            LocalSettings = new LocalSettings(Environment);
+            UserSettings = new UserSettings(Environment, ApplicationInfo.ApplicationName);
+            SystemSettings = new SystemSettings(Environment, ApplicationInfo.ApplicationName);
+
+            Platform = new Platform(Environment, FileSystem);
+            GitObjectFactory = new GitObjectFactory(Environment, Platform.GitEnvironment);
+            ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
+            Platform.Initialize(ProcessManager);
+            CredentialManager = Platform.CredentialManager;
+            ApiClientFactory.Instance = new ApiClientFactory(new AppConfiguration(), Platform.CredentialManager);
+        }
+
         public void Run()
         {
             Utility.Initialize();
 
-            DetermineInstallationPath();
+            taskRunner = new Tasks(synchronizationContext, cancellationTokenSource.Token);
+
             Task.Factory.StartNew(() =>
                 {
+                    var gitInstaller = new PortableGitManager(Environment, cancellationToken: CancellationToken);
+
+
                     try
                     {
                         Environment.GitExecutablePath = DetermineGitInstallationPath();                   
@@ -121,6 +88,52 @@ namespace GitHub.Unity
 
                     Window.Initialize();
                 }, scheduler);
+        }
+
+
+        private void InitializeEnvironment()
+        {
+            NPathFileSystemProvider.Current = new FileSystem();
+
+            Environment = new DefaultEnvironment();
+
+            // figure out where we are
+            Environment.ExtensionInstallPath = DetermineInstallationPath();
+
+            // figure out where the project is
+            var assetsPath = Application.dataPath.ToNPath();
+            var projectPath = assetsPath.Parent;
+
+            Environment.UnityAssetsPath = assetsPath.ToString(SlashMode.Forward);
+            Environment.UnityProjectPath = projectPath.ToString(SlashMode.Forward);
+
+            // figure out where the repository root is
+            GitClient = new GitClient(projectPath);
+            Environment.Repository = GitClient.GetRepository();
+
+            // Make sure CurrentDirectory always returns the repository root, so all
+            // file system path calculations use it as a base
+            FileSystem = new FileSystem(Environment.Repository.LocalPath);
+            NPathFileSystemProvider.Current = FileSystem;
+        }
+
+        private void ListenToUnityExit()
+        {
+            EditorApplicationQuit = (UnityAction)Delegate.Combine(EditorApplicationQuit, new UnityAction(OnShutdown));
+            EditorApplication.playmodeStateChanged += () => {
+                if (EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
+                {
+                    OnShutdown();
+                }
+            };
+        }
+
+        private void InitializeThreading(MainThreadSynchronizationContext syncCtx)
+        {
+            ThreadUtils.SetMainThread();
+            SynchronizationContext.SetSynchronizationContext(syncCtx);
+            scheduler = TaskScheduler.FromCurrentSynchronizationContext();
+            cancellationTokenSource = new CancellationTokenSource();
         }
 
         private void OnShutdown()
