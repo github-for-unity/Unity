@@ -10,21 +10,18 @@ namespace GitHub.Unity
 {
     class ApplicationManager : ApplicationManagerBase
     {
-        private readonly MainThreadSynchronizationContext synchronizationContext;
-        private static readonly ILogging logger = Logging.GetLogger<ApplicationManager>();
 
         private const string QuitActionFieldName = "editorApplicationQuit";
         private const BindingFlags quitActionBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
 
-        private CancellationTokenSource cancellationTokenSource;
         private FieldInfo quitActionField;
-        private TaskScheduler scheduler;
 
         private Tasks taskRunner;
 
         // for unit testing (TODO)
         public ApplicationManager(IEnvironment environment, IFileSystem fileSystem,
             IPlatform platform, IProcessManager processManager, ITaskResultDispatcher taskResultDispatcher)
+            : base(null)
         {
             Environment = environment;
             FileSystem = fileSystem;
@@ -35,9 +32,8 @@ namespace GitHub.Unity
         }
 
         public ApplicationManager(MainThreadSynchronizationContext synchronizationContext)
+            : base(synchronizationContext)
         {
-            this.synchronizationContext = synchronizationContext;
-            InitializeThreading(synchronizationContext);
             ListenToUnityExit();
             DetermineInstallationPath();
 
@@ -56,25 +52,14 @@ namespace GitHub.Unity
             ApiClientFactory.Instance = new ApiClientFactory(new AppConfiguration(), Platform.CredentialManager);
         }
 
-        public Task Run()
+        public override Task Run()
         {
             Utility.Initialize();
 
-            taskRunner = new Tasks(synchronizationContext, cancellationTokenSource.Token);
+            taskRunner = new Tasks((MainThreadSynchronizationContext)SynchronizationContext,
+                CancellationTokenSource.Token);
 
-            var task = Task.Factory.StartNew(() =>
-                {
-                    try
-                    {
-                        Environment.GitExecutablePath = DetermineGitInstallationPath();
-                        Environment.Repository = GitClient.GetRepository();
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.Error(ex);
-                        throw;
-                    }
-                })
+            return base.Run()
                 .ContinueWith(_ =>
                 {
                     taskRunner.Run();
@@ -84,8 +69,7 @@ namespace GitHub.Unity
                     ProjectWindowInterface.Initialize();
 
                     Window.Initialize();
-                }, scheduler);
-            return task;
+                }, Scheduler);
         }
 
 
@@ -126,18 +110,10 @@ namespace GitHub.Unity
             };
         }
 
-        private void InitializeThreading(MainThreadSynchronizationContext syncCtx)
-        {
-            ThreadUtils.SetMainThread();
-            SynchronizationContext.SetSynchronizationContext(syncCtx);
-            scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-            cancellationTokenSource = new CancellationTokenSource();
-        }
-
         private void OnShutdown()
         {
             taskRunner.Shutdown();
-            cancellationTokenSource.Cancel();
+            CancellationTokenSource.Cancel();
         }
 
         private UnityAction EditorApplicationQuit
@@ -181,21 +157,6 @@ namespace GitHub.Unity
             }
             ScriptableObject.DestroyImmediate(shim);
             return ret;
-        }
-
-        private string DetermineGitInstallationPath()
-        {
-            var cachedGitInstallPath = SystemSettings.Get("GitInstallPath");
-
-            // Root paths
-            if (string.IsNullOrEmpty(cachedGitInstallPath) || !cachedGitInstallPath.ToNPath().Exists())
-            {
-                return GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
-            }
-            else
-            {
-                return cachedGitInstallPath;
-            }
         }
 
         private IEnvironment environment;

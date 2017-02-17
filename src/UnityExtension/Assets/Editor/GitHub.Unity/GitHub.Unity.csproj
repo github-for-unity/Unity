@@ -112,7 +112,6 @@
     <Compile Include="IO\ProcessManager.cs" />
     <Compile Include="Tasks\TaskException.cs" />
     <Compile Include="Tasks\Tasks.cs" />
-    <Compile Include="Threading\ThreadUtils.cs" />
     <Compile Include="Tools\MozRoots.cs" />
     <Compile Include="UI\AuthenticationView.cs" />
     <Compile Include="UI\AuthenticationWindow.cs" />

@@ -152,6 +152,7 @@
     <Compile Include="Tasks\ITaskResultDispatcher.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskQueueSetting.cs" />
+    <Compile Include="Threading\ThreadingHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\IApiClient.cs" />
