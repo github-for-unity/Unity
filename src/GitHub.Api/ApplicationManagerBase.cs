@@ -32,20 +32,24 @@ namespace GitHub.Unity
 
         public virtual Task Run()
         {
-            return Task.Factory.StartNew(() =>
+            Task task = null;
+            try
             {
-                try
-                {
-                    Environment.GitExecutablePath = DetermineGitInstallationPath();
-                    Environment.Repository = GitClient.GetRepository();
-                }
-                catch (Exception ex)
-                {
-                    logger.Error(ex);
-                    throw;
-                }
-            });
+                task = RunInternal();
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+                throw;
+            }
+            return task;
+        }
 
+        private async Task RunInternal()
+        {
+            await ThreadingHelper.SwitchToThreadAsync();
+            Environment.GitExecutablePath = DetermineGitInstallationPath();
+            Environment.Repository = GitClient.GetRepository();
         }
 
         private string DetermineGitInstallationPath()
