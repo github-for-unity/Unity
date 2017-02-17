@@ -45,6 +45,7 @@ namespace GitHub.Unity
             if (executableFileName.ToNPath().IsRelative)
                 executableFileName = FindExecutableInPath(executableFileName, startInfo.EnvironmentVariables["PATH"]) ?? executableFileName;
             startInfo.FileName = executableFileName;
+            logger.Debug(startInfo.FileName);
             return new ProcessWrapper(startInfo);
         }
 

@@ -78,7 +78,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IO\BranchListOutputProcessor.cs" />
-    <Compile Include="IO\DefaultEnvironment.cs" />
     <Compile Include="IO\LogEntryOutputProcessor.cs" />
     <Compile Include="IO\ProcessWrapper.cs" />
     <Compile Include="IO\StatusOutputProcessor.cs" />

@@ -6,14 +6,19 @@ namespace GitHub.Unity.Tests
 {
     static class ProcessManagerExtensions
     {
-        public static IEnumerable<GitBranch> GetGitBranches(this ProcessManager processManager, string workingDirectory)
+        public static IEnumerable<GitBranch> GetGitBranches(this ProcessManager processManager, string workingDirectory,
+            string gitPath = null)
         {
             var results = new List<GitBranch>();
 
             var processor = new BranchListOutputProcessor();
             processor.OnBranch += data => results.Add(data);
-
-            var process = processManager.Configure("git", "branch -vv", workingDirectory);
+            NPath path = null;
+            if (gitPath == null)
+                path = "git";
+            else
+                path = gitPath;
+            var process = processManager.Configure(path, "branch -vv", workingDirectory);
             var outputManager = new ProcessOutputManager(process, processor);
 
             process.Run();
@@ -24,7 +29,7 @@ namespace GitHub.Unity.Tests
 
         public static IEnumerable<GitLogEntry> GetGitLogEntries(this ProcessManager processManager, string workingDirectory,
             IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment,
-            int? logCount = null)
+            int? logCount = null, string gitPath = null)
         {
             var results = new List<GitLogEntry>();
 
@@ -40,7 +45,13 @@ namespace GitHub.Unity.Tests
                 logNameStatus = logNameStatus + " -" + logCount.Value;
             }
 
-            var process = processManager.Configure("git", logNameStatus, workingDirectory);
+            NPath path = null;
+            if (gitPath == null)
+                path = "git";
+            else
+                path = gitPath;
+
+            var process = processManager.Configure(path, logNameStatus, workingDirectory);
             var outputManager = new ProcessOutputManager(process, processor);
 
             process.Run();
@@ -49,7 +60,9 @@ namespace GitHub.Unity.Tests
             return results;
         }
 
-        public static GitStatus GetGitStatus(this ProcessManager processManager, string workingDirectory, IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment)
+        public static GitStatus GetGitStatus(this ProcessManager processManager, string workingDirectory,
+            IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment,
+            string gitPath = null)
         {
             var result = new GitStatus();
 
@@ -58,7 +71,13 @@ namespace GitHub.Unity.Tests
             var processor = new StatusOutputProcessor(gitStatusEntryFactory);
             processor.OnStatus += data => result = data;
 
-            var process = processManager.Configure("git", "status -b -u --porcelain", workingDirectory);
+            NPath path = null;
+            if (gitPath == null)
+                path = "git";
+            else
+                path = gitPath;
+
+            var process = processManager.Configure(path, "status -b -u --porcelain", workingDirectory);
             var outputManager = new ProcessOutputManager(process, processor);
 
             process.Run();
@@ -67,14 +86,21 @@ namespace GitHub.Unity.Tests
             return result;
         }
  
-        public static IEnumerable<GitRemote> GetGitRemoteEntries(this ProcessManager processManager, string workingDirectory)
+        public static IEnumerable<GitRemote> GetGitRemoteEntries(this ProcessManager processManager, string workingDirectory,
+            string gitPath = null)
         {
             var results = new List<GitRemote>();
 
             var processor = new RemoteListOutputProcessor();
             processor.OnRemote += data => results.Add(data);
 
-            var process = processManager.Configure("git", "remote -v", workingDirectory);
+            NPath path = null;
+            if (gitPath == null)
+                path = "git";
+            else
+                path = gitPath;
+
+            var process = processManager.Configure(path, "remote -v", workingDirectory);
             var outputManager = new ProcessOutputManager(process, processor);
 
             process.Run();
@@ -83,12 +109,21 @@ namespace GitHub.Unity.Tests
             return results;
         }
 
-        public static string GetGitCreds(this ProcessManager processManager, string workingDirectory, IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment)
+        public static string GetGitCreds(this ProcessManager processManager, string workingDirectory,
+            IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment,
+            string gitPath = null)
         {
             StringBuilder sb = new StringBuilder();
             var processor = new BaseOutputProcessor();
             processor.OnData += data => sb.AppendLine();
-            var process = processManager.Configure("git", "credential-wincred get", workingDirectory);
+
+            NPath path = null;
+            if (gitPath == null)
+                path = "git";
+            else
+                path = gitPath;
+
+            var process = processManager.Configure(path, "credential-wincred get", workingDirectory);
             var outputManager = new ProcessOutputManager(process, processor);
             process.OnStart += p =>
             {

@@ -1,21 +1,24 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
-using GitHub.Unity;
+using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
     class PortableGitManager : IPortableGitManager
     {
-        private const string WindowsPortableGitZip = @"resources\windows\PortableGit-2.11.1-32-bit.zip";
-        private const string WindowsGitLfsZip = @"resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip";
         private const string PortableGitExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
         private const string PackageName = "PortableGit";
+        private const string TempPathPrefix = "github-unity-portable";
+        private const string GitZipFile = "git.zip";
+        private const string GitLfsZipFile = "git-lfs.zip";
+        private NPath gitConfigDestinationPath;
+
 
         private readonly CancellationToken? cancellationToken;
         private readonly IEnvironment environment;
         private readonly ILogging logger;
-        private readonly IZipHelper sharpZipLibHelper;
+
         private delegate void ExtractZipFile(string archive, string outFolder, CancellationToken? cancellationToken = null,
     IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null);
         private ExtractZipFile extractCallback;
@@ -24,7 +27,6 @@ namespace GitHub.Unity
             CancellationToken? cancellationToken = null)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));
-            Guard.ArgumentNotNull(sharpZipLibHelper, nameof(sharpZipLibHelper));
 
             logger = Logging.GetLogger(GetType());
 
@@ -32,10 +34,38 @@ namespace GitHub.Unity
             this.extractCallback = sharpZipLibHelper != null
                  ? (ExtractZipFile)sharpZipLibHelper.Extract
                  : ZipHelper.ExtractZipFile;
+
             this.cancellationToken = cancellationToken;
 
-            PackageDestinationDirectory = environment.UserProfilePath.ToNPath().Combine(ApplicationInfo.ApplicationName, PackageNameWithVersion);
-            GitLfsDestinationPath = PackageDestinationDirectory.Combine(@"mingw32", "libexec", "git-core", "git-lfs.exe");
+            PackageDestinationDirectory = environment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
+                .ToNPath().Combine(ApplicationInfo.ApplicationName, PackageNameWithVersion);
+            var gitExecutable = "git";
+            var gitLfsExecutable = "git-lfs";
+            if (DefaultEnvironment.OnWindows)
+            {
+                gitExecutable += ".exe";
+                gitLfsExecutable += ".exe";
+            }
+            GitLfsExecutable = gitLfsExecutable;
+            GitExecutable = gitExecutable;
+
+            GitDestinationPath = PackageDestinationDirectory;
+            if (DefaultEnvironment.OnWindows)
+                GitDestinationPath = GitDestinationPath.Combine("cmd");
+            else
+                GitDestinationPath = GitDestinationPath.Combine("bin");
+            GitDestinationPath = GitDestinationPath.Combine(GitExecutable);
+
+            GitLfsDestinationPath = PackageDestinationDirectory;
+            gitConfigDestinationPath = PackageDestinationDirectory;
+            if (DefaultEnvironment.OnWindows)
+            {
+                GitLfsDestinationPath = GitLfsDestinationPath.Combine("mingw32");
+                gitConfigDestinationPath = gitConfigDestinationPath.Combine("mingw32");
+            }
+            GitLfsDestinationPath = GitLfsDestinationPath.Combine("libexec", "git-core", GitLfsExecutable);
+            gitConfigDestinationPath = gitConfigDestinationPath.Combine("etc", "gitconfig");
+
         }
 
         public bool IsExtracted()
@@ -45,12 +75,9 @@ namespace GitHub.Unity
 
         private bool IsPortableGitExtracted()
         {
-            var target = PackageDestinationDirectory;
-
-            var git = target.Combine("cmd", "git.exe");
-            if (!git.FileExists())
+            if (!GitDestinationPath.FileExists())
             {
-                logger.Debug("git.exe not found");
+                logger.Debug("{0} not installed yet", GitDestinationPath);
                 return false;
             }
 
@@ -59,113 +86,122 @@ namespace GitHub.Unity
 
         public bool IsGitLfsExtracted()
         {
-            logger.Debug("PackageDestinationDirectory: {0}", PackageDestinationDirectory);
-
             if (!GitLfsDestinationPath.FileExists())
             {
-                logger.Warning("git-lfs.exe not found");
+                logger.Debug("{0} not installed yet", GitLfsDestinationPath);
                 return false;
             }
 
             return true;
         }
 
-        public void ExtractGitIfNeeded(IProgress<float> zipFileProgress = null,
+        public async Task<bool> Setup(IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+        {
+            if (InstalledGitIsValid())
+            {
+                return true;
+            }
+
+            var tempPath = NPath.CreateTempDirectory(TempPathPrefix);
+            var ret = await ExtractGitIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
+            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "gitconfig", tempPath);
+            archiveFilePath.Copy(gitConfigDestinationPath);
+            ret = await ExtractGitLfsIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
+
+            tempPath.Delete();
+            return ret;
+        }
+
+        private bool InstalledGitIsValid()
+        {
+            return false;
+        }
+
+        public Task<bool> ExtractGitIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
             if (IsPortableGitExtracted())
             {
-                logger.Debug("Already extracted {0}, returning", WindowsPortableGitZip);
-                return;
+                logger.Debug("Already extracted {0}, returning", PackageDestinationDirectory);
+                return TaskEx.FromResult(true);
             }
 
-            var archiveFilePath = environment.ExtensionInstallPath.ToNPath().Combine(WindowsPortableGitZip);
-
-            if (!archiveFilePath.FileExists())
-            {
-                var exception = new FileNotFoundException("Could not find file", archiveFilePath);
-                logger.Error(exception, "Trying to extract {0}, but it doesn't exist", archiveFilePath);
-                throw exception;
-            }
-
-            var tempPath = GetTemporaryPath();
+            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitZipFile, tempPath);
+            var unzipPath = tempPath.Combine("git");
 
             try
             {
-                sharpZipLibHelper.Extract(archiveFilePath, tempPath, cancellationToken, zipFileProgress,
+                extractCallback(archiveFilePath, unzipPath, cancellationToken, zipFileProgress,
                     estimatedDurationProgress);
             }
             catch (Exception ex)
             {
                 logger.Error(ex, "Error ExtractingArchive Source:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
-                throw;
+                return TaskEx.FromResult(false);
             }
 
             try
             {
-                tempPath.Copy(PackageDestinationDirectory);
+                unzipPath.Copy(PackageDestinationDirectory);
             }
             catch (Exception ex)
             {
                 logger.Error(ex, "Error CopyingArchive Source:\"{0}\" OutDir:\"{1}\"", tempPath, PackageDestinationDirectory);
-                throw;
+                return TaskEx.FromResult(false);
             }
-            tempPath.DeleteIfExists();
+            unzipPath.DeleteIfExists();
+            return TaskEx.FromResult(true);
         }
 
-        public void ExtractGitLfsIfNeeded(IProgress<float> zipFileProgress = null,
+        public Task<bool> ExtractGitLfsIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
             if (IsGitLfsExtracted())
             {
-                logger.Debug("Already extracted {0}, returning", WindowsGitLfsZip);
-                return;
+                logger.Debug("Already extracted {0}, returning", GitLfsDestinationPath);
+                return TaskEx.FromResult(false);
             }
 
-            var archiveFilePath = environment.ExtensionInstallPath.ToNPath().Combine(WindowsGitLfsZip);
-
-            if (!archiveFilePath.FileExists())
-            {
-                var exception = new FileNotFoundException("Could not find file", archiveFilePath);
-                logger.Error(exception, "Trying to extract {0}, but it doesn't exist", archiveFilePath);
-                throw exception;
-            }
-
-            var tempPath = GetTemporaryPath();
-            var tempGitLfsPath = tempPath.Combine("git-lfs.exe");
+            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitLfsZipFile, tempPath);
+            var unzipPath = tempPath.Combine("git-lfs");
 
             try
             {
-                sharpZipLibHelper.Extract(archiveFilePath, tempPath, cancellationToken, zipFileProgress,
+                extractCallback(archiveFilePath, unzipPath, cancellationToken, zipFileProgress,
                     estimatedDurationProgress);
             }
             catch (Exception ex)
             {
                 logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
-                throw;
+                return TaskEx.FromResult(false);
             }
 
             try
             {
-                tempGitLfsPath.Copy(GitLfsDestinationPath);
+                unzipPath.Combine(GitLfsExecutable).Copy(GitLfsDestinationPath);
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Error Copying git-lfs Source:\"{0}\" Destination:\"{1}\"", tempGitLfsPath, GitLfsDestinationPath);
-                throw;
+                logger.Error(ex, "Error Copying git-lfs Source:\"{0}\" Destination:\"{1}\"", unzipPath, GitLfsDestinationPath);
+                return TaskEx.FromResult(false);
             }
-            tempPath.DeleteIfExists();
+            unzipPath.DeleteIfExists();
+            return TaskEx.FromResult(true);
         }
 
         private NPath GetTemporaryPath()
         {
-            return NPath.CreateTempDirectory("github-unity-portable");
+            return NPath.CreateTempDirectory(TempPathPrefix);
         }
 
         public NPath PackageDestinationDirectory { get; private set; }
 
         public NPath GitLfsDestinationPath { get; private set; }
 
+        public NPath GitDestinationPath { get; private set; }
         public string PackageNameWithVersion => PackageName + "_" + PortableGitExpectedVersion;
+
+        private string GitLfsExecutable { get; set; }
+        private string GitExecutable { get; set; }
     }
 }
