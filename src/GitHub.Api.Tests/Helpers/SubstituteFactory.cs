@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using GitHub.Api;
+using GitHub.Unity;
 using NSubstitute;
 
 namespace GitHub.Unity.Tests
@@ -29,15 +29,17 @@ namespace GitHub.Unity.Tests
             return environment;
         }
 
-        public IFileSystem CreateFileSystem(CreateFileSystemOptions createFileSystemOptions = null)
+        public IFileSystem CreateFileSystem(CreateFileSystemOptions createFileSystemOptions = null, string currentDirectory = null)
         {
             createFileSystemOptions = createFileSystemOptions ?? new CreateFileSystemOptions();
-
+            if (currentDirectory == null)
+                currentDirectory = CreateFileSystemOptions.DefaultTemporaryPath;
             var fileSystem = Substitute.For<IFileSystem>();
             var realFileSystem = new FileSystem();
             var logger = Logging.GetLogger("TestFileSystem");
 
             fileSystem.DirectorySeparatorChar.Returns(realFileSystem.DirectorySeparatorChar);
+            fileSystem.GetCurrentDirectory().Returns(currentDirectory);
 
             fileSystem.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns(info => {
                 var path1 = (string)info[0];
@@ -79,7 +81,7 @@ namespace GitHub.Unity.Tests
             fileSystem.DirectoryExists(Arg.Any<string>()).Returns(info => {
                 var path1 = (string)info[0];
 
-                var result = false;
+                var result = true;
                 if (createFileSystemOptions.DirectoriesThatExist != null)
                 {
                     result = createFileSystemOptions.DirectoriesThatExist.Contains(path1);
@@ -261,6 +263,9 @@ namespace GitHub.Unity.Tests
                 return result;
             });
 
+            fileSystem.GetFullPath(Arg.Any<string>())
+                      .Returns(info => Path.GetFullPath((string)info[0]));
+
             return fileSystem;
         }
 
@@ -268,7 +273,6 @@ namespace GitHub.Unity.Tests
         {
             return Substitute.For<IZipHelper>();
         }
-
         public IFileSystemWatchWrapperFactory CreateTestWatchFactory(
             CreateTestWatchFactoryOptions createTestWatchFactoryOptions = null)
         {
@@ -300,23 +304,22 @@ namespace GitHub.Unity.Tests
         }
 
         public struct ContentsKey
-        {
-            public readonly string Path;
-            public readonly string Pattern;
+    {
+        public readonly string Path;
+        public readonly string Pattern;
             public readonly SearchOption? SearchOption;
 
             public ContentsKey(string path, string pattern, SearchOption? searchOption)
-            {
-                Path = path;
-                Pattern = pattern;
-                SearchOption = searchOption;
-            }
+        {
+            Path = path;
+            Pattern = pattern;
+            SearchOption = searchOption;
+        }
 
             public ContentsKey(string path, string pattern) : this(path, pattern, null)
             {}
 
             public ContentsKey(string path) : this(path, null)
             {}
-        }
     }
 }

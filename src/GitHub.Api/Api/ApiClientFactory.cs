@@ -1,7 +1,7 @@
 ﻿using Octokit;
 using System.Collections.Concurrent;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     class ApiClientFactory : IApiClientFactory
     {

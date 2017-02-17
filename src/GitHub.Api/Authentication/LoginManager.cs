@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Octokit;
 using GitHub.Unity;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     public enum LoginResultCodes
     {

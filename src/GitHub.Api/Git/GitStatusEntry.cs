@@ -24,7 +24,7 @@ namespace GitHub.Unity
 
         public override string ToString()
         {
-            return String.Format("'{0}': {1}", Path, Status);
+            return String.Format("Path:'{0}' Status:'{1}' FullPath:'{2}' ProjectPath:'{3}' OriginalPath:'{4}' Staged:'{5}'", Path, Status, FullPath, ProjectPath, OriginalPath, Staged);
         }
     }
 }

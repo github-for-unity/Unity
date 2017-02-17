@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GitHub.Unity;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     static class TaskRunnerExtensions
     {

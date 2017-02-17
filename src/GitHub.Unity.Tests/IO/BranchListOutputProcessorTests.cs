@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;
-using GitHub.Api;
+using GitHub.Unity;
 
 namespace GitHub.Unity.Tests
 {
@@ -15,8 +15,8 @@ namespace GitHub.Unity.Tests
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = @"D:\code\github\UnityInternal\src\UnityExtension";
             var gitEnvironment = new WindowsGitEnvironment(environment, filesystem);
-            var fact = new GitObjectFactory(environment, gitEnvironment, filesystem);
-            var pm = new ProcessManager(environment, gitEnvironment, filesystem);
+            var fact = new GitObjectFactory(environment, gitEnvironment);
+            var pm = new ProcessManager(environment, gitEnvironment);
             var results = pm.GetGitBranches(@"D:\code\github\UnityInternal");
         }
 

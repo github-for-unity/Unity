@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface ICredential : IDisposable
     {

@@ -1,5 +1,6 @@
 #pragma warning disable 649
 
+using GitHub.Unity;
 using System;
 using System.Linq;
 using UnityEditor;
@@ -24,6 +25,7 @@ namespace GitHub.Unity
         private const string AuthenticationTitle = "Auth";
 
         [NonSerialized] private double notificationClearTime = -1;
+        [NonSerialized] private IRepository repository;
 
         [SerializeField] private SubTab activeTab = SubTab.History;
         [SerializeField] private BranchesView branchesTab = new BranchesView();
@@ -31,8 +33,11 @@ namespace GitHub.Unity
         [SerializeField] private HistoryView historyTab = new HistoryView();
         [SerializeField] private SettingsView settingsTab = new SettingsView();
 
+        private static bool initialized;
+
         public static void Initialize()
         {
+            initialized = true;
             RefreshRunner.Initialize();
         }
 
@@ -63,6 +68,7 @@ namespace GitHub.Unity
 
         private void CreateViews()
         {
+            repository = EntryPoint.Environment.Repository;
             historyTab.Initialize(this);
             changesTab.Initialize(this);
             branchesTab.Initialize(this);
@@ -91,7 +97,7 @@ namespace GitHub.Unity
             // Set window title
             titleContent = new GUIContent(Title, Styles.TitleIcon);
 
-            if (!EntryPoint.Initialized)
+            if (!initialized)
             {
                 DoNotInitializedGUI();
                 return;
@@ -140,9 +146,9 @@ namespace GitHub.Unity
                 GUILayout.BeginVertical();
                 {
                     GUILayout.Space(3);
-                    GUILayout.Label("fake-org/fake-repo-name", Styles.HeaderRepoLabelStyle);
+                    GUILayout.Label(String.Format("{0}/{1}", repository.Owner, repository.Name), Styles.HeaderRepoLabelStyle);
                     GUILayout.Space(-2);
-                    GUILayout.Label("donokuda/totally-fake-branch-name", Styles.HeaderBranchLabelStyle);
+                    GUILayout.Label(repository.CurrentBranch, Styles.HeaderBranchLabelStyle);
                 }
                 GUILayout.EndVertical();
             }
