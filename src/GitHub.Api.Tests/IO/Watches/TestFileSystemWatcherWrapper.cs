@@ -4,11 +4,12 @@ using GitHub.Api;
 
 namespace GitHub.Unity.Tests
 {
-    class TestFileSystemWatch : IFileSystemWatch
+    class TestFileSystemWatcherWrapper : IFileSystemWatcherWrapper
     {
-        public TestFileSystemWatch(string path, string filter = null)
+        public TestFileSystemWatcherWrapper(string path, bool recursive = false, string filter = null)
         {
             Path = path;
+            Recursive = recursive;
             Filter = filter;
         }
 
@@ -58,21 +59,22 @@ namespace GitHub.Unity.Tests
             Error -= fileSystemWatchListener.OnError;
         }
 
+        public override string ToString()
+        {
+            return Filter == null
+                ? string.Format("TestFileSystemWatch Path:\"{0}\" Recursive:{1}", Path, Recursive)
+                : string.Format("TestFileSystemWatch Path:\"{0}\" Recursive:{1} Filter:\"{2}\"", Path, Recursive, Filter);
+        }
+
         public event FileSystemEventHandler Changed;
         public event FileSystemEventHandler Created;
         public event FileSystemEventHandler Deleted;
         public event RenamedEventHandler Renamed;
         public event ErrorEventHandler Error;
+
         public string Path { get; }
         public string Filter { get; }
-
         public bool Enable { get; set; }
-
-        public override string ToString()
-        {
-            return Filter == null
-                ? string.Format("TestFileSystemWatch Path:\"{0}\"", Path)
-                : string.Format("TestFileSystemWatch Path:\"{0}\" Filter:\"{1}\"", Path, Filter);
-        }
+        public bool Recursive { get; }
     }
 }

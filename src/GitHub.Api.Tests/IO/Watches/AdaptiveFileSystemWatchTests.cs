@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace GitHub.Unity.Tests
 {
     [TestFixture]
-    public class ResursiveFileSystemWatchStrategyTests
+    public class AdaptiveFileSystemWatchTests
     {
         private SubstituteFactory Factory { get; set; }
 
@@ -25,7 +25,7 @@ namespace GitHub.Unity.Tests
         [Test]
         public void ShouldRaiseEventsFromDirectoryWithNoChildren()
         {
-            TestFileSystemWatch testWatcher = null;
+            TestFileSystemWatcherWrapper testWatcher = null;
             var testWatchFactory =
                 Factory.CreateTestWatchFactory(
                     new CreateTestWatchFactoryOptions(createdWatch => { testWatcher = createdWatch; }));
@@ -39,12 +39,10 @@ namespace GitHub.Unity.Tests
                         }
                 });
 
-            var fileSystemWatchStrategy = new RecursiveFileSystemWatchStrategy(testWatchFactory, fileSystem);
+            var fileSystemWatchStrategy = new AdaptiveFileSystemWatch(testWatchFactory, fileSystem, @"c:\temp");
 
             var testWatchListener = Substitute.For<IFileSystemWatchListener>();
-            fileSystemWatchStrategy.AddListener(testWatchListener);
-
-            fileSystemWatchStrategy.Watch(@"c:\temp");
+            fileSystemWatchStrategy.AttachListener(testWatchListener);
 
             testWatcher.RaiseCreated("file.txt");
 
@@ -90,7 +88,7 @@ namespace GitHub.Unity.Tests
         [Test]
         public void ShouldProperlyDetachListenerFromDirectoryWithNoChildren()
         {
-            TestFileSystemWatch testWatcher = null;
+            TestFileSystemWatcherWrapper testWatcher = null;
             var testWatchFactory =
                 Factory.CreateTestWatchFactory(
                     new CreateTestWatchFactoryOptions(createdWatch => { testWatcher = createdWatch; }));
@@ -104,13 +102,11 @@ namespace GitHub.Unity.Tests
                         }
                 });
 
-            var fileSystemWatchStrategy = new RecursiveFileSystemWatchStrategy(testWatchFactory, fileSystem);
+            var fileSystemWatchStrategy = new AdaptiveFileSystemWatch(testWatchFactory, fileSystem, @"c:\temp");
 
             var testWatchListener = Substitute.For<IFileSystemWatchListener>();
-            fileSystemWatchStrategy.AddListener(testWatchListener);
+            fileSystemWatchStrategy.AttachListener(testWatchListener);
             fileSystemWatchStrategy.RemoveListener(testWatchListener);
-
-            fileSystemWatchStrategy.Watch(@"c:\temp");
 
             testWatcher.RaiseCreated("file.txt");
             testWatcher.RaiseChanged("file.txt");
@@ -126,50 +122,9 @@ namespace GitHub.Unity.Tests
         }
 
         [Test]
-        public void ShouldRaiseEventsFromMultipleWatchersFromDirectoriesWithNoChildren()
-        {
-            var testWatchers = new List<TestFileSystemWatch>();
-            var testWatchFactory =
-                Factory.CreateTestWatchFactory(
-                    new CreateTestWatchFactoryOptions(createdWatch => { testWatchers.Add(createdWatch); }));
-
-            var fileSystem =
-                Factory.CreateFileSystem(new CreateFileSystemOptions {
-                    DirectoriesThatExist = new[] { @"c:\temp" },
-                    ChildDirectories =
-                        new Dictionary<SubstituteFactory.ContentsKey, IList<string>> {
-                            { new SubstituteFactory.ContentsKey(@"c:\temp"), new string[0] }
-                        }
-                });
-
-            var fileSystemWatchStrategy = new RecursiveFileSystemWatchStrategy(testWatchFactory, fileSystem);
-
-            var testWatchListener = Substitute.For<IFileSystemWatchListener>();
-            fileSystemWatchStrategy.AddListener(testWatchListener);
-
-            var directories = new[] { @"c:\temp", @"c:\temp1" };
-            foreach (var directory in directories)
-            {
-                fileSystemWatchStrategy.Watch(directory);
-            }
-
-            for (var index = 0; index < testWatchers.Count; index++)
-            {
-                var testWatcher = testWatchers[index];
-                testWatcher.RaiseCreated("file.txt");
-            }
-
-            testWatchListener.ReceivedWithAnyArgs(2).OnCreate(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
-            testWatchListener.ReceivedWithAnyArgs(0).OnChange(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
-            testWatchListener.ReceivedWithAnyArgs(0).OnDelete(Arg.Any<object>(), Arg.Any<FileSystemEventArgs>());
-            testWatchListener.ReceivedWithAnyArgs(0).OnRename(Arg.Any<object>(), Arg.Any<RenamedEventArgs>());
-            testWatchListener.ReceivedWithAnyArgs(0).OnError(Arg.Any<object>(), Arg.Any<ErrorEventArgs>());
-        }
-
-        [Test]
         public void ShouldRemoveListenerFromDirectoryWithNoChildren()
         {
-            TestFileSystemWatch testWatcher = null;
+            TestFileSystemWatcherWrapper testWatcher = null;
             var testWatchFactory =
                 Factory.CreateTestWatchFactory(
                     new CreateTestWatchFactoryOptions(createdWatch => { testWatcher = createdWatch; }));
@@ -183,12 +138,10 @@ namespace GitHub.Unity.Tests
                         }
                 });
 
-            var fileSystemWatchStrategy = new RecursiveFileSystemWatchStrategy(testWatchFactory, fileSystem);
+            var fileSystemWatchStrategy = new AdaptiveFileSystemWatch(testWatchFactory, fileSystem, @"c:\temp");
 
             var testWatchListener = Substitute.For<IFileSystemWatchListener>();
-            fileSystemWatchStrategy.AddListener(testWatchListener);
-
-            fileSystemWatchStrategy.Watch(@"c:\temp");
+            fileSystemWatchStrategy.AttachListener(testWatchListener);
 
             testWatcher.RaiseCreated("file.txt");
 
@@ -208,7 +161,7 @@ namespace GitHub.Unity.Tests
             testWatchListener.ReceivedWithAnyArgs(0).OnRename(Arg.Any<object>(), Arg.Any<RenamedEventArgs>());
             testWatchListener.ReceivedWithAnyArgs(0).OnError(Arg.Any<object>(), Arg.Any<ErrorEventArgs>());
 
-            fileSystemWatchStrategy.AddListener(testWatchListener);
+            fileSystemWatchStrategy.AttachListener(testWatchListener);
 
             testWatcher.RaiseDeleted("file.txt");
 
@@ -228,7 +181,7 @@ namespace GitHub.Unity.Tests
             testWatchListener.ReceivedWithAnyArgs(0).OnRename(Arg.Any<object>(), Arg.Any<RenamedEventArgs>());
             testWatchListener.ReceivedWithAnyArgs(0).OnError(Arg.Any<object>(), Arg.Any<ErrorEventArgs>());
 
-            fileSystemWatchStrategy.AddListener(testWatchListener);
+            fileSystemWatchStrategy.AttachListener(testWatchListener);
 
             testWatcher.RaiseError(new Exception());
 
@@ -242,9 +195,9 @@ namespace GitHub.Unity.Tests
         [Test]
         public void ShouldRaiseEventsFromDirectoryWithChildren()
         {
-            TestFileSystemWatch parentWatch = null;
-            TestFileSystemWatch child1Watch = null;
-            TestFileSystemWatch child2Watch = null;
+            TestFileSystemWatcherWrapper parentWatch = null;
+            TestFileSystemWatcherWrapper child1Watch = null;
+            TestFileSystemWatcherWrapper child2Watch = null;
 
             var testWatchFactory = Factory.CreateTestWatchFactory(new CreateTestWatchFactoryOptions(createdWatch => {
                 switch (createdWatch.Path)
@@ -278,12 +231,10 @@ namespace GitHub.Unity.Tests
                         }
                 });
 
-            var fileSystemWatchStrategy = new RecursiveFileSystemWatchStrategy(testWatchFactory, fileSystem);
+            var fileSystemWatchStrategy = new AdaptiveFileSystemWatch(testWatchFactory, fileSystem, @"c:\temp", true);
 
             var testWatchListener = Substitute.For<IFileSystemWatchListener>();
-            fileSystemWatchStrategy.AddListener(testWatchListener);
-
-            fileSystemWatchStrategy.Watch(@"c:\temp");
+            fileSystemWatchStrategy.AttachListener(testWatchListener);
 
             parentWatch.Should().NotBeNull();
             child1Watch.Should().NotBeNull();
@@ -333,9 +284,9 @@ namespace GitHub.Unity.Tests
         [Test]
         public void ShouldWatchNewChildDirectories()
         {
-            TestFileSystemWatch parentWatch = null;
-            TestFileSystemWatch child1Watch = null;
-            TestFileSystemWatch child2Watch = null;
+            TestFileSystemWatcherWrapper parentWatch = null;
+            TestFileSystemWatcherWrapper child1Watch = null;
+            TestFileSystemWatcherWrapper child2Watch = null;
 
             const string tempPath = @"c:\temp";
             const string child1Path = @"c:\temp\child1";
@@ -378,12 +329,10 @@ namespace GitHub.Unity.Tests
                         }
                 });
 
-            var fileSystemWatchStrategy = new RecursiveFileSystemWatchStrategy(testWatchFactory, fileSystem);
+            var fileSystemWatchStrategy = new AdaptiveFileSystemWatch(testWatchFactory, fileSystem, tempPath, true);
 
             var testWatchListener = Substitute.For<IFileSystemWatchListener>();
-            fileSystemWatchStrategy.AddListener(testWatchListener);
-
-            fileSystemWatchStrategy.Watch(tempPath);
+            fileSystemWatchStrategy.AttachListener(testWatchListener);
 
             parentWatch.Should().NotBeNull();
             child1Watch.Should().NotBeNull();
