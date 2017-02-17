@@ -336,13 +336,6 @@ namespace GitHub.Unity
                     {
                         HistoryDetailsEntry(selection);
 
-                        GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                        Rect r = EditorGUILayout.BeginHorizontal();
-                          Rect separatorLine = new Rect(r.x, r.y, r.width, 1);
-                          EditorGUI.DrawRect(separatorLine, Color.grey);
-                        EditorGUILayout.EndHorizontal();
-
                         GUILayout.Space(EditorGUIUtility.standardVerticalSpacing * 2);
                         GUILayout.Label("Files changed", EditorStyles.boldLabel);
 
@@ -551,13 +544,24 @@ namespace GitHub.Unity
 
         private void HistoryDetailsEntry(GitLogEntry entry)
         {
+          GUILayout.BeginVertical(Styles.HistoryDetailsTitleBoxStyle);
             GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle, GUILayout.Width(Position.width));
+
+            GUILayout.Space(-5);
 
             GUILayout.BeginHorizontal();
               GUILayout.Label(entry.PrettyTimeString, Styles.HistoryDetailsMetaInfoStyle);
               GUILayout.Label(entry.AuthorName, Styles.HistoryDetailsMetaInfoStyle);
               GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+
+            GUILayout.Space(3);
+
+            Rect r = EditorGUILayout.BeginHorizontal();
+              Rect separatorLine = new Rect(r.x, r.y, r.width, 1);
+              EditorGUI.DrawRect(separatorLine, Color.grey);
+            EditorGUILayout.EndHorizontal();
+          GUILayout.EndVertical();
         }
 
         private void Pull()

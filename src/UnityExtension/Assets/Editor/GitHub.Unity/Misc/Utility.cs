@@ -86,7 +86,7 @@ namespace GitHub.Unity
             return AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
         }
 
-        public static Texture2D CreateColorTexture(Color color)
+        public static Texture2D CreateTextureFromColor(Color color)
         {
 					Texture2D backgroundTexture = new Texture2D(1,1);
 					Color c = color;
