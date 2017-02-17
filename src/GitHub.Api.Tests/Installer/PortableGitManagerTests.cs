@@ -81,7 +81,7 @@ namespace GitHub.Unity.Tests
             sharpZipLibHelper);
             portableGitManager.ExtractGitIfNeeded();
 
-            sharpZipLibHelper.Received().ExtractZipFile(WindowsPortableGitZip, Arg.Any<string>());
+            sharpZipLibHelper.Received().Extract(WindowsPortableGitZip, Arg.Any<string>());
 
             //TODO: Write code to make sure NPath was used to copy files
         }
@@ -103,7 +103,7 @@ namespace GitHub.Unity.Tests
             portableGitManager.ExtractGitLfsIfNeeded();
 
             const string shouldExtractTo = CreateFileSystemOptions.DefaultTemporaryPath + @"\randomFile1.deleteme";
-            sharpZipLibHelper.Received().ExtractZipFile(WindowsGitLfsZip, shouldExtractTo);
+            sharpZipLibHelper.Received().Extract(WindowsGitLfsZip, shouldExtractTo);
 
             //TODO: Write code to make sure files were copied
         }
@@ -159,7 +159,7 @@ namespace GitHub.Unity.Tests
             var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(), sharpZipLibHelper);
             portableGitManager.ExtractGitIfNeeded();
 
-            sharpZipLibHelper.DidNotReceiveWithAnyArgs().ExtractZipFile(Arg.Any<string>(), Arg.Any<string>());
+            sharpZipLibHelper.DidNotReceiveWithAnyArgs().Extract(Arg.Any<string>(), Arg.Any<string>());
         }
 
         [Test]
@@ -183,7 +183,7 @@ namespace GitHub.Unity.Tests
                 sharpZipLibHelper);
             portableGitManager.ExtractGitLfsIfNeeded();
 
-            sharpZipLibHelper.DidNotReceiveWithAnyArgs().ExtractZipFile(Arg.Any<string>(), Arg.Any<string>());
+            sharpZipLibHelper.DidNotReceiveWithAnyArgs().Extract(Arg.Any<string>(), Arg.Any<string>());
         }
     }
 }

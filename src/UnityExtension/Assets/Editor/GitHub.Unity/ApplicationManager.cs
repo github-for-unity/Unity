@@ -13,9 +13,11 @@ namespace GitHub.Unity
         private static readonly ILogging logger = Logging.GetLogger<ApplicationManager>();
 
         private const string QuitActionFieldName = "editorApplicationQuit";
+        private const BindingFlags quitActionBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
+
         private CancellationTokenSource cancellationTokenSource;
         private FieldInfo quitActionField;
-        private const BindingFlags quitActionBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
+        private TaskScheduler scheduler;
 
         private Tasks taskRunner;
 
@@ -23,6 +25,7 @@ namespace GitHub.Unity
         {
             ThreadUtils.SetMainThread();
             SynchronizationContext.SetSynchronizationContext(syncCtx);
+            scheduler = TaskScheduler.FromCurrentSynchronizationContext();
 
             cancellationTokenSource = new CancellationTokenSource();
             EditorApplicationQuit = (UnityAction)Delegate.Combine(EditorApplicationQuit, new UnityAction(OnShutdown));
@@ -35,6 +38,10 @@ namespace GitHub.Unity
             };
 
             Platform = new Platform(Environment, FileSystem);
+
+            var gitInstaller = new PortableGitManager(environment, cancellationToken: CancellationToken);
+
+
             GitObjectFactory = new GitObjectFactory(Environment, GitEnvironment);
             ProcessManager = new ProcessManager(Environment, GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager);
@@ -91,9 +98,6 @@ namespace GitHub.Unity
             Utility.Initialize();
 
             DetermineInstallationPath();
-
-            var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-
             Task.Factory.StartNew(() =>
                 {
                     try

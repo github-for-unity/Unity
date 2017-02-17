@@ -78,7 +78,13 @@ namespace GitHub.Unity
             return success;
         }
 
-        public void ExtractZipFile(string archive, string outFolder, CancellationToken? cancellationToken = null,
+        public void Extract(string archive, string outFolder, CancellationToken? cancellationToken = null,
+    IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+        {
+            ExtractZipFile(archive, outFolder, cancellationToken, zipFileProgress, estimatedDurationProgress);
+        }
+
+        public static void ExtractZipFile(string archive, string outFolder, CancellationToken? cancellationToken = null,
             IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
         {
             if (zipFileProgress == null)
