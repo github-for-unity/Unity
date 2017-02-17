@@ -38,7 +38,7 @@ namespace GitHub.Unity.Tests
                         new[] { @"c:\UserProfile\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db" },
                     RandomFileNames = new[] { "randomFile1", "randomFile2" },
                     ChildFiles =
-                        new Dictionary<SubstituteFactory.ContentsKey, string[]> {
+                        new Dictionary<SubstituteFactory.ContentsKey, IList<string>> {
                             {
                                 new SubstituteFactory.ContentsKey(
                                     CreateFileSystemOptions.DefaultTemporaryPath + @"\randomFile1.deleteme", "*",
@@ -68,7 +68,7 @@ namespace GitHub.Unity.Tests
             var fileSystem =
                 Factory.CreateFileSystem(new CreateFileSystemOptions {
                     FilesThatExist = new[] { WindowsGitLfsZip },
-                    FileContents = new Dictionary<string, string[]>(),
+                    FileContents = new Dictionary<string, IList<string>>(),
                     RandomFileNames = new[] { "randomFile1", "randomFile2" }
                 });
 
@@ -94,7 +94,7 @@ namespace GitHub.Unity.Tests
                             CreateEnvironmentOptions.DefaultUserProfilePath +
                             @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\mingw32\libexec\git-core\git-lfs.exe"
                         },
-                    FileContents = new Dictionary<string, string[]>()
+                    FileContents = new Dictionary<string, IList<string>>()
                 });
 
             var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
@@ -148,7 +148,7 @@ namespace GitHub.Unity.Tests
                             CreateEnvironmentOptions.DefaultUserProfilePath +
                             @"\GitHubUnity\PortableGit_f02737a78695063deace08e96d5042710d3e32db\mingw32\libexec\git-core\git-lfs.exe"
                         },
-                    FileContents = new Dictionary<string, string[]>()
+                    FileContents = new Dictionary<string, IList<string>>()
                 });
 
             NPathFileSystemProvider.Current = fileSystem;

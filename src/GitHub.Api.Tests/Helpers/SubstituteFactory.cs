@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using GitHub.Api;
@@ -108,10 +109,10 @@ namespace GitHub.Unity.Tests
 
                 if (createFileSystemOptions.FileContents != null)
                 {
-                    string[] fileContent;
+                    IList<string> fileContent;
                     if (createFileSystemOptions.FileContents.TryGetValue(path, out fileContent))
                     {
-                        result = string.Join(string.Empty, fileContent);
+                        result = string.Join(string.Empty, fileContent.ToArray());
                     }
                 }
 
@@ -151,7 +152,7 @@ namespace GitHub.Unity.Tests
                     var key = new ContentsKey(path);
                     if (createFileSystemOptions.ChildFiles.ContainsKey(key))
                     {
-                        result = createFileSystemOptions.ChildFiles[key];
+                        result = createFileSystemOptions.ChildFiles[key].ToArray();
                     }
                 }
 
@@ -170,7 +171,7 @@ namespace GitHub.Unity.Tests
                     var key = new ContentsKey(path, pattern);
                     if (createFileSystemOptions.ChildFiles.ContainsKey(key))
                     {
-                        result = createFileSystemOptions.ChildFiles[key];
+                        result = createFileSystemOptions.ChildFiles[key].ToArray();
                     }
                 }
 
@@ -190,7 +191,7 @@ namespace GitHub.Unity.Tests
                     var key = new ContentsKey(path, pattern, searchOption);
                     if (createFileSystemOptions.ChildFiles.ContainsKey(key))
                     {
-                        result = createFileSystemOptions.ChildFiles[key];
+                        result = createFileSystemOptions.ChildFiles[key].ToArray();
                     }
                 }
 
@@ -209,7 +210,7 @@ namespace GitHub.Unity.Tests
                     var key = new ContentsKey(path);
                     if (createFileSystemOptions.ChildDirectories.ContainsKey(key))
                     {
-                        result = createFileSystemOptions.ChildDirectories[key];
+                        result = createFileSystemOptions.ChildDirectories[key].ToArray();
                     }
                 }
 
@@ -228,7 +229,7 @@ namespace GitHub.Unity.Tests
                     var key = new ContentsKey(path, pattern);
                     if (createFileSystemOptions.ChildDirectories.ContainsKey(key))
                     {
-                        result = createFileSystemOptions.ChildDirectories[key];
+                        result = createFileSystemOptions.ChildDirectories[key].ToArray();
                     }
                 }
 
@@ -248,7 +249,7 @@ namespace GitHub.Unity.Tests
                     var key = new ContentsKey(path, pattern, searchOption);
                     if (createFileSystemOptions.ChildDirectories.ContainsKey(key))
                     {
-                        result = createFileSystemOptions.ChildDirectories[key];
+                        result = createFileSystemOptions.ChildDirectories[key].ToArray();
                     }
                 }
 

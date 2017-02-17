@@ -1,16 +1,14 @@
 using System;
 using System.Collections.Generic;
-using GitHub.Unity;
 
 namespace GitHub.Api
 {
     class DefaultFileSystemWatchStrategy : FileSystemWatchStrategyBase
     {
         private readonly object watchesLock = new object();
-
         private readonly IFileSystemWatchFactory watchFactory;
 
-        private Dictionary<PathAndFilter, IFileSystemWatch> watches = new Dictionary<PathAndFilter, IFileSystemWatch>();
+        private Dictionary<string, IFileSystemWatch> watches = new Dictionary<string, IFileSystemWatch>();
 
         public DefaultFileSystemWatchStrategy(IFileSystemWatchFactory watchFactory)
         {
@@ -21,12 +19,10 @@ namespace GitHub.Api
         {
             Guard.ArgumentNotNull(path, nameof(path));
 
-            var key = new PathAndFilter { Path = path, Filter = filter };
-
             IFileSystemWatch watch;
             lock(watchesLock)
             {
-                if (watches.ContainsKey(key))
+                if (watches.ContainsKey(path))
                 {
                     throw new Exception("path and filter combination already watched");
                 }
@@ -42,29 +38,28 @@ namespace GitHub.Api
                     watch = watchFactory.CreateWatch(path);
                 }
 
-                watches.Add(key, watch);
+                watches.Add(path, watch);
             }
 
             watch.AddListener(this);
         }
 
-        public override void ClearWatch(string path, string filter = null)
+        public override bool ClearWatch(string path)
         {
-            var key = new PathAndFilter { Path = path, Filter = filter };
-
             lock(watchesLock)
             {
                 IFileSystemWatch value;
-                if (!watches.TryGetValue(key, out value))
+                if (!watches.TryGetValue(path, out value))
                 {
-                    throw new Exception("path and filter combination not watched");
+                    return false;
                 }
 
-                watches.Remove(key);
+                watches.Remove(path);
 
                 value.Enable = false;
                 value.RemoveListener(this);
                 value.Dispose();
+                return true;
             }
         }
 

@@ -51,33 +51,33 @@ namespace GitHub.Api
         public virtual void Dispose()
         {}
 
-        public void OnChange(object sender, FileSystemEventArgs e)
+        public virtual void OnChange(object sender, FileSystemEventArgs e)
         {
             Changed?.Invoke(this, e);
         }
 
-        public void OnCreate(object sender, FileSystemEventArgs e)
+        public virtual void OnCreate(object sender, FileSystemEventArgs e)
         {
             Created?.Invoke(this, e);
         }
 
-        public void OnDelete(object sender, FileSystemEventArgs e)
+        public virtual void OnDelete(object sender, FileSystemEventArgs e)
         {
             Deleted?.Invoke(this, e);
         }
 
-        public void OnRename(object sender, RenamedEventArgs e)
+        public virtual void OnRename(object sender, RenamedEventArgs e)
         {
             Renamed?.Invoke(this, e);
         }
 
-        public void OnError(object sender, ErrorEventArgs e)
+        public virtual void OnError(object sender, ErrorEventArgs e)
         {
             Error?.Invoke(this, e);
         }
 
         public abstract void Watch(string path, string filter = null);
-        public abstract void ClearWatch(string path, string filter = null);
+        public abstract bool ClearWatch(string path);
 
         protected virtual event FileSystemEventHandler Changed;
         protected virtual event FileSystemEventHandler Created;

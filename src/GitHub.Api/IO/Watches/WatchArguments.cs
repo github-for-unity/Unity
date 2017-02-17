@@ -1,6 +1,6 @@
 namespace GitHub.Api
 {
-    struct PathAndFilter
+    struct WatchArguments
     {
         public string Path;
         public string Filter;
