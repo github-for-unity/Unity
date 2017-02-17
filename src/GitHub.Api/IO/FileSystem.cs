@@ -46,6 +46,12 @@ namespace GitHub.Unity
             return Directory.Exists(path);
         }
 
+        public bool ExistingPathIsDirectory(string path)
+        {
+            var attr = File.GetAttributes(path);
+            return (attr & FileAttributes.Directory) == FileAttributes.Directory;
+        }
+
         public string GetParentDirectory(string path)
         {
             return Directory.GetParent(path).FullName;

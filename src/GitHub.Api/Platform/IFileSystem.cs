@@ -35,5 +35,6 @@ namespace GitHub.Api
         void WriteAllLines(string path, string[] contents);
         string[] ReadAllLines(string path);
         char DirectorySeparatorChar { get; }
+        bool ExistingPathIsDirectory(string path);
     }
 }

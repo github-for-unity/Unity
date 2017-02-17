@@ -56,15 +56,15 @@ namespace GitHub.Unity.Tests
             });
 
             fileSystem.FileExists(Arg.Any<string>()).Returns(info => {
-                var path1 = (string)info[0];
+                var path = (string)info[0];
 
                 var result = false;
                 if (createFileSystemOptions.FilesThatExist != null)
                 {
-                    result = createFileSystemOptions.FilesThatExist.Contains(path1);
+                    result = createFileSystemOptions.FilesThatExist.Contains(path);
                 }
 
-                logger.Trace(@"FileSystem.FileExists(""{0}"") -> {1}", path1, result);
+                logger.Trace(@"FileSystem.FileExists(""{0}"") -> {1}", path, result);
                 return result;
             });
 
@@ -88,21 +88,34 @@ namespace GitHub.Unity.Tests
                 return result;
             });
 
+            fileSystem.ExistingPathIsDirectory(Arg.Any<string>()).Returns(info => {
+                var path = (string)info[0];
+
+                var result = false;
+                if (createFileSystemOptions.DirectoriesThatExist != null)
+                {
+                    result = createFileSystemOptions.DirectoriesThatExist.Contains(path);
+                }
+
+                logger.Trace(@"FileSystem.ExistingPathIsDirectory(""{0}"") -> {1}", path, result);
+                return result;
+            });
+
             fileSystem.ReadAllText(Arg.Any<string>()).Returns(info => {
-                var path1 = (string)info[0];
+                var path = (string)info[0];
 
                 string result = null;
 
                 if (createFileSystemOptions.FileContents != null)
                 {
                     string[] fileContent;
-                    if (createFileSystemOptions.FileContents.TryGetValue(path1, out fileContent))
+                    if (createFileSystemOptions.FileContents.TryGetValue(path, out fileContent))
                     {
                         result = string.Join(string.Empty, fileContent);
                     }
                 }
 
-                logger.Trace(@"FileSystem.ReadAllText(""{0}"") -> {1}", path1, result != null);
+                logger.Trace(@"FileSystem.ReadAllText(""{0}"") -> {1}", path, result != null);
 
                 return result;
             });
@@ -261,9 +274,11 @@ namespace GitHub.Unity.Tests
 
             var fileSystemWatchFactory = Substitute.For<IFileSystemWatchFactory>();
             fileSystemWatchFactory.CreateWatch(Arg.Any<string>()).Returns(info => {
-                logger.Trace(@"CreateWatch(""{0}"")", (string)info[0]);
+                var path = (string)info[0];
 
-                var fileSystemWatch = new TestFileSystemWatch();
+                logger.Trace(@"CreateWatch(""{0}"")", path);
+
+                var fileSystemWatch = new TestFileSystemWatch(path);
 
                 createTestWatchFactoryOptions?.OnWatchCreated?.Invoke(fileSystemWatch);
 
@@ -271,9 +286,12 @@ namespace GitHub.Unity.Tests
             });
 
             fileSystemWatchFactory.CreateWatch(Arg.Any<string>(), Arg.Any<string>()).Returns(info => {
-                logger.Trace(@"CreateWatch(""{0}"", ""{1}"")", (string)info[0], (string)info[1]);
+                var path = (string)info[0];
+                var filter = (string)info[1];
 
-                var fileSystemWatch = new TestFileSystemWatch();
+                logger.Trace(@"CreateWatch(""{0}"", ""{1}"")", path, filter);
+
+                var fileSystemWatch = new TestFileSystemWatch(path, filter);
 
                 createTestWatchFactoryOptions?.OnWatchCreated?.Invoke(fileSystemWatch);
 
