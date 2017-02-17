@@ -16,9 +16,9 @@ namespace GitHub.Unity
         private const string NewBranchCancelButton = "x";
         private const string NewBranchConfirmButton = "Create";
         private const string FavouritesSetting = "Favourites";
-        private const string FavouritesTitle = "FAVOURITES";
-        private const string LocalTitle = "LOCAL BRANCHES";
-        private const string RemoteTitle = "REMOTE BRANCHES";
+        private const string FavouritesTitle = "Favourites";
+        private const string LocalTitle = "Local branches";
+        private const string RemoteTitle = "Remote branches";
         private const string CreateBranchButton = "+ New branch";
 
         [NonSerialized] private List<BranchTreeNode> favourites = new List<BranchTreeNode>();
@@ -120,7 +120,7 @@ namespace GitHub.Unity
                 }
 
                 // Local branches and "create branch" button
-                GUILayout.Label(LocalTitle);
+                GUILayout.Label(LocalTitle, EditorStyles.boldLabel);
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.Space(Styles.BranchListIndentation);
@@ -139,7 +139,7 @@ namespace GitHub.Unity
                 GUILayout.Space(Styles.BranchListSeperation);
 
                 // Remotes
-                GUILayout.Label(RemoteTitle);
+                GUILayout.Label(RemoteTitle, EditorStyles.boldLabel);
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.Space(Styles.BranchListIndentation);
