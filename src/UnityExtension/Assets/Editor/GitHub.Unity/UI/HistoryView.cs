@@ -338,6 +338,11 @@ namespace GitHub.Unity
 
                         GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
+                        Rect r = EditorGUILayout.BeginHorizontal();
+                          Rect separatorLine = new Rect(r.x, r.y, r.width, 1);
+                          EditorGUI.DrawRect(separatorLine, Color.grey);
+                        EditorGUILayout.EndHorizontal();
+
                         GUILayout.BeginHorizontal();
                         {
                             GUILayout.Space(Styles.HistoryChangesIndentation);
