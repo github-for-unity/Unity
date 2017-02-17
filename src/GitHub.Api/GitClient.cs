@@ -2,9 +2,28 @@
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace GitHub.Unity
 {
+    class GitOtherClient
+    {
+        private readonly IEnvironment environment;
+        private readonly CancellationToken cancellationToken;
+
+        public GitOtherClient(IEnvironment environment, CancellationToken cancellationToken)
+        {
+            this.environment = environment;
+            this.cancellationToken = cancellationToken;
+        }
+        public void SetupIfNeeded(IProgress<float> percentage, IProgress<long> timeRemaining)
+        {
+            var gitInstaller = new PortableGitManager(environment, cancellationToken: cancellationToken);
+            gitInstaller.ExtractGitIfNeeded(percentage, timeRemaining);
+
+        }
+    }
+
     class GitClient : IGitClient, IDisposable
     {
         private static string[] emptyContents = new string[0];

@@ -8,7 +8,7 @@ using UnityEngine.Events;
 
 namespace GitHub.Unity
 {
-    class ApplicationManager : IApplicationManager
+    class ApplicationManager : ApplicationManagerBase
     {
         private readonly MainThreadSynchronizationContext synchronizationContext;
         private static readonly ILogging logger = Logging.GetLogger<ApplicationManager>();
@@ -56,20 +56,17 @@ namespace GitHub.Unity
             ApiClientFactory.Instance = new ApiClientFactory(new AppConfiguration(), Platform.CredentialManager);
         }
 
-        public void Run()
+        public Task Run()
         {
             Utility.Initialize();
 
             taskRunner = new Tasks(synchronizationContext, cancellationTokenSource.Token);
 
-            Task.Factory.StartNew(() =>
+            var task = Task.Factory.StartNew(() =>
                 {
-                    var gitInstaller = new PortableGitManager(Environment, cancellationToken: CancellationToken);
-
-
                     try
                     {
-                        Environment.GitExecutablePath = DetermineGitInstallationPath();                   
+                        Environment.GitExecutablePath = DetermineGitInstallationPath();
                         Environment.Repository = GitClient.GetRepository();
                     }
                     catch (Exception ex)
@@ -88,6 +85,7 @@ namespace GitHub.Unity
 
                     Window.Initialize();
                 }, scheduler);
+            return task;
         }
 
 
@@ -200,10 +198,8 @@ namespace GitHub.Unity
             }
         }
 
-        public CancellationToken CancellationToken { get { return cancellationTokenSource.Token; } }
-
         private IEnvironment environment;
-        public IEnvironment Environment
+        public override IEnvironment Environment
         {
             get
             {
@@ -216,16 +212,6 @@ namespace GitHub.Unity
             }
             set { environment = value; }
         }
-        public IFileSystem FileSystem { get; private set; }
-        public IPlatform Platform { get; private set; }
-        public IGitEnvironment GitEnvironment { get { return Platform.GitEnvironment; } }
-        public IProcessManager ProcessManager { get; private set; }
-        public ICredentialManager CredentialManager { get; private set; }
-        public IGitClient GitClient { get; private set; }
-        public ITaskResultDispatcher TaskResultDispatcher { get; private set; }
-        public ISettings SystemSettings { get; private set; }
-        public ISettings LocalSettings { get; private set; }
-        public ISettings UserSettings { get; private set; }
-        public GitObjectFactory GitObjectFactory { get; private set; }
+        public override IGitEnvironment GitEnvironment { get { return Platform.GitEnvironment; } }
     }
 }
