@@ -19,8 +19,6 @@ namespace GitHub.Unity.Tests
             NPathFileSystemProvider.Current = Factory.CreateFileSystem(new CreateFileSystemOptions());
         }
 
-    
-
         [Test]
         public void ShouldProperlyDetachListener()
         {
