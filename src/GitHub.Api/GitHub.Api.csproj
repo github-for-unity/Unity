@@ -87,6 +87,7 @@
     <Compile Include="Authentication\AppCredentialStore.cs" />
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
+    <Compile Include="ApplicationManagerBase.cs" />
     <Compile Include="Git\GitFileStatus.cs" />
     <Compile Include="Git\GitLock.cs" />
     <Compile Include="Git\GitObjectFactory.cs" />
