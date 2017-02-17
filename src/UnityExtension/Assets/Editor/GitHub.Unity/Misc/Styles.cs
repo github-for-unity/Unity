@@ -95,6 +95,7 @@ namespace GitHub.Unity
             folderIcon,
             mergeIcon,
             dotIcon,
+            localCommitIcon,
             repoIcon,
             lockIcon;
 
@@ -567,6 +568,19 @@ namespace GitHub.Unity
 				return dotIcon;
 			}
 		}
+
+    public static Texture2D LocalCommitIcon
+    {
+      get
+      {
+          if (localCommitIcon == null)
+          {
+              localCommitIcon = Utility.GetIcon("local-commit-icon.png", "local-commit-icon@2x.png");
+          }
+
+          return localCommitIcon;
+      }
+    }
 
         public static Texture2D DefaultAssetIcon
         {
