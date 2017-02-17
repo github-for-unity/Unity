@@ -57,6 +57,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApplicationManager.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="IO\LockOutputProcessor.cs" />
     <Compile Include="Logging\FileLogAdapter.cs" />
