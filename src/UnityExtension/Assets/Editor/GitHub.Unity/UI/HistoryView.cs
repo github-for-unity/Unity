@@ -509,11 +509,15 @@ namespace GitHub.Unity
 
                 if (state == LogEntryState.Local)
                 {
-                    const float LocalIndicatorSize = 40f;
-                    var localIndicatorRect = new Rect(summaryRect.x, summaryRect.y, LocalIndicatorSize, summaryRect.height);
+                    const float LocalIndicatorSize = 6f;
+                    var localIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2),
+                      summaryRect.y + 5,
+                      LocalIndicatorSize,
+                      LocalIndicatorSize);
 
-                    // TODO: Get an icon or something here
-                    Styles.HistoryEntryDetailsStyle.Draw(localIndicatorRect, "Local:", false, false, selected, keyboardFocus);
+                      drawTimelineRectAroundIconRect(entryRect, localIndicatorRect);
+
+                      GUI.DrawTexture(localIndicatorRect, Styles.LocalCommitIcon);
 
                     summaryRect.Set(localIndicatorRect.xMax, summaryRect.y, summaryRect.width - LocalIndicatorSize, summaryRect.height);
                 }
