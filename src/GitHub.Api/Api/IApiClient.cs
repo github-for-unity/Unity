@@ -2,7 +2,7 @@
 using Octokit;
 using System;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface IApiClient
     {

@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Octokit;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     class ApiClient : IApiClient
     {

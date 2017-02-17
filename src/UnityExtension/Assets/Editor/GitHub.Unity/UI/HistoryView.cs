@@ -1,6 +1,6 @@
 #pragma warning disable 649
 
-using GitHub.Api;
+using GitHub.Unity;
 using System;
 using System.Collections.Generic;
 using System.Linq;

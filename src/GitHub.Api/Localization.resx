@@ -132,4 +132,133 @@
   <data name="Wrong2faCode" xml:space="preserve">
     <value>Wrong 2FA code</value>
   </data>
+  <data name="GitInitBrowseButton" xml:space="preserve">
+    <value>...</value>
+  </data>
+  <data name="GitInitBrowseTitle" xml:space="preserve">
+    <value>Pick desired repository root</value>
+  </data>
+  <data name="GitInitButton" xml:space="preserve">
+    <value>Set up git</value>
+  </data>
+  <data name="NoActiveRepositoryMessage" xml:space="preserve">
+    <value>Your current project is not currently in an active git repository:</value>
+  </data>
+  <data name="NoActiveRepositoryTitle" xml:space="preserve">
+    <value>No repository found</value>
+  </data>
+  <data name="InvalidInitDirectoryTitle" xml:space="preserve">
+    <value>Invalid repository root</value>
+  </data>
+  <data name="InvalidInitDirectoryMessage" xml:space="preserve">
+    <value>Your selected folder '{0}' is not a valid repository root for your current project.</value>
+  </data>
+  <data name="InvalidInitDirectoryOK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="ViewModeHistoryTab" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="ViewModeChangesTab" xml:space="preserve">
+    <value>Changes</value>
+  </data>
+  <data name="ViewModeSettingsTab" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="RefreshButton" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="UnknownViewModeError" xml:space="preserve">
+    <value>Unsupported view mode: {0}</value>
+  </data>
+  <data name="HistoryFocusAll" xml:space="preserve">
+    <value>(All)</value>
+  </data>
+  <data name="HistoryFocusSingle" xml:space="preserve">
+    <value />
+  </data>
+  <data name="PullButton" xml:space="preserve">
+    <value>Pull</value>
+  </data>
+  <data name="PullButtonCount" xml:space="preserve">
+    <value />
+  </data>
+  <data name="PushButton" xml:space="preserve">
+    <value>Push</value>
+  </data>
+  <data name="PushButtonCount" xml:space="preserve">
+    <value />
+  </data>
+  <data name="PullConfirmTitle" xml:space="preserve">
+    <value>Pull Changes?</value>
+  </data>
+  <data name="PullConfirmDescription" xml:space="preserve">
+    <value>Would you like to pull changes from remote '{0}'?</value>
+  </data>
+  <data name="PullConfirmYes" xml:space="preserve">
+    <value>Pull</value>
+  </data>
+  <data name="PullConfirmCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="PushConfirmTitle" xml:space="preserve">
+    <value>Push Changes?</value>
+  </data>
+  <data name="PushConfirmDescription" xml:space="preserve">
+    <value>Would you like to push changes to remote '{0}'?</value>
+  </data>
+  <data name="PushConfirmYes" xml:space="preserve">
+    <value>Push</value>
+  </data>
+  <data name="PushConfirmCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="SummaryLabel" xml:space="preserve">
+    <value>Commit summary</value>
+  </data>
+  <data name="DescriptionLabel" xml:space="preserve">
+    <value>Commit description</value>
+  </data>
+  <data name="CommitButton" xml:space="preserve">
+    <value />
+  </data>
+  <data name="CommitSelectAllButton" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="CommitSelectNoneButton" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="ChangedFilesLabel" xml:space="preserve">
+    <value>{0} changed files</value>
+  </data>
+  <data name="OneChangedFileLabel" xml:space="preserve">
+    <value>1 changed file</value>
+  </data>
+  <data name="NoChangedFilesLabel" xml:space="preserve">
+    <value>No changed files</value>
+  </data>
+  <data name="BasePathLabel" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="NoChangesLabel" xml:space="preserve">
+    <value>No changes found</value>
+  </data>
+  <data name="RemotesTitle" xml:space="preserve">
+    <value>Remotes</value>
+  </data>
+  <data name="RemoteNameTitle" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="RemoteUserTitle" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="RemoteHostTitle" xml:space="preserve">
+    <value>Host</value>
+  </data>
+  <data name="RemoteAccessTitle" xml:space="preserve">
+    <value>Access</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
 </root>

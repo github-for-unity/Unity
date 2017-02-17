@@ -1,6 +1,7 @@
+using GitHub.Unity;
 using System;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface IPortableGitManager
     {
@@ -8,7 +9,7 @@ namespace GitHub.Api
             IProgress<long> estimatedDurationProgress = null);
 
         bool IsExtracted();
-        string PackageDestinationDirectory { get; }
+        NPath PackageDestinationDirectory { get; }
         string PackageNameWithVersion { get; }
     }
 }

@@ -1,9 +1,7 @@
 using System.Threading.Tasks;
-using GitHub.Api;
-using GitHub.Unity;
 using System;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     class LinuxGitEnvironment : GitEnvironment
     {
