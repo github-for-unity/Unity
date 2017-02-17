@@ -74,6 +74,8 @@ namespace GitHub.Unity
             commitDescriptionFieldStyle,
             toggleMixedStyle,
             authHeaderBoxStyle,
+            historyDetailsTitleStyle,
+            historyDetailsMetaInfoStyle,
             genericBoxStyle;
         static Texture2D
             modifiedStatusIcon,
@@ -306,6 +308,36 @@ namespace GitHub.Unity
             }
         }
 
+
+        public static GUIStyle HistoryDetailsTitleStyle
+        {
+          get
+          {
+            if (historyDetailsTitleStyle == null)
+            {
+              historyDetailsTitleStyle = new GUIStyle(EditorStyles.boldLabel);
+              historyDetailsTitleStyle.name = "HistoryDetailsTitleStyle";
+              historyDetailsTitleStyle.wordWrap = true;
+            }
+
+            return historyDetailsTitleStyle;
+          }
+        }
+
+        public static GUIStyle HistoryDetailsMetaInfoStyle
+        {
+          get
+          {
+            if (historyDetailsMetaInfoStyle == null)
+            {
+              historyDetailsMetaInfoStyle = new GUIStyle(EditorStyles.miniLabel);
+              historyDetailsMetaInfoStyle.name = "HistoryDetailsMetaInfoStyle";
+              historyDetailsMetaInfoStyle.normal.textColor = new Color(0f,0f,0f,0.6f);
+            }
+
+            return historyDetailsMetaInfoStyle;
+          }
+        }
 
         public static GUIStyle CommitFileAreaStyle
         {

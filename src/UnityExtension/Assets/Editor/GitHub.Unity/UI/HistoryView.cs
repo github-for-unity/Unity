@@ -541,11 +541,11 @@ namespace GitHub.Unity
         private void HistoryDetailsEntry(GitLogEntry entry)
         {
             detailsScroll = GUILayout.BeginScrollView(detailsScroll, GUILayout.Height(246));
-              GUILayout.Label(entry.Summary, EditorStyles.wordWrappedLabel);
+              GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle);
 
               GUILayout.BeginHorizontal();
-                GUILayout.Label(entry.PrettyTimeString, EditorStyles.miniLabel);
-                GUILayout.Label(entry.AuthorName, EditorStyles.miniLabel);
+                GUILayout.Label(entry.PrettyTimeString, Styles.HistoryDetailsMetaInfoStyle);
+                GUILayout.Label(entry.AuthorName, Styles.HistoryDetailsMetaInfoStyle);
               GUILayout.EndHorizontal();
             GUILayout.EndScrollView();
         }
