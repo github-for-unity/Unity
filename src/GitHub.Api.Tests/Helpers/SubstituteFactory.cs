@@ -1,10 +1,22 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using GitHub.Unity;
 using NSubstitute;
 
 namespace GitHub.Unity.Tests
 {
+    class CreateTestWatchFactoryOptions
+    {
+        public CreateTestWatchFactoryOptions(Action<TestFileSystemWatcherWrapper> onWatchCreated)
+        {
+            OnWatchCreated = onWatchCreated;
+        }
+
+        public Action<TestFileSystemWatcherWrapper> OnWatchCreated { get; private set; }
+    }
+
     class SubstituteFactory
     {
         public IEnvironment CreateEnvironment(CreateEnvironmentOptions createEnvironmentOptions = null)
@@ -47,15 +59,15 @@ namespace GitHub.Unity.Tests
             });
 
             fileSystem.FileExists(Arg.Any<string>()).Returns(info => {
-                var path1 = (string)info[0];
+                var path = (string)info[0];
 
-                var result = true;
+                var result = false;
                 if (createFileSystemOptions.FilesThatExist != null)
                 {
-                    result = createFileSystemOptions.FilesThatExist.Contains(path1);
+                    result = createFileSystemOptions.FilesThatExist.Contains(path);
                 }
 
-                logger.Trace(@"FileSystem.FileExists(""{0}"") -> {1}", path1, result);
+                logger.Trace(@"FileSystem.FileExists(""{0}"") -> {1}", path, result);
                 return result;
             });
 
@@ -78,21 +90,35 @@ namespace GitHub.Unity.Tests
                 logger.Trace(@"FileSystem.DirectoryExists(""{0}"") -> {1}", path1, result);
                 return result;
             });
+
+            fileSystem.ExistingPathIsDirectory(Arg.Any<string>()).Returns(info => {
+                var path = (string)info[0];
+
+                var result = false;
+                if (createFileSystemOptions.DirectoriesThatExist != null)
+                {
+                    result = createFileSystemOptions.DirectoriesThatExist.Contains(path);
+                }
+
+                logger.Trace(@"FileSystem.ExistingPathIsDirectory(""{0}"") -> {1}", path, result);
+                return result;
+            });
+
             fileSystem.ReadAllText(Arg.Any<string>()).Returns(info => {
-                var path1 = (string)info[0];
+                var path = (string)info[0];
 
                 string result = null;
 
                 if (createFileSystemOptions.FileContents != null)
                 {
-                    string[] fileContent;
-                    if (createFileSystemOptions.FileContents.TryGetValue(path1, out fileContent))
+                    IList<string> fileContent;
+                    if (createFileSystemOptions.FileContents.TryGetValue(path, out fileContent))
                     {
-                        result = string.Join(string.Empty, fileContent);
+                        result = string.Join(string.Empty, fileContent.ToArray());
                     }
                 }
 
-                logger.Trace(@"FileSystem.ReadAllText(""{0}"") -> {1}", path1, result != null);
+                logger.Trace(@"FileSystem.ReadAllText(""{0}"") -> {1}", path, result != null);
 
                 return result;
             });
@@ -119,24 +145,119 @@ namespace GitHub.Unity.Tests
                 return createFileSystemOptions.TemporaryPath;
             });
 
+            fileSystem.GetFiles(Arg.Any<string>()).Returns(info => {
+                var path = (string)info[0];
+
+                var result = new string[0];
+                if (createFileSystemOptions.ChildFiles != null)
+                {
+                    var key = new ContentsKey(path);
+                    if (createFileSystemOptions.ChildFiles.ContainsKey(key))
+                    {
+                        result = createFileSystemOptions.ChildFiles[key].ToArray();
+                    }
+                }
+
+                logger.Trace(@"FileSystem.GetFiles(""{0}"") -> {1} items", path, result.Length);
+
+                return result;
+            });
+
+            fileSystem.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns(info => {
+                var path = (string)info[0];
+                var pattern = (string)info[1];
+
+                var result = new string[0];
+                if (createFileSystemOptions.ChildFiles != null)
+                {
+                    var key = new ContentsKey(path, pattern);
+                    if (createFileSystemOptions.ChildFiles.ContainsKey(key))
+                    {
+                        result = createFileSystemOptions.ChildFiles[key].ToArray();
+                    }
+                }
+
+                logger.Trace(@"FileSystem.GetFiles(""{0}"", ""{1}"") -> {2} items", path, pattern, result.Length);
+
+                return result;
+            });
+
             fileSystem.GetFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>()).Returns(info => {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
                 var searchOption = (SearchOption)info[2];
 
-                string[] result = null;
-                if (createFileSystemOptions.FolderContents != null)
+                var result = new string[0];
+                if (createFileSystemOptions.ChildFiles != null)
                 {
-                    var key = new FolderContentsKey(path, pattern, searchOption);
-                    if (createFileSystemOptions.FolderContents.ContainsKey(key))
+                    var key = new ContentsKey(path, pattern, searchOption);
+                    if (createFileSystemOptions.ChildFiles.ContainsKey(key))
                     {
-                        result = createFileSystemOptions.FolderContents[key];
+                        result = createFileSystemOptions.ChildFiles[key].ToArray();
+                    }
+                }
+
+                logger.Trace(@"FileSystem.GetFiles(""{0}"", ""{1}"", {2}) -> {3} items", path, pattern, searchOption,
+                    result.Length);
+
+                return result;
+            });
+
+            fileSystem.GetDirectories(Arg.Any<string>()).Returns(info => {
+                var path = (string)info[0];
+
+                string[] result = new string[0];
+                if (createFileSystemOptions.ChildDirectories != null)
+                {
+                    var key = new ContentsKey(path);
+                    if (createFileSystemOptions.ChildDirectories.ContainsKey(key))
+                    {
+                        result = createFileSystemOptions.ChildDirectories[key].ToArray();
+                    }
+                }
+
+                logger.Trace(@"FileSystem.GetDirectories(""{0}"") -> {1} itemss", path, result.Length);
+
+                return result;
+            });
+
+            fileSystem.GetDirectories(Arg.Any<string>(), Arg.Any<string>()).Returns(info => {
+                var path = (string)info[0];
+                var pattern = (string)info[1];
+
+                string[] result = new string[0];
+                if (createFileSystemOptions.ChildDirectories != null)
+                {
+                    var key = new ContentsKey(path, pattern);
+                    if (createFileSystemOptions.ChildDirectories.ContainsKey(key))
+                    {
+                        result = createFileSystemOptions.ChildDirectories[key].ToArray();
+                    }
+                }
+
+                logger.Trace(@"FileSystem.GetDirectories(""{0}"", ""{1}"") -> {2} items", path, pattern, result.Length);
+
+                return result;
+            });
+
+            fileSystem.GetDirectories(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>()).Returns(info => {
+                var path = (string)info[0];
+                var pattern = (string)info[1];
+                var searchOption = (SearchOption)info[2];
+
+                string[] result = null;
+                if (createFileSystemOptions.ChildDirectories != null)
+                {
+                    var key = new ContentsKey(path, pattern, searchOption);
+                    if (createFileSystemOptions.ChildDirectories.ContainsKey(key))
+                    {
+                        result = createFileSystemOptions.ChildDirectories[key].ToArray();
                     }
                 }
 
                 var resultLength = result != null ? $"{result.Length} items" : "ERROR";
 
-                logger.Trace(@"FileSystem.GetFiles(""{0}"", ""{1}"", {2}) -> {3}", path, pattern, searchOption,
+                logger.Trace(@"FileSystem.GetDirectories(""{0}"", ""{1}"", {2}) -> {3}", path, pattern, searchOption,
                     resultLength);
 
                 return result;
@@ -152,18 +273,53 @@ namespace GitHub.Unity.Tests
         {
             return Substitute.For<IZipHelper>();
         }
-    }
-    public struct FolderContentsKey
+        public IFileSystemWatchWrapperFactory CreateTestWatchFactory(
+            CreateTestWatchFactoryOptions createTestWatchFactoryOptions = null)
+        {
+            var logger = Logging.GetLogger("TestFileSystemWatcherWrapper");
+
+            var fileSystemWatchFactory = Substitute.For<IFileSystemWatchWrapperFactory>();
+            fileSystemWatchFactory.CreateWatch(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<string>()).Returns(info => {
+                var path = (string)info[0];
+                var recursive = (bool)info[1];
+                var filter = (string)info[2];
+
+                if (filter != null)
+                {
+                    logger.Trace(@"CreateWatch(""{0}"", {1}, ""{2}"")", path, recursive, filter);
+                }
+                else
+                {
+                    logger.Trace(@"CreateWatch(""{0}"", {1}, null)", path, recursive);
+                }
+
+                var fileSystemWatch = new TestFileSystemWatcherWrapper(path, recursive, filter);
+
+                createTestWatchFactoryOptions?.OnWatchCreated?.Invoke(fileSystemWatch);
+
+                return fileSystemWatch;
+            });
+
+            return fileSystemWatchFactory;
+        }
+
+        public struct ContentsKey
     {
         public readonly string Path;
         public readonly string Pattern;
-        public readonly SearchOption SearchOption;
+            public readonly SearchOption? SearchOption;
 
-        public FolderContentsKey(string path, string pattern, SearchOption searchOption)
+            public ContentsKey(string path, string pattern, SearchOption? searchOption)
         {
             Path = path;
             Pattern = pattern;
             SearchOption = searchOption;
         }
+
+            public ContentsKey(string path, string pattern) : this(path, pattern, null)
+            {}
+
+            public ContentsKey(string path) : this(path, null)
+            {}
     }
 }
