@@ -2,7 +2,7 @@ using GitHub.Unity;
 using System.Collections.Generic;
 using System.Text;
 
-namespace GitHub.Unity.Tests
+namespace UnitTests
 {
     static class ProcessManagerExtensions
     {

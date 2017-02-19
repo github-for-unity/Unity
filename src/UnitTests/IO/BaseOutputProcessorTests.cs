@@ -1,6 +1,7 @@
+using GitHub.Unity;
 using NSubstitute;
 
-namespace GitHub.Unity.Tests
+namespace UnitTests
 {
     class BaseOutputProcessorTests : TestBase
     {

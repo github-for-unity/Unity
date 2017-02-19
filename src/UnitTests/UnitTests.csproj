@@ -7,8 +7,8 @@
     <ProjectGuid>{69F13D9D-AD56-4EEC-AE10-D528EE23E1A9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GitHub.Unity.Tests</RootNamespace>
-    <AssemblyName>GitHub.Unity.Tests</AssemblyName>
+    <RootNamespace>UnitTests</RootNamespace>
+    <AssemblyName>UnitTests</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -40,10 +40,6 @@
   <ItemGroup>
     <Reference Include="AsyncBridge.Net35, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\AsyncBridge.Net35.0.2.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="DotNetZip, Version=1.10.1.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\DotNetZip.1.10.1\lib\net20\DotNetZip.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FluentAssertions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
@@ -80,8 +76,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Auth\LoginTests.cs" />
-    <Compile Include="Git\GitClientTests.cs" />
     <Compile Include="IO\BranchListOutputProcessorTests.cs" />
     <Compile Include="IO\CreateEnvironmentOptions.cs" />
     <Compile Include="IO\CreateFileSystemOptions.cs" />
@@ -96,11 +90,9 @@
     <Compile Include="IO\GitStatusEntryListTests.cs" />
     <Compile Include="IO\GitStatusEntryTests.cs" />
     <Compile Include="IO\LogEntryOutputProcessorTests.cs" />
-    <Compile Include="IO\BaseIntegrationTest.cs" />
     <Compile Include="IO\StatusOutputProcessorTests.cs" />
     <Compile Include="IO\MacBasedGitEnvironmentTests.cs" />
     <Compile Include="IO\LinuxBasedGitEnvironmentTests.cs" />
-    <Compile Include="IO\ProcessManagerIntegrationTests.cs" />
     <Compile Include="IO\TestBase.cs" />
     <Compile Include="IO\WindowsGitEnvironmentTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
@@ -130,9 +122,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="IOTestsRepo.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

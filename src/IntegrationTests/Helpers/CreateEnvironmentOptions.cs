@@ -1,4 +1,4 @@
-namespace GitHub.Unity.Tests
+namespace IntegrationTests
 {
     class CreateEnvironmentOptions
     {

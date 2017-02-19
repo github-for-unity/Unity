@@ -108,8 +108,6 @@
     <Compile Include="IGitClient.cs" />
     <Compile Include="IO\BaseOutputProcessor.cs" />
     <Compile Include="IO\FileSystem.cs" />
-    <Compile Include="IO\Watches\DefaultFileSystemWatch.cs" />
-    <Compile Include="IO\Watches\FileSystemWatcherWrapper.cs" />
     <Compile Include="IO\GitRemote.cs" />
     <Compile Include="IO\GitRemoteFunction.cs" />
     <Compile Include="IO\IOutputProcessor.cs" />
@@ -119,16 +117,9 @@
     <Compile Include="IO\NPathFileSystemProvider.cs" />
     <Compile Include="IO\ProcessOutputManager.cs" />
     <Compile Include="IO\RemoteListOutputProcessor.cs" />
-    <Compile Include="IO\Watches\FileSystemWatchFactory.cs" />
-    <Compile Include="IO\Watches\FileSystemWatchWrapperFactory.cs" />
-    <Compile Include="IO\Watches\FileSystemWatch.cs" />
-    <Compile Include="IO\Watches\IFileSystemWatcherWrapper.cs" />
-    <Compile Include="IO\Watches\IFileSystemWatchFactory.cs" />
-    <Compile Include="IO\Watches\IFileSystemWatchWrapperFactory.cs" />
-    <Compile Include="IO\Watches\IFileSystemWatchListener.cs" />
-    <Compile Include="IO\Watches\IFileSystemWatch.cs" />
-    <Compile Include="IO\Watches\WatchArguments.cs" />
-    <Compile Include="IO\Watches\AdaptiveFileSystemWatch.cs" />
+    <Compile Include="Platform\IFileSystemWatch.cs" />
+    <Compile Include="Platform\IFileSystemWatchFactory.cs" />
+    <Compile Include="Platform\BaseFileSystemWatcher.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="ISettings.cs" />
     <Compile Include="Localization.Designer.cs">
@@ -139,8 +130,12 @@
     <Compile Include="Platform\GitEnvironment.cs" />
     <Compile Include="Platform\IFileSystem.cs" />
     <Compile Include="Platform\IGitEnvironment.cs" />
+    <Compile Include="Platform\LinuxFileSystemWatch.cs" />
     <Compile Include="Platform\LinuxGitEnvironment.cs" />
+    <Compile Include="Platform\MacFileSystemWatch.cs" />
     <Compile Include="Platform\MacGitEnvironment.cs" />
+    <Compile Include="Platform\PlatformFileSystemWatchFactory.cs" />
+    <Compile Include="Platform\WindowsFileSystemWatch.cs" />
     <Compile Include="Platform\WindowsGitEnvironment.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
@@ -213,7 +208,9 @@
     <EmbeddedResource Include="PlatformResources\windows\gitconfig" />
     <None Include="resources\linux\.placeholder" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="IO\Watches\" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Localization.resx">
       <Generator>ResXFileCodeGenerator</Generator>

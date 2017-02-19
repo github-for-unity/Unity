@@ -7,8 +7,8 @@
     <ProjectGuid>{1AC3F82E-AEAE-4C84-825C-207BB264FCFA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GitHub.Unity.Tests</RootNamespace>
-    <AssemblyName>GitHub.Api.Tests</AssemblyName>
+    <RootNamespace>IntegrationTests</RootNamespace>
+    <AssemblyName>IntegrationTests</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -31,6 +31,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AsyncBridge.Net35, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\AsyncBridge.Net35.0.2.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="DotNetZip, Version=1.10.1.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\DotNetZip.1.10.1\lib\net20\DotNetZip.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="FluentAssertions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\FluentAssertions.2.2.0.0\lib\net35\FluentAssertions.dll</HintPath>
       <Private>True</Private>
@@ -63,14 +71,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Auth\LoginTests.cs" />
+    <Compile Include="BaseIntegrationTest.cs" />
+    <Compile Include="Helpers\Args.cs" />
+    <Compile Include="Watches\FileSystemWatcherTests.cs" />
+    <None Include="Watches\WindowsLinuxFileSystemWatchTests.cs" />
+    <None Include="Watches\AdaptiveFileSystemWatchTests.cs" />
+    <None Include="Watches\FileSystemWatcherIntegrationTests.cs" />
+    <None Include="Watches\TestFileSystemWatcherWrapper.cs" />
+    <Compile Include="Git\GitClientTests.cs" />
+    <Compile Include="Helpers\AssertExtensions.cs" />
     <Compile Include="Installer\GitInstallerTests.cs" />
-    <Compile Include="Installer\PortableGitManagerTests.cs" />
-    <Compile Include="IO\Watches\DefaultFileSystemWatchStrategyTests.cs" />
-    <Compile Include="IO\Watches\TestFileSystemWatch.cs" />
-    <Compile Include="IO\Watches\DefaultFileSystemWatchTests.cs" />
-    <Compile Include="IO\Watches\AdaptiveFileSystemWatchTests.cs" />
-    <Compile Include="IO\Watches\FileSystemWatcherIntegrationTests.cs" />
-    <Compile Include="IO\Watches\TestFileSystemWatcherWrapper.cs" />
+    <Compile Include="ProcessManagerExtensions.cs" />
+    <Compile Include="Process\ProcessManagerIntegrationTests.cs" />
     <Compile Include="SetupFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Helpers\CreateEnvironmentOptions.cs" />
@@ -86,12 +99,20 @@
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
     </ProjectReference>
+    <ProjectReference Include="..\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
+      <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
+      <Name>GitHub.Unity</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="IOTestsRepo.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

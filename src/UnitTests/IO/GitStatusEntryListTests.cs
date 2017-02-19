@@ -1,6 +1,7 @@
-﻿using NUnit.Framework;
+﻿using GitHub.Unity;
+using NUnit.Framework;
 
-namespace GitHub.Unity.Tests
+namespace UnitTests
 {
     [TestFixture]
     public class GitStatusEntryListTests

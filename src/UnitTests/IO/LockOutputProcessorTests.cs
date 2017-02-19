@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using NUnit.Framework;
+using GitHub.Unity;
 
-namespace GitHub.Unity.Tests
+namespace UnitTests
 {
     [TestFixture]
     class LockOutputProcessorTests : BaseOutputProcessorTests

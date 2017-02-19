@@ -10,6 +10,8 @@ namespace GitHub.Unity
         public Platform(IEnvironment environment, IFileSystem fs)
         {
             this.environment = environment;
+            this.FileSystemWatchFactory = new PlatformFileSystemWatchFactory(environment);
+
             if (environment.IsWindows)
             {
                 GitEnvironment = new WindowsGitEnvironment(environment, fs);
@@ -46,5 +48,6 @@ namespace GitHub.Unity
 
         public IGitEnvironment GitEnvironment { get; private set; }
         public ICredentialManager CredentialManager { get; private set; }
+        public IFileSystemWatchFactory FileSystemWatchFactory { get; private set; }
     }
 }

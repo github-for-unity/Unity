@@ -1,8 +1,9 @@
 using System.IO;
 using NSubstitute;
 using System.Linq;
+using GitHub.Unity;
 
-namespace GitHub.Unity.Tests
+namespace UnitTests
 {
     class TestBase
     {

@@ -5,7 +5,7 @@ using GitHub.Unity;
 using NSubstitute;
 using NUnit.Framework;
 
-namespace GitHub.Unity.Tests
+namespace IntegrationTests
 {
     [TestFixture]
     public class GitInstallerTests
@@ -79,7 +79,9 @@ namespace GitHub.Unity.Tests
             });
             var portableGitManager = new GitInstaller(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
             sharpZipLibHelper);
-            portableGitManager.ExtractGitIfNeeded();
+            var tempPath = NPath.CreateTempDirectory("integration-tests");
+            portableGitManager.ExtractGitIfNeeded(tempPath);
+            tempPath.Delete();
 
             sharpZipLibHelper.Received().Extract(WindowsPortableGitZip, Arg.Any<string>());
 
@@ -100,7 +102,9 @@ namespace GitHub.Unity.Tests
 
             var portableGitManager = new GitInstaller(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
                 sharpZipLibHelper);
-            portableGitManager.ExtractGitLfsIfNeeded();
+            var tempPath = NPath.CreateTempDirectory("integration-tests");
+            portableGitManager.ExtractGitIfNeeded(tempPath);
+            tempPath.Delete();
 
             const string shouldExtractTo = CreateFileSystemOptions.DefaultTemporaryPath + @"\randomFile1.deleteme";
             sharpZipLibHelper.Received().Extract(WindowsGitLfsZip, shouldExtractTo);
@@ -157,7 +161,9 @@ namespace GitHub.Unity.Tests
             var sharpZipLibHelper = Factory.CreateSharpZipLibHelper();
 
             var portableGitManager = new GitInstaller(Factory.CreateEnvironment(), sharpZipLibHelper);
-            portableGitManager.ExtractGitIfNeeded();
+            var tempPath = NPath.CreateTempDirectory("integration-tests");
+            portableGitManager.ExtractGitIfNeeded(tempPath);
+            tempPath.Delete();
 
             sharpZipLibHelper.DidNotReceiveWithAnyArgs().Extract(Arg.Any<string>(), Arg.Any<string>());
         }
@@ -181,7 +187,9 @@ namespace GitHub.Unity.Tests
 
             var portableGitManager = new GitInstaller(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
                 sharpZipLibHelper);
-            portableGitManager.ExtractGitLfsIfNeeded();
+            var tempPath = NPath.CreateTempDirectory("integration-tests");
+            portableGitManager.ExtractGitIfNeeded(tempPath);
+            tempPath.Delete();
 
             sharpZipLibHelper.DidNotReceiveWithAnyArgs().Extract(Arg.Any<string>(), Arg.Any<string>());
         }
