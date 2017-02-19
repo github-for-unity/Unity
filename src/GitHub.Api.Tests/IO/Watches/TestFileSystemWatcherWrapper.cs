@@ -1,32 +1,39 @@
 using System;
 using System.IO;
-using GitHub.Api.IO;
+using GitHub.Api;
 
 namespace GitHub.Unity.Tests
 {
-    class TestFileSystemWatch : IFileSystemWatch
+    class TestFileSystemWatcherWrapper : IFileSystemWatcherWrapper
     {
+        public TestFileSystemWatcherWrapper(string path, bool recursive = false, string filter = null)
+        {
+            Path = path;
+            Recursive = recursive;
+            Filter = filter;
+        }
+
         public void Dispose()
         {}
 
-        public void RaiseChanged(string directory, string name)
+        public void RaiseChanged(string name)
         {
-            Changed?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Changed, directory, name));
+            Changed?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Changed, Path, name));
         }
 
-        public void RaiseCreated(string directory, string name)
+        public void RaiseCreated(string name)
         {
-            Created?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Created, directory, name));
+            Created?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Created, Path, name));
         }
 
-        public void RaiseDeleted(string directory, string name)
+        public void RaiseDeleted(string name)
         {
-            Deleted?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Deleted, directory, name));
+            Deleted?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Deleted, Path, name));
         }
 
-        public void RaiseRenamed(string directory, string name, string oldName)
+        public void RaiseRenamed(string name, string oldName)
         {
-            Renamed?.Invoke(this, new RenamedEventArgs(WatcherChangeTypes.Renamed, directory, name, oldName));
+            Renamed?.Invoke(this, new RenamedEventArgs(WatcherChangeTypes.Renamed, Path, name, oldName));
         }
 
         public void RaiseError(Exception exception)
@@ -52,12 +59,22 @@ namespace GitHub.Unity.Tests
             Error -= fileSystemWatchListener.OnError;
         }
 
+        public override string ToString()
+        {
+            return Filter == null
+                ? string.Format("TestFileSystemWatch Path:\"{0}\" Recursive:{1}", Path, Recursive)
+                : string.Format("TestFileSystemWatch Path:\"{0}\" Recursive:{1} Filter:\"{2}\"", Path, Recursive, Filter);
+        }
+
         public event FileSystemEventHandler Changed;
         public event FileSystemEventHandler Created;
         public event FileSystemEventHandler Deleted;
         public event RenamedEventHandler Renamed;
         public event ErrorEventHandler Error;
 
+        public string Path { get; }
+        public string Filter { get; }
         public bool Enable { get; set; }
+        public bool Recursive { get; }
     }
 }

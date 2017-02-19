@@ -1,8 +1,7 @@
-namespace GitHub.Api.IO
+﻿namespace GitHub.Api
 {
     interface IFileSystemWatchFactory
     {
-        IFileSystemWatch CreateWatch(string path);
-        IFileSystemWatch CreateWatch(string path, string filter);
+        FileSystemWatch CreteFileSystemWatch(string path, bool recursive = false, string filter = null);
     }
 }
