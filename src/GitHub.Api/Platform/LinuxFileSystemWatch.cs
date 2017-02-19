@@ -1,0 +1,50 @@
+﻿using System.IO;
+
+namespace GitHub.Unity
+{
+    class LinuxFileSystemWatch : BaseFileSystemWatcher
+    {
+        private readonly FileSystemWatcher watcher;
+
+        public LinuxFileSystemWatch(WatchArguments arguments) : base(arguments)
+        {
+            watcher = new FileSystemWatcher(arguments.Path);
+            watcher.IncludeSubdirectories = Recursive;
+            watcher.NotifyFilter = NotifyFilters.CreationTime |
+                                NotifyFilters.Attributes |
+                                NotifyFilters.DirectoryName |
+                                NotifyFilters.FileName |
+                                NotifyFilters.LastWrite |
+                                NotifyFilters.Size;
+            if (Filter != null)
+            {
+                watcher.Filter = Filter;
+            }
+
+            watcher.Created += (s, e) => RaiseCreated(e.FullPath);
+            watcher.Changed += (s, e) => RaiseChanged(e.FullPath);
+            watcher.Deleted += (s, e) => RaiseDeleted(e.FullPath);
+            watcher.Renamed += (s, e) => RaiseRenamed(e.OldFullPath, e.FullPath);
+        }
+
+        private bool disposed;
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (disposing)
+            {
+                if (disposed) return;
+                disposed = true;
+                Enable = false;
+                watcher.Dispose();
+            }
+        }
+
+        public override bool Enable
+        {
+            get { return watcher.EnableRaisingEvents; }
+
+            set { watcher.EnableRaisingEvents = value; }
+        }
+    }
+}

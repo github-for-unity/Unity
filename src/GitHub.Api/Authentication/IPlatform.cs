@@ -8,5 +8,6 @@ namespace GitHub.Unity
         Task<IPlatform> Initialize(IProcessManager processManager);
         IGitEnvironment GitEnvironment { get; }
         ICredentialManager CredentialManager { get; }
+        IFileSystemWatchFactory FileSystemWatchFactory { get; }
     }
 }

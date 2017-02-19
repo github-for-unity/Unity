@@ -3,7 +3,7 @@ using System.IO;
 using NSubstitute;
 using GitHub.Unity;
 
-namespace GitHub.Unity.Tests
+namespace UnitTests
 {
     public class GitEnvironmentTestsBase
     {

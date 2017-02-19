@@ -6,13 +6,18 @@ namespace GitHub.Unity
 {
     class FileSystem : IFileSystem
     {
-        private readonly string currentDirectory;
+        private string currentDirectory;
 
         public FileSystem()
         {
         }
 
         public FileSystem(string currentDirectory)
+        {
+            this.currentDirectory = currentDirectory;
+        }
+
+        public void SetCurrentDirectory(string currentDirectory)
         {
             this.currentDirectory = currentDirectory;
         }

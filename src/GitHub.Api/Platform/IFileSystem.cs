@@ -36,5 +36,6 @@ namespace GitHub.Unity
         string[] ReadAllLines(string path);
         char DirectorySeparatorChar { get; }
         bool ExistingPathIsDirectory(string path);
+        void SetCurrentDirectory(string currentDirectory);
     }
 }

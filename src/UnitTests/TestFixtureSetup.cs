@@ -1,7 +1,7 @@
 using GitHub.Unity;
 using NUnit.Framework;
 
-namespace GitHub.Unity.Tests
+namespace UnitTests
 {
     [SetUpFixture]
     class TestFixtureSetup

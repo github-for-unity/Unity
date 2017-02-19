@@ -1,6 +1,7 @@
+using GitHub.Unity;
 using NUnit.Framework;
 
-namespace GitHub.Unity.Tests
+namespace IntegrationTests
 {
     [SetUpFixture]
     public class SetupFixture

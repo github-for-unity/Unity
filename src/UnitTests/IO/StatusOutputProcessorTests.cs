@@ -4,7 +4,7 @@ using NSubstitute;
 using NUnit.Framework;
 using GitHub.Unity;
 
-namespace GitHub.Unity.Tests
+namespace UnitTests
 {
     [TestFixture]
     class StatusOutputProcessorTests : BaseOutputProcessorTests

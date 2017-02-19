@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    public static class ThreadingHelper
+    static class ThreadingHelper
     {
         public static TaskScheduler MainThreadScheduler { get; set; }
         public static int MainThread { get; set; }

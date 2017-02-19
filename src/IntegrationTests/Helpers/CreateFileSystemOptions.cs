@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GitHub.Unity.Tests
+namespace IntegrationTests
 {
     class CreateFileSystemOptions
     {

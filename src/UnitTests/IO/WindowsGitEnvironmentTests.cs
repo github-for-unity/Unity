@@ -7,7 +7,7 @@ using NUnit.Framework;
 using Environment = System.Environment;
 using GitHub.Unity;
 
-namespace GitHub.Unity.Tests
+namespace UnitTests
 {
     public class WindowsGitEnvironmentTests : GitEnvironmentTestsBase
     {
