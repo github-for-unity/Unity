@@ -2,9 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using System.Threading;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
@@ -30,29 +28,6 @@ namespace GitHub.Unity
             var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
                 String.Format("GitHub.Unity.{0}{1}.{2}", type, os, resource));
             return destinationPath.Combine(resource).WriteAllBytes(stream.ToByteArray());
-        }
-    }
-
-
-    class GitOtherClient
-    {
-        private readonly IEnvironment environment;
-        private readonly CancellationToken cancellationToken;
-        private readonly PortableGitManager gitInstaller;
-        public NPath GitInstallationPath { get; private set; }
-        public NPath GitExecutablePath { get; private set; }
-
-        public GitOtherClient(IEnvironment environment, CancellationToken cancellationToken)
-        {
-            this.environment = environment;
-            this.cancellationToken = cancellationToken;
-            gitInstaller = new PortableGitManager(environment, cancellationToken: cancellationToken);
-            GitInstallationPath = gitInstaller.PackageDestinationDirectory;
-            GitExecutablePath = gitInstaller.GitDestinationPath;
-        }
-        public Task<bool> SetupIfNeeded(IProgress<float> percentage = null, IProgress<long> timeRemaining = null)
-        {
-            return gitInstaller.Setup(percentage, timeRemaining);
         }
     }
 

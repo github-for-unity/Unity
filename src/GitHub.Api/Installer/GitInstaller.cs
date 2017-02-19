@@ -1,11 +1,10 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    class PortableGitManager : IPortableGitManager
+    class GitInstaller : IGitInstaller
     {
         private const string PortableGitExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
         private const string PackageName = "PortableGit";
@@ -13,7 +12,6 @@ namespace GitHub.Unity
         private const string GitZipFile = "git.zip";
         private const string GitLfsZipFile = "git-lfs.zip";
         private NPath gitConfigDestinationPath;
-
 
         private readonly CancellationToken? cancellationToken;
         private readonly IEnvironment environment;
@@ -23,7 +21,7 @@ namespace GitHub.Unity
     IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null);
         private ExtractZipFile extractCallback;
 
-        public PortableGitManager(IEnvironment environment, IZipHelper sharpZipLibHelper = null,
+        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper = null,
             CancellationToken? cancellationToken = null)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));

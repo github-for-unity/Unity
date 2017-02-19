@@ -6,17 +6,6 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    public interface IAwaitable
-    {
-        IAwaiter GetAwaiter();
-    }
-
-    public interface IAwaiter : INotifyCompletion
-    {
-        bool IsCompleted { get; }
-        void GetResult();
-    }
-
     class ApplicationManagerBase : IApplicationManager
     {
         protected static readonly ILogging logger = Logging.GetLogger<IApplicationManager>();
@@ -49,11 +38,10 @@ namespace GitHub.Unity
         private async Task RunInternal()
         {
             await ThreadingHelper.SwitchToThreadAsync();
-            var gitSetup = new GitOtherClient(Environment, CancellationToken);
+            var gitSetup = new GitSetup(Environment, CancellationToken);
             var expectedPath = gitSetup.GitInstallationPath;
 
             bool setupDone = false;
-            // Root paths
             if (!gitSetup.GitExecutablePath.FileExists())
             {
                 setupDone = await gitSetup.SetupIfNeeded(
@@ -65,11 +53,11 @@ namespace GitHub.Unity
             if (setupDone)
                 Environment.GitExecutablePath = gitSetup.GitExecutablePath;
             else
-                Environment.GitExecutablePath = await DetermineGitInstallationPath();
+                Environment.GitExecutablePath = await LookForGitInstallationPath();
             Environment.Repository = GitClient.GetRepository();
         }
 
-        private async Task<string> DetermineGitInstallationPath()
+        private async Task<string> LookForGitInstallationPath()
         {
             NPath cachedGitInstallPath = null;
             var path = SystemSettings.Get("GitInstallPath");

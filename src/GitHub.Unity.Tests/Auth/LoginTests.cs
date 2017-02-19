@@ -35,7 +35,7 @@ namespace GitHub.Unity.IntegrationTests
             NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
 
-            var gitSetup = new GitOtherClient(environment, CancellationToken.None);
+            var gitSetup = new GitSetup(environment, CancellationToken.None);
             var expectedPath = gitSetup.GitInstallationPath;
 
             bool setupDone = false;
