@@ -8,7 +8,7 @@ using NUnit.Framework;
 namespace GitHub.Unity.Tests
 {
     [TestFixture]
-    public class PortableGitManagerTests
+    public class GitInstallerTests
     {
         private SubstituteFactory Factory { get; set; }
 
@@ -77,7 +77,7 @@ namespace GitHub.Unity.Tests
                 }
                 return true;
             });
-            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
+            var portableGitManager = new GitInstaller(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
             sharpZipLibHelper);
             portableGitManager.ExtractGitIfNeeded();
 
@@ -98,7 +98,7 @@ namespace GitHub.Unity.Tests
                     RandomFileNames = new[] { "randomFile1", "randomFile2" }
                 });
 
-            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
+            var portableGitManager = new GitInstaller(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
                 sharpZipLibHelper);
             portableGitManager.ExtractGitLfsIfNeeded();
 
@@ -124,7 +124,7 @@ namespace GitHub.Unity.Tests
                 });
 
             fileSystem.FileExists(Arg.Any<string>()).Returns(info => true);
-            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
+            var portableGitManager = new GitInstaller(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
                 sharpZipLibHelper);
             portableGitManager.IsGitLfsExtracted().Should().BeTrue();
 
@@ -134,7 +134,7 @@ namespace GitHub.Unity.Tests
         [Test]
         public void ShouldKnowGitLfsDestinationDirectory()
         {
-            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(), Factory.CreateSharpZipLibHelper());
+            var portableGitManager = new GitInstaller(Factory.CreateEnvironment(), Factory.CreateSharpZipLibHelper());
 
             portableGitManager.GitLfsDestinationPath.Should()
                               .Be(
@@ -156,7 +156,7 @@ namespace GitHub.Unity.Tests
 
             var sharpZipLibHelper = Factory.CreateSharpZipLibHelper();
 
-            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(), sharpZipLibHelper);
+            var portableGitManager = new GitInstaller(Factory.CreateEnvironment(), sharpZipLibHelper);
             portableGitManager.ExtractGitIfNeeded();
 
             sharpZipLibHelper.DidNotReceiveWithAnyArgs().Extract(Arg.Any<string>(), Arg.Any<string>());
@@ -179,7 +179,7 @@ namespace GitHub.Unity.Tests
 
             NPathFileSystemProvider.Current = fileSystem;
 
-            var portableGitManager = new PortableGitManager(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
+            var portableGitManager = new GitInstaller(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
                 sharpZipLibHelper);
             portableGitManager.ExtractGitLfsIfNeeded();
 
