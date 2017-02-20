@@ -144,7 +144,7 @@ namespace GitHub.Unity
                     for (var index = 0; index < remotes.Count; ++index)
                     {
                         var remote = remotes[index];
-                        GUILayout.Label(remote.Name);
+                        GUILayout.Label(new GUIContent(remote.Name, Styles.FolderIcon), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
 
                         // Branches of the remote
                         GUILayout.BeginHorizontal();
