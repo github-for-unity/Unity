@@ -523,7 +523,7 @@ namespace GitHub.Unity
             // State marks
             if (Event.current.type == EventType.Repaint)
             {
-                var indicatorRect = new Rect(rect.x - rect.height, rect.y, rect.height, rect.height);
+                var indicatorRect = new Rect(rect.x + 8, rect.yMax - 8, 8, 8);
 
                 // Being tracked by current selection mark
                 if (selectedNode != null && selectedNode.Tracking == node)
