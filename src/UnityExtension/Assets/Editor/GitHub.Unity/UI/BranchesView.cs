@@ -102,7 +102,6 @@ namespace GitHub.Unity
                     GUILayout.Label(FavouritesTitle);
                     GUILayout.BeginHorizontal();
                     {
-                        GUILayout.Space(Styles.BranchListIndentation);
                         GUILayout.BeginVertical();
                         {
                             for (var index = 0; index < favourites.Count; ++index)
@@ -123,7 +122,6 @@ namespace GitHub.Unity
                 GUILayout.Label(LocalTitle, EditorStyles.boldLabel);
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Space(Styles.BranchListIndentation);
                     GUILayout.BeginVertical();
                     {
                         OnTreeNodeChildrenGUI(localRoot);
@@ -142,7 +140,6 @@ namespace GitHub.Unity
                 GUILayout.Label(RemoteTitle, EditorStyles.boldLabel);
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Space(Styles.BranchListIndentation);
                     GUILayout.BeginVertical();
                     for (var index = 0; index < remotes.Count; ++index)
                     {
