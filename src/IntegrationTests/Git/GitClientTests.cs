@@ -25,7 +25,7 @@ namespace GitHub.Unity.IntegrationTests
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
 
-            using (var gitclient = new GitClient(environment.UnityProjectPath))
+            using (var gitclient = new RepositoryLocator(environment.UnityProjectPath))
             {
                 Assert.AreEqual(new NPath(TestGitRepoPath).ToString(), gitclient.RepositoryPath);
             }

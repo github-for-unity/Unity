@@ -4,8 +4,14 @@ namespace GitHub.Unity
 {
     interface ITaskResultDispatcher
     {
-        void ReportSuccess(Action callback);
+        ITaskResultDispatcher<T> GetDispatcher<T>(Action<T> onSuccess, Action onFailure = null);
         void ReportFailure(FailureSeverity severity, string title, string error);
-        void ReportFailure(Action callback);
+    }
+
+    interface ITaskResultDispatcher<T>
+    {
+        void ReportSuccess(T data);
+        void ReportFailure(FailureSeverity severity, string title, string error);
+        void ReportFailure();
     }
 }

@@ -33,7 +33,7 @@ namespace UnitTests
         {
             var results = new List<GitLogEntry>();
 
-            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment);
 
             var processor = new LogEntryOutputProcessor(gitStatusEntryFactory);
             processor.OnLogEntry += data => results.Add(data);
@@ -66,7 +66,7 @@ namespace UnitTests
         {
             var result = new GitStatus();
 
-            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment);
 
             var processor = new StatusOutputProcessor(gitStatusEntryFactory);
             processor.OnStatus += data => result = data;

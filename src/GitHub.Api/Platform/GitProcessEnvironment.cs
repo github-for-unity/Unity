@@ -132,9 +132,9 @@ namespace GitHub.Unity
         {
             string gitPath = null;
             var task = new ProcessTask(Environment, processManager,
+                new TaskResultDispatcher<string>(x => gitPath = x, null),
                 Environment.IsWindows ? "where" : "which",
-                "git",
-                x => gitPath = x);
+                "git");
             await task.RunAsync(CancellationToken.None);
             return gitPath;
         }

@@ -45,7 +45,7 @@ namespace UnitTests
 
             var expected = new GitStatusEntry(filePath, fullPath, projectPath, status);
 
-            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment);
 
             var result = gitStatusEntryFactory.CreateGitStatusEntry(filePath, status);
 
@@ -72,7 +72,7 @@ namespace UnitTests
 
             var expected = new GitStatusEntry(filePath, fullPath, projectPath, status);
 
-            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment);
 
             var result = gitStatusEntryFactory.CreateGitStatusEntry(filePath, status);
 
@@ -99,7 +99,7 @@ namespace UnitTests
 
             var expected = new GitStatusEntry(filePath, fullPath, projectPath, status);
 
-            var gitStatusEntryFactory = new GitObjectFactory(environment, gitEnvironment);
+            var gitStatusEntryFactory = new GitObjectFactory(environment);
 
             var result = gitStatusEntryFactory.CreateGitStatusEntry(filePath, status);
 

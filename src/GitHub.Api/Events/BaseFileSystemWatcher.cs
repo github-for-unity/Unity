@@ -44,13 +44,13 @@ namespace GitHub.Unity
             Dispose(true);
         }
 
-        public event Action<string> Changed;
-        public event Action<string> Created;
-        public event Action<string> Deleted;
+        public event Action<NPath> Changed;
+        public event Action<NPath> Created;
+        public event Action<NPath> Deleted;
         /// <summary>
         /// Old path, new path
         /// </summary>
-        public event Action<string, string> Renamed;
+        public event Action<NPath, NPath> Renamed;
 
         public NPath Path { get { return arguments.Path; } }
         public string Filter { get { return arguments.Filter; } }

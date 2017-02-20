@@ -37,15 +37,15 @@ namespace GitHub.Unity
         private Dictionary<string, Section> sections;
         private Dictionary<string, Dictionary<string, Section>> groups;
 
-        public GitConfig(string filePath, IFileSystemWatch watcher)
+        public GitConfig(string filePath)
         {
-            manager = new ConfigFileManager(filePath, watcher);
-            watcher.Changed += _ => Reset();
+            manager = new ConfigFileManager(filePath);
             Reset();
         }
 
-        private void Reset()
+        public void Reset()
         {
+            manager.Refresh();
             sectionParser = new SectionParser(manager);
             sections = sectionParser.Sections;
             groups = sectionParser.GroupSections;
@@ -324,13 +324,9 @@ namespace GitHub.Unity
             private static Func<string, bool> fileExists = s => { try { return File.Exists(s); } catch { return false; } };
             private static Func<string, string, bool> fileWriteAllText = (file, contents) => { try { File.WriteAllText(file, contents); } catch { return false; } return true; };
 
-            private readonly FileSystemWatcher watcher;
-
-            public ConfigFileManager(string filePath, IFileSystemWatch watcher)
+            public ConfigFileManager(string filePath)
             {
                 FilePath = filePath;
-                Lines = fileReadAllLines(filePath);
-                watcher.Changed += _ => Refresh();
             }
 
             public void Refresh()

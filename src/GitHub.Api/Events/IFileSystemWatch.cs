@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 namespace GitHub.Unity
 {
@@ -7,9 +6,9 @@ namespace GitHub.Unity
     {
         bool Enable { get; set; }
 
-        event Action<string> Changed;
-        event Action<string> Created;
-        event Action<string> Deleted;
-        event Action<string, string> Renamed;
+        event Action<NPath> Changed;
+        event Action<NPath> Created;
+        event Action<NPath> Deleted;
+        event Action<NPath, NPath> Renamed;
     }
 }

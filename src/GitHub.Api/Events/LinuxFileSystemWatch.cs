@@ -12,10 +12,12 @@ namespace GitHub.Unity
             watcher.IncludeSubdirectories = Recursive;
             watcher.NotifyFilter = NotifyFilters.CreationTime |
                                 NotifyFilters.Attributes |
-                                NotifyFilters.DirectoryName |
                                 NotifyFilters.FileName |
-                                NotifyFilters.LastWrite |
-                                NotifyFilters.Size;
+                                NotifyFilters.LastWrite;
+
+            if (!arguments.FilesOnly)
+                watcher.NotifyFilter |= NotifyFilters.DirectoryName;
+
             if (Filter != null)
             {
                 watcher.Filter = Filter;

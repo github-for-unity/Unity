@@ -1,5 +1,5 @@
 using System.Threading;
-using GitHub.Unity;
+using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
@@ -11,12 +11,10 @@ namespace GitHub.Unity
         IPlatform Platform { get; }
         IProcessEnvironment GitEnvironment { get; }
         IProcessManager ProcessManager { get; }
-        ICredentialManager CredentialManager { get; }
-        IGitClient GitClient { get; }
-        ITaskResultDispatcher TaskResultDispatcher { get; }
+        ITaskResultDispatcher MainThreadResultDispatcher { get; }
         ISettings SystemSettings { get; }
         ISettings LocalSettings { get; }
         ISettings UserSettings { get; }
-        GitObjectFactory GitObjectFactory { get; }
+        Task RestartRepository();
     }
 }

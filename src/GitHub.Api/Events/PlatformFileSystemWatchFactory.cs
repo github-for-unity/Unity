@@ -13,16 +13,18 @@ namespace GitHub.Unity
             this.environment = environment;
         }
 
-        public virtual IFileSystemWatch GetOrCreate(NPath path, bool recursive = false, string filter = null)
+        public virtual IFileSystemWatch GetOrCreate(NPath path, bool recursive = false, bool filesOnly = false)
         {
+            string filter = null;
             if (path.FileExists())
             {
                 recursive = false;
                 filter = path.FileName;
                 path = path.Parent;
+                filesOnly = true;
             }
             
-            var arguments = new WatchArguments { Path = path, Filter = filter, Recursive = recursive };
+            var arguments = new WatchArguments { Path = path, Filter = filter, Recursive = recursive, FilesOnly = filesOnly };
             IFileSystemWatch watch = null;
             if (!watchers.TryGetValue(arguments, out watch))
             {
@@ -50,5 +52,6 @@ namespace GitHub.Unity
         public NPath Path;
         public string Filter;
         public bool Recursive;
+        public bool FilesOnly;
     }
 }
