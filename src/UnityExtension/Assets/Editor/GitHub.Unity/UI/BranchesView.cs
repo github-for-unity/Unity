@@ -474,7 +474,26 @@ namespace GitHub.Unity
         private void OnTreeNodeGUI(BranchTreeNode node)
         {
             // Content, style, and rects
-            var content = new GUIContent(node.Label, node.Children.Count > 0 ? Styles.FolderIcon : Styles.DefaultAssetIcon);
+
+            Texture2D iconContent;
+
+            if (node.Active == true)
+            {
+              iconContent = Styles.ActiveBranchIcon;
+            }
+            else
+            {
+              if (node.Children.Count > 0)
+              {
+                iconContent = Styles.FolderIcon;
+              }
+              else
+              {
+                iconContent = Styles.DefaultAssetIcon;
+              }
+            }
+
+            var content = new GUIContent(node.Label, iconContent);
             var style = node.Active ? Styles.BoldLabel : Styles.Label;
             var rect = GUILayoutUtility.GetRect(content, style, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
             var clickRect = new Rect(0f, rect.y, Position.width, rect.height);
@@ -530,7 +549,7 @@ namespace GitHub.Unity
                 // Active branch mark
                 else if (node.Active)
                 {
-                    GUI.DrawTexture(indicatorRect, Styles.ActiveBranchIcon);
+                    // GUI.DrawTexture(indicatorRect, Styles.ActiveBranchIcon);
                 }
                 // Tracking mark
                 else if (node.Tracking != null)
