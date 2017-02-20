@@ -4,11 +4,11 @@ using GitHub.Unity;
 
 namespace GitHub.Unity
 {
-    interface IGitEnvironment
+    interface IProcessEnvironment
     {
         Task<string> FindGitInstallationPath(IProcessManager processManager);
 
-        string GetGitExecutableExtension();
+        string GetExecutableExtension();
 
         bool ValidateGitInstall(string path);
 

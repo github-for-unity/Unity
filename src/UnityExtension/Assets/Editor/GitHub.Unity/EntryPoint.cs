@@ -94,7 +94,7 @@ namespace GitHub.Unity
 
         public static IEnvironment Environment { get { return ApplicationManager.Environment; } }
 
-        public static IGitEnvironment GitEnvironment { get { return ApplicationManager.GitEnvironment; } }
+        public static IProcessEnvironment GitEnvironment { get { return ApplicationManager.GitEnvironment; } }
 
         public static IFileSystem FileSystem { get { return ApplicationManager.FileSystem; } }
 

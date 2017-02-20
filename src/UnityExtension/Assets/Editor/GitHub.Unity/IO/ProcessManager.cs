@@ -13,15 +13,15 @@ namespace GitHub.Unity
         private static readonly ILogging logger = Logging.GetLogger<ProcessManager>();
 
         private readonly IEnvironment environment;
-        private readonly IGitEnvironment gitEnvironment;
+        private readonly IProcessEnvironment gitEnvironment;
         private readonly CancellationToken cancellationToken;
 
-        public ProcessManager(IEnvironment environment, IGitEnvironment gitEnvironment)
+        public ProcessManager(IEnvironment environment, IProcessEnvironment gitEnvironment)
             : this(environment, gitEnvironment, CancellationToken.None)
         {
         }
 
-        public ProcessManager(IEnvironment environment, IGitEnvironment gitEnvironment, CancellationToken cancellationToken)
+        public ProcessManager(IEnvironment environment, IProcessEnvironment gitEnvironment, CancellationToken cancellationToken)
         {
             this.environment = environment;
             this.gitEnvironment = gitEnvironment;

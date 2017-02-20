@@ -9,7 +9,7 @@ namespace GitHub.Unity
         IEnvironment Environment { get; }
         IFileSystem FileSystem { get; }
         IPlatform Platform { get; }
-        IGitEnvironment GitEnvironment { get; }
+        IProcessEnvironment GitEnvironment { get; }
         IProcessManager ProcessManager { get; }
         ICredentialManager CredentialManager { get; }
         IGitClient GitClient { get; }

@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    abstract class GitEnvironment : IGitEnvironment
+    abstract class GitProcessEnvironment : IProcessEnvironment
     {
         protected IEnvironment Environment { get; private set; }
         protected IFileSystem FileSystem { get; private set; }
         protected ILogging Logger { get; private set; }
 
-        protected GitEnvironment(IEnvironment environment, IFileSystem filesystem)
+        protected GitProcessEnvironment(IEnvironment environment, IFileSystem filesystem)
         {
             Environment = environment;
             FileSystem = filesystem;
@@ -32,7 +32,7 @@ namespace GitHub.Unity
             return await LookForGitInPath(processManager);
         }
 
-        public abstract string GetGitExecutableExtension();
+        public abstract string GetExecutableExtension();
 
         public string FindRoot(string path)
         {

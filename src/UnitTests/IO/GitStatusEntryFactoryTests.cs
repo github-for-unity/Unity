@@ -10,9 +10,9 @@ namespace UnitTests
     [TestFixture]
     class GitStatusEntryFactoryTests : TestBase
     {
-        private static IGitEnvironment CreateGitEnvironment(string repositoryRoot)
+        private static IProcessEnvironment CreateGitEnvironment(string repositoryRoot)
         {
-            var gitEnvironment = Substitute.For<IGitEnvironment>();
+            var gitEnvironment = Substitute.For<IProcessEnvironment>();
             gitEnvironment.FindRoot(Arg.Any<string>()).Returns(repositoryRoot);
             return gitEnvironment;
         }

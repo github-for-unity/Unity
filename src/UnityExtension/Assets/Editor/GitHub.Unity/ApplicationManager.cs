@@ -173,6 +173,6 @@ namespace GitHub.Unity
             }
             set { environment = value; }
         }
-        public override IGitEnvironment GitEnvironment { get { return Platform.GitEnvironment; } }
+        public override IProcessEnvironment GitEnvironment { get { return Platform.GitEnvironment; } }
     }
 }
