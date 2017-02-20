@@ -5,37 +5,19 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    abstract class BaseTask : ITask, IDisposable
+    class BaseTask : ITask, IDisposable
     {
-        protected BaseTask()
+        private readonly Func<Task<bool>> runAction;
+
+        public BaseTask()
         {
             Logger = Logging.GetLogger(GetType());
         }
 
-        protected ILogging Logger { get; private set; }
-
-        public virtual bool Blocking { get; protected set; }
-        public virtual bool Cached { get; protected set; }
-        public virtual bool Critical { get; protected set; }
-        public virtual bool Done { get; protected set; }
-        public virtual string Label { get; protected set; }
-        public virtual Action<ITask> OnBegin { get; set; }
-
-        Action<ITask> onEnd;
-        public Action<ITask> OnEnd
+        public BaseTask(Func<Task<bool>> runAction)
         {
-            get
-            {
-                return onEnd;
-            }
-            set
-            {
-                onEnd = value;
-            }
+            this.runAction = runAction;
         }
-
-        public virtual float Progress { get; protected set; }
-        public virtual TaskQueueSetting Queued { get; protected set; }
 
         public virtual void Abort()
         {}
@@ -47,25 +29,47 @@ namespace GitHub.Unity
         {}
 
         public virtual void Run(CancellationToken cancel)
-        {}
+        {
+            if (runAction != null)
+                runAction();
+        }
 
         public virtual Task<bool> RunAsync(CancellationToken cancellationToken)
         {
+            if (runAction != null)
+            {
+                return runAction();
+            }
             return TaskEx.FromResult(true);
         }
 
         public virtual void WriteCache(TextWriter cache)
         {}
 
-        bool disposed = false;
+        protected virtual void OnCompleted()
+        {}
+
         public virtual void Dispose(bool disposing)
-        {
-        }
+        {}
 
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        protected ILogging Logger { get; private set; }
+
+        public virtual bool Blocking { get; set; }
+        public virtual bool Cached { get; set; }
+        public virtual bool Critical { get; set; }
+        public virtual bool Done { get; protected set; }
+        public virtual string Label { get; set; }
+        public virtual TaskQueueSetting Queued { get; set; }
+        public virtual Action<ITask> OnBegin { get; set; }
+
+        public Action<ITask> OnEnd { get; set; }
+
+        public virtual float Progress { get; protected set; }
     }
 }

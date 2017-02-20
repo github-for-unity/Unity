@@ -56,7 +56,7 @@ namespace GitHub.Unity.IntegrationTests
             var platform = new Platform(environment, filesystem);
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
-            var gitClient = new GitClient(TestGitRepoPath);
+            var gitClient = new RepositoryLocator(TestGitRepoPath);
             environment.Repository = gitClient.GetRepository();
 
             var credentialManager = new WindowsCredentialManager(environment, processManager);

@@ -1,5 +1,4 @@
 using System;
-using GitHub.Unity;
 
 namespace GitHub.Unity
 {
@@ -8,14 +7,10 @@ namespace GitHub.Unity
         private readonly string arguments;
         private string result;
 
-        public GitConfigGetTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
-            string key, GitConfigSource configSource, Action<string> onSuccess, Action onFailure)
-            : base(environment, processManager, resultDispatcher,
-                  str =>
-                  {
-                      var logger = Logging.GetLogger<GitConfigGetTask>();
-                      onSuccess(str);
-                  }, onFailure)
+        public GitConfigGetTask(IEnvironment environment, IProcessManager processManager,
+            ITaskResultDispatcher<string> resultDispatcher,
+            string key, GitConfigSource configSource)
+            : base(environment, processManager, resultDispatcher)
         {
             var source = "";
             source +=
@@ -39,15 +34,15 @@ namespace GitHub.Unity
             return new ProcessOutputManager(process, processor);
         }
 
-        protected override void RaiseOnSuccess(string msg)
+        protected override void RaiseOnSuccess()
         {
             if (String.IsNullOrEmpty(result))
             {
-                RaiseOnFailure("No value returned for " + arguments);
+                RaiseOnFailure();
             }
             else
             {
-                base.RaiseOnSuccess(result);
+                base.RaiseOnSuccess();
             }
         }
 

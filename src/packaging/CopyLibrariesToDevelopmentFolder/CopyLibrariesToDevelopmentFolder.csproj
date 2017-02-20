@@ -53,16 +53,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(SolutionDir)\lib\5.5\Mono.Security.dll</HintPath>
     </Reference>
+    <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SetupFixture.cs" />
+    <Compile Include="Class1.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="CoreCompile" Condition="'$(OS)' == 'Unix'" />
-  <Target Name="CopyFilesToOutputDirectory" Condition="'$(OS)' != 'Unix'" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

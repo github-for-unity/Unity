@@ -202,21 +202,27 @@ namespace GitHub.Unity
             // Do not allow new commits before we have received one successful update
             lockCommit = true;
 
-            // Schedule the commit with the selected files
-            GitCommitTask.Schedule(
-                Enumerable.Range(0, tree.Entries.Count).Where(i => tree.CommitTargets[i].All).Select(i => tree.Entries[i].Path),
-                commitMessage,
-                commitBody,
-                () => {
-                    commitMessage = "";
-                    commitBody = "";
-                    for (var index = 0; index < tree.Entries.Count; ++index)
-                    {
-                        tree.CommitTargets[index].Clear();
-                    }
-                },
-                () => lockCommit = false
-            );
+            // Schedule the commit with the added files
+            var files = Enumerable.Range(0, tree.Entries.Count).Where(i => tree.CommitTargets[i].All).Select(i => tree.Entries[i].Path);
+
+            var commitTask = new GitCommitTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                                    new MainThreadTaskResultDispatcher<string>(_ => {
+                                        commitMessage = "";
+                                        commitBody = "";
+                                        for (var index = 0; index < tree.Entries.Count; ++index)
+                                        {
+                                            tree.CommitTargets[index].Clear();
+                                        }
+                                    },
+                                () => lockCommit = false),
+                                commitMessage,
+                                commitBody);
+
+            // run add, then commit
+            var addTask = new GitAddTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                            TaskResultDispatcher.Default.GetDispatcher<string>(_ => Tasks.Add(commitTask)),
+                            files);
+            Tasks.Add(addTask);
         }
     }
 }

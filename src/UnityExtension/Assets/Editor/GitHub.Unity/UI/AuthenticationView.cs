@@ -63,7 +63,7 @@ namespace GitHub.Unity
                     GUILayout.BeginVertical(GUILayout.Width(16));
                     {
                         GUILayout.Space(9);
-                        GUILayout.Label(Styles.TitleIcon, GUILayout.Height(20), GUILayout.Width(20));
+                        GUILayout.Label(Styles.BigLogo, GUILayout.Height(20), GUILayout.Width(20));
                     }
                     GUILayout.EndVertical();
 

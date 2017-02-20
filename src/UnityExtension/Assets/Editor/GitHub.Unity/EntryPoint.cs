@@ -40,19 +40,19 @@ namespace GitHub.Unity
             EditorApplication.update -= Initialize;
 
             var persistentPath = Application.persistentDataPath;
-            var filepath = Path.Combine(persistentPath, "github-unity-log.txt");
-            try
-            {
+            //var filepath = Path.Combine(persistentPath, "github-unity-log.txt");
+            //try
+            //{
 
-                if (File.Exists(filepath))
-                {
-                    File.Move(filepath, filepath + "-old");
-                }
-            }
-            catch
-            {
-            }
-            Logging.LoggerFactory = s => new FileLogAdapter(filepath, s);
+            //    if (File.Exists(filepath))
+            //    {
+            //        File.Move(filepath, filepath + "-old");
+            //    }
+            //}
+            //catch
+            //{
+            //}
+            //Logging.LoggerFactory = s => new FileLogAdapter(filepath, s);
             logger = Logging.GetLogger<EntryPoint>();
 
             ApplicationManager.Run();
@@ -90,7 +90,7 @@ namespace GitHub.Unity
             }
         }
 
-        public static IGitClient GitClient { get { return ApplicationManager.GitClient; } }
+        public static IApplicationManager AppManager { get { return ApplicationManager; } }
 
         public static IEnvironment Environment { get { return ApplicationManager.Environment; } }
 
@@ -99,15 +99,15 @@ namespace GitHub.Unity
         public static IFileSystem FileSystem { get { return ApplicationManager.FileSystem; } }
 
         public static IPlatform Platform { get { return ApplicationManager.Platform; } }
-        public static ICredentialManager CredentialManager { get { return ApplicationManager.CredentialManager; } }
+        public static ICredentialManager CredentialManager { get { return Platform.CredentialManager; } }
 
         public static IProcessManager ProcessManager { get { return ApplicationManager.ProcessManager; } }
-        public static GitObjectFactory GitObjectFactory { get { return ApplicationManager.GitObjectFactory; } }
+        public static GitObjectFactory GitObjectFactory { get { return new GitObjectFactory(Environment); } }
 
         public static ISettings LocalSettings { get { return ApplicationManager.LocalSettings; } }
         public static ISettings UserSettings { get { return ApplicationManager.UserSettings; } }
         public static ISettings SystemSettings { get { return ApplicationManager.SystemSettings; } }
-        public static ITaskResultDispatcher TaskResultDispatcher { get { return ApplicationManager.TaskResultDispatcher; } }
+        public static ITaskResultDispatcher TaskResultDispatcher { get { return ApplicationManager.MainThreadResultDispatcher; } }
 
         public static bool Initialized { get; private set; }
     }

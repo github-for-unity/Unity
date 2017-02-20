@@ -1,6 +1,5 @@
 #pragma warning disable 649
 
-using GitHub.Unity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -71,14 +70,19 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
-            StatusService.Instance.RegisterCallback(OnStatusUpdate);
+            EntryPoint.Environment.Repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
             Refresh();
         }
 
         public override void OnHide()
         {
             base.OnHide();
-            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
+            EntryPoint.Environment.Repository.OnRepositoryChanged -= RunStatusUpdateOnMainThread;
+        }
+
+        private void RunStatusUpdateOnMainThread(GitStatus status)
+        {
+            Tasks.ScheduleMainThread(() => OnStatusUpdate(status));
         }
 
 
@@ -91,10 +95,11 @@ namespace GitHub.Unity
             }
             else
             {
-                GitLogTask.Schedule(OnLogUpdate);
+                ITask task = new GitLogTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                    new MainThreadTaskResultDispatcher<IEnumerable<GitLogEntry>>(OnLogUpdate),
+                    EntryPoint.GitObjectFactory);
+                Tasks.Add(task);
             }
-
-            StatusService.Instance.Run();
 
 #if ENABLE_BROADMODE
             if (broadMode)
@@ -385,18 +390,13 @@ namespace GitHub.Unity
             }
 
             // Set branch state
-            // TODO: Update currentRemote
 
-            var remote = EntryPoint.GitClient.GetActiveRemote(update.RemoteBranch);
-            if (remote.HasValue)
-                currentRemote = remote.Value.Name;
-            else
-                currentRemote = null;
+            currentRemote = EntryPoint.Environment.Repository.CurrentRemote;
             statusAhead = update.Ahead;
             statusBehind = update.Behind;
         }
 
-        private void OnLogUpdate(IList<GitLogEntry> entries)
+        private void OnLogUpdate(IEnumerable<GitLogEntry> entries)
         {
             updated = true;
 
@@ -539,26 +539,51 @@ namespace GitHub.Unity
 
         private void Pull()
         {
-            var task = new GitStatusTask(EntryPoint.Environment, EntryPoint.ProcessManager, null,
-                EntryPoint.GitObjectFactory, status =>
-                {
-                    if (status.Entries.Count > 0 )
-                    {
-                        EntryPoint.TaskResultDispatcher.ReportFailure(FailureSeverity.Critical, "Pull", "You need to commit your changes before pulling.");
-                    }
-                    else
-                    {
-                        GitPullTask.Schedule(EntryPoint.Environment.Repository.CurrentRemote, null, null, null);
-                    }
-                });
+            if (EntryPoint.Environment.Repository.CurrentStatus.Entries.Count > 0)
+            {
+                EntryPoint.TaskResultDispatcher.ReportFailure(FailureSeverity.Critical, "Pull", "You need to commit your changes before pulling.");
+            }
+
+            var remote = EntryPoint.Environment.Repository.CurrentRemote;
+            var resultDispatcher = new MainThreadTaskResultDispatcher<string>(_ =>
+            {
+                EditorUtility.DisplayDialog(Localization.PullActionTitle,
+                    String.Format(Localization.PullSuccessDescription, remote),
+                    Localization.Ok);
+            });
+
+            var task = EntryPoint.Environment.Repository.Pull(resultDispatcher);
+            //var branch = EntryPoint.Environment.Repository.CurrentBranch;
+            //var task = new GitPullTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+            //    ,
+            //    EntryPoint.CredentialManager, new AuthenticationUIDispatcher(),
+            //    remote, branch);
             Tasks.Add(task);
         }
 
         private void Push()
         {
-            //GitPushTask.Schedule(EntryPoint.Environment.Repository.CurrentRemote, null, null, null);
-        }
+            var remote = EntryPoint.Environment.Repository.CurrentRemote;
+            var resultDispatcher = new MainThreadTaskResultDispatcher<string>(_ =>
+            {
+                EditorUtility.DisplayDialog(Localization.PushActionTitle,
+                    String.Format(Localization.PushSuccessDescription, remote),
+                    Localization.Ok);
+            });
+            var task = EntryPoint.Environment.Repository.Push(resultDispatcher);
 
+            //var branch = EntryPoint.Environment.Repository.CurrentBranch;
+            //var task = new GitPushTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+            //    new MainThreadTaskResultDispatcher<string>(_ =>
+            //    {
+            //        EditorUtility.DisplayDialog(Localization.PushActionTitle,
+            //            String.Format(Localization.PushSuccessDescription, remote),
+            //            Localization.Ok);
+            //    }),
+            //    EntryPoint.CredentialManager, new AuthenticationUIDispatcher(),
+            //    remote, branch, true);
+            Tasks.Add(task);
+        }
 
         void drawTimelineRectAroundIconRect(Rect parentRect, Rect iconRect)
         {

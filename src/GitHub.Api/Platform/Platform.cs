@@ -5,36 +5,37 @@ namespace GitHub.Unity
 {
     class Platform : IPlatform
     {
-        private readonly IEnvironment environment;
-
-        public Platform(IEnvironment environment, IFileSystem fs)
+        public Platform(IEnvironment environment, IFileSystem filesystem, IUIDispatcher uiDispatcher)
         {
-            this.environment = environment;
-            this.FileSystemWatchFactory = new PlatformFileSystemWatchFactory(environment);
+            Environment = environment;
+            UIDispatcher = uiDispatcher;
+            FileSystemWatchFactory = new PlatformFileSystemWatchFactory(environment);
 
             if (environment.IsWindows)
             {
-                GitEnvironment = new WindowsGitEnvironment(environment, fs);
+                GitEnvironment = new WindowsGitEnvironment(environment, filesystem);
             }
             else if (environment.IsMac)
             {
-                GitEnvironment = new MacGitEnvironment(environment, fs);
+                GitEnvironment = new MacGitEnvironment(environment, filesystem);
             }
             else
             {
-                GitEnvironment = new LinuxGitEnvironment(environment, fs);
+                GitEnvironment = new LinuxGitEnvironment(environment, filesystem);
             }
         }
 
         public Task<IPlatform> Initialize(IProcessManager processManager)
         {
+            ProcessManager = processManager;
+
             if (CredentialManager == null)
             {
-                if (environment.IsWindows)
+                if (Environment.IsWindows)
                 {
-                    CredentialManager = new WindowsCredentialManager(environment, processManager);
+                    CredentialManager = new WindowsCredentialManager(Environment, processManager);
                 }
-                else if (environment.IsMac)
+                else if (Environment.IsMac)
                 {
                     CredentialManager = new MacCredentialManager();
                 }
@@ -45,9 +46,12 @@ namespace GitHub.Unity
             }
             return TaskEx.FromResult(this as IPlatform);
         }
-
+        public IEnvironment Environment { get; private set; }
         public IProcessEnvironment GitEnvironment { get; private set; }
         public ICredentialManager CredentialManager { get; private set; }
         public IFileSystemWatchFactory FileSystemWatchFactory { get; private set; }
+        public IProcessManager ProcessManager { get; private set; }
+        public IUIDispatcher UIDispatcher { get; private set; }
+
     }
 }

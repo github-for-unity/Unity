@@ -84,11 +84,15 @@
   <ItemGroup>
     <Compile Include="Api\ApplicationInfo.cs" />
     <Compile Include="Api\LoginResult.cs" />
+    <Compile Include="AppConfiguration.cs" />
+    <Compile Include="AssemblyResources.cs" />
     <Compile Include="Authentication\AppCredentialStore.cs" />
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="ApplicationManagerBase.cs" />
     <Compile Include="DefaultEnvironment.cs" />
+    <Compile Include="Events\RepositoryWatcher.cs" />
+    <Compile Include="Events\StatusEventDispatcher.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="GitSetup.cs" />
     <Compile Include="Git\GitFileStatus.cs" />
@@ -102,10 +106,17 @@
     <Compile Include="Installer\GitInstaller.cs" />
     <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
-    <Compile Include="GitClient.cs" />
+    <Compile Include="LocalSettings.cs" />
+    <Compile Include="Process\BranchListOutputProcessor.cs" />
+    <Compile Include="Process\ConfigOutputProcessor.cs" />
+    <Compile Include="Process\LockOutputProcessor.cs" />
+    <Compile Include="Process\LogEntryOutputProcessor.cs" />
+    <Compile Include="Process\ProcessManager.cs" />
+    <Compile Include="Process\ProcessWrapper.cs" />
+    <Compile Include="Process\StatusOutputProcessor.cs" />
+    <Compile Include="RepositoryLocator.cs" />
     <Compile Include="GitConfig.cs" />
     <Compile Include="Helpers\LineProcessor.cs" />
-    <Compile Include="IGitClient.cs" />
     <Compile Include="Process\BaseOutputProcessor.cs" />
     <Compile Include="IO\FileSystem.cs" />
     <Compile Include="Process\GitRemote.cs" />
@@ -142,15 +153,40 @@
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
     <Compile Include="Repository.cs" />
+    <Compile Include="RepositoryManager.cs" />
+    <Compile Include="RepositoryProcessRunner.cs" />
+    <Compile Include="SimpleJson.cs" />
+    <Compile Include="TaskResultDispatcher.cs" />
     <Compile Include="Tasks\BaseTask.cs" />
     <Compile Include="Tasks\CachedTask.cs" />
     <Compile Include="Tasks\FailureSeverity.cs" />
     <Compile Include="Tasks\FindGitTask.cs" />
+    <Compile Include="Tasks\GitAddTask.cs" />
+    <Compile Include="Tasks\GitBranch.cs" />
+    <Compile Include="Tasks\GitBranchCreateTask.cs" />
+    <Compile Include="Tasks\GitBranchDeleteTask.cs" />
+    <Compile Include="Tasks\GitCommitTask.cs" />
     <Compile Include="Tasks\GitConfigGetTask.cs" />
+    <Compile Include="Tasks\GitConfigListTask.cs" />
     <Compile Include="Tasks\GitConfigSource.cs" />
+    <Compile Include="Tasks\GitInitTask.cs" />
+    <Compile Include="Tasks\GitListBranchesTask.cs" />
+    <Compile Include="Tasks\GitListLocksTask.cs" />
+    <Compile Include="Tasks\GitLockTask.cs" />
+    <Compile Include="Tasks\GitLogEntry.cs" />
+    <Compile Include="Tasks\GitLogTask.cs" />
     <Compile Include="Tasks\GitNetworkTask.cs" />
+    <Compile Include="Tasks\GitPullTask.cs" />
+    <Compile Include="Tasks\GitPushTask.cs" />
+    <Compile Include="Tasks\GitRemoteAddTask.cs" />
+    <Compile Include="Tasks\GitRemoteBranchDeleteTask.cs" />
     <Compile Include="Tasks\GitRemoteListTask.cs" />
+    <Compile Include="Tasks\GitRemoteRemoveTask.cs" />
+    <Compile Include="Tasks\GitStatus.cs" />
+    <Compile Include="Tasks\GitStatusTask.cs" />
+    <Compile Include="Tasks\GitSwitchBranchesTask.cs" />
     <Compile Include="Tasks\GitTask.cs" />
+    <Compile Include="Tasks\GitUnlockTask.cs" />
     <Compile Include="Tasks\ITask.cs" />
     <Compile Include="Tasks\ITaskResultDispatcher.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
@@ -206,9 +242,11 @@
     <EmbeddedResource Include="PlatformResources\windows\git.zip" />
     <EmbeddedResource Include="PlatformResources\mac\gitconfig" />
     <EmbeddedResource Include="PlatformResources\windows\gitconfig" />
-    <None Include="resources\linux\.placeholder" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\.gitattributes" />
+    <EmbeddedResource Include="Resources\.gitignore" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Localization.resx">
       <Generator>ResXFileCodeGenerator</Generator>
