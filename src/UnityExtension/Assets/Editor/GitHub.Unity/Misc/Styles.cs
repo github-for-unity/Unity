@@ -448,6 +448,7 @@ namespace GitHub.Unity
             {
                 if (trackingBranchIcon == null)
                 {
+                    // trackingBranchIcon = Utility.GetIcon("tracked-branch-indicator.png", "tracked-branch-indicator@2x.png");
                     trackingBranchIcon = Utility.GetIcon("tracked-branch-indicator.png");
                 }
 
