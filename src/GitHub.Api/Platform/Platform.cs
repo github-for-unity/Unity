@@ -46,7 +46,7 @@ namespace GitHub.Unity
             return TaskEx.FromResult(this as IPlatform);
         }
 
-        public IGitEnvironment GitEnvironment { get; private set; }
+        public IProcessEnvironment GitEnvironment { get; private set; }
         public ICredentialManager CredentialManager { get; private set; }
         public IFileSystemWatchFactory FileSystemWatchFactory { get; private set; }
     }

@@ -387,7 +387,7 @@ namespace GitHub.Unity
             EditorGUI.BeginChangeCheck();
             {
                 //TODO: Verify necessary value for a non Windows OS
-                var extension = EntryPoint.GitEnvironment.GetGitExecutableExtension();
+                var extension = EntryPoint.GitEnvironment.GetExecutableExtension();
 
                 Styles.PathField(ref gitExecPath,
                     () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,

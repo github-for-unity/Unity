@@ -6,9 +6,9 @@ namespace GitHub.Unity
     class GitObjectFactory : IGitObjectFactory
     {
         private readonly IEnvironment environment;
-        private readonly IGitEnvironment gitEnvironment;
+        private readonly IProcessEnvironment gitEnvironment;
 
-        public GitObjectFactory(IEnvironment environment, IGitEnvironment gitEnvironment)
+        public GitObjectFactory(IEnvironment environment, IProcessEnvironment gitEnvironment)
         {
             this.environment = environment;
             this.gitEnvironment = gitEnvironment;

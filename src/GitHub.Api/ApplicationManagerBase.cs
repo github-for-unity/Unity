@@ -88,7 +88,7 @@ namespace GitHub.Unity
         public ISettings SystemSettings { get; protected set; }
         public ITaskResultDispatcher TaskResultDispatcher { get; protected set; }
         public ISettings UserSettings { get; protected set; }
-        public virtual IGitEnvironment GitEnvironment { get; set; }
+        public virtual IProcessEnvironment GitEnvironment { get; set; }
         public virtual IEnvironment Environment { get; set; }
         protected CancellationTokenSource CancellationTokenSource { get; private set; }
         protected TaskScheduler Scheduler { get; private set; }

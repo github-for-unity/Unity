@@ -37,9 +37,10 @@ namespace GitHub.Unity
         private Dictionary<string, Section> sections;
         private Dictionary<string, Dictionary<string, Section>> groups;
 
-        public GitConfig(string filePath, Action refreshCallback = null)
+        public GitConfig(string filePath, IFileSystemWatch watcher)
         {
-            manager = new ConfigFileManager(filePath, () => { Reset(); refreshCallback?.Invoke(); });
+            manager = new ConfigFileManager(filePath, watcher);
+            watcher.Changed += _ => Reset();
             Reset();
         }
 
@@ -325,23 +326,11 @@ namespace GitHub.Unity
 
             private readonly FileSystemWatcher watcher;
 
-            public ConfigFileManager(string filePath, Action refreshCallback)
+            public ConfigFileManager(string filePath, IFileSystemWatch watcher)
             {
-                if (!fileExists(filePath))
-                    throw new FileNotFoundException(string.Format("File {0} does not exist", filePath));
-
                 FilePath = filePath;
                 Lines = fileReadAllLines(filePath);
-
-                if (refreshCallback != null)
-                {
-                    watcher = new FileSystemWatcher();
-                    watcher.Path = Path.GetDirectoryName(filePath);
-                    watcher.Filter = "config";
-                    watcher.NotifyFilter = NotifyFilters.LastWrite;
-                    watcher.Changed += (s, e) => Refresh();
-                    watcher.EnableRaisingEvents = true;
-                }
+                watcher.Changed += _ => Refresh();
             }
 
             public void Refresh()

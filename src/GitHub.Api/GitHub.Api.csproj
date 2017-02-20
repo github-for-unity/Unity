@@ -106,20 +106,20 @@
     <Compile Include="GitConfig.cs" />
     <Compile Include="Helpers\LineProcessor.cs" />
     <Compile Include="IGitClient.cs" />
-    <Compile Include="IO\BaseOutputProcessor.cs" />
+    <Compile Include="Process\BaseOutputProcessor.cs" />
     <Compile Include="IO\FileSystem.cs" />
-    <Compile Include="IO\GitRemote.cs" />
-    <Compile Include="IO\GitRemoteFunction.cs" />
-    <Compile Include="IO\IOutputProcessor.cs" />
-    <Compile Include="IO\IProcess.cs" />
-    <Compile Include="IO\IProcessManager.cs" />
+    <Compile Include="Process\GitRemote.cs" />
+    <Compile Include="Process\GitRemoteFunction.cs" />
+    <Compile Include="Process\IOutputProcessor.cs" />
+    <Compile Include="Process\IProcess.cs" />
+    <Compile Include="Process\IProcessManager.cs" />
     <Compile Include="IO\NiceIO.cs" />
     <Compile Include="IO\NPathFileSystemProvider.cs" />
-    <Compile Include="IO\ProcessOutputManager.cs" />
-    <Compile Include="IO\RemoteListOutputProcessor.cs" />
-    <Compile Include="Platform\IFileSystemWatch.cs" />
-    <Compile Include="Platform\IFileSystemWatchFactory.cs" />
-    <Compile Include="Platform\BaseFileSystemWatcher.cs" />
+    <Compile Include="Process\ProcessOutputManager.cs" />
+    <Compile Include="Process\RemoteListOutputProcessor.cs" />
+    <Compile Include="Events\IFileSystemWatch.cs" />
+    <Compile Include="Events\IFileSystemWatchFactory.cs" />
+    <Compile Include="Events\BaseFileSystemWatcher.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="ISettings.cs" />
     <Compile Include="Localization.Designer.cs">
@@ -127,15 +127,15 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Localization.resx</DependentUpon>
     </Compile>
-    <Compile Include="Platform\GitEnvironment.cs" />
+    <Compile Include="Platform\GitProcessEnvironment.cs" />
     <Compile Include="Platform\IFileSystem.cs" />
-    <Compile Include="Platform\IGitEnvironment.cs" />
-    <Compile Include="Platform\LinuxFileSystemWatch.cs" />
+    <Compile Include="Platform\IProcessEnvironment.cs" />
+    <Compile Include="Events\LinuxFileSystemWatch.cs" />
     <Compile Include="Platform\LinuxGitEnvironment.cs" />
-    <Compile Include="Platform\MacFileSystemWatch.cs" />
+    <Compile Include="Events\MacFileSystemWatch.cs" />
     <Compile Include="Platform\MacGitEnvironment.cs" />
-    <Compile Include="Platform\PlatformFileSystemWatchFactory.cs" />
-    <Compile Include="Platform\WindowsFileSystemWatch.cs" />
+    <Compile Include="Events\PlatformFileSystemWatchFactory.cs" />
+    <Compile Include="Events\WindowsFileSystemWatch.cs" />
     <Compile Include="Platform\WindowsGitEnvironment.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
@@ -208,9 +208,7 @@
     <EmbeddedResource Include="PlatformResources\windows\gitconfig" />
     <None Include="resources\linux\.placeholder" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="IO\Watches\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="Localization.resx">
       <Generator>ResXFileCodeGenerator</Generator>

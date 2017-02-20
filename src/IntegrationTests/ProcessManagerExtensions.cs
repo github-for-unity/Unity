@@ -29,7 +29,7 @@ namespace IntegrationTests
         }
 
         public static IEnumerable<GitLogEntry> GetGitLogEntries(this ProcessManager processManager, string workingDirectory,
-            IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment,
+            IEnvironment environment, IFileSystem filesystem, IProcessEnvironment gitEnvironment,
             int? logCount = null, string gitPath = null)
         {
             var results = new List<GitLogEntry>();
@@ -62,7 +62,7 @@ namespace IntegrationTests
         }
 
         public static GitStatus GetGitStatus(this ProcessManager processManager, string workingDirectory,
-            IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment,
+            IEnvironment environment, IFileSystem filesystem, IProcessEnvironment gitEnvironment,
             string gitPath = null)
         {
             var result = new GitStatus();
@@ -111,7 +111,7 @@ namespace IntegrationTests
         }
 
         public static string GetGitCreds(this ProcessManager processManager, string workingDirectory,
-            IEnvironment environment, IFileSystem filesystem, IGitEnvironment gitEnvironment,
+            IEnvironment environment, IFileSystem filesystem, IProcessEnvironment gitEnvironment,
             string gitPath = null)
         {
             StringBuilder sb = new StringBuilder();
