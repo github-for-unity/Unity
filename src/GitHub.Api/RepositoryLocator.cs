@@ -32,24 +32,6 @@ namespace GitHub.Unity
         {
             var targetPath = NPath.CurrentDirectory;
 
-            //var finishedDispatcher = new TaskResultDispatcher<string>(_ =>
-            //{
-            //    applicationManager.RestartRepository();
-            //});
-
-            //var addDone = new TaskResultDispatcher<string>(_ =>
-            //{
-            //    var commitTask = new GitCommitTask(environment, processManager, finishedDispatcher, "Initial commit", null);
-            //    scheduler.Queue(commitTask);
-            //});
-
-            //var initDone = new TaskResultDispatcher<string>(_ =>
-            //{
-            //    scheduler.Queue(addTask);
-            //});
-
-
-
             var token = CancellationToken.None;
             var task = new BaseTask(() =>
             {
@@ -106,9 +88,6 @@ namespace GitHub.Unity
             task.Label = "Initializing repository";
 
             scheduler.Queue(task);
-
-            //var initTask = new GitInitTask(environment, processManager, initDone);
-            //scheduler.Queue(initTask);
         }
 
         protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryInitializer>();
