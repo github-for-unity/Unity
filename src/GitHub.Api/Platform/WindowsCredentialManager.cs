@@ -150,7 +150,7 @@ namespace GitHub.Unity
             }
             else
             {
-                task = new GitTask(environment, processManager, null);
+                task = new GitTask(environment, processManager, TaskResultDispatcher.Default.GetDispatcher(resultCallback));
                 app = String.Format("credential-{0} ", credHelper);
             }
 

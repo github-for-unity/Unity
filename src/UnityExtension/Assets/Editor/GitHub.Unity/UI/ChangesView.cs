@@ -51,10 +51,28 @@ namespace GitHub.Unity
             Tasks.ScheduleMainThread(() => OnStatusUpdate(status));
         }
 
+        private void OnStatusUpdate(GitStatus update)
+        {
+            if (update.Entries == null)
+            {
+                Refresh();
+                return;
+            }
+
+            // Set branch state
+            currentBranch = update.LocalBranch;
+
+            // (Re)build tree
+            tree.UpdateEntries(update.Entries);
+
+            lockCommit = false;
+        }
+
+
         public override void OnGUI()
         {
             var scroll = verticalScroll;
-            scroll = GUILayout.BeginScrollView(verticalScroll);
+//            scroll = GUILayout.BeginScrollView(verticalScroll);
             {
                 if (tree.Height > 0)
                 {
@@ -87,50 +105,36 @@ namespace GitHub.Unity
                 }
                 GUILayout.EndHorizontal();
 
+                horizontalScroll = GUILayout.BeginScrollView(horizontalScroll);
                 GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
                 {
-                    // Specify a minimum height if we can - avoiding vertical scrollbars on both the outer and inner scroll view
-                    if (tree.Height > 0)
-                    {
-                        horizontalScroll = GUILayout.BeginScrollView(horizontalScroll, GUILayout.MinHeight(tree.Height),
-                            GUILayout.MaxHeight(100000f)
-                            // NOTE: This ugliness is necessary as unbounded MaxHeight appears impossible when MinHeight is specified
-                            );
-                    }
+                    //// Specify a minimum height if we can - avoiding vertical scrollbars on both the outer and inner scroll view
+                    //if (tree.Height > 0)
+                    //{
+                    //    horizontalScroll = GUILayout.BeginScrollView(horizontalScroll, GUILayout.MinHeight(tree.Height),
+                    //        GUILayout.MaxHeight(100000f)
+                    //        // NOTE: This ugliness is necessary as unbounded MaxHeight appears impossible when MinHeight is specified
+                    //        );
+                    //}
 
-                    else // if we have no minimum height to work with, just stretch and hope
-                    {
-                        horizontalScroll = GUILayout.BeginScrollView(horizontalScroll);
-                    }
+                    //else // if we have no minimum height to work with, just stretch and hope
+                    //{
+                    //    horizontalScroll = GUILayout.BeginScrollView(horizontalScroll);
+                    //}
 
                     {// scroll view block started above
                         tree.OnGUI();
                     }
-                    GUILayout.EndScrollView();
+                    //GUILayout.EndScrollView();
                 }
                 GUILayout.EndVertical();
+                GUILayout.EndScrollView();
+
 
                 // Do the commit details area
                 OnCommitDetailsAreaGUI();
             }
-            GUILayout.EndScrollView();
-        }
-
-        private void OnStatusUpdate(GitStatus update)
-        {
-            if (update.Entries == null)
-            {
-                Refresh();
-                return;
-            }
-
-            // Set branch state
-            currentBranch = update.LocalBranch;
-
-            // (Re)build tree
-            tree.UpdateEntries(update.Entries);
-
-            lockCommit = false;
+//            GUILayout.EndScrollView();
         }
 
         private void OnCommitDetailsAreaGUI()

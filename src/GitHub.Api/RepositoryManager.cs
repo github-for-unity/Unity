@@ -130,7 +130,6 @@ namespace GitHub.Unity
 
         private void OnRepositoryUpdated()
         {
-            Logger.Trace("statusUpdateRequested {0}", statusUpdateRequested);
             if (!statusUpdateRequested)
             {
                 statusUpdateRequested = true;
@@ -140,14 +139,12 @@ namespace GitHub.Unity
                     {
                         lastStatusUpdate = DateTime.Now;
                         statusUpdateRequested = false;
-                        Logger.Trace("Status done");
                         OnRepositoryChanged?.Invoke(status);
                     },
                     () =>
                     {
                     });
 
-                Logger.Trace("Running status");
                 Task.Factory.StartNew(() => Thread.Sleep(1000))
                     .ContinueWith(_ => processRunner.RunGitStatus(result).Start());
             }

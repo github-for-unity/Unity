@@ -94,19 +94,16 @@ namespace GitHub.Unity
                 platform.Environment.UnityProjectPath.ToNPath().Combine("Library")
             };
 
-            Logger.Trace("Watching {0} {1}", repositoryPath, repositoryPath.Exists());
             fileHierarchyWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath, true);
             fileHierarchyWatcher.Changed += f => {
                 if (!ignore.Contains(f))
                 {
-                    Logger.Trace("Repo changed '{0}'", f.RelativeTo(repositoryPath));
                     RepositoryChanged?.Invoke();
                 }
             };
             fileHierarchyWatcher.Created += f => {
                 if (!ignore.Contains(f))
                 {
-                    Logger.Trace("Repo created {0}", f.RelativeTo(repositoryPath));
                     RepositoryChanged?.Invoke();
                 }
             };
@@ -119,19 +116,15 @@ namespace GitHub.Unity
                     RepositoryChanged?.Invoke();
             };
 
-            Logger.Trace("Watching {0} {1}", dotGitConfig, dotGitConfig.Exists());
             gitConfigWatcher = platform.FileSystemWatchFactory.GetOrCreate(dotGitConfig, false);
             gitConfigWatcher.Changed += _ => ConfigChanged?.Invoke();
 
-            Logger.Trace("Watching {0} {1}", dotGitHead, dotGitHead.Exists());
             gitHeadWatcher = platform.FileSystemWatchFactory.GetOrCreate(dotGitHead, false);
             gitHeadWatcher.Changed += s => HeadChanged?.Invoke(s.ReadAllLines().FirstOrDefault());
 
-            Logger.Trace("Watching {0} {1}", dotGitIndex, dotGitIndex.Exists());
             gitIndexWatcher = platform.FileSystemWatchFactory.GetOrCreate(dotGitIndex, false);
             gitIndexWatcher.Changed += _ => IndexChanged?.Invoke();
 
-            Logger.Trace("Watching {0} {1}", branchesPath, branchesPath.Exists());
             localBranchesWatcher = platform.FileSystemWatchFactory.GetOrCreate(branchesPath, true);
             localBranchesWatcher.Created += s => LocalBranchCreated?.Invoke(s.RelativeTo(branchesPath).ToString(SlashMode.Forward));
             localBranchesWatcher.Deleted += s => LocalBranchDeleted?.Invoke(s.RelativeTo(branchesPath).ToString(SlashMode.Forward));
@@ -140,7 +133,6 @@ namespace GitHub.Unity
                 n.RelativeTo(branchesPath).ToString(SlashMode.Forward)
             );
 
-            Logger.Trace("Watching {0} {1}", remotesPath, remotesPath.DirectoryExists());
             if (remotesPath.DirectoryExists())
             {
                 foreach (var dir in remotesPath.Directories())
