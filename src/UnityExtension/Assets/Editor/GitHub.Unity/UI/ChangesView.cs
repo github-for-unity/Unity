@@ -28,11 +28,6 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 verticalScroll;
         [SerializeField] private ChangesetTreeView tree = new ChangesetTreeView();
 
-        public override void Refresh()
-        {
-            StatusService.Instance.Run();
-        }
-
         public override void Initialize(IView parent)
         {
             base.Initialize(parent);
@@ -42,13 +37,18 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
-            StatusService.Instance.RegisterCallback(OnStatusUpdate);
+            EntryPoint.Environment.Repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
         }
 
         public override void OnHide()
         {
             base.OnHide();
-            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
+            EntryPoint.Environment.Repository.OnRepositoryChanged -= RunStatusUpdateOnMainThread;
+        }
+
+        private void RunStatusUpdateOnMainThread(GitStatus status)
+        {
+            Tasks.ScheduleMainThread(() => OnStatusUpdate(status));
         }
 
         public override void OnGUI()

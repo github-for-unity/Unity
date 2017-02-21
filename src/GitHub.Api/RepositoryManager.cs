@@ -13,6 +13,7 @@ namespace GitHub.Unity
         event Action OnRemoteBranchListChanged;
         event Action OnLocalBranchListChanged;
         event Action<GitStatus> OnRepositoryChanged;
+        event Action OnHeadChanged;
         ConfigBranch? ActiveBranch { get; set; }
         ConfigRemote? ActiveRemote { get; set; }
         IRepositoryProcessRunner ProcessRunner { get; }
@@ -53,6 +54,7 @@ namespace GitHub.Unity
         public event Action OnRemoteBranchListChanged;
         public event Action OnLocalBranchListChanged;
         public event Action<GitStatus> OnRepositoryChanged;
+        public event Action OnHeadChanged;
 
         public RepositoryManager(NPath path, IPlatform platform, CancellationToken cancellationToken)
         {
@@ -78,7 +80,7 @@ namespace GitHub.Unity
             repositoryWatcher = new RepositoryWatcher(platform, repositoryPath, dotGitPath, dotGitIndex, dotGitHead, branchesPath, remotesPath, dotGitConfig);
 
             repositoryWatcher.ConfigChanged += OnConfigChanged;
-            repositoryWatcher.HeadChanged += OnHeadChanged;
+            repositoryWatcher.HeadChanged += HeadChanged;
             repositoryWatcher.IndexChanged += OnIndexChanged;
             repositoryWatcher.LocalBranchCreated += OnLocalBranchCreated;
             repositoryWatcher.LocalBranchDeleted += OnLocalBranchDeleted;
@@ -157,16 +159,17 @@ namespace GitHub.Unity
             RefreshConfigData();
         }
 
-        private void OnHeadChanged(string contents)
+        private void HeadChanged(string contents)
         {
             head = contents;
             ActiveBranch = GetActiveBranch();
             ActiveRemote = GetActiveRemote();
+            OnHeadChanged?.Invoke();
         }
 
         private void OnIndexChanged()
         {
-            // run git status
+            OnRepositoryUpdated();
         }
 
         private void OnLocalBranchCreated(string name)
@@ -339,6 +342,7 @@ namespace GitHub.Unity
             {
                 if (disposed) return;
                 disposed = true;
+                Stop();
                 repositoryWatcher.Dispose();
             }
         }

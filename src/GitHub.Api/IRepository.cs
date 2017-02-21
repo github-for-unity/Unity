@@ -46,5 +46,6 @@ namespace GitHub.Unity
         ITask Pull(ITaskResultDispatcher<string> resultDispatcher);
         ITask Push(ITaskResultDispatcher<string> resultDispatcher);
         event Action OnLocalBranchListChanged;
+        event Action OnCommitChanged;
     }
 }

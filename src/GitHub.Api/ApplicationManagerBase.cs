@@ -149,6 +149,23 @@ namespace GitHub.Unity
             }
         }
 
+        private bool disposed = false;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (disposed) return;
+                disposed = true;
+                CancellationTokenSource.Cancel();
+                repositoryManager.Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
         public virtual IEnvironment Environment { get; set; }
         public IFileSystem FileSystem { get; protected set; }
         public IPlatform Platform { get; protected set; }

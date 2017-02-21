@@ -70,24 +70,34 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
-            EntryPoint.Environment.Repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
+            EntryPoint.Environment.Repository.OnCommitChanged += UpdateLog;
             Refresh();
         }
 
         public override void OnHide()
         {
             base.OnHide();
-            EntryPoint.Environment.Repository.OnRepositoryChanged -= RunStatusUpdateOnMainThread;
+            EntryPoint.Environment.Repository.OnCommitChanged -= UpdateLog;
         }
 
-        private void RunStatusUpdateOnMainThread(GitStatus status)
+        private void UpdateLog()
         {
-            Tasks.ScheduleMainThread(() => OnStatusUpdate(status));
+            Tasks.ScheduleMainThread(() =>
+            {
+                var repo = EntryPoint.Environment.Repository;
+                var status = repo.CurrentStatus;
+                currentRemote = repo.CurrentRemote;
+                statusAhead = status.Ahead;
+                statusBehind = status.Behind;
+
+                Refresh();
+            });
         }
 
 
         public override void Refresh()
         {
+
             if (historyTarget != null)
             {
                 //TODO: Create a task that can get the log of one target
@@ -379,21 +389,6 @@ namespace GitHub.Unity
                     Redraw();
                 }
             }
-        }
-
-        private void OnStatusUpdate(GitStatus update)
-        {
-            if (update.Entries == null)
-            {
-                Refresh();
-                return;
-            }
-
-            // Set branch state
-
-            currentRemote = EntryPoint.Environment.Repository.CurrentRemote;
-            statusAhead = update.Ahead;
-            statusBehind = update.Behind;
         }
 
         private void OnLogUpdate(IEnumerable<GitLogEntry> entries)

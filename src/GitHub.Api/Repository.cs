@@ -17,6 +17,7 @@ namespace GitHub.Unity
         public event Action<string> OnActiveBranchChanged;
         public event Action<string> OnActiveRemoteChanged;
         public event Action OnLocalBranchListChanged;
+        public event Action OnCommitChanged;
 
         public IEnumerable<GitBranch> LocalBranches => repositoryManager.LocalBranches.Values.Select(
             x => new GitBranch(x.Name, (x.IsTracking ? (x.Remote.Value.Name + "/" + x.Name) : "[None]"), x.Name == CurrentBranch));
@@ -46,7 +47,13 @@ namespace GitHub.Unity
             repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
             repositoryManager.OnActiveRemoteChanged += RepositoryManager_OnActiveRemoteChanged;
             repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;
+            repositoryManager.OnHeadChanged += RepositoryManager_OnHeadChanged;
             
+        }
+
+        private void RepositoryManager_OnHeadChanged()
+        {
+            OnCommitChanged?.Invoke();
         }
 
         public ITask Pull(ITaskResultDispatcher<string> resultDispatcher)

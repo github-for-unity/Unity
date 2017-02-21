@@ -1,9 +1,10 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface IApplicationManager
+    interface IApplicationManager : IDisposable
     {
         CancellationToken CancellationToken { get; }
         IEnvironment Environment { get; }
