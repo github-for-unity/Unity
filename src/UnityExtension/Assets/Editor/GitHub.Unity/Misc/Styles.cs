@@ -85,6 +85,7 @@ namespace GitHub.Unity
             trackingBranchIcon,
             favouriteIconOn,
             favouriteIconOff,
+            smallLogoIcon,
             bigLogoIcon,
             defaultAssetIcon,
             folderIcon,
@@ -484,13 +485,26 @@ namespace GitHub.Unity
         }
 
 
+        public static Texture2D SmallLogo
+        {
+            get
+            {
+                if (smallLogoIcon == null)
+                {
+                    smallLogoIcon = Utility.GetIcon("small-logo.png");
+                }
+
+                return smallLogoIcon;
+            }
+        }
+
         public static Texture2D BigLogo
         {
             get
             {
                 if (bigLogoIcon == null)
                 {
-                    bigLogoIcon = Utility.GetIcon("mark-github.png");
+                    bigLogoIcon = Utility.GetIcon("big-logo.png");
                 }
 
                 return bigLogoIcon;
