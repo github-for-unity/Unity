@@ -158,13 +158,13 @@ namespace GitHub.Unity
 					headerBoxStyle = new GUIStyle("IN BigTitle");
 					headerBoxStyle.name = "HeaderBoxStyle";
 					headerBoxStyle.padding = new RectOffset(5,5,5,5);
-
 					//Texture2D backgroundTexture = new Texture2D(1,1);
 					//Color color = new Color(0.878f, 0.878f, 0.878f, 1.0f);
 					//backgroundTexture.SetPixel(1, 1, color);
 					//backgroundTexture.Apply();
 
 					//headerBoxStyle.normal.background = backgroundTexture;
+					headerBoxStyle.margin = new RectOffset(0,0,0,0);
 				}
 
 				return headerBoxStyle;
