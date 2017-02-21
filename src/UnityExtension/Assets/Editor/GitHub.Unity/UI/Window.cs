@@ -23,6 +23,8 @@ namespace GitHub.Unity
         private const string BranchesTitle = "Branches";
         private const string SettingsTitle = "Settings";
         private const string AuthenticationTitle = "Auth";
+        private const string NoRepoTitle = "This project doesn't have a git repository set up.";
+        private const string NoRepoDescription = "Create and publish your repo to GitHub to start collaborating together.";
 
         [NonSerialized] private double notificationClearTime = -1;
         [NonSerialized] private IRepository repository;
@@ -146,8 +148,8 @@ namespace GitHub.Unity
 
                 GUILayout.BeginVertical();
                 {
-                    GUILayout.Space(9);
-                    GUILayout.Label("GitHub", Styles.HeaderRepoLabelStyle);
+                    GUILayout.Label(NoRepoTitle, Styles.HeaderTitleStyle);
+                    GUILayout.Label(NoRepoDescription, Styles.HeaderDescriptionStyle);
                 }
                 GUILayout.EndVertical();
             }
