@@ -31,10 +31,11 @@ namespace GitHub.Unity
         private string processName = null;
 
         public ProcessTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
-            string name,
+            string name, string arguments,
             Action<string> onSuccess = null, Action onFailure = null)
         {
             this.processName = name;
+            this.arguments = arguments;
             this.onSuccess = onSuccess;
             this.onFailure = onFailure;
             this.environment = environment;
@@ -42,10 +43,24 @@ namespace GitHub.Unity
             this.resultDispatcher = resultDispatcher;
         }
 
+        public ProcessTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+            string name,
+            Action<string> onSuccess = null, Action onFailure = null)
+            : this(environment, processManager, resultDispatcher, name, null, onSuccess, onFailure)
+        {
+        }
+
+        public ProcessTask(IEnvironment environment, IProcessManager processManager,
+                string name, string arguments,
+                Action<string> onSuccess = null, Action onFailure = null)
+            : this(environment, processManager, null, name, arguments, onSuccess, onFailure)
+        {
+        }
+
         public ProcessTask(IEnvironment environment, IProcessManager processManager,
                 string name,
                 Action<string> onSuccess = null, Action onFailure = null)
-            : this (environment, processManager, null, name, onSuccess, onFailure)
+            : this (environment, processManager, null, name, null, onSuccess, onFailure)
         {
         }
 

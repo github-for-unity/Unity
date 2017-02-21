@@ -87,15 +87,19 @@
     <Compile Include="Authentication\AppCredentialStore.cs" />
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
+    <Compile Include="ApplicationManagerBase.cs" />
+    <Compile Include="DefaultEnvironment.cs" />
+    <Compile Include="Extensions\StreamExtensions.cs" />
+    <Compile Include="GitSetup.cs" />
     <Compile Include="Git\GitFileStatus.cs" />
     <Compile Include="Git\GitLock.cs" />
     <Compile Include="Git\GitObjectFactory.cs" />
     <Compile Include="Git\GitStatusEntry.cs" />
     <Compile Include="Git\IGitObjectFactory.cs" />
     <Compile Include="IApplicationManager.cs" />
-    <Compile Include="Installer\IPortableGitManager.cs" />
+    <Compile Include="Installer\IGitInstaller.cs" />
     <Compile Include="Installer\IZipHelper.cs" />
-    <Compile Include="Installer\PortableGitManager.cs" />
+    <Compile Include="Installer\GitInstaller.cs" />
     <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
     <Compile Include="GitClient.cs" />
@@ -104,6 +108,8 @@
     <Compile Include="IGitClient.cs" />
     <Compile Include="IO\BaseOutputProcessor.cs" />
     <Compile Include="IO\FileSystem.cs" />
+    <Compile Include="IO\Watches\DefaultFileSystemWatchStrategy.cs" />
+    <Compile Include="IO\Watches\FileSystemWatch.cs" />
     <Compile Include="IO\GitRemote.cs" />
     <Compile Include="IO\GitRemoteFunction.cs" />
     <Compile Include="IO\IOutputProcessor.cs" />
@@ -113,6 +119,11 @@
     <Compile Include="IO\NPathFileSystemProvider.cs" />
     <Compile Include="IO\ProcessOutputManager.cs" />
     <Compile Include="IO\RemoteListOutputProcessor.cs" />
+    <Compile Include="IO\Watches\FileSystemWatchFactory.cs" />
+    <Compile Include="IO\Watches\IFileSystemWatch.cs" />
+    <Compile Include="IO\Watches\IFileSystemWatchFactory.cs" />
+    <Compile Include="IO\Watches\IFileSystemWatchListener.cs" />
+    <Compile Include="IO\Watches\IFileSystemWatchStrategy.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="ISettings.cs" />
     <Compile Include="Localization.Designer.cs">
@@ -144,6 +155,9 @@
     <Compile Include="Tasks\ITaskResultDispatcher.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskQueueSetting.cs" />
+    <Compile Include="Threading\IAwaitable.cs" />
+    <Compile Include="Threading\IAwaiter.cs" />
+    <Compile Include="Threading\ThreadingHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\IApiClient.cs" />
@@ -187,13 +201,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="PlatformResources\mac\git-lfs.zip" />
+    <EmbeddedResource Include="PlatformResources\windows\git-lfs.zip" />
+    <EmbeddedResource Include="PlatformResources\windows\git.zip" />
+    <EmbeddedResource Include="PlatformResources\mac\gitconfig" />
+    <EmbeddedResource Include="PlatformResources\windows\gitconfig" />
     <None Include="resources\linux\.placeholder" />
-    <None Include="resources\mac\git-lfs-darwin-amd64-5d9dc1c.tar.gz">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="packages.config" />
-    <None Include="resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip" />
-    <None Include="resources\windows\PortableGit-2.11.1-32-bit.zip" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

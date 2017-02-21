@@ -57,6 +57,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApplicationManager.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="IO\LockOutputProcessor.cs" />
     <Compile Include="Logging\FileLogAdapter.cs" />
@@ -77,7 +78,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IO\BranchListOutputProcessor.cs" />
-    <Compile Include="IO\DefaultEnvironment.cs" />
     <Compile Include="IO\LogEntryOutputProcessor.cs" />
     <Compile Include="IO\ProcessWrapper.cs" />
     <Compile Include="IO\StatusOutputProcessor.cs" />
@@ -111,7 +111,6 @@
     <Compile Include="IO\ProcessManager.cs" />
     <Compile Include="Tasks\TaskException.cs" />
     <Compile Include="Tasks\Tasks.cs" />
-    <Compile Include="Threading\ThreadUtils.cs" />
     <Compile Include="Tools\MozRoots.cs" />
     <Compile Include="UI\AuthenticationView.cs" />
     <Compile Include="UI\AuthenticationWindow.cs" />
