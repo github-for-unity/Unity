@@ -1,15 +1,11 @@
-using System;
-using GitHub.Unity;
-
 namespace GitHub.Unity
 {
     class FindGitTask : ProcessTask
     {
-        public FindGitTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
-            Action<string> onSuccess, Action onFailure = null)
-            : base(environment, processManager, resultDispatcher, onSuccess, onFailure)
-        {
-        }
+        public FindGitTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher<string> resultDispatcher)
+            : base(environment, processManager, resultDispatcher)
+        {}
+
 
         public override bool Blocking { get { return false; } }
         public override bool Critical { get { return false; } }

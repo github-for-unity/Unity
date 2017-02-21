@@ -3,7 +3,7 @@ using System;
 
 namespace GitHub.Unity
 {
-    class LinuxGitEnvironment : GitEnvironment
+    class LinuxGitEnvironment : GitProcessEnvironment
     {
         public LinuxGitEnvironment(IEnvironment environment, IFileSystem filesystem)
             : base(environment, filesystem)
@@ -18,7 +18,7 @@ namespace GitHub.Unity
             return base.FindGitInstallationPath(processManager); ;
         }
 
-        public override string GetGitExecutableExtension()
+        public override string GetExecutableExtension()
         {
             return null;
         }

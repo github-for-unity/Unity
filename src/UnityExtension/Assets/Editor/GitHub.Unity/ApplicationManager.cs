@@ -28,7 +28,7 @@ namespace GitHub.Unity
             NPathFileSystemProvider.Current = FileSystem;
             Platform = platform;
             ProcessManager = processManager;
-            TaskResultDispatcher = taskResultDispatcher;
+            MainThreadResultDispatcher = taskResultDispatcher;
         }
 
         public ApplicationManager(MainThreadSynchronizationContext synchronizationContext)
@@ -37,19 +37,9 @@ namespace GitHub.Unity
             ListenToUnityExit();
             DetermineInstallationPath();
 
-            TaskResultDispatcher = new TaskResultDispatcher();
-
-            // accessing Environment triggers environment initialization if it hasn't happened yet
-            LocalSettings = new LocalSettings(Environment);
-            UserSettings = new UserSettings(Environment, ApplicationInfo.ApplicationName);
-            SystemSettings = new SystemSettings(Environment, ApplicationInfo.ApplicationName);
-
-            Platform = new Platform(Environment, FileSystem);
-            GitObjectFactory = new GitObjectFactory(Environment, Platform.GitEnvironment);
-            ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
-            Platform.Initialize(ProcessManager);
-            CredentialManager = Platform.CredentialManager;
-            ApiClientFactory.Instance = new ApiClientFactory(new AppConfiguration(), Platform.CredentialManager);
+            MainThreadResultDispatcher = new MainThreadTaskResultDispatcher();
+            var uiDispatcher = new AuthenticationUIDispatcher();
+            Initialize(uiDispatcher);
         }
 
         public override Task Run()
@@ -73,9 +63,10 @@ namespace GitHub.Unity
         }
 
 
-        private void InitializeEnvironment()
+        protected override void InitializeEnvironment()
         {
-            NPathFileSystemProvider.Current = new FileSystem();
+            FileSystem = new FileSystem();
+            NPathFileSystemProvider.Current = FileSystem;
 
             Environment = new DefaultEnvironment();
 
@@ -89,31 +80,29 @@ namespace GitHub.Unity
             Environment.UnityAssetsPath = assetsPath.ToString(SlashMode.Forward);
             Environment.UnityProjectPath = projectPath.ToString(SlashMode.Forward);
 
-            // figure out where the repository root is
-            GitClient = new GitClient(projectPath);
-            Environment.Repository = GitClient.GetRepository();
+            base.InitializeEnvironment();
+        }
 
-            // Make sure CurrentDirectory always returns the repository root, so all
-            // file system path calculations use it as a base
-            FileSystem = new FileSystem(Environment.Repository.LocalPath);
-            NPathFileSystemProvider.Current = FileSystem;
+        public override Task RestartRepository()
+        {
+            logger.Trace("Restarting");
+            return base.RestartRepository()
+                .ContinueWith(_ =>
+                {
+                    logger.Trace("Restarted");
+                    Window.Initialize();
+                }, Scheduler);
         }
 
         private void ListenToUnityExit()
         {
-            EditorApplicationQuit = (UnityAction)Delegate.Combine(EditorApplicationQuit, new UnityAction(OnShutdown));
+            EditorApplicationQuit = (UnityAction)Delegate.Combine(EditorApplicationQuit, new UnityAction(Dispose));
             EditorApplication.playmodeStateChanged += () => {
                 if (EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
                 {
-                    OnShutdown();
+                    Dispose();
                 }
             };
-        }
-
-        private void OnShutdown()
-        {
-            taskRunner.Shutdown();
-            CancellationTokenSource.Cancel();
         }
 
         private UnityAction EditorApplicationQuit
@@ -159,6 +148,20 @@ namespace GitHub.Unity
             return ret;
         }
 
+        private bool disposed = false;
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (disposing)
+            {
+                if (!disposed)
+                {
+                    disposed = true;
+                    taskRunner.Shutdown();
+                }
+            }
+        }
+
         private IEnvironment environment;
         public override IEnvironment Environment
         {
@@ -173,6 +176,6 @@ namespace GitHub.Unity
             }
             set { environment = value; }
         }
-        public override IGitEnvironment GitEnvironment { get { return Platform.GitEnvironment; } }
+        public override IProcessEnvironment GitEnvironment { get { return Platform.GitEnvironment; } }
     }
 }
