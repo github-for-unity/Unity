@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    class WindowsGitEnvironment : GitEnvironment
+    class WindowsGitEnvironment : GitProcessEnvironment
     {
         public WindowsGitEnvironment(IEnvironment environment, IFileSystem filesystem)
             : base(environment, filesystem)
@@ -22,7 +22,7 @@ namespace GitHub.Unity
 
             if (path == null)
             {
-                path =  await base.FindGitInstallationPath(processManager).ConfigureAwait(false);
+                path =  await base.FindGitInstallationPath(processManager);
             }
 
             Logger.Debug("Git Installation folder {0} discovered: '{1}'", path == null ? "not" : "", path);
@@ -56,7 +56,7 @@ namespace GitHub.Unity
             return portableGitPath;
         }
 
-        public override string GetGitExecutableExtension()
+        public override string GetExecutableExtension()
         {
             return "exe";
         }

@@ -387,7 +387,7 @@ namespace GitHub.Unity
             EditorGUI.BeginChangeCheck();
             {
                 //TODO: Verify necessary value for a non Windows OS
-                var extension = EntryPoint.GitEnvironment.GetGitExecutableExtension();
+                var extension = EntryPoint.GitEnvironment.GetExecutableExtension();
 
                 Styles.PathField(ref gitExecPath,
                     () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
@@ -407,14 +407,17 @@ namespace GitHub.Unity
                 if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
                 {
                     var task = new FindGitTask(
-                        EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
-                        path => {
-                        if (!string.IsNullOrEmpty(path))
-                        {
-                            EntryPoint.Environment.GitExecutablePath = path;
-                            GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
-                        }
-                    });
+                        EntryPoint.Environment, EntryPoint.ProcessManager,
+                        new MainThreadTaskResultDispatcher<string>(
+                            path =>
+                            {
+                                if (!string.IsNullOrEmpty(path))
+                                {
+                                    EntryPoint.Environment.GitExecutablePath = path;
+                                    GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+                                }
+                            })
+                        );
                 }
                 GUILayout.FlexibleSpace();
 
