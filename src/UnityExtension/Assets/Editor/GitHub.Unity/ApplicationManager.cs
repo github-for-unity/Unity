@@ -96,19 +96,13 @@ namespace GitHub.Unity
 
         private void ListenToUnityExit()
         {
-            EditorApplicationQuit = (UnityAction)Delegate.Combine(EditorApplicationQuit, new UnityAction(OnShutdown));
+            EditorApplicationQuit = (UnityAction)Delegate.Combine(EditorApplicationQuit, new UnityAction(Dispose));
             EditorApplication.playmodeStateChanged += () => {
                 if (EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
                 {
-                    OnShutdown();
+                    Dispose();
                 }
             };
-        }
-
-        private void OnShutdown()
-        {
-            taskRunner.Shutdown();
-            CancellationTokenSource.Cancel();
         }
 
         private UnityAction EditorApplicationQuit
@@ -152,6 +146,20 @@ namespace GitHub.Unity
             }
             ScriptableObject.DestroyImmediate(shim);
             return ret;
+        }
+
+        private bool disposed = false;
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (disposing)
+            {
+                if (!disposed)
+                {
+                    disposed = true;
+                    taskRunner.Shutdown();
+                }
+            }
         }
 
         private IEnvironment environment;

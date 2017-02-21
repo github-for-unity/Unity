@@ -88,22 +88,34 @@ namespace GitHub.Unity
                     NPath branchesPath, NPath remotesPath,
                     NPath dotGitConfig)
         {
+            var ignore = new List<string>
+            {
+                repositoryPath.Combine(".git"),
+                platform.Environment.UnityProjectPath.ToNPath().Combine("Library")
+            };
+
             Logger.Trace("Watching {0} {1}", repositoryPath, repositoryPath.Exists());
             fileHierarchyWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath, true);
             fileHierarchyWatcher.Changed += f => {
-                if (f.Elements.First() != ".git")
+                if (!ignore.Contains(f))
+                {
+                    Logger.Trace("Repo changed '{0}'", f.RelativeTo(repositoryPath));
                     RepositoryChanged?.Invoke();
+                }
             };
             fileHierarchyWatcher.Created += f => {
-                if (f.Elements.First() != ".git")
+                if (!ignore.Contains(f))
+                {
+                    Logger.Trace("Repo created {0}", f.RelativeTo(repositoryPath));
                     RepositoryChanged?.Invoke();
+                }
             };
             fileHierarchyWatcher.Deleted += f => {
-                if (f.Elements.First() != ".git")
+                if (!ignore.Contains(f))
                     RepositoryChanged?.Invoke();
             };
             fileHierarchyWatcher.Renamed += (f, __) => {
-                if (f.Elements.First() != ".git")
+                if (!ignore.Contains(f))
                     RepositoryChanged?.Invoke();
             };
 
