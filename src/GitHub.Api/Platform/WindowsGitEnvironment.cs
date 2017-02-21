@@ -22,7 +22,7 @@ namespace GitHub.Unity
 
             if (path == null)
             {
-                path =  await base.FindGitInstallationPath(processManager).ConfigureAwait(false);
+                path =  await base.FindGitInstallationPath(processManager);
             }
 
             Logger.Debug("Git Installation folder {0} discovered: '{1}'", path == null ? "not" : "", path);

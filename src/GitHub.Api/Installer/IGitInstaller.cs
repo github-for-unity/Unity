@@ -1,11 +1,12 @@
 using GitHub.Unity;
 using System;
+using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface IPortableGitManager
+    interface IGitInstaller
     {
-        void ExtractGitIfNeeded(IProgress<float> zipFileProgress = null,
+        Task<bool> ExtractGitIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null);
 
         bool IsExtracted();

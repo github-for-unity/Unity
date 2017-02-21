@@ -18,6 +18,7 @@ namespace GitHub.Unity.Tests
                 .Replace('=', '_');
 
         protected string TestGitRepoPath { get; private set; }
+        protected ILogging Logger { get; private set; }
 
         [SetUp]
         public void SetUp()
@@ -31,6 +32,7 @@ namespace GitHub.Unity.Tests
             {
                 zipFile.ExtractAll(TestGitRepoPath, ExtractExistingFileAction.OverwriteSilently);
             }
+            Logger = Logging.GetLogger(GetType());
         }
 
         [TearDown]

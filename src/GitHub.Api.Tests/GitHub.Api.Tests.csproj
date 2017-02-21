@@ -59,7 +59,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PortableGitManagerTests.cs" />
+    <Compile Include="IO\Watches\DefaultFileSystemWatchStrategyTests.cs" />
+    <Compile Include="Installer\GitInstallerTests.cs" />
+    <Compile Include="IO\Watches\TestFileSystemWatch.cs" />
+    <Compile Include="SetupFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Helpers\CreateEnvironmentOptions.cs" />
     <Compile Include="Helpers\CreateFileSystemOptions.cs" />
