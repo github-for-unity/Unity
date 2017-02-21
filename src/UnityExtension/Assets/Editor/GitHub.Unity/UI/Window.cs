@@ -59,7 +59,7 @@ namespace GitHub.Unity
             Selection.activeObject = this;
 
             // Set window title
-            titleContent = new GUIContent(Title, Styles.BigLogo);
+            titleContent = new GUIContent(Title, Styles.SmallLogo);
 
             Utility.UnregisterReadyCallback(CreateViews);
             Utility.RegisterReadyCallback(CreateViews);

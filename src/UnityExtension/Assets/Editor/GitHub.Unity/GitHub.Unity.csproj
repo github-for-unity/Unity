@@ -109,7 +109,6 @@
     <EmbeddedResource Include="Icons\locked-removed%402x.png" />
     <EmbeddedResource Include="Icons\locked-removed.png" />
     <EmbeddedResource Include="Icons\locked.png" />
-    <EmbeddedResource Include="Icons\mark-github.png" />
     <EmbeddedResource Include="Icons\modified%402x.png" />
     <EmbeddedResource Include="Icons\modified.png" />
     <EmbeddedResource Include="Icons\moved%402x.png" />
@@ -153,6 +152,10 @@
     <EmbeddedResource Include="Icons\repo.png" />
     <EmbeddedResource Include="Icons\untracked%402x.png" />
     <EmbeddedResource Include="Icons\untracked.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Icons\big-logo.png" />
+    <EmbeddedResource Include="Icons\small-logo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
