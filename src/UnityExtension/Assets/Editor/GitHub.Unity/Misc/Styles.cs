@@ -64,6 +64,8 @@ namespace GitHub.Unity
             headerBoxStyle,
             headerBranchLabelStyle,
             headerRepoLabelStyle,
+            headerTitleStyle,
+            headerDescriptionStyle,
             historyToolbarButtonStyle,
             historyLockStyle,
             historyEntryDetailsStyle,
@@ -148,6 +150,38 @@ namespace GitHub.Unity
 				return headerRepoLabelStyle;
 			}
 		}
+
+    public static GUIStyle HeaderTitleStyle
+    {
+      get
+      {
+        if (headerTitleStyle == null)
+        {
+          headerTitleStyle = new GUIStyle(EditorStyles.boldLabel);
+					headerTitleStyle.name = "HeaderTitleStyle";
+					headerTitleStyle.margin = new RectOffset(0,0,0,0);
+          headerTitleStyle.wordWrap = true;
+        }
+
+        return headerTitleStyle;
+      }
+    }
+
+    public static GUIStyle HeaderDescriptionStyle
+    {
+      get
+      {
+        if (headerDescriptionStyle == null)
+        {
+          headerDescriptionStyle = new GUIStyle(EditorStyles.label);
+					headerDescriptionStyle.name = "HeaderDescriptionStyle";
+					headerDescriptionStyle.margin = new RectOffset(0,0,0,0);
+          headerDescriptionStyle.wordWrap = true;
+        }
+
+        return headerDescriptionStyle;
+      }
+    }
 
 		public static GUIStyle HeaderBoxStyle
 		{
