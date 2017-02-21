@@ -1,31 +1,90 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     class Repository : IRepository, IEquatable<Repository>
     {
-        private readonly IGitClient gitClient;
+        private readonly IRepositoryManager repositoryManager;
+        private GitStatus currentStatus;
+
+        public event Action<GitStatus> OnRepositoryChanged;
+        public event Action<string> OnActiveBranchChanged;
+        public event Action<string> OnActiveRemoteChanged;
+        public event Action OnLocalBranchListChanged;
+        public event Action OnCommitChanged;
+
+        public IEnumerable<GitBranch> LocalBranches => repositoryManager.LocalBranches.Values.Select(
+            x => new GitBranch(x.Name, (x.IsTracking ? (x.Remote.Value.Name + "/" + x.Name) : "[None]"), x.Name == CurrentBranch));
+
+        public IEnumerable<GitBranch> RemoteBranches => repositoryManager.RemoteBranches.Values.SelectMany(
+            x => x.Values).Select(x => new GitBranch(x.Remote.Value.Name + "/" + x.Name, "[None]", false));
+            
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RepositoryModel"/> class.
+        /// Initializes a new instance of the <see cref="Repository"/> class.
         /// </summary>
-        /// <param name="gitClient"></param>
         /// <param name="name">The repository name.</param>
         /// <param name="cloneUrl">The repository's clone URL.</param>
         /// <param name="localPath"></param>
-        public Repository(IGitClient gitClient, string name, UriString cloneUrl, string localPath)
+        public Repository(IRepositoryManager repositoryManager, string name, UriString cloneUrl, string localPath)
         {
-            Guard.ArgumentNotNull(gitClient, nameof(gitClient));
+            Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
             Guard.ArgumentNotNullOrWhiteSpace(name, nameof(name));
             Guard.ArgumentNotNull(cloneUrl, nameof(cloneUrl));
 
-            this.gitClient = gitClient;
+            this.repositoryManager = repositoryManager;
             Name = name;
             CloneUrl = cloneUrl;
             LocalPath = localPath;
+
+            repositoryManager.OnRepositoryChanged += RepositoryManager_OnRepositoryChanged;
+            repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
+            repositoryManager.OnActiveRemoteChanged += RepositoryManager_OnActiveRemoteChanged;
+            repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;
+            repositoryManager.OnHeadChanged += RepositoryManager_OnHeadChanged;
+            
+        }
+
+        private void RepositoryManager_OnHeadChanged()
+        {
+            OnCommitChanged?.Invoke();
+        }
+
+        public ITask Pull(ITaskResultDispatcher<string> resultDispatcher)
+        {
+            return repositoryManager.ProcessRunner.PrepareGitPull(resultDispatcher, CurrentRemote, CurrentBranch);
+        }
+
+        public ITask Push(ITaskResultDispatcher<string> resultDispatcher)
+        {
+            return repositoryManager.ProcessRunner.PrepareGitPush(resultDispatcher, CurrentRemote, CurrentBranch);
+        }
+
+        private void RepositoryManager_OnLocalBranchListChanged()
+        {
+            OnLocalBranchListChanged?.Invoke();
+        }
+
+        private void RepositoryManager_OnActiveRemoteChanged()
+        {
+            OnActiveRemoteChanged?.Invoke(CurrentRemote);
+        }
+
+        private void RepositoryManager_OnActiveBranchChanged()
+        {
+            OnActiveBranchChanged?.Invoke(CurrentBranch);
+        }
+
+        private void RepositoryManager_OnRepositoryChanged(GitStatus status)
+        {
+            currentStatus = status;
+            OnRepositoryChanged?.Invoke(CurrentStatus);
         }
 
         /// <summary>
@@ -69,7 +128,7 @@ namespace GitHub.Unity
         {
             get
             {
-                return gitClient.ActiveBranch?.Name;
+                return repositoryManager.ActiveBranch?.Name;
             }
         }
 
@@ -80,7 +139,7 @@ namespace GitHub.Unity
         {
             get
             {
-                return gitClient.GetActiveRemote()?.Name;
+                return repositoryManager.ActiveRemote?.Name;
             }
         }
 
@@ -98,5 +157,9 @@ namespace GitHub.Unity
             CloneUrl,
             LocalPath,
             GetHashCode());
+
+        public GitStatus CurrentStatus => currentStatus;
+
+        protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
     }
 }

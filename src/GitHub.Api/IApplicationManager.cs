@@ -1,22 +1,21 @@
+using System;
 using System.Threading;
-using GitHub.Unity;
+using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface IApplicationManager
+    interface IApplicationManager : IDisposable
     {
         CancellationToken CancellationToken { get; }
         IEnvironment Environment { get; }
         IFileSystem FileSystem { get; }
         IPlatform Platform { get; }
-        IGitEnvironment GitEnvironment { get; }
+        IProcessEnvironment GitEnvironment { get; }
         IProcessManager ProcessManager { get; }
-        ICredentialManager CredentialManager { get; }
-        IGitClient GitClient { get; }
-        ITaskResultDispatcher TaskResultDispatcher { get; }
+        ITaskResultDispatcher MainThreadResultDispatcher { get; }
         ISettings SystemSettings { get; }
         ISettings LocalSettings { get; }
         ISettings UserSettings { get; }
-        GitObjectFactory GitObjectFactory { get; }
+        Task RestartRepository();
     }
 }

@@ -40,7 +40,12 @@ namespace GitHub.Unity
         public static void Initialize()
         {
             initialized = true;
-            RefreshRunner.Initialize();
+            //RefreshRunner.Initialize();
+            foreach (Window window in Resources.FindObjectsOfTypeAll(typeof(Window)))
+            {
+                window.CreateViews();
+                window.ShowActiveView();
+            }
         }
 
         [MenuItem(LaunchMenu)]
@@ -54,6 +59,9 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             Selection.activeObject = this;
+
+            // Set window title
+            titleContent = new GUIContent(Title, Styles.SmallLogo);
 
             Utility.UnregisterReadyCallback(CreateViews);
             Utility.RegisterReadyCallback(CreateViews);
@@ -79,6 +87,9 @@ namespace GitHub.Unity
 
         private void ShowActiveView()
         {
+            if (repository == null)
+                return;
+
             if (ActiveTab != null)
                 ActiveTab.OnShow();
             Refresh();
@@ -87,6 +98,10 @@ namespace GitHub.Unity
         public override void OnDisable()
         {
             base.OnDisable();
+
+            if (repository == null)
+                return;
+
             if (ActiveTab != null)
                 ActiveTab.OnHide();
         }
@@ -96,15 +111,16 @@ namespace GitHub.Unity
         {
             base.OnGUI();
 
-            // Set window title
-            titleContent = new GUIContent(Title, Styles.TitleIcon);
-
             if (!initialized)
             {
                 DoNotInitializedGUI();
                 return;
             }
-
+            else if (repository == null)
+            {
+                DoOfferToInitializeRepositoryGUI();
+                return;
+            }
             //if (!ValidateSettings())
             //{
             //    activeTab = SubTab.Settings; // If we do complete init, make sure that we return to the settings tab for further setup
@@ -116,6 +132,65 @@ namespace GitHub.Unity
             // GUI for the active tab
             if (ActiveTab != null)
                 ActiveTab.OnGUI();
+        }
+
+        private void DoOfferToInitializeRepositoryGUI()
+        {
+            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
+            {
+                GUILayout.Space(3);
+                GUILayout.BeginVertical(GUILayout.Width(16));
+                {
+                    GUILayout.Space(9);
+                    GUILayout.Label(Styles.BigLogo, GUILayout.Height(20), GUILayout.Width(20));
+                }
+                GUILayout.EndVertical();
+
+                GUILayout.BeginVertical();
+                {
+                    GUILayout.Space(9);
+                    GUILayout.Label("GitHub", Styles.HeaderRepoLabelStyle);
+                }
+                GUILayout.EndVertical();
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.BeginVertical();
+            {
+                GUILayout.FlexibleSpace();
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "LargeButton"))
+                    {
+                        var repoInit = new RepositoryInitializer(EntryPoint.Environment, EntryPoint.ProcessManager, new TaskQueueScheduler(), EntryPoint.AppManager);
+                        repoInit.Run();
+
+                        //var task = new GitInitTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                        //    new TaskResultDispatcher<string>(_ =>
+                        //    {
+                        //        EntryPoint.AppManager.RestartRepository();
+                        //    })
+
+                        //    //new MainThreadTaskResultDispatcher<string>(_ =>
+                        //    //{
+                        //    //    EditorUtility.DisplayDialog("Init!", "Init success!", Localization.Ok);
+                        //    //})
+                        //    );
+                        //Tasks.Add(task);
+                    }
+                    GUILayout.FlexibleSpace();
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.FlexibleSpace();
+            }
+            GUILayout.EndVertical();
+
+            //GUILayout.BeginVertical();
+            //{
+            //    var padding = 10;
+            //    GUILayout.Label(Styles.BigLogo, GUILayout.Height(this.Position.width - padding * 2), GUILayout.Width(this.Position.width - padding * 2));
+            //}
+            //GUILayout.EndVertical();
         }
 
         private void DoNotInitializedGUI()
@@ -289,32 +364,32 @@ namespace GitHub.Unity
             }
         }
 
-        private class RefreshRunner : AssetPostprocessor
-        {
-            public static void Initialize()
-            {
-                //Tasks.ScheduleMainThread(Refresh);
-            }
+        //private class RefreshRunner : AssetPostprocessor
+        //{
+        //    public static void Initialize()
+        //    {
+        //        //Tasks.ScheduleMainThread(Refresh);
+        //    }
 
-            private static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moveDestination, string[] moveSource)
-            {
-                //Refresh();
-            }
+        //    private static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moveDestination, string[] moveSource)
+        //    {
+        //        //Refresh();
+        //    }
 
-            private static void Refresh()
-            {
-                Utility.UnregisterReadyCallback(OnReady);
-                Utility.RegisterReadyCallback(OnReady);
-            }
+        //    private static void Refresh()
+        //    {
+        //        Utility.UnregisterReadyCallback(OnReady);
+        //        Utility.RegisterReadyCallback(OnReady);
+        //    }
 
-            private static void OnReady()
-            {
-                foreach (Window window in Resources.FindObjectsOfTypeAll(typeof(Window)))
-                {
-                    window.Refresh();
-                }
-            }
-        }
+        //    private static void OnReady()
+        //    {
+        //        foreach (Window window in Resources.FindObjectsOfTypeAll(typeof(Window)))
+        //        {
+        //            window.Refresh();
+        //        }
+        //    }
+        //}
 
         private enum SubTab
         {
