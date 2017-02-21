@@ -41,16 +41,6 @@ namespace GitHub.Unity
                 if (!await LoadCredentialHelper())
                     return null;
 
-                if (credHelper == "manager")
-                {
-                    // disable the prompt on gcm, we're handling it on this repo
-                    var args = String.Format("config --system credential.{0}.interactive never", host.Host);
-                    await GitTask.Run(environment, processManager, args);
-                    args = String.Format("config --system credential.{0}.validate false", host.Host);
-                    await GitTask.Run(environment, processManager, args);
-                    args = String.Format("config --system credential.{0}.modalPrompt false", host.Host);
-                }
-
                 string kvpCreds = null;
 
                 var ret = await RunCredentialHelper(
@@ -134,11 +124,12 @@ namespace GitHub.Unity
             if (credHelper != null)
                 return true;
 
-            var task = new GitConfigGetTask(environment, processManager, null,
-                    "credential.helper", GitConfigSource.NonSpecified,
-                    x => {
-                        credHelper = x;
-                    }, null);
+            var task = new GitConfigGetTask(environment, processManager,
+                TaskResultDispatcher.Default.GetDispatcher<string>(x =>
+                {
+                    credHelper = x;
+                }),
+                "credential.helper", GitConfigSource.NonSpecified);
 
             if (await task.RunAsync(processManager.CancellationToken) && credHelper != null)
             {
@@ -155,11 +146,11 @@ namespace GitHub.Unity
             if (credHelper.StartsWith('!'))
             {
                 // it's a separate app, run it as such
-                task = new ProcessTask(environment, processManager, credHelper.Substring(1), resultCallback);
+                task = new ProcessTask(environment, processManager, TaskResultDispatcher.Default.GetDispatcher(resultCallback), credHelper.Substring(1));
             }
             else
             {
-                task = new GitTask(environment, processManager, null, resultCallback, null);
+                task = new GitTask(environment, processManager, TaskResultDispatcher.Default.GetDispatcher(resultCallback));
                 app = String.Format("credential-{0} ", credHelper);
             }
 

@@ -4,14 +4,14 @@ using System;
 
 namespace GitHub.Unity
 {
-    class MacGitEnvironment : GitEnvironment
+    class MacGitEnvironment : GitProcessEnvironment
     {
         public MacGitEnvironment(IEnvironment environment, IFileSystem filesystem)
             : base(environment, filesystem)
         {
         }
 
-        public override string GetGitExecutableExtension()
+        public override string GetExecutableExtension()
         {
             return null;
         }

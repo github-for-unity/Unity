@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace GitHub.Api.IO
+namespace GitHub.Api
 {
     interface IFileSystemWatchListener
     {

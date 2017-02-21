@@ -15,8 +15,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguage("en-US")]
 
-[assembly: InternalsVisibleTo("GitHub.Unity.Tests", AllInternalsVisible = true)]
-[assembly: InternalsVisibleTo("GitHub.Api.Tests", AllInternalsVisible = true)]
+[assembly: InternalsVisibleTo("UnitTests", AllInternalsVisible = true)]
+[assembly: InternalsVisibleTo("IntegrationTests", AllInternalsVisible = true)]
 
 //Required for NSubstitute
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2", AllInternalsVisible = true)]

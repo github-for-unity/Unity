@@ -160,6 +160,15 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Initialize repository.
+        /// </summary>
+        internal static string InitializeRepositoryButtonText {
+            get {
+                return ResourceManager.GetString("InitializeRepositoryButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Your selected folder &apos;{0}&apos; is not a valid repository root for your current project..
         /// </summary>
         internal static string InvalidInitDirectoryMessage {
@@ -259,11 +268,29 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ok.
+        /// </summary>
+        internal static string Ok {
+            get {
+                return ResourceManager.GetString("Ok", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 1 changed file.
         /// </summary>
         internal static string OneChangedFileLabel {
             get {
                 return ResourceManager.GetString("OneChangedFileLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull.
+        /// </summary>
+        internal static string PullActionTitle {
+            get {
+                return ResourceManager.GetString("PullActionTitle", resourceCulture);
             }
         }
         
@@ -322,6 +349,33 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not update local branch..
+        /// </summary>
+        internal static string PullFailureDescription {
+            get {
+                return ResourceManager.GetString("PullFailureDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local branch is up to date with {0}.
+        /// </summary>
+        internal static string PullSuccessDescription {
+            get {
+                return ResourceManager.GetString("PullSuccessDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Push.
+        /// </summary>
+        internal static string PushActionTitle {
+            get {
+                return ResourceManager.GetString("PushActionTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Push.
         /// </summary>
         internal static string PushButton {
@@ -372,6 +426,24 @@ namespace GitHub.Unity {
         internal static string PushConfirmYes {
             get {
                 return ResourceManager.GetString("PushConfirmYes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not push branch.
+        /// </summary>
+        internal static string PushFailureDescription {
+            get {
+                return ResourceManager.GetString("PushFailureDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Branch pushed.
+        /// </summary>
+        internal static string PushSuccessDescription {
+            get {
+                return ResourceManager.GetString("PushSuccessDescription", resourceCulture);
             }
         }
         

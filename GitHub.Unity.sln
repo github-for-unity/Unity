@@ -5,8 +5,6 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitHub.Unity", "src\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj", "{ADD7A18B-DD2A-4C22-A2C1-488964EFF30A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitHub.Unity.Tests", "src\GitHub.Unity.Tests\GitHub.Unity.Tests.csproj", "{69F13D9D-AD56-4EEC-AE10-D528EE23E1A9}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "octokit", "octokit", "{7DB5B8B0-5126-4025-913C-74B090ED625B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Octokit-Extensions35", "submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj", "{EB4B074E-62A7-4F1D-8F95-E64B7AEA0236}"
@@ -23,7 +21,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.Net.Http-net_3_5", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyLibrariesToDevelopmentFolder", "src\packaging\CopyLibrariesToDevelopmentFolder\CopyLibrariesToDevelopmentFolder.csproj", "{44257C81-EE4A-4817-9AF4-A26C02AA6DD4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitHub.Api.Tests", "src\GitHub.Api.Tests\GitHub.Api.Tests.csproj", "{1AC3F82E-AEAE-4C84-825C-207BB264FCFA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "src\UnitTests\UnitTests.csproj", "{69F13D9D-AD56-4EEC-AE10-D528EE23E1A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "src\IntegrationTests\IntegrationTests.csproj", "{1AC3F82E-AEAE-4C84-825C-207BB264FCFA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D17F1B4C-42DC-4E78-BCEF-9F239A084C4D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "packaging", "packaging", "{B50B646C-3B86-4BDA-9F2B-766F96608CE0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyLibrariesToExternalTestProject", "src\packaging\CopyLibrariesToExternalTestProject\CopyLibrariesToExternalTestProject.csproj", "{7DEF4226-7740-457F-9199-34174C49A978}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +41,6 @@ Global
 		{ADD7A18B-DD2A-4C22-A2C1-488964EFF30A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ADD7A18B-DD2A-4C22-A2C1-488964EFF30A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ADD7A18B-DD2A-4C22-A2C1-488964EFF30A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{69F13D9D-AD56-4EEC-AE10-D528EE23E1A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{69F13D9D-AD56-4EEC-AE10-D528EE23E1A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{69F13D9D-AD56-4EEC-AE10-D528EE23E1A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{69F13D9D-AD56-4EEC-AE10-D528EE23E1A9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EB4B074E-62A7-4F1D-8F95-E64B7AEA0236}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EB4B074E-62A7-4F1D-8F95-E64B7AEA0236}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB4B074E-62A7-4F1D-8F95-E64B7AEA0236}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -63,9 +65,16 @@ Global
 		{44257C81-EE4A-4817-9AF4-A26C02AA6DD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44257C81-EE4A-4817-9AF4-A26C02AA6DD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44257C81-EE4A-4817-9AF4-A26C02AA6DD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69F13D9D-AD56-4EEC-AE10-D528EE23E1A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69F13D9D-AD56-4EEC-AE10-D528EE23E1A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69F13D9D-AD56-4EEC-AE10-D528EE23E1A9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1AC3F82E-AEAE-4C84-825C-207BB264FCFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1AC3F82E-AEAE-4C84-825C-207BB264FCFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1AC3F82E-AEAE-4C84-825C-207BB264FCFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DEF4226-7740-457F-9199-34174C49A978}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DEF4226-7740-457F-9199-34174C49A978}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DEF4226-7740-457F-9199-34174C49A978}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DEF4226-7740-457F-9199-34174C49A978}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -74,5 +83,9 @@ Global
 		{EB4B074E-62A7-4F1D-8F95-E64B7AEA0236} = {7DB5B8B0-5126-4025-913C-74B090ED625B}
 		{49EF16A2-5ED1-480F-80A1-D1D05D6C1BE4} = {7DB5B8B0-5126-4025-913C-74B090ED625B}
 		{9862694D-E4FA-418B-8692-A0280FEDDF36} = {D0CFD3E7-5B2C-4A54-ABF1-514D06F0747A}
+		{44257C81-EE4A-4817-9AF4-A26C02AA6DD4} = {B50B646C-3B86-4BDA-9F2B-766F96608CE0}
+		{69F13D9D-AD56-4EEC-AE10-D528EE23E1A9} = {D17F1B4C-42DC-4E78-BCEF-9F239A084C4D}
+		{1AC3F82E-AEAE-4C84-825C-207BB264FCFA} = {D17F1B4C-42DC-4E78-BCEF-9F239A084C4D}
+		{7DEF4226-7740-457F-9199-34174C49A978} = {B50B646C-3B86-4BDA-9F2B-766F96608CE0}
 	EndGlobalSection
 EndGlobal

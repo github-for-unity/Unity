@@ -1,41 +1,23 @@
+using System;
 using System.IO;
+using GitHub.Unity;
 
-namespace GitHub.Api.IO
+namespace GitHub.Api
 {
-    class FileSystemWatch : IFileSystemWatch
+    abstract class FileSystemWatch : IFileSystemWatch, IFileSystemWatchListener, IDisposable
     {
-        public event FileSystemEventHandler Changed;
-        public event FileSystemEventHandler Created;
-        public event FileSystemEventHandler Deleted;
-        public event RenamedEventHandler Renamed;
-        public event ErrorEventHandler Error;
-
-        private FileSystemWatcher fileSystemWatcher;
-
-        public FileSystemWatch(string path, string filter = null)
+        protected FileSystemWatch()
         {
-            fileSystemWatcher = filter == null ? new FileSystemWatcher(path) : new FileSystemWatcher(path, filter);
-            fileSystemWatcher.Changed += (sender, args) => Changed?.Invoke(sender, args);
-            fileSystemWatcher.Created += (sender, args) => Created?.Invoke(sender, args);
-            fileSystemWatcher.Deleted += (sender, args) => Deleted?.Invoke(sender, args);
-            fileSystemWatcher.Error += (sender, args) => Error?.Invoke(sender, args);
-            fileSystemWatcher.Renamed += (sender, args) => Renamed?.Invoke(sender, args);
+            Logger = Logging.GetLogger(GetType());
         }
 
-        public bool Enable
+        public void AttachListener(IFileSystemWatchListener fileSystemWatchListener)
         {
-            get { return fileSystemWatcher.EnableRaisingEvents; }
-            set { fileSystemWatcher.EnableRaisingEvents = value; }
-        }
+            if (fileSystemWatchListener == null)
+            {
+                return;
+            }
 
-        public void Dispose()
-        {
-            fileSystemWatcher?.Dispose();
-            fileSystemWatcher = null;
-        }
-
-        public void AddListener(IFileSystemWatchListener fileSystemWatchListener)
-        {
             Changed += fileSystemWatchListener.OnChange;
             Created += fileSystemWatchListener.OnCreate;
             Deleted += fileSystemWatchListener.OnDelete;
@@ -45,11 +27,53 @@ namespace GitHub.Api.IO
 
         public void RemoveListener(IFileSystemWatchListener fileSystemWatchListener)
         {
+            if (fileSystemWatchListener == null)
+            {
+                return;
+            }
+
             Changed -= fileSystemWatchListener.OnChange;
             Created -= fileSystemWatchListener.OnCreate;
             Deleted -= fileSystemWatchListener.OnDelete;
             Renamed -= fileSystemWatchListener.OnRename;
             Error -= fileSystemWatchListener.OnError;
         }
+
+        public virtual void Dispose()
+        {}
+
+        public virtual void OnChange(object sender, FileSystemEventArgs e)
+        {
+            Changed?.Invoke(this, e);
+        }
+
+        public virtual void OnCreate(object sender, FileSystemEventArgs e)
+        {
+            Created?.Invoke(this, e);
+        }
+
+        public virtual void OnDelete(object sender, FileSystemEventArgs e)
+        {
+            Deleted?.Invoke(this, e);
+        }
+
+        public virtual void OnRename(object sender, RenamedEventArgs e)
+        {
+            Renamed?.Invoke(this, e);
+        }
+
+        public virtual void OnError(object sender, ErrorEventArgs e)
+        {
+            Error?.Invoke(this, e);
+        }
+
+        public event FileSystemEventHandler Changed;
+        public event FileSystemEventHandler Created;
+        public event FileSystemEventHandler Deleted;
+        public event RenamedEventHandler Renamed;
+        public event ErrorEventHandler Error;
+
+        public abstract bool Enable { get; set; }
+        protected ILogging Logger { get; }
     }
 }

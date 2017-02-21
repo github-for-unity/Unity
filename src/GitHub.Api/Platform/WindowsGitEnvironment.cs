@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    class WindowsGitEnvironment : GitEnvironment
+    class WindowsGitEnvironment : GitProcessEnvironment
     {
         public WindowsGitEnvironment(IEnvironment environment, IFileSystem filesystem)
             : base(environment, filesystem)
@@ -56,7 +56,7 @@ namespace GitHub.Unity
             return portableGitPath;
         }
 
-        public override string GetGitExecutableExtension()
+        public override string GetExecutableExtension()
         {
             return "exe";
         }
