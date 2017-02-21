@@ -126,7 +126,7 @@ namespace GitHub.Unity
 					headerBranchLabelStyle = new GUIStyle(EditorStyles.label);
 					headerBranchLabelStyle.name = "HeaderBranchLabelStyle";
 					headerBranchLabelStyle.margin = new RectOffset(0,0,0,0);
-					headerBranchLabelStyle.normal.textColor = new Color(0f,0f,0f,0.6f);
+					//headerBranchLabelStyle.normal.textColor = new Color(0f,0f,0f,0.6f);
 				}
 
 				return headerBranchLabelStyle;
@@ -154,16 +154,16 @@ namespace GitHub.Unity
 			{
 				if (headerBoxStyle == null)
 				{
-					headerBoxStyle = new GUIStyle();
+					headerBoxStyle = new GUIStyle("IN BigTitle");
 					headerBoxStyle.name = "HeaderBoxStyle";
 					headerBoxStyle.padding = new RectOffset(5,5,5,5);
 
-					Texture2D backgroundTexture = new Texture2D(1,1);
-					Color color = new Color(0.878f, 0.878f, 0.878f, 1.0f);
-					backgroundTexture.SetPixel(1, 1, color);
-					backgroundTexture.Apply();
+					//Texture2D backgroundTexture = new Texture2D(1,1);
+					//Color color = new Color(0.878f, 0.878f, 0.878f, 1.0f);
+					//backgroundTexture.SetPixel(1, 1, color);
+					//backgroundTexture.Apply();
 
-					headerBoxStyle.normal.background = backgroundTexture;
+					//headerBoxStyle.normal.background = backgroundTexture;
 				}
 
 				return headerBoxStyle;

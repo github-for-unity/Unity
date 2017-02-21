@@ -58,6 +58,9 @@ namespace GitHub.Unity
             base.OnEnable();
             Selection.activeObject = this;
 
+            // Set window title
+            titleContent = new GUIContent(Title, Styles.BigLogo);
+
             Utility.UnregisterReadyCallback(CreateViews);
             Utility.RegisterReadyCallback(CreateViews);
 
@@ -105,9 +108,6 @@ namespace GitHub.Unity
         public override void OnGUI()
         {
             base.OnGUI();
-
-            // Set window title
-            titleContent = new GUIContent(Title, Styles.BigLogo);
 
             if (!initialized)
             {
