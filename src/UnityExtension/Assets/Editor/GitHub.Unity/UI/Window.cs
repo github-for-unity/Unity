@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Debug = System.Diagnostics.Debug;
+// using Debug = System.Diagnostics.Debug;
 
 namespace GitHub.Unity
 {
@@ -136,13 +136,14 @@ namespace GitHub.Unity
 
         private void DoOfferToInitializeRepositoryGUI()
         {
-            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
+            var headerRect = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
             {
                 GUILayout.Space(3);
                 GUILayout.BeginVertical(GUILayout.Width(16));
                 {
-                    GUILayout.Space(9);
-                    GUILayout.Label(Styles.BigLogo, GUILayout.Height(20), GUILayout.Width(20));
+                    var iconRect = GUILayoutUtility.GetRect(new GUIContent(Styles.BigLogo), GUIStyle.none, GUILayout.Height(20), GUILayout.Width(20));
+                    iconRect.y = headerRect.center.y - (iconRect.height / 2);
+                    GUI.DrawTexture(iconRect, Styles.BigLogo, ScaleMode.ScaleToFit);
                 }
                 GUILayout.EndVertical();
 
@@ -153,7 +154,7 @@ namespace GitHub.Unity
                 }
                 GUILayout.EndVertical();
             }
-            GUILayout.EndHorizontal();
+            EditorGUILayout.EndHorizontal();
             GUILayout.BeginVertical();
             {
                 GUILayout.FlexibleSpace();
