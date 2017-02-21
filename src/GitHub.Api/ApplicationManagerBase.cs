@@ -64,12 +64,9 @@ namespace GitHub.Unity
 
             FileSystem.SetCurrentDirectory(Environment.UnityProjectPath);
 
-            logger.Trace("Where is it? {0}", Environment.UnityProjectPath);
             // figure out where the repository root is
             repositoryLocator = new RepositoryLocator(Environment.UnityProjectPath);
-            logger.Trace("Where is it? 1");
             var repositoryPath = repositoryLocator.FindRepositoryRoot();
-            logger.Trace("Where is it? 2 {0}", repositoryPath);
             if (repositoryPath != null)
             {
                 // Make sure CurrentDirectory always returns the repository root, so all
@@ -82,10 +79,8 @@ namespace GitHub.Unity
         {
             await ThreadingHelper.SwitchToThreadAsync();
 
-            logger.Trace("Restarting 1");
             SetupRepository();
-            logger.Trace("Restarting 2");
-
+ 
             if (repositoryLocator.RepositoryPath != null)
             {
                 try
@@ -96,11 +91,8 @@ namespace GitHub.Unity
                 {
                     logger.Error(ex);
                 }
-                logger.Trace("Restarting 3");
                 Environment.Repository = repositoryManager.Repository;
-                logger.Trace("Found repository at {0}", Environment.Repository);
                 repositoryManager.Start();
-                logger.Trace("Restarting 4");
             }
         }
 
@@ -110,9 +102,9 @@ namespace GitHub.Unity
 
             var gitSetup = new GitSetup(Environment, CancellationToken);
             var expectedPath = gitSetup.GitInstallationPath;
-
-            bool setupDone = false;
-            if (!gitSetup.GitExecutablePath.FileExists())
+            logger.Trace("GitInstallationPath {0} {1} {2}", expectedPath, gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
+            bool setupDone = gitSetup.GitExecutablePath.FileExists();
+            if (!setupDone)
             {
                 setupDone = await gitSetup.SetupIfNeeded(
                     //new Progress<float>(x => logger.Trace("Percentage: {0}", x)),

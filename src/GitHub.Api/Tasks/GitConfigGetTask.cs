@@ -4,14 +4,16 @@ namespace GitHub.Unity
 {
     class GitConfigGetTask : GitTask
     {
+        private readonly ITaskResultDispatcher<string> resultDispatcher;
         private readonly string arguments;
         private string result;
 
         public GitConfigGetTask(IEnvironment environment, IProcessManager processManager,
             ITaskResultDispatcher<string> resultDispatcher,
             string key, GitConfigSource configSource)
-            : base(environment, processManager, resultDispatcher)
+            : base(environment, processManager)
         {
+            this.resultDispatcher = resultDispatcher;
             var source = "";
             source +=
                 configSource == GitConfigSource.NonSpecified ? "--get-all" :
@@ -34,7 +36,7 @@ namespace GitHub.Unity
             return new ProcessOutputManager(process, processor);
         }
 
-        protected override void RaiseOnSuccess()
+        protected override void OnCompleted()
         {
             if (String.IsNullOrEmpty(result))
             {
@@ -42,9 +44,20 @@ namespace GitHub.Unity
             }
             else
             {
-                base.RaiseOnSuccess();
+                RaiseOnSuccess();
             }
         }
+
+        protected override void RaiseOnFailure()
+        {
+            resultDispatcher.ReportFailure();
+        }
+
+        protected override void RaiseOnSuccess()
+        {
+            resultDispatcher.ReportSuccess(result);
+        }
+
 
         public override bool Blocking { get { return false; } }
         public override bool Critical { get { return false; } }
