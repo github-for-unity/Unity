@@ -100,14 +100,26 @@ namespace GitHub.Unity
                 return true;
             }
 
-            var tempPath = NPath.CreateTempDirectory(TempPathPrefix);
-            var ret = await ExtractGitIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
-            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "gitconfig", tempPath);
-            archiveFilePath.Copy(gitConfigDestinationPath);
-            ret = await ExtractGitLfsIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
+            try
+            {
+                var tempPath = NPath.CreateTempDirectory(TempPathPrefix);
+                var ret = await ExtractGitIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
+                ret &= await ExtractGitLfsIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
 
-            tempPath.Delete();
-            return ret;
+                var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "gitconfig", tempPath);
+                if (archiveFilePath != null)
+                {
+                    archiveFilePath.Copy(gitConfigDestinationPath);
+                }
+
+                tempPath.Delete();
+                return ret;
+            }
+            catch (Exception ex)
+            {
+                logger.Trace(ex);
+                return false;
+            }
         }
 
         private bool InstalledGitIsValid()
@@ -125,6 +137,11 @@ namespace GitHub.Unity
             }
 
             var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitZipFile, tempPath);
+            if (archiveFilePath == null)
+            {
+                return TaskEx.FromResult(false);
+            }
+
             var unzipPath = tempPath.Combine("git");
 
             try
@@ -161,6 +178,11 @@ namespace GitHub.Unity
             }
 
             var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitLfsZipFile, tempPath);
+            if (archiveFilePath == null)
+            {
+                return TaskEx.FromResult(false);
+            }
+
             var unzipPath = tempPath.Combine("git-lfs");
 
             try
