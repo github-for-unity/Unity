@@ -198,7 +198,7 @@ namespace GitHub.Unity
 
             // run add, then commit
             var addTask = new GitAddTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                            TaskResultDispatcher.Default.GetDispatcher<string>(_ => Tasks.Add(commitTask)),
+                            TaskResultDispatcher.Default.GetDispatcher<string>(_ => Tasks.Add(commitTask), () => lockCommit = false),
                             files);
             Tasks.Add(addTask);
         }
