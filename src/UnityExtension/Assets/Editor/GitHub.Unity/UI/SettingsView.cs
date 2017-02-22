@@ -52,6 +52,9 @@ namespace GitHub.Unity
         private const string GitIgnoreRulesDescription = "Description";
         private const string NewGitIgnoreRuleButton = "New";
         private const string DeleteGitIgnoreRuleButton = "Delete";
+        private const string GitConfigTitle = "Git Configuration";
+        private const string GitConfigNameLabel = "Name";
+        private const string GitConfigEmailLabel = "Email";
 
         // TODO: Replace me with the real values
         string gitName = "";
@@ -97,9 +100,9 @@ namespace GitHub.Unity
                     // gitignore rules list
                     // OnGitIgnoreRulesGUI();
 
-                    GUILayout.Label("Git Configuration", EditorStyles.boldLabel);
-                    gitName = EditorGUILayout.TextField("Name", gitName);
-                    gitEmail = EditorGUILayout.TextField("Email", gitEmail);
+                    GUILayout.Label(GitConfigTitle, EditorStyles.boldLabel);
+                    gitName = EditorGUILayout.TextField(GitConfigNameLabel, gitName);
+                    gitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, gitEmail);
 
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
