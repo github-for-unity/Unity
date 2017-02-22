@@ -31,7 +31,7 @@ namespace GitHub.Unity
         public IProcess Configure(string executableFileName, string arguments, string workingDirectory)
         {
             logger.Debug("Configuring process - \"" + executableFileName + " " + arguments + "\" cwd:" + workingDirectory);
-            var startInfo = new ProcessStartInfo(executableFileName, arguments)
+            var startInfo = new ProcessStartInfo
             {
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -45,8 +45,25 @@ namespace GitHub.Unity
             if (executableFileName.ToNPath().IsRelative)
                 executableFileName = FindExecutableInPath(executableFileName, startInfo.EnvironmentVariables["PATH"]) ?? executableFileName;
             startInfo.FileName = executableFileName;
+            startInfo.Arguments = arguments;
             logger.Debug(startInfo.FileName);
             return new ProcessWrapper(startInfo);
+        }
+
+        public void RunCommandLineWindow(string workingDirectory)
+        {
+            var startInfo = new ProcessStartInfo("cmd")
+            {
+                RedirectStandardInput = false,
+                RedirectStandardOutput = false,
+                RedirectStandardError = false,
+                UseShellExecute = false,
+                CreateNoWindow = false
+            };
+
+            gitEnvironment.Configure(startInfo, workingDirectory);
+            var p = new ProcessWrapper(startInfo);
+            p.Run();
         }
 
         public IProcess Reconnect(int pid)
