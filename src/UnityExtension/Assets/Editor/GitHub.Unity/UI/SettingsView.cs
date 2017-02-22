@@ -35,7 +35,7 @@ namespace GitHub.Unity
         private const string InvalidInitDirectoryMessage =
             "Your selected folder '{0}' is not a valid repository root for your current project.";
         private const string InvalidInitDirectoryOK = "OK";
-        private const string GitInstallTitle = "Git install";
+        private const string GitInstallTitle = "Git installation";
         private const string GitInstallMissingMessage =
             "GitHub was unable to locate a valid Git install. Please specify install location or install git.";
         private const string GitInstallBrowseTitle = "Select git binary";
@@ -53,6 +53,7 @@ namespace GitHub.Unity
         private const string NewGitIgnoreRuleButton = "New";
         private const string DeleteGitIgnoreRuleButton = "Delete";
 
+        // TODO: Replace me with the real values
         string gitName = "";
         string gitEmail = "";
 
