@@ -15,7 +15,6 @@ namespace GitHub.Unity
             BroadModeBranchesMinWidth = 200f,
             BroadModeBranchesRatio = .4f,
             InitialStateAreaWidth = 200f,
-            BrowseFolderButtonHorizontalPadding = -4f,
             HistoryEntryHeight = 40f,
             HistorySummaryHeight = 16f,
             HistoryDetailsHeight = 16f,
@@ -667,8 +666,7 @@ namespace GitHub.Unity
         {
             GUILayout.BeginHorizontal();
                 path = EditorGUILayout.TextField("Path to git executable", path);
-                GUILayout.Space(Styles.BrowseFolderButtonHorizontalPadding);
-                if (GUILayout.Button(BrowseButton, EditorStyles.miniButtonRight))
+                if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(25)))
                 {
                     string newValue = browseFunction();
                     if (!string.IsNullOrEmpty(newValue) && validationFunction(newValue))
