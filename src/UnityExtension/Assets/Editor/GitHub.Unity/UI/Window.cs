@@ -78,6 +78,7 @@ namespace GitHub.Unity
 
         public override void Refresh()
         {
+            Logger.Debug("Refresh window");
             if (ActiveTab != null)
                 ActiveTab.Refresh();
         }
@@ -98,6 +99,13 @@ namespace GitHub.Unity
 
             if (ActiveTab != null)
                 ActiveTab.OnShow();
+            Refresh();
+        }
+
+        private void SwitchView(Subview from, Subview to)
+        {
+            from.OnHide();
+            to.OnShow();
             Refresh();
         }
 
@@ -240,16 +248,19 @@ namespace GitHub.Unity
             // Subtabs & toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
+                SubTab tab = activeTab;
                 EditorGUI.BeginChangeCheck();
                 {
-                    activeTab = TabButton(SubTab.Changes, ChangesTitle, activeTab);
-                    activeTab = TabButton(SubTab.History, HistoryTitle, activeTab);
-                    activeTab = TabButton(SubTab.Branches, BranchesTitle, activeTab);
-                    activeTab = TabButton(SubTab.Settings, SettingsTitle, activeTab);
+                    tab = TabButton(SubTab.Changes, ChangesTitle, tab);
+                    tab = TabButton(SubTab.History, HistoryTitle, tab);
+                    tab = TabButton(SubTab.Branches, BranchesTitle, tab);
+                    tab = TabButton(SubTab.Settings, SettingsTitle, tab);
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
-                    Refresh();
+                    var from = ActiveTab;
+                    activeTab = tab;
+                    SwitchView(from, ActiveTab);
                 }
 
                 GUILayout.FlexibleSpace();
@@ -332,48 +343,25 @@ namespace GitHub.Unity
         {
             get
             {
-                switch (activeTab)
-                {
-                    case SubTab.History:
-                        return historyTab;
-                    case SubTab.Changes:
-                        return changesTab;
-                    case SubTab.Branches:
-                        return branchesTab;
-                    case SubTab.Settings:
-                    default:
-                        return settingsTab;
-                        //throw new ArgumentException(String.Format(UnknownSubTabError, activeTab));
-                }
+                return ToView(activeTab);
             }
         }
 
-        //private class RefreshRunner : AssetPostprocessor
-        //{
-        //    public static void Initialize()
-        //    {
-        //        //Tasks.ScheduleMainThread(Refresh);
-        //    }
-
-        //    private static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moveDestination, string[] moveSource)
-        //    {
-        //        //Refresh();
-        //    }
-
-        //    private static void Refresh()
-        //    {
-        //        Utility.UnregisterReadyCallback(OnReady);
-        //        Utility.RegisterReadyCallback(OnReady);
-        //    }
-
-        //    private static void OnReady()
-        //    {
-        //        foreach (Window window in Resources.FindObjectsOfTypeAll(typeof(Window)))
-        //        {
-        //            window.Refresh();
-        //        }
-        //    }
-        //}
+        private Subview ToView(SubTab tab)
+        {
+            switch (tab)
+            {
+                case SubTab.History:
+                    return historyTab;
+                case SubTab.Changes:
+                    return changesTab;
+                case SubTab.Branches:
+                    return branchesTab;
+                case SubTab.Settings:
+                default:
+                    return settingsTab;
+            }
+        }
 
         private enum SubTab
         {

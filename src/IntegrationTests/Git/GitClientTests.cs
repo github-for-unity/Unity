@@ -8,9 +8,8 @@ using GitHub.Unity;
 using Rackspace.Threading;
 using System.Threading;
 using FluentAssertions;
-using IntegrationTests;
 
-namespace GitHub.Unity.IntegrationTests
+namespace IntegrationTests
 {
     [TestFixture]
     class GitClientTests : BaseGitIntegrationTest

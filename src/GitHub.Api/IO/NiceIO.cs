@@ -192,6 +192,28 @@ GitHub.Unity
             return new NPath(_elements.Skip(path._elements.Length).ToArray(), true, null);
         }
 
+        public NPath GetCommonParent(NPath path)
+        {
+            if (!IsChildOf(path))
+            {
+                if (!IsRelative && !path.IsRelative && _driveLetter != path._driveLetter)
+                    return null;
+
+                NPath commonParent = null;
+                foreach (var parent in new List<NPath> { this }.Concat(RecursiveParents))
+                {
+                    commonParent = path.RecursiveParents.FirstOrDefault(otherParent => otherParent == parent);
+                    if (commonParent != null)
+                        break;
+                }
+
+                if (IsRelative && path.IsRelative && commonParent.IsEmpty())
+                    return null;
+                return commonParent;
+            }
+            return path;
+        }
+
         public NPath ChangeExtension(string extension)
         {
             ThrowIfRoot();
@@ -336,6 +358,16 @@ GitHub.Unity
                     if (NPathFileSystemProvider.Current != null)
                         return NPathFileSystemProvider.Current.DirectorySeparatorChar;
                     return Path.DirectorySeparatorChar;
+            }
+        }
+
+        public static char DirectorySeparatorChar
+        {
+            get
+            {
+                if (NPathFileSystemProvider.Current != null)
+                    return NPathFileSystemProvider.Current.DirectorySeparatorChar;
+                return Path.DirectorySeparatorChar;
             }
         }
 
