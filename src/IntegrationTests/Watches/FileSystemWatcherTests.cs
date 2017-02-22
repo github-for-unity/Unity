@@ -11,6 +11,14 @@ using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
+    class TestUIDispatcher : BaseUIDispatcher
+    {
+        protected override void Run(Action<bool> onClose)
+        {
+            base.Run(onClose);
+        }
+    }
+
     [TestFixture]
     class FileSystemWatcherTests : BaseIntegrationTest
     {
@@ -19,7 +27,7 @@ namespace IntegrationTests
         {
             int expected = 9;
             int count = 0;
-            var platform = new Platform(Environment, FileSystem);
+            var platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
             var watcher = platform.FileSystemWatchFactory.GetOrCreate(TestBasePath, true);
 
             watcher.Created += f =>
@@ -52,7 +60,7 @@ namespace IntegrationTests
         {
             int expected = 9;
             int count = 0;
-            var platform = new Platform(Environment, FileSystem);
+            var platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
             var file = TestBasePath.Combine("file.txt").CreateFile();
             var watcher = platform.FileSystemWatchFactory.GetOrCreate(file);
 
@@ -64,7 +72,7 @@ namespace IntegrationTests
 
             watcher.Changed += f =>
             {
-                Logger.Debug("Changed {0} {1}", f, f.ToNPath().ReadAllText());
+                Logger.Debug("Changed {0} {1}", f, f.ReadAllText());
                 count++;
             };
 
