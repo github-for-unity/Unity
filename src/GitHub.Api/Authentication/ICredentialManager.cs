@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface ICredential : IDisposable
     {
@@ -16,5 +16,7 @@ namespace GitHub.Api
         Task<ICredential> Load(UriString host);
         Task Save(ICredential credential);
         Task Delete(UriString host);
+        bool HasCredentials();
+        ICredential CachedCredentials { get; }
     }
 }

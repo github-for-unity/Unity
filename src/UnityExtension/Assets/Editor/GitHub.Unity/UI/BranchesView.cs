@@ -44,11 +44,18 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
+            EntryPoint.Environment.Repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
         }
 
         public override void OnHide()
         {
             base.OnHide();
+            EntryPoint.Environment.Repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
+        }
+
+        private void RunRefreshEmbeddedOnMainThread()
+        {
+            Tasks.ScheduleMainThread(RefreshEmbedded);
         }
 
         public override void Refresh()
@@ -65,8 +72,22 @@ namespace GitHub.Unity
 
         public void RefreshEmbedded()
         {
-            GitListBranchesTask.ScheduleLocal(OnLocalBranchesUpdate);
-            GitListBranchesTask.ScheduleRemote(OnRemoteBranchesUpdate);
+            OnLocalBranchesUpdate(EntryPoint.Environment.Repository.LocalBranches);
+            OnRemoteBranchesUpdate(EntryPoint.Environment.Repository.RemoteBranches);
+
+            //ITask task = new GitListLocalBranchesTask(
+            //    EntryPoint.Environment, EntryPoint.ProcessManager,
+            //    new TaskResultDispatcher<IEnumerable<GitBranch>>(
+            //        list => Tasks.ScheduleMainThread(() => OnLocalBranchesUpdate(list)),
+            //        null));
+            //Tasks.Add(task);
+
+            //task = new GitListRemoteBranchesTask(
+            //    EntryPoint.Environment, EntryPoint.ProcessManager,
+            //    new TaskResultDispatcher<IEnumerable<GitBranch>>(
+            //        list => Tasks.ScheduleMainThread(() => OnRemoteBranchesUpdate(list)),
+            //        null));
+            //Tasks.Add(task);
         }
 
         public override void OnGUI()
@@ -459,7 +480,10 @@ namespace GitHub.Unity
                     // Effectuate create
                     if (createBranch)
                     {
-                        GitBranchCreateTask.Schedule(newBranchName, selectedNode.Name, Refresh);
+                        var task = new GitBranchCreateTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                            new MainThreadTaskResultDispatcher<string>(_ => Refresh()),
+                            newBranchName, selectedNode.Name);
+                        Tasks.Add(task);
                     }
 
                     // Cleanup
@@ -566,12 +590,17 @@ namespace GitHub.Unity
                         EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, node.Name), ConfirmSwitchOK,
                             ConfirmSwitchCancel))
                     {
-                        GitSwitchBranchesTask.Schedule(node.Name, Refresh);
+                        var task = new GitSwitchBranchesTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                            new MainThreadTaskResultDispatcher<string>(_ => Refresh()),
+                            node.Name);
+                        Tasks.Add(task);
                     }
                     else if (node.Type == NodeType.RemoteBranch)
                     {
-                        GitBranchCreateTask.Schedule(selectedNode.Name.Substring(selectedNode.Name.IndexOf('/') + 1), selectedNode.Name,
-                            Refresh);
+                        var task = new GitBranchCreateTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                            new MainThreadTaskResultDispatcher<string>(_ => Refresh()),
+                            selectedNode.Name.Substring(selectedNode.Name.IndexOf('/') + 1), selectedNode.Name);
+                        Tasks.Add(task);
                     }
                 }
             }

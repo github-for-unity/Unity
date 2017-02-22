@@ -1,7 +1,7 @@
 ﻿//The MIT License(MIT)
 //=====================
 //
-//Copyright © `2015-2017` `Lucas Meijer`
+//Copyright © 2015-2017 Lucas Meijer
 //
 //Permission is hereby granted, free of charge, to any person
 //obtaining a copy of this software and associated documentation
@@ -30,15 +30,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using GitHub.Api;
 
-namespace GitHub.Unity
+namespace
+#if NICEIO
+NiceIO
+#else
+GitHub.Unity
+#endif
 {
-    class NPathFileSystemProvider
-    {
-        public static IFileSystem Current { get; set; }
-    }
-
     public class NPath : IEquatable<NPath>, IComparable
     {
         private static StringComparison? pathStringComparison;
@@ -193,6 +192,28 @@ namespace GitHub.Unity
             return new NPath(_elements.Skip(path._elements.Length).ToArray(), true, null);
         }
 
+        public NPath GetCommonParent(NPath path)
+        {
+            if (!IsChildOf(path))
+            {
+                if (!IsRelative && !path.IsRelative && _driveLetter != path._driveLetter)
+                    return null;
+
+                NPath commonParent = null;
+                foreach (var parent in new List<NPath> { this }.Concat(RecursiveParents))
+                {
+                    commonParent = path.RecursiveParents.FirstOrDefault(otherParent => otherParent == parent);
+                    if (commonParent != null)
+                        break;
+                }
+
+                if (IsRelative && path.IsRelative && commonParent.IsEmpty())
+                    return null;
+                return commonParent;
+            }
+            return path;
+        }
+
         public NPath ChangeExtension(string extension)
         {
             ThrowIfRoot();
@@ -337,6 +358,16 @@ namespace GitHub.Unity
                     if (NPathFileSystemProvider.Current != null)
                         return NPathFileSystemProvider.Current.DirectorySeparatorChar;
                     return Path.DirectorySeparatorChar;
+            }
+        }
+
+        public static char DirectorySeparatorChar
+        {
+            get
+            {
+                if (NPathFileSystemProvider.Current != null)
+                    return NPathFileSystemProvider.Current.DirectorySeparatorChar;
+                return Path.DirectorySeparatorChar;
             }
         }
 
@@ -846,6 +877,14 @@ namespace GitHub.Unity
         {
             ThrowIfRelative();
             return NPathFileSystemProvider.Current.ReadAllLines(ToString());
+        }
+
+        public NPath WriteAllBytes(byte[] contents)
+        {
+            ThrowIfRelative();
+            EnsureParentDirectoryExists();
+            NPathFileSystemProvider.Current.WriteAllBytes(ToString(), contents);
+            return this;
         }
 
         public IEnumerable<NPath> CopyFiles(NPath destination, bool recurse, Func<NPath, bool> fileFilter = null)

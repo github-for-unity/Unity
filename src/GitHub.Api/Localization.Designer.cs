@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace GitHub.Api {
+namespace GitHub.Unity {
     using System;
     
     
@@ -22,7 +22,7 @@ namespace GitHub.Api {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Localization {
+    public class Localization {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,10 +36,10 @@ namespace GitHub.Api {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("GitHub.Api.Localization", typeof(Localization).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("GitHub.Unity.Localization", typeof(Localization).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -51,7 +51,7 @@ namespace GitHub.Api {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,9 +61,144 @@ namespace GitHub.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0}.
+        /// </summary>
+        public static string BasePathLabel {
+            get {
+                return ResourceManager.GetString("BasePathLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} changed files.
+        /// </summary>
+        public static string ChangedFilesLabel {
+            get {
+                return ResourceManager.GetString("ChangedFilesLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        public static string CommitButton {
+            get {
+                return ResourceManager.GetString("CommitButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All.
+        /// </summary>
+        public static string CommitSelectAllButton {
+            get {
+                return ResourceManager.GetString("CommitSelectAllButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        public static string CommitSelectNoneButton {
+            get {
+                return ResourceManager.GetString("CommitSelectNoneButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commit description.
+        /// </summary>
+        public static string DescriptionLabel {
+            get {
+                return ResourceManager.GetString("DescriptionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ....
+        /// </summary>
+        public static string GitInitBrowseButton {
+            get {
+                return ResourceManager.GetString("GitInitBrowseButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pick desired repository root.
+        /// </summary>
+        public static string GitInitBrowseTitle {
+            get {
+                return ResourceManager.GetString("GitInitBrowseTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set up git.
+        /// </summary>
+        public static string GitInitButton {
+            get {
+                return ResourceManager.GetString("GitInitButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (All).
+        /// </summary>
+        public static string HistoryFocusAll {
+            get {
+                return ResourceManager.GetString("HistoryFocusAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        public static string HistoryFocusSingle {
+            get {
+                return ResourceManager.GetString("HistoryFocusSingle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialize repository.
+        /// </summary>
+        public static string InitializeRepositoryButtonText {
+            get {
+                return ResourceManager.GetString("InitializeRepositoryButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your selected folder &apos;{0}&apos; is not a valid repository root for your current project..
+        /// </summary>
+        public static string InvalidInitDirectoryMessage {
+            get {
+                return ResourceManager.GetString("InvalidInitDirectoryMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OK.
+        /// </summary>
+        public static string InvalidInitDirectoryOK {
+            get {
+                return ResourceManager.GetString("InvalidInitDirectoryOK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid repository root.
+        /// </summary>
+        public static string InvalidInitDirectoryTitle {
+            get {
+                return ResourceManager.GetString("InvalidInitDirectoryTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Maximum number of logins exceeded. Please wait a few minutes before trying again..
         /// </summary>
-        internal static string LockedOut {
+        public static string LockedOut {
             get {
                 return ResourceManager.GetString("LockedOut", resourceCulture);
             }
@@ -72,16 +207,52 @@ namespace GitHub.Api {
         /// <summary>
         ///   Looks up a localized string similar to Login failed.
         /// </summary>
-        internal static string LoginFailed {
+        public static string LoginFailed {
             get {
                 return ResourceManager.GetString("LoginFailed", resourceCulture);
             }
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your current project is not currently in an active git repository:.
+        /// </summary>
+        public static string NoActiveRepositoryMessage {
+            get {
+                return ResourceManager.GetString("NoActiveRepositoryMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No repository found.
+        /// </summary>
+        public static string NoActiveRepositoryTitle {
+            get {
+                return ResourceManager.GetString("NoActiveRepositoryTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No changed files.
+        /// </summary>
+        public static string NoChangedFilesLabel {
+            get {
+                return ResourceManager.GetString("NoChangedFilesLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No changes found.
+        /// </summary>
+        public static string NoChangesLabel {
+            get {
+                return ResourceManager.GetString("NoChangesLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tried to run git task while git was not found..
         /// </summary>
-        internal static string NoGitError {
+        public static string NoGitError {
             get {
                 return ResourceManager.GetString("NoGitError", resourceCulture);
             }
@@ -90,16 +261,304 @@ namespace GitHub.Api {
         /// <summary>
         ///   Looks up a localized string similar to You need to log in..
         /// </summary>
-        internal static string NotLoggedIn {
+        public static string NotLoggedIn {
             get {
                 return ResourceManager.GetString("NotLoggedIn", resourceCulture);
             }
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ok.
+        /// </summary>
+        public static string Ok {
+            get {
+                return ResourceManager.GetString("Ok", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1 changed file.
+        /// </summary>
+        public static string OneChangedFileLabel {
+            get {
+                return ResourceManager.GetString("OneChangedFileLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull.
+        /// </summary>
+        public static string PullActionTitle {
+            get {
+                return ResourceManager.GetString("PullActionTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull.
+        /// </summary>
+        public static string PullButton {
+            get {
+                return ResourceManager.GetString("PullButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        public static string PullButtonCount {
+            get {
+                return ResourceManager.GetString("PullButtonCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string PullConfirmCancel {
+            get {
+                return ResourceManager.GetString("PullConfirmCancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Would you like to pull changes from remote &apos;{0}&apos;?.
+        /// </summary>
+        public static string PullConfirmDescription {
+            get {
+                return ResourceManager.GetString("PullConfirmDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull Changes?.
+        /// </summary>
+        public static string PullConfirmTitle {
+            get {
+                return ResourceManager.GetString("PullConfirmTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull.
+        /// </summary>
+        public static string PullConfirmYes {
+            get {
+                return ResourceManager.GetString("PullConfirmYes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not update local branch..
+        /// </summary>
+        public static string PullFailureDescription {
+            get {
+                return ResourceManager.GetString("PullFailureDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local branch is up to date with {0}.
+        /// </summary>
+        public static string PullSuccessDescription {
+            get {
+                return ResourceManager.GetString("PullSuccessDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Push.
+        /// </summary>
+        public static string PushActionTitle {
+            get {
+                return ResourceManager.GetString("PushActionTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Push.
+        /// </summary>
+        public static string PushButton {
+            get {
+                return ResourceManager.GetString("PushButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        public static string PushButtonCount {
+            get {
+                return ResourceManager.GetString("PushButtonCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string PushConfirmCancel {
+            get {
+                return ResourceManager.GetString("PushConfirmCancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Would you like to push changes to remote &apos;{0}&apos;?.
+        /// </summary>
+        public static string PushConfirmDescription {
+            get {
+                return ResourceManager.GetString("PushConfirmDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Push Changes?.
+        /// </summary>
+        public static string PushConfirmTitle {
+            get {
+                return ResourceManager.GetString("PushConfirmTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Push.
+        /// </summary>
+        public static string PushConfirmYes {
+            get {
+                return ResourceManager.GetString("PushConfirmYes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not push branch.
+        /// </summary>
+        public static string PushFailureDescription {
+            get {
+                return ResourceManager.GetString("PushFailureDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Branch pushed.
+        /// </summary>
+        public static string PushSuccessDescription {
+            get {
+                return ResourceManager.GetString("PushSuccessDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Refresh.
+        /// </summary>
+        public static string RefreshButton {
+            get {
+                return ResourceManager.GetString("RefreshButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Access.
+        /// </summary>
+        public static string RemoteAccessTitle {
+            get {
+                return ResourceManager.GetString("RemoteAccessTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Host.
+        /// </summary>
+        public static string RemoteHostTitle {
+            get {
+                return ResourceManager.GetString("RemoteHostTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        public static string RemoteNameTitle {
+            get {
+                return ResourceManager.GetString("RemoteNameTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remotes.
+        /// </summary>
+        public static string RemotesTitle {
+            get {
+                return ResourceManager.GetString("RemotesTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User.
+        /// </summary>
+        public static string RemoteUserTitle {
+            get {
+                return ResourceManager.GetString("RemoteUserTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commit summary.
+        /// </summary>
+        public static string SummaryLabel {
+            get {
+                return ResourceManager.GetString("SummaryLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to GitHub.
+        /// </summary>
+        public static string Title {
+            get {
+                return ResourceManager.GetString("Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported view mode: {0}.
+        /// </summary>
+        public static string UnknownViewModeError {
+            get {
+                return ResourceManager.GetString("UnknownViewModeError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes.
+        /// </summary>
+        public static string ViewModeChangesTab {
+            get {
+                return ResourceManager.GetString("ViewModeChangesTab", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to History.
+        /// </summary>
+        public static string ViewModeHistoryTab {
+            get {
+                return ResourceManager.GetString("ViewModeHistoryTab", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings.
+        /// </summary>
+        public static string ViewModeSettingsTab {
+            get {
+                return ResourceManager.GetString("ViewModeSettingsTab", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Wrong 2FA code.
         /// </summary>
-        internal static string Wrong2faCode {
+        public static string Wrong2faCode {
             get {
                 return ResourceManager.GetString("Wrong2faCode", resourceCulture);
             }

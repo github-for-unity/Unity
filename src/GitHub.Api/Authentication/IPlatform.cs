@@ -1,10 +1,16 @@
 ﻿using GitHub.Unity;
+using System.Threading.Tasks;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface IPlatform
     {
-        ICredentialManager GetCredentialManager(IProcessManager processManager);
-        IGitEnvironment GitEnvironment { get; }
+        Task<IPlatform> Initialize(IProcessManager processManager);
+        IProcessEnvironment GitEnvironment { get; }
+        ICredentialManager CredentialManager { get; }
+        IFileSystemWatchFactory FileSystemWatchFactory { get; }
+        IEnvironment Environment { get; }
+        IProcessManager ProcessManager { get; }
+        IUIDispatcher UIDispatcher { get; }
     }
 }

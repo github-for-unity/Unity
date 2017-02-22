@@ -25,13 +25,7 @@ namespace GitHub.Unity
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
         [SerializeField] private Vector2 horizontalScroll;
-        [SerializeField] private Vector2 verticalScroll;
         [SerializeField] private ChangesetTreeView tree = new ChangesetTreeView();
-
-        public override void Refresh()
-        {
-            StatusService.Instance.Run();
-        }
 
         public override void Initialize(IView parent)
         {
@@ -42,78 +36,19 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
-            StatusService.Instance.RegisterCallback(OnStatusUpdate);
+            OnStatusUpdate(EntryPoint.Environment.Repository.CurrentStatus);
+            EntryPoint.Environment.Repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
         }
 
         public override void OnHide()
         {
             base.OnHide();
-            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
+            EntryPoint.Environment.Repository.OnRepositoryChanged -= RunStatusUpdateOnMainThread;
         }
 
-        public override void OnGUI()
+        private void RunStatusUpdateOnMainThread(GitStatus status)
         {
-            var scroll = verticalScroll;
-            scroll = GUILayout.BeginScrollView(verticalScroll);
-            {
-                if (tree.Height > 0)
-                {
-                    verticalScroll = scroll;
-                }
-
-                GUILayout.BeginHorizontal();
-                {
-                    EditorGUI.BeginDisabledGroup(tree.Entries.Count == 0);
-                    {
-                        if (GUILayout.Button(SelectAllButton, EditorStyles.miniButtonLeft))
-                        {
-                            SelectAll();
-                        }
-
-                        if (GUILayout.Button(SelectNoneButton, EditorStyles.miniButtonRight))
-                        {
-                            SelectNone();
-                        }
-                    }
-                    EditorGUI.EndDisabledGroup();
-
-                    GUILayout.FlexibleSpace();
-
-                    GUILayout.Label(
-                        tree.Entries.Count == 0
-                            ? NoChangedFilesLabel
-                            : tree.Entries.Count == 1 ? OneChangedFileLabel : String.Format(ChangedFilesLabel, tree.Entries.Count),
-                        EditorStyles.miniLabel);
-                }
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
-                {
-                    // Specify a minimum height if we can - avoiding vertical scrollbars on both the outer and inner scroll view
-                    if (tree.Height > 0)
-                    {
-                        horizontalScroll = GUILayout.BeginScrollView(horizontalScroll, GUILayout.MinHeight(tree.Height),
-                            GUILayout.MaxHeight(100000f)
-                            // NOTE: This ugliness is necessary as unbounded MaxHeight appears impossible when MinHeight is specified
-                            );
-                    }
-
-                    else // if we have no minimum height to work with, just stretch and hope
-                    {
-                        horizontalScroll = GUILayout.BeginScrollView(horizontalScroll);
-                    }
-
-                    {// scroll view block started above
-                        tree.OnGUI();
-                    }
-                    GUILayout.EndScrollView();
-                }
-                GUILayout.EndVertical();
-
-                // Do the commit details area
-                OnCommitDetailsAreaGUI();
-            }
-            GUILayout.EndScrollView();
+            Tasks.ScheduleMainThread(() => OnStatusUpdate(status));
         }
 
         private void OnStatusUpdate(GitStatus update)
@@ -131,6 +66,48 @@ namespace GitHub.Unity
             tree.UpdateEntries(update.Entries);
 
             lockCommit = false;
+        }
+
+
+        public override void OnGUI()
+        {
+            GUILayout.BeginHorizontal();
+            {
+                EditorGUI.BeginDisabledGroup(tree.Entries.Count == 0);
+                {
+                    if (GUILayout.Button(SelectAllButton, EditorStyles.miniButtonLeft))
+                    {
+                        SelectAll();
+                    }
+
+                    if (GUILayout.Button(SelectNoneButton, EditorStyles.miniButtonRight))
+                    {
+                        SelectNone();
+                    }
+                }
+                EditorGUI.EndDisabledGroup();
+
+                GUILayout.FlexibleSpace();
+
+                GUILayout.Label(
+                    tree.Entries.Count == 0
+                        ? NoChangedFilesLabel
+                        : tree.Entries.Count == 1 ? OneChangedFileLabel : String.Format(ChangedFilesLabel, tree.Entries.Count),
+                    EditorStyles.miniLabel);
+            }
+            GUILayout.EndHorizontal();
+
+            horizontalScroll = GUILayout.BeginScrollView(horizontalScroll);
+            GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
+            {
+                tree.OnGUI();
+            }
+            GUILayout.EndVertical();
+            GUILayout.EndScrollView();
+
+
+            // Do the commit details area
+            OnCommitDetailsAreaGUI();
         }
 
         private void OnCommitDetailsAreaGUI()
@@ -202,21 +179,27 @@ namespace GitHub.Unity
             // Do not allow new commits before we have received one successful update
             lockCommit = true;
 
-            // Schedule the commit with the selected files
-            GitCommitTask.Schedule(
-                Enumerable.Range(0, tree.Entries.Count).Where(i => tree.CommitTargets[i].All).Select(i => tree.Entries[i].Path),
-                commitMessage,
-                commitBody,
-                () => {
-                    commitMessage = "";
-                    commitBody = "";
-                    for (var index = 0; index < tree.Entries.Count; ++index)
-                    {
-                        tree.CommitTargets[index].Clear();
-                    }
-                },
-                () => lockCommit = false
-            );
+            // Schedule the commit with the added files
+            var files = Enumerable.Range(0, tree.Entries.Count).Where(i => tree.CommitTargets[i].All).Select(i => tree.Entries[i].Path);
+
+            var commitTask = new GitCommitTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                                    new MainThreadTaskResultDispatcher<string>(_ => {
+                                        commitMessage = "";
+                                        commitBody = "";
+                                        for (var index = 0; index < tree.Entries.Count; ++index)
+                                        {
+                                            tree.CommitTargets[index].Clear();
+                                        }
+                                    },
+                                () => lockCommit = false),
+                                commitMessage,
+                                commitBody);
+
+            // run add, then commit
+            var addTask = new GitAddTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                            TaskResultDispatcher.Default.GetDispatcher<string>(_ => Tasks.Add(commitTask), () => lockCommit = false),
+                            files);
+            Tasks.Add(addTask);
         }
     }
 }

@@ -6,8 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using UnityEditor;
-using UnityEngine;
-using UnityEngine.Events;
 
 /*
 
@@ -23,21 +21,11 @@ using UnityEngine.Events;
 
 namespace GitHub.Unity
 {
-    class TaskResultDispatcher : ITaskResultDispatcher
+    class TaskQueueScheduler : ITaskQueueScheduler
     {
-        public void ReportFailure(Action callback)
+        public void Queue(ITask task)
         {
-            Tasks.ScheduleMainThread(callback);
-        }
-
-        public void ReportFailure(FailureSeverity severity, string title, string error)
-        {
-            Tasks.ReportFailure(severity, title, error);
-        }
-
-        public void ReportSuccess(Action callback)
-        {
-            Tasks.ScheduleMainThread(callback);
+            Tasks.Add(task);
         }
     }
 
@@ -117,15 +105,17 @@ namespace GitHub.Unity
 
         private void AddTask(ITask task)
         {
-            //logger.Debug("Adding Task: \"{0}\" Label: \"{1}\"", task.GetType().Name, task.Label);
             lock (tasksLock)
             {
                 if ((task.Queued == TaskQueueSetting.NoQueue && tasks.Count > 0) ||
-                    (task.Queued == TaskQueueSetting.QueueSingle && tasks.Any(t => t.GetType() == task.GetType())))
+                    (task.Queued == TaskQueueSetting.QueueSingle &&
+                        ((activeTask != null && activeTask.GetType() == task.GetType()) ||
+                        tasks.Any(t => t.GetType() == task.GetType()))))
                 {
                     return;
                 }
 
+                logger.Trace("Adding Task: \"{0}\" Label: \"{1}\" ActiveTask: \"{2}\"", task.GetType().Name, task.Label, activeTask);
                 tasks.Enqueue(task);
             }
 
@@ -170,7 +160,7 @@ namespace GitHub.Unity
                         Action act = null;
                         while (scheduledCalls.TryDequeue(out act))
                         {
-                            act();
+                            act.SafeInvoke();
                         }
                     });
                     callerFlag = 0;
@@ -307,6 +297,7 @@ namespace GitHub.Unity
                             {
                                 logger.Error("Could not dequeue task");
                             }
+                            logger.Trace("Dequeued new task {0}", activeTask.Label);
                             //activeTask.OnBegin = task => ScheduleMainThread(WriteCache);
                             if (activeTask.Blocking)
                             {
@@ -464,34 +455,36 @@ namespace GitHub.Unity
 
         private ITask ParseTask(IDictionary<string, object> data)
         {
-            CachedTask type;
+            //CachedTask type;
 
-            try
-            {
-                type = (CachedTask)Enum.Parse(typeof(CachedTask), (string)data[TypeKey]);
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            //try
+            //{
+            //    type = (CachedTask)Enum.Parse(typeof(CachedTask), (string)data[TypeKey]);
+            //}
+            //catch (Exception)
+            //{
+            //    return null;
+            //}
 
-            try
-            {
-                switch (type)
-                {
-                    case CachedTask.ProcessTask:
-                        return ProcessTask.Parse(
-                            EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
-                            data);
-                    default:
-                        logger.Error(TaskParseUnhandledTypeError, type);
-                        return null;
-                }
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            //try
+            //{
+            //    switch (type)
+            //    {
+            //        case CachedTask.ProcessTask:
+            //            return ProcessTask.Parse(
+            //                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
+            //                data);
+            //        default:
+            //            logger.Error(TaskParseUnhandledTypeError, type);
+            //            return null;
+            //    }
+            //}
+            //catch (Exception)
+            //{
+            //    return null;
+            //}
+
+            return null;
         }
 
         /// <summary>
@@ -571,17 +564,5 @@ namespace GitHub.Unity
         };
 
         private delegate void ProgressBarDisplayMethod(string text, float progress);
-    }
-
-    static class TaskDispatcher
-    {
-        public static void ScheduleGitRemoteList(Action<IList<GitRemote>> onSuccess, Action onFailure = null)
-        {
-            Tasks.Add(new GitRemoteListTask(
-                EntryPoint.Environment, EntryPoint.ProcessManager, EntryPoint.TaskResultDispatcher,
-                onSuccess, onFailure));
-        }
-
-
     }
 }
