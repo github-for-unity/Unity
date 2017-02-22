@@ -27,6 +27,7 @@ namespace GitHub.Unity
         private readonly IRepositoryProcessRunner processRunner;
         private readonly IRepository repository;
         private readonly NPath repositoryPath;
+        private readonly CancellationToken cancellationToken;
         private readonly NPath dotGitPath;
         private readonly NPath dotGitIndex;
         private readonly NPath dotGitHead;
@@ -59,6 +60,7 @@ namespace GitHub.Unity
         public RepositoryManager(NPath path, IPlatform platform, CancellationToken cancellationToken)
         {
             repositoryPath = path;
+            this.cancellationToken = cancellationToken;
             dotGitPath = path.Combine(".git");
             if (dotGitPath.FileExists())
             {
@@ -145,8 +147,8 @@ namespace GitHub.Unity
                     {
                     });
 
-                Task.Factory.StartNew(() => Thread.Sleep(1000))
-                    .ContinueWith(_ => processRunner.RunGitStatus(result).Start());
+                TaskEx.Delay(1000, cancellationToken)
+                    .ContinueWith(_ => processRunner.RunGitStatus(result));
             }
         }
         
