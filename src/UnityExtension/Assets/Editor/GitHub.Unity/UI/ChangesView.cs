@@ -53,7 +53,6 @@ namespace GitHub.Unity
 
         private void OnStatusUpdate(GitStatus update)
         {
-            Logger.Debug("OnStatusUpdate '{0}'", update.Entries);
             if (update.Entries == null)
             {
                 Refresh();

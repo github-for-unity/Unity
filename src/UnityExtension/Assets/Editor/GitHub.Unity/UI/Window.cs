@@ -78,7 +78,6 @@ namespace GitHub.Unity
 
         public override void Refresh()
         {
-            Logger.Debug("Refresh window");
             if (ActiveTab != null)
                 ActiveTab.Refresh();
         }

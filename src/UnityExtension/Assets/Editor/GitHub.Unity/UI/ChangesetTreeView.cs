@@ -456,7 +456,6 @@ namespace GitHub.Unity
                 }
                 set
                 {
-                    Logger.Debug("Set commit state {0} {1}", Label, value);
                     if (value == CommitState.Some || value == State)
                     {
                         return;
