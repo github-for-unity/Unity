@@ -53,6 +53,9 @@ namespace GitHub.Unity
         private const string NewGitIgnoreRuleButton = "New";
         private const string DeleteGitIgnoreRuleButton = "Delete";
 
+        string gitName = "";
+        string gitEmail = "";
+
         [NonSerialized] private int newGitIgnoreRulesSelection = -1;
 
         [SerializeField] private int gitIgnoreRulesSelection = 0;
@@ -92,6 +95,10 @@ namespace GitHub.Unity
                     // TODO: Clean up OnGitIgnoreRulesList
                     // gitignore rules list
                     // OnGitIgnoreRulesGUI();
+
+                    GUILayout.Label("Git Configuration", EditorStyles.boldLabel);
+                    gitName = EditorGUILayout.TextField("Name", gitName);
+                    gitEmail = EditorGUILayout.TextField("Email", gitEmail);
 
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
