@@ -3,3 +3,6 @@
 *.mdb
 *.xml
 *.local.json
+
+# ignoring this for now
+*.meta
