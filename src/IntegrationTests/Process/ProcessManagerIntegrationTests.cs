@@ -5,6 +5,7 @@ using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
 using GitHub.Unity;
+using System.Threading;
 
 namespace IntegrationTests
 {
@@ -18,7 +19,7 @@ namespace IntegrationTests
             NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem);
+            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
@@ -37,7 +38,7 @@ namespace IntegrationTests
             NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem);
+            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
@@ -94,7 +95,7 @@ namespace IntegrationTests
             NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem);
+            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
@@ -119,20 +120,21 @@ namespace IntegrationTests
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = TestGitRepoPath;
             
-            var platform = new Platform(environment, filesystem);
+            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
             var gitClient = new RepositoryLocator(TestGitRepoPath);
-            environment.Repository = gitClient.GetRepository();
-
-            environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
-
-            var gitStatus = processManager.GetGitStatus(TestGitRepoPath, environment, filesystem, gitEnvironment);
-
-            gitStatus.AssertEqual(new GitStatus()
+            using (var repoManager = new RepositoryManager(TestGitRepoPath, platform, CancellationToken.None))
             {
-                LocalBranch = "master",
-                Entries = new List<GitStatusEntry>
+
+                environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
+
+                var gitStatus = processManager.GetGitStatus(TestGitRepoPath, environment, filesystem, gitEnvironment);
+
+                gitStatus.AssertEqual(new GitStatus()
+                {
+                    LocalBranch = "master",
+                    Entries = new List<GitStatusEntry>
                 {
                     new GitStatusEntry("Assets/Added Document.txt".ToNPath(),
                         testRepo.Combine("Assets/Added Document.txt"),
@@ -149,7 +151,8 @@ namespace IntegrationTests
                         "Assets/Untracked Document.txt".ToNPath(),
                         GitFileStatus.Untracked),
                 }
-            });
+                });
+            }
         }
 
         //[Test]
@@ -159,7 +162,7 @@ namespace IntegrationTests
             NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem);
+            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
             environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);

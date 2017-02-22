@@ -53,26 +53,26 @@ namespace GitHub.Unity.IntegrationTests
             }
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
             environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem);
+            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
-            var gitClient = new RepositoryLocator(TestGitRepoPath);
-            environment.Repository = gitClient.GetRepository();
+            using (var repoManager = new RepositoryManager(TestGitRepoPath, platform, CancellationToken.None))
+            {
+                environment.Repository = repoManager.Repository;
 
-            var credentialManager = new WindowsCredentialManager(environment, processManager);
+                var credentialManager = new WindowsCredentialManager(environment, processManager);
 
-            string credHelper = null;
-            var task = new GitConfigGetTask(environment, processManager, null,
-                "credential.helper", GitConfigSource.NonSpecified,
-                x =>
-                {
-                    credHelper = x;
-                },
-                null);
+                string credHelper = null;
+                var task = new GitConfigGetTask(environment, processManager,
+                    new TaskResultDispatcher<string>(x =>
+                    {
+                        credHelper = x;
+                    }),
+                    "credential.helper", GitConfigSource.NonSpecified);
 
-            await task.RunAsync(CancellationToken.None);
-            Assert.NotNull(credHelper);
-
+                await task.RunAsync(CancellationToken.None);
+                Assert.NotNull(credHelper);
+            }
 
             //string remoteUrl = null;
             //var ret = await GitTask.Run(environment, processManager, "remote get-url origin-http", x => remoteUrl = x);
