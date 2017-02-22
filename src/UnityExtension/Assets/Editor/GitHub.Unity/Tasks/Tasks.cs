@@ -160,7 +160,7 @@ namespace GitHub.Unity
                         Action act = null;
                         while (scheduledCalls.TryDequeue(out act))
                         {
-                            act();
+                            act.SafeInvoke();
                         }
                     });
                     callerFlag = 0;
