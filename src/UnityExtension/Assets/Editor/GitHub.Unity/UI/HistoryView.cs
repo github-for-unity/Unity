@@ -70,8 +70,8 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
+            UpdateLog();
             EntryPoint.Environment.Repository.OnCommitChanged += UpdateLog;
-            Refresh();
         }
 
         public override void OnHide()
