@@ -410,9 +410,6 @@ namespace GitHub.Unity
                 if (accountDropdownButtonStyle == null)
                 {
                     accountDropdownButtonStyle = new GUIStyle(GUI.skin.FindStyle("IN LockButton"));
-                    accountDropdownButtonStyle.name = "AccountDropdownButtonStyle";
-                    accountDropdownButtonStyle.normal.background = DropdownListIcon;
-                    accountDropdownButtonStyle.active.background = DropdownListIcon;
 
                 }
                 accountDropdownButtonStyle.margin = new RectOffset(3, 3, 2, 2);

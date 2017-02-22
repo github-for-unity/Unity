@@ -248,7 +248,7 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-                if(GUILayout.Button("•", Styles.AccountDropdownButtonStyle))
+                if(GUILayout.Button("Account", EditorStyles.toolbarDropDown))
                   DoAccountDropdown();
             }
 
