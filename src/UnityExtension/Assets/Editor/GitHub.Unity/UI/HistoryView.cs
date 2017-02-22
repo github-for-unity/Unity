@@ -70,8 +70,8 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
+            UpdateLog();
             EntryPoint.Environment.Repository.OnCommitChanged += UpdateLog;
-            Refresh();
         }
 
         public override void OnHide()
@@ -534,7 +534,8 @@ namespace GitHub.Unity
 
         private void Pull()
         {
-            if (EntryPoint.Environment.Repository.CurrentStatus.Entries.Count > 0)
+            var status = EntryPoint.Environment.Repository.CurrentStatus;
+            if (status.Entries != null && status.Entries.Count > 0)
             {
                 EntryPoint.TaskResultDispatcher.ReportFailure(FailureSeverity.Critical, "Pull", "You need to commit your changes before pulling.");
             }
@@ -548,11 +549,6 @@ namespace GitHub.Unity
             });
 
             var task = EntryPoint.Environment.Repository.Pull(resultDispatcher);
-            //var branch = EntryPoint.Environment.Repository.CurrentBranch;
-            //var task = new GitPullTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-            //    ,
-            //    EntryPoint.CredentialManager, new AuthenticationUIDispatcher(),
-            //    remote, branch);
             Tasks.Add(task);
         }
 
@@ -566,17 +562,6 @@ namespace GitHub.Unity
                     Localization.Ok);
             });
             var task = EntryPoint.Environment.Repository.Push(resultDispatcher);
-
-            //var branch = EntryPoint.Environment.Repository.CurrentBranch;
-            //var task = new GitPushTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-            //    new MainThreadTaskResultDispatcher<string>(_ =>
-            //    {
-            //        EditorUtility.DisplayDialog(Localization.PushActionTitle,
-            //            String.Format(Localization.PushSuccessDescription, remote),
-            //            Localization.Ok);
-            //    }),
-            //    EntryPoint.CredentialManager, new AuthenticationUIDispatcher(),
-            //    remote, branch, true);
             Tasks.Add(task);
         }
 

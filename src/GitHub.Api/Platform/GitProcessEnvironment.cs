@@ -56,8 +56,6 @@ namespace GitHub.Unity
             // We need to essentially fake up what git-cmd.bat does
             string homeDir = Environment.UserProfilePath;
 
-            var userPath = Environment.Path;
-
             var appPath = workingDirectory;
             var gitPathRoot = Environment.GitInstallPath;
             var gitLfsPath = Environment.GitInstallPath;
@@ -78,10 +76,12 @@ namespace GitHub.Unity
 
             if (Environment.IsWindows)
             {
+                var userPath = @"C:\windows\system32;C:\windows";
                 psi.EnvironmentVariables["PATH"] = String.Format(CultureInfo.InvariantCulture, @"{0}\cmd;{0}\usr\bin;{0}\mingw32\libexec\git-core;{0}\mingw64\libexec\git-core;{0}\usr\share\git-tfs;{1};{2};{3}{4}", gitPathRoot, appPath, gitLfsPath, userPath, developerPaths);
             }
             else
             {
+                var userPath = Environment.Path;
                 psi.EnvironmentVariables["PATH"] = String.Format(CultureInfo.InvariantCulture, @"{0}:{0}/libexec/git-core:{1}:{2}:{3}{4}", gitPathRoot, appPath, gitLfsPath, userPath, developerPaths);
             }
             psi.EnvironmentVariables["GIT_EXEC_PATH"] = Environment.GitInstallPath;
@@ -93,16 +93,16 @@ namespace GitHub.Unity
             //}
 
 
-            //psi.EnvironmentVariables["HOME"] = homeDir;
-            //psi.EnvironmentVariables["TMP"] = psi.EnvironmentVariables["TEMP"] = FileSystem.GetTempPath();
+            psi.EnvironmentVariables["HOME"] = homeDir;
+            psi.EnvironmentVariables["TMP"] = psi.EnvironmentVariables["TEMP"] = FileSystem.GetTempPath();
             //psi.EnvironmentVariables["EDITOR"] = Environment.GetEnvironmentVariable("EDITOR");
 
-            //var httpProxy = Environment.GetEnvironmentVariable("HTTP_PROXY");
-            //if (!String.IsNullOrEmpty(httpProxy))
-            //    psi.EnvironmentVariables["HTTP_PROXY"] = httpProxy;
-            //var httpsProxy = Environment.GetEnvironmentVariable("HTTPS_PROXY");
-            //if (!String.IsNullOrEmpty(httpsProxy))
-            //    psi.EnvironmentVariables["HTTPS_PROXY"] = httpsProxy;
+            var httpProxy = Environment.GetEnvironmentVariable("HTTP_PROXY");
+            if (!String.IsNullOrEmpty(httpProxy))
+                psi.EnvironmentVariables["HTTP_PROXY"] = httpProxy;
+            var httpsProxy = Environment.GetEnvironmentVariable("HTTPS_PROXY");
+            if (!String.IsNullOrEmpty(httpsProxy))
+                psi.EnvironmentVariables["HTTPS_PROXY"] = httpsProxy;
 
             //var existingSshAgentProcess = sshAgentBridge.GetRunningSshAgentInfo();
             //if (existingSshAgentProcess != null)

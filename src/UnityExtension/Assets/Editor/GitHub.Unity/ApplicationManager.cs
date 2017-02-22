@@ -59,6 +59,8 @@ namespace GitHub.Unity
                     ProjectWindowInterface.Initialize();
 
                     Window.Initialize();
+
+                    logger.Debug("Application Restarted");
                 }, Scheduler);
         }
 

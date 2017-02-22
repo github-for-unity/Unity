@@ -71,7 +71,7 @@ namespace GitHub.Unity
         public override void Run(CancellationToken cancellationToken)
         {
             this.cancellationToken = cancellationToken;
-            Logger.Debug("RunTask Label:\"{0}\" Type:{1}", Label, process == null ? "start" : "reconnect");
+            Logger.Trace("RunTask Label:\"{0}\" Type:{1}", Label, process == null ? "start" : "reconnect");
 
             Done = false;
             Progress = 0.0f;

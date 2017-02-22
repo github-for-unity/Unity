@@ -3,6 +3,7 @@
 using GitHub.Unity;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 // using Debug = System.Diagnostics.Debug;
@@ -37,6 +38,20 @@ namespace GitHub.Unity
 
         private static bool initialized;
 
+        [MenuItem(LaunchMenu)]
+        public static void Launch()
+        {
+            var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.InspectorWindow");
+            GetWindow<Window>(type).Show();
+        }
+
+        [MenuItem("Window/GitHub Command Line")]
+        public static void LaunchCommandLine()
+        {
+            EntryPoint.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
+        }
+
+
         public static void Initialize()
         {
             initialized = true;
@@ -48,12 +63,6 @@ namespace GitHub.Unity
             }
         }
 
-        [MenuItem(LaunchMenu)]
-        public static void Launch()
-        {
-            var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.InspectorWindow");
-            GetWindow<Window>(type).Show();
-        }
 
         public override void OnEnable()
         {
@@ -92,6 +101,13 @@ namespace GitHub.Unity
 
             if (ActiveTab != null)
                 ActiveTab.OnShow();
+            Refresh();
+        }
+
+        private void SwitchView(Subview from, Subview to)
+        {
+            from.OnHide();
+            to.OnShow();
             Refresh();
         }
 
@@ -164,19 +180,6 @@ namespace GitHub.Unity
                     {
                         var repoInit = new RepositoryInitializer(EntryPoint.Environment, EntryPoint.ProcessManager, new TaskQueueScheduler(), EntryPoint.AppManager);
                         repoInit.Run();
-
-                        //var task = new GitInitTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                        //    new TaskResultDispatcher<string>(_ =>
-                        //    {
-                        //        EntryPoint.AppManager.RestartRepository();
-                        //    })
-
-                        //    //new MainThreadTaskResultDispatcher<string>(_ =>
-                        //    //{
-                        //    //    EditorUtility.DisplayDialog("Init!", "Init success!", Localization.Ok);
-                        //    //})
-                        //    );
-                        //Tasks.Add(task);
                     }
                     GUILayout.FlexibleSpace();
                 }
@@ -234,16 +237,59 @@ namespace GitHub.Unity
             // Subtabs & toolbar
             Rect mainNavRect = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
+                SubTab tab = activeTab;
                 EditorGUI.BeginChangeCheck();
                 {
-                    activeTab = TabButton(SubTab.Changes, ChangesTitle, activeTab);
-                    activeTab = TabButton(SubTab.History, HistoryTitle, activeTab);
-                    activeTab = TabButton(SubTab.Branches, BranchesTitle, activeTab);
-                    activeTab = TabButton(SubTab.Settings, SettingsTitle, activeTab);
+                    tab = TabButton(SubTab.Changes, ChangesTitle, tab);
+                    tab = TabButton(SubTab.History, HistoryTitle, tab);
+                    tab = TabButton(SubTab.Branches, BranchesTitle, tab);
+                    tab = TabButton(SubTab.Settings, SettingsTitle, tab);
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
-                    Refresh();
+                    var from = ActiveTab;
+                    activeTab = tab;
+                    SwitchView(from, ActiveTab);
+                }
+
+                if (EntryPoint.CredentialManager != null && EntryPoint.CredentialManager.HasCredentials())
+                {
+                    if (loggedInStrings == null)
+                    {
+                        loggedInStrings = new string[] { EntryPoint.CredentialManager.CachedCredentials.Username, "Sign out" };
+                    }
+
+                    EditorGUI.BeginChangeCheck();
+                    {
+                        signedInDropdown = EditorGUILayout.Popup(signedInDropdown, loggedInStrings, EditorStyles.toolbarPopup);
+                    }
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        if (signedInDropdown == 1)
+                        {
+                            var task = new SimpleTask(() => EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedCredentials.Host));
+                            Tasks.Add(task);
+                            signedInDropdown = 0;
+                        }
+                    }
+                }
+                else
+                {
+                    if (EntryPoint.CredentialManager != null && EntryPoint.Environment.Repository != null &&
+                        !String.IsNullOrEmpty(EntryPoint.Environment.Repository.CloneUrl))
+                    {
+                        var task = new SimpleTask(() => EntryPoint.CredentialManager.Load(EntryPoint.Environment.Repository.CloneUrl));
+                        Tasks.Add(task);
+                    }
+
+                    EditorGUI.BeginChangeCheck();
+                    {
+                        signedOutDropdown = EditorGUILayout.Popup(signedOutDropdown, loggedOutStrings, EditorStyles.toolbarPopup);
+                    }
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        AuthenticationWindow.Open(_ => signedOutDropdown = 0);
+                    }
                 }
 
                 GUILayout.FlexibleSpace();
@@ -272,6 +318,11 @@ namespace GitHub.Unity
           Debug.Log("Click:");
           Debug.Log(obj);
         }
+
+        [SerializeField] private int signedInDropdown;
+        [SerializeField] private int signedOutDropdown;
+        private string[] loggedInStrings;
+        private string[] loggedOutStrings = new string[] { "Sign in" };
 
         private bool ValidateSettings()
         {
@@ -348,48 +399,25 @@ namespace GitHub.Unity
         {
             get
             {
-                switch (activeTab)
-                {
-                    case SubTab.History:
-                        return historyTab;
-                    case SubTab.Changes:
-                        return changesTab;
-                    case SubTab.Branches:
-                        return branchesTab;
-                    case SubTab.Settings:
-                    default:
-                        return settingsTab;
-                        //throw new ArgumentException(String.Format(UnknownSubTabError, activeTab));
-                }
+                return ToView(activeTab);
             }
         }
 
-        //private class RefreshRunner : AssetPostprocessor
-        //{
-        //    public static void Initialize()
-        //    {
-        //        //Tasks.ScheduleMainThread(Refresh);
-        //    }
-
-        //    private static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moveDestination, string[] moveSource)
-        //    {
-        //        //Refresh();
-        //    }
-
-        //    private static void Refresh()
-        //    {
-        //        Utility.UnregisterReadyCallback(OnReady);
-        //        Utility.RegisterReadyCallback(OnReady);
-        //    }
-
-        //    private static void OnReady()
-        //    {
-        //        foreach (Window window in Resources.FindObjectsOfTypeAll(typeof(Window)))
-        //        {
-        //            window.Refresh();
-        //        }
-        //    }
-        //}
+        private Subview ToView(SubTab tab)
+        {
+            switch (tab)
+            {
+                case SubTab.History:
+                    return historyTab;
+                case SubTab.Changes:
+                    return changesTab;
+                case SubTab.Branches:
+                    return branchesTab;
+                case SubTab.Settings:
+                default:
+                    return settingsTab;
+            }
+        }
 
         private enum SubTab
         {

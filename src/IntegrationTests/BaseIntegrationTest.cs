@@ -57,6 +57,7 @@ namespace IntegrationTests
         [SetUp]
         public void SetUp()
         {
+            Logging.LoggerFactory = s => new ConsoleLogAdapter(s);
             var base64Guid = GetBase64Guid();
             TestGitRepoPath = Path.Combine(Path.GetTempPath(), base64Guid) + Path.DirectorySeparatorChar;
 

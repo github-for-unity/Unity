@@ -18,10 +18,24 @@ namespace GitHub.Unity
 
             foreach (var file in files)
             {
-                arguments += " " + file;
+                arguments += " \"" + file.ToNPath().ToString(SlashMode.Forward) + "\"";
             }
         }
-        
+
+        protected override ProcessOutputManager HookupOutput(IProcess process)
+        {
+            var processor = new BaseOutputProcessor();
+            processor.OnData += OutputBuffer.WriteLine;
+            process.OnErrorData += Process_OnErrorData;
+            return new ProcessOutputManager(process, processor);
+        }
+
+        private void Process_OnErrorData(string line)
+        {
+            if (line.StartsWith("fatal:"))
+                ErrorBuffer.WriteLine(line);
+        }
+
         public override bool Blocking { get { return false; } }
         public override string Label { get { return "git add"; } }
         protected override string ProcessArguments { get { return arguments; } }

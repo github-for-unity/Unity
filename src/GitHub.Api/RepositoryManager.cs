@@ -14,6 +14,9 @@ namespace GitHub.Unity
         event Action OnLocalBranchListChanged;
         event Action<GitStatus> OnRepositoryChanged;
         event Action OnHeadChanged;
+        event Action OnRemoteOrTrackingChanged;
+
+        GitConfig Config { get;}
         ConfigBranch? ActiveBranch { get; set; }
         ConfigRemote? ActiveRemote { get; set; }
         IRepositoryProcessRunner ProcessRunner { get; }
@@ -27,6 +30,7 @@ namespace GitHub.Unity
         private readonly IRepositoryProcessRunner processRunner;
         private readonly IRepository repository;
         private readonly NPath repositoryPath;
+        private readonly CancellationToken cancellationToken;
         private readonly NPath dotGitPath;
         private readonly NPath dotGitIndex;
         private readonly NPath dotGitHead;
@@ -55,10 +59,12 @@ namespace GitHub.Unity
         public event Action OnLocalBranchListChanged;
         public event Action<GitStatus> OnRepositoryChanged;
         public event Action OnHeadChanged;
+        public event Action OnRemoteOrTrackingChanged;
 
         public RepositoryManager(NPath path, IPlatform platform, CancellationToken cancellationToken)
         {
             repositoryPath = path;
+            this.cancellationToken = cancellationToken;
             dotGitPath = path.Combine(".git");
             if (dotGitPath.FileExists())
             {
@@ -145,8 +151,8 @@ namespace GitHub.Unity
                     {
                     });
 
-                Task.Factory.StartNew(() => Thread.Sleep(1000))
-                    .ContinueWith(_ => processRunner.RunGitStatus(result).Start());
+                TaskEx.Delay(1000, cancellationToken)
+                    .ContinueWith(_ => processRunner.RunGitStatus(result));
             }
         }
         
@@ -154,6 +160,7 @@ namespace GitHub.Unity
         {
             config.Reset();
             RefreshConfigData();
+            OnRemoteOrTrackingChanged?.Invoke();
         }
 
         private void HeadChanged(string contents)
@@ -210,6 +217,8 @@ namespace GitHub.Unity
 
             ActiveBranch = GetActiveBranch();
             ActiveRemote = GetActiveRemote();
+
+            Logger.Debug("Active remote {0}", ActiveRemote);
         }
 
         private void LoadBranchesFromConfig()
@@ -243,15 +252,18 @@ namespace GitHub.Unity
             {
                 var branchList = new Dictionary<string, ConfigBranch>();
                 var basedir = remotesPath.Combine(remote);
-                foreach (var branch in basedir.Files(true).Select(x => x.RelativeTo(basedir)).Select(x => x.ToString(SlashMode.Forward)))
+                if (basedir.Exists())
                 {
-                    branchList.Add(branch, new ConfigBranch
+                    foreach (var branch in basedir.Files(true).Select(x => x.RelativeTo(basedir)).Select(x => x.ToString(SlashMode.Forward)))
                     {
-                        Name = branch,
-                        Remote = remotes[remote]
-                    });
+                        branchList.Add(branch, new ConfigBranch
+                        {
+                            Name = branch,
+                            Remote = remotes[remote]
+                        });
+                    }
+                    remoteBranches.Add(remote, branchList);
                 }
-                remoteBranches.Add(remote, branchList);
             }
         }
 

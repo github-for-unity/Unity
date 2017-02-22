@@ -8,9 +8,8 @@ using GitHub.Unity;
 using Rackspace.Threading;
 using System.Threading;
 using FluentAssertions;
-using IntegrationTests;
 
-namespace GitHub.Unity.IntegrationTests
+namespace IntegrationTests
 {
     [TestFixture]
     class GitClientTests : BaseGitIntegrationTest
@@ -22,13 +21,11 @@ namespace GitHub.Unity.IntegrationTests
             NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem);
+            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
 
-            using (var gitclient = new RepositoryLocator(environment.UnityProjectPath))
-            {
-                Assert.AreEqual(new NPath(TestGitRepoPath).ToString(), gitclient.RepositoryPath);
-            }
+            var repositoryLocator = new RepositoryLocator(environment.UnityProjectPath);
+            Assert.AreEqual(new NPath(TestGitRepoPath).ToString(), repositoryLocator.RepositoryPath);
         }
 
         [Test]
@@ -56,7 +53,7 @@ namespace GitHub.Unity.IntegrationTests
             }
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
             environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem);
+            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
 
