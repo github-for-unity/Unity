@@ -45,7 +45,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            canRun = await credentialManager.Load(Environment.Repository.CloneUrl) == null;
+            canRun = await credentialManager.Load(Environment.Repository.CloneUrl) != null;
             if (!canRun)
             {
                 canRun = await uiDispatcher.RunUI();
