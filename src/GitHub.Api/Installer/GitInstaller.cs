@@ -75,7 +75,7 @@ namespace GitHub.Unity
         {
             if (!GitDestinationPath.FileExists())
             {
-                logger.Debug("{0} not installed yet", GitDestinationPath);
+                logger.Trace("{0} not installed yet", GitDestinationPath);
                 return false;
             }
 
@@ -86,7 +86,7 @@ namespace GitHub.Unity
         {
             if (!GitLfsDestinationPath.FileExists())
             {
-                logger.Debug("{0} not installed yet", GitLfsDestinationPath);
+                logger.Trace("{0} not installed yet", GitLfsDestinationPath);
                 return false;
             }
 
@@ -107,7 +107,7 @@ namespace GitHub.Unity
                 ret &= await ExtractGitLfsIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
 
                 var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "gitconfig", tempPath);
-                if (archiveFilePath != null)
+                if (archiveFilePath.FileExists())
                 {
                     archiveFilePath.Copy(gitConfigDestinationPath);
                 }
@@ -132,14 +132,16 @@ namespace GitHub.Unity
         {
             if (IsPortableGitExtracted())
             {
-                logger.Debug("Already extracted {0}, returning", PackageDestinationDirectory);
+                logger.Trace("Already extracted {0}, returning", PackageDestinationDirectory);
                 return TaskEx.FromResult(true);
             }
 
             var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitZipFile, tempPath);
-            if (archiveFilePath == null)
+            if (!archiveFilePath.FileExists())
             {
-                return TaskEx.FromResult(false);
+                archiveFilePath = environment.ExtensionInstallPath.ToNPath().Combine(archiveFilePath);
+                if (!archiveFilePath.FileExists())
+                    return TaskEx.FromResult(false);
             }
 
             var unzipPath = tempPath.Combine("git");
@@ -173,14 +175,16 @@ namespace GitHub.Unity
         {
             if (IsGitLfsExtracted())
             {
-                logger.Debug("Already extracted {0}, returning", GitLfsDestinationPath);
+                logger.Trace("Already extracted {0}, returning", GitLfsDestinationPath);
                 return TaskEx.FromResult(false);
             }
 
             var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitLfsZipFile, tempPath);
-            if (archiveFilePath == null)
+            if (!archiveFilePath.FileExists())
             {
-                return TaskEx.FromResult(false);
+                archiveFilePath = environment.ExtensionInstallPath.ToNPath().Combine(archiveFilePath);
+                if (!archiveFilePath.FileExists())
+                    return TaskEx.FromResult(false);
             }
 
             var unzipPath = tempPath.Combine("git-lfs");
