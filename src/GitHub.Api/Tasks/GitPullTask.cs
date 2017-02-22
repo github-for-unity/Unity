@@ -31,6 +31,22 @@ namespace GitHub.Unity
             arguments = stringBuilder.ToString();
         }
 
+        protected override ProcessOutputManager HookupOutput(IProcess process)
+        {
+            var processor = new BaseOutputProcessor();
+            processor.OnData += OutputBuffer.WriteLine;
+            process.OnErrorData += Process_OnErrorData;
+            return new ProcessOutputManager(process, processor);
+        }
+
+        private void Process_OnErrorData(string line)
+        {
+            if (line.StartsWith("fatal:"))
+            {
+                ErrorBuffer.WriteLine(line);
+            }
+        }
+
         public override bool Blocking { get { return true; } }
         public override bool Critical { get { return false; } }
         public override string Label { get { return "git pull"; } }

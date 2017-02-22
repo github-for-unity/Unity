@@ -14,6 +14,9 @@ namespace GitHub.Unity
         event Action OnLocalBranchListChanged;
         event Action<GitStatus> OnRepositoryChanged;
         event Action OnHeadChanged;
+        event Action OnRemoteOrTrackingChanged;
+
+        GitConfig Config { get;}
         ConfigBranch? ActiveBranch { get; set; }
         ConfigRemote? ActiveRemote { get; set; }
         IRepositoryProcessRunner ProcessRunner { get; }
@@ -56,6 +59,7 @@ namespace GitHub.Unity
         public event Action OnLocalBranchListChanged;
         public event Action<GitStatus> OnRepositoryChanged;
         public event Action OnHeadChanged;
+        public event Action OnRemoteOrTrackingChanged;
 
         public RepositoryManager(NPath path, IPlatform platform, CancellationToken cancellationToken)
         {
@@ -156,6 +160,7 @@ namespace GitHub.Unity
         {
             config.Reset();
             RefreshConfigData();
+            OnRemoteOrTrackingChanged?.Invoke();
         }
 
         private void HeadChanged(string contents)
@@ -212,6 +217,8 @@ namespace GitHub.Unity
 
             ActiveBranch = GetActiveBranch();
             ActiveRemote = GetActiveRemote();
+
+            Logger.Debug("Active remote {0}", ActiveRemote);
         }
 
         private void LoadBranchesFromConfig()

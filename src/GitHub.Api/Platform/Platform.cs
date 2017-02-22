@@ -31,21 +31,11 @@ namespace GitHub.Unity
 
             if (CredentialManager == null)
             {
-                if (Environment.IsWindows)
-                {
-                    CredentialManager = new WindowsCredentialManager(Environment, processManager);
-                }
-                else if (Environment.IsMac)
-                {
-                    CredentialManager = new MacCredentialManager();
-                }
-                else
-                {
-                    CredentialManager = new LinuxCredentialManager();
-                }
+                CredentialManager = new GitCredentialManager(Environment, processManager);
             }
             return TaskEx.FromResult(this as IPlatform);
         }
+
         public IEnvironment Environment { get; private set; }
         public IProcessEnvironment GitEnvironment { get; private set; }
         public ICredentialManager CredentialManager { get; private set; }

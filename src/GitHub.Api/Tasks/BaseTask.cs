@@ -5,6 +5,15 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
+    class SimpleTask : BaseTask
+    {
+        public SimpleTask(Func<Task> runAction)
+            : base(() => { runAction(); return TaskEx.FromResult(true); })
+        {
+        }
+
+    }
+
     class BaseTask : ITask, IDisposable
     {
         private readonly Func<Task<bool>> runAction;
@@ -31,7 +40,7 @@ namespace GitHub.Unity
         public virtual void Run(CancellationToken cancel)
         {
             if (runAction != null)
-                runAction();
+                runAction().Start();
         }
 
         public virtual Task<bool> RunAsync(CancellationToken cancellationToken)

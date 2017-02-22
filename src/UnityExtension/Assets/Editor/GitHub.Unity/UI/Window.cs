@@ -3,6 +3,7 @@
 using GitHub.Unity;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using Debug = System.Diagnostics.Debug;
@@ -177,19 +178,6 @@ namespace GitHub.Unity
                     {
                         var repoInit = new RepositoryInitializer(EntryPoint.Environment, EntryPoint.ProcessManager, new TaskQueueScheduler(), EntryPoint.AppManager);
                         repoInit.Run();
-
-                        //var task = new GitInitTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                        //    new TaskResultDispatcher<string>(_ =>
-                        //    {
-                        //        EntryPoint.AppManager.RestartRepository();
-                        //    })
-
-                        //    //new MainThreadTaskResultDispatcher<string>(_ =>
-                        //    //{
-                        //    //    EditorUtility.DisplayDialog("Init!", "Init success!", Localization.Ok);
-                        //    //})
-                        //    );
-                        //Tasks.Add(task);
                     }
                     GUILayout.FlexibleSpace();
                 }
@@ -262,10 +250,55 @@ namespace GitHub.Unity
                     SwitchView(from, ActiveTab);
                 }
 
+                if (EntryPoint.CredentialManager != null && EntryPoint.CredentialManager.HasCredentials())
+                {
+                    if (loggedInStrings == null)
+                    {
+                        loggedInStrings = new string[] { EntryPoint.CredentialManager.CachedCredentials.Username, "Sign out" };
+                    }
+
+                    EditorGUI.BeginChangeCheck();
+                    {
+                        signedInDropdown = EditorGUILayout.Popup(signedInDropdown, loggedInStrings, EditorStyles.toolbarPopup);
+                    }
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        if (signedInDropdown == 1)
+                        {
+                            var task = new SimpleTask(() => EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedCredentials.Host));
+                            Tasks.Add(task);
+                            signedInDropdown = 0;
+                        }
+                    }
+                }
+                else
+                {
+                    if (EntryPoint.CredentialManager != null && EntryPoint.Environment.Repository != null &&
+                        !String.IsNullOrEmpty(EntryPoint.Environment.Repository.CloneUrl))
+                    {
+                        var task = new SimpleTask(() => EntryPoint.CredentialManager.Load(EntryPoint.Environment.Repository.CloneUrl));
+                        Tasks.Add(task);
+                    }
+
+                    EditorGUI.BeginChangeCheck();
+                    {
+                        signedOutDropdown = EditorGUILayout.Popup(signedOutDropdown, loggedOutStrings, EditorStyles.toolbarPopup);
+                    }
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        AuthenticationWindow.Open(_ => signedOutDropdown = 0);
+                    }
+                }
+
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndHorizontal();
         }
+
+        [SerializeField] private int signedInDropdown;
+        [SerializeField] private int signedOutDropdown;
+        private string[] loggedInStrings;
+        private string[] loggedOutStrings = new string[] { "Sign in" };
 
         private bool ValidateSettings()
         {
