@@ -1,6 +1,7 @@
 using System;
+using System.Collections.Generic;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     /// <summary>
     /// Represents a repository, either local or retreived via the GitHub API.
@@ -35,5 +36,16 @@ namespace GitHub.Api
         /// Gets the current branch of the repository.
         /// </summary>
         string CurrentBranch { get; }
+        GitStatus CurrentStatus { get; }
+        IEnumerable<GitBranch> LocalBranches { get; }
+        IEnumerable<GitBranch> RemoteBranches { get; }
+
+        event Action<GitStatus> OnRepositoryChanged;
+        event Action<string> OnActiveBranchChanged;
+        event Action<string> OnActiveRemoteChanged;
+        ITask Pull(ITaskResultDispatcher<string> resultDispatcher);
+        ITask Push(ITaskResultDispatcher<string> resultDispatcher);
+        event Action OnLocalBranchListChanged;
+        event Action OnCommitChanged;
     }
 }

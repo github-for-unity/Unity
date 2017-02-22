@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     interface IFileSystem
     {
@@ -10,6 +10,7 @@ namespace GitHub.Api
         string Combine(string path1, string path2, string path3);
         string GetFullPath(string path);
         IEnumerable<string> GetDirectories(string path);
+        IEnumerable<string> GetDirectories(string path, string pattern);
         IEnumerable<string> GetDirectories(string path, string pattern, SearchOption searchOption);
         string GetTempPath();
         string GetDirectoryName(string path);
@@ -18,6 +19,8 @@ namespace GitHub.Api
         string GetRandomFileName();
         string ChangeExtension(string path, string extension);
         string GetFileNameWithoutExtension(string fileName);
+        IEnumerable<string> GetFiles(string path);
+        IEnumerable<string> GetFiles(string path, string pattern);
         IEnumerable<string> GetFiles(string path, string pattern, SearchOption searchOption);
         void WriteAllBytes(string path, byte[] bytes);
         void CreateDirectory(string path);
@@ -31,7 +34,8 @@ namespace GitHub.Api
         string ReadAllText(string path);
         void WriteAllLines(string path, string[] contents);
         string[] ReadAllLines(string path);
-        IEnumerable<string> GetDirectories(string path, string pattern);
         char DirectorySeparatorChar { get; }
+        bool ExistingPathIsDirectory(string path);
+        void SetCurrentDirectory(string currentDirectory);
     }
 }

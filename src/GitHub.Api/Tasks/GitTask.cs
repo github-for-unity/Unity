@@ -1,4 +1,4 @@
-using GitHub.Api;
+using GitHub.Unity;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,17 +9,16 @@ namespace GitHub.Unity
     {
         private readonly IEnvironment environment;
 
-        public GitTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
-            Action<string> onSuccess, Action onFailure)
-            : base(environment, processManager, resultDispatcher, onSuccess, onFailure)
+        public GitTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher<string> resultDispatcher = null)
+            : base(environment, processManager, resultDispatcher)
         {
             this.environment = environment;
         }
 
-        public static Task<bool> Run(IEnvironment environment, IProcessManager processManager, string arguments,
-            Action<string> onSuccess = null, Action onFailure = null)
+        public static Task<bool> Run(IEnvironment environment, IProcessManager processManager,
+            ITaskResultDispatcher<string> resultDispatcher, string arguments)
         {
-            var task = new GitTask(environment, processManager, null, onSuccess, onFailure);
+            var task = new GitTask(environment, processManager);
             task.SetArguments(arguments);
             return task.RunAsync(processManager.CancellationToken);
         }
@@ -28,7 +27,7 @@ namespace GitHub.Unity
         {
             if (string.IsNullOrEmpty(environment.GitExecutablePath))
             {
-                RaiseOnFailure(Localization.NoGitError);
+                RaiseOnFailure();
                 Abort();
             }
 

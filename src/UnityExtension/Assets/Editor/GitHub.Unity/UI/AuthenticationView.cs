@@ -36,7 +36,7 @@ namespace GitHub.Unity
             base.Initialize(parent);
 
             need2fa = busy = finished = false;
-            authenticationService = new AuthenticationService(new AppConfiguration(), EntryPoint.Platform.GetCredentialManager(EntryPoint.ProcessManager));
+            authenticationService = new AuthenticationService(new AppConfiguration(), EntryPoint.CredentialManager);
         }
 
         public override void OnShow()
@@ -63,7 +63,7 @@ namespace GitHub.Unity
                     GUILayout.BeginVertical(GUILayout.Width(16));
                     {
                         GUILayout.Space(9);
-                        GUILayout.Label(Styles.TitleIcon, GUILayout.Height(20), GUILayout.Width(20));
+                        GUILayout.Label(Styles.BigLogo, GUILayout.Height(20), GUILayout.Width(20));
                     }
                     GUILayout.EndVertical();
 

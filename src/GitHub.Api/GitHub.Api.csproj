@@ -7,7 +7,7 @@
     <ProjectGuid>{B389ADAF-62CC-486E-85B4-2D8B078DF763}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GitHub.Api</RootNamespace>
+    <RootNamespace>GitHub.Unity</RootNamespace>
     <AssemblyName>GitHub.Api</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -84,59 +84,116 @@
   <ItemGroup>
     <Compile Include="Api\ApplicationInfo.cs" />
     <Compile Include="Api\LoginResult.cs" />
+    <Compile Include="AppConfiguration.cs" />
+    <Compile Include="AssemblyResources.cs" />
     <Compile Include="Authentication\AppCredentialStore.cs" />
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
-    <Compile Include="Installer\IPortableGitManager.cs" />
+    <Compile Include="ApplicationManagerBase.cs" />
+    <Compile Include="DefaultEnvironment.cs" />
+    <Compile Include="Events\RepositoryWatcher.cs" />
+    <Compile Include="Events\StatusEventDispatcher.cs" />
+    <Compile Include="Extensions\StreamExtensions.cs" />
+    <Compile Include="GitSetup.cs" />
+    <Compile Include="Git\GitFileStatus.cs" />
+    <Compile Include="Git\GitLock.cs" />
+    <Compile Include="Git\GitObjectFactory.cs" />
+    <Compile Include="Git\GitStatusEntry.cs" />
+    <Compile Include="Git\IGitObjectFactory.cs" />
+    <Compile Include="IApplicationManager.cs" />
+    <Compile Include="Installer\IGitInstaller.cs" />
     <Compile Include="Installer\IZipHelper.cs" />
-    <Compile Include="Installer\PortableGitManager.cs" />
+    <Compile Include="Installer\GitInstaller.cs" />
     <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
-    <Compile Include="GitClient.cs" />
+    <Compile Include="LocalSettings.cs" />
+    <Compile Include="Process\BranchListOutputProcessor.cs" />
+    <Compile Include="Process\ConfigOutputProcessor.cs" />
+    <Compile Include="Process\LockOutputProcessor.cs" />
+    <Compile Include="Process\LogEntryOutputProcessor.cs" />
+    <Compile Include="Process\ProcessManager.cs" />
+    <Compile Include="Process\ProcessWrapper.cs" />
+    <Compile Include="Process\StatusOutputProcessor.cs" />
+    <Compile Include="RepositoryLocator.cs" />
     <Compile Include="GitConfig.cs" />
     <Compile Include="Helpers\LineProcessor.cs" />
-    <Compile Include="Helpers\StringExtensions.cs" />
-    <Compile Include="IGitClient.cs" />
-    <Compile Include="IO\BaseOutputProcessor.cs" />
+    <Compile Include="Process\BaseOutputProcessor.cs" />
     <Compile Include="IO\FileSystem.cs" />
-    <Compile Include="IO\GitRemote.cs" />
-    <Compile Include="IO\GitRemoteFunction.cs" />
-    <Compile Include="IO\IOutputProcessor.cs" />
-    <Compile Include="IO\IProcess.cs" />
-    <Compile Include="IO\IProcessManager.cs" />
+    <Compile Include="Process\GitRemote.cs" />
+    <Compile Include="Process\GitRemoteFunction.cs" />
+    <Compile Include="Process\IOutputProcessor.cs" />
+    <Compile Include="Process\IProcess.cs" />
+    <Compile Include="Process\IProcessManager.cs" />
     <Compile Include="IO\NiceIO.cs" />
-    <Compile Include="IO\ProcessOutputManager.cs" />
-    <Compile Include="IO\RemoteListOutputProcessor.cs" />
+    <Compile Include="IO\NPathFileSystemProvider.cs" />
+    <Compile Include="Process\ProcessOutputManager.cs" />
+    <Compile Include="Process\RemoteListOutputProcessor.cs" />
+    <Compile Include="Events\IFileSystemWatch.cs" />
+    <Compile Include="Events\IFileSystemWatchFactory.cs" />
+    <Compile Include="Events\BaseFileSystemWatcher.cs" />
     <Compile Include="IRepository.cs" />
+    <Compile Include="ISettings.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Localization.resx</DependentUpon>
     </Compile>
-    <Compile Include="Platform\GitEnvironment.cs" />
+    <Compile Include="Platform\GitProcessEnvironment.cs" />
     <Compile Include="Platform\IFileSystem.cs" />
-    <Compile Include="Platform\IGitEnvironment.cs" />
+    <Compile Include="Platform\IProcessEnvironment.cs" />
+    <Compile Include="Events\LinuxFileSystemWatch.cs" />
     <Compile Include="Platform\LinuxGitEnvironment.cs" />
+    <Compile Include="Events\MacFileSystemWatch.cs" />
     <Compile Include="Platform\MacGitEnvironment.cs" />
+    <Compile Include="Events\PlatformFileSystemWatchFactory.cs" />
+    <Compile Include="Events\WindowsFileSystemWatch.cs" />
     <Compile Include="Platform\WindowsGitEnvironment.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
     <Compile Include="Repository.cs" />
+    <Compile Include="RepositoryManager.cs" />
+    <Compile Include="RepositoryProcessRunner.cs" />
+    <Compile Include="SimpleJson.cs" />
+    <Compile Include="TaskResultDispatcher.cs" />
     <Compile Include="Tasks\BaseTask.cs" />
     <Compile Include="Tasks\CachedTask.cs" />
     <Compile Include="Tasks\FailureSeverity.cs" />
     <Compile Include="Tasks\FindGitTask.cs" />
+    <Compile Include="Tasks\GitAddTask.cs" />
+    <Compile Include="Tasks\GitBranch.cs" />
+    <Compile Include="Tasks\GitBranchCreateTask.cs" />
+    <Compile Include="Tasks\GitBranchDeleteTask.cs" />
+    <Compile Include="Tasks\GitCommitTask.cs" />
     <Compile Include="Tasks\GitConfigGetTask.cs" />
+    <Compile Include="Tasks\GitConfigListTask.cs" />
     <Compile Include="Tasks\GitConfigSource.cs" />
+    <Compile Include="Tasks\GitInitTask.cs" />
+    <Compile Include="Tasks\GitListBranchesTask.cs" />
+    <Compile Include="Tasks\GitListLocksTask.cs" />
+    <Compile Include="Tasks\GitLockTask.cs" />
+    <Compile Include="Tasks\GitLogEntry.cs" />
+    <Compile Include="Tasks\GitLogTask.cs" />
     <Compile Include="Tasks\GitNetworkTask.cs" />
+    <Compile Include="Tasks\GitPullTask.cs" />
+    <Compile Include="Tasks\GitPushTask.cs" />
+    <Compile Include="Tasks\GitRemoteAddTask.cs" />
+    <Compile Include="Tasks\GitRemoteBranchDeleteTask.cs" />
     <Compile Include="Tasks\GitRemoteListTask.cs" />
+    <Compile Include="Tasks\GitRemoteRemoveTask.cs" />
+    <Compile Include="Tasks\GitStatus.cs" />
+    <Compile Include="Tasks\GitStatusTask.cs" />
+    <Compile Include="Tasks\GitSwitchBranchesTask.cs" />
     <Compile Include="Tasks\GitTask.cs" />
+    <Compile Include="Tasks\GitUnlockTask.cs" />
     <Compile Include="Tasks\ITask.cs" />
     <Compile Include="Tasks\ITaskResultDispatcher.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskQueueSetting.cs" />
+    <Compile Include="Threading\IAwaitable.cs" />
+    <Compile Include="Threading\IAwaiter.cs" />
+    <Compile Include="Threading\ThreadingHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\IApiClient.cs" />
@@ -149,8 +206,6 @@
     <Compile Include="Authentication\IPlatform.cs" />
     <Compile Include="Authentication\ICredentialManager.cs" />
     <Compile Include="IEnvironment.cs" />
-    <Compile Include="Platform\LinuxCredentialManager.cs" />
-    <Compile Include="Platform\MacCredentialManager.cs" />
     <Compile Include="IAppConfiguration.cs" />
     <Compile Include="Primitives\HostAddress.cs" />
     <Compile Include="Primitives\StringEquivalent.cs" />
@@ -159,7 +214,7 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="Platform\Platform.cs" />
-    <Compile Include="Platform\WindowsCredentialManager.cs" />
+    <Compile Include="Platform\GitCredentialManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\ApiClient.cs" />
@@ -180,19 +235,21 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="resources\linux\.placeholder" />
-    <None Include="resources\mac\git-lfs-darwin-amd64-5d9dc1c.tar.gz">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="packages.config" />
-    <None Include="resources\windows\git-lfs-windows-386-2.0-pre-d9833cd.zip" />
-    <None Include="resources\windows\PortableGit-2.11.1-32-bit.zip" />
+    <EmbeddedResource Include="PlatformResources\mac\git-lfs.zip" />
+    <EmbeddedResource Include="PlatformResources\windows\git-lfs.zip" />
+    <EmbeddedResource Include="PlatformResources\windows\git.zip" />
+    <EmbeddedResource Include="PlatformResources\mac\gitconfig" />
+    <EmbeddedResource Include="PlatformResources\windows\gitconfig" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\.gitattributes" />
+    <EmbeddedResource Include="Resources\.gitignore" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Localization.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Localization.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

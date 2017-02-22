@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     public static class Guard
     {
@@ -59,10 +59,6 @@ namespace GitHub.Api
             throw new ArgumentOutOfRangeException(name, message);
         }
 
-        // Borrowed from Splat.
-        static bool InUnitTestRunner()
-        {
-            return false;
-        }
+        public static bool InUnitTestRunner { get; set; }
     }
 }

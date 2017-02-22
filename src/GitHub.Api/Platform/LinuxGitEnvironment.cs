@@ -1,11 +1,9 @@
 using System.Threading.Tasks;
-using GitHub.Api;
-using GitHub.Unity;
 using System;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
-    class LinuxGitEnvironment : GitEnvironment
+    class LinuxGitEnvironment : GitProcessEnvironment
     {
         public LinuxGitEnvironment(IEnvironment environment, IFileSystem filesystem)
             : base(environment, filesystem)
@@ -20,7 +18,7 @@ namespace GitHub.Api
             return base.FindGitInstallationPath(processManager); ;
         }
 
-        public override string GetGitExecutableExtension()
+        public override string GetExecutableExtension()
         {
             return null;
         }

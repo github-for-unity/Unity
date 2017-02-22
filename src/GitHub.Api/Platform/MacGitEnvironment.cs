@@ -2,24 +2,16 @@ using System.Threading.Tasks;
 using GitHub.Unity;
 using System;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
-    class MacGitEnvironment : GitEnvironment
+    class MacGitEnvironment : GitProcessEnvironment
     {
         public MacGitEnvironment(IEnvironment environment, IFileSystem filesystem)
             : base(environment, filesystem)
         {
         }
 
-        public override Task<string> FindGitInstallationPath(IProcessManager processManager)
-        {
-            if (!String.IsNullOrEmpty(Environment.GitExecutablePath))
-                return TaskEx.FromResult(Environment.GitExecutablePath);
-
-            return base.FindGitInstallationPath(processManager); ;
-        }
-
-        public override string GetGitExecutableExtension()
+        public override string GetExecutableExtension()
         {
             return null;
         }

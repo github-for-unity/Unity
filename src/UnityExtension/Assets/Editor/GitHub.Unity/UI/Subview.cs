@@ -82,10 +82,12 @@ namespace GitHub.Unity
         }
 
         public virtual void OnShow()
-        {}
+        {
+        }
 
         public virtual void OnHide()
-        {}
+        {
+        }
 
         public virtual void OnUpdate()
         {}

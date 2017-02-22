@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace GitHub.Api
+namespace GitHub.Unity
 {
     public class HostAddress
     {
