@@ -35,6 +35,20 @@ namespace GitHub.Unity
 
         private static bool initialized;
 
+        [MenuItem(LaunchMenu)]
+        public static void Launch()
+        {
+            var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.InspectorWindow");
+            GetWindow<Window>(type).Show();
+        }
+
+        [MenuItem("Window/GitHub Command Line")]
+        public static void LaunchCommandLine()
+        {
+            EntryPoint.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
+        }
+
+
         public static void Initialize()
         {
             initialized = true;
@@ -46,12 +60,6 @@ namespace GitHub.Unity
             }
         }
 
-        [MenuItem(LaunchMenu)]
-        public static void Launch()
-        {
-            var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.InspectorWindow");
-            GetWindow<Window>(type).Show();
-        }
 
         public override void OnEnable()
         {
