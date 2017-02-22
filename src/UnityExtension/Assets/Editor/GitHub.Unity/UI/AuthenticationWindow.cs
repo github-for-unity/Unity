@@ -56,5 +56,11 @@ namespace GitHub.Unity
             authView.OnShow();
             Refresh();
         }
+
+        public override void Finish(bool result)
+        {
+            Close();
+            base.Finish(result);
+        }
     }
 }

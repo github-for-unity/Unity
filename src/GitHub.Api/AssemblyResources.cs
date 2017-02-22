@@ -28,7 +28,7 @@ namespace GitHub.Unity
                                      String.Format("GitHub.Unity.{0}{1}.{2}", type, os, resource));
             if (stream != null)
                 return destinationPath.Combine(resource).WriteAllBytes(stream.ToByteArray());
-            return null;
+            return new NPath(type).Combine(os, resource);
         }
     }
 }

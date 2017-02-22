@@ -114,9 +114,12 @@ namespace GitHub.Unity
                 Finished();
                 return;
             }
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            input = new StreamWriter(process.StandardInput.BaseStream, new UTF8Encoding(false));
+            if (process.StartInfo.RedirectStandardOutput)
+                process.BeginOutputReadLine();
+            if (process.StartInfo.RedirectStandardError)
+                process.BeginErrorReadLine();
+            if (process.StartInfo.RedirectStandardInput)
+                input = new StreamWriter(process.StandardInput.BaseStream, new UTF8Encoding(false));
 
             OnStart?.Invoke(this);
         }

@@ -40,19 +40,20 @@ namespace GitHub.Unity
             EditorApplication.update -= Initialize;
 
             var persistentPath = Application.persistentDataPath;
-            //var filepath = Path.Combine(persistentPath, "github-unity-log.txt");
-            //try
-            //{
+            var filepath = Path.Combine(persistentPath, "github-unity-log.txt");
+            Debug.LogFormat("Moving log file to {0}", filepath);
+            try
+            {
 
-            //    if (File.Exists(filepath))
-            //    {
-            //        File.Move(filepath, filepath + "-old");
-            //    }
-            //}
-            //catch
-            //{
-            //}
-            //Logging.LoggerFactory = s => new FileLogAdapter(filepath, s);
+                if (File.Exists(filepath))
+                {
+                    File.Move(filepath, filepath + "-old");
+                }
+            }
+            catch
+            {
+            }
+            Logging.LoggerFactory = s => new FileLogAdapter(filepath, s);
             logger = Logging.GetLogger<EntryPoint>();
 
             ApplicationManager.Run();

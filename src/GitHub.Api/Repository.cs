@@ -24,7 +24,7 @@ namespace GitHub.Unity
 
         public IEnumerable<GitBranch> RemoteBranches => repositoryManager.RemoteBranches.Values.SelectMany(
             x => x.Values).Select(x => new GitBranch(x.Remote.Value.Name + "/" + x.Name, "[None]", false));
-            
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
@@ -48,7 +48,25 @@ namespace GitHub.Unity
             repositoryManager.OnActiveRemoteChanged += RepositoryManager_OnActiveRemoteChanged;
             repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;
             repositoryManager.OnHeadChanged += RepositoryManager_OnHeadChanged;
+
+            if (String.IsNullOrEmpty(CloneUrl))
+            {
+                repositoryManager.OnRemoteOrTrackingChanged += RepositoryManager_OnRemoteOrTrackingChanged; ;
+            }
             
+        }
+
+        private void RepositoryManager_OnRemoteOrTrackingChanged()
+        {
+            if (String.IsNullOrEmpty(CloneUrl))
+            {
+                var remote = repositoryManager.Config.GetRemotes()
+                               .Where(x => HostAddress.Create(new UriString(x.Url).ToRepositoryUri()).IsGitHubDotCom())
+                               .FirstOrDefault();
+                if (remote.Url != null)
+                    CloneUrl = new UriString(remote.Url).ToRepositoryUrl();
+                repositoryManager.OnRemoteOrTrackingChanged -= RepositoryManager_OnRemoteOrTrackingChanged;
+            }
         }
 
         private void RepositoryManager_OnHeadChanged()

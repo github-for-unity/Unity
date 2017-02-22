@@ -7,5 +7,6 @@ namespace GitHub.Unity
         IProcess Configure(string processName, string processArguments, string gitRoot);
         IProcess Reconnect(int i);
         CancellationToken CancellationToken { get; }
+        void RunCommandLineWindow(string workingDirectory);
     }
 }
