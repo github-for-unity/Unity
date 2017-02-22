@@ -74,7 +74,6 @@ namespace GitHub.Unity
             commitDescriptionFieldStyle,
             toggleMixedStyle,
             authHeaderBoxStyle,
-            accountDropdownButtonStyle,
             genericBoxStyle;
         static Texture2D
             modifiedStatusIcon,
@@ -401,21 +400,6 @@ namespace GitHub.Unity
 
             return authHeaderBoxStyle;
           }
-        }
-
-        public static GUIStyle AccountDropdownButtonStyle
-        {
-            get
-            {
-                if (accountDropdownButtonStyle == null)
-                {
-                    accountDropdownButtonStyle = new GUIStyle(GUI.skin.FindStyle("IN LockButton"));
-
-                }
-                accountDropdownButtonStyle.margin = new RectOffset(3, 3, 2, 2);
-
-                return accountDropdownButtonStyle;
-            }
         }
 
         public static GUIStyle GenericBoxStyle
