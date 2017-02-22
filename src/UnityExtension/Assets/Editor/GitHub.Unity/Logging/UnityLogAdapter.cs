@@ -28,7 +28,9 @@ namespace GitHub.Unity
 
         public override void Trace(string message)
         {
+#if ENABLE_TRACE
             UnityEngine.Debug.Log(GetMessage(message));
+#endif
         }
 
         public override void Warning(string message)

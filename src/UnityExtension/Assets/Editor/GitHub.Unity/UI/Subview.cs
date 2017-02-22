@@ -82,10 +82,14 @@ namespace GitHub.Unity
         }
 
         public virtual void OnShow()
-        {}
+        {
+            Logger.Debug("OnShow");
+        }
 
         public virtual void OnHide()
-        {}
+        {
+            Logger.Debug("OnHide");
+        }
 
         public virtual void OnUpdate()
         {}

@@ -37,6 +37,7 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
+            OnStatusUpdate(EntryPoint.Environment.Repository.CurrentStatus);
             EntryPoint.Environment.Repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
         }
 
@@ -53,6 +54,7 @@ namespace GitHub.Unity
 
         private void OnStatusUpdate(GitStatus update)
         {
+            Logger.Debug("OnStatusUpdate '{0}'", update.Entries);
             if (update.Entries == null)
             {
                 Refresh();
