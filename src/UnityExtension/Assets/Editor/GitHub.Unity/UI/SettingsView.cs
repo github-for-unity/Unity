@@ -83,21 +83,17 @@ namespace GitHub.Unity
                 onIssuesGui = OnIssuesGUI();
                 if (onIssuesGui)
                 {
-                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                    GUILayout.Label("TODO: Favourite branches settings?");
-
-                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
+                    // Hey, I hear you like TODO's:
+                    // TODO: Favourite branches settings?
+                    // TODO: GitHub Login Settings
+                    // TODO: Auto-fetch toggle
+                    // TODO: Auto-push toggle
+                    //
+                    // TODO: Clean up OnGitIgnoreRulesList
                     // gitignore rules list
-
-                    OnGitIgnoreRulesGUI();
+                    // OnGitIgnoreRulesGUI();
 
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                    GUILayout.Label("TODO: GitHub login settings");
-                    GUILayout.Label("TODO: Auto-fetch toggle");
-                    GUILayout.Label("TODO: Auto-push toggle");
 
                     // Install path
 
