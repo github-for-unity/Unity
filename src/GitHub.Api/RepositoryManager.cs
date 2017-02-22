@@ -243,15 +243,18 @@ namespace GitHub.Unity
             {
                 var branchList = new Dictionary<string, ConfigBranch>();
                 var basedir = remotesPath.Combine(remote);
-                foreach (var branch in basedir.Files(true).Select(x => x.RelativeTo(basedir)).Select(x => x.ToString(SlashMode.Forward)))
+                if (basedir.Exists())
                 {
-                    branchList.Add(branch, new ConfigBranch
+                    foreach (var branch in basedir.Files(true).Select(x => x.RelativeTo(basedir)).Select(x => x.ToString(SlashMode.Forward)))
                     {
-                        Name = branch,
-                        Remote = remotes[remote]
-                    });
+                        branchList.Add(branch, new ConfigBranch
+                        {
+                            Name = branch,
+                            Remote = remotes[remote]
+                        });
+                    }
+                    remoteBranches.Add(remote, branchList);
                 }
-                remoteBranches.Add(remote, branchList);
             }
         }
 

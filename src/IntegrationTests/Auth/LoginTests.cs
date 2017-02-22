@@ -53,25 +53,40 @@ namespace GitHub.Unity.IntegrationTests
             }
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
             environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
+            IPlatform platform = null;
+            platform = new Platform(environment, filesystem, new TestUIDispatcher(() =>
+            {
+                Logger.Debug("Called");
+                platform.CredentialManager.Save(new Credential("https://github.com", "username", "token")).Wait();
+                return true;
+            }));
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
+            await platform.Initialize(processManager);
             using (var repoManager = new RepositoryManager(TestGitRepoPath, platform, CancellationToken.None))
             {
+                var repository = repoManager.Repository;
                 environment.Repository = repoManager.Repository;
 
-                var credentialManager = new WindowsCredentialManager(environment, processManager);
-
-                string credHelper = null;
-                var task = new GitConfigGetTask(environment, processManager,
-                    new TaskResultDispatcher<string>(x =>
+                var task = repository.Pull(
+                     new TaskResultDispatcher<string>(x =>
                     {
-                        credHelper = x;
-                    }),
-                    "credential.helper", GitConfigSource.NonSpecified);
-
+                        Logger.Debug("Pull result: {0}", x);
+                    })
+                );
                 await task.RunAsync(CancellationToken.None);
-                Assert.NotNull(credHelper);
+
+                //string credHelper = null;
+                //var task = new GitConfigGetTask(environment, processManager,
+                //    new TaskResultDispatcher<string>(x =>
+                //    {
+                //        Logger.Debug("CredHelper set to {0}", x);
+                //        credHelper = x;
+                //    }),
+                //    "credential.helper", GitConfigSource.NonSpecified);
+
+                //await task.RunAsync(CancellationToken.None);
+                //Assert.NotNull(credHelper);
             }
 
             //string remoteUrl = null;
