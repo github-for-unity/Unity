@@ -666,7 +666,7 @@ namespace GitHub.Unity
         public static void PathField(ref string path, Func<string> browseFunction, Func<string, bool> validationFunction)
         {
             GUILayout.BeginHorizontal();
-                path = EditorGUILayout.TextField(path);
+                path = EditorGUILayout.TextField("Path to git executable", path);
                 GUILayout.Space(Styles.BrowseFolderButtonHorizontalPadding);
                 if (GUILayout.Button(BrowseButton, EditorStyles.miniButtonRight))
                 {
