@@ -74,12 +74,13 @@ namespace GitHub.Unity
         public event Action<bool> OnClose;
 
         private const string NullParentError = "Subview parent is null";
-        protected BaseWindow Parent { get; private set; }
+        protected IView Parent { get; private set; }
+        public IRepository Repository { get { return Parent.Repository; } }
 
         public virtual void Initialize(IView parent)
         {
             Debug.Assert(parent != null, NullParentError);
-            Parent = parent as BaseWindow;
+            Parent = parent;
         }
 
         public virtual void OnShow()

@@ -4,7 +4,6 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-// using Debug = System.Diagnostics.Debug;
 
 namespace GitHub.Unity
 {
@@ -23,7 +22,6 @@ namespace GitHub.Unity
         private const string SettingsTitle = "Settings";
         private const string AuthenticationTitle = "Auth";
 
-        private Rect dropdownButtonRect;
 
         [NonSerialized] private double notificationClearTime = -1;
 
@@ -240,46 +238,6 @@ namespace GitHub.Unity
                     SwitchView(from, ActiveTab);
                 }
 
-                if (EntryPoint.CredentialManager != null && EntryPoint.CredentialManager.HasCredentials())
-                {
-                    if (loggedInStrings == null)
-                    {
-                        loggedInStrings = new string[] { EntryPoint.CredentialManager.CachedCredentials.Username, "Sign out" };
-                    }
-
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        signedInDropdown = EditorGUILayout.Popup(signedInDropdown, loggedInStrings, EditorStyles.toolbarPopup);
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        if (signedInDropdown == 1)
-                        {
-                            var task = new SimpleTask(() => EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedCredentials.Host));
-                            Tasks.Add(task);
-                            signedInDropdown = 0;
-                        }
-                    }
-                }
-                else
-                {
-                    if (EntryPoint.CredentialManager != null && Repository != null &&
-                        !String.IsNullOrEmpty(EntryPoint.Environment.Repository.CloneUrl))
-                    {
-                        var task = new SimpleTask(() => EntryPoint.CredentialManager.Load(Repository.CloneUrl));
-                        Tasks.Add(task);
-                    }
-
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        signedOutDropdown = EditorGUILayout.Popup(signedOutDropdown, loggedOutStrings, EditorStyles.toolbarPopup);
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        AuthenticationWindow.Open(_ => signedOutDropdown = 0);
-                    }
-                }
-
                 GUILayout.FlexibleSpace();
 
                 if(GUILayout.Button("Account", EditorStyles.toolbarDropDown))
@@ -291,26 +249,36 @@ namespace GitHub.Unity
 
         private void DoAccountDropdown()
         {
-          GenericMenu accountMenu = new GenericMenu();
+            GenericMenu accountMenu = new GenericMenu();
 
-          accountMenu.AddItem(new GUIContent("Sign in"), false, OnAccountMenuClick, "sign in");
-          accountMenu.AddItem(new GUIContent("Go to Profile"), false, OnAccountMenuClick, "profile");
-          accountMenu.AddSeparator("");
-          accountMenu.AddItem(new GUIContent("Sign out"), false, OnAccountMenuClick, "sign out");
-
-          accountMenu.ShowAsContext();
+            if (!EntryPoint.CredentialManager.HasCredentials())
+            {
+                accountMenu.AddItem(new GUIContent("Sign in"), false, SignIn, "sign in");
+            }
+            else
+            {
+                accountMenu.AddItem(new GUIContent("Go to Profile"), false, GoToProfile, "profile");
+                accountMenu.AddSeparator("");
+                accountMenu.AddItem(new GUIContent("Sign out"), false, SignOut, "sign out");
+            }
+            accountMenu.ShowAsContext();
         }
 
-        private void OnAccountMenuClick(object obj)
+        private void SignIn(object obj)
         {
-          Debug.Log("Click:");
-          Debug.Log(obj);
+            AuthenticationWindow.Open();
         }
 
-        [SerializeField] private int signedInDropdown;
-        [SerializeField] private int signedOutDropdown;
-        private string[] loggedInStrings;
-        private string[] loggedOutStrings = new string[] { "Sign in" };
+        private void GoToProfile(object obj)
+        {
+            Logger.Debug("{0} {1}", EntryPoint.CredentialManager.CachedCredentials.Host, EntryPoint.CredentialManager.CachedCredentials.Username);
+            Application.OpenURL(EntryPoint.CredentialManager.CachedCredentials.Host.Combine(EntryPoint.CredentialManager.CachedCredentials.Username));
+        }
+        private void SignOut(object obj)
+        {
+            var task = new SimpleTask(() => EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedCredentials.Host));
+            Tasks.Add(task);
+        }
 
         private bool ValidateSettings()
         {
