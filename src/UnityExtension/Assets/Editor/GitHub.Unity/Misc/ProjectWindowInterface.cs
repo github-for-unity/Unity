@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,12 +11,11 @@ namespace GitHub.Unity
         private static readonly List<string> guids = new List<string>();
         private static bool initialized = false;
 
-        public static void Initialize()
+        public static void Initialize(IRepository repository)
         {
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
-            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
-            StatusService.Instance.RegisterCallback(OnStatusUpdate);
+            repository.OnRepositoryChanged += status => Tasks.ScheduleMainThread(() => OnStatusUpdate(status));
             initialized = true;
         }
 

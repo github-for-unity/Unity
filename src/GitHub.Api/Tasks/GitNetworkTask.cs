@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using GitHub.Unity;
 
 namespace GitHub.Unity
 {
@@ -12,10 +11,10 @@ namespace GitHub.Unity
         private readonly ICredentialManager credentialManager;
         private readonly IUIDispatcher uiDispatcher;
 
-        public GitNetworkTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
-            ICredentialManager credentialManager, IUIDispatcher uiDispatcher,
-            Action<string> onSuccess, Action onFailure)
-            : base(environment, processManager, resultDispatcher, onSuccess, onFailure)
+        public GitNetworkTask(IEnvironment environment, IProcessManager processManager,
+            ITaskResultDispatcher<string> resultDispatcher,
+            ICredentialManager credentialManager, IUIDispatcher uiDispatcher)
+            : base(environment, processManager, resultDispatcher)
         {
             Guard.ArgumentNotNull(credentialManager, nameof(credentialManager));
             Guard.ArgumentNotNull(uiDispatcher, nameof(uiDispatcher));
@@ -35,7 +34,7 @@ namespace GitHub.Unity
 
             if (!canRun)
             {
-                RaiseOnFailure(Localization.NoGitError, FailureSeverity.Moderate);
+                RaiseOnFailure();
                 Abort();
                 return false;
             }
@@ -46,7 +45,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            canRun = await credentialManager.Load(Environment.Repository.CloneUrl) == null;
+            canRun = await credentialManager.Load(Environment.Repository.CloneUrl) != null;
             if (!canRun)
             {
                 canRun = await uiDispatcher.RunUI();
@@ -54,7 +53,7 @@ namespace GitHub.Unity
 
             if (!canRun)
             {
-                RaiseOnFailure(Localization.NotLoggedIn, FailureSeverity.Moderate);
+                RaiseOnFailure();
                 Abort();
                 return false;
             }

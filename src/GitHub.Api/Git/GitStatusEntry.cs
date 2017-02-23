@@ -2,6 +2,7 @@ using System;
 
 namespace GitHub.Unity
 {
+    [Serializable]
     struct GitStatusEntry
     {
         public readonly string Path;

@@ -17,12 +17,9 @@ namespace GitHub.Unity
         private readonly StringWriter output = new StringWriter();
         private readonly IProcessManager processManager;
         private readonly IEnvironment environment;
-        private readonly ITaskResultDispatcher resultDispatcher;
+        private readonly ITaskResultDispatcher<string> resultDispatcher;
 
         public Action<IProcess> OnCreateProcess;
-
-        private Action onFailure;
-        private Action<string> onSuccess;
 
         private IProcess process;
         private CancellationToken cancellationToken;
@@ -30,40 +27,26 @@ namespace GitHub.Unity
         private string arguments = null;
         private string processName = null;
 
-        public ProcessTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
-            string name,
-            Action<string> onSuccess = null, Action onFailure = null)
+        public ProcessTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher<string> resultDispatcher,
+            string executable = null, string arguments = null)
         {
-            this.processName = name;
-            this.onSuccess = onSuccess;
-            this.onFailure = onFailure;
+            this.processName = executable;
+            this.arguments = arguments;
             this.environment = environment;
             this.processManager = processManager;
             this.resultDispatcher = resultDispatcher;
         }
 
-        public ProcessTask(IEnvironment environment, IProcessManager processManager,
-                string name,
-                Action<string> onSuccess = null, Action onFailure = null)
-            : this (environment, processManager, null, name, onSuccess, onFailure)
+        public ProcessTask(IEnvironment environment, IProcessManager processManager, string executable, string arguments)
+            : this(environment, processManager, null, executable, arguments)
         {
-        }
-
-        public ProcessTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher = null,
-            Action<string> onSuccess = null, Action onFailure = null)
-        {
-            this.onSuccess = onSuccess;
-            this.onFailure = onFailure;
-            this.environment = environment;
-            this.processManager = processManager;
-            this.resultDispatcher = resultDispatcher;
         }
 
         /// <summary>
         /// Try to reattach to the process. Assume that we're done if that fails.
         /// </summary>
         /// <returns></returns>
-        public static ProcessTask Parse(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
+        public static ProcessTask Parse(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher<string> resultDispatcher,
             IDictionary<string, object> data)
         {
             IProcess resumedProcess = null;
@@ -88,7 +71,7 @@ namespace GitHub.Unity
         public override void Run(CancellationToken cancellationToken)
         {
             this.cancellationToken = cancellationToken;
-            Logger.Debug("RunTask Label:\"{0}\" Type:{1}", Label, process == null ? "start" : "reconnect");
+            Logger.Trace("RunTask Label:\"{0}\" Type:{1}", Label, process == null ? "start" : "reconnect");
 
             Done = false;
             Progress = 0.0f;
@@ -100,7 +83,7 @@ namespace GitHub.Unity
             // Only start the process if we haven't already reconnected to an existing instance
             if (firstTime)
             {
-                process = processManager.Configure(ProcessName, ProcessArguments, environment.RepositoryPath);
+                process = processManager.Configure(ProcessName, ProcessArguments, NPath.CurrentDirectory);
             }
 
             process.OnExit += p =>
@@ -166,14 +149,13 @@ namespace GitHub.Unity
             // Only start the process if we haven't already reconnected to an existing instance
             if (firstTime)
             {
-                process = processManager.Configure(ProcessName, ProcessArguments, environment.RepositoryPath);
+                string path = null;
+                if (environment.Repository != null)
+                    path = environment.RepositoryPath;
+                else
+                    path = NPath.CurrentDirectory;
+                process = processManager.Configure(ProcessName, ProcessArguments, path);
             }
-
-            //process.OnExit += p =>
-            //{
-            //    //Logger.Debug("Exit");
-            //    //Finished();
-            //};
 
             ProcessOutputManager outputManager;
             try
@@ -241,7 +223,7 @@ namespace GitHub.Unity
 
             Progress = 1.0f;
 
-            OnOutputComplete(OutputBuffer.ToString().Trim(), ErrorBuffer.ToString().Trim());
+            OnCompleted();
 
             RaiseOnEnd();
         }
@@ -286,56 +268,40 @@ namespace GitHub.Unity
         {
             var outputProcessor = new BaseOutputProcessor();
             outputProcessor.OnData += OutputBuffer.WriteLine;
+            process.OnErrorData += ErrorBuffer.WriteLine;
             return new ProcessOutputManager(process, outputProcessor);
         }
 
-        protected virtual void OnOutputComplete(string output, string errors)
+        protected override void OnCompleted()
         {
+            var errors = ErrorBuffer.ToString().Trim();
+
             if (errors.Length > 0)
             {
-                RaiseOnFailure(errors);
+                RaiseOnFailure();
             }
             else
             {
-                RaiseOnSuccess(output);
+                RaiseOnSuccess();
             }
         }
 
-        protected virtual void RaiseOnSuccess(string msg)
+        protected virtual void RaiseOnSuccess()
         {
-            if (OnSuccess != null)
-            {
-                Logger.Trace("Success: \"{0}\"", msg);
-                if (resultDispatcher != null)
-                {
-                    resultDispatcher.ReportSuccess(() => OnSuccess(msg));
-                }
-                else
-                {
-                    OnSuccess(msg);
-                }
-            }
+            var output = OutputBuffer.ToString().Trim();
+
+            Logger.Trace("Success: \"{0}\"", output);
+            resultDispatcher?.ReportSuccess(output);
         }
 
-        protected virtual void RaiseOnFailure(string msg, FailureSeverity severity = FailureSeverity.Critical)
+        protected virtual void RaiseOnFailure()
         {
-            if (resultDispatcher != null)
-            {
-                resultDispatcher.ReportFailure(severity, Label, msg);
-            }
+            var errors = ErrorBuffer.ToString().Trim();
 
-            if (OnFailure != null)
-            {
-                Logger.Trace("Failure: \"{0}\"", msg);
-                if (resultDispatcher != null)
-                {
-                    resultDispatcher.ReportFailure(OnFailure);
-                }
-                else
-                {
-                    OnFailure?.Invoke();
-                }
-            }
+            Logger.Trace("Failure: \"{0}\"", errors);
+
+            resultDispatcher?.ReportFailure(FailureSeverity.Critical, Label, errors);
+            resultDispatcher?.ReportFailure();
         }
 
         private void RaiseOnEnd()
@@ -372,14 +338,10 @@ namespace GitHub.Unity
 
         protected virtual CachedTask CachedTaskType { get { return CachedTask.ProcessTask; } }
 
-        protected virtual StringWriter OutputBuffer { get { return output; } }
-        protected virtual StringWriter ErrorBuffer { get { return error; } }
-
-        protected virtual Action<string> OnSuccess { get { return onSuccess; } }
-        protected virtual Action OnFailure { get { return onFailure; } }
+        protected StringWriter OutputBuffer { get { return output; } }
+        protected StringWriter ErrorBuffer { get { return error; } }
 
         protected IProcessManager ProcessManager => processManager;
         protected IEnvironment Environment => environment;
-        protected ITaskResultDispatcher TaskResultDispatcher => resultDispatcher;
     }
 }

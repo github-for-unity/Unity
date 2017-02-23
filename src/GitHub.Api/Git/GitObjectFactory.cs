@@ -6,12 +6,10 @@ namespace GitHub.Unity
     class GitObjectFactory : IGitObjectFactory
     {
         private readonly IEnvironment environment;
-        private readonly IGitEnvironment gitEnvironment;
 
-        public GitObjectFactory(IEnvironment environment, IGitEnvironment gitEnvironment)
+        public GitObjectFactory(IEnvironment environment)
         {
             this.environment = environment;
-            this.gitEnvironment = gitEnvironment;
         }
 
         public GitStatusEntry CreateGitStatusEntry(string path, GitFileStatus status, string originalPath = null, bool staged = false)

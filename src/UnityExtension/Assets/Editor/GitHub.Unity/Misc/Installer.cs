@@ -18,37 +18,8 @@ namespace GitHub.Unity
         private const string ErrorMessage = "An error occured during installation:\n{0}";
         private const string ErrorOK = "OK";
 
-        public static void Initialize()
+        public static void Initialize(string selfPath)
         {
-            if (Utility.IsDevelopmentBuild)
-            {
-                return;
-            }
-
-            // Detect install path
-            string selfPath;
-            var instance = FindObjectOfType(typeof(Installer)) as Installer;
-            if (instance == null)
-            {
-                instance = CreateInstance<Installer>();
-            }
-            var script = MonoScript.FromScriptableObject(instance);
-            if (script == null)
-            {
-                selfPath = string.Empty;
-            }
-            else
-            {
-                selfPath = AssetDatabase.GetAssetPath(script);
-            }
-            DestroyImmediate(instance);
-
-            // If we cannot self-locate then forget the whole thing
-            if (string.IsNullOrEmpty(selfPath))
-            {
-                return;
-            }
-
             // Perform move
             if (EditorUtility.DisplayDialog(QueryTitle, QueryMessage, QueryOK, QueryCancel))
             {
