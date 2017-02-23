@@ -27,7 +27,6 @@ namespace GitHub.Unity
 
         [NonSerialized] private bool need2fa;
         [NonSerialized] private bool busy;
-        [NonSerialized] private bool finished;
         [NonSerialized] private string message;
         [NonSerialized] private AuthenticationService authenticationService;
 
@@ -35,7 +34,7 @@ namespace GitHub.Unity
         {
             base.Initialize(parent);
 
-            need2fa = busy = finished = false;
+            need2fa = busy = false;
             authenticationService = new AuthenticationService(new AppConfiguration(), EntryPoint.CredentialManager);
         }
 
@@ -63,7 +62,7 @@ namespace GitHub.Unity
                     GUILayout.BeginVertical(GUILayout.Width(16));
                     {
                         GUILayout.Space(9);
-                        GUILayout.Label(Styles.TitleIcon, GUILayout.Height(20), GUILayout.Width(20));
+                        GUILayout.Label(Styles.BigLogo, GUILayout.Height(20), GUILayout.Width(20));
                     }
                     GUILayout.EndVertical();
 
@@ -194,7 +193,6 @@ namespace GitHub.Unity
 
         private void DoResult(bool success, string msg)
         {
-            finished = true;
             message = msg;
             busy = false;
 

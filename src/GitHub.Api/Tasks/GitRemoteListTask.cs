@@ -1,41 +1,32 @@
 using System;
 using System.Collections.Generic;
-using GitHub.Unity;
 
 namespace GitHub.Unity
 {
     class GitRemoteListTask : GitTask
     {
-        private Action<IList<GitRemote>> callback;
+        private readonly ITaskResultDispatcher<IEnumerable<GitRemote>> resultDispatcher;
         private RemoteListOutputProcessor processor;
 
         private List<GitRemote> remotes = new List<GitRemote>();
 
-        public GitRemoteListTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher resultDispatcher,
-                Action<IList<GitRemote>> onSuccess, Action onFailure = null)
-            : base(environment, processManager, resultDispatcher,
-                  null, onFailure)
+        public GitRemoteListTask(IEnvironment environment, IProcessManager processManager,
+            ITaskResultDispatcher<IEnumerable<GitRemote>> resultDispatcher)
+            : base(environment, processManager)
         {
+            this.resultDispatcher = resultDispatcher;
             processor = new RemoteListOutputProcessor();
-            callback = onSuccess;
-        }
-
-        protected override void OnOutputComplete(string output, string errors)
-        {
-            if (TaskResultDispatcher != null)
-            {
-                TaskResultDispatcher.ReportSuccess(() => callback?.Invoke(remotes));
-            }
-            else
-            {
-                callback?.Invoke(remotes);
-            }
         }
 
         protected override ProcessOutputManager HookupOutput(IProcess process)
         {
             processor.OnRemote += AddRemote;
             return new ProcessOutputManager(process, processor);
+        }
+
+        protected override void RaiseOnSuccess()
+        {
+            resultDispatcher.ReportSuccess(remotes);
         }
 
         private void AddRemote(GitRemote remote)
