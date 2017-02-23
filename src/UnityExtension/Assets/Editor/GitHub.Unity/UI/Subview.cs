@@ -55,6 +55,7 @@ namespace GitHub.Unity
         {}
 
         public virtual Rect Position { get { return position; } }
+        public IRepository Repository { get; protected set; }
 
         private ILogging logger;
         protected ILogging Logger
@@ -73,12 +74,12 @@ namespace GitHub.Unity
         public event Action<bool> OnClose;
 
         private const string NullParentError = "Subview parent is null";
-        protected IView Parent { get; private set; }
+        protected BaseWindow Parent { get; private set; }
 
         public virtual void Initialize(IView parent)
         {
             Debug.Assert(parent != null, NullParentError);
-            Parent = parent;
+            Parent = parent as BaseWindow;
         }
 
         public virtual void OnShow()
@@ -115,7 +116,6 @@ namespace GitHub.Unity
         }
 
         public virtual Rect Position { get { return Parent.Position; } }
-
 
         private ILogging logger;
         protected ILogging Logger

@@ -56,9 +56,9 @@ namespace GitHub.Unity
 
                     Utility.Run();
 
-                    ProjectWindowInterface.Initialize();
+                    ProjectWindowInterface.Initialize(Environment.Repository);
 
-                    Window.Initialize();
+                    Window.Initialize(Environment.Repository);
 
                     logger.Debug("Application Restarted");
                 }, Scheduler);
@@ -92,7 +92,7 @@ namespace GitHub.Unity
                 .ContinueWith(_ =>
                 {
                     logger.Trace("Restarted");
-                    Window.Initialize();
+                    Window.Initialize(Environment.Repository);
                 }, Scheduler);
         }
 

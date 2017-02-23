@@ -10,12 +10,11 @@ namespace GitHub.Unity
         private static readonly List<string> guids = new List<string>();
         private static bool initialized = false;
 
-        public static void Initialize()
+        public static void Initialize(IRepository repository)
         {
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
-            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
-            StatusService.Instance.RegisterCallback(OnStatusUpdate);
+            repository.OnRepositoryChanged += OnStatusUpdate;
             initialized = true;
         }
 
