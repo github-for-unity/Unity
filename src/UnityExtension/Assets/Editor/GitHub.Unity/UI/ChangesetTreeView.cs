@@ -403,7 +403,7 @@ namespace GitHub.Unity
         [Serializable]
         private class FileTreeNode
         {
-            [SerializeField] private List<FileTreeNode> children = new List<FileTreeNode>();
+            [SerializeField] private List<FileTreeNode> children;
 
             [SerializeField] public Texture Icon;
             [SerializeField] public string Label;
@@ -411,11 +411,18 @@ namespace GitHub.Unity
             [SerializeField] private string path;
             [SerializeField] public string RepositoryPath;
             [SerializeField] public GitCommitTarget Target;
+            [SerializeField] private CommitState state;
+
+            public FileTreeNode()
+            {
+                children = new List<FileTreeNode>();
+            }
 
             public FileTreeNode(string path)
             {
                 this.path = path ?? "";
                 Label = this.path;
+                children = new List<FileTreeNode>();
             }
 
             public FileTreeNode Add(FileTreeNode child)
@@ -428,36 +435,47 @@ namespace GitHub.Unity
             {
                 get
                 {
+                    if (children == null)
+                        return state;
+
                     var commitState = CommitState.None;
                     if (Target != null)
                     {
                         commitState = Target.All ? CommitState.All : Target.Any ? CommitState.Some : CommitState.None;
                         if (!children.Any())
-                            return commitState;
+                        {
+                            state = commitState;
+                            return state;
+                        }
                     }
 
                     var allCount = children.Count(c => c.State == CommitState.All);
 
                     if (allCount == children.Count && (commitState == CommitState.All || Target == null))
                     {
-                        return CommitState.All;
+                        state = CommitState.All;
+                        return state;
                     }
 
                     if (allCount > 0 || commitState == CommitState.Some)
                     {
-                        return CommitState.Some;
+                        state = CommitState.Some;
+                        return state;
                     }
 
                     var someCount = children.Count(c => c.State == CommitState.Some);
                     if (someCount > 0 || commitState == CommitState.Some)
                     {
-                        return CommitState.Some;
+                        state = CommitState.Some;
+                        return state;
                     }
-                    return CommitState.None;
+                    state = CommitState.None;
+                    return state;
                 }
+
                 set
                 {
-                    if (value == CommitState.Some || value == State)
+                    if (value == state)
                     {
                         return;
                     }
@@ -468,10 +486,17 @@ namespace GitHub.Unity
                         {
                             Target.Clear();
                         }
-                        else
+                        else if (value == CommitState.All)
                         {
                             Target.All = true;
                         }
+                    }
+
+                    state = value;
+
+                    if (children == null)
+                    {
+                        return;
                     }
 
                     for (var index = 0; index < children.Count; ++index)
@@ -488,7 +513,11 @@ namespace GitHub.Unity
 
             public IEnumerable<FileTreeNode> Children
             {
-                get { return children; }
+                get {
+                    if (children == null)
+                        children = new List<FileTreeNode>();
+                    return children;
+                }
             }
 
             private ILogging logger;
