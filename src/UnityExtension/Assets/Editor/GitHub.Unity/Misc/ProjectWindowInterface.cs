@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ namespace GitHub.Unity
         {
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
-            repository.OnRepositoryChanged += OnStatusUpdate;
+            repository.OnRepositoryChanged += status => Tasks.ScheduleMainThread(() => OnStatusUpdate(status));
             initialized = true;
         }
 
