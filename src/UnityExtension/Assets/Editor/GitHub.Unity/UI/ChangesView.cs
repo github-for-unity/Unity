@@ -103,11 +103,14 @@ namespace GitHub.Unity
             GUILayout.EndHorizontal();
 
             horizontalScroll = GUILayout.BeginScrollView(horizontalScroll);
-            GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
-            {
-                tree.OnGUI();
-            }
-            GUILayout.EndVertical();
+              GUILayout.BeginHorizontal();
+              GUILayout.Space(-15);
+              GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
+              {
+                  tree.OnGUI();
+              }
+              GUILayout.EndVertical();
+              GUILayout.EndHorizontal();
             GUILayout.EndScrollView();
 
 
