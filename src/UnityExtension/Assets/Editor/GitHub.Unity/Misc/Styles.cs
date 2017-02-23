@@ -76,7 +76,6 @@ namespace GitHub.Unity
             commitDescriptionFieldStyle,
             toggleMixedStyle,
             authHeaderBoxStyle,
-            historyDetailsTitleBoxStyle,
             historyDetailsTitleStyle,
             historyDetailsMetaInfoStyle,
             genericBoxStyle;
@@ -306,21 +305,6 @@ namespace GitHub.Unity
 
                 return historyEntryDetailsRightStyle;
             }
-        }
-
-        public static GUIStyle HistoryDetailsTitleBoxStyle
-        {
-          get
-          {
-            if (historyDetailsTitleBoxStyle == null)
-            {
-              historyDetailsTitleBoxStyle = new GUIStyle();
-              historyDetailsTitleBoxStyle.name = "HistoryDetailsTitleBoxStyle";
-              historyDetailsTitleBoxStyle.normal.background = Utility.CreateTextureFromColor(headerGreyColor);
-            }
-
-            return historyDetailsTitleBoxStyle;
-          }
         }
 
 

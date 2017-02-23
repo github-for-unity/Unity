@@ -547,7 +547,7 @@ namespace GitHub.Unity
 
         private void HistoryDetailsEntry(GitLogEntry entry)
         {
-          GUILayout.BeginVertical(Styles.HistoryDetailsTitleBoxStyle);
+          GUILayout.BeginVertical(Styles.HeaderBoxStyle);
             GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle, GUILayout.Width(Position.width));
 
             GUILayout.Space(-5);
@@ -559,11 +559,6 @@ namespace GitHub.Unity
             GUILayout.EndHorizontal();
 
             GUILayout.Space(3);
-
-            Rect r = EditorGUILayout.BeginHorizontal();
-              Rect separatorLine = new Rect(r.x, r.y, r.width, 1);
-              EditorGUI.DrawRect(separatorLine, Color.grey);
-            EditorGUILayout.EndHorizontal();
           GUILayout.EndVertical();
         }
 
