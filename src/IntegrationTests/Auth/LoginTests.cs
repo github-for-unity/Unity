@@ -8,7 +8,7 @@ using Rackspace.Threading;
 
 namespace IntegrationTests
 {
-    [TestFixture]
+    [TestFixture, Ignore]
     class LoginIntegrationTests : BaseGitIntegrationTest
     {
         string FindCommonPath(IEnumerable<string> paths)

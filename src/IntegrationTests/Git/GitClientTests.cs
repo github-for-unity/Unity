@@ -11,7 +11,7 @@ using FluentAssertions;
 
 namespace IntegrationTests
 {
-    [TestFixture]
+    [TestFixture, Ignore]
     class GitClientTests : BaseGitIntegrationTest
     {
         [Test]

@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace IntegrationTests
 {
-    [TestFixture]
+    [TestFixture, Ignore]
     class ProcessManagerIntegrationTests : BaseGitIntegrationTest
     {
         [Test]
