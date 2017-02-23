@@ -1,0 +1,57 @@
+﻿using GitHub.Unity;
+using NUnit.Framework;
+
+namespace UnitTests
+{
+    [TestFixture]
+    public class GitStatusEntryListTests
+    {
+        [Test]
+        public void ListOf2ShouldEqualListOf2()
+        {
+            var gitStatusEntry1 = new[]
+            {
+                new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                    GitFileStatus.Added, "SomeOriginalPath"),
+
+                new GitStatusEntry("ASDFSomePath", "SomeFullPath", "SomeProjectPath",
+                    GitFileStatus.Modified)
+            };
+
+            var gitStatusEntry2 = new[]
+            {
+                new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                    GitFileStatus.Added, "SomeOriginalPath"),
+
+                new GitStatusEntry("ASDFSomePath", "SomeFullPath", "SomeProjectPath",
+                    GitFileStatus.Modified)
+            };
+
+            gitStatusEntry1.AssertEqual(gitStatusEntry2);
+        }
+
+        [Test]
+        public void ListOf2ShouldNotEqualListOf2InDifferentOrder()
+        {
+            var gitStatusEntry1 = new[]
+            {
+                new GitStatusEntry("ASDFSomePath", "SomeFullPath", "SomeProjectPath",
+                    GitFileStatus.Modified),
+
+                new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                    GitFileStatus.Added, "SomeOriginalPath")
+            };
+
+            var gitStatusEntry2 = new[]
+            {
+                new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                    GitFileStatus.Added, "SomeOriginalPath"),
+
+                new GitStatusEntry("ASDFSomePath", "SomeFullPath", "SomeProjectPath",
+                    GitFileStatus.Modified)
+            };
+
+            gitStatusEntry1.AssertNotEqual(gitStatusEntry2);
+        }
+    }
+}
