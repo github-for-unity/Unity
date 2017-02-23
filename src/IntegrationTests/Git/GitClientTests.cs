@@ -25,7 +25,7 @@ namespace IntegrationTests
             var gitEnvironment = platform.GitEnvironment;
 
             var repositoryLocator = new RepositoryLocator(environment.UnityProjectPath);
-            Assert.AreEqual(new NPath(TestGitRepoPath).ToString(), repositoryLocator.RepositoryPath);
+            Assert.AreEqual(new NPath(TestGitRepoPath).ToString(), repositoryLocator.FindRepositoryRoot());
         }
 
         [Test]
