@@ -36,14 +36,19 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
-            OnStatusUpdate(EntryPoint.Environment.Repository.CurrentStatus);
-            EntryPoint.Environment.Repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
+            if (Parent.Repository == null)
+                return;
+
+            OnStatusUpdate(Parent.Repository.CurrentStatus);
+            Parent.Repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
         }
 
         public override void OnHide()
         {
             base.OnHide();
-            EntryPoint.Environment.Repository.OnRepositoryChanged -= RunStatusUpdateOnMainThread;
+            if (Parent.Repository == null)
+                return;
+            Parent.Repository.OnRepositoryChanged -= RunStatusUpdateOnMainThread;
         }
 
         private void RunStatusUpdateOnMainThread(GitStatus status)
