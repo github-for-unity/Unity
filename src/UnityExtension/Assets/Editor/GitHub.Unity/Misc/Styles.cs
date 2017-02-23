@@ -92,7 +92,8 @@ namespace GitHub.Unity
             mergeIcon,
             dotIcon,
             repoIcon,
-            lockIcon;
+            lockIcon,
+            dropdownListIcon;
 
        static Color
            timelineBarColor;
@@ -582,6 +583,19 @@ namespace GitHub.Unity
                 }
 
                 return lockIcon;
+            }
+        }
+
+        public static Texture2D DropdownListIcon
+        {
+            get
+            {
+                if (dropdownListIcon == null)
+                {
+                        dropdownListIcon = Utility.GetIcon("dropdown-list-icon.png", "dropdown-list-icon@2x.png");
+                }
+
+                return dropdownListIcon;
             }
         }
 
