@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Debug = System.Diagnostics.Debug;
+// using Debug = System.Diagnostics.Debug;
 
 namespace GitHub.Unity
 {
@@ -22,6 +22,8 @@ namespace GitHub.Unity
         private const string BranchesTitle = "Branches";
         private const string SettingsTitle = "Settings";
         private const string AuthenticationTitle = "Auth";
+
+        private Rect dropdownButtonRect;
 
         [NonSerialized] private double notificationClearTime = -1;
 
@@ -221,7 +223,7 @@ namespace GitHub.Unity
             GUILayout.EndHorizontal();
 
             // Subtabs & toolbar
-            GUILayout.BeginHorizontal(EditorStyles.toolbar);
+            Rect mainNavRect = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
                 SubTab tab = activeTab;
                 EditorGUI.BeginChangeCheck();
@@ -279,8 +281,30 @@ namespace GitHub.Unity
                 }
 
                 GUILayout.FlexibleSpace();
+
+                if(GUILayout.Button("Account", EditorStyles.toolbarDropDown))
+                  DoAccountDropdown();
             }
-            GUILayout.EndHorizontal();
+
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void DoAccountDropdown()
+        {
+          GenericMenu accountMenu = new GenericMenu();
+
+          accountMenu.AddItem(new GUIContent("Sign in"), false, OnAccountMenuClick, "sign in");
+          accountMenu.AddItem(new GUIContent("Go to Profile"), false, OnAccountMenuClick, "profile");
+          accountMenu.AddSeparator("");
+          accountMenu.AddItem(new GUIContent("Sign out"), false, OnAccountMenuClick, "sign out");
+
+          accountMenu.ShowAsContext();
+        }
+
+        private void OnAccountMenuClick(object obj)
+        {
+          Debug.Log("Click:");
+          Debug.Log(obj);
         }
 
         [SerializeField] private int signedInDropdown;
