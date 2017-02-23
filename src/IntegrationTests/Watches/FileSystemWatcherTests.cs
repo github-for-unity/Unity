@@ -1,37 +1,9 @@
 ﻿using GitHub.Unity;
-using NSubstitute;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
-    class TestUIDispatcher : BaseUIDispatcher
-    {
-        private readonly Func<bool> callback;
-
-        public TestUIDispatcher(Func<bool> callback = null) : base()
-        {
-            this.callback = callback;
-        }
-
-        protected override void Run(Action<bool> onClose)
-        {
-            bool ret = true;
-            if (callback != null)
-            {
-                ret = callback();
-            }
-            onClose(ret);
-            base.Run(onClose);
-        }
-    }
-
     [TestFixture]
     class FileSystemWatcherTests : BaseIntegrationTest
     {
@@ -71,8 +43,6 @@ namespace IntegrationTests
         [Test]
         public void WatchesAFile()
         {
-            var expected = 9;
-
             var createdCount = 0;
             var changedCount = 0;
             var renamedCount = 0;
@@ -113,6 +83,9 @@ namespace IntegrationTests
 
             //http://stackoverflow.com/questions/1764809/filesystemwatcher-changed-event-is-raised-twice
             Assert.AreEqual(2, changedCount);
+            Assert.AreEqual(0, createdCount);
+            Assert.AreEqual(0, renamedCount);
+            Assert.AreEqual(0, deletedCount);
 
             watcher.Dispose();
         }

@@ -76,6 +76,7 @@
     <Compile Include="BaseIntegrationTest.cs" />
     <Compile Include="Helpers\Args.cs" />
     <Compile Include="Watches\FileSystemWatcherTests.cs" />
+    <Compile Include="Helpers\TestUIDispatcher.cs" />
     <None Include="Watches\WindowsLinuxFileSystemWatchTests.cs" />
     <None Include="Watches\AdaptiveFileSystemWatchTests.cs" />
     <None Include="Watches\FileSystemWatcherIntegrationTests.cs" />
