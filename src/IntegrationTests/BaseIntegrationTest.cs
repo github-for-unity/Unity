@@ -32,7 +32,7 @@ namespace IntegrationTests
         {
             try
             {
-                //TestBasePath.Delete();
+                TestBasePath.Delete();
             }
             catch (Exception e)
             {
