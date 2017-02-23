@@ -55,6 +55,7 @@ namespace GitHub.Unity
         {}
 
         public virtual Rect Position { get { return position; } }
+        public IRepository Repository { get; protected set; }
 
         private ILogging logger;
         protected ILogging Logger
@@ -74,6 +75,7 @@ namespace GitHub.Unity
 
         private const string NullParentError = "Subview parent is null";
         protected IView Parent { get; private set; }
+        public IRepository Repository { get { return Parent.Repository; } }
 
         public virtual void Initialize(IView parent)
         {
@@ -115,7 +117,6 @@ namespace GitHub.Unity
         }
 
         public virtual Rect Position { get { return Parent.Position; } }
-
 
         private ILogging logger;
         protected ILogging Logger
