@@ -80,12 +80,13 @@ namespace GitHub.Unity
             await ThreadingHelper.SwitchToThreadAsync();
 
             SetupRepository();
- 
-            if (repositoryLocator.RepositoryPath != null)
+
+            var repositoryRoot = repositoryLocator.FindRepositoryRoot();
+            if (repositoryRoot != null)
             {
                 try
                 {
-                    repositoryManager = new RepositoryManager(repositoryLocator.RepositoryPath, Platform, CancellationToken);
+                    repositoryManager = new RepositoryManager(repositoryRoot, Platform, CancellationToken);
                 }
                 catch (Exception ex)
                 {
