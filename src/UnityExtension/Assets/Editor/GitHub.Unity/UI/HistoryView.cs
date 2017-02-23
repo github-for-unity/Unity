@@ -26,7 +26,7 @@ namespace GitHub.Unity
         private const string PushConfirmDescription = "Would you like to push changes to remote '{0}'?";
         private const string PushConfirmYes = "Push";
         private const string PushConfirmCancel = "Cancel";
-        private const string ClearSelectionButton = "x";
+        private const string ClearSelectionButton = "×";
         private const int HistoryExtraItemCount = 10;
         private const float MaxChangelistHeightRatio = .2f;
 
