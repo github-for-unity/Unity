@@ -518,7 +518,7 @@ namespace GitHub.Unity
               }
               else
               {
-                iconContent = Styles.DefaultAssetIcon;
+                iconContent = Styles.BranchIcon;
               }
             }
 

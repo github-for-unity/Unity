@@ -81,6 +81,7 @@ namespace GitHub.Unity
             deletedStatusIcon,
             renamedStatusIcon,
             untrackedStatusIcon,
+            branchIcon,
             activeBranchIcon,
             trackingBranchIcon,
             favouriteIconOn,
@@ -437,6 +438,19 @@ namespace GitHub.Unity
             }
         }
 
+
+        public static Texture2D BranchIcon
+        {
+          get
+          {
+            if (branchIcon == null)
+            {
+              branchIcon = Utility.GetIcon("branch.png");
+            }
+
+            return branchIcon;
+          }
+        }
 
         public static Texture2D TrackingBranchIcon
         {
