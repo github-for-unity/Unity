@@ -88,7 +88,7 @@ namespace GitHub.Unity
                     NPath branchesPath, NPath remotesPath,
                     NPath dotGitConfig)
         {
-            var ignore = new List<string>
+            var ignore = new List<NPath>
             {
                 repositoryPath.Combine(".git"),
                 platform.Environment.UnityProjectPath.ToNPath().Combine("Library")
@@ -96,24 +96,28 @@ namespace GitHub.Unity
 
             fileHierarchyWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath, true);
             fileHierarchyWatcher.Changed += f => {
-                if (!ignore.Contains(f))
+                if (!ignore.Any(f.IsChildOf))
                 {
                     RepositoryChanged?.Invoke();
                 }
             };
             fileHierarchyWatcher.Created += f => {
-                if (!ignore.Contains(f))
+                if (!ignore.Any(f.IsChildOf))
                 {
                     RepositoryChanged?.Invoke();
                 }
             };
             fileHierarchyWatcher.Deleted += f => {
-                if (!ignore.Contains(f))
+                if (!ignore.Any(f.IsChildOf))
+                {
                     RepositoryChanged?.Invoke();
+                }
             };
             fileHierarchyWatcher.Renamed += (f, __) => {
-                if (!ignore.Contains(f))
+                if (!ignore.Any(f.IsChildOf))
+                {
                     RepositoryChanged?.Invoke();
+                }
             };
 
             gitConfigWatcher = platform.FileSystemWatchFactory.GetOrCreate(dotGitConfig, false);
