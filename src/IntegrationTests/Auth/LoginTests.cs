@@ -8,7 +8,7 @@ using Rackspace.Threading;
 
 namespace IntegrationTests
 {
-    [TestFixture, Ignore]
+    [TestFixture]
     class LoginIntegrationTests : BaseGitIntegrationTest
     {
         string FindCommonPath(IEnumerable<string> paths)
@@ -50,24 +50,6 @@ namespace IntegrationTests
 
             Assert.AreEqual("Assets", ret);
         }
-
-        //[Test]
-        //public async void SimpleLogin()
-        //{
-        //    var program = new AppConfiguration();
-        //    var filesystem = new FileSystem();
-        //    var environment = new DefaultEnvironment();
-        //    environment.GitExecutablePath = @"C:\soft\Git\cmd\git.exe";
-        //    environment.RepositoryRoot = TestGitRepoPath;
-        //    var platform = new Platform(environment, filesystem);
-        //    var gitEnvironment = platform.GitEnvironment;
-        //    var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
-        //    var credentialManager = new WindowsCredentialManager(environment, processManager);
-        //    var api = new ApiClientFactory(program, credentialManager);
-        //    var hostAddress = HostAddress.GitHubDotComHostAddress;
-        //    var client = api.Create(UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri));
-        //    int called = 0;
-        //}
 
         [Test]
         public async void NetworkTaskTest()

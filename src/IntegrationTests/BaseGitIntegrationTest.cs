@@ -12,10 +12,10 @@ namespace IntegrationTests
 
         private static string TestZipFilePath => Path.Combine(SolutionDirectory, "IOTestsRepo.zip");
 
-
-        [SetUp]
-        public void SetUp()
+        protected override void OnSetup()
         {
+            base.OnSetup();
+
             using (var zipFile = new ZipFile(TestZipFilePath))
             {
                 zipFile.ExtractAll(TestBasePath.ToString(), ExtractExistingFileAction.OverwriteSilently);
