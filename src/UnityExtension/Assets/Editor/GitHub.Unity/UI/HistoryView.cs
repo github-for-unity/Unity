@@ -26,6 +26,7 @@ namespace GitHub.Unity
         private const string PushConfirmDescription = "Would you like to push changes to remote '{0}'?";
         private const string PushConfirmYes = "Push";
         private const string PushConfirmCancel = "Cancel";
+        private const string CommitDetailsTitle = "Commit details";
         private const string ClearSelectionButton = "×";
         private const int HistoryExtraItemCount = 10;
         private const float MaxChangelistHeightRatio = .2f;
@@ -335,8 +336,7 @@ namespace GitHub.Unity
                 // Top bar for scrolling to selection or clearing it
                 GUILayout.BeginHorizontal(EditorStyles.toolbar);
                 {
-                    // if (GUILayout.Button(selection.ShortID, Styles.HistoryToolbarButtonStyle))
-                    if (GUILayout.Button("Commit details", Styles.HistoryToolbarButtonStyle))
+                    if (GUILayout.Button(CommitDetailsTitle, Styles.HistoryToolbarButtonStyle))
                     {
                         ScrollTo(selectionIndex);
                     }
