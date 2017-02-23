@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auth\LoginTests.cs" />
+    <Compile Include="BaseGitIntegrationTest.cs" />
     <Compile Include="BaseIntegrationTest.cs" />
     <Compile Include="Helpers\Args.cs" />
     <Compile Include="Watches\FileSystemWatcherTests.cs" />
