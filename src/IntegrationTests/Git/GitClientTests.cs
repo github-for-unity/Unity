@@ -8,7 +8,7 @@ using NCrunch.Framework;
 
 namespace IntegrationTests
 {
-    [TestFixture, Ignore]
+    [TestFixture]
     class GitClientTests : BaseGitIntegrationTest
     {
         [Test]
@@ -21,9 +21,8 @@ namespace IntegrationTests
             environment.UnityProjectPath = TestBasePath;
 
             var repositoryLocator = new RepositoryLocator(environment.UnityProjectPath);
-            var repositoryLocatorRepositoryPath = repositoryLocator.RepositoryPath;
 
-            Assert.AreEqual(new NPath(TestBasePath).ToString(), repositoryLocatorRepositoryPath);
+            repositoryLocator.FindRepositoryRoot().ToString().Should().Be(new NPath(TestBasePath).ToString());
         }
 
         [Test]

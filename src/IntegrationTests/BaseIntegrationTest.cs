@@ -9,19 +9,24 @@ namespace IntegrationTests
     {
         protected NPath TestBasePath { get; private set; }
         protected ILogging Logger { get; private set; }
-        protected IEnvironment Environment { get; set; }
-        protected IFileSystem FileSystem { get; set; }
+        protected IEnvironment Environment { get; private set; }
+        protected IFileSystem FileSystem { get; private set; }
 
         [TestFixtureSetUp]
         public void TestFixtureSetup()
         {
             Logger = Logging.GetLogger(GetType());
-            Environment = new DefaultEnvironment();
         }
 
         [SetUp]
         public void SetUp()
         {
+            OnSetup();
+        }
+
+        protected virtual void OnSetup()
+        {
+            Environment = new DefaultEnvironment();
             FileSystem = new FileSystem(TestBasePath);
 
             NPathFileSystemProvider.Current.Should().BeNull("Test should run in isolation");
