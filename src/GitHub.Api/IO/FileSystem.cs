@@ -6,13 +6,18 @@ namespace GitHub.Unity
 {
     class FileSystem : IFileSystem
     {
-        private readonly string currentDirectory;
+        private string currentDirectory;
 
         public FileSystem()
         {
         }
 
         public FileSystem(string currentDirectory)
+        {
+            this.currentDirectory = currentDirectory;
+        }
+
+        public void SetCurrentDirectory(string currentDirectory)
         {
             this.currentDirectory = currentDirectory;
         }
@@ -57,6 +62,12 @@ namespace GitHub.Unity
             return Directory.Exists(path);
         }
 
+        public bool ExistingPathIsDirectory(string path)
+        {
+            var attr = File.GetAttributes(path);
+            return (attr & FileAttributes.Directory) == FileAttributes.Directory;
+        }
+
         public string GetParentDirectory(string path)
         {
             return Directory.GetParent(path).FullName;
@@ -80,6 +91,16 @@ namespace GitHub.Unity
         public string GetFileNameWithoutExtension(string fileName)
         {
             return Path.GetFileNameWithoutExtension(fileName);
+        }
+
+        public IEnumerable<string> GetFiles(string path)
+        {
+            return Directory.GetFiles(path);
+        }
+
+        public IEnumerable<string> GetFiles(string path, string pattern)
+        {
+            return Directory.GetFiles(path, pattern);
         }
 
         public IEnumerable<string> GetFiles(string path, string pattern, SearchOption searchOption)

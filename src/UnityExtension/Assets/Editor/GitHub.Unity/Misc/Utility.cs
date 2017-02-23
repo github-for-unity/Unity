@@ -97,33 +97,25 @@ namespace GitHub.Unity
         }
 
         // Based on: https://www.rosettacode.org/wiki/Find_common_directory_path#C.23
-        public static string FindCommonPath(string separator, IEnumerable<string> paths)
+        public static string FindCommonPath(IEnumerable<string> paths)
         {
-            var commonPath = string.Empty;
-            var separatedPath =
+            var longestPath =
                 paths.First(first => first.Length == paths.Max(second => second.Length))
-                     .Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries)
-                     .ToList();
+                .ToNPath();
 
-            foreach (var pathSegment in separatedPath.AsEnumerable())
+            NPath commonParent = longestPath;
+            foreach (var path in paths)
             {
-                var pathExtension = pathSegment + separator;
-
-                if (commonPath.Length == 0 && paths.All(path => path.StartsWith(pathExtension)))
-                {
-                    commonPath = pathExtension;
-                }
-                else if (paths.All(path => path.StartsWith(commonPath + pathExtension)))
-                {
-                    commonPath += pathExtension;
-                }
+                var cp = commonParent.GetCommonParent(path);
+                if (cp != null)
+                    commonParent = cp;
                 else
                 {
+                    commonParent = null;
                     break;
                 }
             }
-
-            return commonPath;
+            return commonParent;
         }
 
         public static string GitInstallPath
