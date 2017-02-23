@@ -1,13 +1,15 @@
 ﻿using GitHub.Unity;
 using NUnit.Framework;
 using System.Threading;
+using FluentAssertions;
+using NCrunch.Framework;
 
 namespace IntegrationTests
 {
     [TestFixture]
     class FileSystemWatcherTests : BaseIntegrationTest
     {
-        [Test]
+        [Test, Isolated]
         public void WatchesADirectoryTree()
         {
             int expected = 9;
@@ -32,7 +34,7 @@ namespace IntegrationTests
                 "dir1/dir1/dir2/file2",
             };
 
-            CreateDirStructure(files);
+            CreateFilePaths(files);
 
             Thread.Sleep(50);
 
@@ -40,7 +42,7 @@ namespace IntegrationTests
             Assert.AreEqual(expected, count);
         }
 
-        [Test]
+        [Test, Isolated]
         public void WatchesAFile()
         {
             var createdCount = 0;
@@ -82,10 +84,10 @@ namespace IntegrationTests
             Thread.Sleep(120);
 
             //http://stackoverflow.com/questions/1764809/filesystemwatcher-changed-event-is-raised-twice
-            Assert.AreEqual(2, changedCount);
-            Assert.AreEqual(0, createdCount);
-            Assert.AreEqual(0, renamedCount);
-            Assert.AreEqual(0, deletedCount);
+            changedCount.Should().BeLessOrEqualTo(2);
+            createdCount.Should().Be(0);
+            renamedCount.Should().Be(0);
+            deletedCount.Should().Be(0);
 
             watcher.Dispose();
         }
