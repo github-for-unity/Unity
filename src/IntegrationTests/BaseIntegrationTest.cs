@@ -12,12 +12,16 @@ namespace IntegrationTests
         protected IEnvironment Environment { get; set; }
         protected IFileSystem FileSystem { get; set; }
 
-        [SetUp]
-        public void SetUp()
+        [TestFixtureSetUp]
+        public void TestFixtureSetup()
         {
             Logger = Logging.GetLogger(GetType());
             Environment = new DefaultEnvironment();
+        }
 
+        [SetUp]
+        public void SetUp()
+        {
             FileSystem = new FileSystem(TestBasePath);
 
             NPathFileSystemProvider.Current.Should().BeNull("Test should run in isolation");
@@ -39,10 +43,11 @@ namespace IntegrationTests
                 Logger.Warning(e, "Error deleting TestBasePath: {0}", TestBasePath.ToString());
             }
 
+            FileSystem = null;
             NPathFileSystemProvider.Current = null;
         }
 
-        protected void CreateDirStructure(NPath[] dirs)
+        protected void CreateFilePaths(NPath[] dirs)
         {
             foreach (var file in dirs)
             {
