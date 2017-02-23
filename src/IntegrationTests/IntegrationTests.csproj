@@ -77,10 +77,6 @@
     <Compile Include="Helpers\Args.cs" />
     <Compile Include="Watches\FileSystemWatcherTests.cs" />
     <Compile Include="Helpers\TestUIDispatcher.cs" />
-    <None Include="Watches\WindowsLinuxFileSystemWatchTests.cs" />
-    <None Include="Watches\AdaptiveFileSystemWatchTests.cs" />
-    <None Include="Watches\FileSystemWatcherIntegrationTests.cs" />
-    <None Include="Watches\TestFileSystemWatcherWrapper.cs" />
     <Compile Include="Git\GitClientTests.cs" />
     <Compile Include="Helpers\AssertExtensions.cs" />
     <Compile Include="Installer\GitInstallerTests.cs" />
