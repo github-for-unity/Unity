@@ -44,13 +44,15 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
-            EntryPoint.Environment.Repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
+            if (Parent.Repository != null)
+                Parent.Repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
         }
 
         public override void OnHide()
         {
             base.OnHide();
-            EntryPoint.Environment.Repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
+            if (Parent.Repository != null)
+                Parent.Repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
         }
 
         private void RunRefreshEmbeddedOnMainThread()
@@ -72,8 +74,11 @@ namespace GitHub.Unity
 
         public void RefreshEmbedded()
         {
-            OnLocalBranchesUpdate(EntryPoint.Environment.Repository.LocalBranches);
-            OnRemoteBranchesUpdate(EntryPoint.Environment.Repository.RemoteBranches);
+            if (Parent.Repository == null)
+                return;
+
+            OnLocalBranchesUpdate(Parent.Repository.LocalBranches);
+            OnRemoteBranchesUpdate(Parent.Repository.RemoteBranches);
 
             //ITask task = new GitListLocalBranchesTask(
             //    EntryPoint.Environment, EntryPoint.ProcessManager,
