@@ -22,7 +22,7 @@ namespace GitHub.Unity
         private const string SettingsTitle = "Settings";
         private const string AuthenticationTitle = "Auth";
         private const string NoRepoTitle = "This project doesn't have a git repository set up.";
-        private const string NoRepoDescription = "Create and publish your repo to GitHub to start collaborating together.";
+        private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
 
 
         [NonSerialized] private double notificationClearTime = -1;
@@ -154,26 +154,23 @@ namespace GitHub.Unity
                 GUILayout.BeginVertical();
                 {
                     GUILayout.Label(NoRepoTitle, Styles.HeaderTitleStyle);
-                    GUILayout.Label(NoRepoDescription, Styles.HeaderDescriptionStyle);
                 }
                 GUILayout.EndVertical();
             }
             EditorGUILayout.EndHorizontal();
-            GUILayout.BeginVertical();
+
+            GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {
-                GUILayout.FlexibleSpace();
+                GUILayout.Label(NoRepoDescription, Styles.HeaderDescriptionStyle);
+
                 GUILayout.BeginHorizontal();
-                {
-                    GUILayout.FlexibleSpace();
-                    if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "LargeButton"))
-                    {
-                        var repoInit = new RepositoryInitializer(EntryPoint.Environment, EntryPoint.ProcessManager, new TaskQueueScheduler(), EntryPoint.AppManager);
-                        repoInit.Run();
-                    }
-                    GUILayout.FlexibleSpace();
-                }
+                  if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
+                  {
+                      var repoInit = new RepositoryInitializer(EntryPoint.Environment, EntryPoint.ProcessManager, new TaskQueueScheduler(), EntryPoint.AppManager);
+                      repoInit.Run();
+                  }
+                  GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
-                GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
 
