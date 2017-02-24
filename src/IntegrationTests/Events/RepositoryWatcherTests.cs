@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using FluentAssertions;
 using GitHub.Unity;
@@ -9,6 +8,8 @@ namespace IntegrationTests.Events
 {
     class RepositoryWatcherTests : BaseGitIntegrationTest
     {
+
+
         protected override void OnSetup()
         {
             base.OnSetup();
@@ -62,7 +63,7 @@ namespace IntegrationTests.Events
             foobarTxt.WriteAllText("foobar");
 
             Thread.Sleep(100);
-            
+
             //http://stackoverflow.com/questions/1764809/filesystemwatcher-changed-event-is-raised-twice
             repositoryChanged.Should().Be(2);
         }
@@ -78,15 +79,17 @@ namespace IntegrationTests.Events
             repositoryWatcher.RepositoryChanged += () => { repositoryChanged++; };
             repositoryWatcher.Start();
 
-            var taskResultDispatcher = new TaskResultDispatcher<string>(s => {
-                completed = true;
-            });
+            var taskResultDispatcher = new TaskResultDispatcher<string>(s => { completed = true; });
 
-            new GitSwitchBranchesTask(Environment, ProcessManager, taskResultDispatcher, "feature/document");
+            var gitSwitchBranchesTask = new GitSwitchBranchesTask(Environment, ProcessManager, taskResultDispatcher,
+                "feature/document");
 
-            Thread.Sleep(2000);
+            gitSwitchBranchesTask.RunAsync(CancellationToken.None).Wait();
+
+            Thread.Sleep(100);
 
             completed.Should().BeTrue();
+            repositoryChanged.Should().BeGreaterThan(1);
         }
     }
 }
