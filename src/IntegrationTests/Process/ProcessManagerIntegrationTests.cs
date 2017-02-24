@@ -11,25 +11,6 @@ namespace IntegrationTests
     [TestFixture]
     class ProcessManagerIntegrationTests : BaseGitIntegrationTest
     {
-        public ProcessManager ProcessManager { get; set; }
-
-        public IProcessEnvironment GitEnvironment { get; set; }
-
-        protected override void OnSetup()
-        {
-            base.OnSetup();
-
-            var platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
-            GitEnvironment = platform.GitEnvironment;
-            ProcessManager = new ProcessManager(Environment, GitEnvironment);
-
-            Environment.UnityProjectPath = TestBasePath;
-            Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
-
-            var repositoryManager = new RepositoryManager(TestBasePath, platform, CancellationToken.None);
-            Environment.Repository = repositoryManager.Repository;
-        }
-
         [Test]
         public void BranchListTest()
         {

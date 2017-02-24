@@ -14,9 +14,6 @@ namespace IntegrationTests
         [Test]
         public void FindRepoRootTest()
         {
-            var filesystem = new FileSystem(TestBasePath);
-            NPathFileSystemProvider.Current = filesystem;
-
             var environment = new DefaultEnvironment();
             environment.UnityProjectPath = TestBasePath;
 
@@ -28,33 +25,11 @@ namespace IntegrationTests
         [Test]
         public void InstallGit()
         {
-            var filesystem = new FileSystem();
-            NPathFileSystemProvider.Current = filesystem;
-            var environment = new DefaultEnvironment();
-
-            var gitSetup = new GitSetup(environment, CancellationToken.None);
-            var expectedPath = gitSetup.GitInstallationPath;
-
-            bool setupDone = false;
-            float percent;
-            long remain;
-            // Root paths
-            if (!gitSetup.GitExecutablePath.FileExists())
-            {
-                setupDone = gitSetup.SetupIfNeeded(
-                    //new Progress<float>(x => Logger.Trace("Percentage: {0}", x)),
-                    //new Progress<long>(x => Logger.Trace("Remaining: {0}", x))
-                    new Progress<float>(x => percent = x),
-                    new Progress<long>(x => remain = x)
-                ).Result;
-            }
-            environment.GitExecutablePath = gitSetup.GitExecutablePath;
-            environment.UnityProjectPath = TestBasePath;
-            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
+            var platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment);
+            var processManager = new ProcessManager(Environment, gitEnvironment);
 
-            var gitBranches = processManager.GetGitBranches(TestBasePath, environment.GitExecutablePath);
+            var gitBranches = processManager.GetGitBranches(TestBasePath, Environment.GitExecutablePath);
 
             gitBranches.Should().BeEquivalentTo(
                 new GitBranch("master", string.Empty, true),
