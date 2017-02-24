@@ -159,7 +159,11 @@ namespace GitHub.Unity
 
                 GUILayout.BeginVertical();
                 {
-                    GUILayout.Label(NoRepoTitle, Styles.HeaderTitleStyle);
+                    var headerContent = new GUIContent(NoRepoTitle);
+                    var headerTitleRect = GUILayoutUtility.GetRect(headerContent, Styles.HeaderTitleStyle);
+                    headerTitleRect.y = headerRect.center.y - (headerTitleRect.height / 2);
+
+                    GUI.Label(headerTitleRect, headerContent, Styles.HeaderTitleStyle);
                 }
                 GUILayout.EndVertical();
             }
