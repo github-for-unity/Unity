@@ -7,6 +7,8 @@ namespace GitHub.Unity
     [Serializable]
     class AuthenticationWindow : BaseWindow
     {
+        private const string Title = "Sign in";
+
         [SerializeField] private AuthenticationView authView;
 
         [MenuItem("GitHub/Authenticate")]
@@ -38,7 +40,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             // Set window title
-            titleContent = new GUIContent("Sign in", Styles.SmallLogo);
+            titleContent = new GUIContent(Title, Styles.SmallLogo);
 
             Utility.UnregisterReadyCallback(CreateViews);
             Utility.RegisterReadyCallback(CreateViews);
