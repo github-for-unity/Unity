@@ -21,7 +21,7 @@ namespace GitHub.Unity
         private const string BranchesTitle = "Branches";
         private const string SettingsTitle = "Settings";
         private const string AuthenticationTitle = "Auth";
-        private const string NoRepoTitle = "This project doesn't have a git repository set up.";
+        private const string NoRepoTitle = "No Git repository found for this project";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
 
 
@@ -167,6 +167,8 @@ namespace GitHub.Unity
 
             GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {
+                GUILayout.FlexibleSpace();
+
                 GUILayout.Label(NoRepoDescription, Styles.CenteredLabel);
 
                 GUILayout.BeginHorizontal();
@@ -178,6 +180,8 @@ namespace GitHub.Unity
                   }
                   GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
+
+                GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
 
