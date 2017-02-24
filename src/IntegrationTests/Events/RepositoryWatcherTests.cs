@@ -2,6 +2,7 @@
 using System.Threading;
 using FluentAssertions;
 using GitHub.Unity;
+using NSubstitute;
 using NUnit.Framework;
 
 namespace IntegrationTests.Events
@@ -32,7 +33,8 @@ namespace IntegrationTests.Events
 
         private RepositoryWatcher CreateRepositoryWatcher()
         {
-            return new RepositoryWatcher(Platform, TestRepoPath, DotGitPath, DotGitIndex, DotGitHead, BranchesPath, RemotesPath, DotGitConfig);
+            return new RepositoryWatcher(Platform, TestRepoPath, DotGitPath, DotGitIndex, DotGitHead, BranchesPath,
+                RemotesPath, DotGitConfig);
         }
 
         protected NPath DotGitConfig { get; private set; }
@@ -52,8 +54,8 @@ namespace IntegrationTests.Events
         {
             var repositoryWatcher = CreateRepositoryWatcher();
 
-            var repositoryChanged = 0;
-            repositoryWatcher.RepositoryChanged += () => { repositoryChanged++; };
+            var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
+            repositoryWatcherListener.AttachListener(repositoryWatcher);
 
             repositoryWatcher.Start();
 
@@ -63,8 +65,17 @@ namespace IntegrationTests.Events
             Thread.Sleep(100);
 
             //http://stackoverflow.com/questions/1764809/filesystemwatcher-changed-event-is-raised-twice
-            repositoryChanged.Should().BeInRange(1, 2);
-            repositoryChanged.Should().BeGreaterOrEqualTo(1);
+            repositoryWatcherListener.DidNotReceive().ConfigChanged();
+            repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+            repositoryWatcherListener.DidNotReceive().IndexChanged();
+            repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchMoved(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchCreated(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchRenamed(Args.String, Args.String, Args.String);
+            repositoryWatcherListener.Received(2).RepositoryChanged();
         }
 
         [Test]
@@ -72,23 +83,107 @@ namespace IntegrationTests.Events
         {
             var repositoryWatcher = CreateRepositoryWatcher();
 
-            var completed = false;
-            var repositoryChanged = 0;
+            var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
+            repositoryWatcherListener.AttachListener(repositoryWatcher);
 
-            repositoryWatcher.RepositoryChanged += () => { repositoryChanged++; };
             repositoryWatcher.Start();
 
-            var taskResultDispatcher = new TaskResultDispatcher<string>(s => { completed = true; });
+            SwitchBranch("feature/document");
 
-            var gitSwitchBranchesTask = new GitSwitchBranchesTask(Environment, ProcessManager, taskResultDispatcher,
-                "feature/document");
+            repositoryWatcherListener.DidNotReceive().ConfigChanged();
+            repositoryWatcherListener.Received(1).HeadChanged("ref: refs/heads/feature/document");
+            repositoryWatcherListener.Received(1).IndexChanged();
+            repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchMoved(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchCreated(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchRenamed(Args.String, Args.String, Args.String);
+            repositoryWatcherListener.Received().RepositoryChanged();
+        }
+
+        [Test]
+        public void ShouldDetectGitPull()
+        {
+            var repositoryWatcher = CreateRepositoryWatcher();
+
+            var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
+            repositoryWatcherListener.AttachListener(repositoryWatcher);
+
+            repositoryWatcher.Start();
+
+            GitPull("origin", "master");
+
+            repositoryWatcherListener.DidNotReceive().ConfigChanged();
+            repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+            repositoryWatcherListener.DidNotReceive().IndexChanged();
+            repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchMoved(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchCreated(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchRenamed(Args.String, Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RepositoryChanged();
+        }
+
+        private void SwitchBranch(string branch)
+        {
+            var completed = false;
+            var gitSwitchBranchesTask = new GitSwitchBranchesTask(Environment, ProcessManager,
+                new TaskResultDispatcher<string>(s => { completed = true; }), branch);
 
             gitSwitchBranchesTask.RunAsync(CancellationToken.None).Wait();
-
             Thread.Sleep(100);
 
             completed.Should().BeTrue();
-            repositoryChanged.Should().BeGreaterThan(1);
+        }
+        private void GitPull(string remote, string branch)
+        {
+            var completed = false;
+            
+            var credentialManager = new GitCredentialManager(Environment, ProcessManager);
+            var gitPullTask = new GitPullTask(Environment, ProcessManager, new TaskResultDispatcher<string>(s => { completed = true; }),
+                credentialManager, new TestUIDispatcher(), remote, branch);
+
+            gitPullTask.RunAsync(CancellationToken.None).Wait();
+            Thread.Sleep(100);
+
+            completed.Should().BeTrue();
+        }
+    }
+
+    public interface IRepositoryWatcherListener
+    {
+        void ConfigChanged();
+        void HeadChanged(string obj);
+        void IndexChanged();
+        void LocalBranchCreated(string branch);
+        void LocalBranchDeleted(string branch);
+        void LocalBranchMoved(string branch, string originalBranch);
+        void RemoteBranchChanged(string remote, string branch);
+        void RemoteBranchCreated(string remote, string branch);
+        void RemoteBranchDeleted(string remote, string branch);
+        void RemoteBranchRenamed(string remote, string branch, string originalBranch);
+        void RepositoryChanged();
+    }
+
+    static class RepositoryWatcherListenerExtensions
+    {
+        public static void AttachListener(this IRepositoryWatcherListener listener, IRepositoryWatcher repositoryWatcher)
+        {
+            repositoryWatcher.ConfigChanged += listener.ConfigChanged;
+            repositoryWatcher.HeadChanged += listener.HeadChanged;
+            repositoryWatcher.IndexChanged += listener.IndexChanged;
+            repositoryWatcher.LocalBranchCreated += listener.LocalBranchCreated;
+            repositoryWatcher.LocalBranchDeleted += listener.LocalBranchDeleted;
+            repositoryWatcher.LocalBranchMoved += listener.LocalBranchMoved;
+            repositoryWatcher.RemoteBranchChanged += listener.RemoteBranchChanged;
+            repositoryWatcher.RemoteBranchCreated += listener.RemoteBranchCreated;
+            repositoryWatcher.RemoteBranchDeleted += listener.RemoteBranchDeleted;
+            repositoryWatcher.RemoteBranchRenamed += listener.RemoteBranchRenamed;
+            repositoryWatcher.RepositoryChanged += listener.RepositoryChanged;
         }
     }
 }
