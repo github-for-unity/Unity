@@ -42,6 +42,7 @@ namespace GitHub.Unity
             Name = name;
             CloneUrl = cloneUrl;
             LocalPath = localPath;
+            User = new User();
 
             repositoryManager.OnRepositoryChanged += RepositoryManager_OnRepositoryChanged;
             repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
@@ -177,7 +178,18 @@ namespace GitHub.Unity
             GetHashCode());
 
         public GitStatus CurrentStatus => currentStatus;
-
+        public IUser User { get; set; }
         protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
+    }
+
+    interface IUser
+    {
+        string Name { get; set; }
+        string Email { get; set; }
+    }
+    class User : IUser
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
     }
 }
