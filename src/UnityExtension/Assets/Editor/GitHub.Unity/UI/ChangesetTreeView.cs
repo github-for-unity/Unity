@@ -18,7 +18,7 @@ namespace GitHub.Unity
         [SerializeField] private List<GitStatusEntry> entries = new List<GitStatusEntry>();
         [SerializeField] private List<GitCommitTarget> entryCommitTargets = new List<GitCommitTarget>();
         [SerializeField] private List<string> foldedTreeEntries = new List<string>();
-        [SerializeField] private FileTreeNode tree;
+        [NonSerialized] private FileTreeNode tree;
 
         public override void OnGUI()
         {
