@@ -217,8 +217,6 @@ namespace GitHub.Unity
 
             ActiveBranch = GetActiveBranch();
             ActiveRemote = GetActiveRemote();
-
-            Logger.Debug("Active remote {0}", ActiveRemote);
         }
 
         private void LoadBranchesFromConfig()

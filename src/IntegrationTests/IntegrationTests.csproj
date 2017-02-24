@@ -74,6 +74,7 @@
     <Compile Include="Auth\LoginTests.cs" />
     <Compile Include="BaseGitIntegrationTest.cs" />
     <Compile Include="BaseIntegrationTest.cs" />
+    <Compile Include="Events\RepositoryWatcherTests.cs" />
     <Compile Include="Helpers\Args.cs" />
     <Compile Include="Watches\FileSystemWatcherTests.cs" />
     <Compile Include="Helpers\TestUIDispatcher.cs" />
