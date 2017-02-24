@@ -37,6 +37,9 @@ namespace GitHub.Unity
 
         public override void OnEnable()
         {
+            // Set window title
+            titleContent = new GUIContent("Sign in", Styles.SmallLogo);
+
             Utility.UnregisterReadyCallback(CreateViews);
             Utility.RegisterReadyCallback(CreateViews);
 
