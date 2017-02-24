@@ -15,7 +15,6 @@ namespace GitHub.Unity
             BroadModeBranchesMinWidth = 200f,
             BroadModeBranchesRatio = .4f,
             InitialStateAreaWidth = 200f,
-            BrowseFolderButtonHorizontalPadding = -4f,
             HistoryEntryHeight = 40f,
             HistorySummaryHeight = 16f,
             HistoryDetailsHeight = 16f,
@@ -94,7 +93,8 @@ namespace GitHub.Unity
             mergeIcon,
             dotIcon,
             repoIcon,
-            lockIcon;
+            lockIcon,
+            dropdownListIcon;
 
        static Color
            timelineBarColor;
@@ -192,13 +192,7 @@ namespace GitHub.Unity
 					headerBoxStyle = new GUIStyle("IN BigTitle");
 					headerBoxStyle.name = "HeaderBoxStyle";
 					headerBoxStyle.padding = new RectOffset(5,5,5,5);
-
-					//Texture2D backgroundTexture = new Texture2D(1,1);
-					//Color color = new Color(0.878f, 0.878f, 0.878f, 1.0f);
-					//backgroundTexture.SetPixel(1, 1, color);
-					//backgroundTexture.Apply();
-
-					//headerBoxStyle.normal.background = backgroundTexture;
+					headerBoxStyle.margin = new RectOffset(0,0,0,0);
 				}
 
 				return headerBoxStyle;
@@ -625,6 +619,19 @@ namespace GitHub.Unity
             }
         }
 
+        public static Texture2D DropdownListIcon
+        {
+            get
+            {
+                if (dropdownListIcon == null)
+                {
+                        dropdownListIcon = Utility.GetIcon("dropdown-list-icon.png", "dropdown-list-icon@2x.png");
+                }
+
+                return dropdownListIcon;
+            }
+        }
+
         public static Texture2D GetGitFileStatusIcon(GitFileStatus status)
         {
             switch(status)
@@ -692,9 +699,8 @@ namespace GitHub.Unity
         public static void PathField(ref string path, Func<string> browseFunction, Func<string, bool> validationFunction)
         {
             GUILayout.BeginHorizontal();
-                path = EditorGUILayout.TextField(path);
-                GUILayout.Space(Styles.BrowseFolderButtonHorizontalPadding);
-                if (GUILayout.Button(BrowseButton, EditorStyles.miniButtonRight))
+                path = EditorGUILayout.TextField("Path to Git", path);
+                if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(25)))
                 {
                     string newValue = browseFunction();
                     if (!string.IsNullOrEmpty(newValue) && validationFunction(newValue))

@@ -39,6 +39,7 @@ namespace GitHub.Unity
         GitStatus CurrentStatus { get; }
         IEnumerable<GitBranch> LocalBranches { get; }
         IEnumerable<GitBranch> RemoteBranches { get; }
+        IUser User { get; set; }
 
         event Action<GitStatus> OnRepositoryChanged;
         event Action<string> OnActiveBranchChanged;

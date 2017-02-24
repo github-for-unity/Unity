@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    class WindowsCredentialManager : ICredentialManager
+    class GitCredentialManager : ICredentialManager
     {
-        private static readonly ILogging logger = Logging.GetLogger<WindowsCredentialManager>();
+        private static readonly ILogging logger = Logging.GetLogger<GitCredentialManager>();
 
         private ICredential credential;
         private string credHelper = null;
@@ -16,11 +16,18 @@ namespace GitHub.Unity
         private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
 
-        public WindowsCredentialManager(IEnvironment environment, IProcessManager processManager)
+        public GitCredentialManager(IEnvironment environment, IProcessManager processManager)
         {
             this.environment = environment;
             this.processManager = processManager;
         }
+
+        public bool HasCredentials()
+        {
+            return credential != null;
+        }
+
+        public ICredential CachedCredentials { get { return credential; } }
 
         public async Task Delete(UriString host)
         {

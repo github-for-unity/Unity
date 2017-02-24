@@ -18,81 +18,7 @@ namespace GitHub.Unity
         [SerializeField] private List<GitStatusEntry> entries = new List<GitStatusEntry>();
         [SerializeField] private List<GitCommitTarget> entryCommitTargets = new List<GitCommitTarget>();
         [SerializeField] private List<string> foldedTreeEntries = new List<string>();
-        [SerializeField] private FileTreeNode tree;
-
-        public void UpdateEntries(IList<GitStatusEntry> newEntries)
-        {
-            // Handle the empty list scenario
-            if (!newEntries.Any())
-            {
-                entries.Clear();
-                entryCommitTargets.Clear();
-                tree = null;
-                foldedTreeEntries.Clear();
-
-                OnCommitTreeChange();
-
-                return;
-            }
-
-            // Remove what got nuked
-            for (var index = 0; index < entries.Count;)
-            {
-                if (!newEntries.Contains(entries[index]))
-                {
-                    entries.RemoveAt(index);
-                    entryCommitTargets.RemoveAt(index);
-                }
-                else
-                {
-                    index++;
-                }
-            }
-
-            // Remove folding state of nuked items
-            for (var index = 0; index < foldedTreeEntries.Count;)
-            {
-                if (!newEntries.Any(e => e.Path.IndexOf(foldedTreeEntries[index]) == 0))
-                {
-                    foldedTreeEntries.RemoveAt(index);
-                }
-                else
-                {
-                    index++;
-                }
-            }
-
-            // Add new stuff
-            for (var index = 0; index < newEntries.Count; ++index)
-            {
-                var entry = newEntries[index];
-                if (!entries.Contains(entry))
-                {
-                    entries.Add(entry);
-                    entryCommitTargets.Add(new GitCommitTarget());
-                }
-            }
-
-            // TODO: Filter .meta files - consider adding them as children of the asset or folder they're supporting
-
-            // TODO: In stead of completely rebuilding the tree structure, figure out a way to migrate open/closed states from the old tree to the new
-
-            // Build tree structure
-            tree = new FileTreeNode(Utility.FindCommonPath("/", entries.Select(e => e.Path)));
-            tree.RepositoryPath = tree.Path;
-            for (var index = 0; index < entries.Count; index++)
-            {
-                var node = new FileTreeNode(entries[index].Path.Substring(tree.Path.Length)) { Target = entryCommitTargets[index] };
-                if (!string.IsNullOrEmpty(entries[index].ProjectPath))
-                {
-                    node.Icon = AssetDatabase.GetCachedIcon(entries[index].ProjectPath);
-                }
-
-                BuildTree(tree, node);
-            }
-
-            OnCommitTreeChange();
-        }
+        [NonSerialized] private FileTreeNode tree;
 
         public override void OnGUI()
         {
@@ -167,6 +93,85 @@ namespace GitHub.Unity
             Redraw();
         }
 
+        public void UpdateEntries(IList<GitStatusEntry> newEntries)
+        {
+            // Handle the empty list scenario
+            if (!newEntries.Any())
+            {
+                entries.Clear();
+                entryCommitTargets.Clear();
+                tree = null;
+                foldedTreeEntries.Clear();
+
+                OnCommitTreeChange();
+
+                return;
+            }
+
+            // Remove what got nuked
+            for (var index = 0; index < entries.Count;)
+            {
+                if (!newEntries.Contains(entries[index]))
+                {
+                    entries.RemoveAt(index);
+                    entryCommitTargets.RemoveAt(index);
+                }
+                else
+                {
+                    index++;
+                }
+            }
+
+            // Remove folding state of nuked items
+            for (var index = 0; index < foldedTreeEntries.Count;)
+            {
+                if (!newEntries.Any(e => e.Path.IndexOf(foldedTreeEntries[index]) == 0))
+                {
+                    foldedTreeEntries.RemoveAt(index);
+                }
+                else
+                {
+                    index++;
+                }
+            }
+
+            // Add new stuff
+            for (var index = 0; index < newEntries.Count; ++index)
+            {
+                var entry = newEntries[index];
+                if (!entries.Contains(entry))
+                {
+                    entries.Add(entry);
+                    entryCommitTargets.Add(new GitCommitTarget());
+                }
+            }
+
+            // TODO: Filter .meta files - consider adding them as children of the asset or folder they're supporting
+
+            // TODO: In stead of completely rebuilding the tree structure, figure out a way to migrate open/closed states from the old tree to the new
+
+            // Build tree structure
+
+            tree = new FileTreeNode(Utility.FindCommonPath(entries.Select(e => e.Path)));
+            tree.RepositoryPath = tree.Path;
+            for (var index = 0; index < entries.Count; index++)
+            {
+                var entryPath = entries[index].Path.ToNPath();
+                if (entryPath.IsChildOf(tree.Path))
+                    entryPath = entryPath.RelativeTo(tree.Path);
+
+                var node = new FileTreeNode(entryPath) { Target = entryCommitTargets[index] };
+                if (!string.IsNullOrEmpty(entries[index].ProjectPath))
+                {
+                    node.Icon = AssetDatabase.GetCachedIcon(entries[index].ProjectPath);
+                }
+
+                BuildTree(tree, node);
+            }
+
+            OnCommitTreeChange();
+        }
+
         private void BuildTree(FileTreeNode parent, FileTreeNode node)
         {
             if (string.IsNullOrEmpty(node.Label))
@@ -175,16 +180,16 @@ namespace GitHub.Unity
                 return;
             }
 
-            node.RepositoryPath = Path.Combine(parent.RepositoryPath, node.Label);
+            node.RepositoryPath = parent.RepositoryPath.ToNPath().Combine(node.Label);
             parent.Open = !foldedTreeEntries.Contains(parent.RepositoryPath);
 
             // Is this node inside a folder?
-            var index = node.Label.IndexOf("/");
-            if (index > 0)
+            var nodePath = node.Label.ToNPath();
+            if (nodePath.Elements.Count() > 1)
             {
                 // Figure out what the root folder is and chop it from the path
-                var root = node.Label.Substring(0, index);
-                node.Label = node.Label.Substring(index + 1);
+                var root = nodePath.Elements.First();
+                node.Label = new NPath("").Combine(nodePath.Elements.Skip(1).ToArray());
 
                 // Look for a branch matching our root in the existing children
                 var found = false;
@@ -202,7 +207,27 @@ namespace GitHub.Unity
                 // No existing branch - we will have to add a new one to build from
                 if (!found)
                 {
-                    BuildTree(parent.Add(new FileTreeNode(root) { RepositoryPath = Path.Combine(parent.RepositoryPath, root) }), node);
+                    var p = parent.RepositoryPath.ToNPath().Combine(root);
+                    BuildTree(parent.Add(new FileTreeNode(root) { RepositoryPath = p }), node);
+                }
+            }
+            else if (nodePath.ExtensionWithDot == ".meta")
+            {
+                // Look for a branch matching our root in the existing children
+                var found = false;
+                foreach (var child in parent.Children)
+                {
+                    // If we found the branch, continue building from that branch
+                    if (child.Label.Equals(nodePath.Parent.Combine(nodePath.FileNameWithoutExtension)))
+                    {
+                        found = true;
+                        BuildTree(child, node);
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    parent.Add(node);
                 }
             }
             // Not inside a folder - just add this node right here
@@ -286,9 +311,13 @@ namespace GitHub.Unity
 
                     if (Event.current.type == EventType.Repaint)
                     {
-                        GUI.DrawTexture(iconRect,
-                            node.Icon ?? (isFolder ? Styles.FolderIcon : Styles.DefaultAssetIcon),
-                            ScaleMode.ScaleToFit);
+                        var icon = node.Icon ?? (isFolder ? Styles.FolderIcon : Styles.DefaultAssetIcon);
+                        if (icon != null)
+                        {
+                            GUI.DrawTexture(iconRect,
+                                icon,
+                                ScaleMode.ScaleToFit);
+                        }
                     }
 
                     var statusRect = new Rect(
@@ -305,7 +334,8 @@ namespace GitHub.Unity
                         {
                             status = entries[idx].Status;
                             var statusIcon = Styles.GetGitFileStatusIcon(status.Value);
-                            GUI.DrawTexture(statusRect, statusIcon);
+                            if (statusIcon != null)
+                                GUI.DrawTexture(statusRect, statusIcon);
                         }
                     }
 
@@ -373,7 +403,7 @@ namespace GitHub.Unity
         [Serializable]
         private class FileTreeNode
         {
-            [SerializeField] private List<FileTreeNode> children = new List<FileTreeNode>();
+            [SerializeField] private List<FileTreeNode> children;
 
             [SerializeField] public Texture Icon;
             [SerializeField] public string Label;
@@ -381,11 +411,18 @@ namespace GitHub.Unity
             [SerializeField] private string path;
             [SerializeField] public string RepositoryPath;
             [SerializeField] public GitCommitTarget Target;
+            [SerializeField] private CommitState state;
+
+            public FileTreeNode()
+            {
+                children = new List<FileTreeNode>();
+            }
 
             public FileTreeNode(string path)
             {
-                this.path = path;
-                Label = path;
+                this.path = path ?? "";
+                Label = this.path;
+                children = new List<FileTreeNode>();
             }
 
             public FileTreeNode Add(FileTreeNode child)
@@ -398,28 +435,47 @@ namespace GitHub.Unity
             {
                 get
                 {
+                    if (children == null)
+                        return state;
+
+                    var commitState = CommitState.None;
                     if (Target != null)
                     {
-                        return Target.All ? CommitState.All : Target.Any ? CommitState.Some : CommitState.None;
+                        commitState = Target.All ? CommitState.All : Target.Any ? CommitState.Some : CommitState.None;
+                        if (!children.Any())
+                        {
+                            state = commitState;
+                            return state;
+                        }
                     }
 
                     var allCount = children.Count(c => c.State == CommitState.All);
 
-                    if (allCount == children.Count)
+                    if (allCount == children.Count && (commitState == CommitState.All || Target == null))
                     {
-                        return CommitState.All;
+                        state = CommitState.All;
+                        return state;
                     }
 
-                    if (allCount > 0)
+                    if (allCount > 0 || commitState == CommitState.Some)
                     {
-                        return CommitState.Some;
+                        state = CommitState.Some;
+                        return state;
                     }
 
-                    return children.Count(c => c.State == CommitState.Some) > 0 ? CommitState.Some : CommitState.None;
+                    var someCount = children.Count(c => c.State == CommitState.Some);
+                    if (someCount > 0 || commitState == CommitState.Some)
+                    {
+                        state = CommitState.Some;
+                        return state;
+                    }
+                    state = CommitState.None;
+                    return state;
                 }
+
                 set
                 {
-                    if (value == CommitState.Some || value == State)
+                    if (value == state)
                     {
                         return;
                     }
@@ -430,17 +486,22 @@ namespace GitHub.Unity
                         {
                             Target.Clear();
                         }
-                        else
+                        else if (value == CommitState.All)
                         {
                             Target.All = true;
                         }
                     }
-                    else
+
+                    state = value;
+
+                    if (children == null)
                     {
-                        for (var index = 0; index < children.Count; ++index)
-                        {
-                            children[index].State = value;
-                        }
+                        return;
+                    }
+
+                    for (var index = 0; index < children.Count; ++index)
+                    {
+                        children[index].State = value;
                     }
                 }
             }
@@ -452,7 +513,22 @@ namespace GitHub.Unity
 
             public IEnumerable<FileTreeNode> Children
             {
-                get { return children; }
+                get {
+                    if (children == null)
+                        children = new List<FileTreeNode>();
+                    return children;
+                }
+            }
+
+            private ILogging logger;
+            protected ILogging Logger
+            {
+                get
+                {
+                    if (logger == null)
+                        logger = Logging.GetLogger(GetType());
+                    return logger;
+                }
             }
         }
     }
