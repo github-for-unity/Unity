@@ -32,7 +32,7 @@ namespace GitHub.Unity
         /// <param name="name">The repository name.</param>
         /// <param name="cloneUrl">The repository's clone URL.</param>
         /// <param name="localPath"></param>
-        public Repository(IRepositoryManager repositoryManager, string name, UriString cloneUrl, string localPath)
+        public Repository(IRepositoryManager repositoryManager, string name, UriString cloneUrl, string localPath, IUser user)
         {
             Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
             Guard.ArgumentNotNullOrWhiteSpace(name, nameof(name));
@@ -42,7 +42,7 @@ namespace GitHub.Unity
             Name = name;
             CloneUrl = cloneUrl;
             LocalPath = localPath;
-            User = new User();
+            User = user;
 
             repositoryManager.OnRepositoryChanged += RepositoryManager_OnRepositoryChanged;
             repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
