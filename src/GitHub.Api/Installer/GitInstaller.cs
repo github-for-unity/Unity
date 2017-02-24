@@ -13,27 +13,36 @@ namespace GitHub.Unity
         private const string GitLfsZipFile = "git-lfs.zip";
         private NPath gitConfigDestinationPath;
 
-        private readonly CancellationToken? cancellationToken;
+        private readonly CancellationToken cancellationToken;
         private readonly IEnvironment environment;
         private readonly ILogging logger;
 
-        private delegate void ExtractZipFile(string archive, string outFolder, CancellationToken? cancellationToken = null,
-    IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null);
+        private delegate void ExtractZipFile(string archive, string outFolder, CancellationToken cancellationToken,
+            IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null);
         private ExtractZipFile extractCallback;
 
-        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper = null,
-            CancellationToken? cancellationToken = null)
+        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper)
+            : this(environment, sharpZipLibHelper, CancellationToken.None)
+        {
+        }
+
+        public GitInstaller(IEnvironment environment, CancellationToken cancellationToken)
+            : this(environment, null, CancellationToken.None)
+        {
+        }
+
+        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, CancellationToken cancellationToken)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));
 
             logger = Logging.GetLogger(GetType());
+            this.cancellationToken = cancellationToken;
 
             this.environment = environment;
             this.extractCallback = sharpZipLibHelper != null
                  ? (ExtractZipFile)sharpZipLibHelper.Extract
                  : ZipHelper.ExtractZipFile;
 
-            this.cancellationToken = cancellationToken;
 
             PackageDestinationDirectory = environment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
                 .ToNPath().Combine(ApplicationInfo.ApplicationName, PackageNameWithVersion);
@@ -95,15 +104,24 @@ namespace GitHub.Unity
 
         public async Task<bool> Setup(IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (InstalledGitIsValid())
             {
                 return true;
             }
 
+            NPath tempPath = null;
             try
             {
-                var tempPath = NPath.CreateTempDirectory(TempPathPrefix);
+                tempPath = NPath.CreateTempDirectory(TempPathPrefix);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var ret = await ExtractGitIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
                 ret &= await ExtractGitLfsIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
 
                 var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "gitconfig", tempPath);
@@ -120,6 +138,15 @@ namespace GitHub.Unity
                 logger.Trace(ex);
                 return false;
             }
+            finally
+            {
+                try
+                {
+                    if (tempPath != null)
+                        tempPath.DeleteIfExists();
+                }
+                catch {}
+            }
         }
 
         private bool InstalledGitIsValid()
@@ -130,11 +157,15 @@ namespace GitHub.Unity
         public Task<bool> ExtractGitIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (IsPortableGitExtracted())
             {
                 logger.Trace("Already extracted {0}, returning", PackageDestinationDirectory);
                 return TaskEx.FromResult(true);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitZipFile, tempPath);
             if (!archiveFilePath.FileExists())
@@ -143,6 +174,8 @@ namespace GitHub.Unity
                 if (!archiveFilePath.FileExists())
                     return TaskEx.FromResult(false);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             var unzipPath = tempPath.Combine("git");
 
@@ -156,6 +189,8 @@ namespace GitHub.Unity
                 logger.Error(ex, "Error ExtractingArchive Source:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
                 return TaskEx.FromResult(false);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
@@ -173,11 +208,15 @@ namespace GitHub.Unity
         public Task<bool> ExtractGitLfsIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (IsGitLfsExtracted())
             {
                 logger.Trace("Already extracted {0}, returning", GitLfsDestinationPath);
                 return TaskEx.FromResult(false);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitLfsZipFile, tempPath);
             if (!archiveFilePath.FileExists())
@@ -186,6 +225,8 @@ namespace GitHub.Unity
                 if (!archiveFilePath.FileExists())
                     return TaskEx.FromResult(false);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             var unzipPath = tempPath.Combine("git-lfs");
 
@@ -199,6 +240,8 @@ namespace GitHub.Unity
                 logger.Error(ex, "Error Extracting Archive:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
                 return TaskEx.FromResult(false);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
