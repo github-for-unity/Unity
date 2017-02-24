@@ -355,8 +355,9 @@ namespace GitHub.Unity
                     {
                         HistoryDetailsEntry(selection);
 
-                        GUILayout.Space(EditorGUIUtility.standardVerticalSpacing * 2);
+                        GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
                         GUILayout.Label("Files changed", EditorStyles.boldLabel);
+                        GUILayout.Space(-5);
 
                         GUILayout.BeginHorizontal();
                         {
