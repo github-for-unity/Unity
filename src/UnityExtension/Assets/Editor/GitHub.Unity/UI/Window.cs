@@ -167,9 +167,10 @@ namespace GitHub.Unity
 
             GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {
-                GUILayout.Label(NoRepoDescription, Styles.HeaderDescriptionStyle);
+                GUILayout.Label(NoRepoDescription, Styles.CenteredLabel);
 
                 GUILayout.BeginHorizontal();
+                  GUILayout.FlexibleSpace();
                   if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
                   {
                       var repoInit = new RepositoryInitializer(EntryPoint.Environment, EntryPoint.ProcessManager, new TaskQueueScheduler(), EntryPoint.AppManager);
