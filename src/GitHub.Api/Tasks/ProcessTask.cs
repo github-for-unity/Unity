@@ -304,13 +304,6 @@ namespace GitHub.Unity
             resultDispatcher?.ReportFailure();
         }
 
-        private void RaiseOnEnd()
-        {
-            //Logger.Trace("RaiseOnEnd");
-            OnEnd?.Invoke(this);
-            Done = true;
-        }
-
         bool disposed = false;
         public override void Dispose(bool disposing)
         {

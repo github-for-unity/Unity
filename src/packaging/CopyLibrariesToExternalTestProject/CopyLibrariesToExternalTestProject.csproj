@@ -53,18 +53,34 @@
     <ProjectReference Include="..\..\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
       <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
       <Name>GitHub.Unity</Name>
+      <Private>False</Private>
     </ProjectReference>
-    <Reference Include="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(SolutionDir)\lib\5.5\Mono.Security.dll</HintPath>
+    <Reference Include="AsyncBridge.Net35, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\AsyncBridge.Net35.0.2.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Rackspace.Threading, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bb62785d398726f0, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Rackspace.Threading.2.0.0-alpha001\lib\net35-client\Rackspace.Threading.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="ReadOnlyCollectionsInterfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET20\ReadOnlyCollectionsInterfaces.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Threading, Version=1.0.2856.102, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\TaskParallelLibrary.1.0.2856.0\lib\Net35\System.Threading.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -74,4 +90,23 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Target Name="CopyMainAssembly" DependsOnTargets="DetectMainAssembly">
+    <Copy Condition="'%(IndirectDependency.FullPath)'!=''" SourceFiles="%(IndirectDependency.FullPath)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true">
+      <Output TaskParameter="CopiedFiles" ItemName="IndirectDependencyCopied" />
+    </Copy>
+    <Message Importance="low" Condition="'%(IndirectDependencyCopied.FullPath)'!='' &#xD;&#xA;               and '%(IndirectDependencyCopied.Extension)'!='.pdb' &#xD;&#xA;               and '%(IndirectDependencyCopied.Extension)'!='.xml'" Text="Dependency copied: %(IndirectDependencyCopied.FullPath)" />
+  </Target>
+  <Target Name="DetectMainAssembly" DependsOnTargets="ResolveAssemblyReferences">
+    <Message Importance="low" Text="Dependency: %(ReferencePath.Filename)%(ReferencePath.Extension) %(ReferencePath.CopyLocal)" />
+    <!-- Creating indirect dependency list -->
+    <CreateItem Include="%(ReferencePath.FullPath)" Condition="$([System.String]::Copy('%(ReferencePath.Filename)').Contains('GitHub.Unity'))">
+      <Output TaskParameter="Include" ItemName="IndirectDependency" />
+    </CreateItem>
+  </Target>
+  <PropertyGroup>
+    <CoreBuildDependsOn>
+      $(CoreBuildDependsOn);
+      CopyMainAssembly
+    </CoreBuildDependsOn>
+  </PropertyGroup>
 </Project>
