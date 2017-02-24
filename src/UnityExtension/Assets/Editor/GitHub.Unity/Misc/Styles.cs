@@ -444,7 +444,7 @@ namespace GitHub.Unity
           {
             if (branchIcon == null)
             {
-              branchIcon = Utility.GetIcon("branch.png");
+              branchIcon = Utility.GetIcon("branch.png", "branch@2x.png");
             }
 
             return branchIcon;
