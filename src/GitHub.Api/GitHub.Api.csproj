@@ -168,6 +168,7 @@
     <Compile Include="Tasks\GitCommitTask.cs" />
     <Compile Include="Tasks\GitConfigGetTask.cs" />
     <Compile Include="Tasks\GitConfigListTask.cs" />
+    <Compile Include="Tasks\GitConfigSetTask.cs" />
     <Compile Include="Tasks\GitConfigSource.cs" />
     <Compile Include="Tasks\GitInitTask.cs" />
     <Compile Include="Tasks\GitListBranchesTask.cs" />

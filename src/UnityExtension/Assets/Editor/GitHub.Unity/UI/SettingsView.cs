@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -55,16 +56,20 @@ namespace GitHub.Unity
         private const string GitConfigTitle = "Git Configuration";
         private const string GitConfigNameLabel = "Name";
         private const string GitConfigEmailLabel = "Email";
+        private const string GitConfigUserSave = "Save";
+        private const string GitConfigUserSaved = "Saved";
 
         // TODO: Replace me with the real values
-        string gitName = "";
-        string gitEmail = "";
+        [SerializeField] private string gitName;
+        [SerializeField] private string gitEmail;
 
         [NonSerialized] private int newGitIgnoreRulesSelection = -1;
 
         [SerializeField] private int gitIgnoreRulesSelection = 0;
         [SerializeField] private string initDirectory;
         [SerializeField] private Vector2 scroll;
+
+        [NonSerialized] private bool busy = false;
 
         public override void OnShow()
         {
@@ -76,20 +81,20 @@ namespace GitHub.Unity
             base.OnHide();
         }
 
-        public override void Refresh()
-        {
-            StatusService.Instance.Run();
-        }
+        //public override void Refresh()
+        //{
+        //    StatusService.Instance.Run();
+        //}
 
         public override void OnGUI()
         {
-            bool onIssuesGui;
+            //bool onIssuesGui;
             scroll = GUILayout.BeginScrollView(scroll);
             {
                 // Issues
-                onIssuesGui = OnIssuesGUI();
-                if (onIssuesGui)
-                {
+                //onIssuesGui = OnIssuesGUI();
+                //if (onIssuesGui)
+                //{
                     // Hey, I hear you like TODO's:
                     // TODO: Favourite branches settings?
                     // TODO: GitHub Login Settings
@@ -100,31 +105,69 @@ namespace GitHub.Unity
                     // gitignore rules list
                     // OnGitIgnoreRulesGUI();
 
-                    GUILayout.Label(GitConfigTitle, EditorStyles.boldLabel);
-                    gitName = EditorGUILayout.TextField(GitConfigNameLabel, gitName);
-                    gitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, gitEmail);
+                    OnUserSettingsGUI();
 
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
-                    // Install path
-
-                    GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
                     OnInstallPathGUI();
-                }
+                //}
             }
 
             GUILayout.EndScrollView();
 
             // Effectuate new selection at end of frame
-            if (onIssuesGui)
+            //if (onIssuesGui)
+            //{
+            //    if (Event.current.type == EventType.Repaint && newGitIgnoreRulesSelection > -1)
+            //    {
+            //        gitIgnoreRulesSelection = newGitIgnoreRulesSelection;
+            //        newGitIgnoreRulesSelection = -1;
+            //        GUIUtility.hotControl = GUIUtility.keyboardControl = -1;
+            //    }
+            //}
+        }
+
+        private void OnUserSettingsGUI()
+        {
+            GUILayout.Label(GitConfigTitle, EditorStyles.boldLabel);
+            GUI.enabled = !busy && Repository != null;
+
+            if (gitName == null && Repository != null)
             {
-                if (Event.current.type == EventType.Repaint && newGitIgnoreRulesSelection > -1)
-                {
-                    gitIgnoreRulesSelection = newGitIgnoreRulesSelection;
-                    newGitIgnoreRulesSelection = -1;
-                    GUIUtility.hotControl = GUIUtility.keyboardControl = -1;
-                }
+                gitName = Repository.User.Name;
+                gitEmail = Repository.User.Email;
             }
+
+            gitName = EditorGUILayout.TextField(GitConfigNameLabel, gitName);
+            gitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, gitEmail);
+
+            var needsSaving = !busy &&
+                (gitName != Repository.User.Name ||
+                gitEmail != Repository.User.Email);
+
+            GUI.enabled = needsSaving;
+            if (GUILayout.Button(needsSaving ? GitConfigUserSave : GitConfigUserSaved, GUILayout.ExpandWidth(false)))
+            {
+                busy = true;
+                if (gitName != Repository.User.Name)
+                {
+                    Tasks.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                            new TaskResultDispatcher<string>(value =>
+                            {
+                                Repository.User.Name = value;
+                            }), "user.name", gitName, GitConfigSource.User));
+                }
+                if (gitEmail != Repository.User.Email)
+                {
+                    Tasks.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                            new TaskResultDispatcher<string>(value =>
+                            {
+                                Repository.User.Email = value;
+                            }), "user.email", gitEmail, GitConfigSource.User));
+                }
+                Tasks.Add(new BaseTask(() => EntryPoint.AppManager.RunOnMainThread(() => busy = false)));
+            }
+            GUI.enabled = true;
         }
 
         private static void TableCell(string label, float width)
@@ -389,6 +432,11 @@ namespace GitHub.Unity
 
         private void OnInstallPathGUI()
         {
+            // Install path
+            GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
+
+            GUI.enabled = !busy;
+
             var gitExecPath = EntryPoint.Environment.GitExecutablePath;
             // Install path field
             EditorGUI.BeginChangeCheck();
@@ -435,6 +483,8 @@ namespace GitHub.Unity
                 }
             }
             GUILayout.EndHorizontal();
+
+            GUI.enabled = true;
         }
 
         private void ResetInitDirectory()
