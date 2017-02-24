@@ -7,16 +7,6 @@ using GitHub.Unity;
 
 namespace IntegrationTests
 {
-    //class CreateTestWatchFactoryOptions
-    //{
-    //    public CreateTestWatchFactoryOptions(Action<TestFileSystemWatcher> onWatchCreated)
-    //    {
-    //        OnWatchCreated = onWatchCreated;
-    //    }
-
-    //    public Action<TestFileSystemWatcher> OnWatchCreated { get; private set; }
-    //}
-
     class SubstituteFactory
     {
         public IEnvironment CreateEnvironment(CreateEnvironmentOptions createEnvironmentOptions = null)
@@ -288,37 +278,6 @@ namespace IntegrationTests
         {
             return Substitute.For<IZipHelper>();
         }
-
-        //public IFileSystemWatchFactory CreateTestWatchFactory(
-        //    CreateTestWatchFactoryOptions createTestWatchFactoryOptions = null)
-        //{
-        //    var logger = Logging.GetLogger("TestFileSystemWatcherWrapper");
-
-        //    var fileSystemWatchFactory = Substitute.For<IFileSystemWatchFactory>();
-        //    fileSystemWatchFactory.GetOrCreate(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<string>()).Returns(info =>
-        //    {
-        //        var path = (string)info[0];
-        //        var recursive = (bool)info[1];
-        //        var filter = (string)info[2];
-
-        //        if (filter != null)
-        //        {
-        //            logger.Trace(@"CreateWatch(""{0}"", {1}, ""{2}"")", path, recursive, filter);
-        //        }
-        //        else
-        //        {
-        //            logger.Trace(@"CreateWatch(""{0}"", {1}, null)", path, recursive);
-        //        }
-
-        //        var fileSystemWatch = new TestFileSystemWatcher(path, recursive, filter);
-
-        //        createTestWatchFactoryOptions?.OnWatchCreated?.Invoke(fileSystemWatch);
-
-        //        return fileSystemWatch;
-        //    });
-
-        //    return fileSystemWatchFactory;
-        //}
 
         public struct ContentsKey
         {

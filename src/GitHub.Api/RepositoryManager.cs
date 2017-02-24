@@ -30,6 +30,7 @@ namespace GitHub.Unity
         private readonly IRepositoryProcessRunner processRunner;
         private readonly IRepository repository;
         private readonly NPath repositoryPath;
+        private readonly IPlatform platform;
         private readonly CancellationToken cancellationToken;
         private readonly NPath dotGitPath;
         private readonly NPath dotGitIndex;
@@ -64,6 +65,7 @@ namespace GitHub.Unity
         public RepositoryManager(NPath path, IPlatform platform, CancellationToken cancellationToken)
         {
             repositoryPath = path;
+            this.platform = platform;
             this.cancellationToken = cancellationToken;
             dotGitPath = path.Combine(".git");
             if (dotGitPath.FileExists())
@@ -207,7 +209,21 @@ namespace GitHub.Unity
             if (remote.Url != null)
                 cloneUrl = new UriString(remote.Url).ToRepositoryUrl();
 
-            return new Repository(this, repositoryPath.FileName, cloneUrl, repositoryPath);
+            var user = new User();
+            ProcessTask task = new GitConfigGetTask(platform.Environment, platform.ProcessManager,
+                        new TaskResultDispatcher<string>(value =>
+                        {
+                            user.Name = value;
+                        }), "user.name", GitConfigSource.User);
+            task.RunAsync(cancellationToken).Wait();
+            task = new GitConfigGetTask(platform.Environment, platform.ProcessManager,
+                        new TaskResultDispatcher<string>(value =>
+                        {
+                            user.Email = value;
+                        }), "user.email", GitConfigSource.User);
+            task.RunAsync(cancellationToken).Wait();
+
+            return new Repository(this, repositoryPath.FileName, cloneUrl, repositoryPath, user);
         }
 
         private void RefreshConfigData()

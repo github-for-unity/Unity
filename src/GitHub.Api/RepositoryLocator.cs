@@ -101,6 +101,7 @@ namespace GitHub.Unity
     class RepositoryLocator : IRepositoryLocator
     {
         private readonly NPath localPath;
+        private NPath repositoryPath;
 
         public RepositoryLocator(NPath localPath)
         {
@@ -113,8 +114,12 @@ namespace GitHub.Unity
 
         public NPath FindRepositoryRoot()
         {
-            RepositoryPath = FindRepositoryRoot(localPath);
-            return RepositoryPath;
+            if (repositoryPath == null)
+            {
+                repositoryPath = FindRepositoryRoot(localPath);
+            }
+
+            return repositoryPath;
         }
 
         private NPath FindRepositoryRoot(NPath path)
@@ -129,7 +134,6 @@ namespace GitHub.Unity
             return null;
         }
 
-        public NPath RepositoryPath { get; private set; }
         protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryLocator>();
     }
 }
