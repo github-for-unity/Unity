@@ -191,10 +191,20 @@ namespace GitHub.Unity
             var watcher = platform.FileSystemWatchFactory.GetOrCreate(dir, true, true);
             watcher.Created += f =>
             {
+                if (f.ExtensionWithDot == ".lock")
+                {
+                    return;
+                }
+
                 RemoteBranchCreated?.Invoke(remote, f.RelativeTo(dir).ToString(SlashMode.Forward));
             };
             watcher.Deleted += f =>
             {
+                if (f.ExtensionWithDot == ".lock")
+                {
+                    return;
+                }
+
                 RemoteBranchDeleted?.Invoke(remote, f.RelativeTo(dir).ToString(SlashMode.Forward));
             };
             watcher.Changed += f =>
