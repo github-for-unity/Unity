@@ -72,6 +72,7 @@ namespace GitHub.Unity
             commitFileAreaStyle,
             commitButtonStyle,
             textFieldStyle,
+            centeredLabel,
             commitDescriptionFieldStyle,
             toggleMixedStyle,
             authHeaderBoxStyle,
@@ -384,6 +385,19 @@ namespace GitHub.Unity
 			}
 		}
 
+        public static GUIStyle CenteredLabel
+        {
+          get
+          {
+            if (centeredLabel == null)
+            {
+              centeredLabel = new GUIStyle(EditorStyles.wordWrappedLabel);
+              centeredLabel.alignment = TextAnchor.MiddleCenter;
+            }
+
+            return centeredLabel;
+          }
+        }
         public static GUIStyle CommitDescriptionFieldStyle
         {
             get
