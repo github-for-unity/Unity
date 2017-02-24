@@ -16,8 +16,8 @@ namespace GitHub.Unity
             SynchronizationContext = synchronizationContext;
             SynchronizationContext.SetSynchronizationContext(SynchronizationContext);
             ThreadingHelper.SetMainThread();
-            Scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-            ThreadingHelper.MainThreadScheduler = Scheduler;
+            UIScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+            ThreadingHelper.MainThreadScheduler = UIScheduler;
             CancellationTokenSource = new CancellationTokenSource();
         }
 
@@ -168,7 +168,7 @@ namespace GitHub.Unity
         public CancellationToken CancellationToken { get; protected set; }
 
         protected CancellationTokenSource CancellationTokenSource { get; private set; }
-        protected TaskScheduler Scheduler { get; private set; }
+        protected TaskScheduler UIScheduler { get; private set; }
         protected SynchronizationContext SynchronizationContext { get; private set; }
 
         public ISettings LocalSettings { get; protected set; }

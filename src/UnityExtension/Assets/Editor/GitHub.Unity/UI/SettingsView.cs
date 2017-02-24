@@ -74,6 +74,11 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
+            if (Repository != null)
+            {
+                gitName = Repository.User.Name;
+                gitEmail = Repository.User.Email;
+            }
         }
 
         public override void OnHide()
@@ -132,40 +137,41 @@ namespace GitHub.Unity
             GUILayout.Label(GitConfigTitle, EditorStyles.boldLabel);
             GUI.enabled = !busy && Repository != null;
 
-            if (gitName == null && Repository != null)
-            {
-                gitName = Repository.User.Name;
-                gitEmail = Repository.User.Email;
-            }
-
             gitName = EditorGUILayout.TextField(GitConfigNameLabel, gitName);
             gitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, gitEmail);
 
-            var needsSaving = !busy &&
-                (gitName != Repository.User.Name ||
-                gitEmail != Repository.User.Email);
-
-            GUI.enabled = needsSaving;
-            if (GUILayout.Button(needsSaving ? GitConfigUserSave : GitConfigUserSaved, GUILayout.ExpandWidth(false)))
+            GUI.enabled = !busy;
+            if (GUILayout.Button(GitConfigUserSave, GUILayout.ExpandWidth(false)))
             {
-                busy = true;
-                if (gitName != Repository.User.Name)
+                try
                 {
-                    Tasks.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                            new TaskResultDispatcher<string>(value =>
-                            {
-                                Repository.User.Name = value;
-                            }), "user.name", gitName, GitConfigSource.User));
+                    busy = true;
+                    var needsSaving = gitName != Repository.User.Name || gitEmail != Repository.User.Email;
+                    if (gitName != Repository.User.Name)
+                    {
+                        Tasks.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                                new TaskResultDispatcher<string>(value =>
+                                {
+                                    Repository.User.Name = value;
+                                }), "user.name", gitName, GitConfigSource.User));
+                    }
+                    if (gitEmail != Repository.User.Email)
+                    {
+                        Tasks.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                                new TaskResultDispatcher<string>(value =>
+                                {
+                                    Repository.User.Email = value;
+                                }), "user.email", gitEmail, GitConfigSource.User));
+                    }
+                    if (needsSaving)
+                        Tasks.Add(new SimpleTask(() => busy = false, ThreadingHelper.MainThreadScheduler));
+                    else
+                        busy = false;
                 }
-                if (gitEmail != Repository.User.Email)
+                catch (Exception ex)
                 {
-                    Tasks.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                            new TaskResultDispatcher<string>(value =>
-                            {
-                                Repository.User.Email = value;
-                            }), "user.email", gitEmail, GitConfigSource.User));
+                    Logger.Debug(ex);
                 }
-                Tasks.Add(new BaseTask(() => EntryPoint.AppManager.RunOnMainThread(() => busy = false)));
             }
             GUI.enabled = true;
         }
