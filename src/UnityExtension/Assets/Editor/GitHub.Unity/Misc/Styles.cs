@@ -73,6 +73,7 @@ namespace GitHub.Unity
             commitButtonStyle,
             textFieldStyle,
             centeredLabel,
+            boldCenteredLabel,
             commitDescriptionFieldStyle,
             toggleMixedStyle,
             authHeaderBoxStyle,
@@ -398,6 +399,7 @@ namespace GitHub.Unity
             return centeredLabel;
           }
         }
+
         public static GUIStyle CommitDescriptionFieldStyle
         {
             get
