@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using NUnit.Framework;
 using GitHub.Unity;
 using Rackspace.Threading;
 using System.Threading;
 using FluentAssertions;
-using IntegrationTests;
+using NCrunch.Framework;
 
-namespace GitHub.Unity.IntegrationTests
+namespace IntegrationTests
 {
     [TestFixture]
     class GitClientTests : BaseGitIntegrationTest
@@ -18,21 +14,19 @@ namespace GitHub.Unity.IntegrationTests
         [Test]
         public void FindRepoRootTest()
         {
-            var filesystem = new FileSystem(TestGitRepoPath);
+            var filesystem = new FileSystem(TestBasePath);
             NPathFileSystemProvider.Current = filesystem;
-            var environment = new DefaultEnvironment();
-            environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem);
-            var gitEnvironment = platform.GitEnvironment;
 
-            using (var gitclient = new RepositoryLocator(environment.UnityProjectPath))
-            {
-                Assert.AreEqual(new NPath(TestGitRepoPath).ToString(), gitclient.RepositoryPath);
-            }
+            var environment = new DefaultEnvironment();
+            environment.UnityProjectPath = TestBasePath;
+
+            var repositoryLocator = new RepositoryLocator(environment.UnityProjectPath);
+
+            repositoryLocator.FindRepositoryRoot().ToString().Should().Be(new NPath(TestBasePath).ToString());
         }
 
         [Test]
-        public async Task InstallGit()
+        public void InstallGit()
         {
             var filesystem = new FileSystem();
             NPathFileSystemProvider.Current = filesystem;
@@ -47,20 +41,20 @@ namespace GitHub.Unity.IntegrationTests
             // Root paths
             if (!gitSetup.GitExecutablePath.FileExists())
             {
-                setupDone = await gitSetup.SetupIfNeeded(
+                setupDone = gitSetup.SetupIfNeeded(
                     //new Progress<float>(x => Logger.Trace("Percentage: {0}", x)),
                     //new Progress<long>(x => Logger.Trace("Remaining: {0}", x))
                     new Progress<float>(x => percent = x),
                     new Progress<long>(x => remain = x)
-                );
+                ).Result;
             }
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
-            environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem);
+            environment.UnityProjectPath = TestBasePath;
+            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
 
-            var gitBranches = processManager.GetGitBranches(TestGitRepoPath, environment.GitExecutablePath);
+            var gitBranches = processManager.GetGitBranches(TestBasePath, environment.GitExecutablePath);
 
             gitBranches.Should().BeEquivalentTo(
                 new GitBranch("master", string.Empty, true),

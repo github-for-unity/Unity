@@ -108,12 +108,14 @@ namespace GitHub.Unity
             lock (tasksLock)
             {
                 if ((task.Queued == TaskQueueSetting.NoQueue && tasks.Count > 0) ||
-                    (task.Queued == TaskQueueSetting.QueueSingle && tasks.Any(t => t.GetType() == task.GetType())))
+                    (task.Queued == TaskQueueSetting.QueueSingle &&
+                        ((activeTask != null && activeTask.GetType() == task.GetType()) ||
+                        tasks.Any(t => t.GetType() == task.GetType()))))
                 {
                     return;
                 }
 
-                logger.Debug("Adding Task: \"{0}\" Label: \"{1}\"", task.GetType().Name, task.Label);
+                logger.Trace("Adding Task: \"{0}\" Label: \"{1}\" ActiveTask: \"{2}\"", task.GetType().Name, task.Label, activeTask);
                 tasks.Enqueue(task);
             }
 
@@ -158,7 +160,7 @@ namespace GitHub.Unity
                         Action act = null;
                         while (scheduledCalls.TryDequeue(out act))
                         {
-                            act();
+                            act.SafeInvoke();
                         }
                     });
                     callerFlag = 0;

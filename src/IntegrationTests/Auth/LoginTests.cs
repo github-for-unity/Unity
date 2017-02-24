@@ -1,32 +1,55 @@
-﻿using GitHub.Unity;
+﻿using System.Collections.Generic;
+using System.Linq;
+using GitHub.Unity;
 using NUnit.Framework;
 using System.Threading;
 using System.Threading.Tasks;
 using Rackspace.Threading;
-using IntegrationTests;
 
-namespace GitHub.Unity.IntegrationTests
+namespace IntegrationTests
 {
     [TestFixture]
     class LoginIntegrationTests : BaseGitIntegrationTest
     {
-        //[Test]
-        //public async void SimpleLogin()
-        //{
-        //    var program = new AppConfiguration();
-        //    var filesystem = new FileSystem();
-        //    var environment = new DefaultEnvironment();
-        //    environment.GitExecutablePath = @"C:\soft\Git\cmd\git.exe";
-        //    environment.RepositoryRoot = TestGitRepoPath;
-        //    var platform = new Platform(environment, filesystem);
-        //    var gitEnvironment = platform.GitEnvironment;
-        //    var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
-        //    var credentialManager = new WindowsCredentialManager(environment, processManager);
-        //    var api = new ApiClientFactory(program, credentialManager);
-        //    var hostAddress = HostAddress.GitHubDotComHostAddress;
-        //    var client = api.Create(UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri));
-        //    int called = 0;
-        //}
+        string FindCommonPath(IEnumerable<string> paths)
+        {
+            var longestPath =
+                paths.First(first => first.Length == paths.Max(second => second.Length))
+                .ToNPath();
+
+            NPath commonParent = longestPath;
+            foreach (var path in paths)
+            {
+                var cp = commonParent.GetCommonParent(path);
+                if (cp != null)
+                    commonParent = cp;
+                else
+                {
+                    commonParent = null;
+                    break;
+                }
+            }
+            return commonParent;
+        }
+
+        [Test]
+        public void CommonParentTest()
+        {
+            var filesystem = new FileSystem(TestBasePath);
+            NPathFileSystemProvider.Current = filesystem;
+            var environment = new DefaultEnvironment();
+
+            var ret = FindCommonPath(new string[]
+            {
+                "Assets/Test/Path/file",
+                "Assets/Test/something",
+                "Assets/Test/Path/another",
+                "Assets/alkshdsd",
+                "Assets/Test/sometkjh",
+            });
+
+            Assert.AreEqual("Assets", ret);
+        }
 
         [Test]
         public async void NetworkTaskTest()
@@ -52,27 +75,42 @@ namespace GitHub.Unity.IntegrationTests
                 );
             }
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
-            environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem);
+            environment.UnityProjectPath = TestBasePath;
+            IPlatform platform = null;
+            platform = new Platform(environment, filesystem, new TestUIDispatcher(() =>
+            {
+                Logger.Debug("Called");
+                platform.CredentialManager.Save(new Credential("https://github.com", "username", "token")).Wait();
+                return true;
+            }));
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
-            var gitClient = new RepositoryLocator(TestGitRepoPath);
-            environment.Repository = gitClient.GetRepository();
+            await platform.Initialize(processManager);
+            using (var repoManager = new RepositoryManager(TestBasePath, platform, CancellationToken.None))
+            {
+                var repository = repoManager.Repository;
+                environment.Repository = repoManager.Repository;
 
-            var credentialManager = new WindowsCredentialManager(environment, processManager);
+                var task = repository.Pull(
+                     new TaskResultDispatcher<string>(x =>
+                    {
+                        Logger.Debug("Pull result: {0}", x);
+                    })
+                );
+                await task.RunAsync(CancellationToken.None);
 
-            string credHelper = null;
-            var task = new GitConfigGetTask(environment, processManager, null,
-                "credential.helper", GitConfigSource.NonSpecified,
-                x =>
-                {
-                    credHelper = x;
-                },
-                null);
+                //string credHelper = null;
+                //var task = new GitConfigGetTask(environment, processManager,
+                //    new TaskResultDispatcher<string>(x =>
+                //    {
+                //        Logger.Debug("CredHelper set to {0}", x);
+                //        credHelper = x;
+                //    }),
+                //    "credential.helper", GitConfigSource.NonSpecified);
 
-            await task.RunAsync(CancellationToken.None);
-            Assert.NotNull(credHelper);
-
+                //await task.RunAsync(CancellationToken.None);
+                //Assert.NotNull(credHelper);
+            }
 
             //string remoteUrl = null;
             //var ret = await GitTask.Run(environment, processManager, "remote get-url origin-http", x => remoteUrl = x);

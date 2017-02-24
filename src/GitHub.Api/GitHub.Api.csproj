@@ -168,6 +168,7 @@
     <Compile Include="Tasks\GitCommitTask.cs" />
     <Compile Include="Tasks\GitConfigGetTask.cs" />
     <Compile Include="Tasks\GitConfigListTask.cs" />
+    <Compile Include="Tasks\GitConfigSetTask.cs" />
     <Compile Include="Tasks\GitConfigSource.cs" />
     <Compile Include="Tasks\GitInitTask.cs" />
     <Compile Include="Tasks\GitListBranchesTask.cs" />
@@ -206,8 +207,6 @@
     <Compile Include="Authentication\IPlatform.cs" />
     <Compile Include="Authentication\ICredentialManager.cs" />
     <Compile Include="IEnvironment.cs" />
-    <Compile Include="Platform\LinuxCredentialManager.cs" />
-    <Compile Include="Platform\MacCredentialManager.cs" />
     <Compile Include="IAppConfiguration.cs" />
     <Compile Include="Primitives\HostAddress.cs" />
     <Compile Include="Primitives\StringEquivalent.cs" />
@@ -216,7 +215,7 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="Platform\Platform.cs" />
-    <Compile Include="Platform\WindowsCredentialManager.cs" />
+    <Compile Include="Platform\GitCredentialManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\ApiClient.cs" />
@@ -237,9 +236,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="PlatformResources\mac\git-lfs.zip" />
-    <EmbeddedResource Include="PlatformResources\windows\git-lfs.zip" />
-    <EmbeddedResource Include="PlatformResources\windows\git.zip" />
+    <Content Include="PlatformResources\mac\git-lfs.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PlatformResources\windows\git-lfs.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PlatformResources\windows\git.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <EmbeddedResource Include="PlatformResources\mac\gitconfig" />
     <EmbeddedResource Include="PlatformResources\windows\gitconfig" />
   </ItemGroup>
@@ -253,6 +258,9 @@
       <LastGenOutput>Localization.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

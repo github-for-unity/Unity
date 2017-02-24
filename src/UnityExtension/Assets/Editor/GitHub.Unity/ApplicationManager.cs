@@ -56,10 +56,12 @@ namespace GitHub.Unity
 
                     Utility.Run();
 
-                    ProjectWindowInterface.Initialize();
+                    ProjectWindowInterface.Initialize(Environment.Repository);
 
-                    Window.Initialize();
-                }, Scheduler);
+                    Window.Initialize(Environment.Repository);
+
+                    logger.Debug("Application Restarted");
+                }, UIScheduler);
         }
 
 
@@ -90,8 +92,8 @@ namespace GitHub.Unity
                 .ContinueWith(_ =>
                 {
                     logger.Trace("Restarted");
-                    Window.Initialize();
-                }, Scheduler);
+                    Window.Initialize(Environment.Repository);
+                }, UIScheduler);
         }
 
         private void ListenToUnityExit()

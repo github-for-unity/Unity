@@ -1,6 +1,6 @@
+#define ENABLE_TRACE
 using System;
 using System.Linq;
-using System.Threading;
 
 namespace GitHub.Unity
 {
@@ -78,14 +78,14 @@ namespace GitHub.Unity
 
         public void Trace(string format, params object[] objects)
         {
-#if DEBUG
+#if ENABLE_TRACE
             Trace(String.Format(format, objects));
 #endif
         }
 
         public void Trace(Exception ex, string message)
         {
-#if DEBUG
+#if ENABLE_TRACE
             var exceptionMessage = GetExceptionMessage(ex);
             Trace(String.Concat(message, Environment.NewLine, (string)exceptionMessage));
 #endif
@@ -93,14 +93,14 @@ namespace GitHub.Unity
 
         public void Trace(Exception ex)
         {
-#if DEBUG
+#if ENABLE_TRACE
             Trace(ex, string.Empty);
 #endif
         }
 
         public void Trace(Exception ex, string format, params object[] objects)
         {
-#if DEBUG
+#if ENABLE_TRACE
             Trace(ex, String.Format(format, objects));
 #endif
         }

@@ -30,8 +30,8 @@ namespace GitHub.Unity
 
         public IProcess Configure(string executableFileName, string arguments, string workingDirectory)
         {
-            logger.Debug("Configuring process - \"" + executableFileName + " " + arguments + "\" cwd:" + workingDirectory);
-            var startInfo = new ProcessStartInfo(executableFileName, arguments)
+            logger.Trace("Configuring process - \"" + executableFileName + " " + arguments + "\" cwd:" + workingDirectory);
+            var startInfo = new ProcessStartInfo
             {
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -45,13 +45,29 @@ namespace GitHub.Unity
             if (executableFileName.ToNPath().IsRelative)
                 executableFileName = FindExecutableInPath(executableFileName, startInfo.EnvironmentVariables["PATH"]) ?? executableFileName;
             startInfo.FileName = executableFileName;
-            logger.Debug(startInfo.FileName);
+            startInfo.Arguments = arguments;
             return new ProcessWrapper(startInfo);
+        }
+
+        public void RunCommandLineWindow(string workingDirectory)
+        {
+            var startInfo = new ProcessStartInfo("cmd")
+            {
+                RedirectStandardInput = false,
+                RedirectStandardOutput = false,
+                RedirectStandardError = false,
+                UseShellExecute = false,
+                CreateNoWindow = false
+            };
+
+            gitEnvironment.Configure(startInfo, workingDirectory);
+            var p = new ProcessWrapper(startInfo);
+            p.Run();
         }
 
         public IProcess Reconnect(int pid)
         {
-            logger.Debug("Reconnecting process " + pid);
+            logger.Trace("Reconnecting process " + pid);
             var p = Process.GetProcessById(pid);
             p.StartInfo.RedirectStandardInput = true;
             p.StartInfo.RedirectStandardOutput = true;
@@ -73,7 +89,6 @@ namespace GitHub.Unity
                     {
                         var unquoted = directory.RemoveSurroundingQuotes();
                         var expanded = environment.ExpandEnvironmentVariables(unquoted);
-                        logger.Debug("expanded:'{0}' executable:'{1}'", expanded, executable);
                         return expanded.ToNPath().Combine(executable);
                     }
                     catch (Exception e)

@@ -24,7 +24,7 @@ namespace GitHub.Unity
 
         public IEnumerable<GitBranch> RemoteBranches => repositoryManager.RemoteBranches.Values.SelectMany(
             x => x.Values).Select(x => new GitBranch(x.Remote.Value.Name + "/" + x.Name, "[None]", false));
-            
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
@@ -32,7 +32,7 @@ namespace GitHub.Unity
         /// <param name="name">The repository name.</param>
         /// <param name="cloneUrl">The repository's clone URL.</param>
         /// <param name="localPath"></param>
-        public Repository(IRepositoryManager repositoryManager, string name, UriString cloneUrl, string localPath)
+        public Repository(IRepositoryManager repositoryManager, string name, UriString cloneUrl, string localPath, IUser user)
         {
             Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
             Guard.ArgumentNotNullOrWhiteSpace(name, nameof(name));
@@ -42,13 +42,32 @@ namespace GitHub.Unity
             Name = name;
             CloneUrl = cloneUrl;
             LocalPath = localPath;
+            User = user;
 
             repositoryManager.OnRepositoryChanged += RepositoryManager_OnRepositoryChanged;
             repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
             repositoryManager.OnActiveRemoteChanged += RepositoryManager_OnActiveRemoteChanged;
             repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;
             repositoryManager.OnHeadChanged += RepositoryManager_OnHeadChanged;
+
+            if (String.IsNullOrEmpty(CloneUrl))
+            {
+                repositoryManager.OnRemoteOrTrackingChanged += RepositoryManager_OnRemoteOrTrackingChanged; ;
+            }
             
+        }
+
+        private void RepositoryManager_OnRemoteOrTrackingChanged()
+        {
+            if (String.IsNullOrEmpty(CloneUrl))
+            {
+                var remote = repositoryManager.Config.GetRemotes()
+                               .Where(x => HostAddress.Create(new UriString(x.Url).ToRepositoryUri()).IsGitHubDotCom())
+                               .FirstOrDefault();
+                if (remote.Url != null)
+                    CloneUrl = new UriString(remote.Url).ToRepositoryUrl();
+                repositoryManager.OnRemoteOrTrackingChanged -= RepositoryManager_OnRemoteOrTrackingChanged;
+            }
         }
 
         private void RepositoryManager_OnHeadChanged()
@@ -159,7 +178,18 @@ namespace GitHub.Unity
             GetHashCode());
 
         public GitStatus CurrentStatus => currentStatus;
-
+        public IUser User { get; set; }
         protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
+    }
+
+    interface IUser
+    {
+        string Name { get; set; }
+        string Email { get; set; }
+    }
+    class User : IUser
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
     }
 }

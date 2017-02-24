@@ -70,23 +70,27 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
-            EntryPoint.Environment.Repository.OnCommitChanged += UpdateLog;
-            Refresh();
+            UpdateLog();
+            if (Parent.Repository != null)
+                Parent.Repository.OnCommitChanged += UpdateLog;
         }
 
         public override void OnHide()
         {
             base.OnHide();
-            EntryPoint.Environment.Repository.OnCommitChanged -= UpdateLog;
+            if (Parent.Repository != null)
+                Parent.Repository.OnCommitChanged -= UpdateLog;
         }
 
         private void UpdateLog()
         {
+            if (Parent.Repository == null)
+                return;
+
             Tasks.ScheduleMainThread(() =>
             {
-                var repo = EntryPoint.Environment.Repository;
-                var status = repo.CurrentStatus;
-                currentRemote = repo.CurrentRemote;
+                var status = Parent.Repository.CurrentStatus;
+                currentRemote = Parent.Repository.CurrentRemote;
                 statusAhead = status.Ahead;
                 statusBehind = status.Behind;
 
@@ -534,12 +538,13 @@ namespace GitHub.Unity
 
         private void Pull()
         {
-            if (EntryPoint.Environment.Repository.CurrentStatus.Entries.Count > 0)
+            var status = Parent.Repository.CurrentStatus;
+            if (status.Entries != null && status.Entries.Count > 0)
             {
                 EntryPoint.TaskResultDispatcher.ReportFailure(FailureSeverity.Critical, "Pull", "You need to commit your changes before pulling.");
             }
 
-            var remote = EntryPoint.Environment.Repository.CurrentRemote;
+            var remote = Parent.Repository.CurrentRemote;
             var resultDispatcher = new MainThreadTaskResultDispatcher<string>(_ =>
             {
                 EditorUtility.DisplayDialog(Localization.PullActionTitle,
@@ -547,36 +552,20 @@ namespace GitHub.Unity
                     Localization.Ok);
             });
 
-            var task = EntryPoint.Environment.Repository.Pull(resultDispatcher);
-            //var branch = EntryPoint.Environment.Repository.CurrentBranch;
-            //var task = new GitPullTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-            //    ,
-            //    EntryPoint.CredentialManager, new AuthenticationUIDispatcher(),
-            //    remote, branch);
+            var task = Parent.Repository.Pull(resultDispatcher);
             Tasks.Add(task);
         }
 
         private void Push()
         {
-            var remote = EntryPoint.Environment.Repository.CurrentRemote;
+            var remote = Parent.Repository.CurrentRemote;
             var resultDispatcher = new MainThreadTaskResultDispatcher<string>(_ =>
             {
                 EditorUtility.DisplayDialog(Localization.PushActionTitle,
                     String.Format(Localization.PushSuccessDescription, remote),
                     Localization.Ok);
             });
-            var task = EntryPoint.Environment.Repository.Push(resultDispatcher);
-
-            //var branch = EntryPoint.Environment.Repository.CurrentBranch;
-            //var task = new GitPushTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-            //    new MainThreadTaskResultDispatcher<string>(_ =>
-            //    {
-            //        EditorUtility.DisplayDialog(Localization.PushActionTitle,
-            //            String.Format(Localization.PushSuccessDescription, remote),
-            //            Localization.Ok);
-            //    }),
-            //    EntryPoint.CredentialManager, new AuthenticationUIDispatcher(),
-            //    remote, branch, true);
+            var task = Parent.Repository.Push(resultDispatcher);
             Tasks.Add(task);
         }
 
