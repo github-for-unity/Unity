@@ -35,7 +35,7 @@ namespace IntegrationTests
         [Test]
         public void CommonParentTest()
         {
-            var filesystem = new FileSystem(TestGitRepoPath);
+            var filesystem = new FileSystem(TestBasePath);
             NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
 
@@ -50,24 +50,6 @@ namespace IntegrationTests
 
             Assert.AreEqual("Assets", ret);
         }
-
-        //[Test]
-        //public async void SimpleLogin()
-        //{
-        //    var program = new AppConfiguration();
-        //    var filesystem = new FileSystem();
-        //    var environment = new DefaultEnvironment();
-        //    environment.GitExecutablePath = @"C:\soft\Git\cmd\git.exe";
-        //    environment.RepositoryRoot = TestGitRepoPath;
-        //    var platform = new Platform(environment, filesystem);
-        //    var gitEnvironment = platform.GitEnvironment;
-        //    var processManager = new ProcessManager(environment, gitEnvironment, filesystem);
-        //    var credentialManager = new WindowsCredentialManager(environment, processManager);
-        //    var api = new ApiClientFactory(program, credentialManager);
-        //    var hostAddress = HostAddress.GitHubDotComHostAddress;
-        //    var client = api.Create(UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri));
-        //    int called = 0;
-        //}
 
         [Test]
         public async void NetworkTaskTest()
@@ -93,7 +75,7 @@ namespace IntegrationTests
                 );
             }
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
-            environment.UnityProjectPath = TestGitRepoPath;
+            environment.UnityProjectPath = TestBasePath;
             IPlatform platform = null;
             platform = new Platform(environment, filesystem, new TestUIDispatcher(() =>
             {
@@ -104,7 +86,7 @@ namespace IntegrationTests
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
             await platform.Initialize(processManager);
-            using (var repoManager = new RepositoryManager(TestGitRepoPath, platform, CancellationToken.None))
+            using (var repoManager = new RepositoryManager(TestBasePath, platform, CancellationToken.None))
             {
                 var repository = repoManager.Repository;
                 environment.Repository = repoManager.Repository;

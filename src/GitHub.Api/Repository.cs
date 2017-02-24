@@ -32,7 +32,7 @@ namespace GitHub.Unity
         /// <param name="name">The repository name.</param>
         /// <param name="cloneUrl">The repository's clone URL.</param>
         /// <param name="localPath"></param>
-        public Repository(IRepositoryManager repositoryManager, string name, UriString cloneUrl, string localPath)
+        public Repository(IRepositoryManager repositoryManager, string name, UriString cloneUrl, string localPath, IUser user)
         {
             Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
             Guard.ArgumentNotNullOrWhiteSpace(name, nameof(name));
@@ -42,6 +42,7 @@ namespace GitHub.Unity
             Name = name;
             CloneUrl = cloneUrl;
             LocalPath = localPath;
+            User = user;
 
             repositoryManager.OnRepositoryChanged += RepositoryManager_OnRepositoryChanged;
             repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
@@ -177,7 +178,18 @@ namespace GitHub.Unity
             GetHashCode());
 
         public GitStatus CurrentStatus => currentStatus;
-
+        public IUser User { get; set; }
         protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
+    }
+
+    interface IUser
+    {
+        string Name { get; set; }
+        string Email { get; set; }
+    }
+    class User : IUser
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
     }
 }

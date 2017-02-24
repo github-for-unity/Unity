@@ -14,5 +14,7 @@ namespace GitHub.Unity
 
         internal const string ClientId = "";
         internal const string ClientSecret = "";
+
+        public static string Version { get { return System.AssemblyVersionInformation.Version; } }
     }
 }

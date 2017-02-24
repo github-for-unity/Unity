@@ -15,7 +15,6 @@ namespace GitHub.Unity
             BroadModeBranchesMinWidth = 200f,
             BroadModeBranchesRatio = .4f,
             InitialStateAreaWidth = 200f,
-            BrowseFolderButtonHorizontalPadding = -4f,
             HistoryEntryHeight = 40f,
             HistorySummaryHeight = 16f,
             HistoryDetailsHeight = 16f,
@@ -714,9 +713,8 @@ namespace GitHub.Unity
         public static void PathField(ref string path, Func<string> browseFunction, Func<string, bool> validationFunction)
         {
             GUILayout.BeginHorizontal();
-                path = EditorGUILayout.TextField(path);
-                GUILayout.Space(Styles.BrowseFolderButtonHorizontalPadding);
-                if (GUILayout.Button(BrowseButton, EditorStyles.miniButtonRight))
+                path = EditorGUILayout.TextField("Path to Git", path);
+                if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(25)))
                 {
                     string newValue = browseFunction();
                     if (!string.IsNullOrEmpty(newValue) && validationFunction(newValue))
