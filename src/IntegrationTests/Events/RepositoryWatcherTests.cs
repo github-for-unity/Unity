@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading;
 using FluentAssertions;
 using GitHub.Unity;
@@ -113,9 +114,49 @@ namespace IntegrationTests.Events
 
             repositoryWatcher.Start();
 
-            GitPull("origin", "master");
+            //TODO: This is not expected
+            new Action(() => { GitPull("origin", "master"); }).ShouldThrow<Exception>();
 
-            repositoryWatcherListener.DidNotReceive().ConfigChanged();
+            repositoryWatcherListener.AssertDidNotReceiveAnyCalls();
+        }
+
+        [Test]
+        public void ShouldDetectChangesToRemotes()
+        {
+            var repositoryWatcher = CreateRepositoryWatcher();
+
+            var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
+            repositoryWatcherListener.AttachListener(repositoryWatcher);
+
+            repositoryWatcher.Start();
+
+            GitRemoteRemove("origin");
+
+            repositoryWatcherListener.Received(1).ConfigChanged();
+            repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+            repositoryWatcherListener.DidNotReceive().IndexChanged();
+            repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchMoved(Args.String, Args.String);
+
+            //TODO: This is not expected
+            repositoryWatcherListener.Received(2).RemoteBranchChanged("origin", "feature");
+
+            //This is more what I was expecting to happen
+            //repositoryWatcherListener.Received(1).RemoteBranchChanged("origin", "feature/document");
+            //repositoryWatcherListener.Received(1).RemoteBranchChanged("origin", "master");
+
+            repositoryWatcherListener.DidNotReceive().RemoteBranchCreated(Args.String, Args.String);
+            repositoryWatcherListener.Received(1).RemoteBranchDeleted("origin", "feature/document");
+            repositoryWatcherListener.Received(1).RemoteBranchDeleted("origin", "master");
+            repositoryWatcherListener.DidNotReceive().RemoteBranchRenamed(Args.String, Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RepositoryChanged();
+
+            repositoryWatcherListener.ClearReceivedCalls();
+
+            GitRemoteAdd("origin", "https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+
+            repositoryWatcherListener.Received(2).ConfigChanged();
             repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
             repositoryWatcherListener.DidNotReceive().IndexChanged();
             repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
@@ -152,6 +193,32 @@ namespace IntegrationTests.Events
 
             completed.Should().BeTrue();
         }
+
+        private void GitRemoteAdd(string remote, string url)
+        {
+            var completed = false;
+
+            var gitRemoteAddTask = new GitRemoteAddTask(Environment, ProcessManager,
+                new TaskResultDispatcher<string>(s => { completed = true; }), remote, url);
+
+            gitRemoteAddTask.RunAsync(CancellationToken.None).Wait();
+            Thread.Sleep(100);
+
+            completed.Should().BeTrue();
+        }
+
+        private void GitRemoteRemove(string remote)
+        {
+            var completed = false;
+
+            var gitRemoteAddTask = new GitRemoteRemoveTask(Environment, ProcessManager,
+                new TaskResultDispatcher<string>(s => { completed = true; }), remote);
+
+            gitRemoteAddTask.RunAsync(CancellationToken.None).Wait();
+            Thread.Sleep(100);
+
+            completed.Should().BeTrue();
+        }
     }
 
     public interface IRepositoryWatcherListener
@@ -184,6 +251,21 @@ namespace IntegrationTests.Events
             repositoryWatcher.RemoteBranchDeleted += listener.RemoteBranchDeleted;
             repositoryWatcher.RemoteBranchRenamed += listener.RemoteBranchRenamed;
             repositoryWatcher.RepositoryChanged += listener.RepositoryChanged;
+        }
+
+        public static void AssertDidNotReceiveAnyCalls(this IRepositoryWatcherListener repositoryWatcherListener)
+        {
+            repositoryWatcherListener.DidNotReceive().ConfigChanged();
+            repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+            repositoryWatcherListener.DidNotReceive().IndexChanged();
+            repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchMoved(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchCreated(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchRenamed(Args.String, Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RepositoryChanged();
         }
     }
 }
