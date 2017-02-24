@@ -1,41 +1,15 @@
 ﻿using GitHub.Unity;
-using NSubstitute;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using FluentAssertions;
+using NCrunch.Framework;
 
 namespace IntegrationTests
 {
-    class TestUIDispatcher : BaseUIDispatcher
-    {
-        private readonly Func<bool> callback;
-
-        public TestUIDispatcher(Func<bool> callback = null) : base()
-        {
-            this.callback = callback;
-        }
-
-        protected override void Run(Action<bool> onClose)
-        {
-            bool ret = true;
-            if (callback != null)
-            {
-                ret = callback();
-            }
-            onClose(ret);
-            base.Run(onClose);
-        }
-    }
-
     [TestFixture]
     class FileSystemWatcherTests : BaseIntegrationTest
     {
-        [Test]
+        [Test, Isolated]
         public void WatchesADirectoryTree()
         {
             int expected = 9;
@@ -60,7 +34,7 @@ namespace IntegrationTests
                 "dir1/dir1/dir2/file2",
             };
 
-            CreateDirStructure(files);
+            CreateFilePaths(files);
 
             Thread.Sleep(50);
 
@@ -68,46 +42,52 @@ namespace IntegrationTests
             Assert.AreEqual(expected, count);
         }
 
-        [Test]
+        [Test, Isolated]
         public void WatchesAFile()
         {
-            int expected = 9;
-            int count = 0;
+            var createdCount = 0;
+            var changedCount = 0;
+            var renamedCount = 0;
+            var deletedCount = 0;
+
             var platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
-            var file = TestBasePath.Combine("file.txt").CreateFile();
+            var file = TestBasePath.Combine("file.txt").CreateFile("foobar");
             var watcher = platform.FileSystemWatchFactory.GetOrCreate(file);
 
             watcher.Created += f =>
             {
                 Logger.Debug("Created {0}", f);
-                count++;
+                createdCount++;
             };
 
             watcher.Changed += f =>
             {
                 Logger.Debug("Changed {0} {1}", f, f.ReadAllText());
-                count++;
+                changedCount++;
             };
 
             watcher.Renamed += (old, n) =>
             {
                 Logger.Debug("Renamed {0} {1}", old, n);
-                count++;
+                renamedCount++;
             };
 
             watcher.Deleted += f =>
             {
                 Logger.Debug("Deleted {0}", f);
-                count++;
+                deletedCount++;
             };
 
             watcher.Enable = true;
 
-            File.WriteAllText(file, "test");
-            //file.WriteAllText("text");
-
+            file.WriteAllText("FOOBAR");
             Thread.Sleep(120);
-            Assert.AreEqual(1, count);
+
+            //http://stackoverflow.com/questions/1764809/filesystemwatcher-changed-event-is-raised-twice
+            changedCount.Should().BeLessOrEqualTo(2);
+            createdCount.Should().Be(0);
+            renamedCount.Should().Be(0);
+            deletedCount.Should().Be(0);
 
             watcher.Dispose();
         }
