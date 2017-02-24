@@ -13,11 +13,14 @@ namespace IntegrationTests
         {
             base.OnSetup();
 
+            TestRepoPath = TestBasePath.Combine("IOTestsRepo");
+            FileSystem.SetCurrentDirectory(TestRepoPath);
+
             Platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
             GitEnvironment = Platform.GitEnvironment;
             ProcessManager = new ProcessManager(Environment, GitEnvironment);
 
-            Environment.UnityProjectPath = TestBasePath;
+            Environment.UnityProjectPath = TestRepoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
 
             using (var zipFile = new ZipFile(TestZipFilePath))
@@ -25,11 +28,13 @@ namespace IntegrationTests
                 zipFile.ExtractAll(TestBasePath.ToString(), ExtractExistingFileAction.OverwriteSilently);
             }
 
-            var repositoryManager = new RepositoryManager(TestBasePath, Platform, CancellationToken.None);
+            var repositoryManager = new RepositoryManager(TestRepoPath, Platform, CancellationToken.None);
             Environment.Repository = repositoryManager.Repository;
         }
 
-        public Platform Platform { get; set; }
+        protected NPath TestRepoPath { get; private set; }
+
+        protected Platform Platform { get; private set; }
 
         private static string SolutionDirectory => TestContext.CurrentContext.TestDirectory;
 

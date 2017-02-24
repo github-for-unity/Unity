@@ -8,13 +8,11 @@ namespace IntegrationTests.Events
 {
     class RepositoryWatcherTests : BaseGitIntegrationTest
     {
-
-
         protected override void OnSetup()
         {
             base.OnSetup();
 
-            DotGitPath = TestBasePath.Combine(".git");
+            DotGitPath = TestRepoPath.Combine(".git");
 
             if (DotGitPath.FileExists())
             {
@@ -34,7 +32,7 @@ namespace IntegrationTests.Events
 
         private RepositoryWatcher CreateRepositoryWatcher()
         {
-            return new RepositoryWatcher(Platform, TestBasePath, DotGitPath, DotGitIndex, DotGitHead, BranchesPath, RemotesPath, DotGitConfig);
+            return new RepositoryWatcher(Platform, TestRepoPath, DotGitPath, DotGitIndex, DotGitHead, BranchesPath, RemotesPath, DotGitConfig);
         }
 
         protected NPath DotGitConfig { get; private set; }
@@ -59,13 +57,14 @@ namespace IntegrationTests.Events
 
             repositoryWatcher.Start();
 
-            var foobarTxt = TestBasePath.Combine("foobar.txt");
+            var foobarTxt = TestRepoPath.Combine("foobar.txt");
             foobarTxt.WriteAllText("foobar");
 
             Thread.Sleep(100);
 
             //http://stackoverflow.com/questions/1764809/filesystemwatcher-changed-event-is-raised-twice
-            repositoryChanged.Should().Be(2);
+            repositoryChanged.Should().BeInRange(1, 2);
+            repositoryChanged.Should().BeGreaterOrEqualTo(1);
         }
 
         [Test]

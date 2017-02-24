@@ -15,11 +15,11 @@ namespace IntegrationTests
         public void FindRepoRootTest()
         {
             var environment = new DefaultEnvironment();
-            environment.UnityProjectPath = TestBasePath;
+            environment.UnityProjectPath = TestRepoPath;
 
             var repositoryLocator = new RepositoryLocator(environment.UnityProjectPath);
 
-            repositoryLocator.FindRepositoryRoot().ToString().Should().Be(new NPath(TestBasePath).ToString());
+            repositoryLocator.FindRepositoryRoot().ToString().Should().Be(new NPath(TestRepoPath).ToString());
         }
 
         [Test]
@@ -29,7 +29,7 @@ namespace IntegrationTests
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(Environment, gitEnvironment);
 
-            var gitBranches = processManager.GetGitBranches(TestBasePath, Environment.GitExecutablePath);
+            var gitBranches = processManager.GetGitBranches(TestRepoPath, Environment.GitExecutablePath);
 
             gitBranches.Should().BeEquivalentTo(
                 new GitBranch("master", string.Empty, true),
