@@ -142,14 +142,20 @@ namespace GitHub.Unity
         {
             var headerRect = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
             {
-                GUILayout.Space(3);
+                GUILayout.Space(5);
                 GUILayout.BeginVertical(GUILayout.Width(16));
                 {
+                    GUILayout.Space(5);
+
                     var iconRect = GUILayoutUtility.GetRect(new GUIContent(Styles.BigLogo), GUIStyle.none, GUILayout.Height(20), GUILayout.Width(20));
                     iconRect.y = headerRect.center.y - (iconRect.height / 2);
                     GUI.DrawTexture(iconRect, Styles.BigLogo, ScaleMode.ScaleToFit);
+
+                    GUILayout.Space(5);
                 }
                 GUILayout.EndVertical();
+
+                GUILayout.Space(5);
 
                 GUILayout.BeginVertical();
                 {
