@@ -35,7 +35,7 @@ namespace IntegrationTests
         [Test]
         public void CommonParentTest()
         {
-            var filesystem = new FileSystem(TestBasePath);
+            var filesystem = new FileSystem(TestRepoPath);
             NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
 
@@ -75,7 +75,7 @@ namespace IntegrationTests
                 );
             }
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
-            environment.UnityProjectPath = TestBasePath;
+            environment.UnityProjectPath = TestRepoPath;
             IPlatform platform = null;
             platform = new Platform(environment, filesystem, new TestUIDispatcher(() =>
             {
@@ -86,7 +86,7 @@ namespace IntegrationTests
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
             await platform.Initialize(processManager);
-            using (var repoManager = new RepositoryManager(TestBasePath, platform, CancellationToken.None))
+            using (var repoManager = new RepositoryManager(TestRepoPath, platform, CancellationToken.None))
             {
                 var repository = repoManager.Repository;
                 environment.Repository = repoManager.Repository;
