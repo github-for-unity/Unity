@@ -21,6 +21,8 @@ namespace GitHub.Unity
         private const string BranchesTitle = "Branches";
         private const string SettingsTitle = "Settings";
         private const string AuthenticationTitle = "Auth";
+        private const string NoRepoTitle = "No Git repository found for this project";
+        private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
 
 
         [NonSerialized] private double notificationClearTime = -1;
@@ -138,38 +140,51 @@ namespace GitHub.Unity
 
         private void DoOfferToInitializeRepositoryGUI()
         {
-            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
+            var headerRect = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
             {
-                GUILayout.Space(3);
+                GUILayout.Space(5);
                 GUILayout.BeginVertical(GUILayout.Width(16));
                 {
-                    GUILayout.Space(9);
-                    GUILayout.Label(Styles.BigLogo, GUILayout.Height(20), GUILayout.Width(20));
+                    GUILayout.Space(5);
+
+                    var iconRect = GUILayoutUtility.GetRect(new GUIContent(Styles.BigLogo), GUIStyle.none, GUILayout.Height(20), GUILayout.Width(20));
+                    iconRect.y = headerRect.center.y - (iconRect.height / 2);
+                    GUI.DrawTexture(iconRect, Styles.BigLogo, ScaleMode.ScaleToFit);
+
+                    GUILayout.Space(5);
                 }
                 GUILayout.EndVertical();
 
+                GUILayout.Space(5);
+
                 GUILayout.BeginVertical();
                 {
-                    GUILayout.Space(9);
-                    GUILayout.Label("GitHub", Styles.HeaderRepoLabelStyle);
+                    var headerContent = new GUIContent(NoRepoTitle);
+                    var headerTitleRect = GUILayoutUtility.GetRect(headerContent, Styles.HeaderTitleStyle);
+                    headerTitleRect.y = headerRect.center.y - (headerTitleRect.height / 2);
+
+                    GUI.Label(headerTitleRect, headerContent, Styles.HeaderTitleStyle);
                 }
                 GUILayout.EndVertical();
             }
-            GUILayout.EndHorizontal();
-            GUILayout.BeginVertical();
+            EditorGUILayout.EndHorizontal();
+
+            GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {
                 GUILayout.FlexibleSpace();
+
+                GUILayout.Label(NoRepoDescription, Styles.CenteredLabel);
+
                 GUILayout.BeginHorizontal();
-                {
-                    GUILayout.FlexibleSpace();
-                    if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "LargeButton"))
-                    {
-                        var repoInit = new RepositoryInitializer(EntryPoint.Environment, EntryPoint.ProcessManager, new TaskQueueScheduler(), EntryPoint.AppManager);
-                        repoInit.Run();
-                    }
-                    GUILayout.FlexibleSpace();
-                }
+                  GUILayout.FlexibleSpace();
+                  if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
+                  {
+                      var repoInit = new RepositoryInitializer(EntryPoint.Environment, EntryPoint.ProcessManager, new TaskQueueScheduler(), EntryPoint.AppManager);
+                      repoInit.Run();
+                  }
+                  GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
+
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();

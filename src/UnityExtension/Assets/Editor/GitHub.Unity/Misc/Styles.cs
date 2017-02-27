@@ -63,6 +63,8 @@ namespace GitHub.Unity
             headerBoxStyle,
             headerBranchLabelStyle,
             headerRepoLabelStyle,
+            headerTitleStyle,
+            headerDescriptionStyle,
             historyToolbarButtonStyle,
             historyLockStyle,
             historyEntryDetailsStyle,
@@ -70,6 +72,8 @@ namespace GitHub.Unity
             commitFileAreaStyle,
             commitButtonStyle,
             textFieldStyle,
+            centeredLabel,
+            boldCenteredLabel,
             commitDescriptionFieldStyle,
             toggleMixedStyle,
             authHeaderBoxStyle,
@@ -148,6 +152,38 @@ namespace GitHub.Unity
 				return headerRepoLabelStyle;
 			}
 		}
+
+    public static GUIStyle HeaderTitleStyle
+    {
+      get
+      {
+        if (headerTitleStyle == null)
+        {
+          headerTitleStyle = new GUIStyle(EditorStyles.boldLabel);
+					headerTitleStyle.name = "HeaderTitleStyle";
+					headerTitleStyle.margin = new RectOffset(0,0,0,0);
+          headerTitleStyle.wordWrap = true;
+        }
+
+        return headerTitleStyle;
+      }
+    }
+
+    public static GUIStyle HeaderDescriptionStyle
+    {
+      get
+      {
+        if (headerDescriptionStyle == null)
+        {
+          headerDescriptionStyle = new GUIStyle(EditorStyles.label);
+					headerDescriptionStyle.name = "HeaderDescriptionStyle";
+					headerDescriptionStyle.margin = new RectOffset(0,0,0,0);
+          headerDescriptionStyle.wordWrap = true;
+        }
+
+        return headerDescriptionStyle;
+      }
+    }
 
 		public static GUIStyle HeaderBoxStyle
 		{
@@ -350,6 +386,20 @@ namespace GitHub.Unity
 			}
 		}
 
+        public static GUIStyle CenteredLabel
+        {
+          get
+          {
+            if (centeredLabel == null)
+            {
+              centeredLabel = new GUIStyle(EditorStyles.wordWrappedLabel);
+              centeredLabel.alignment = TextAnchor.MiddleCenter;
+            }
+
+            return centeredLabel;
+          }
+        }
+
         public static GUIStyle CommitDescriptionFieldStyle
         {
             get
@@ -402,7 +452,7 @@ namespace GitHub.Unity
             if (genericBoxStyle == null)
             {
                 genericBoxStyle = new GUIStyle();
-                genericBoxStyle.padding = new RectOffset(10,10,10,10);
+                genericBoxStyle.padding = new RectOffset(5,5,5,5);
             }
 
             return genericBoxStyle;
