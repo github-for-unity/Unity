@@ -18,13 +18,17 @@ namespace GitHub.Unity
 
         protected override ProcessOutputManager HookupOutput(IProcess process)
         {
-            processor.OnStatus += status => { gitStatus = status; };
+            processor.OnStatus += status => {
+                gitStatus = status;
+//                Logger.Debug("GOT STATUS {0}", gitStatus);
+                resultDispatcher.ReportSuccess(gitStatus);
+            };
             return new ProcessOutputManager(process, processor);
         }
 
         protected override void RaiseOnSuccess()
         {
-            resultDispatcher.ReportSuccess(gitStatus);
+            //Logger.Debug("RAISING STATUS {0}", gitStatus);
         }
 
         public override bool Blocking { get { return false; } }

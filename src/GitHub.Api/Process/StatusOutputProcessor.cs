@@ -187,6 +187,7 @@ namespace GitHub.Unity
 
         private void ReturnStatus()
         {
+//            Logger.Debug("Return Status {0}", gitStatus.ToString());
             if (gitStatus.Entries == null)
                 return;
 

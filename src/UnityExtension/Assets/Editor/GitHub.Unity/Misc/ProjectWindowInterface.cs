@@ -10,12 +10,18 @@ namespace GitHub.Unity
         private static readonly List<GitStatusEntry> entries = new List<GitStatusEntry>();
         private static readonly List<string> guids = new List<string>();
         private static bool initialized = false;
+        private static IRepository repository;
+        private static ILogging logger = Logging.GetLogger<ProjectWindowInterface>();
+        private static ILogging Logger { get { return logger; } }
 
-        public static void Initialize(IRepository repository)
+        public static void Initialize(IRepository repo)
         {
+            repository = repo;
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
-            repository.OnRepositoryChanged += status => Tasks.ScheduleMainThread(() => OnStatusUpdate(status));
+            repository.OnRepositoryChanged += status => {
+                Tasks.ScheduleMainThread(() => OnStatusUpdate(status));
+            };
             initialized = true;
         }
 
@@ -33,7 +39,8 @@ namespace GitHub.Unity
         {
             if (initialized)
             {
-                StatusService.Instance.Run();
+                repository.Refresh();
+                //StatusService.Instance.Run();
             }
         }
 

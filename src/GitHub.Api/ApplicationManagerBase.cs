@@ -170,6 +170,7 @@ namespace GitHub.Unity
         protected CancellationTokenSource CancellationTokenSource { get; private set; }
         protected TaskScheduler UIScheduler { get; private set; }
         protected SynchronizationContext SynchronizationContext { get; private set; }
+        protected IRepositoryManager RepositoryManager { get { return repositoryManager; } }
 
         public ISettings LocalSettings { get; protected set; }
         public ISettings SystemSettings { get; protected set; }
