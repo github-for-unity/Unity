@@ -8,6 +8,8 @@ namespace GitHub.Unity
     /// </summary>
     interface IRepository : IEquatable<IRepository>
     {
+        void Refresh();
+
         /// <summary>
         /// Gets the name of the repository.
         /// </summary>

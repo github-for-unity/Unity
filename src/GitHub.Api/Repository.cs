@@ -57,6 +57,11 @@ namespace GitHub.Unity
             
         }
 
+        public void Refresh()
+        {
+            repositoryManager.Refresh();
+        }
+
         private void RepositoryManager_OnRemoteOrTrackingChanged()
         {
             if (String.IsNullOrEmpty(CloneUrl))
@@ -103,7 +108,8 @@ namespace GitHub.Unity
         private void RepositoryManager_OnRepositoryChanged(GitStatus status)
         {
             currentStatus = status;
-            OnRepositoryChanged?.Invoke(CurrentStatus);
+            //Logger.Debug("Got STATUS 2 {0} {1}", OnRepositoryChanged, status);
+            OnRepositoryChanged?.Invoke(status);
         }
 
         /// <summary>
