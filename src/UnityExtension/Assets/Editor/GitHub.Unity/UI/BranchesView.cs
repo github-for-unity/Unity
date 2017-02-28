@@ -565,28 +565,6 @@ namespace GitHub.Unity
                 style.Draw(rect, content, false, false, selected, keyboardFocus);
             }
 
-            // State marks
-            if (Event.current.type == EventType.Repaint)
-            {
-                var indicatorRect = new Rect(rect.x + 8, rect.yMax - 8, 8, 8);
-
-                // Being tracked by current selection mark
-                if (selectedNode != null && selectedNode.Tracking == node)
-                {
-                    // GUI.DrawTexture(indicatorRect, Styles.TrackingBranchIcon);
-                }
-                // Active branch mark
-                else if (node.Active)
-                {
-                    // GUI.DrawTexture(indicatorRect, Styles.ActiveBranchIcon);
-                }
-                // Tracking mark
-                else if (node.Tracking != null)
-                {
-                    // GUI.DrawTexture(indicatorRect, Styles.TrackingBranchIcon);
-                }
-            }
-
             // Children
             GUILayout.BeginHorizontal();
             {
