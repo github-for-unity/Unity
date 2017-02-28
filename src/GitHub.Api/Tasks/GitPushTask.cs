@@ -39,6 +39,8 @@ namespace GitHub.Unity
 
         private void Process_OnErrorData(string line)
         {
+            if (String.IsNullOrEmpty(line))
+                return;
             if (line.StartsWith("fatal:"))
             {
                 ErrorBuffer.WriteLine(line);
