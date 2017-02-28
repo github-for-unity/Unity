@@ -573,7 +573,7 @@ namespace GitHub.Unity
                 // Being tracked by current selection mark
                 if (selectedNode != null && selectedNode.Tracking == node)
                 {
-                    GUI.DrawTexture(indicatorRect, Styles.TrackingBranchIcon);
+                    // GUI.DrawTexture(indicatorRect, Styles.TrackingBranchIcon);
                 }
                 // Active branch mark
                 else if (node.Active)
@@ -583,7 +583,7 @@ namespace GitHub.Unity
                 // Tracking mark
                 else if (node.Tracking != null)
                 {
-                    GUI.DrawTexture(indicatorRect, Styles.TrackingBranchIcon);
+                    // GUI.DrawTexture(indicatorRect, Styles.TrackingBranchIcon);
                 }
             }
 
