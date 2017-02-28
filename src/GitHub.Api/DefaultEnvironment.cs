@@ -51,7 +51,14 @@ namespace GitHub.Unity
 
                     if (!String.IsNullOrEmpty(GitExecutablePath))
                     {
-                        gitInstallPath = GitExecutablePath.ToNPath().Parent.Parent;
+                        if (IsWindows)
+                        {
+                            gitInstallPath = GitExecutablePath.ToNPath().Parent.Parent;
+                        }
+                        else
+                        {
+                            gitInstallPath = GitExecutablePath.ToNPath().Parent;
+                        }
                         logger.Trace("Setting GitInstallPath to " + gitInstallPath);
                     }
                     else

@@ -60,7 +60,7 @@ namespace GitHub.Unity
 
                     Window.Initialize(Environment.Repository);
 
-                    logger.Debug("Application Restarted");
+                    //logger.Debug("Application Restarted");
                 }, UIScheduler);
         }
 

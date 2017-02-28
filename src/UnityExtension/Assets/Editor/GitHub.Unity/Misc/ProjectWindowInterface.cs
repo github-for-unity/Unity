@@ -19,7 +19,7 @@ namespace GitHub.Unity
             repository = repo;
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
-            repository.OnRepositoryChanged += status => {
+            repository.OnRefreshTrackedFileList += status => {
                 Tasks.ScheduleMainThread(() => OnStatusUpdate(status));
             };
             initialized = true;
@@ -39,7 +39,7 @@ namespace GitHub.Unity
         {
             if (initialized)
             {
-                repository.Refresh();
+                System.Threading.Tasks.Task.Factory.StartNew(repository.Refresh);
                 //StatusService.Instance.Run();
             }
         }
@@ -48,9 +48,10 @@ namespace GitHub.Unity
         {
             if (update.Entries == null)
             {
-                Refresh();
+                //Refresh();
                 return;
             }
+
             entries.Clear();
             entries.AddRange(update.Entries);
 
