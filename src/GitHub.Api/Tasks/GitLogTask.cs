@@ -24,7 +24,16 @@ namespace GitHub.Unity
         protected override ProcessOutputManager HookupOutput(IProcess process)
         {
             processor.OnLogEntry += AddLogEntry;
+            process.OnErrorData += Process_OnErrorData;
             return new ProcessOutputManager(process, processor);
+        }
+
+        private void Process_OnErrorData(string line)
+        {
+            if (string.IsNullOrEmpty(line))
+                return;
+            if (line.StartsWith("fatal:"))
+                ErrorBuffer.WriteLine(line);
         }
 
         protected override void RaiseOnSuccess()

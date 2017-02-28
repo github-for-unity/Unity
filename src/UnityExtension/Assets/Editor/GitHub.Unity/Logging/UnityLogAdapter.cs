@@ -1,3 +1,5 @@
+//#define ENABLE_TRACE
+
 using System;
 using System.Threading;
 

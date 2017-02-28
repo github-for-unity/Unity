@@ -103,7 +103,7 @@ namespace GitHub.Unity
 
             var gitSetup = new GitSetup(Environment, CancellationToken);
             var expectedPath = gitSetup.GitInstallationPath;
-            logger.Trace("GitInstallationPath {0} {1} {2}", expectedPath, gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
+
             bool setupDone = gitSetup.GitExecutablePath.FileExists();
             if (!setupDone)
             {
@@ -117,6 +117,8 @@ namespace GitHub.Unity
                 Environment.GitExecutablePath = gitSetup.GitExecutablePath;
             else
                 Environment.GitExecutablePath = await LookForGitInstallationPath();
+
+            logger.Trace("GitInstallationPath {0} {1} {2}", expectedPath, gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
 
             await RestartRepository();
         }
@@ -170,6 +172,7 @@ namespace GitHub.Unity
         protected CancellationTokenSource CancellationTokenSource { get; private set; }
         protected TaskScheduler UIScheduler { get; private set; }
         protected SynchronizationContext SynchronizationContext { get; private set; }
+        protected IRepositoryManager RepositoryManager { get { return repositoryManager; } }
 
         public ISettings LocalSettings { get; protected set; }
         public ISettings SystemSettings { get; protected set; }

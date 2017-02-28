@@ -8,6 +8,8 @@ namespace GitHub.Unity
     /// </summary>
     interface IRepository : IEquatable<IRepository>
     {
+        void Refresh();
+
         /// <summary>
         /// Gets the name of the repository.
         /// </summary>
@@ -42,6 +44,7 @@ namespace GitHub.Unity
         IUser User { get; set; }
 
         event Action<GitStatus> OnRepositoryChanged;
+        event Action<GitStatus> OnRefreshTrackedFileList;
         event Action<string> OnActiveBranchChanged;
         event Action<string> OnActiveRemoteChanged;
         ITask Pull(ITaskResultDispatcher<string> resultDispatcher);
