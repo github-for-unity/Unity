@@ -13,8 +13,11 @@ namespace GitHub.Unity
         event Action OnRemoteBranchListChanged;
         event Action OnLocalBranchListChanged;
         event Action<GitStatus> OnRepositoryChanged;
+        event Action<GitStatus> OnRefreshTrackedFileList;
         event Action OnHeadChanged;
         event Action OnRemoteOrTrackingChanged;
+
+        void Refresh();
 
         GitConfig Config { get;}
         ConfigBranch? ActiveBranch { get; set; }
@@ -59,6 +62,7 @@ namespace GitHub.Unity
         public event Action OnRemoteBranchListChanged;
         public event Action OnLocalBranchListChanged;
         public event Action<GitStatus> OnRepositoryChanged;
+        public event Action<GitStatus> OnRefreshTrackedFileList;
         public event Action OnHeadChanged;
         public event Action OnRemoteOrTrackingChanged;
 
@@ -116,6 +120,11 @@ namespace GitHub.Unity
             repositoryWatcher.Stop();
         }
 
+        public void Refresh()
+        {
+            OnRepositoryUpdated();
+        }
+
         private void OnRemoteBranchRenamed(string remote, string oldName, string name)
         {
             RemoveRemoteBranch(remote, oldName);
@@ -138,9 +147,9 @@ namespace GitHub.Unity
 
         private void OnRepositoryUpdated()
         {
-            if (!statusUpdateRequested)
-            {
-                statusUpdateRequested = true;
+//            if (!statusUpdateRequested)
+//            {
+//                statusUpdateRequested = true;
                 // run git status
                 var result = new TaskResultDispatcher<GitStatus>(
                     status =>
@@ -149,13 +158,22 @@ namespace GitHub.Unity
                         statusUpdateRequested = false;
                         OnRepositoryChanged?.Invoke(status);
                     },
-                    () =>
-                    {
-                    });
+                    () => {});
 
-                TaskEx.Delay(1000, cancellationToken)
-                    .ContinueWith(_ => processRunner.RunGitStatus(result));
-            }
+//                TaskEx.Delay(2, cancellationToken)
+//                    .ContinueWith(_ => 
+//                    {
+                      processRunner.RunGitStatus(result);
+//                  }
+//                    );
+            //}
+                result = new TaskResultDispatcher<GitStatus>(
+                    status =>
+                    {
+                        OnRefreshTrackedFileList?.Invoke(status);
+                    },
+                    () => {});
+                processRunner.RunGitTrackedFileList(result);
         }
         
         private void OnConfigChanged()
@@ -234,7 +252,7 @@ namespace GitHub.Unity
             ActiveBranch = GetActiveBranch();
             ActiveRemote = GetActiveRemote();
 
-            Logger.Debug("Active remote {0}", ActiveRemote);
+            //Logger.Debug("Active remote {0}", ActiveRemote);
         }
 
         private void LoadBranchesFromConfig()
