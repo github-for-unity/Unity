@@ -483,7 +483,7 @@ namespace GitHub.Unity
             {
                 if (activeBranchIcon == null)
                 {
-                    activeBranchIcon = Utility.GetIcon("current-branch-indicator.png");
+                    activeBranchIcon = Utility.GetIcon("current-branch-indicator.png", "current-branch-indicator@2x.png");
                 }
 
                 return activeBranchIcon;
