@@ -14,6 +14,7 @@ namespace GitHub.Unity
         private GitStatus currentStatus;
 
         public event Action<GitStatus> OnRepositoryChanged;
+        public event Action<GitStatus> OnRefreshTrackedFileList;
         public event Action<string> OnActiveBranchChanged;
         public event Action<string> OnActiveRemoteChanged;
         public event Action OnLocalBranchListChanged;
@@ -45,6 +46,7 @@ namespace GitHub.Unity
             User = user;
 
             repositoryManager.OnRepositoryChanged += RepositoryManager_OnRepositoryChanged;
+            repositoryManager.OnRefreshTrackedFileList += s => OnRefreshTrackedFileList?.Invoke(s);
             repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
             repositoryManager.OnActiveRemoteChanged += RepositoryManager_OnActiveRemoteChanged;
             repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;

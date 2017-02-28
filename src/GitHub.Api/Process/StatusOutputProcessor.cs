@@ -5,6 +5,72 @@ using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
 {
+    class TrackedFilesOutputProcessor : BaseOutputProcessor
+    {
+        private readonly IGitObjectFactory gitObjectFactory;
+        GitStatus gitStatus;
+
+        public TrackedFilesOutputProcessor(IGitObjectFactory gitObjectFactory)
+        {
+            this.gitObjectFactory = gitObjectFactory;
+        }
+
+        public override void LineReceived(string line)
+        {
+            base.LineReceived(line);
+
+            if (OnStatus == null)
+            {
+                return;
+            }
+
+            if (line == null)
+            {
+                ReturnStatus();
+            }
+            else
+            {
+                Prepare();
+
+                var proc = new LineParser(line);
+                var path = proc.ReadUntil('\t').Trim();
+                //var user = proc.ReadUntil('\t');
+                var gitStatusEntry = gitObjectFactory.CreateGitStatusEntry(path, GitFileStatus.Locked, null, false);
+                gitStatus.Entries.Add(gitStatusEntry);
+            }
+        }
+
+        private void ReturnStatus()
+        {
+            if (gitStatus.Entries == null)
+                return;
+
+            Logger.Debug("ReturnStatus {0}", gitStatus);
+            OnStatus(gitStatus);
+
+            gitStatus = new GitStatus();
+        }
+
+        private void Prepare()
+        {
+            if (gitStatus.Entries == null)
+            {
+                gitStatus = new GitStatus
+                {
+                    Entries = new List<GitStatusEntry>()
+                };
+            }
+        }
+
+        private void HandleUnexpected(string line)
+        {
+            Logger.Error("Unexpected Input:\"{0}\"", line);
+        }
+
+        public event Action<GitStatus> OnStatus;
+    }
+
+
     class StatusOutputProcessor : BaseOutputProcessor
     {
         private static readonly Regex branchTrackedAndDelta = new Regex(@"(.*)\.\.\.(.*)\s\[(.*)\]",
@@ -187,7 +253,6 @@ namespace GitHub.Unity
 
         private void ReturnStatus()
         {
-//            Logger.Debug("Return Status {0}", gitStatus.ToString());
             if (gitStatus.Entries == null)
                 return;
 

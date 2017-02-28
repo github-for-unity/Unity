@@ -44,6 +44,7 @@ namespace GitHub.Unity
         IUser User { get; set; }
 
         event Action<GitStatus> OnRepositoryChanged;
+        event Action<GitStatus> OnRefreshTrackedFileList;
         event Action<string> OnActiveBranchChanged;
         event Action<string> OnActiveRemoteChanged;
         ITask Pull(ITaskResultDispatcher<string> resultDispatcher);

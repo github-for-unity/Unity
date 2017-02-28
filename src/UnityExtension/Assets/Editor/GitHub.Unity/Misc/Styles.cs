@@ -84,6 +84,9 @@ namespace GitHub.Unity
             deletedStatusIcon,
             renamedStatusIcon,
             untrackedStatusIcon,
+            trackedStatusIcon,
+            lockedStatusIcon,
+            lockedModifiedStatusIcon,
             activeBranchIcon,
             trackingBranchIcon,
             favouriteIconOn,
@@ -662,6 +665,12 @@ namespace GitHub.Unity
                 return renamedStatusIcon = renamedStatusIcon ?? Utility.GetIcon("renamed.png", "renamed@2x.png");
                 case GitFileStatus.Untracked:
                 return untrackedStatusIcon = untrackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
+                case GitFileStatus.Tracked:
+                return trackedStatusIcon = trackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
+                case GitFileStatus.Locked:
+                return lockedStatusIcon = lockedStatusIcon ?? Utility.GetIcon("locked-by-person.png", "locked-by-person@2x.png");
+                case GitFileStatus.LockedModified:
+                return lockedModifiedStatusIcon = lockedModifiedStatusIcon ?? Utility.GetIcon("locked.png", "locked@2x.png");
                 default:
                 return null;
             }

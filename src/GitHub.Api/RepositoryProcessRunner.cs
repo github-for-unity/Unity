@@ -6,6 +6,7 @@ namespace GitHub.Unity
     interface IRepositoryProcessRunner
     {
         Task<bool> RunGitStatus(ITaskResultDispatcher<GitStatus> resultDispatcher);
+        Task<bool> RunGitTrackedFileList(ITaskResultDispatcher<GitStatus> resultDispatcher);
         ITask PrepareGitPull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch);
         ITask PrepareGitPush(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch);
     }
@@ -32,6 +33,12 @@ namespace GitHub.Unity
         public Task<bool> RunGitStatus(ITaskResultDispatcher<GitStatus> resultDispatcher)
         {
             var task = new GitStatusTask(environment, processManager, resultDispatcher, new GitObjectFactory(environment));
+            return task.RunAsync(cancellationToken);
+        }
+
+        public Task<bool> RunGitTrackedFileList(ITaskResultDispatcher<GitStatus> resultDispatcher)
+        {
+            var task = new GitTrackedFilesTask(environment, processManager, resultDispatcher, new GitObjectFactory(environment));
             return task.RunAsync(cancellationToken);
         }
 

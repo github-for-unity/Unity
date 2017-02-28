@@ -13,6 +13,7 @@ namespace GitHub.Unity
         event Action OnRemoteBranchListChanged;
         event Action OnLocalBranchListChanged;
         event Action<GitStatus> OnRepositoryChanged;
+        event Action<GitStatus> OnRefreshTrackedFileList;
         event Action OnHeadChanged;
         event Action OnRemoteOrTrackingChanged;
 
@@ -61,6 +62,7 @@ namespace GitHub.Unity
         public event Action OnRemoteBranchListChanged;
         public event Action OnLocalBranchListChanged;
         public event Action<GitStatus> OnRepositoryChanged;
+        public event Action<GitStatus> OnRefreshTrackedFileList;
         public event Action OnHeadChanged;
         public event Action OnRemoteOrTrackingChanged;
 
@@ -156,9 +158,7 @@ namespace GitHub.Unity
                         statusUpdateRequested = false;
                         OnRepositoryChanged?.Invoke(status);
                     },
-                    () =>
-                    {
-                    });
+                    () => {});
 
 //                TaskEx.Delay(2, cancellationToken)
 //                    .ContinueWith(_ => 
@@ -167,6 +167,13 @@ namespace GitHub.Unity
 //                  }
 //                    );
             //}
+                result = new TaskResultDispatcher<GitStatus>(
+                    status =>
+                    {
+                        OnRefreshTrackedFileList?.Invoke(status);
+                    },
+                    () => {});
+                processRunner.RunGitTrackedFileList(result);
         }
         
         private void OnConfigChanged()
