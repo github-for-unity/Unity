@@ -507,7 +507,7 @@ namespace GitHub.Unity
                     summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorWidth, summaryRect.height);
                 }
 
-                if (state == LogEntryState.Local)
+                if (state == LogEntryState.Local && string.IsNullOrEmpty(entry.MergeA))
                 {
                     const float LocalIndicatorSize = 6f;
                     var localIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2),
