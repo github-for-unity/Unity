@@ -77,14 +77,19 @@ namespace GitHub.Unity
 
             return success;
         }
+        public void Extract(string archive, string outFolder,
+            IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+        {
+            Extract(archive, outFolder, CancellationToken.None, zipFileProgress, estimatedDurationProgress);
+        }
 
-        public void Extract(string archive, string outFolder, CancellationToken? cancellationToken = null,
-    IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+        public void Extract(string archive, string outFolder, CancellationToken cancellationToken,
+            IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
         {
             ExtractZipFile(archive, outFolder, cancellationToken, zipFileProgress, estimatedDurationProgress);
         }
 
-        public static void ExtractZipFile(string archive, string outFolder, CancellationToken? cancellationToken = null,
+        public static void ExtractZipFile(string archive, string outFolder, CancellationToken cancellationToken,
             IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
         {
             ZipFile zf = null;
@@ -138,20 +143,15 @@ namespace GitHub.Unity
                     using (var streamWriter = targetFile.OpenWrite())
                     {
                         const int chunkSize = 4096; // 4K is optimum
-                        Copy(zipStream, streamWriter, chunkSize, targetFile.Length, (totalRead, timeToFinish) => {
+                        Copy(zipStream, streamWriter, chunkSize, targetFile.Length, (totalRead, timeToFinish) =>
+                        {
                             estimatedDuration = timeToFinish;
 
                             estimatedDurationProgress.Report(estimatedDuration);
                             zipFileProgress?.Report((float)(totalBytes + totalRead) / targetFile.Length);
-
-                            var cancellationRequested = false;
-                            if (cancellationToken.HasValue)
-                            {
-                                cancellationRequested = cancellationToken.Value.IsCancellationRequested;
-                            }
-
-                            return !cancellationRequested;
+                            return true;
                         }, 100);
+                        cancellationToken.ThrowIfCancellationRequested();
                     }
 
                     targetFile.LastWriteTime = zipEntry.DateTime;
@@ -163,6 +163,7 @@ namespace GitHub.Unity
 
                     estimatedDurationProgress?.Report(estimatedDuration);
                     zipFileProgress?.Report((float)processed / zf.Count);
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
             }
             finally
