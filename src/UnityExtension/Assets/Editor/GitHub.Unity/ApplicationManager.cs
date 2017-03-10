@@ -60,8 +60,8 @@ namespace GitHub.Unity
 
                     Window.Initialize(Environment.Repository);
 
-                    logger.Debug("Application Restarted");
-                }, Scheduler);
+                    //logger.Debug("Application Restarted");
+                }, UIScheduler);
         }
 
 
@@ -93,7 +93,7 @@ namespace GitHub.Unity
                 {
                     logger.Trace("Restarted");
                     Window.Initialize(Environment.Repository);
-                }, Scheduler);
+                }, UIScheduler);
         }
 
         private void ListenToUnityExit()

@@ -323,21 +323,24 @@ namespace GitHub.Unity
 
             var description = string.Join(Environment.NewLine, descriptionLines.ToArray());
 
-            OnLogEntry?.Invoke(new GitLogEntry()
+            if (time.HasValue)
             {
-                AuthorName = authorName,
-                CommitName = committerName,
-                MergeA = mergeA,
-                MergeB = mergeB,
-                Changes = changes,
-                AuthorEmail = authorEmail,
-                CommitEmail = committerEmail,
-                Summary = summary,
-                Description = description,
-                CommitID = commitId,
-                Time = time.Value,
-                CommitTime = committerTime.Value
-            });
+                OnLogEntry?.Invoke(new GitLogEntry()
+                {
+                    AuthorName = authorName,
+                    CommitName = committerName,
+                    MergeA = mergeA,
+                    MergeB = mergeB,
+                    Changes = changes,
+                    AuthorEmail = authorEmail,
+                    CommitEmail = committerEmail,
+                    Summary = summary,
+                    Description = description,
+                    CommitID = commitId,
+                    Time = time.Value,
+                    CommitTime = committerTime.Value
+                });
+            }
 
             Reset();
         }
