@@ -59,7 +59,7 @@ namespace GitHub.Unity
 
     class RepositoryWatcher : IRepositoryWatcher
     {
-        private readonly IFileSystemWatch fileHierarchyWatcher;
+        //private readonly IFileSystemWatch fileHierarchyWatcher;
         private readonly IFileSystemWatch gitConfigWatcher;
         private readonly IFileSystemWatch gitHeadWatcher;
         private readonly IFileSystemWatch gitIndexWatcher;
@@ -91,9 +91,11 @@ namespace GitHub.Unity
             var ignore = new List<NPath>
             {
                 repositoryPath.Combine(".git"),
-                platform.Environment.UnityProjectPath.ToNPath().Combine("Library")
+                platform.Environment.UnityProjectPath.ToNPath().Combine("Library"),
+                platform.Environment.UnityProjectPath.ToNPath().Combine("Temp")
             };
 
+/*
             fileHierarchyWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath, true);
             fileHierarchyWatcher.Changed += f => {
                 if (!ignore.Any(f.IsChildOf))
@@ -119,7 +121,7 @@ namespace GitHub.Unity
                     RepositoryChanged?.Invoke();
                 }
             };
-
+*/
             gitConfigWatcher = platform.FileSystemWatchFactory.GetOrCreate(dotGitConfig, false);
             gitConfigWatcher.Changed += _ => ConfigChanged?.Invoke();
 
@@ -169,7 +171,7 @@ namespace GitHub.Unity
                 };
             }
 
-            disposables.Add(fileHierarchyWatcher);
+            //disposables.Add(fileHierarchyWatcher);
             disposables.Add(gitConfigWatcher);
             disposables.Add(gitHeadWatcher);
             disposables.Add(gitIndexWatcher);
@@ -235,7 +237,7 @@ namespace GitHub.Unity
 
         private void ToggleWatchers(bool enable)
         {
-            fileHierarchyWatcher.Enable = enable;
+            //fileHierarchyWatcher.Enable = enable;
             gitConfigWatcher.Enable = enable;
             gitHeadWatcher.Enable = enable;
             gitIndexWatcher.Enable = enable;
