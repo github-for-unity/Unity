@@ -19,6 +19,7 @@ namespace IntegrationTests
             Platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
             GitEnvironment = Platform.GitEnvironment;
             ProcessManager = new ProcessManager(Environment, GitEnvironment);
+            Platform.Initialize(ProcessManager);
 
             Environment.UnityProjectPath = TestRepoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
@@ -40,8 +41,8 @@ namespace IntegrationTests
 
         private static string TestZipFilePath => Path.Combine(SolutionDirectory, "IOTestsRepo.zip");
 
-        protected ProcessManager ProcessManager { get; set; }
+        protected ProcessManager ProcessManager { get; private set; }
 
-        protected IProcessEnvironment GitEnvironment { get; set; }
+        protected IProcessEnvironment GitEnvironment { get; private set; }
     }
 }
