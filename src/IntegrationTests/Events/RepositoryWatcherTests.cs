@@ -10,6 +10,8 @@ namespace IntegrationTests.Events
 {
     class RepositoryWatcherTests : BaseGitIntegrationTest
     {
+        private int ThreadSleepTimeout = 500;
+
         protected override void OnSetup()
         {
             base.OnSetup();
@@ -69,7 +71,7 @@ namespace IntegrationTests.Events
                 var foobarTxt = TestRepoPath.Combine("foobar.txt");
                 foobarTxt.WriteAllText("foobar");
 
-                Thread.Sleep(500);
+                Thread.Sleep(ThreadSleepTimeout);
 
                 repositoryWatcherListener.DidNotReceive().ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
@@ -102,7 +104,7 @@ namespace IntegrationTests.Events
             {
                 SwitchBranch("feature/document");
 
-                Thread.Sleep(500);
+                Thread.Sleep(ThreadSleepTimeout);
 
                 repositoryWatcherListener.DidNotReceive().ConfigChanged();
                 repositoryWatcherListener.Received(1).HeadChanged("ref: refs/heads/feature/document");
@@ -114,6 +116,39 @@ namespace IntegrationTests.Events
                 repositoryWatcherListener.DidNotReceive().RemoteBranchCreated(Args.String, Args.String);
                 repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
                 repositoryWatcherListener.Received().RepositoryChanged();
+            }
+            finally
+            {
+                repositoryWatcher.Stop();
+            }
+        }
+
+        [Test]
+        public void ShouldDetectBranchDelete()
+        {
+            var repositoryWatcher = CreateRepositoryWatcher();
+
+            var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
+            repositoryWatcherListener.AttachListener(repositoryWatcher);
+
+            repositoryWatcher.Start();
+
+            try
+            {
+                DeleteBranch("feature/document");
+
+                Thread.Sleep(ThreadSleepTimeout);
+
+                repositoryWatcherListener.Received(1).ConfigChanged();
+                repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+                repositoryWatcherListener.DidNotReceive().IndexChanged();
+                repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
+                repositoryWatcherListener.Received(1).LocalBranchDeleted("feature/document");
+                repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
+                repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
+                repositoryWatcherListener.DidNotReceive().RemoteBranchCreated(Args.String, Args.String);
+                repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
+                repositoryWatcherListener.DidNotReceive().RepositoryChanged();
             }
             finally
             {
@@ -135,7 +170,7 @@ namespace IntegrationTests.Events
             {
                 GitRemoteRemove("origin");
 
-                Thread.Sleep(500);
+                Thread.Sleep(ThreadSleepTimeout);
 
                 repositoryWatcherListener.Received(1).ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
@@ -151,7 +186,7 @@ namespace IntegrationTests.Events
 
                 GitRemoteAdd("origin", "https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
 
-                Thread.Sleep(500);
+                Thread.Sleep(ThreadSleepTimeout);
 
                 repositoryWatcherListener.Received(2).ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
@@ -203,6 +238,7 @@ namespace IntegrationTests.Events
 
             completed.Should().BeTrue();
         }
+
         private void GitPull(string remote, string branch)
         {
             var completed = false;
@@ -239,6 +275,18 @@ namespace IntegrationTests.Events
 
             gitRemoteAddTask.RunAsync(CancellationToken.None).Wait();
             Thread.Sleep(100);
+
+            completed.Should().BeTrue();
+        }
+
+        private void DeleteBranch(string branch)
+        {
+            var completed = false;
+            var gitSwitchBranchesTask = new GitBranchDeleteTask(Environment, ProcessManager,
+                new TaskResultDispatcher<string>(s => { completed = true; }), branch, true);
+
+            gitSwitchBranchesTask.RunAsync(CancellationToken.None).Wait();
+            Thread.Sleep(200);
 
             completed.Should().BeTrue();
         }

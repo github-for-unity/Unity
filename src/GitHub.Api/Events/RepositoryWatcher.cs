@@ -115,6 +115,11 @@ namespace GitHub.Unity
                         }
                         else if (file.IsChildOf(remotesPath))
                         {
+                            if (file.ExtensionWithDot == ".lock")
+                            {
+                                continue; 
+                            }
+
                             var relativePath = file.RelativeTo(remotesPath);
                             var relativePathElements = relativePath.Elements.ToArray();
 
@@ -148,7 +153,37 @@ namespace GitHub.Unity
                         }
                         else if (file.IsChildOf(branchesPath))
                         {
+                            if (file.ExtensionWithDot == ".lock")
+                            {
+                                continue;
+                            }
 
+                            var relativePath = file.RelativeTo(branchesPath);
+                            var relativePathElements = relativePath.Elements.ToArray();
+
+                            var branch = string.Join(@"/", relativePathElements.ToArray());
+
+                            switch (fileEvent.Type)
+                            {
+                                case EventType.DELETED:
+                                    LocalBranchDeleted?.Invoke(branch);
+                                    break;
+
+                                case EventType.CREATED:
+
+                                    break;
+
+                                case EventType.MODIFIED:
+
+                                    break;
+
+                                case EventType.RENAMED:
+
+                                    break;
+
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
                         }
                     }
                     else
