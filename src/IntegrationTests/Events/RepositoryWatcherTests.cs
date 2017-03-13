@@ -157,6 +157,58 @@ namespace IntegrationTests.Events
         }
 
         [Test]
+        public void ShouldDetectBranchCreate()
+        {
+            var repositoryWatcher = CreateRepositoryWatcher();
+
+            var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
+            repositoryWatcherListener.AttachListener(repositoryWatcher);
+
+            repositoryWatcher.Start();
+
+            try
+            {
+                CreateBranch("feature/document2", "feature/document");
+
+                Thread.Sleep(ThreadSleepTimeout);
+
+                repositoryWatcherListener.DidNotReceive().ConfigChanged();
+                repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+                repositoryWatcherListener.DidNotReceive().IndexChanged();
+                repositoryWatcherListener.Received(1).LocalBranchCreated("feature/document2");
+                repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
+                repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
+                repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
+                repositoryWatcherListener.DidNotReceive().RemoteBranchCreated(Args.String, Args.String);
+                repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
+                repositoryWatcherListener.DidNotReceive().RepositoryChanged();
+
+                repositoryWatcherListener.ClearReceivedCalls();
+
+                CreateBranch("feature2/document2", "feature/document");
+
+                Thread.Sleep(ThreadSleepTimeout);
+
+                repositoryWatcherListener.DidNotReceive().ConfigChanged();
+                repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+                repositoryWatcherListener.DidNotReceive().IndexChanged();
+                repositoryWatcherListener.Received(1).LocalBranchCreated("feature2/document2");
+                repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
+                repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
+                repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
+                repositoryWatcherListener.DidNotReceive().RemoteBranchCreated(Args.String, Args.String);
+                repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
+                repositoryWatcherListener.DidNotReceive().RepositoryChanged();
+
+                repositoryWatcherListener.ClearReceivedCalls();
+            }
+            finally
+            {
+                repositoryWatcher.Stop();
+            }
+        }
+
+        [Test]
         public void ShouldDetectChangesToRemotes()
         {
             var repositoryWatcher = CreateRepositoryWatcher();
@@ -270,10 +322,10 @@ namespace IntegrationTests.Events
         {
             var completed = false;
 
-            var gitRemoteAddTask = new GitRemoteRemoveTask(Environment, ProcessManager,
+            var gitRemoteRemoveTask = new GitRemoteRemoveTask(Environment, ProcessManager,
                 new TaskResultDispatcher<string>(s => { completed = true; }), remote);
 
-            gitRemoteAddTask.RunAsync(CancellationToken.None).Wait();
+            gitRemoteRemoveTask.RunAsync(CancellationToken.None).Wait();
             Thread.Sleep(100);
 
             completed.Should().BeTrue();
@@ -282,10 +334,23 @@ namespace IntegrationTests.Events
         private void DeleteBranch(string branch)
         {
             var completed = false;
-            var gitSwitchBranchesTask = new GitBranchDeleteTask(Environment, ProcessManager,
+            var gitBranchDeleteTask = new GitBranchDeleteTask(Environment, ProcessManager,
                 new TaskResultDispatcher<string>(s => { completed = true; }), branch, true);
 
-            gitSwitchBranchesTask.RunAsync(CancellationToken.None).Wait();
+            gitBranchDeleteTask.RunAsync(CancellationToken.None).Wait();
+            Thread.Sleep(200);
+
+            completed.Should().BeTrue();
+        }
+
+        private void CreateBranch(string branch, string baseBranch)
+        {
+            var completed = false;
+
+            var gitBranchCreateTask = new GitBranchCreateTask(Environment, ProcessManager,
+                new TaskResultDispatcher<string>(s => { completed = true; }), branch, baseBranch);
+
+            gitBranchCreateTask.RunAsync(CancellationToken.None).Wait();
             Thread.Sleep(200);
 
             completed.Should().BeTrue();
