@@ -92,14 +92,23 @@ namespace GitHub.Unity
             {
                 foreach (var fileEvent in nativeInterface.GetEvents())
                 {
-                    var file = new NPath(fileEvent.Directory).Combine(fileEvent.FileA);
-                    if (file.IsChildOf(dotGitPath))
+                    var fileA = new NPath(fileEvent.Directory).Combine(fileEvent.FileA);
+
+                    NPath fileB = null;
+                    if (fileEvent.FileB != null)
                     {
-                        if (file.Equals(dotGitConfig))
+                        fileB = new NPath(fileEvent.Directory).Combine(fileEvent.FileB);
+                    }
+
+                    Logger.Debug("File {0}: {1} {2}", fileEvent.Type, fileA.ToString(), fileB?.ToString() ?? "[NULL]");
+
+                    if (fileA.IsChildOf(dotGitPath))
+                    {
+                        if (fileA.Equals(dotGitConfig))
                         {
                             ConfigChanged?.Invoke();
                         }
-                        else if (file.Equals(dotGitHead))
+                        else if (fileA.Equals(dotGitHead))
                         {
                             string headContent = null;
                             if (fileEvent.Type != EventType.DELETED)
@@ -109,86 +118,93 @@ namespace GitHub.Unity
 
                             HeadChanged?.Invoke(headContent);
                         }
-                        else if (file.Equals(dotGitIndex))
+                        else if (fileA.Equals(dotGitIndex))
                         {
                             IndexChanged?.Invoke();
                         }
-                        else if (file.IsChildOf(remotesPath))
+                        else if (fileA.IsChildOf(remotesPath))
                         {
-                            if (file.ExtensionWithDot == ".lock")
-                            {
-                                continue; 
-                            }
-
-                            var relativePath = file.RelativeTo(remotesPath);
-                            var relativePathElements = relativePath.Elements.ToArray();
-
-                            if (relativePathElements.Length > 0)
-                            {
-                                var origin = relativePathElements[0];
-                                var branch = string.Join(@"/", relativePathElements.Skip(1).ToArray());
-
-                                switch (fileEvent.Type)
-                                {
-                                    case EventType.DELETED:
-                                        RemoteBranchDeleted?.Invoke(origin, branch);
-                                        break;
-
-                                    case EventType.CREATED:
-
-                                        break;
-
-                                    case EventType.MODIFIED:
-
-                                        break;
-
-                                    case EventType.RENAMED:
-
-                                        break;
-
-                                    default:
-                                        throw new ArgumentOutOfRangeException();
-                                }
-                            }
-                        }
-                        else if (file.IsChildOf(branchesPath))
-                        {
-                            if (file.ExtensionWithDot == ".lock")
+                            if (fileA.ExtensionWithDot == ".lock")
                             {
                                 continue;
                             }
 
-                            var relativePath = file.RelativeTo(branchesPath);
+                            var relativePath = fileA.RelativeTo(remotesPath);
                             var relativePathElements = relativePath.Elements.ToArray();
 
-                            var branch = string.Join(@"/", relativePathElements.ToArray());
-
-                            switch (fileEvent.Type)
+                            if (fileEvent.Type == EventType.DELETED && relativePathElements.Length > 1)
                             {
-                                case EventType.DELETED:
-                                    LocalBranchDeleted?.Invoke(branch);
-                                    break;
+                                var origin = relativePathElements[0];
+                                var branch = string.Join(@"/", relativePathElements.Skip(1).ToArray());
 
-                                case EventType.CREATED:
+                                RemoteBranchDeleted?.Invoke(origin, branch);
+                            }
+                            else if (fileEvent.Type == EventType.CREATED)
+                            { }
+                            else if (fileEvent.Type == EventType.MODIFIED)
+                            { }
+                            else if (fileEvent.Type == EventType.RENAMED)
+                            { }
+                            else
+                            {
+                                throw new ArgumentOutOfRangeException();
+                            }
+                        }
+                        else if (fileA.IsChildOf(branchesPath))
+                        {
+                            if (fileA.ExtensionWithDot == ".lock" && fileEvent.Type != EventType.RENAMED)
+                            {
+                                continue;
+                            }
 
-                                    break;
+                            if (fileEvent.Type == EventType.DELETED)
+                            {
+                                var relativePath = fileA.RelativeTo(branchesPath);
+                                var relativePathElements = relativePath.Elements.ToArray();
 
-                                case EventType.MODIFIED:
+                                if (!relativePathElements.Any())
+                                {
+                                    continue;
+                                }
 
-                                    break;
+                                var branch = string.Join(@"/", relativePathElements.ToArray());
 
-                                case EventType.RENAMED:
+                                LocalBranchDeleted?.Invoke(branch);
+                            }
+                            else if (fileEvent.Type == EventType.CREATED)
+                            {
+                            }
+                            else if (fileEvent.Type == EventType.MODIFIED)
+                            {}
+                            else if (fileEvent.Type == EventType.RENAMED)
+                            {
+                                if (fileB != null && fileB.FileExists())
+                                {
+                                    if (fileA.FileNameWithoutExtension == fileB.FileNameWithoutExtension)
+                                    {
+                                        var relativePath = fileB.RelativeTo(branchesPath);
+                                        var relativePathElements = relativePath.Elements.ToArray();
 
-                                    break;
+                                        if (!relativePathElements.Any())
+                                        {
+                                            continue;
+                                        }
 
-                                default:
-                                    throw new ArgumentOutOfRangeException();
+                                        var branch = string.Join(@"/", relativePathElements.ToArray());
+
+                                        LocalBranchCreated?.Invoke(branch);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                throw new ArgumentOutOfRangeException();
                             }
                         }
                     }
                     else
                     {
-                        if (ignoredPaths.Any(ignoredPath => file.IsChildOf(ignoredPath)))
+                        if (ignoredPaths.Any(ignoredPath => fileA.IsChildOf(ignoredPath)))
                         {
                             continue;
                         }
