@@ -41,6 +41,7 @@ namespace IntegrationTests
         {
             try
             {
+                Logger.Debug("Deleting TestBasePath: {0}", TestBasePath.ToString());
                 TestBasePath.Delete();
             }
             catch (Exception e)

@@ -96,12 +96,9 @@ namespace GitHub.Unity
             repositoryWatcher.IndexChanged += OnIndexChanged;
             repositoryWatcher.LocalBranchCreated += OnLocalBranchCreated;
             repositoryWatcher.LocalBranchDeleted += OnLocalBranchDeleted;
-            repositoryWatcher.LocalBranchMoved += OnLocalBranchMoved;
             repositoryWatcher.RepositoryChanged += OnRepositoryUpdated;
             repositoryWatcher.RemoteBranchCreated += OnRemoteBranchCreated;
-            repositoryWatcher.RemoteBranchChanged += OnRemoteBranchChanged;
             repositoryWatcher.RemoteBranchDeleted += OnRemoteBranchDeleted;
-            repositoryWatcher.RemoteBranchRenamed += OnRemoteBranchRenamed;
 
             processRunner = new RepositoryProcessRunner(platform.Environment, platform.ProcessManager,
                 platform.CredentialManager, platform.UIDispatcher,
@@ -206,10 +203,8 @@ namespace GitHub.Unity
             RemoveLocalBranch(name);
         }
 
-        private void OnLocalBranchMoved(string oldName, string name)
+        private void OnLocalBranchChanged(string name)
         {
-            RemoveLocalBranch(oldName);
-            AddLocalBranch(name);
         }
 
         private IRepository InitializeRepository()
