@@ -109,7 +109,7 @@
     </CoreBuildDependsOn>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /F "$(SolutionDir)lib\sfw.net\win32\$(Configuration)\*.dll" "$(SolutionDir)UnityExtension\Assets\Editor\build\"
-xcopy /Y /F "$(SolutionDir)lib\sfw.net\win32\$(Configuration)\*.pdb" "$(SolutionDir)UnityExtension\Assets\Editor\build\"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>
