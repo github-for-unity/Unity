@@ -92,6 +92,11 @@ namespace GitHub.Unity
             {
                 foreach (var fileEvent in nativeInterface.GetEvents())
                 {
+                    if (!running)
+                    {
+                        break;
+                    }
+
                     var fileA = new NPath(fileEvent.Directory).Combine(fileEvent.FileA);
 
                     NPath fileB = null;
