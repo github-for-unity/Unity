@@ -105,12 +105,13 @@ namespace GitHub.Unity
                         fileB = new NPath(fileEvent.Directory).Combine(fileEvent.FileB);
                     }
 
-                    Logger.Debug("File {0}: {1} {2}", fileEvent.Type, fileA.ToString(), fileB?.ToString() ?? "[NULL]");
 
                     if (fileA.IsChildOf(dotGitPath))
                     {
                         if (fileA.Equals(dotGitConfig))
                         {
+                            Logger.Debug("ConfigChanged");
+
                             ConfigChanged?.Invoke();
                         }
                         else if (fileA.Equals(dotGitHead))
@@ -121,10 +122,12 @@ namespace GitHub.Unity
                                 headContent = dotGitHead.ReadAllLines().FirstOrDefault();
                             }
 
+                            Logger.Debug("HeadChanged: {0}", headContent ?? "[null]");
                             HeadChanged?.Invoke(headContent);
                         }
                         else if (fileA.Equals(dotGitIndex))
                         {
+                            Logger.Debug("IndexChanged");
                             IndexChanged?.Invoke();
                         }
                         else if (fileA.IsChildOf(remotesPath))
@@ -142,6 +145,7 @@ namespace GitHub.Unity
                                 var origin = relativePathElements[0];
                                 var branch = string.Join(@"/", relativePathElements.Skip(1).ToArray());
 
+                                Logger.Debug("RemoteBranchDeleted: {0}", branch);
                                 RemoteBranchDeleted?.Invoke(origin, branch);
                             }
                             else if (fileEvent.Type == EventType.CREATED)
@@ -174,6 +178,7 @@ namespace GitHub.Unity
 
                                 var branch = string.Join(@"/", relativePathElements.ToArray());
 
+                                Logger.Debug("LocalBranchDeleted: {0}", branch);
                                 LocalBranchDeleted?.Invoke(branch);
                             }
                             else if (fileEvent.Type == EventType.CREATED)
@@ -197,6 +202,7 @@ namespace GitHub.Unity
 
                                         var branch = string.Join(@"/", relativePathElements.ToArray());
 
+                                        Logger.Debug("LocalBranchCreated: {0}", branch);
                                         LocalBranchCreated?.Invoke(branch);
                                     }
                                 }
@@ -214,6 +220,7 @@ namespace GitHub.Unity
                             continue;
                         }
 
+                        Logger.Debug("RepositoryChanged {0}: {1} {2}", fileEvent.Type, fileA.ToString(), fileB?.ToString() ?? "[NULL]");
                         RepositoryChanged?.Invoke();
                     }
                 }
