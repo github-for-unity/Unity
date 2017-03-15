@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
@@ -38,8 +39,7 @@ namespace GitHub.Unity
 
         public Task<bool> RunGitTrackedFileList(ITaskResultDispatcher<GitStatus> resultDispatcher)
         {
-            var task = new GitTrackedFilesTask(environment, processManager, resultDispatcher, new GitObjectFactory(environment));
-            return task.RunAsync(cancellationToken);
+            throw new NotImplementedException();
         }
 
         public ITask PrepareGitPull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch)

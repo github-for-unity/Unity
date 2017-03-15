@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Octokit_Extensions35;
 
 namespace GitHub.Unity
 {
@@ -55,7 +56,7 @@ namespace GitHub.Unity
         private ConfigRemote? activeRemote;
 
         private DateTime lastStatusUpdate;
-        private bool statusUpdateRequested;
+        private DateTime lastLocksUpdate;
 
         public event Action OnActiveBranchChanged;
         public event Action OnActiveRemoteChanged;
@@ -150,30 +151,33 @@ namespace GitHub.Unity
 //            if (!statusUpdateRequested)
 //            {
 //                statusUpdateRequested = true;
-                // run git status
-                var result = new TaskResultDispatcher<GitStatus>(
-                    status =>
-                    {
-                        lastStatusUpdate = DateTime.Now;
-                        statusUpdateRequested = false;
-                        OnRepositoryChanged?.Invoke(status);
-                    },
-                    () => {});
-
-//                TaskEx.Delay(2, cancellationToken)
-//                    .ContinueWith(_ => 
+//                run git status
+//                var result = new TaskResultDispatcher<GitStatus>(
+//                    status =>
 //                    {
-                      processRunner.RunGitStatus(result);
-//                  }
-//                    );
-            //}
-                result = new TaskResultDispatcher<GitStatus>(
-                    status =>
-                    {
-                        OnRefreshTrackedFileList?.Invoke(status);
-                    },
-                    () => {});
-                processRunner.RunGitTrackedFileList(result);
+//                        lastStatusUpdate = DateTime.Now;
+//                        statusUpdateRequested = false;
+//                        OnRepositoryChanged?.Invoke(status);
+//                    },
+//                    () => {});
+//
+//            
+//            
+//
+////                TaskEx.Delay(2, cancellationToken)
+////                    .ContinueWith(_ => 
+////                    {
+//                      processRunner.RunGitStatus(result);
+////                  }
+////                    );
+//            //}
+//                result = new TaskResultDispatcher<GitStatus>(
+//                    status =>
+//                    {
+//                        OnRefreshTrackedFileList?.Invoke(status);
+//                    },
+//                    () => {});
+//                processRunner.RunGitTrackedFileList(result);
         }
         
         private void OnConfigChanged()
