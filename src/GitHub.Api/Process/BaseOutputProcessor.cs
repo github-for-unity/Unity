@@ -14,10 +14,13 @@ namespace GitHub.Unity
 
         public virtual void LineReceived(string line)
         {
+            Logger.Trace("LineReceived {0}", line == null ? "[null]" : line);
+
             if (line == null)
             {
                 return;
             }
+
             OnData?.Invoke(line);
         }
 
