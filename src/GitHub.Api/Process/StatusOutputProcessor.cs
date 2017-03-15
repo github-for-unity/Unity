@@ -27,17 +27,29 @@ namespace GitHub.Unity
             if (line == null)
             {
                 ReturnStatus();
+                return;
             }
-            else
-            {
-                Prepare();
 
-                var proc = new LineParser(line);
-                var path = proc.ReadUntil('\t').Trim();
-                //var user = proc.ReadUntil('\t');
-                var gitStatusEntry = gitObjectFactory.CreateGitStatusEntry(path, GitFileStatus.Locked, null, false);
-                gitStatus.Entries.Add(gitStatusEntry);
+            if (line == string.Empty)
+            {
+                //Do Nothing
+                return;
             }
+
+            var proc = new LineParser(line);
+
+            if (proc.IsAtDigit)
+            {
+                //Do Nothing
+                return;
+            }
+
+            Prepare();
+
+            var path = proc.ReadUntil('\t').Trim();
+            //var user = proc.ReadUntil('\t');
+            var gitStatusEntry = gitObjectFactory.CreateGitStatusEntry(path, GitFileStatus.Locked, null, false);
+            gitStatus.Entries.Add(gitStatusEntry);
         }
 
         private void ReturnStatus()
@@ -60,11 +72,6 @@ namespace GitHub.Unity
                     Entries = new List<GitStatusEntry>()
                 };
             }
-        }
-
-        private void HandleUnexpected(string line)
-        {
-            Logger.Error("Unexpected Input:\"{0}\"", line);
         }
 
         public event Action<GitStatus> OnStatus;

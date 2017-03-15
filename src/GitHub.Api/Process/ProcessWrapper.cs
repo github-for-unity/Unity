@@ -39,7 +39,7 @@ namespace GitHub.Unity
                 }
                 catch(Exception ex)
                 {
-                    logger.Debug(ex);
+                    logger.Error(ex);
                 }
 
                 if (e.Data == null)
@@ -66,7 +66,7 @@ namespace GitHub.Unity
                 }
                 catch (Exception ex)
                 {
-                    logger.Debug(ex);
+                    logger.Error(ex);
                 }
 
                 if (e.Data == null && !hasOutputData)
