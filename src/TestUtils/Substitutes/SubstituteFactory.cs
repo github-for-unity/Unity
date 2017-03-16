@@ -21,17 +21,15 @@ namespace TestUtils
             return environment;
         }
 
-        public IFileSystem CreateFileSystem(CreateFileSystemOptions createFileSystemOptions = null, string currentDirectory = null)
+        public IFileSystem CreateFileSystem(CreateFileSystemOptions createFileSystemOptions = null)
         {
             createFileSystemOptions = createFileSystemOptions ?? new CreateFileSystemOptions();
-            if (currentDirectory == null)
-                currentDirectory = CreateFileSystemOptions.DefaultTemporaryPath;
             var fileSystem = Substitute.For<IFileSystem>();
             var realFileSystem = new FileSystem();
             var logger = Logging.GetLogger("TestFileSystem");
 
             fileSystem.DirectorySeparatorChar.Returns(realFileSystem.DirectorySeparatorChar);
-            fileSystem.GetCurrentDirectory().Returns(currentDirectory);
+            fileSystem.GetCurrentDirectory().Returns(createFileSystemOptions.CurrentDirectory);
 
             fileSystem.Combine(Args.String, Args.String).Returns(info =>
             {
