@@ -21,11 +21,16 @@ namespace TestUtils
             return environment;
         }
 
-        public IFileSystem CreateFileSystem(CreateFileSystemOptions createFileSystemOptions = null, string currentDirectory = null)
+        public IFileSystem CreateFileSystem(CreateFileSystemOptions createFileSystemOptions = null,
+            string currentDirectory = null)
         {
             createFileSystemOptions = createFileSystemOptions ?? new CreateFileSystemOptions();
+
             if (currentDirectory == null)
+            {
                 currentDirectory = CreateFileSystemOptions.DefaultTemporaryPath;
+            }
+
             var fileSystem = Substitute.For<IFileSystem>();
             var realFileSystem = new FileSystem();
             var logger = Logging.GetLogger("TestFileSystem");
@@ -33,8 +38,7 @@ namespace TestUtils
             fileSystem.DirectorySeparatorChar.Returns(realFileSystem.DirectorySeparatorChar);
             fileSystem.GetCurrentDirectory().Returns(currentDirectory);
 
-            fileSystem.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns(info =>
-            {
+            fileSystem.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns(info => {
                 var path1 = (string)info[0];
                 var path2 = (string)info[1];
                 var combine = realFileSystem.Combine(path1, path2);
@@ -42,8 +46,7 @@ namespace TestUtils
                 return combine;
             });
 
-            fileSystem.Combine(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(info =>
-            {
+            fileSystem.Combine(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(info => {
                 var path1 = (string)info[0];
                 var path2 = (string)info[1];
                 var path3 = (string)info[2];
@@ -52,8 +55,7 @@ namespace TestUtils
                 return combine;
             });
 
-            fileSystem.FileExists(Arg.Any<string>()).Returns(info =>
-            {
+            fileSystem.FileExists(Arg.Any<string>()).Returns(info => {
                 var path = (string)info[0];
 
                 var result = false;
@@ -68,14 +70,12 @@ namespace TestUtils
 
             fileSystem.WhenForAnyArgs(system => system.FileCopy(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>()))
                       .Do(
-                          info =>
-                          {
+                          info => {
                               logger.Trace(@"FileSystem.FileCopy(""{0}"", ""{1}"", ""{2}"")", (string)info[0],
                                   (string)info[1], (bool)info[2]);
                           });
 
-            fileSystem.DirectoryExists(Arg.Any<string>()).Returns(info =>
-            {
+            fileSystem.DirectoryExists(Arg.Any<string>()).Returns(info => {
                 var path1 = (string)info[0];
 
                 var result = true;
@@ -88,8 +88,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.ExistingPathIsDirectory(Arg.Any<string>()).Returns(info =>
-            {
+            fileSystem.ExistingPathIsDirectory(Arg.Any<string>()).Returns(info => {
                 var path = (string)info[0];
 
                 var result = false;
@@ -102,8 +101,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.ReadAllText(Arg.Any<string>()).Returns(info =>
-            {
+            fileSystem.ReadAllText(Arg.Any<string>()).Returns(info => {
                 var path = (string)info[0];
 
                 string result = null;
@@ -123,8 +121,7 @@ namespace TestUtils
             });
 
             var randomFileIndex = 0;
-            fileSystem.GetRandomFileName().Returns(info =>
-            {
+            fileSystem.GetRandomFileName().Returns(info => {
                 string result = null;
                 if (createFileSystemOptions.RandomFileNames != null)
                 {
@@ -139,15 +136,13 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetTempPath().Returns(info =>
-            {
+            fileSystem.GetTempPath().Returns(info => {
                 logger.Trace(@"FileSystem.GetTempPath() -> {0}", createFileSystemOptions.TemporaryPath);
 
                 return createFileSystemOptions.TemporaryPath;
             });
 
-            fileSystem.GetFiles(Arg.Any<string>()).Returns(info =>
-            {
+            fileSystem.GetFiles(Arg.Any<string>()).Returns(info => {
                 var path = (string)info[0];
 
                 var result = new string[0];
@@ -165,8 +160,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns(info =>
-            {
+            fileSystem.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns(info => {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
 
@@ -185,8 +179,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>()).Returns(info =>
-            {
+            fileSystem.GetFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>()).Returns(info => {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
                 var searchOption = (SearchOption)info[2];
@@ -207,11 +200,10 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetDirectories(Arg.Any<string>()).Returns(info =>
-            {
+            fileSystem.GetDirectories(Arg.Any<string>()).Returns(info => {
                 var path = (string)info[0];
 
-                string[] result = new string[0];
+                var result = new string[0];
                 if (createFileSystemOptions.ChildDirectories != null)
                 {
                     var key = new ContentsKey(path);
@@ -226,12 +218,11 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetDirectories(Arg.Any<string>(), Arg.Any<string>()).Returns(info =>
-            {
+            fileSystem.GetDirectories(Arg.Any<string>(), Arg.Any<string>()).Returns(info => {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
 
-                string[] result = new string[0];
+                var result = new string[0];
                 if (createFileSystemOptions.ChildDirectories != null)
                 {
                     var key = new ContentsKey(path, pattern);
@@ -246,8 +237,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetDirectories(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>()).Returns(info =>
-            {
+            fileSystem.GetDirectories(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>()).Returns(info => {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
                 var searchOption = (SearchOption)info[2];
@@ -270,8 +260,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetFullPath(Arg.Any<string>())
-                      .Returns(info => Path.GetFullPath((string)info[0]));
+            fileSystem.GetFullPath(Arg.Any<string>()).Returns(info => Path.GetFullPath((string)info[0]));
 
             return fileSystem;
         }
@@ -285,24 +274,23 @@ namespace TestUtils
         {
             var gitObjectFactory = Substitute.For<IGitObjectFactory>();
 
-            gitObjectFactory.CreateGitStatusEntry(Arg.Any<string>(), Arg.Any<GitFileStatus>(), Arg.Any<string>(), Arg.Any<bool>())
-                                 .Returns(info => {
-                                     var path = (string)info[0];
-                                     var status = (GitFileStatus)info[1];
-                                     var originalPath = (string)info[2];
-                                     var staged = (bool)info[3];
+            gitObjectFactory.CreateGitStatusEntry(Arg.Any<string>(), Arg.Any<GitFileStatus>(), Arg.Any<string>(),
+                Arg.Any<bool>()).Returns(info => {
+                var path = (string)info[0];
+                var status = (GitFileStatus)info[1];
+                var originalPath = (string)info[2];
+                var staged = (bool)info[3];
 
-                                     return new GitStatusEntry(path, gitRepoPath + @"\" + path, null, status,
-                                         originalPath, staged);
-                                 });
+                return new GitStatusEntry(path, gitRepoPath + @"\" + path, null, status, originalPath,
+                    staged);
+            });
 
-            gitObjectFactory.CreateGitLock(Arg.Any<string>(), Arg.Any<string>())
-                                 .Returns(info => {
-                                     var path = (string)info[0];
-                                     var user = (string)info[1];
+            gitObjectFactory.CreateGitLock(Arg.Any<string>(), Arg.Any<string>()).Returns(info => {
+                var path = (string)info[0];
+                var user = (string)info[1];
 
-                                     return new GitLock(path, gitRepoPath + @"\" + path, user);
-                                 });
+                return new GitLock(path, gitRepoPath + @"\" + path, user);
+            });
 
             return gitObjectFactory;
         }
@@ -312,6 +300,26 @@ namespace TestUtils
             var processEnvironment = Substitute.For<IProcessEnvironment>();
             processEnvironment.FindRoot(Args.String).Returns(root);
             return processEnvironment;
+        }
+
+        public IPlatform CreatePlatform()
+        {
+            return Substitute.For<IPlatform>();
+        }
+
+        public IRepositoryProcessRunner CreateRepositoryProcessRunner()
+        {
+            return Substitute.For<IRepositoryProcessRunner>();
+        }
+
+        public IRepositoryWatcher CreateRepositoryWatcher()
+        {
+            return Substitute.For<IRepositoryWatcher>();
+        }
+
+        public IGitConfig CreateGitConfig()
+        {
+            return Substitute.For<IGitConfig>();
         }
 
         public struct ContentsKey
@@ -328,10 +336,10 @@ namespace TestUtils
             }
 
             public ContentsKey(string path, string pattern) : this(path, pattern, null)
-            { }
+            {}
 
             public ContentsKey(string path) : this(path, null)
-            { }
+            {}
         }
     }
 }
