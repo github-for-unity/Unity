@@ -1,25 +1,34 @@
 using System.Threading;
 using GitHub.Unity;
-using NSubstitute;
 using NUnit.Framework;
+using TestUtils;
 
 namespace UnitTests
 {
     [TestFixture]
     class RepositoryManagerTests
     {
-        [Test, Ignore()]
+        protected SubstituteFactory SubstituteFactory { get; private set; }
+
+        [TestFixtureSetUp]
+        public void TestFixtureSetup()
+        {
+            SubstituteFactory = new SubstituteFactory();
+        }
+
+        [Test]
         public void InitialTest()
         {
-            NPathFileSystemProvider.Current = Substitute.For<IFileSystem>();
+            NPathFileSystemProvider.Current = SubstituteFactory.CreateFileSystem();
 
-            var cancellationToken = new CancellationToken();
-            var platform = Substitute.For<IPlatform>();
+            var cancellationToken = CancellationToken.None;
+
+            var platform = SubstituteFactory.CreatePlatform();
 
             var repositoryRepositoryPathConfiguration = new RepositoryPathConfiguration(@"c:\Temp");
-            var gitConfig = Substitute.For<IGitConfig>();
-            var repositoryWatcher = Substitute.For<IRepositoryWatcher>();
-            var repositoryProcessRunner = Substitute.For<IRepositoryProcessRunner>();
+            var gitConfig = SubstituteFactory.CreateGitConfig();
+            var repositoryWatcher = SubstituteFactory.CreateRepositoryWatcher();
+            var repositoryProcessRunner = SubstituteFactory.CreateRepositoryProcessRunner();
 
             var repositoryManager = new RepositoryManager(repositoryRepositoryPathConfiguration, platform, gitConfig, repositoryWatcher, repositoryProcessRunner, cancellationToken);
         }
