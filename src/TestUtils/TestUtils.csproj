@@ -44,6 +44,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Threading, Version=1.0.2856.102, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
@@ -56,6 +57,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Substitutes\CreateEnvironmentOptions.cs" />
     <Compile Include="Substitutes\CreateFileSystemOptions.cs" />
+    <Compile Include="Substitutes\CreateRepositoryProcessRunnerOptions.cs" />
     <Compile Include="Substitutes\SubstituteFactory.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
@@ -7,12 +6,12 @@ namespace GitHub.Unity
     interface IRepositoryProcessRunner
     {
         Task<bool> RunGitStatus(ITaskResultDispatcher<GitStatus> resultDispatcher);
-        Task<bool> RunGitTrackedFileList(ITaskResultDispatcher<GitStatus> resultDispatcher);
         ITask PrepareGitPull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch);
         ITask PrepareGitPush(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch);
+        Task<bool> RunGitConfigGet(ITaskResultDispatcher<string> resultDispatcher, string key, GitConfigSource configSource);
     }
 
-    class RepositoryProcessRunner : IRepositoryProcessRunner
+    class RepositoryProcessRunner: IRepositoryProcessRunner
     {
         private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
@@ -37,11 +36,6 @@ namespace GitHub.Unity
             return task.RunAsync(cancellationToken);
         }
 
-        public Task<bool> RunGitTrackedFileList(ITaskResultDispatcher<GitStatus> resultDispatcher)
-        {
-            throw new NotImplementedException();
-        }
-
         public ITask PrepareGitPull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch)
         {
             return new GitPullTask(environment, processManager, resultDispatcher,
@@ -52,6 +46,12 @@ namespace GitHub.Unity
         {
             return new GitPushTask(environment, processManager, resultDispatcher,
                 credentialManager, uiDispatcher, remote, branch, true);
+        }
+
+        public Task<bool> RunGitConfigGet(ITaskResultDispatcher<string> resultDispatcher, string key, GitConfigSource configSource)
+        {
+            var task = new GitConfigGetTask(environment, processManager, resultDispatcher, key, configSource);
+            return task.RunAsync(cancellationToken);
         }
 
         protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryProcessRunner>();
