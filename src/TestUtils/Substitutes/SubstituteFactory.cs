@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NSubstitute;
 using GitHub.Unity;
+using NSubstitute;
 
-namespace IntegrationTests
+namespace TestUtils
 {
     class SubstituteFactory
     {
+        public SubstituteFactory()
+        {}
+
         public IEnvironment CreateEnvironment(CreateEnvironmentOptions createEnvironmentOptions = null)
         {
             createEnvironmentOptions = createEnvironmentOptions ?? new CreateEnvironmentOptions();
@@ -277,6 +279,39 @@ namespace IntegrationTests
         public IZipHelper CreateSharpZipLibHelper()
         {
             return Substitute.For<IZipHelper>();
+        }
+
+        public IGitObjectFactory CreateGitObjectFactory(string gitRepoPath)
+        {
+            var gitObjectFactory = Substitute.For<IGitObjectFactory>();
+
+            gitObjectFactory.CreateGitStatusEntry(Arg.Any<string>(), Arg.Any<GitFileStatus>(), Arg.Any<string>(), Arg.Any<bool>())
+                                 .Returns(info => {
+                                     var path = (string)info[0];
+                                     var status = (GitFileStatus)info[1];
+                                     var originalPath = (string)info[2];
+                                     var staged = (bool)info[3];
+
+                                     return new GitStatusEntry(path, gitRepoPath + @"\" + path, null, status,
+                                         originalPath, staged);
+                                 });
+
+            gitObjectFactory.CreateGitLock(Arg.Any<string>(), Arg.Any<string>())
+                                 .Returns(info => {
+                                     var path = (string)info[0];
+                                     var user = (string)info[1];
+
+                                     return new GitLock(path, gitRepoPath + @"\" + path, user);
+                                 });
+
+            return gitObjectFactory;
+        }
+
+        public IProcessEnvironment CreateProcessEnvironment(string root)
+        {
+            var processEnvironment = Substitute.For<IProcessEnvironment>();
+            processEnvironment.FindRoot(Args.String).Returns(root);
+            return processEnvironment;
         }
 
         public struct ContentsKey
