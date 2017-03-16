@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using GitHub.Unity;
 using NSubstitute;
 
@@ -38,7 +40,7 @@ namespace TestUtils
                 var path1 = (string)info[0];
                 var path2 = (string)info[1];
                 var combine = realFileSystem.Combine(path1, path2);
-                logger.Trace(@"FileSystem.Combine(""{0}"", ""{1}"") -> ""{2}""", path1, path2, combine);
+                logger.Trace(@"Combine(""{0}"", ""{1}"") -> ""{2}""", path1, path2, combine);
                 return combine;
             });
 
@@ -47,7 +49,7 @@ namespace TestUtils
                 var path2 = (string)info[1];
                 var path3 = (string)info[2];
                 var combine = realFileSystem.Combine(path1, path2, path3);
-                logger.Trace(@"FileSystem.Combine(""{0}"", ""{1}"", ""{2}"") -> ""{3}""", path1, path2, path3, combine);
+                logger.Trace(@"Combine(""{0}"", ""{1}"", ""{2}"") -> ""{3}""", path1, path2, path3, combine);
                 return combine;
             });
 
@@ -60,15 +62,15 @@ namespace TestUtils
                     result = createFileSystemOptions.FilesThatExist.Contains(path);
                 }
 
-                logger.Trace(@"FileSystem.FileExists(""{0}"") -> {1}", path, result);
+                logger.Trace(@"FileExists(""{0}"") -> {1}", path, result);
                 return result;
             });
 
             fileSystem.WhenForAnyArgs(system => system.FileCopy(Args.String, Args.String, Args.Bool))
                       .Do(
                           info => {
-                              logger.Trace(@"FileSystem.FileCopy(""{0}"", ""{1}"", ""{2}"")", (string)info[0],
-                                  (string)info[1], (bool)info[2]);
+                              logger.Trace(@"FileCopy(""{0}"", ""{1}"", ""{2}"")", (string)info[0], (string)info[1],
+                                  (bool)info[2]);
                           });
 
             fileSystem.DirectoryExists(Args.String).Returns(info => {
@@ -80,7 +82,7 @@ namespace TestUtils
                     result = createFileSystemOptions.DirectoriesThatExist.Contains(path1);
                 }
 
-                logger.Trace(@"FileSystem.DirectoryExists(""{0}"") -> {1}", path1, result);
+                logger.Trace(@"DirectoryExists(""{0}"") -> {1}", path1, result);
                 return result;
             });
 
@@ -93,7 +95,25 @@ namespace TestUtils
                     result = createFileSystemOptions.DirectoriesThatExist.Contains(path);
                 }
 
-                logger.Trace(@"FileSystem.ExistingPathIsDirectory(""{0}"") -> {1}", path, result);
+                logger.Trace(@"ExistingPathIsDirectory(""{0}"") -> {1}", path, result);
+                return result;
+            });
+
+            fileSystem.ReadAllLines(Args.String).Returns(info => {
+                var path = (string)info[0];
+
+                IList<string> result = null;
+
+                if (createFileSystemOptions.FileContents != null)
+                {
+                    if (createFileSystemOptions.FileContents.TryGetValue(path, out result))
+                    {}
+                }
+
+                var resultLength = result != null ? $"{result.Count} lines" : "ERROR";
+
+                logger.Trace(@"ReadAllLines(""{0}"") -> {1}", path, resultLength);
+
                 return result;
             });
 
@@ -101,17 +121,19 @@ namespace TestUtils
                 var path = (string)info[0];
 
                 string result = null;
+                IList<string> fileContent = null;
 
                 if (createFileSystemOptions.FileContents != null)
                 {
-                    IList<string> fileContent;
                     if (createFileSystemOptions.FileContents.TryGetValue(path, out fileContent))
                     {
                         result = string.Join(string.Empty, fileContent.ToArray());
                     }
                 }
 
-                logger.Trace(@"FileSystem.ReadAllText(""{0}"") -> {1}", path, result != null);
+                var resultLength = fileContent != null ? $"{fileContent.Count} lines" : "ERROR";
+
+                logger.Trace(@"ReadAllText(""{0}"") -> {1}", path, resultLength);
 
                 return result;
             });
@@ -127,13 +149,13 @@ namespace TestUtils
                     randomFileIndex = randomFileIndex % createFileSystemOptions.RandomFileNames.Count;
                 }
 
-                logger.Trace(@"FileSystem.GetRandomFileName() -> {0}", result);
+                logger.Trace(@"GetRandomFileName() -> {0}", result);
 
                 return result;
             });
 
             fileSystem.GetTempPath().Returns(info => {
-                logger.Trace(@"FileSystem.GetTempPath() -> {0}", createFileSystemOptions.TemporaryPath);
+                logger.Trace(@"GetTempPath() -> {0}", createFileSystemOptions.TemporaryPath);
 
                 return createFileSystemOptions.TemporaryPath;
             });
@@ -153,7 +175,7 @@ namespace TestUtils
 
                 var resultLength = result != null ? $"{result.Length} items" : "ERROR";
 
-                logger.Trace(@"FileSystem.GetFiles(""{0}"") -> {1}", path, resultLength);
+                logger.Trace(@"GetFiles(""{0}"") -> {1}", path, resultLength);
 
                 return result;
             });
@@ -174,7 +196,7 @@ namespace TestUtils
 
                 var resultLength = result != null ? $"{result.Length} items" : "ERROR";
 
-                logger.Trace(@"FileSystem.GetFiles(""{0}"", ""{1}"") -> {2}", path, pattern, resultLength);
+                logger.Trace(@"GetFiles(""{0}"", ""{1}"") -> {2}", path, pattern, resultLength);
 
                 return result;
             });
@@ -196,8 +218,7 @@ namespace TestUtils
 
                 var resultLength = result != null ? $"{result.Length} items" : "ERROR";
 
-                logger.Trace(@"FileSystem.GetFiles(""{0}"", ""{1}"", {2}) -> {3}", path, pattern, searchOption,
-                    resultLength);
+                logger.Trace(@"GetFiles(""{0}"", ""{1}"", {2}) -> {3}", path, pattern, searchOption, resultLength);
 
                 return result;
             });
@@ -217,7 +238,7 @@ namespace TestUtils
 
                 var resultLength = result != null ? $"{result.Length} items" : "ERROR";
 
-                logger.Trace(@"FileSystem.GetDirectories(""{0}"") -> {1}", path, resultLength);
+                logger.Trace(@"GetDirectories(""{0}"") -> {1}", path, resultLength);
 
                 return result;
             });
@@ -238,7 +259,7 @@ namespace TestUtils
 
                 var resultLength = result != null ? $"{result.Length} items" : "ERROR";
 
-                logger.Trace(@"FileSystem.GetDirectories(""{0}"", ""{1}"") -> {2}", path, pattern, resultLength);
+                logger.Trace(@"GetDirectories(""{0}"", ""{1}"") -> {2}", path, pattern, resultLength);
 
                 return result;
             });
@@ -260,8 +281,7 @@ namespace TestUtils
 
                 var resultLength = result != null ? $"{result.Length} items" : "ERROR";
 
-                logger.Trace(@"FileSystem.GetDirectories(""{0}"", ""{1}"", {2}) -> {3}", path, pattern, searchOption,
-                    resultLength);
+                logger.Trace(@"GetDirectories(""{0}"", ""{1}"", {2}) -> {3}", path, pattern, searchOption, resultLength);
 
                 return result;
             });
@@ -313,9 +333,87 @@ namespace TestUtils
             return Substitute.For<IPlatform>();
         }
 
-        public IRepositoryProcessRunner CreateRepositoryProcessRunner()
+        public IRepositoryProcessRunner CreateRepositoryProcessRunner(
+            CreateRepositoryProcessRunnerOptions options = null)
         {
-            return Substitute.For<IRepositoryProcessRunner>();
+            var logger = Logging.GetLogger("TestRepositoryProcessRunner");
+
+            options = options ?? new CreateRepositoryProcessRunnerOptions();
+
+            var repositoryProcessRunner = Substitute.For<IRepositoryProcessRunner>();
+
+            repositoryProcessRunner.PrepareGitPull(Arg.Any<ITaskResultDispatcher<string>>(), Args.String, Args.String)
+                                   .Returns(info => {
+                                       var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
+                                       var remote = (string)info[1];
+                                       var branch = (string)info[2];
+
+                                       object result = null;
+
+                                       logger.Trace(@"PrepareGitPull({0}, ""{1}"", ""{2}"") -> {3}",
+                                           resultDispatcher != null ? "[instance]" : "[null]", remote, branch,
+                                           result != null ? result : "[null]");
+
+                                       throw new NotImplementedException();
+                                   });
+
+            repositoryProcessRunner.PrepareGitPush(Arg.Any<ITaskResultDispatcher<string>>(), Args.String, Args.String)
+                                   .Returns(info => {
+                                       var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
+                                       var remote = (string)info[1];
+                                       var branch = (string)info[2];
+
+                                       object result = null;
+
+                                       logger.Trace(@"PrepareGitPush({0}, ""{1}"", ""{2}"") -> {3}",
+                                           resultDispatcher != null ? "[instance]" : "[null]", remote, branch,
+                                           result != null ? result : "[null]");
+
+                                       throw new NotImplementedException();
+                                   });
+
+            repositoryProcessRunner.RunGitConfigGet(Arg.Any<ITaskResultDispatcher<string>>(), Args.String,
+                Args.GitConfigSource).Returns(info => {
+                var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
+                var key = (string)info[1];
+                var gitConfigSource = (GitConfigSource)info[2];
+
+                string result;
+                var containsKey =
+                    options.GitConfigGetResults.TryGetValue(
+                        new CreateRepositoryProcessRunnerOptions.GitConfigGetKey {
+                            Key = key,
+                            GitConfigSource = gitConfigSource
+                        }, out result);
+
+                if (containsKey)
+                {
+                    resultDispatcher.ReportSuccess(result);
+                }
+                else
+                {
+                    resultDispatcher.ReportFailure();
+                }
+
+                logger.Trace(@"RunGitConfigGet({0}, ""{1}"", GitConfigSource.{2}) -> {3}",
+                    resultDispatcher != null ? "[instance]" : "[null]", key,
+                    gitConfigSource.ToString(), containsKey ? $@"Success : ""{result}""" : "Failure");
+
+                return Task.Factory.StartNew(() => true);
+            });
+
+            repositoryProcessRunner.RunGitStatus(Arg.Any<ITaskResultDispatcher<GitStatus>>()).Returns(info => {
+                var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
+
+                object result = null;
+
+                logger.Trace(@"RunGitStatus({0}) -> {1}", resultDispatcher != null ? "[instance]" : "[null]",
+                    result != null ? result : "[null]");
+
+                throw new NotImplementedException();
+            });
+
+            return repositoryProcessRunner;
         }
 
         public IRepositoryWatcher CreateRepositoryWatcher()

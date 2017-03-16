@@ -88,7 +88,7 @@ namespace GitHub.Unity
     class RepositoryManager : IRepositoryManager
     {
         private readonly IRepositoryWatcher watcher;
-        private readonly IRepositoryProcessRunner processRunner;
+        private readonly IRepositoryProcessRunner repositoryProcessRunner;
         private readonly IRepository repository;
         private readonly IPlatform platform;
         private readonly CancellationToken cancellationToken;
@@ -124,6 +124,7 @@ namespace GitHub.Unity
 
             this.platform = platform;
             this.cancellationToken = cancellationToken;
+            this.repositoryProcessRunner = repositoryProcessRunner;
 
             config = gitConfig;
             repository = InitializeRepository();
@@ -141,8 +142,6 @@ namespace GitHub.Unity
             watcher.RemoteBranchChanged += OnRemoteBranchChanged;
             watcher.RemoteBranchDeleted += OnRemoteBranchDeleted;
             watcher.RemoteBranchRenamed += OnRemoteBranchRenamed;
-
-            processRunner = repositoryProcessRunner;
         }
 
         public void Start()
@@ -184,6 +183,8 @@ namespace GitHub.Unity
 
         private void OnRepositoryUpdated()
         {
+            throw new NotImplementedException();
+
 //            if (!statusUpdateRequested)
 //            {
 //                statusUpdateRequested = true;
@@ -268,18 +269,12 @@ namespace GitHub.Unity
                 cloneUrl = new UriString(remote.Url).ToRepositoryUrl();
 
             var user = new User();
-            ProcessTask task = new GitConfigGetTask(platform.Environment, platform.ProcessManager,
-                        new TaskResultDispatcher<string>(value =>
-                        {
-                            user.Name = value;
-                        }), "user.name", GitConfigSource.User);
-            task.RunAsync(cancellationToken).Wait();
-            task = new GitConfigGetTask(platform.Environment, platform.ProcessManager,
-                        new TaskResultDispatcher<string>(value =>
-                        {
-                            user.Email = value;
-                        }), "user.email", GitConfigSource.User);
-            task.RunAsync(cancellationToken).Wait();
+
+            repositoryProcessRunner.RunGitConfigGet(new TaskResultDispatcher<string>(value => { user.Name = value; }),
+                "user.name", GitConfigSource.User).Wait(cancellationToken);
+
+            repositoryProcessRunner.RunGitConfigGet(new TaskResultDispatcher<string>(value => { user.Email = value; }),
+                "user.email", GitConfigSource.User).Wait(cancellationToken);
 
             return new Repository(this, repositoryPaths.RepositoryPath.FileName, cloneUrl, repositoryPaths.RepositoryPath, user);
         }
@@ -457,7 +452,7 @@ namespace GitHub.Unity
             }
         }
 
-        public IRepositoryProcessRunner ProcessRunner => processRunner;
+        public IRepositoryProcessRunner ProcessRunner => repositoryProcessRunner;
         protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryManager>();
     }
 }
