@@ -4,6 +4,7 @@ using FluentAssertions;
 using GitHub.Unity;
 using NSubstitute;
 using NUnit.Framework;
+using TestUtils;
 
 namespace IntegrationTests
 {

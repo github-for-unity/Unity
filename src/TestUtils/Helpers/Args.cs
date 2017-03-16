@@ -1,6 +1,6 @@
 ﻿using NSubstitute;
 
-namespace IntegrationTests
+namespace TestUtils
 {
     static class Args
     {

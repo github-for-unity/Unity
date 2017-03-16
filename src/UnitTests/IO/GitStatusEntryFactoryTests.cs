@@ -4,24 +4,19 @@ using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
 using GitHub.Unity;
+using TestUtils;
 
 namespace UnitTests
 {
     [TestFixture]
     class GitStatusEntryFactoryTests : TestBase
     {
-        private static IProcessEnvironment CreateGitEnvironment(string repositoryRoot)
-        {
-            var gitEnvironment = Substitute.For<IProcessEnvironment>();
-            gitEnvironment.FindRoot(Arg.Any<string>()).Returns(repositoryRoot);
-            return gitEnvironment;
-        }
+        protected SubstituteFactory SubstituteFactory { get; private set; }
 
-        private static IEnvironment CreateEnvironment(string projectRoot)
+        [TestFixtureSetUp]
+        public void TestFixtureSetup()
         {
-            var environment = Substitute.For<IEnvironment>();
-            environment.UnityProjectPath.Returns(projectRoot);
-            return environment;
+            SubstituteFactory = new SubstituteFactory();
         }
 
         [Test]
@@ -30,9 +25,12 @@ namespace UnitTests
             var repositoryRoot = "/Source".ToNPath();
             var projectRoot = repositoryRoot.Combine("UnityProject");
 
-            var gitEnvironment = CreateGitEnvironment(repositoryRoot);
-            var environment = CreateEnvironment(projectRoot);
-            NPathFileSystemProvider.Current = CreateFileSystem(currentDirectory: repositoryRoot);
+            var gitEnvironment = SubstituteFactory.CreateProcessEnvironment(repositoryRoot);
+            var environment = SubstituteFactory.CreateEnvironment(new CreateEnvironmentOptions {
+                UnityProjectPath = projectRoot
+            });
+
+            NPathFileSystemProvider.Current = SubstituteFactory.CreateFileSystem(currentDirectory: repositoryRoot);
             var root = repositoryRoot.ToString();
             environment.RepositoryPath.Returns(root);
 
@@ -58,9 +56,11 @@ namespace UnitTests
             var repositoryRoot = "/Source".ToNPath();
             var projectRoot = repositoryRoot.Combine("UnityProject");
 
-            var gitEnvironment = CreateGitEnvironment(repositoryRoot);
-            var environment = CreateEnvironment(projectRoot);
-            NPathFileSystemProvider.Current = CreateFileSystem(currentDirectory: repositoryRoot);
+            var gitEnvironment = SubstituteFactory.CreateProcessEnvironment(repositoryRoot);
+            var environment = SubstituteFactory.CreateEnvironment(new CreateEnvironmentOptions {
+                UnityProjectPath = projectRoot
+            });
+            NPathFileSystemProvider.Current = SubstituteFactory.CreateFileSystem(currentDirectory: repositoryRoot);
             var root = repositoryRoot.ToString();
             environment.RepositoryPath.Returns(root);
 
@@ -85,9 +85,11 @@ namespace UnitTests
             var repositoryRoot = "/Source".ToNPath();
             var projectRoot = repositoryRoot;
 
-            var gitEnvironment = CreateGitEnvironment(repositoryRoot);
-            var environment = CreateEnvironment(projectRoot);
-            NPathFileSystemProvider.Current = CreateFileSystem(currentDirectory: repositoryRoot);
+            var gitEnvironment = SubstituteFactory.CreateProcessEnvironment(repositoryRoot);
+            var environment = SubstituteFactory.CreateEnvironment(new CreateEnvironmentOptions {
+                UnityProjectPath = projectRoot
+            });
+            NPathFileSystemProvider.Current = SubstituteFactory.CreateFileSystem(currentDirectory: repositoryRoot);
             var root = repositoryRoot.ToString();
             environment.RepositoryPath.Returns(root);
 

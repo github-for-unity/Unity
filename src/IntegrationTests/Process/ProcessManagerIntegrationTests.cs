@@ -5,6 +5,7 @@ using System.Threading;
 using FluentAssertions;
 using NUnit.Framework;
 using GitHub.Unity;
+using TestUtils;
 
 namespace IntegrationTests
 {
