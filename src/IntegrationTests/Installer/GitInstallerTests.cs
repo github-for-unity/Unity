@@ -51,7 +51,7 @@ namespace IntegrationTests
             
             NPathFileSystemProvider.Current = fileSystem;
             var created = 0;
-            fileSystem.FileExists(Arg.Any<string>()).Returns(info =>
+            fileSystem.FileExists(Args.String).Returns(info =>
             {
                 var path1 = (string)info[0];
 
@@ -66,7 +66,7 @@ namespace IntegrationTests
                 return true;
             });
 
-            fileSystem.DirectoryExists(Arg.Any<string>()).Returns(info =>
+            fileSystem.DirectoryExists(Args.String).Returns(info =>
             {
                 var path1 = (string)info[0];
 
@@ -84,7 +84,7 @@ namespace IntegrationTests
             portableGitManager.ExtractGitIfNeeded(tempPath);
             tempPath.Delete();
 
-            sharpZipLibHelper.Received().Extract(WindowsPortableGitZip, Arg.Any<string>());
+            sharpZipLibHelper.Received().Extract(WindowsPortableGitZip, Args.String);
 
             //TODO: Write code to make sure NPath was used to copy files
         }
@@ -128,7 +128,7 @@ namespace IntegrationTests
                     FileContents = new Dictionary<string, IList<string>>()
                 });
 
-            fileSystem.FileExists(Arg.Any<string>()).Returns(info => true);
+            fileSystem.FileExists(Args.String).Returns(info => true);
             var portableGitManager = new GitInstaller(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
                 sharpZipLibHelper);
             portableGitManager.IsGitLfsExtracted().Should().BeTrue();
@@ -166,7 +166,7 @@ namespace IntegrationTests
             portableGitManager.ExtractGitIfNeeded(tempPath);
             tempPath.Delete();
 
-            sharpZipLibHelper.DidNotReceiveWithAnyArgs().Extract(Arg.Any<string>(), Arg.Any<string>());
+            sharpZipLibHelper.DidNotReceiveWithAnyArgs().Extract(Args.String, Args.String);
         }
 
         [Test]
@@ -192,7 +192,7 @@ namespace IntegrationTests
             portableGitManager.ExtractGitIfNeeded(tempPath);
             tempPath.Delete();
 
-            sharpZipLibHelper.DidNotReceiveWithAnyArgs().Extract(Arg.Any<string>(), Arg.Any<string>());
+            sharpZipLibHelper.DidNotReceiveWithAnyArgs().Extract(Args.String, Args.String);
         }
     }
 }
