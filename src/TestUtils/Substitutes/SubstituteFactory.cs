@@ -25,7 +25,6 @@ namespace TestUtils
         {
             createFileSystemOptions = createFileSystemOptions ?? new CreateFileSystemOptions();
 
-
             var fileSystem = Substitute.For<IFileSystem>();
             var realFileSystem = new FileSystem();
             var logger = Logging.GetLogger("TestFileSystem");
@@ -33,8 +32,7 @@ namespace TestUtils
             fileSystem.DirectorySeparatorChar.Returns(realFileSystem.DirectorySeparatorChar);
             fileSystem.GetCurrentDirectory().Returns(createFileSystemOptions.CurrentDirectory);
 
-            fileSystem.Combine(Args.String, Args.String).Returns(info =>
-            {
+            fileSystem.Combine(Args.String, Args.String).Returns(info => {
                 var path1 = (string)info[0];
                 var path2 = (string)info[1];
                 var combine = realFileSystem.Combine(path1, path2);
@@ -42,8 +40,7 @@ namespace TestUtils
                 return combine;
             });
 
-            fileSystem.Combine(Args.String, Args.String, Args.String).Returns(info =>
-            {
+            fileSystem.Combine(Args.String, Args.String, Args.String).Returns(info => {
                 var path1 = (string)info[0];
                 var path2 = (string)info[1];
                 var path3 = (string)info[2];
@@ -52,8 +49,7 @@ namespace TestUtils
                 return combine;
             });
 
-            fileSystem.FileExists(Args.String).Returns(info =>
-            {
+            fileSystem.FileExists(Args.String).Returns(info => {
                 var path = (string)info[0];
 
                 var result = false;
@@ -68,14 +64,12 @@ namespace TestUtils
 
             fileSystem.WhenForAnyArgs(system => system.FileCopy(Args.String, Args.String, Args.Bool))
                       .Do(
-                          info =>
-                          {
+                          info => {
                               logger.Trace(@"FileSystem.FileCopy(""{0}"", ""{1}"", ""{2}"")", (string)info[0],
                                   (string)info[1], (bool)info[2]);
                           });
 
-            fileSystem.DirectoryExists(Args.String).Returns(info =>
-            {
+            fileSystem.DirectoryExists(Args.String).Returns(info => {
                 var path1 = (string)info[0];
 
                 var result = true;
@@ -88,8 +82,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.ExistingPathIsDirectory(Args.String).Returns(info =>
-            {
+            fileSystem.ExistingPathIsDirectory(Args.String).Returns(info => {
                 var path = (string)info[0];
 
                 var result = false;
@@ -102,8 +95,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.ReadAllText(Args.String).Returns(info =>
-            {
+            fileSystem.ReadAllText(Args.String).Returns(info => {
                 var path = (string)info[0];
 
                 string result = null;
@@ -144,8 +136,7 @@ namespace TestUtils
                 return createFileSystemOptions.TemporaryPath;
             });
 
-            fileSystem.GetFiles(Args.String).Returns(info =>
-            {
+            fileSystem.GetFiles(Args.String).Returns(info => {
                 var path = (string)info[0];
 
                 var result = new string[0];
@@ -163,8 +154,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetFiles(Args.String, Args.String).Returns(info =>
-            {
+            fileSystem.GetFiles(Args.String, Args.String).Returns(info => {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
 
@@ -183,8 +173,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetFiles(Args.String, Args.String, Args.SearchOption).Returns(info =>
-            {
+            fileSystem.GetFiles(Args.String, Args.String, Args.SearchOption).Returns(info => {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
                 var searchOption = (SearchOption)info[2];
@@ -205,8 +194,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetDirectories(Args.String).Returns(info =>
-            {
+            fileSystem.GetDirectories(Args.String).Returns(info => {
                 var path = (string)info[0];
 
                 var result = new string[0];
@@ -224,8 +212,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetDirectories(Args.String, Args.String).Returns(info =>
-            {
+            fileSystem.GetDirectories(Args.String, Args.String).Returns(info => {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
 
@@ -244,8 +231,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetDirectories(Args.String, Args.String, Args.SearchOption).Returns(info =>
-            {
+            fileSystem.GetDirectories(Args.String, Args.String, Args.SearchOption).Returns(info => {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
                 var searchOption = (SearchOption)info[2];
@@ -268,8 +254,7 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetFullPath(Args.String)
-                      .Returns(info => Path.GetFullPath((string)info[0]));
+            fileSystem.GetFullPath(Args.String).Returns(info => Path.GetFullPath((string)info[0]));
 
             return fileSystem;
         }
@@ -284,18 +269,17 @@ namespace TestUtils
             var gitObjectFactory = Substitute.For<IGitObjectFactory>();
 
             gitObjectFactory.CreateGitStatusEntry(Args.String, Args.GitFileStatus, Args.String, Args.Bool)
-                                 .Returns(info => {
-                var path = (string)info[0];
-                var status = (GitFileStatus)info[1];
-                var originalPath = (string)info[2];
-                var staged = (bool)info[3];
+                            .Returns(info => {
+                                var path = (string)info[0];
+                                var status = (GitFileStatus)info[1];
+                                var originalPath = (string)info[2];
+                                var staged = (bool)info[3];
 
-                return new GitStatusEntry(path, gitRepoPath + @"\" + path, null, status, originalPath,
-                    staged);
-            });
+                                return new GitStatusEntry(path, gitRepoPath + @"\" + path, null, status, originalPath,
+                                    staged);
+                            });
 
-            gitObjectFactory.CreateGitLock(Args.String, Args.String)
-                                 .Returns(info => {
+            gitObjectFactory.CreateGitLock(Args.String, Args.String).Returns(info => {
                 var path = (string)info[0];
                 var user = (string)info[1];
 
