@@ -26,8 +26,9 @@ namespace IntegrationTests
             Environment.UnityProjectPath = TestBasePath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
 
-            NPath repositoryPath = TestBasePath;
-            var repositoryManager = new RepositoryManager(new RepositoryPathConfiguration(repositoryPath), platform, CancellationToken.None);
+            var repositoryManagerFactory = new RepositoryManagerFactory();
+            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(platform, TestBasePath, CancellationToken.None);
+
             Environment.Repository = repositoryManager.Repository;
         }
 
