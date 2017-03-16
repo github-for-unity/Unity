@@ -28,20 +28,55 @@ namespace GitHub.Unity
         Dictionary<string, Dictionary<string, ConfigBranch>> RemoteBranches { get; }
     }
 
+    interface IRepositoryPathConfiguration
+    {
+        NPath RepositoryPath { get; }
+        NPath DotGitPath { get; }
+        NPath BranchesPath { get; }
+        NPath RemotesPath { get; }
+        NPath DotGitIndex { get; }
+        NPath DotGitHead { get; }
+        NPath DotGitConfig { get; }
+    }
+
+    class RepositoryPathConfiguration : IRepositoryPathConfiguration
+    {
+        public NPath RepositoryPath { get; }
+        public NPath DotGitPath { get; }
+        public NPath BranchesPath { get; }
+        public NPath RemotesPath { get; }
+        public NPath DotGitIndex { get; }
+        public NPath DotGitHead { get; }
+        public NPath DotGitConfig { get; }
+
+        public RepositoryPathConfiguration(NPath repositoryPath)
+        {
+            RepositoryPath = repositoryPath;
+
+            DotGitPath = repositoryPath.Combine(".git");
+            if (DotGitPath.FileExists())
+            {
+                DotGitPath = DotGitPath.ReadAllLines()
+                                       .Where(x => x.StartsWith("gitdir:"))
+                                       .Select(x => x.Substring(7).Trim())
+                                       .First();
+            }
+
+            BranchesPath = DotGitPath.Combine("refs", "heads");
+            RemotesPath = DotGitPath.Combine("refs", "remotes");
+            DotGitIndex = DotGitPath.Combine("index");
+            DotGitHead = DotGitPath.Combine("HEAD");
+            DotGitConfig = DotGitPath.Combine("config");
+        }
+    }
+
     class RepositoryManager : IRepositoryManager
     {
         private readonly IRepositoryWatcher repositoryWatcher;
         private readonly IRepositoryProcessRunner processRunner;
         private readonly IRepository repository;
-        private readonly NPath repositoryPath;
         private readonly IPlatform platform;
         private readonly CancellationToken cancellationToken;
-        private readonly NPath dotGitPath;
-        private readonly NPath dotGitIndex;
-        private readonly NPath dotGitHead;
-        private readonly NPath branchesPath;
-        private readonly NPath remotesPath;
-        private readonly NPath dotGitConfig;
         private readonly GitConfig config;
 
         private readonly Dictionary<string, ConfigBranch> branches = new Dictionary<string, ConfigBranch>();
@@ -67,30 +102,17 @@ namespace GitHub.Unity
         public event Action OnHeadChanged;
         public event Action OnRemoteOrTrackingChanged;
 
-        public RepositoryManager(NPath path, IPlatform platform, CancellationToken cancellationToken)
+        public RepositoryManager(IRepositoryPathConfiguration repositoryRepositoryPathConfiguration, IPlatform platform, CancellationToken cancellationToken)
         {
-            repositoryPath = path;
+            repositoryPaths = repositoryRepositoryPathConfiguration;
+
             this.platform = platform;
             this.cancellationToken = cancellationToken;
-            dotGitPath = path.Combine(".git");
-            if (dotGitPath.FileExists())
-            {
-                dotGitPath = dotGitPath.ReadAllLines()
-                                       .Where(x => x.StartsWith("gitdir:"))
-                                       .Select(x => x.Substring(7).Trim())
-                                       .First();
-            }
 
-            branchesPath = dotGitPath.Combine("refs", "heads");
-            remotesPath = dotGitPath.Combine("refs", "remotes");
-            dotGitIndex = dotGitPath.Combine("index");
-            dotGitHead = dotGitPath.Combine("HEAD");
-            dotGitConfig = dotGitPath.Combine("config");
-
-            config = new GitConfig(dotGitConfig);
+            config = new GitConfig(repositoryPaths.DotGitConfig);
             repository = InitializeRepository();
 
-            repositoryWatcher = new RepositoryWatcher(platform, repositoryPath, dotGitPath, dotGitIndex, dotGitHead, branchesPath, remotesPath, dotGitConfig);
+            repositoryWatcher = new RepositoryWatcher(platform, repositoryPaths);
 
             repositoryWatcher.ConfigChanged += OnConfigChanged;
             repositoryWatcher.HeadChanged += HeadChanged;
@@ -218,7 +240,7 @@ namespace GitHub.Unity
 
         private IRepository InitializeRepository()
         {
-            head = dotGitHead
+            head = repositoryPaths.DotGitHead
                 .ReadAllLines()
                 .FirstOrDefault();
 
@@ -245,7 +267,7 @@ namespace GitHub.Unity
                         }), "user.email", GitConfigSource.User);
             task.RunAsync(cancellationToken).Wait();
 
-            return new Repository(this, repositoryPath.FileName, cloneUrl, repositoryPath, user);
+            return new Repository(this, repositoryPaths.RepositoryPath.FileName, cloneUrl, repositoryPaths.RepositoryPath, user);
         }
 
         private void RefreshConfigData()
@@ -261,7 +283,7 @@ namespace GitHub.Unity
 
         private void LoadBranchesFromConfig()
         {
-            LoadBranchesFromConfig(branchesPath, config.GetBranches().Where(x => x.IsTracking), "");
+            LoadBranchesFromConfig(repositoryPaths.BranchesPath, config.GetBranches().Where(x => x.IsTracking), "");
         }
 
         private void LoadBranchesFromConfig(NPath path, IEnumerable<ConfigBranch> configBranches, string prefix)
@@ -289,7 +311,7 @@ namespace GitHub.Unity
             foreach (var remote in remotes.Keys)
             {
                 var branchList = new Dictionary<string, ConfigBranch>();
-                var basedir = remotesPath.Combine(remote);
+                var basedir = repositoryPaths.RemotesPath.Combine(remote);
                 if (basedir.Exists())
                 {
                     foreach (var branch in basedir.Files(true).Select(x => x.RelativeTo(basedir)).Select(x => x.ToString(SlashMode.Forward)))
@@ -383,6 +405,8 @@ namespace GitHub.Unity
         }
 
         private bool disposed;
+        private IRepositoryPathConfiguration repositoryPaths;
+
         private void Dispose(bool disposing)
         {
             if (disposing)

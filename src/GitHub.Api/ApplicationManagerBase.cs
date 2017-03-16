@@ -86,7 +86,7 @@ namespace GitHub.Unity
             {
                 try
                 {
-                    repositoryManager = new RepositoryManager(repositoryRoot, Platform, CancellationToken);
+                    repositoryManager = new RepositoryManager(new RepositoryPathConfiguration(repositoryRoot), Platform, CancellationToken);
                 }
                 catch (Exception ex)
                 {
