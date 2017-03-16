@@ -16,8 +16,10 @@ namespace TestUtils
             createEnvironmentOptions = createEnvironmentOptions ?? new CreateEnvironmentOptions();
 
             var environment = Substitute.For<IEnvironment>();
+            environment.RepositoryPath.Returns(createEnvironmentOptions.RepositoryPath);
             environment.ExtensionInstallPath.Returns(createEnvironmentOptions.Extensionfolder);
             environment.UserProfilePath.Returns(createEnvironmentOptions.UserProfilePath);
+            environment.UnityProjectPath.Returns(createEnvironmentOptions.UnityProjectPath);
             return environment;
         }
 
@@ -148,7 +150,7 @@ namespace TestUtils
             {
                 var path = (string)info[0];
 
-                var result = new string[0];
+                string[] result = null;
                 if (createFileSystemOptions.ChildFiles != null)
                 {
                     var key = new ContentsKey(path);
@@ -158,7 +160,9 @@ namespace TestUtils
                     }
                 }
 
-                logger.Trace(@"FileSystem.GetFiles(""{0}"") -> {1} items", path, result.Length);
+                var resultLength = result != null ? $"{result.Length} items" : "ERROR";
+
+                logger.Trace(@"FileSystem.GetFiles(""{0}"") -> {1}", path, resultLength);
 
                 return result;
             });
@@ -168,7 +172,7 @@ namespace TestUtils
                 var path = (string)info[0];
                 var pattern = (string)info[1];
 
-                var result = new string[0];
+                string[] result = null;
                 if (createFileSystemOptions.ChildFiles != null)
                 {
                     var key = new ContentsKey(path, pattern);
@@ -178,7 +182,9 @@ namespace TestUtils
                     }
                 }
 
-                logger.Trace(@"FileSystem.GetFiles(""{0}"", ""{1}"") -> {2} items", path, pattern, result.Length);
+                var resultLength = result != null ? $"{result.Length} items" : "ERROR";
+
+                logger.Trace(@"FileSystem.GetFiles(""{0}"", ""{1}"") -> {2}", path, pattern, resultLength);
 
                 return result;
             });
@@ -189,7 +195,7 @@ namespace TestUtils
                 var pattern = (string)info[1];
                 var searchOption = (SearchOption)info[2];
 
-                var result = new string[0];
+                string[] result = null;
                 if (createFileSystemOptions.ChildFiles != null)
                 {
                     var key = new ContentsKey(path, pattern, searchOption);
@@ -199,8 +205,10 @@ namespace TestUtils
                     }
                 }
 
-                logger.Trace(@"FileSystem.GetFiles(""{0}"", ""{1}"", {2}) -> {3} items", path, pattern, searchOption,
-                    result.Length);
+                var resultLength = result != null ? $"{result.Length} items" : "ERROR";
+
+                logger.Trace(@"FileSystem.GetFiles(""{0}"", ""{1}"", {2}) -> {3}", path, pattern, searchOption,
+                    resultLength);
 
                 return result;
             });
@@ -209,7 +217,7 @@ namespace TestUtils
             {
                 var path = (string)info[0];
 
-                string[] result = new string[0];
+                string[] result = null;
                 if (createFileSystemOptions.ChildDirectories != null)
                 {
                     var key = new ContentsKey(path);
@@ -219,7 +227,9 @@ namespace TestUtils
                     }
                 }
 
-                logger.Trace(@"FileSystem.GetDirectories(""{0}"") -> {1} itemss", path, result.Length);
+                var resultLength = result != null ? $"{result.Length} items" : "ERROR";
+
+                logger.Trace(@"FileSystem.GetDirectories(""{0}"") -> {1}", path, resultLength);
 
                 return result;
             });
@@ -229,7 +239,7 @@ namespace TestUtils
                 var path = (string)info[0];
                 var pattern = (string)info[1];
 
-                string[] result = new string[0];
+                string[] result = null;
                 if (createFileSystemOptions.ChildDirectories != null)
                 {
                     var key = new ContentsKey(path, pattern);
@@ -239,7 +249,9 @@ namespace TestUtils
                     }
                 }
 
-                logger.Trace(@"FileSystem.GetDirectories(""{0}"", ""{1}"") -> {2} items", path, pattern, result.Length);
+                var resultLength = result != null ? $"{result.Length} items" : "ERROR";
+
+                logger.Trace(@"FileSystem.GetDirectories(""{0}"", ""{1}"") -> {2}", path, pattern, resultLength);
 
                 return result;
             });
