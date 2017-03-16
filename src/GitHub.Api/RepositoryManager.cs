@@ -20,7 +20,7 @@ namespace GitHub.Unity
 
         void Refresh();
 
-        GitConfig Config { get;}
+        IGitConfig Config { get;}
         ConfigBranch? ActiveBranch { get; set; }
         ConfigRemote? ActiveRemote { get; set; }
         IRepositoryProcessRunner ProcessRunner { get; }
@@ -70,16 +70,32 @@ namespace GitHub.Unity
         }
     }
 
+    class RepositoryManagerFactory
+    {
+        public RepositoryManager CreateRepositoryManager(IPlatform platform, NPath repositoryRoot, CancellationToken cancellationToken)
+        {
+            var repositoryRepositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
+            var gitConfig = new GitConfig(repositoryRepositoryPathConfiguration.DotGitConfig);
+            var repositoryWatcher = new RepositoryWatcher(platform, repositoryRepositoryPathConfiguration);
+            var repositoryProcessRunner = new RepositoryProcessRunner(platform.Environment, platform.ProcessManager,
+                platform.CredentialManager, platform.UIDispatcher,
+                cancellationToken);
+
+            return new RepositoryManager(repositoryRepositoryPathConfiguration, platform, gitConfig, repositoryWatcher, repositoryProcessRunner, cancellationToken);
+        }
+    }
+
     class RepositoryManager : IRepositoryManager
     {
-        private readonly IRepositoryWatcher repositoryWatcher;
+        private readonly IRepositoryWatcher watcher;
         private readonly IRepositoryProcessRunner processRunner;
         private readonly IRepository repository;
         private readonly IPlatform platform;
         private readonly CancellationToken cancellationToken;
-        private readonly GitConfig config;
-
+        private readonly IGitConfig config;
+        private readonly IRepositoryPathConfiguration repositoryPaths;
         private readonly Dictionary<string, ConfigBranch> branches = new Dictionary<string, ConfigBranch>();
+
         public Dictionary<string, ConfigBranch> LocalBranches => branches;
 
         private Dictionary<string, ConfigRemote> remotes;
@@ -89,7 +105,7 @@ namespace GitHub.Unity
         private string head;
         private ConfigBranch? activeBranch;
         private ConfigRemote? activeRemote;
-
+        private bool disposed;
         private DateTime lastStatusUpdate;
         private DateTime lastLocksUpdate;
 
@@ -102,45 +118,43 @@ namespace GitHub.Unity
         public event Action OnHeadChanged;
         public event Action OnRemoteOrTrackingChanged;
 
-        public RepositoryManager(IRepositoryPathConfiguration repositoryRepositoryPathConfiguration, IPlatform platform, CancellationToken cancellationToken)
+        public RepositoryManager(IRepositoryPathConfiguration repositoryRepositoryPathConfiguration, IPlatform platform, IGitConfig gitConfig, IRepositoryWatcher repositoryWatcher, IRepositoryProcessRunner repositoryProcessRunner, CancellationToken cancellationToken)
         {
             repositoryPaths = repositoryRepositoryPathConfiguration;
 
             this.platform = platform;
             this.cancellationToken = cancellationToken;
 
-            config = new GitConfig(repositoryPaths.DotGitConfig);
+            config = gitConfig;
             repository = InitializeRepository();
 
-            repositoryWatcher = new RepositoryWatcher(platform, repositoryPaths);
+            watcher = repositoryWatcher;
 
-            repositoryWatcher.ConfigChanged += OnConfigChanged;
-            repositoryWatcher.HeadChanged += HeadChanged;
-            repositoryWatcher.IndexChanged += OnIndexChanged;
-            repositoryWatcher.LocalBranchCreated += OnLocalBranchCreated;
-            repositoryWatcher.LocalBranchDeleted += OnLocalBranchDeleted;
-            repositoryWatcher.LocalBranchMoved += OnLocalBranchMoved;
-            repositoryWatcher.RepositoryChanged += OnRepositoryUpdated;
-            repositoryWatcher.RemoteBranchCreated += OnRemoteBranchCreated;
-            repositoryWatcher.RemoteBranchChanged += OnRemoteBranchChanged;
-            repositoryWatcher.RemoteBranchDeleted += OnRemoteBranchDeleted;
-            repositoryWatcher.RemoteBranchRenamed += OnRemoteBranchRenamed;
+            watcher.ConfigChanged += OnConfigChanged;
+            watcher.HeadChanged += HeadChanged;
+            watcher.IndexChanged += OnIndexChanged;
+            watcher.LocalBranchCreated += OnLocalBranchCreated;
+            watcher.LocalBranchDeleted += OnLocalBranchDeleted;
+            watcher.LocalBranchMoved += OnLocalBranchMoved;
+            watcher.RepositoryChanged += OnRepositoryUpdated;
+            watcher.RemoteBranchCreated += OnRemoteBranchCreated;
+            watcher.RemoteBranchChanged += OnRemoteBranchChanged;
+            watcher.RemoteBranchDeleted += OnRemoteBranchDeleted;
+            watcher.RemoteBranchRenamed += OnRemoteBranchRenamed;
 
-            processRunner = new RepositoryProcessRunner(platform.Environment, platform.ProcessManager,
-                platform.CredentialManager, platform.UIDispatcher,
-                cancellationToken);
+            processRunner = repositoryProcessRunner;
         }
 
         public void Start()
         {
             
-            repositoryWatcher.Start();
+            watcher.Start();
             OnRepositoryUpdated();
         }
 
         public void Stop()
         {
-            repositoryWatcher.Stop();
+            watcher.Stop();
         }
 
         public void Refresh()
@@ -404,9 +418,6 @@ namespace GitHub.Unity
             }
         }
 
-        private bool disposed;
-        private IRepositoryPathConfiguration repositoryPaths;
-
         private void Dispose(bool disposing)
         {
             if (disposing)
@@ -414,7 +425,7 @@ namespace GitHub.Unity
                 if (disposed) return;
                 disposed = true;
                 Stop();
-                repositoryWatcher.Dispose();
+                watcher.Dispose();
             }
         }
 
@@ -424,7 +435,7 @@ namespace GitHub.Unity
         }
 
         public IRepository Repository => repository;
-        public GitConfig Config => config;
+        public IGitConfig Config => config;
 
         public ConfigBranch? ActiveBranch
         {
