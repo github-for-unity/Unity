@@ -1,6 +1,5 @@
+using TestUtils;
 using System.Collections.Generic;
-using FluentAssertions;
-using NSubstitute;
 using NUnit.Framework;
 using GitHub.Unity;
 
@@ -248,7 +247,7 @@ namespace UnitTests
 
         private void AssertProcessOutput(IEnumerable<string> lines, GitStatus expected)
         {
-            var gitObjectFactory = CreateGitObjectFactory();
+            var gitObjectFactory = SubstituteFactory.CreateGitObjectFactory(TestRootPath);
 
             var result = new GitStatus();
             var outputProcessor = new StatusOutputProcessor(gitObjectFactory);

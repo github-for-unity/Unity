@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using FluentAssertions;
-using NUnit.Framework;
 using GitHub.Unity;
+using NUnit.Framework;
 
-namespace UnitTests
+namespace TestUtils
 {
     static class AssertExtensions
     {
@@ -151,6 +151,5 @@ namespace UnitTests
             Action action = () => gitLocks.AssertEqual(others);
             action.ShouldThrow<AssertionException>();
         }
-
     }
 }
