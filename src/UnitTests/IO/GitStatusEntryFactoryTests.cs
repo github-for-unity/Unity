@@ -30,7 +30,9 @@ namespace UnitTests
                 UnityProjectPath = projectRoot
             });
 
-            NPathFileSystemProvider.Current = SubstituteFactory.CreateFileSystem(currentDirectory: repositoryRoot);
+            NPathFileSystemProvider.Current = SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions {
+                CurrentDirectory = repositoryRoot
+            });
             var root = repositoryRoot.ToString();
             environment.RepositoryPath.Returns(root);
 
@@ -60,7 +62,9 @@ namespace UnitTests
             var environment = SubstituteFactory.CreateEnvironment(new CreateEnvironmentOptions {
                 UnityProjectPath = projectRoot
             });
-            NPathFileSystemProvider.Current = SubstituteFactory.CreateFileSystem(currentDirectory: repositoryRoot);
+            NPathFileSystemProvider.Current = SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions {
+                CurrentDirectory = repositoryRoot
+            });
             var root = repositoryRoot.ToString();
             environment.RepositoryPath.Returns(root);
 
@@ -89,7 +93,9 @@ namespace UnitTests
             var environment = SubstituteFactory.CreateEnvironment(new CreateEnvironmentOptions {
                 UnityProjectPath = projectRoot
             });
-            NPathFileSystemProvider.Current = SubstituteFactory.CreateFileSystem(currentDirectory: repositoryRoot);
+            NPathFileSystemProvider.Current = SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions {
+                CurrentDirectory = repositoryRoot
+            });
             var root = repositoryRoot.ToString();
             environment.RepositoryPath.Returns(root);
 
