@@ -9,7 +9,7 @@ using TestUtils;
 namespace UnitTests
 {
     [TestFixture]
-    class GitStatusEntryFactoryTests : TestBase
+    class GitStatusEntryFactoryTests
     {
         protected SubstituteFactory SubstituteFactory { get; private set; }
 
