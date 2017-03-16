@@ -7,8 +7,14 @@ namespace TestUtils
     {
         public Dictionary<GitConfigGetKey, string> GitConfigGetResults { get; set; }
 
-        public CreateRepositoryProcessRunnerOptions(Dictionary<GitConfigGetKey, string> getConfigResults = null)
+        public IList<GitStatus> GitStatusResults { get; set; }
+
+        public IList<IList<GitLock>> GitListLocksResults { get; set; }
+
+        public CreateRepositoryProcessRunnerOptions(Dictionary<GitConfigGetKey, string> getConfigResults = null, IList<GitStatus> gitStatusResults = null, IList<IList<GitLock>> gitListLocksResults = null)
         {
+            GitListLocksResults = gitListLocksResults;
+            GitStatusResults = gitStatusResults;
             GitConfigGetResults = getConfigResults ?? new Dictionary<GitConfigGetKey, string>();
         }
 

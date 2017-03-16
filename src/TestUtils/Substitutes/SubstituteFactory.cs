@@ -11,7 +11,7 @@ namespace TestUtils
     class SubstituteFactory
     {
         public SubstituteFactory()
-        {}
+        { }
 
         public IEnvironment CreateEnvironment(CreateEnvironmentOptions createEnvironmentOptions = null)
         {
@@ -36,7 +36,8 @@ namespace TestUtils
             fileSystem.DirectorySeparatorChar.Returns(realFileSystem.DirectorySeparatorChar);
             fileSystem.GetCurrentDirectory().Returns(createFileSystemOptions.CurrentDirectory);
 
-            fileSystem.Combine(Args.String, Args.String).Returns(info => {
+            fileSystem.Combine(Args.String, Args.String).Returns(info =>
+            {
                 var path1 = (string)info[0];
                 var path2 = (string)info[1];
                 var combine = realFileSystem.Combine(path1, path2);
@@ -44,7 +45,8 @@ namespace TestUtils
                 return combine;
             });
 
-            fileSystem.Combine(Args.String, Args.String, Args.String).Returns(info => {
+            fileSystem.Combine(Args.String, Args.String, Args.String).Returns(info =>
+            {
                 var path1 = (string)info[0];
                 var path2 = (string)info[1];
                 var path3 = (string)info[2];
@@ -53,7 +55,8 @@ namespace TestUtils
                 return combine;
             });
 
-            fileSystem.FileExists(Args.String).Returns(info => {
+            fileSystem.FileExists(Args.String).Returns(info =>
+            {
                 var path = (string)info[0];
 
                 var result = false;
@@ -68,12 +71,14 @@ namespace TestUtils
 
             fileSystem.WhenForAnyArgs(system => system.FileCopy(Args.String, Args.String, Args.Bool))
                       .Do(
-                          info => {
+                          info =>
+                          {
                               logger.Trace(@"FileCopy(""{0}"", ""{1}"", ""{2}"")", (string)info[0], (string)info[1],
                                   (bool)info[2]);
                           });
 
-            fileSystem.DirectoryExists(Args.String).Returns(info => {
+            fileSystem.DirectoryExists(Args.String).Returns(info =>
+            {
                 var path1 = (string)info[0];
 
                 var result = true;
@@ -86,7 +91,8 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.ExistingPathIsDirectory(Args.String).Returns(info => {
+            fileSystem.ExistingPathIsDirectory(Args.String).Returns(info =>
+            {
                 var path = (string)info[0];
 
                 var result = false;
@@ -99,7 +105,8 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.ReadAllLines(Args.String).Returns(info => {
+            fileSystem.ReadAllLines(Args.String).Returns(info =>
+            {
                 var path = (string)info[0];
 
                 IList<string> result = null;
@@ -107,7 +114,7 @@ namespace TestUtils
                 if (createFileSystemOptions.FileContents != null)
                 {
                     if (createFileSystemOptions.FileContents.TryGetValue(path, out result))
-                    {}
+                    { }
                 }
 
                 var resultLength = result != null ? $"{result.Count} lines" : "ERROR";
@@ -117,7 +124,8 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.ReadAllText(Args.String).Returns(info => {
+            fileSystem.ReadAllText(Args.String).Returns(info =>
+            {
                 var path = (string)info[0];
 
                 string result = null;
@@ -139,7 +147,8 @@ namespace TestUtils
             });
 
             var randomFileIndex = 0;
-            fileSystem.GetRandomFileName().Returns(info => {
+            fileSystem.GetRandomFileName().Returns(info =>
+            {
                 string result = null;
                 if (createFileSystemOptions.RandomFileNames != null)
                 {
@@ -154,13 +163,15 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetTempPath().Returns(info => {
+            fileSystem.GetTempPath().Returns(info =>
+            {
                 logger.Trace(@"GetTempPath() -> {0}", createFileSystemOptions.TemporaryPath);
 
                 return createFileSystemOptions.TemporaryPath;
             });
 
-            fileSystem.GetFiles(Args.String).Returns(info => {
+            fileSystem.GetFiles(Args.String).Returns(info =>
+            {
                 var path = (string)info[0];
 
                 string[] result = null;
@@ -180,7 +191,8 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetFiles(Args.String, Args.String).Returns(info => {
+            fileSystem.GetFiles(Args.String, Args.String).Returns(info =>
+            {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
 
@@ -201,7 +213,8 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetFiles(Args.String, Args.String, Args.SearchOption).Returns(info => {
+            fileSystem.GetFiles(Args.String, Args.String, Args.SearchOption).Returns(info =>
+            {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
                 var searchOption = (SearchOption)info[2];
@@ -223,7 +236,8 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetDirectories(Args.String).Returns(info => {
+            fileSystem.GetDirectories(Args.String).Returns(info =>
+            {
                 var path = (string)info[0];
 
                 string[] result = null;
@@ -243,7 +257,8 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetDirectories(Args.String, Args.String).Returns(info => {
+            fileSystem.GetDirectories(Args.String, Args.String).Returns(info =>
+            {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
 
@@ -264,7 +279,8 @@ namespace TestUtils
                 return result;
             });
 
-            fileSystem.GetDirectories(Args.String, Args.String, Args.SearchOption).Returns(info => {
+            fileSystem.GetDirectories(Args.String, Args.String, Args.SearchOption).Returns(info =>
+            {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
                 var searchOption = (SearchOption)info[2];
@@ -301,7 +317,8 @@ namespace TestUtils
             var gitObjectFactory = Substitute.For<IGitObjectFactory>();
 
             gitObjectFactory.CreateGitStatusEntry(Args.String, Args.GitFileStatus, Args.String, Args.Bool)
-                            .Returns(info => {
+                            .Returns(info =>
+                            {
                                 var path = (string)info[0];
                                 var status = (GitFileStatus)info[1];
                                 var originalPath = (string)info[2];
@@ -311,7 +328,8 @@ namespace TestUtils
                                     staged);
                             });
 
-            gitObjectFactory.CreateGitLock(Args.String, Args.String).Returns(info => {
+            gitObjectFactory.CreateGitLock(Args.String, Args.String).Returns(info =>
+            {
                 var path = (string)info[0];
                 var user = (string)info[1];
 
@@ -343,7 +361,8 @@ namespace TestUtils
             var repositoryProcessRunner = Substitute.For<IRepositoryProcessRunner>();
 
             repositoryProcessRunner.PrepareGitPull(Arg.Any<ITaskResultDispatcher<string>>(), Args.String, Args.String)
-                                   .Returns(info => {
+                                   .Returns(info =>
+                                   {
                                        var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
                                        var remote = (string)info[1];
                                        var branch = (string)info[2];
@@ -358,7 +377,8 @@ namespace TestUtils
                                    });
 
             repositoryProcessRunner.PrepareGitPush(Arg.Any<ITaskResultDispatcher<string>>(), Args.String, Args.String)
-                                   .Returns(info => {
+                                   .Returns(info =>
+                                   {
                                        var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
                                        var remote = (string)info[1];
                                        var branch = (string)info[2];
@@ -373,45 +393,92 @@ namespace TestUtils
                                    });
 
             repositoryProcessRunner.RunGitConfigGet(Arg.Any<ITaskResultDispatcher<string>>(), Args.String,
-                Args.GitConfigSource).Returns(info => {
-                var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
-                var key = (string)info[1];
-                var gitConfigSource = (GitConfigSource)info[2];
-
-                string result;
-                var containsKey =
-                    options.GitConfigGetResults.TryGetValue(
-                        new CreateRepositoryProcessRunnerOptions.GitConfigGetKey {
-                            Key = key,
-                            GitConfigSource = gitConfigSource
-                        }, out result);
-
-                if (containsKey)
+                Args.GitConfigSource).Returns(info =>
                 {
-                    resultDispatcher.ReportSuccess(result);
+                    var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
+                    var key = (string)info[1];
+                    var gitConfigSource = (GitConfigSource)info[2];
+
+                    string result;
+                    var containsKey =
+                        options.GitConfigGetResults.TryGetValue(
+                            new CreateRepositoryProcessRunnerOptions.GitConfigGetKey
+                            {
+                                Key = key,
+                                GitConfigSource = gitConfigSource
+                            }, out result);
+
+                    if (containsKey)
+                    {
+                        resultDispatcher.ReportSuccess(result);
+                    }
+                    else
+                    {
+                        resultDispatcher.ReportFailure();
+                    }
+
+                    logger.Trace(@"RunGitConfigGet({0}, ""{1}"", GitConfigSource.{2}) -> {3}",
+                        resultDispatcher != null ? "[instance]" : "[null]", key,
+                        gitConfigSource.ToString(), containsKey ? $@"Success" : "Failure");
+
+                    return Task.Factory.StartNew(() => true);
+                });
+
+            var gitStatsResultsEnumerator = options.GitStatusResults?.GetEnumerator();
+            repositoryProcessRunner.RunGitStatus(Arg.Any<ITaskResultDispatcher<GitStatus>>()).Returns(info =>
+            {
+                var resultDispatcher = (ITaskResultDispatcher<GitStatus>)info[0];
+
+                GitStatus? result = null;
+                if (gitStatsResultsEnumerator != null)
+                {
+                    gitStatsResultsEnumerator.MoveNext();
+                    result = gitStatsResultsEnumerator.Current;
+                }
+
+                if (result != null)
+                {
+                    resultDispatcher.ReportSuccess(result.Value);
                 }
                 else
                 {
                     resultDispatcher.ReportFailure();
                 }
 
-                logger.Trace(@"RunGitConfigGet({0}, ""{1}"", GitConfigSource.{2}) -> {3}",
-                    resultDispatcher != null ? "[instance]" : "[null]", key,
-                    gitConfigSource.ToString(), containsKey ? $@"Success : ""{result}""" : "Failure");
+                logger.Trace(@"RunGitStatus({0}) -> {1}", resultDispatcher != null ? "[instance]" : "[null]",
+                    result != null ? $"Success: \"{result.Value}\"" : "Failure");
 
                 return Task.Factory.StartNew(() => true);
             });
 
-            repositoryProcessRunner.RunGitStatus(Arg.Any<ITaskResultDispatcher<GitStatus>>()).Returns(info => {
-                var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
+            var gitListLocksEnumerator = options.GitListLocksResults?.GetEnumerator();
+            repositoryProcessRunner.RunGitListLocks(Arg.Any<ITaskResultDispatcher<IEnumerable<GitLock>>>())
+                                   .Returns(info =>
+                                   {
+                                       var resultDispatcher = (ITaskResultDispatcher<IEnumerable<GitLock>>)info[0];
 
-                object result = null;
+                                       IList<GitLock> result = null;
+                                       if (gitListLocksEnumerator != null)
+                                       {
+                                           gitListLocksEnumerator.MoveNext();
+                                           result = gitListLocksEnumerator.Current;
+                                       }
 
-                logger.Trace(@"RunGitStatus({0}) -> {1}", resultDispatcher != null ? "[instance]" : "[null]",
-                    result != null ? result : "[null]");
+                                       if (result != null)
+                                       {
+                                           resultDispatcher.ReportSuccess(result);
+                                       }
+                                       else
+                                       {
+                                           resultDispatcher.ReportFailure();
+                                       }
 
-                throw new NotImplementedException();
-            });
+                                       logger.Trace(@"RunGitListLocks({0}) -> {1}",
+                                           resultDispatcher != null ? "[instance]" : "[null]",
+                                           result != null ? $"Success" : "Failure");
+
+                                       return Task.Factory.StartNew(() => true);
+                                   });
 
             return repositoryProcessRunner;
         }
@@ -440,10 +507,10 @@ namespace TestUtils
             }
 
             public ContentsKey(string path, string pattern) : this(path, pattern, null)
-            {}
+            { }
 
             public ContentsKey(string path) : this(path, null)
-            {}
+            { }
         }
     }
 }

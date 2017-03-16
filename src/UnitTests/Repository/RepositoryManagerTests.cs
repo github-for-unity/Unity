@@ -24,30 +24,6 @@ namespace UnitTests
             SubstituteFactory = new SubstituteFactory();
         }
 
-        [Test]
-        public void ShouldBeConstructable()
-        {
-            var repositoryManager = CreateRepositoryManager();
-            repositoryManager.Should().NotBeNull();
-        }
-
-        [Test]
-        public void ShouldRefresh()
-        {
-            var repositoryManager = CreateRepositoryManager();
-            Action action = () => repositoryManager.Refresh();
-            action.ShouldThrow<NotImplementedException>();
-        }
-
-        [Test]
-        public void ShouldRefreshOnWatcherRepositoryChanged()
-        {
-            var repositoryManager = CreateRepositoryManager();
-
-            Action action = () => repositoryWatcher.RepositoryChanged += Raise.Event<Action>();
-            action.ShouldThrow<NotImplementedException>();
-        }
-
         private RepositoryManager CreateRepositoryManager()
         {
             NPathFileSystemProvider.Current =
@@ -55,7 +31,8 @@ namespace UnitTests
                     ChildFiles =
                         new Dictionary<SubstituteFactory.ContentsKey, IList<string>> {
                             {
-                                new SubstituteFactory.ContentsKey(@"c:\Temp\.git\refs\heads", "*", SearchOption.TopDirectoryOnly),
+                                new SubstituteFactory.ContentsKey(@"c:\Temp\.git\refs\heads", "*",
+                                    SearchOption.TopDirectoryOnly),
                                 new[] { "master" }
                             }, {
                                 new SubstituteFactory.ContentsKey(@"c:\Temp\.git\refs\heads\features", "*",
@@ -66,7 +43,8 @@ namespace UnitTests
                     ChildDirectories =
                         new Dictionary<SubstituteFactory.ContentsKey, IList<string>> {
                             {
-                                new SubstituteFactory.ContentsKey(@"c:\Temp\.git\refs\heads", "*", SearchOption.TopDirectoryOnly),
+                                new SubstituteFactory.ContentsKey(@"c:\Temp\.git\refs\heads", "*",
+                                    SearchOption.TopDirectoryOnly),
                                 new[] { @"c:\Temp\.git\refs\heads\features" }
                             }, {
                                 new SubstituteFactory.ContentsKey(@"c:\Temp\.git\refs\heads\features", "*",
@@ -95,14 +73,54 @@ namespace UnitTests
                                 new CreateRepositoryProcessRunnerOptions.GitConfigGetKey("user.email", GitConfigSource.User),
                                 "someone@somewhere.com"
                             }, {
-                                new CreateRepositoryProcessRunnerOptions.GitConfigGetKey("user.name", GitConfigSource.User),
+                                new CreateRepositoryProcessRunnerOptions.GitConfigGetKey("user.name",
+                                    GitConfigSource.User),
                                 "Someone Somewhere"
                             }
-                        }
+                        },
+                    GitStatusResults = new[] { new GitStatus { Entries = new List<GitStatusEntry>() } },
+                    GitListLocksResults = new IList<GitLock>[] { new GitLock[0] }
                 });
 
-            return new RepositoryManager(repositoryRepositoryPathConfiguration, platform, gitConfig,
-                repositoryWatcher, repositoryProcessRunner, cancellationToken);
+            return new RepositoryManager(repositoryRepositoryPathConfiguration, platform, gitConfig, repositoryWatcher,
+                repositoryProcessRunner, cancellationToken);
+        }
+
+        [Test]
+        public void ShouldBeConstructable()
+        {
+            var repositoryManager = CreateRepositoryManager();
+            repositoryManager.Should().NotBeNull();
+        }
+
+        [Test]
+        public void ShouldRefresh()
+        {
+            var repositoryManager = CreateRepositoryManager();
+
+            GitStatus? status = null;
+            repositoryManager.OnRefreshTrackedFileList += s => {
+                status = s;
+            };
+
+            repositoryManager.Refresh();
+
+            status.HasValue.Should().BeTrue();
+        }
+
+        [Test]
+        public void ShouldRefreshOnWatcherRepositoryChanged()
+        {
+            var repositoryManager = CreateRepositoryManager();
+
+            GitStatus? status = null;
+            repositoryManager.OnRefreshTrackedFileList += s => {
+                status = s;
+            };
+
+            repositoryWatcher.RepositoryChanged += Raise.Event<Action>();
+
+            status.HasValue.Should().BeTrue();
         }
     }
 }
