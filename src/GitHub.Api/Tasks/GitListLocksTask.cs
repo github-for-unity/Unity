@@ -9,7 +9,7 @@ namespace GitHub.Unity
 
         private List<GitLock> gitLocks = new List<GitLock>();
 
-        private GitListLocksTask(
+        public GitListLocksTask(
             IEnvironment environment, IProcessManager processManager,
             ITaskResultDispatcher<IEnumerable<GitLock>> resultDispatcher,
             IGitObjectFactory gitObjectFactory)
