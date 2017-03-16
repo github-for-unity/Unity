@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace UnitTests
 {
     [TestFixture]
-    class RepositoryManagerTests : TestBase
+    class RepositoryManagerTests
     {
         [Test, Ignore()]
         public void InitialTest()
