@@ -13,21 +13,28 @@ namespace UnitTests
     [TestFixture]
     class RepositoryManagerTests
     {
+
         private readonly CancellationToken cancellationToken = CancellationToken.None;
         private IRepositoryWatcher repositoryWatcher;
+        private IPlatform platform;
+        private RepositoryPathConfiguration repositoryRepositoryPathConfiguration;
+        private IGitConfig gitConfig;
+        private Dictionary<CreateRepositoryProcessRunnerOptions.GitConfigGetKey, string> gitConfigGetResults;
 
         protected SubstituteFactory SubstituteFactory { get; private set; }
 
         [TestFixtureSetUp]
-        public void TestFixtureSetup()
+        public void TestFixtureSetUp()
         {
             SubstituteFactory = new SubstituteFactory();
         }
 
-        private RepositoryManager CreateRepositoryManager()
+        [SetUp]
+        public void SetUp()
         {
             NPathFileSystemProvider.Current =
-                SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions() {
+                SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions()
+                {
                     ChildFiles =
                         new Dictionary<SubstituteFactory.ContentsKey, IList<string>> {
                             {
@@ -58,50 +65,57 @@ namespace UnitTests
                         }
                 });
 
-            var platform = SubstituteFactory.CreatePlatform();
+            platform = SubstituteFactory.CreatePlatform();
 
-            var repositoryRepositoryPathConfiguration = new RepositoryPathConfiguration(@"c:\Temp");
-            var gitConfig = SubstituteFactory.CreateGitConfig();
+            repositoryRepositoryPathConfiguration = new RepositoryPathConfiguration(@"c:\Temp");
+            gitConfig = SubstituteFactory.CreateGitConfig();
 
             repositoryWatcher = SubstituteFactory.CreateRepositoryWatcher();
 
-            var repositoryProcessRunner =
-                SubstituteFactory.CreateRepositoryProcessRunner(new CreateRepositoryProcessRunnerOptions {
-                    GitConfigGetResults =
-                        new Dictionary<CreateRepositoryProcessRunnerOptions.GitConfigGetKey, string> {
-                            {
-                                new CreateRepositoryProcessRunnerOptions.GitConfigGetKey("user.email", GitConfigSource.User),
-                                "someone@somewhere.com"
-                            }, {
-                                new CreateRepositoryProcessRunnerOptions.GitConfigGetKey("user.name",
-                                    GitConfigSource.User),
-                                "Someone Somewhere"
-                            }
-                        },
-                    GitStatusResults = new[] { new GitStatus { Entries = new List<GitStatusEntry>() } },
-                    GitListLocksResults = new IList<GitLock>[] { new GitLock[0] }
-                });
+            gitConfigGetResults = new Dictionary<CreateRepositoryProcessRunnerOptions.GitConfigGetKey, string> {
+                {
+                    new CreateRepositoryProcessRunnerOptions.GitConfigGetKey("user.email", GitConfigSource.User),
+                    "someone@somewhere.com"
+                }, {
+                    new CreateRepositoryProcessRunnerOptions.GitConfigGetKey("user.name", GitConfigSource.User),
+                    "Someone Somewhere"
+                }
+            };
+        }
 
+        private RepositoryManager CreateRepositoryManager(IRepositoryProcessRunner repositoryProcessRunner)
+        {
             return new RepositoryManager(repositoryRepositoryPathConfiguration, platform, gitConfig, repositoryWatcher,
                 repositoryProcessRunner, cancellationToken);
+        }
+
+        private IRepositoryProcessRunner CreateRepositoryProcessRunner(IList<GitStatus> gitStatusResults = null, IList<IList<GitLock>> gitListLocksResults = null)
+        {
+            gitStatusResults = gitStatusResults ?? new[] { new GitStatus { Entries = new List<GitStatusEntry>() } };
+            gitListLocksResults = gitListLocksResults ?? new IList<GitLock>[] { new GitLock[0] };
+            return SubstituteFactory.CreateRepositoryProcessRunner(new CreateRepositoryProcessRunnerOptions {
+                GitConfigGetResults = gitConfigGetResults,
+                GitStatusResults = gitStatusResults,
+                GitListLocksResults = gitListLocksResults
+            });
         }
 
         [Test]
         public void ShouldBeConstructable()
         {
-            var repositoryManager = CreateRepositoryManager();
+            var repositoryProcessRunner = CreateRepositoryProcessRunner();
+            var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
             repositoryManager.Should().NotBeNull();
         }
 
         [Test]
         public void ShouldRefresh()
         {
-            var repositoryManager = CreateRepositoryManager();
+            var repositoryProcessRunner = CreateRepositoryProcessRunner();
+            var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
 
             GitStatus? status = null;
-            repositoryManager.OnRefreshTrackedFileList += s => {
-                status = s;
-            };
+            repositoryManager.OnRefreshTrackedFileList += s => { status = s; };
 
             repositoryManager.Refresh();
 
@@ -111,12 +125,11 @@ namespace UnitTests
         [Test]
         public void ShouldRefreshOnWatcherRepositoryChanged()
         {
-            var repositoryManager = CreateRepositoryManager();
+            var repositoryProcessRunner = CreateRepositoryProcessRunner();
+            var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
 
             GitStatus? status = null;
-            repositoryManager.OnRefreshTrackedFileList += s => {
-                status = s;
-            };
+            repositoryManager.OnRefreshTrackedFileList += s => { status = s; };
 
             repositoryWatcher.RepositoryChanged += Raise.Event<Action>();
 
