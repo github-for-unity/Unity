@@ -1,3 +1,4 @@
+using TestUtils;
 using System.Collections.Generic;
 using NUnit.Framework;
 using GitHub.Unity;
@@ -9,7 +10,7 @@ namespace UnitTests
     {
         private void AssertProcessOutput(IEnumerable<string> lines, GitLock[] expected)
         {
-            var gitObjectFactory = CreateGitObjectFactory();
+            var gitObjectFactory = SubstituteFactory.CreateGitObjectFactory(TestRootPath);
 
             var results = new List<GitLock>();
             var outputProcessor = new LockOutputProcessor(gitObjectFactory);

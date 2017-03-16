@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace IntegrationTests
+namespace TestUtils
 {
     class CreateFileSystemOptions
     {
