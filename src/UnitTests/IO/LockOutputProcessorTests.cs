@@ -1,3 +1,4 @@
+using TestUtils;
 using System.Collections.Generic;
 using NUnit.Framework;
 using GitHub.Unity;
@@ -9,7 +10,7 @@ namespace UnitTests
     {
         private void AssertProcessOutput(IEnumerable<string> lines, GitLock[] expected)
         {
-            var gitObjectFactory = CreateGitObjectFactory();
+            var gitObjectFactory = SubstituteFactory.CreateGitObjectFactory(TestRootPath);
 
             var results = new List<GitLock>();
             var outputProcessor = new LockOutputProcessor(gitObjectFactory);
@@ -24,7 +25,7 @@ namespace UnitTests
         }
 
         [Test]
-        public void ShouldParseZeroLocks()
+        public void ShouldParseZeroLocksFormat1()
         {
             var output = new[] {
                 null,
@@ -37,18 +38,66 @@ namespace UnitTests
         }
 
         [Test]
-        public void ShouldParseTwoLocks()
+        public void ShouldParseZeroLocksFormat2()
         {
             var output = new[] {
-                "folder/somefile.png    GitHub User 12 <>",
-                "somezip.zip GitHub User 21 <>",
                 null,
-                "2 lock(s) matched query."
+                "0 lock (s) matched query."
+            };
+
+            var expected = new GitLock[0];
+
+            AssertProcessOutput(output, expected);
+        }
+
+        [Test]
+        public void ShouldParseTwoLocksFormat1()
+        {
+            var output = new[]
+            {
+                "folder/somefile.png\tGitHub User 12",
+                "somezip.zip\tGitHub User 21",
+                string.Empty,
+                "2 lock(s) matched query.",
+                null
             };
 
             var expected = new[] {
                 new GitLock("folder/somefile.png", TestRootPath + @"\folder/somefile.png", "GitHub User 12"),
                 new GitLock("somezip.zip", TestRootPath + @"\somezip.zip", "GitHub User 21")
+            };
+
+            AssertProcessOutput(output, expected);
+        }
+
+        [Test]
+        public void ShouldParseTwoLocksFormat2()
+        {
+            var output = new[]
+            {
+                "folder/somefile.png\tGitHub User 12",
+                "somezip.zip\tGitHub User 21",
+                null
+            };
+
+            var expected = new[] {
+                new GitLock("folder/somefile.png", TestRootPath + @"\folder/somefile.png", "GitHub User 12"),
+                new GitLock("somezip.zip", TestRootPath + @"\somezip.zip", "GitHub User 21")
+            };
+
+            AssertProcessOutput(output, expected);
+        }
+
+        [Test]
+        public void ShouldParseLocksOnFileWithNumericFirstLetter()
+        {
+            var output = new[]
+            {
+                "2_TurtleDoves.jpg\tTree",
+            };
+
+            var expected = new[] {
+                new GitLock("2_TurtleDoves.jpg", TestRootPath + @"\2_TurtleDoves.jpg", "Tree")
             };
 
             AssertProcessOutput(output, expected);

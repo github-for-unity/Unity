@@ -1,9 +1,13 @@
 using System;
+using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
 {
     class LockOutputProcessor : BaseOutputProcessor
     {
+        private static readonly Regex locksSummaryLineRegex = new Regex(@".*?lock\s?\(s\) matched query.",
+            RegexOptions.Compiled);
+
         private IGitObjectFactory gitObjectFactory;
 
         public LockOutputProcessor(IGitObjectFactory gitObjectFactory)
@@ -15,38 +19,29 @@ namespace GitHub.Unity
         {
             base.LineReceived(line);
 
-            if (line == null || OnGitLock == null)
+            if (OnGitLock == null)
             {
                 return;
             }
 
-            if (line.EndsWith("lock(s) matched query."))
+            if (string.IsNullOrEmpty(line))
             {
+                //Do Nothing
                 return;
             }
 
             var proc = new LineParser(line);
-            if (proc.IsAtEnd)
+            if (proc.Matches(locksSummaryLineRegex))
             {
                 return;
             }
 
-            string file;
-            if (proc.Matches('"'))
-            {
-                proc.MoveNext();
-                file = proc.ReadUntil('"');
-            }
-            else
-            {
-                file = proc.ReadUntilWhitespace();
-            }
+            var path = proc.ReadUntil('\t').Trim();
+            proc.MoveNext();
 
-            proc.SkipWhitespace();
-            var user = proc.ReadUntil('<').TrimEnd();
+            var user = proc.ReadToEnd();
 
-            var gitLock = gitObjectFactory.CreateGitLock(file, user);
-            OnGitLock?.Invoke(gitLock);
+            OnGitLock(gitObjectFactory.CreateGitLock(path, user));
         }
 
         public event Action<GitLock> OnGitLock;

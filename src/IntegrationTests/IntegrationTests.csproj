@@ -3,7 +3,7 @@
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProjectGuid>{1AC3F82E-AEAE-4C84-825C-207BB264FCFA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -13,22 +13,42 @@
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AsyncBridge.Net35, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
@@ -74,19 +94,15 @@
     <Compile Include="Auth\LoginTests.cs" />
     <Compile Include="BaseGitIntegrationTest.cs" />
     <Compile Include="BaseIntegrationTest.cs" />
-    <Compile Include="Helpers\Args.cs" />
+    <Compile Include="Events\RepositoryWatcherTests.cs" />
     <Compile Include="Watches\FileSystemWatcherTests.cs" />
     <Compile Include="Helpers\TestUIDispatcher.cs" />
     <Compile Include="Git\GitClientTests.cs" />
-    <Compile Include="Helpers\AssertExtensions.cs" />
     <Compile Include="Installer\GitInstallerTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="Process\ProcessManagerIntegrationTests.cs" />
     <Compile Include="SetupFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Helpers\CreateEnvironmentOptions.cs" />
-    <Compile Include="Helpers\CreateFileSystemOptions.cs" />
-    <Compile Include="Helpers\SubstituteFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GitHub.Api\GitHub.Api.csproj">
@@ -96,6 +112,10 @@
     <ProjectReference Include="..\GitHub.Logging\GitHub.Logging.csproj">
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TestUtils\TestUtils.csproj">
+      <Project>{66a1d219-f61d-4ae4-9bd7-aaeb97276fff}</Project>
+      <Name>TestUtils</Name>
     </ProjectReference>
     <ProjectReference Include="..\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
       <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
@@ -112,6 +132,10 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y /F "$(SolutionDir)lib\sfw.net\win\$(PlatformName)\$(Configuration)\*.dll" "$(TargetDir)"
+xcopy /Y /F "$(SolutionDir)lib\sfw.net\win\$(PlatformName)\$(Configuration)\*.pdb" "$(TargetDir)"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

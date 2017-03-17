@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using FluentAssertions;
-using NUnit.Framework;
 using GitHub.Unity;
+using NUnit.Framework;
 
-namespace UnitTests
+namespace TestUtils
 {
     static class AssertExtensions
     {
@@ -64,6 +64,7 @@ namespace UnitTests
             gitStatusEntry.ProjectPath.Should().Be(other.ProjectPath);
             gitStatusEntry.Status.Should().Be(other.Status);
             gitStatusEntry.Staged.Should().Be(other.Staged);
+            gitStatusEntry.Lock.Should().Be(other.Lock);
         }
 
         public static void AssertNotEqual(this GitStatusEntry gitStatusEntry, GitStatusEntry other)
@@ -151,6 +152,5 @@ namespace UnitTests
             Action action = () => gitLocks.AssertEqual(others);
             action.ShouldThrow<AssertionException>();
         }
-
     }
 }
