@@ -49,5 +49,77 @@ namespace UnitTests
 
             gitStatusEntry.Should().Be(gitStatusEntry);
         }
+
+        [Test]
+        public void ShouldBeEqualToOther()
+        {
+            var gitStatusEntry = new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Added, "SomeOriginalPath");
+
+            var gitStatusEntry2= new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Added, "SomeOriginalPath");
+
+            gitStatusEntry.Should().Be(gitStatusEntry2);
+        }
+
+        [Test]
+        public void ShouldNotBeEqualIfOneIsStaged()
+        {
+            var gitStatusEntry = new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Added, "SomeOriginalPath", staged: true);
+
+            var gitStatusEntry2= new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Added, "SomeOriginalPath");
+
+            gitStatusEntry.Should().NotBe(gitStatusEntry2);
+        }
+
+        [Test]
+        public void ShouldBeEqualIfBothAreStaged()
+        {
+            var gitStatusEntry = new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Added, "SomeOriginalPath", true);
+
+            var gitStatusEntry2= new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Added, "SomeOriginalPath", true);
+
+            gitStatusEntry.Should().Be(gitStatusEntry2);
+        }
+
+        [Test]
+        public void ShouldNotBeEqualIfOneIsLocked()
+        {
+            var gitStatusEntry = new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Added, "SomeOriginalPath", gitLock:new GitLock("SomePath", "SomeFullPath", "Someone"));
+
+            var gitStatusEntry2= new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Added, "SomeOriginalPath");
+
+            gitStatusEntry.Should().NotBe(gitStatusEntry2);
+        }
+
+        [Test]
+        public void ShouldBeEqualIfBothAreLocked()
+        {
+            var gitStatusEntry = new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Added, "SomeOriginalPath", gitLock: new GitLock("SomePath", "SomeFullPath", "Someone"));
+
+            var gitStatusEntry2= new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Added, "SomeOriginalPath", gitLock: new GitLock("SomePath", "SomeFullPath", "Someone"));
+
+            gitStatusEntry.Should().Be(gitStatusEntry2);
+        }
+
+        [Test]
+        public void ShouldNotBeEqualIfLocksAreDifferent()
+        {
+            var gitStatusEntry = new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Added, "SomeOriginalPath", gitLock: new GitLock("SomePath", "SomeFullPath", "Someone"));
+
+            var gitStatusEntry2= new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Added, "SomeOriginalPath", gitLock: new GitLock("SomePath", "SomeFullPath", "SomeoneElse"));
+
+            gitStatusEntry.Should().NotBe(gitStatusEntry2);
+        }
     }
 }

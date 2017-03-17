@@ -86,7 +86,9 @@ namespace IntegrationTests
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
             await platform.Initialize(processManager);
-            using (var repoManager = new RepositoryManager(TestRepoPath, platform, CancellationToken.None))
+
+            var repositoryManagerFactory = new RepositoryManagerFactory();
+            using (var repoManager = repositoryManagerFactory.CreateRepositoryManager(platform, TestRepoPath, CancellationToken.None))
             {
                 var repository = repoManager.Repository;
                 environment.Repository = repoManager.Repository;

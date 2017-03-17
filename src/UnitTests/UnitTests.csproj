@@ -79,11 +79,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IO\BranchListOutputProcessorTests.cs" />
-    <Compile Include="IO\CreateEnvironmentOptions.cs" />
-    <Compile Include="IO\CreateFileSystemOptions.cs" />
     <Compile Include="IO\LockOutputProcessorTests.cs" />
     <Compile Include="IO\RemoteListOutputProcessorTests.cs" />
-    <Compile Include="Helpers\AssertExtensions.cs" />
     <Compile Include="IO\BaseOutputProcessorTests.cs" />
     <Compile Include="IO\GitEnvironmentTestsBase.cs" />
     <Compile Include="IO\GitLogEntryListTests.cs" />
@@ -95,9 +92,9 @@
     <Compile Include="IO\StatusOutputProcessorTests.cs" />
     <Compile Include="IO\MacBasedGitEnvironmentTests.cs" />
     <Compile Include="IO\LinuxBasedGitEnvironmentTests.cs" />
-    <Compile Include="IO\TestBase.cs" />
     <Compile Include="IO\WindowsGitEnvironmentTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
+    <Compile Include="Repository\RepositoryManagerTests.cs" />
     <Compile Include="SetUpFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -118,6 +115,10 @@
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TestUtils\TestUtils.csproj">
+      <Project>{66a1d219-f61d-4ae4-9bd7-aaeb97276fff}</Project>
+      <Name>TestUtils</Name>
+    </ProjectReference>
     <ProjectReference Include="..\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
       <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
       <Name>GitHub.Unity</Name>
@@ -131,9 +132,7 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Logging\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /F "$(SolutionDir)lib\sfw.net\win32\$(Configuration)\*.dll" "$(TargetDir)"
