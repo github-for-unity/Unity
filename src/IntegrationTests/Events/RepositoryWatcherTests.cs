@@ -5,6 +5,7 @@ using FluentAssertions;
 using GitHub.Unity;
 using NSubstitute;
 using NUnit.Framework;
+using TestUtils;
 
 namespace IntegrationTests.Events
 {
@@ -38,8 +39,8 @@ namespace IntegrationTests.Events
 
         private RepositoryWatcher CreateRepositoryWatcher()
         {
-            return new RepositoryWatcher(Platform, TestRepoPath, DotGitPath, DotGitIndex,
-                DotGitHead, BranchesPath, RemotesPath, DotGitConfig);
+            var paths = new RepositoryPathConfiguration(TestRepoPath);
+            return new RepositoryWatcher(Platform, paths);
         }
 
         protected IRepositoryManager RepositoryManager { get; private set; }

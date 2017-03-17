@@ -21,35 +21,24 @@ namespace GitHub.Unity
 
     class RepositoryWatcher : IRepositoryWatcher
     {
-        private readonly NPath branchesPath;
-        private readonly NPath dotGitConfig;
-        private readonly NPath dotGitHead;
-        private readonly NPath dotGitIndex;
-        private readonly NPath dotGitPath;
+        private readonly RepositoryPathConfiguration paths;
         private readonly NPath[] ignoredPaths;
-        private readonly NPath remotesPath;
 
         private bool disposed;
         private NativeInterface nativeInterface;
         private bool running;
         private Thread thread;
 
-        public RepositoryWatcher(IPlatform platform, NPath repositoryPath, NPath dotGitPath,
-            NPath dotGitIndex, NPath dotGitHead, NPath branchesPath, NPath remotesPath, NPath dotGitConfig)
+        public RepositoryWatcher(IPlatform platform, RepositoryPathConfiguration paths)
         {
-            this.dotGitPath = dotGitPath;
-            this.dotGitIndex = dotGitIndex;
-            this.dotGitHead = dotGitHead;
-            this.branchesPath = branchesPath;
-            this.remotesPath = remotesPath;
-            this.dotGitConfig = dotGitConfig;
+            this.paths = paths;
 
             ignoredPaths = new[] {
                 platform.Environment.UnityProjectPath.ToNPath().Combine("Library"),
                 platform.Environment.UnityProjectPath.ToNPath().Combine("Temp")
             };
 
-            nativeInterface = new NativeInterface(repositoryPath);
+            nativeInterface = new NativeInterface(paths.RepositoryPath);
             thread = new Thread(ThreadLoop);
         }
 
@@ -105,39 +94,38 @@ namespace GitHub.Unity
                         fileB = new NPath(fileEvent.Directory).Combine(fileEvent.FileB);
                     }
 
-
-                    if (fileA.IsChildOf(dotGitPath))
+                    if (fileA.IsChildOf(paths.DotGitPath))
                     {
-                        if (fileA.Equals(dotGitConfig))
+                        if (fileA.Equals(paths.DotGitConfig))
                         {
                             Logger.Debug("ConfigChanged");
 
                             ConfigChanged?.Invoke();
                         }
-                        else if (fileA.Equals(dotGitHead))
+                        else if (fileA.Equals(paths.DotGitHead))
                         {
                             string headContent = null;
                             if (fileEvent.Type != EventType.DELETED)
                             {
-                                headContent = dotGitHead.ReadAllLines().FirstOrDefault();
+                                headContent = paths.DotGitHead.ReadAllLines().FirstOrDefault();
                             }
 
                             Logger.Debug("HeadChanged: {0}", headContent ?? "[null]");
                             HeadChanged?.Invoke(headContent);
                         }
-                        else if (fileA.Equals(dotGitIndex))
+                        else if (fileA.Equals(paths.DotGitIndex))
                         {
                             Logger.Debug("IndexChanged");
                             IndexChanged?.Invoke();
                         }
-                        else if (fileA.IsChildOf(remotesPath))
+                        else if (fileA.IsChildOf(paths.RemotesPath))
                         {
                             if (fileA.ExtensionWithDot == ".lock")
                             {
                                 continue;
                             }
 
-                            var relativePath = fileA.RelativeTo(remotesPath);
+                            var relativePath = fileA.RelativeTo(paths.RemotesPath);
                             var relativePathElements = relativePath.Elements.ToArray();
 
                             if (fileEvent.Type == EventType.DELETED && relativePathElements.Length > 1)
@@ -149,17 +137,17 @@ namespace GitHub.Unity
                                 RemoteBranchDeleted?.Invoke(origin, branch);
                             }
                             else if (fileEvent.Type == EventType.CREATED)
-                            { }
+                            {}
                             else if (fileEvent.Type == EventType.MODIFIED)
-                            { }
+                            {}
                             else if (fileEvent.Type == EventType.RENAMED)
-                            { }
+                            {}
                             else
                             {
                                 throw new ArgumentOutOfRangeException();
                             }
                         }
-                        else if (fileA.IsChildOf(branchesPath))
+                        else if (fileA.IsChildOf(paths.BranchesPath))
                         {
                             if (fileA.ExtensionWithDot == ".lock" && fileEvent.Type != EventType.RENAMED)
                             {
@@ -168,7 +156,7 @@ namespace GitHub.Unity
 
                             if (fileEvent.Type == EventType.DELETED)
                             {
-                                var relativePath = fileA.RelativeTo(branchesPath);
+                                var relativePath = fileA.RelativeTo(paths.BranchesPath);
                                 var relativePathElements = relativePath.Elements.ToArray();
 
                                 if (!relativePathElements.Any())
@@ -182,8 +170,7 @@ namespace GitHub.Unity
                                 LocalBranchDeleted?.Invoke(branch);
                             }
                             else if (fileEvent.Type == EventType.CREATED)
-                            {
-                            }
+                            {}
                             else if (fileEvent.Type == EventType.MODIFIED)
                             {}
                             else if (fileEvent.Type == EventType.RENAMED)
@@ -192,7 +179,7 @@ namespace GitHub.Unity
                                 {
                                     if (fileA.FileNameWithoutExtension == fileB.FileNameWithoutExtension)
                                     {
-                                        var relativePath = fileB.RelativeTo(branchesPath);
+                                        var relativePath = fileB.RelativeTo(paths.BranchesPath);
                                         var relativePathElements = relativePath.Elements.ToArray();
 
                                         if (!relativePathElements.Any())
@@ -220,7 +207,8 @@ namespace GitHub.Unity
                             continue;
                         }
 
-                        Logger.Debug("RepositoryChanged {0}: {1} {2}", fileEvent.Type, fileA.ToString(), fileB?.ToString() ?? "[NULL]");
+                        Logger.Debug("RepositoryChanged {0}: {1} {2}", fileEvent.Type, fileA.ToString(),
+                            fileB?.ToString() ?? "[NULL]");
                         RepositoryChanged?.Invoke();
                     }
                 }
