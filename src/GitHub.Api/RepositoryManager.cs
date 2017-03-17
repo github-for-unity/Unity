@@ -22,7 +22,6 @@ namespace GitHub.Unity
         event Action OnRemoteBranchListChanged;
         event Action OnLocalBranchListChanged;
         event Action<GitStatus> OnRepositoryChanged;
-        event Action<GitStatus> OnRefreshTrackedFileList;
         event Action OnHeadChanged;
         event Action OnRemoteOrTrackingChanged;
     }
@@ -162,7 +161,6 @@ namespace GitHub.Unity
         public event Action OnRemoteBranchListChanged;
         public event Action OnLocalBranchListChanged;
         public event Action<GitStatus> OnRepositoryChanged;
-        public event Action<GitStatus> OnRefreshTrackedFileList;
         public event Action OnHeadChanged;
         public event Action OnRemoteOrTrackingChanged;
 
@@ -187,8 +185,11 @@ namespace GitHub.Unity
 
         private void OnRepositoryUpdated()
         {
+            Logger.Trace("Starting OnRepositoryUpdated");
+
             if (statusUpdateRequested)
             {
+                Logger.Trace("Exiting OnRepositoryUpdated");
                 return;
             }
 
@@ -196,7 +197,7 @@ namespace GitHub.Unity
 
             GitStatus? gitStatus = null;
             var runGitStatus = repositoryProcessRunner.RunGitStatus(new TaskResultDispatcher<GitStatus>(s => {
-                Logger.Debug("RunGitStatus Success");
+                Logger.Debug("RunGitStatus Success: {0}", s);
                 gitStatus = s;
             }, () => {
                 Logger.Warning("RunGitStatus Failed");
@@ -205,8 +206,10 @@ namespace GitHub.Unity
             GitLock[] gitLocks = null;
             var runGitListLocks =
                 repositoryProcessRunner.RunGitListLocks(new TaskResultDispatcher<IEnumerable<GitLock>>(s => {
-                    Logger.Debug("RunGitListLocks Success");
-                    gitLocks = s.ToArray();
+                    var resultArray = s.ToArray();
+                    Logger.Debug("RunGitListLocks Success: {0}", resultArray.Count());
+                    gitLocks = resultArray;
+
                 }, () => {
                     Logger.Warning("RunGitListLocks Failed");
                 }));
@@ -214,25 +217,40 @@ namespace GitHub.Unity
             runGitStatus.Wait(cancellationToken);
             runGitListLocks.Wait(cancellationToken);
 
+            Logger.Trace("OnRepositoryUpdated Processing Results");
+            statusUpdateRequested = false;
+
             if (gitStatus.HasValue)
             {
                 Debug.Assert(gitStatus != null, "gitStatus != null");
                 var gitStatusValue = gitStatus.Value;
-                ILookup<string, GitStatusEntry> gitStatusEntriesByPath;
 
                 if (gitStatusValue.Entries.Any())
                 {
-                    gitStatusEntriesByPath = gitStatusValue.Entries.ToLookup(entry => entry.ProjectPath);
                     lastStatusUpdate = DateTime.Now;
                 }
-
+                
                 if (gitLocks != null)
                 {
                     lastLocksUpdate = DateTime.Now;
+
+                    var gitLockDictionary = gitLocks.ToDictionary(gitLock => gitLock.Path);
+
+                    gitStatusValue.Entries = gitStatusValue.Entries.Select(entry => {
+                        GitLock gitLock;
+                        if (gitLockDictionary.TryGetValue(entry.Path, out gitLock))
+                        {
+                            entry.Lock = gitLock;
+                        }
+
+                        return entry;
+                    }).ToArray();
                 }
 
-                OnRefreshTrackedFileList?.Invoke(gitStatus.Value);
+                OnRepositoryChanged?.Invoke(gitStatusValue);
             }
+
+            Logger.Trace("Ending OnRepositoryUpdated lastStatusUpdate:{0} lastLocksUpdate:{1}", lastStatusUpdate, lastLocksUpdate);
         }
 
         private void OnConfigChanged()

@@ -34,7 +34,6 @@ namespace GitHub.Unity
 
         private void AddLock(GitLock gitLock)
         {
-            Logger.Trace("AddLock " + gitLock);
             gitLocks.Add(gitLock);
         }
 
