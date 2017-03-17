@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using FluentAssertions;
 using GitHub.Unity;
-using NSubstitute;
 using NUnit.Framework;
 using TestUtils;
 
@@ -13,28 +12,11 @@ namespace UnitTests
     [TestFixture]
     class RepositoryManagerTests
     {
-
-        private readonly CancellationToken cancellationToken = CancellationToken.None;
-        private IRepositoryWatcher repositoryWatcher;
-        private IPlatform platform;
-        private RepositoryPathConfiguration repositoryRepositoryPathConfiguration;
-        private IGitConfig gitConfig;
-        private Dictionary<CreateRepositoryProcessRunnerOptions.GitConfigGetKey, string> gitConfigGetResults;
-
-        protected SubstituteFactory SubstituteFactory { get; private set; }
-
-        [TestFixtureSetUp]
-        public void TestFixtureSetUp()
-        {
-            SubstituteFactory = new SubstituteFactory();
-        }
-
         [SetUp]
         public void SetUp()
         {
             NPathFileSystemProvider.Current =
-                SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions()
-                {
+                SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions() {
                     ChildFiles =
                         new Dictionary<SubstituteFactory.ContentsKey, IList<string>> {
                             {
@@ -83,21 +65,36 @@ namespace UnitTests
             };
         }
 
+        [TestFixtureSetUp]
+        public void TestFixtureSetUp()
+        {
+            SubstituteFactory = new SubstituteFactory();
+        }
+
+        private readonly CancellationToken cancellationToken = CancellationToken.None;
+        private IRepositoryWatcher repositoryWatcher;
+        private IPlatform platform;
+        private RepositoryPathConfiguration repositoryRepositoryPathConfiguration;
+        private IGitConfig gitConfig;
+        private Dictionary<CreateRepositoryProcessRunnerOptions.GitConfigGetKey, string> gitConfigGetResults;
+
+        protected SubstituteFactory SubstituteFactory { get; private set; }
+
         private RepositoryManager CreateRepositoryManager(IRepositoryProcessRunner repositoryProcessRunner)
         {
             return new RepositoryManager(repositoryRepositoryPathConfiguration, platform, gitConfig, repositoryWatcher,
                 repositoryProcessRunner, cancellationToken);
         }
 
-        private IRepositoryProcessRunner CreateRepositoryProcessRunner(IList<GitStatus> gitStatusResults = null, IList<IList<GitLock>> gitListLocksResults = null)
+        private IRepositoryProcessRunner CreateRepositoryProcessRunner(IList<GitStatus> gitStatusResults = null,
+            IList<IList<GitLock>> gitListLocksResults = null)
         {
-            gitStatusResults = gitStatusResults ?? new[] { new GitStatus { Entries = new List<GitStatusEntry>() } };
-            gitListLocksResults = gitListLocksResults ?? new IList<GitLock>[] { new GitLock[0] };
-            return SubstituteFactory.CreateRepositoryProcessRunner(new CreateRepositoryProcessRunnerOptions {
-                GitConfigGetResults = gitConfigGetResults,
-                GitStatusResults = gitStatusResults,
-                GitListLocksResults = gitListLocksResults
-            });
+            return
+                SubstituteFactory.CreateRepositoryProcessRunner(new CreateRepositoryProcessRunnerOptions {
+                    GitConfigGetResults = gitConfigGetResults,
+                    GitStatusResults = gitStatusResults,
+                    GitListLocksResults = gitListLocksResults
+                });
         }
 
         [Test]
@@ -109,31 +106,42 @@ namespace UnitTests
         }
 
         [Test]
-        public void ShouldRefresh()
+        public void ShouldNotRefreshWithNoResults()
         {
-            var repositoryProcessRunner = CreateRepositoryProcessRunner();
+            var repositoryProcessRunner = CreateRepositoryProcessRunner(new GitStatus[0], new IList<GitLock>[0]);
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
 
-            GitStatus? status = null;
-            repositoryManager.OnRefreshTrackedFileList += s => { status = s; };
+            GitStatus? expected = null;
+            repositoryManager.OnRefreshTrackedFileList += s => { expected = s; };
 
             repositoryManager.Refresh();
 
-            status.HasValue.Should().BeTrue();
+            expected.HasValue.Should().BeFalse();
         }
 
         [Test]
-        public void ShouldRefreshOnWatcherRepositoryChanged()
+        public void ShouldRefreshWithStatusResponseAndNoGitLockResponse()
         {
-            var repositoryProcessRunner = CreateRepositoryProcessRunner();
+            var gitStatus = new GitStatus {
+                LocalBranch = "master",
+                Entries =
+                    new List<GitStatusEntry> {
+                        new GitStatusEntry("Some.sln", null, "Some.sln", GitFileStatus.Modified)
+                    }
+            };
+
+            var repositoryProcessRunner = CreateRepositoryProcessRunner(new[] { gitStatus }, new IList<GitLock>[0]);
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
 
-            GitStatus? status = null;
-            repositoryManager.OnRefreshTrackedFileList += s => { status = s; };
+            GitStatus? expected = null;
+            repositoryManager.OnRefreshTrackedFileList += s => { expected = s; };
 
-            repositoryWatcher.RepositoryChanged += Raise.Event<Action>();
+            repositoryManager.Refresh();
 
-            status.HasValue.Should().BeTrue();
+            expected.HasValue.Should().BeTrue();
+
+            Debug.Assert(expected != null, "expected != null");
+            expected.Value.AssertEqual(gitStatus);
         }
     }
 }

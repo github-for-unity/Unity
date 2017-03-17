@@ -10,21 +10,15 @@ namespace GitHub.Unity
         public string RemoteBranch;
         public int Ahead;
         public int Behind;
-        public List<GitStatusEntry> Entries;
+        public IList<GitStatusEntry> Entries;
 
         public override string ToString()
         {
-            var sb = new System.Text.StringBuilder();
-            sb.Append(String.Format("LocalBranch:{0} RemoteBranch:{1} Ahead:{2} Behind:{3}", LocalBranch, RemoteBranch, Ahead, Behind));
-            if (Entries != null)
-            {
-                foreach (var e in Entries)
-                {
-                    sb.AppendLine(e.ToString());
-                }
-            }
-            return sb.ToString();
-        }
+            var remoteBranchString = string.IsNullOrEmpty(RemoteBranch) ? "?" : string.Format("\"{0}\"", RemoteBranch);
+            var entriesString = Entries == null ? "NULL" : Entries.Count.ToString();
 
+            return string.Format("{{GitStatus: \"{0}\"->{1} +{2}/-{3} {4} entries}}", LocalBranch, remoteBranchString, Ahead,
+                Behind, entriesString);
+        }
     }
 }
