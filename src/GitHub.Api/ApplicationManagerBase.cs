@@ -16,8 +16,8 @@ namespace GitHub.Unity
             SynchronizationContext = synchronizationContext;
             SynchronizationContext.SetSynchronizationContext(SynchronizationContext);
             ThreadingHelper.SetMainThread();
-            Scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-            ThreadingHelper.MainThreadScheduler = Scheduler;
+            UIScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+            ThreadingHelper.MainThreadScheduler = UIScheduler;
             CancellationTokenSource = new CancellationTokenSource();
         }
 
@@ -80,12 +80,13 @@ namespace GitHub.Unity
             await ThreadingHelper.SwitchToThreadAsync();
 
             SetupRepository();
- 
-            if (repositoryLocator.RepositoryPath != null)
+
+            var repositoryRoot = repositoryLocator.FindRepositoryRoot();
+            if (repositoryRoot != null)
             {
                 try
                 {
-                    repositoryManager = new RepositoryManager(repositoryLocator.RepositoryPath, Platform, CancellationToken);
+                    repositoryManager = new RepositoryManager(repositoryRoot, Platform, CancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -102,7 +103,7 @@ namespace GitHub.Unity
 
             var gitSetup = new GitSetup(Environment, CancellationToken);
             var expectedPath = gitSetup.GitInstallationPath;
-            logger.Trace("GitInstallationPath {0} {1} {2}", expectedPath, gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
+
             bool setupDone = gitSetup.GitExecutablePath.FileExists();
             if (!setupDone)
             {
@@ -116,6 +117,8 @@ namespace GitHub.Unity
                 Environment.GitExecutablePath = gitSetup.GitExecutablePath;
             else
                 Environment.GitExecutablePath = await LookForGitInstallationPath();
+
+            logger.Trace("GitInstallationPath {0} {1} {2}", expectedPath, gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
 
             await RestartRepository();
         }
@@ -167,8 +170,9 @@ namespace GitHub.Unity
         public CancellationToken CancellationToken { get; protected set; }
 
         protected CancellationTokenSource CancellationTokenSource { get; private set; }
-        protected TaskScheduler Scheduler { get; private set; }
+        protected TaskScheduler UIScheduler { get; private set; }
         protected SynchronizationContext SynchronizationContext { get; private set; }
+        protected IRepositoryManager RepositoryManager { get { return repositoryManager; } }
 
         public ISettings LocalSettings { get; protected set; }
         public ISettings SystemSettings { get; protected set; }

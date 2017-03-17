@@ -1,30 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using FluentAssertions;
-using NSubstitute;
 using NUnit.Framework;
 using GitHub.Unity;
-using System.Threading;
 
 namespace IntegrationTests
 {
     [TestFixture]
     class ProcessManagerIntegrationTests : BaseGitIntegrationTest
     {
-        [Test]
-        public async void BranchListTest()
-        {
-            var filesystem = new FileSystem();
-            NPathFileSystemProvider.Current = filesystem;
-            var environment = new DefaultEnvironment();
-            environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
-            var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment);
-            environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
+        public ProcessManager ProcessManager { get; set; }
 
-            var gitBranches = processManager.GetGitBranches(TestGitRepoPath);
+        public IProcessEnvironment GitEnvironment { get; set; }
+
+        protected override void OnSetup()
+        {
+            base.OnSetup();
+
+            var platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
+            GitEnvironment = platform.GitEnvironment;
+            ProcessManager = new ProcessManager(Environment, GitEnvironment);
+
+            Environment.UnityProjectPath = TestBasePath;
+            Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
+
+            var repositoryManager = new RepositoryManager(TestBasePath, platform, CancellationToken.None);
+            Environment.Repository = repositoryManager.Repository;
+        }
+
+        [Test]
+        public void BranchListTest()
+        {
+            var gitBranches = ProcessManager.GetGitBranches(TestBasePath);
 
             gitBranches.Should().BeEquivalentTo(
                 new GitBranch("master", string.Empty, true),
@@ -32,19 +41,10 @@ namespace IntegrationTests
         }
 
         [Test]
-        public async void LogEntriesTest()
+        public void LogEntriesTest()
         {
-            var filesystem = new FileSystem();
-            NPathFileSystemProvider.Current = filesystem;
-            var environment = new DefaultEnvironment();
-            environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
-            var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment);
-            environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
-
             var logEntries =
-                processManager.GetGitLogEntries(TestGitRepoPath, environment, filesystem, gitEnvironment, 2)
+                ProcessManager.GetGitLogEntries(TestBasePath, Environment, FileSystem, GitEnvironment, 2)
                     .ToArray();
 
             logEntries.AssertEqual(new[]
@@ -58,8 +58,8 @@ namespace IntegrationTests
                     Changes = new List<GitStatusEntry>
                     {
                         new GitStatusEntry("Assets/TestDocument.txt".ToNPath(),
-                            TestGitRepoPath + "Assets/TestDocument.txt".ToNPath(), null,
-                            GitFileStatus.Renamed, "TestDocument.txt"),
+                            TestBasePath + "/Assets/TestDocument.txt".ToNPath(), "Assets/TestDocument.txt".ToNPath(),
+                            GitFileStatus.Renamed, "TestDocument.txt")
                     },
                     CommitID = "018997938335742f8be694240a7c2b352ec0835f",
                     Description = "Moving project files where they should be kept",
@@ -75,8 +75,8 @@ namespace IntegrationTests
                     CommitName = "Author Person",
                     Changes = new List<GitStatusEntry>
                     {
-                        new GitStatusEntry("TestDocument.txt",
-                            TestGitRepoPath + "TestDocument.txt", null,
+                        new GitStatusEntry("TestDocument.txt".ToNPath(),
+                            TestBasePath + "/TestDocument.txt".ToNPath(), "TestDocument.txt".ToNPath(),
                             GitFileStatus.Added),
                     },
                     CommitID = "03939ffb3eb8486dba0259b43db00842bbe6eca1",
@@ -89,18 +89,9 @@ namespace IntegrationTests
         }
 
         [Test]
-        public async void RemoteListTest()
+        public void RemoteListTest()
         {
-            var filesystem = new FileSystem();
-            NPathFileSystemProvider.Current = filesystem;
-            var environment = new DefaultEnvironment();
-            environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
-            var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment);
-            environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
-
-            var gitRemotes = processManager.GetGitRemoteEntries(TestGitRepoPath);
+            var gitRemotes = ProcessManager.GetGitRemoteEntries(TestBasePath);
 
             gitRemotes.Should().BeEquivalentTo(new GitRemote()
             {
@@ -110,64 +101,40 @@ namespace IntegrationTests
                 Function = GitRemoteFunction.Both
             });
         }
-    
+
         [Test]
-        public async void StatusTest()
+        public void StatusTest()
         {
-            var testRepo = TestGitRepoPath.ToNPath();
-            var filesystem = new FileSystem(TestGitRepoPath);
-            NPathFileSystemProvider.Current = filesystem;
-            var environment = new DefaultEnvironment();
-            environment.UnityProjectPath = TestGitRepoPath;
-            
-            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
-            var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment);
-            var gitClient = new RepositoryLocator(TestGitRepoPath);
-            using (var repoManager = new RepositoryManager(TestGitRepoPath, platform, CancellationToken.None))
+            var gitStatus = ProcessManager.GetGitStatus(TestBasePath, Environment, FileSystem, GitEnvironment);
+
+            gitStatus.AssertEqual(new GitStatus()
             {
-
-                environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
-
-                var gitStatus = processManager.GetGitStatus(TestGitRepoPath, environment, filesystem, gitEnvironment);
-
-                gitStatus.AssertEqual(new GitStatus()
-                {
-                    LocalBranch = "master",
-                    Entries = new List<GitStatusEntry>
+                LocalBranch = "master",
+                Entries = new List<GitStatusEntry>
                 {
                     new GitStatusEntry("Assets/Added Document.txt".ToNPath(),
-                        testRepo.Combine("Assets/Added Document.txt"),
+                        TestBasePath.Combine("Assets/Added Document.txt"),
                         "Assets/Added Document.txt".ToNPath(),
                         GitFileStatus.Added, staged: true),
 
                     new GitStatusEntry("Assets/Renamed TestDocument.txt".ToNPath(),
-                        testRepo.Combine("Assets/Renamed TestDocument.txt"),
+                        TestBasePath.Combine("Assets/Renamed TestDocument.txt"),
                         "Assets/Renamed TestDocument.txt".ToNPath(),
                         GitFileStatus.Renamed, "Assets/TestDocument.txt".ToNPath(), true),
 
                     new GitStatusEntry("Assets/Untracked Document.txt".ToNPath(),
-                        testRepo.Combine("Assets/Untracked Document.txt"),
+                        TestBasePath.Combine("Assets/Untracked Document.txt"),
                         "Assets/Untracked Document.txt".ToNPath(),
                         GitFileStatus.Untracked),
                 }
-                });
-            }
+            });
         }
 
-        //[Test]
-        public async void CredentialHelperGetTest()
+        [Test]
+        public void CredentialHelperGetTest()
         {
-            var filesystem = new FileSystem();
-            NPathFileSystemProvider.Current = filesystem;
-            var environment = new DefaultEnvironment();
-            environment.UnityProjectPath = TestGitRepoPath;
-            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
-            var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment);
-            environment.GitExecutablePath = await gitEnvironment.FindGitInstallationPath(processManager);
-
-            var s = processManager.GetGitCreds(TestGitRepoPath, environment, filesystem, gitEnvironment);
+            var s = ProcessManager.GetGitCreds(TestBasePath, Environment, FileSystem, GitEnvironment);
+            s.Should().NotBeNull();
         }
     }
 }

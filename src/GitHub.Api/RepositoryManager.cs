@@ -13,8 +13,11 @@ namespace GitHub.Unity
         event Action OnRemoteBranchListChanged;
         event Action OnLocalBranchListChanged;
         event Action<GitStatus> OnRepositoryChanged;
+        event Action<GitStatus> OnRefreshTrackedFileList;
         event Action OnHeadChanged;
         event Action OnRemoteOrTrackingChanged;
+
+        void Refresh();
 
         GitConfig Config { get;}
         ConfigBranch? ActiveBranch { get; set; }
@@ -30,6 +33,7 @@ namespace GitHub.Unity
         private readonly IRepositoryProcessRunner processRunner;
         private readonly IRepository repository;
         private readonly NPath repositoryPath;
+        private readonly IPlatform platform;
         private readonly CancellationToken cancellationToken;
         private readonly NPath dotGitPath;
         private readonly NPath dotGitIndex;
@@ -58,12 +62,14 @@ namespace GitHub.Unity
         public event Action OnRemoteBranchListChanged;
         public event Action OnLocalBranchListChanged;
         public event Action<GitStatus> OnRepositoryChanged;
+        public event Action<GitStatus> OnRefreshTrackedFileList;
         public event Action OnHeadChanged;
         public event Action OnRemoteOrTrackingChanged;
 
         public RepositoryManager(NPath path, IPlatform platform, CancellationToken cancellationToken)
         {
             repositoryPath = path;
+            this.platform = platform;
             this.cancellationToken = cancellationToken;
             dotGitPath = path.Combine(".git");
             if (dotGitPath.FileExists())
@@ -114,6 +120,11 @@ namespace GitHub.Unity
             repositoryWatcher.Stop();
         }
 
+        public void Refresh()
+        {
+            OnRepositoryUpdated();
+        }
+
         private void OnRemoteBranchRenamed(string remote, string oldName, string name)
         {
             RemoveRemoteBranch(remote, oldName);
@@ -136,9 +147,9 @@ namespace GitHub.Unity
 
         private void OnRepositoryUpdated()
         {
-            if (!statusUpdateRequested)
-            {
-                statusUpdateRequested = true;
+//            if (!statusUpdateRequested)
+//            {
+//                statusUpdateRequested = true;
                 // run git status
                 var result = new TaskResultDispatcher<GitStatus>(
                     status =>
@@ -147,13 +158,22 @@ namespace GitHub.Unity
                         statusUpdateRequested = false;
                         OnRepositoryChanged?.Invoke(status);
                     },
-                    () =>
-                    {
-                    });
+                    () => {});
 
-                TaskEx.Delay(1000, cancellationToken)
-                    .ContinueWith(_ => processRunner.RunGitStatus(result));
-            }
+//                TaskEx.Delay(2, cancellationToken)
+//                    .ContinueWith(_ => 
+//                    {
+                      processRunner.RunGitStatus(result);
+//                  }
+//                    );
+            //}
+                result = new TaskResultDispatcher<GitStatus>(
+                    status =>
+                    {
+                        OnRefreshTrackedFileList?.Invoke(status);
+                    },
+                    () => {});
+                processRunner.RunGitTrackedFileList(result);
         }
         
         private void OnConfigChanged()
@@ -207,7 +227,21 @@ namespace GitHub.Unity
             if (remote.Url != null)
                 cloneUrl = new UriString(remote.Url).ToRepositoryUrl();
 
-            return new Repository(this, repositoryPath.FileName, cloneUrl, repositoryPath);
+            var user = new User();
+            ProcessTask task = new GitConfigGetTask(platform.Environment, platform.ProcessManager,
+                        new TaskResultDispatcher<string>(value =>
+                        {
+                            user.Name = value;
+                        }), "user.name", GitConfigSource.User);
+            task.RunAsync(cancellationToken).Wait();
+            task = new GitConfigGetTask(platform.Environment, platform.ProcessManager,
+                        new TaskResultDispatcher<string>(value =>
+                        {
+                            user.Email = value;
+                        }), "user.email", GitConfigSource.User);
+            task.RunAsync(cancellationToken).Wait();
+
+            return new Repository(this, repositoryPath.FileName, cloneUrl, repositoryPath, user);
         }
 
         private void RefreshConfigData()
@@ -218,7 +252,7 @@ namespace GitHub.Unity
             ActiveBranch = GetActiveBranch();
             ActiveRemote = GetActiveRemote();
 
-            Logger.Debug("Active remote {0}", ActiveRemote);
+            //Logger.Debug("Active remote {0}", ActiveRemote);
         }
 
         private void LoadBranchesFromConfig()

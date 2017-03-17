@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace IntegrationTests
 {
-    [TestFixture]
+    [TestFixture, Ignore]
     public class GitInstallerTests
     {
         private SubstituteFactory Factory { get; set; }
