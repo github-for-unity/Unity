@@ -6,6 +6,7 @@ using NSubstitute;
 using NUnit.Framework;
 using Environment = System.Environment;
 using GitHub.Unity;
+using TestUtils;
 
 namespace UnitTests
 {
@@ -79,7 +80,7 @@ namespace UnitTests
             var environment = Substitute.For<IEnvironment>();
 
             var filesystem = Substitute.For<IFileSystem>();
-            filesystem.FileExists(Arg.Any<string>()).Returns(inFileSystem);
+            filesystem.FileExists(Args.String).Returns(inFileSystem);
 
             var linuxBasedGitInstallationStrategy = new WindowsGitEnvironment(environment, filesystem);
             linuxBasedGitInstallationStrategy.ValidateGitInstall("asdf").Should().Be(found);

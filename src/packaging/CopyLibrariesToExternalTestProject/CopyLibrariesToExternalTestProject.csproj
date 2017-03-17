@@ -108,4 +108,8 @@
       CopyMainAssembly
     </CoreBuildDependsOn>
   </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>
