@@ -29,7 +29,9 @@ namespace IntegrationTests
                 zipFile.ExtractAll(TestBasePath.ToString(), ExtractExistingFileAction.OverwriteSilently);
             }
 
-            var repositoryManager = new RepositoryManager(TestRepoPath, Platform, CancellationToken.None);
+            var repositoryManagerFactory = new RepositoryManagerFactory();
+            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TestRepoPath, CancellationToken.None);
+
             Environment.Repository = repositoryManager.Repository;
         }
 
