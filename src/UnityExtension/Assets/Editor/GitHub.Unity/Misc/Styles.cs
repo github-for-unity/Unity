@@ -15,7 +15,6 @@ namespace GitHub.Unity
             BroadModeBranchesMinWidth = 200f,
             BroadModeBranchesRatio = .4f,
             InitialStateAreaWidth = 200f,
-            BrowseFolderButtonHorizontalPadding = -4f,
             HistoryEntryHeight = 40f,
             HistorySummaryHeight = 16f,
             HistoryDetailsHeight = 16f,
@@ -64,6 +63,8 @@ namespace GitHub.Unity
             headerBoxStyle,
             headerBranchLabelStyle,
             headerRepoLabelStyle,
+            headerTitleStyle,
+            headerDescriptionStyle,
             historyToolbarButtonStyle,
             historyLockStyle,
             historyEntryDetailsStyle,
@@ -71,6 +72,8 @@ namespace GitHub.Unity
             commitFileAreaStyle,
             commitButtonStyle,
             textFieldStyle,
+            centeredLabel,
+            boldCenteredLabel,
             commitDescriptionFieldStyle,
             toggleMixedStyle,
             authHeaderBoxStyle,
@@ -81,6 +84,9 @@ namespace GitHub.Unity
             deletedStatusIcon,
             renamedStatusIcon,
             untrackedStatusIcon,
+            trackedStatusIcon,
+            lockedStatusIcon,
+            lockedModifiedStatusIcon,
             activeBranchIcon,
             trackingBranchIcon,
             favouriteIconOn,
@@ -149,6 +155,38 @@ namespace GitHub.Unity
 				return headerRepoLabelStyle;
 			}
 		}
+
+    public static GUIStyle HeaderTitleStyle
+    {
+      get
+      {
+        if (headerTitleStyle == null)
+        {
+          headerTitleStyle = new GUIStyle(EditorStyles.boldLabel);
+					headerTitleStyle.name = "HeaderTitleStyle";
+					headerTitleStyle.margin = new RectOffset(0,0,0,0);
+          headerTitleStyle.wordWrap = true;
+        }
+
+        return headerTitleStyle;
+      }
+    }
+
+    public static GUIStyle HeaderDescriptionStyle
+    {
+      get
+      {
+        if (headerDescriptionStyle == null)
+        {
+          headerDescriptionStyle = new GUIStyle(EditorStyles.label);
+					headerDescriptionStyle.name = "HeaderDescriptionStyle";
+					headerDescriptionStyle.margin = new RectOffset(0,0,0,0);
+          headerDescriptionStyle.wordWrap = true;
+        }
+
+        return headerDescriptionStyle;
+      }
+    }
 
 		public static GUIStyle HeaderBoxStyle
 		{
@@ -351,6 +389,20 @@ namespace GitHub.Unity
 			}
 		}
 
+        public static GUIStyle CenteredLabel
+        {
+          get
+          {
+            if (centeredLabel == null)
+            {
+              centeredLabel = new GUIStyle(EditorStyles.wordWrappedLabel);
+              centeredLabel.alignment = TextAnchor.MiddleCenter;
+            }
+
+            return centeredLabel;
+          }
+        }
+
         public static GUIStyle CommitDescriptionFieldStyle
         {
             get
@@ -403,7 +455,7 @@ namespace GitHub.Unity
             if (genericBoxStyle == null)
             {
                 genericBoxStyle = new GUIStyle();
-                genericBoxStyle.padding = new RectOffset(10,10,10,10);
+                genericBoxStyle.padding = new RectOffset(5,5,5,5);
             }
 
             return genericBoxStyle;
@@ -613,6 +665,12 @@ namespace GitHub.Unity
                 return renamedStatusIcon = renamedStatusIcon ?? Utility.GetIcon("renamed.png", "renamed@2x.png");
                 case GitFileStatus.Untracked:
                 return untrackedStatusIcon = untrackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
+                case GitFileStatus.Tracked:
+                return trackedStatusIcon = trackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
+                case GitFileStatus.Locked:
+                return lockedStatusIcon = lockedStatusIcon ?? Utility.GetIcon("locked-by-person.png", "locked-by-person@2x.png");
+                case GitFileStatus.LockedModified:
+                return lockedModifiedStatusIcon = lockedModifiedStatusIcon ?? Utility.GetIcon("locked.png", "locked@2x.png");
                 default:
                 return null;
             }
@@ -666,9 +724,8 @@ namespace GitHub.Unity
         public static void PathField(ref string path, Func<string> browseFunction, Func<string, bool> validationFunction)
         {
             GUILayout.BeginHorizontal();
-                path = EditorGUILayout.TextField(path);
-                GUILayout.Space(Styles.BrowseFolderButtonHorizontalPadding);
-                if (GUILayout.Button(BrowseButton, EditorStyles.miniButtonRight))
+                path = EditorGUILayout.TextField("Path to Git", path);
+                if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(25)))
                 {
                     string newValue = browseFunction();
                     if (!string.IsNullOrEmpty(newValue) && validationFunction(newValue))

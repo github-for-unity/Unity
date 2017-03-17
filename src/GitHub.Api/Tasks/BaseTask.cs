@@ -7,11 +7,47 @@ namespace GitHub.Unity
 {
     class SimpleTask : BaseTask
     {
-        public SimpleTask(Func<Task> runAction)
-            : base(() => { runAction(); return TaskEx.FromResult(true); })
+        private readonly Action action;
+        private readonly TaskScheduler scheduler;
+
+        public SimpleTask(Action action)
+            : this(action, TaskScheduler.Default)
+        {}
+
+        public SimpleTask(Action action, TaskScheduler scheduler)
         {
+            this.action = action;
+            this.scheduler = scheduler;
         }
 
+        public SimpleTask(Func<Task> runAction)
+            : base(() => new Task<bool>(() =>
+            {
+                runAction().Wait();
+                return true;
+            }))
+        {}
+
+        public override void Run(CancellationToken cancellationToken)
+        {
+            if (action == null)
+            {
+                base.Run(cancellationToken);
+                return;
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
+            Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, scheduler).Wait();
+            Progress = 1.0f;
+
+            OnCompleted();
+
+            RaiseOnEnd();
+        }
+
+        public override TaskQueueSetting Queued { get { return TaskQueueSetting.Queue; } }
     }
 
     class BaseTask : ITask, IDisposable
@@ -37,14 +73,30 @@ namespace GitHub.Unity
         public virtual void Reconnect()
         {}
 
-        public virtual void Run(CancellationToken cancel)
+        public virtual void Run(CancellationToken cancellationToken)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
             if (runAction != null)
-                runAction().Start();
+            {
+                var t = runAction();
+                t.Start();
+                t.Wait(cancellationToken);
+            }
+
+            Progress = 1.0f;
+
+            OnCompleted();
+
+            RaiseOnEnd();
         }
 
         public virtual Task<bool> RunAsync(CancellationToken cancellationToken)
         {
+            if (cancellationToken.IsCancellationRequested)
+                TaskEx.FromResult(false);
+
             if (runAction != null)
             {
                 return runAction();
@@ -57,6 +109,13 @@ namespace GitHub.Unity
 
         protected virtual void OnCompleted()
         {}
+
+        protected void RaiseOnEnd()
+        {
+            OnEnd?.Invoke(this);
+            Done = true;
+        }
+
 
         public virtual void Dispose(bool disposing)
         {}

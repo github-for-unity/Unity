@@ -96,7 +96,7 @@
     <Compile Include="IO\TestBase.cs" />
     <Compile Include="IO\WindowsGitEnvironmentTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
-    <Compile Include="TestFixtureSetup.cs" />
+    <Compile Include="SetUpFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
