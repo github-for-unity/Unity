@@ -54,7 +54,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(psi, "psi");
 
             // We need to essentially fake up what git-cmd.bat does
-            string homeDir = Environment.UserProfilePath;
+            string homeDir = NPath.HomeDirectory;
 
             var appPath = workingDirectory;
             var gitPathRoot = Environment.GitInstallPath;
@@ -87,12 +87,6 @@ namespace GitHub.Unity
             psi.EnvironmentVariables["GIT_EXEC_PATH"] = Environment.GitInstallPath;
 
 
-            //foreach (string k in psi.EnvironmentVariables.Keys)
-            //{
-            //    Logger.Debug("{0}={1}", k, psi.EnvironmentVariables[k]);
-            //}
-
-
             psi.EnvironmentVariables["HOME"] = homeDir;
             psi.EnvironmentVariables["TMP"] = psi.EnvironmentVariables["TEMP"] = FileSystem.GetTempPath();
             //psi.EnvironmentVariables["EDITOR"] = Environment.GetEnvironmentVariable("EDITOR");
@@ -104,6 +98,12 @@ namespace GitHub.Unity
             if (!String.IsNullOrEmpty(httpsProxy))
                 psi.EnvironmentVariables["HTTPS_PROXY"] = httpsProxy;
 
+/*
+            foreach (string k in psi.EnvironmentVariables.Keys)
+            {
+                Logger.Debug("{0}={1}", k, psi.EnvironmentVariables[k]);
+            }
+*/
             //var existingSshAgentProcess = sshAgentBridge.GetRunningSshAgentInfo();
             //if (existingSshAgentProcess != null)
             //{

@@ -41,12 +41,13 @@ namespace GitHub.Unity
 
             OnStatusUpdate(Parent.Repository.CurrentStatus);
             Parent.Repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
+            System.Threading.Tasks.Task.Factory.StartNew(Parent.Repository.Refresh);
         }
 
         public override void OnHide()
         {
             base.OnHide();
-            if (Parent.Repository == null)
+            if (Parent == null || Parent.Repository == null)
                 return;
             Parent.Repository.OnRepositoryChanged -= RunStatusUpdateOnMainThread;
         }
@@ -60,7 +61,7 @@ namespace GitHub.Unity
         {
             if (update.Entries == null)
             {
-                Refresh();
+                //Refresh();
                 return;
             }
 
