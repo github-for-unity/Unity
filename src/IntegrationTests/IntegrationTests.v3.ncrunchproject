@@ -1,8 +1,11 @@
 ﻿<ProjectConfiguration>
   <Settings>
-    <IgnoredTests>
-      <AllTestsSelector />
-    </IgnoredTests>
+    <AdditionalFilesToIncludeForProject>
+      <Value>..\..\lib\sfw.net\win\x86\Debug\**.*</Value>
+    </AdditionalFilesToIncludeForProject>
+    <HiddenComponentWarnings>
+      <Value>AbnormalReferenceResolution</Value>
+    </HiddenComponentWarnings>
     <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
   </Settings>
 </ProjectConfiguration>
