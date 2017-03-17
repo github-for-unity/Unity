@@ -1,12 +1,9 @@
 #pragma warning disable 649
 
-using GitHub.Unity;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
-using Debug = System.Diagnostics.Debug;
 
 namespace GitHub.Unity
 {
@@ -24,9 +21,11 @@ namespace GitHub.Unity
         private const string BranchesTitle = "Branches";
         private const string SettingsTitle = "Settings";
         private const string AuthenticationTitle = "Auth";
+        private const string NoRepoTitle = "No Git repository found for this project";
+        private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
+
 
         [NonSerialized] private double notificationClearTime = -1;
-        [NonSerialized] private IRepository repository;
 
         [SerializeField] private SubTab activeTab = SubTab.History;
         [SerializeField] private BranchesView branchesTab = new BranchesView();
@@ -50,13 +49,13 @@ namespace GitHub.Unity
         }
 
 
-        public static void Initialize()
+        public static void Initialize(IRepository repository)
         {
             initialized = true;
             //RefreshRunner.Initialize();
             foreach (Window window in Resources.FindObjectsOfTypeAll(typeof(Window)))
             {
-                window.CreateViews();
+                window.Setup(repository);
                 window.ShowActiveView();
             }
         }
@@ -69,12 +68,6 @@ namespace GitHub.Unity
 
             // Set window title
             titleContent = new GUIContent(Title, Styles.SmallLogo);
-
-            Utility.UnregisterReadyCallback(CreateViews);
-            Utility.RegisterReadyCallback(CreateViews);
-
-            Utility.UnregisterReadyCallback(ShowActiveView);
-            Utility.RegisterReadyCallback(ShowActiveView);
         }
 
         public override void Refresh()
@@ -83,9 +76,9 @@ namespace GitHub.Unity
                 ActiveTab.Refresh();
         }
 
-        private void CreateViews()
+        private void Setup(IRepository repository)
         {
-            repository = EntryPoint.Environment.Repository;
+            Repository = repository;
             historyTab.Initialize(this);
             changesTab.Initialize(this);
             branchesTab.Initialize(this);
@@ -94,7 +87,7 @@ namespace GitHub.Unity
 
         private void ShowActiveView()
         {
-            if (repository == null)
+            if (Repository == null)
                 return;
 
             if (ActiveTab != null)
@@ -113,9 +106,6 @@ namespace GitHub.Unity
         {
             base.OnDisable();
 
-            if (repository == null)
-                return;
-
             if (ActiveTab != null)
                 ActiveTab.OnHide();
         }
@@ -130,7 +120,7 @@ namespace GitHub.Unity
                 DoNotInitializedGUI();
                 return;
             }
-            else if (repository == null)
+            else if (Repository == null)
             {
                 DoOfferToInitializeRepositoryGUI();
                 return;
@@ -150,38 +140,51 @@ namespace GitHub.Unity
 
         private void DoOfferToInitializeRepositoryGUI()
         {
-            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
+            var headerRect = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
             {
-                GUILayout.Space(3);
+                GUILayout.Space(5);
                 GUILayout.BeginVertical(GUILayout.Width(16));
                 {
-                    GUILayout.Space(9);
-                    GUILayout.Label(Styles.BigLogo, GUILayout.Height(20), GUILayout.Width(20));
+                    GUILayout.Space(5);
+
+                    var iconRect = GUILayoutUtility.GetRect(new GUIContent(Styles.BigLogo), GUIStyle.none, GUILayout.Height(20), GUILayout.Width(20));
+                    iconRect.y = headerRect.center.y - (iconRect.height / 2);
+                    GUI.DrawTexture(iconRect, Styles.BigLogo, ScaleMode.ScaleToFit);
+
+                    GUILayout.Space(5);
                 }
                 GUILayout.EndVertical();
 
+                GUILayout.Space(5);
+
                 GUILayout.BeginVertical();
                 {
-                    GUILayout.Space(9);
-                    GUILayout.Label("GitHub", Styles.HeaderRepoLabelStyle);
+                    var headerContent = new GUIContent(NoRepoTitle);
+                    var headerTitleRect = GUILayoutUtility.GetRect(headerContent, Styles.HeaderTitleStyle);
+                    headerTitleRect.y = headerRect.center.y - (headerTitleRect.height / 2);
+
+                    GUI.Label(headerTitleRect, headerContent, Styles.HeaderTitleStyle);
                 }
                 GUILayout.EndVertical();
             }
-            GUILayout.EndHorizontal();
-            GUILayout.BeginVertical();
+            EditorGUILayout.EndHorizontal();
+
+            GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {
                 GUILayout.FlexibleSpace();
+
+                GUILayout.Label(NoRepoDescription, Styles.CenteredLabel);
+
                 GUILayout.BeginHorizontal();
-                {
-                    GUILayout.FlexibleSpace();
-                    if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "LargeButton"))
-                    {
-                        var repoInit = new RepositoryInitializer(EntryPoint.Environment, EntryPoint.ProcessManager, new TaskQueueScheduler(), EntryPoint.AppManager);
-                        repoInit.Run();
-                    }
-                    GUILayout.FlexibleSpace();
-                }
+                  GUILayout.FlexibleSpace();
+                  if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
+                  {
+                      var repoInit = new RepositoryInitializer(EntryPoint.Environment, EntryPoint.ProcessManager, new TaskQueueScheduler(), EntryPoint.AppManager);
+                      repoInit.Run();
+                  }
+                  GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
+
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
@@ -224,16 +227,16 @@ namespace GitHub.Unity
                 GUILayout.BeginVertical();
                 {
                     GUILayout.Space(3);
-                    GUILayout.Label(String.Format("{0}/{1}", repository.Owner, repository.Name), Styles.HeaderRepoLabelStyle);
+                    GUILayout.Label(String.Format("{0}/{1}", Repository.Owner, Repository.Name), Styles.HeaderRepoLabelStyle);
                     GUILayout.Space(-2);
-                    GUILayout.Label(repository.CurrentBranch, Styles.HeaderBranchLabelStyle);
+                    GUILayout.Label(Repository.CurrentBranch, Styles.HeaderBranchLabelStyle);
                 }
                 GUILayout.EndVertical();
             }
             GUILayout.EndHorizontal();
 
             // Subtabs & toolbar
-            GUILayout.BeginHorizontal(EditorStyles.toolbar);
+            Rect mainNavRect = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
                 SubTab tab = activeTab;
                 EditorGUI.BeginChangeCheck();
@@ -250,55 +253,47 @@ namespace GitHub.Unity
                     SwitchView(from, ActiveTab);
                 }
 
-                if (EntryPoint.CredentialManager != null && EntryPoint.CredentialManager.HasCredentials())
-                {
-                    if (loggedInStrings == null)
-                    {
-                        loggedInStrings = new string[] { EntryPoint.CredentialManager.CachedCredentials.Username, "Sign out" };
-                    }
-
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        signedInDropdown = EditorGUILayout.Popup(signedInDropdown, loggedInStrings, EditorStyles.toolbarPopup);
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        if (signedInDropdown == 1)
-                        {
-                            var task = new SimpleTask(() => EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedCredentials.Host));
-                            Tasks.Add(task);
-                            signedInDropdown = 0;
-                        }
-                    }
-                }
-                else
-                {
-                    if (EntryPoint.CredentialManager != null && EntryPoint.Environment.Repository != null &&
-                        !String.IsNullOrEmpty(EntryPoint.Environment.Repository.CloneUrl))
-                    {
-                        var task = new SimpleTask(() => EntryPoint.CredentialManager.Load(EntryPoint.Environment.Repository.CloneUrl));
-                        Tasks.Add(task);
-                    }
-
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        signedOutDropdown = EditorGUILayout.Popup(signedOutDropdown, loggedOutStrings, EditorStyles.toolbarPopup);
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        AuthenticationWindow.Open(_ => signedOutDropdown = 0);
-                    }
-                }
-
                 GUILayout.FlexibleSpace();
+
+                if(GUILayout.Button("Account", EditorStyles.toolbarDropDown))
+                  DoAccountDropdown();
             }
-            GUILayout.EndHorizontal();
+
+            EditorGUILayout.EndHorizontal();
         }
 
-        [SerializeField] private int signedInDropdown;
-        [SerializeField] private int signedOutDropdown;
-        private string[] loggedInStrings;
-        private string[] loggedOutStrings = new string[] { "Sign in" };
+        private void DoAccountDropdown()
+        {
+            GenericMenu accountMenu = new GenericMenu();
+
+            if (!EntryPoint.CredentialManager.HasCredentials())
+            {
+                accountMenu.AddItem(new GUIContent("Sign in"), false, SignIn, "sign in");
+            }
+            else
+            {
+                accountMenu.AddItem(new GUIContent("Go to Profile"), false, GoToProfile, "profile");
+                accountMenu.AddSeparator("");
+                accountMenu.AddItem(new GUIContent("Sign out"), false, SignOut, "sign out");
+            }
+            accountMenu.ShowAsContext();
+        }
+
+        private void SignIn(object obj)
+        {
+            AuthenticationWindow.Open();
+        }
+
+        private void GoToProfile(object obj)
+        {
+            //Logger.Debug("{0} {1}", EntryPoint.CredentialManager.CachedCredentials.Host, EntryPoint.CredentialManager.CachedCredentials.Username);
+            Application.OpenURL(EntryPoint.CredentialManager.CachedCredentials.Host.Combine(EntryPoint.CredentialManager.CachedCredentials.Username));
+        }
+        private void SignOut(object obj)
+        {
+            var task = new SimpleTask(() => EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedCredentials.Host));
+            Tasks.Add(task);
+        }
 
         private bool ValidateSettings()
         {

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,13 +10,18 @@ namespace GitHub.Unity
         private static readonly List<GitStatusEntry> entries = new List<GitStatusEntry>();
         private static readonly List<string> guids = new List<string>();
         private static bool initialized = false;
+        private static IRepository repository;
+        private static ILogging logger = Logging.GetLogger<ProjectWindowInterface>();
+        private static ILogging Logger { get { return logger; } }
 
-        public static void Initialize()
+        public static void Initialize(IRepository repo)
         {
+            repository = repo;
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
-            StatusService.Instance.UnregisterCallback(OnStatusUpdate);
-            StatusService.Instance.RegisterCallback(OnStatusUpdate);
+            repository.OnRefreshTrackedFileList += status => {
+                Tasks.ScheduleMainThread(() => OnStatusUpdate(status));
+            };
             initialized = true;
         }
 
@@ -33,7 +39,8 @@ namespace GitHub.Unity
         {
             if (initialized)
             {
-                StatusService.Instance.Run();
+                System.Threading.Tasks.Task.Factory.StartNew(repository.Refresh);
+                //StatusService.Instance.Run();
             }
         }
 
@@ -41,9 +48,10 @@ namespace GitHub.Unity
         {
             if (update.Entries == null)
             {
-                Refresh();
+                //Refresh();
                 return;
             }
+
             entries.Clear();
             entries.AddRange(update.Entries);
 
