@@ -651,29 +651,37 @@ namespace GitHub.Unity
             }
         }
 
-        public static Texture2D GetGitFileStatusIcon(GitFileStatus status)
+        public static Texture2D GetGitFileStatusIcon(GitStatusEntry gitStatusEntry)
         {
-            switch(status)
+            if (gitStatusEntry.Lock.HasValue)
+            {
+                switch (gitStatusEntry.Status)
+                {
+                    case GitFileStatus.Modified:
+                        return lockedModifiedStatusIcon = lockedModifiedStatusIcon ?? Utility.GetIcon("locked.png", "locked@2x.png");
+
+                    default:
+                        return lockedStatusIcon = lockedStatusIcon ?? Utility.GetIcon("locked-by-person.png", "locked-by-person@2x.png");
+                }
+            }
+
+            switch (gitStatusEntry.Status)
             {
                 case GitFileStatus.Modified:
-                return modifiedStatusIcon = modifiedStatusIcon ?? Utility.GetIcon("modified.png", "modified@2x.png");
+                    return modifiedStatusIcon = modifiedStatusIcon ?? Utility.GetIcon("modified.png", "modified@2x.png");
                 case GitFileStatus.Added:
-                return addedStatusIcon = addedStatusIcon ?? Utility.GetIcon("added.png", "added@2x.png");
+                    return addedStatusIcon = addedStatusIcon ?? Utility.GetIcon("added.png", "added@2x.png");
                 case GitFileStatus.Deleted:
-                return deletedStatusIcon = deletedStatusIcon ?? Utility.GetIcon("removed.png", "removed@2x.png");
+                    return deletedStatusIcon = deletedStatusIcon ?? Utility.GetIcon("removed.png", "removed@2x.png");
                 case GitFileStatus.Renamed:
-                return renamedStatusIcon = renamedStatusIcon ?? Utility.GetIcon("renamed.png", "renamed@2x.png");
+                    return renamedStatusIcon = renamedStatusIcon ?? Utility.GetIcon("renamed.png", "renamed@2x.png");
                 case GitFileStatus.Untracked:
-                return untrackedStatusIcon = untrackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
+                    return untrackedStatusIcon = untrackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
                 case GitFileStatus.Tracked:
-                return trackedStatusIcon = trackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
-                case GitFileStatus.Locked:
-                return lockedStatusIcon = lockedStatusIcon ?? Utility.GetIcon("locked-by-person.png", "locked-by-person@2x.png");
-                case GitFileStatus.LockedModified:
-                return lockedModifiedStatusIcon = lockedModifiedStatusIcon ?? Utility.GetIcon("locked.png", "locked@2x.png");
-                default:
-                return null;
+                    return trackedStatusIcon = trackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
             }
+
+            return null;
         }
 
 

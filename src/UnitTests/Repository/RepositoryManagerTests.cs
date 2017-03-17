@@ -112,7 +112,7 @@ namespace UnitTests
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
 
             GitStatus? expected = null;
-            repositoryManager.OnRefreshTrackedFileList += s => { expected = s; };
+            repositoryManager.OnRepositoryChanged += s => { expected = s; };
 
             repositoryManager.Refresh();
 
@@ -120,9 +120,103 @@ namespace UnitTests
         }
 
         [Test]
-        public void ShouldRefreshWithStatusResponseAndNoGitLockResponse()
+        public void ShouldRefreshWithAmendedLockInformation()
         {
-            var gitStatus = new GitStatus {
+            var responseGitStatus = new GitStatus {
+                LocalBranch = "master",
+                Entries =
+                    new List<GitStatusEntry> {
+                        new GitStatusEntry("SomeLockedBinary.psd", null, "SomeLockedBinary.psd", GitFileStatus.Modified),
+                        new GitStatusEntry("subFolder/AnotherLockedBinary.psd", null, "subFolder/AnotherLockedBinary.psd", GitFileStatus.Modified),
+                        new GitStatusEntry("subFolder/UnLockedBinary.psd", null, "subFolder/UnLockedBinary.psd", GitFileStatus.Modified),
+                    }
+            };
+
+            var responseGitLocks = new GitLock[] {
+                new GitLock("SomeLockedBinary.psd", "SomeLockedBinary.psd", "Someone"),
+                new GitLock("SomeoneElsesBinary.psd", "SomeoneElsesBinary.psd", "SomeoneElse"),
+                new GitLock("subFolder/AnotherLockedBinary.psd", "subFolder/AnotherLockedBinary.psd", "Someone"),
+            };
+
+            var expectedGitStatus = new GitStatus {
+                LocalBranch = "master",
+                Entries =
+                    new List<GitStatusEntry> {
+                        new GitStatusEntry("SomeLockedBinary.psd", null, "SomeLockedBinary.psd", GitFileStatus.Modified, gitLock: new GitLock("SomeLockedBinary.psd", "SomeLockedBinary.psd", "Someone")),
+                        new GitStatusEntry("subFolder/AnotherLockedBinary.psd", null, "subFolder/AnotherLockedBinary.psd", GitFileStatus.Modified, gitLock: new GitLock("subFolder/AnotherLockedBinary.psd", "subFolder/AnotherLockedBinary.psd", "Someone")),
+                        new GitStatusEntry("subFolder/UnLockedBinary.psd", null, "subFolder/UnLockedBinary.psd", GitFileStatus.Modified),
+                    }
+            };
+
+            var repositoryProcessRunner = CreateRepositoryProcessRunner(new[] { responseGitStatus },
+                new IList<GitLock>[] { responseGitLocks });
+            var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
+
+            GitStatus? result = null;
+            repositoryManager.OnRepositoryChanged += s => { result = s; };
+
+            repositoryManager.Refresh();
+
+            result.HasValue.Should().BeTrue();
+
+            Debug.Assert(result != null, "expected != null");
+            result.Value.AssertEqual(expectedGitStatus);
+        }
+
+        [Test]
+        public void ShouldRefreshWithCorrectAmendedLockInformation()
+        {
+            var responseGitStatus = new GitStatus {
+                LocalBranch = "master",
+                Entries =
+                    new List<GitStatusEntry> {
+                        new GitStatusEntry("SomeLockedBinary.psd", null, "SomeLockedBinary.psd", GitFileStatus.Modified),
+                        new GitStatusEntry("subFolder/AnotherLockedBinary.psd", null, "subFolder/AnotherLockedBinary.psd", GitFileStatus.Modified),
+                        new GitStatusEntry("subFolder/UnLockedBinary.psd", null, "subFolder/UnLockedBinary.psd", GitFileStatus.Modified),
+                    }
+            };
+
+            var responseGitLocks = new GitLock[] {
+                new GitLock("SomeLockedBinary.psd", "SomeLockedBinary.psd", "Someone"),
+                new GitLock("SomeoneElsesBinary.psd", "SomeoneElsesBinary.psd", "SomeoneElse"),
+                new GitLock("subFolder/AnotherLockedBinary.psd", "subFolder/AnotherLockedBinary.psd", "Someone"),
+            };
+
+            var expectedGitStatus = new GitStatus {
+                LocalBranch = "master",
+                Entries =
+                    new List<GitStatusEntry> {
+                        new GitStatusEntry("SomeLockedBinary.psd", null, "SomeLockedBinary.psd", GitFileStatus.Modified,
+                            gitLock: new GitLock("SomeLockedBinary.psd", "SomeLockedBinary.psd", "Someone")),
+                        new GitStatusEntry("subFolder/AnotherLockedBinary.psd", null, "subFolder/AnotherLockedBinary.psd", GitFileStatus.Modified),
+                        new GitStatusEntry("subFolder/UnLockedBinary.psd", null, "subFolder/UnLockedBinary.psd", GitFileStatus.Modified
+                            
+                            //This lock intentionally left missing to catch false positives
+                            //,gitLock: new GitLock("subFolder/AnotherLockedBinary.psd", "subFolder/AnotherLockedBinary.psd", "Someone")
+                            
+                        ),
+                    }
+            };
+
+            var repositoryProcessRunner = CreateRepositoryProcessRunner(new[] { responseGitStatus },
+                new IList<GitLock>[] { responseGitLocks });
+            var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
+
+            GitStatus? result = null;
+            repositoryManager.OnRepositoryChanged += s => { result = s; };
+
+            repositoryManager.Refresh();
+
+            result.HasValue.Should().BeTrue();
+
+            Debug.Assert(result != null, "expected != null");
+            result.Value.AssertNotEqual(expectedGitStatus);
+        }
+
+        [Test]
+        public void ShouldRefreshWithStatusResponseAndEmptyGitLockResponse()
+        {
+            var responseGitStatus = new GitStatus {
                 LocalBranch = "master",
                 Entries =
                     new List<GitStatusEntry> {
@@ -130,18 +224,45 @@ namespace UnitTests
                     }
             };
 
-            var repositoryProcessRunner = CreateRepositoryProcessRunner(new[] { gitStatus }, new IList<GitLock>[0]);
+            var repositoryProcessRunner = CreateRepositoryProcessRunner(new[] { responseGitStatus },
+                new IList<GitLock>[] { new GitLock[0] });
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
 
-            GitStatus? expected = null;
-            repositoryManager.OnRefreshTrackedFileList += s => { expected = s; };
+            GitStatus? result = null;
+            repositoryManager.OnRepositoryChanged += s => { result = s; };
 
             repositoryManager.Refresh();
 
-            expected.HasValue.Should().BeTrue();
+            result.HasValue.Should().BeTrue();
 
-            Debug.Assert(expected != null, "expected != null");
-            expected.Value.AssertEqual(gitStatus);
+            Debug.Assert(result != null, "expected != null");
+            result.Value.AssertEqual(responseGitStatus);
+        }
+
+        [Test]
+        public void ShouldRefreshWithStatusResponseAndNoGitLockResponse()
+        {
+            var responseGitStatus = new GitStatus {
+                LocalBranch = "master",
+                Entries =
+                    new List<GitStatusEntry> {
+                        new GitStatusEntry("Some.sln", null, "Some.sln", GitFileStatus.Modified)
+                    }
+            };
+
+            var repositoryProcessRunner = CreateRepositoryProcessRunner(new[] { responseGitStatus },
+                new IList<GitLock>[0]);
+            var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
+
+            GitStatus? result = null;
+            repositoryManager.OnRepositoryChanged += s => { result = s; };
+
+            repositoryManager.Refresh();
+
+            result.HasValue.Should().BeTrue();
+
+            Debug.Assert(result != null, "expected != null");
+            result.Value.AssertEqual(responseGitStatus);
         }
     }
 }

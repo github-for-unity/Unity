@@ -78,7 +78,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            var texture = Styles.GetGitFileStatusIcon(entries[index].Status);
+            var texture = Styles.GetGitFileStatusIcon(entries[index]);
             Rect rect;
 
             // End of row placement
