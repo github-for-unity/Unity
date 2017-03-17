@@ -196,15 +196,19 @@ namespace GitHub.Unity
 
             GitStatus? gitStatus = null;
             var runGitStatus = repositoryProcessRunner.RunGitStatus(new TaskResultDispatcher<GitStatus>(s => {
-                Logger.Debug("RunGitStatus Results");
+                Logger.Debug("RunGitStatus Success");
                 gitStatus = s;
+            }, () => {
+                Logger.Warning("RunGitStatus Failed");
             }));
 
             GitLock[] gitLocks = null;
             var runGitListLocks =
                 repositoryProcessRunner.RunGitListLocks(new TaskResultDispatcher<IEnumerable<GitLock>>(s => {
-                    Logger.Debug("RunGitListLocks Results");
+                    Logger.Debug("RunGitListLocks Success");
                     gitLocks = s.ToArray();
+                }, () => {
+                    Logger.Warning("RunGitListLocks Failed");
                 }));
 
             runGitStatus.Wait(cancellationToken);
@@ -214,16 +218,17 @@ namespace GitHub.Unity
             {
                 Debug.Assert(gitStatus != null, "gitStatus != null");
                 var gitStatusValue = gitStatus.Value;
+                ILookup<string, GitStatusEntry> gitStatusEntriesByPath;
+
                 if (gitStatusValue.Entries.Any())
                 {
-                    var statusEntriesByPath = gitStatusValue.Entries.ToLookup(entry => entry.ProjectPath);
-
-                    if (gitLocks != null)
-                    {
-                        lastLocksUpdate = DateTime.Now;
-                    }
-
+                    gitStatusEntriesByPath = gitStatusValue.Entries.ToLookup(entry => entry.ProjectPath);
                     lastStatusUpdate = DateTime.Now;
+                }
+
+                if (gitLocks != null)
+                {
+                    lastLocksUpdate = DateTime.Now;
                 }
 
                 OnRefreshTrackedFileList?.Invoke(gitStatus.Value);
