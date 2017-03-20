@@ -257,7 +257,7 @@ namespace IntegrationTests
             }
         }
 
-        [Test, Ignore]
+        [Test]
         public void ShouldDetectGitPull()
         {
             var repositoryWatcher = CreateRepositoryWatcher();
@@ -268,7 +268,7 @@ namespace IntegrationTests
             repositoryWatcher.Start();
             GitPull("origin", "master");
 
-            //TODO: This is not expected
+                //TODO: This is not expected
             repositoryWatcherListener.AssertDidNotReceiveAnyCalls();
             repositoryWatcher.Stop();
         }
