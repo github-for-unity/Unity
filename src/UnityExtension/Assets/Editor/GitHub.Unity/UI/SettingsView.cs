@@ -459,6 +459,18 @@ namespace GitHub.Unity
                   "ProjectSettings/EditorBuildSettings.asset",
                   "ProjectSettings/GraphicsSettings.asset",
                   "ProjectSettings/InputManager.asset",
+
+                  "ProjectSettings/AudioManager.asset",
+                  "ProjectSettings/DynamicsManager.asset",
+                  "ProjectSettings/EditorBuildSettings.asset",
+                  "ProjectSettings/GraphicsSettings.asset",
+                  "ProjectSettings/InputManager.asset",
+
+                  "ProjectSettings/AudioManager.asset",
+                  "ProjectSettings/DynamicsManager.asset",
+                  "ProjectSettings/EditorBuildSettings.asset",
+                  "ProjectSettings/GraphicsSettings.asset",
+                  "ProjectSettings/InputManager.asset",
                 };
 
                 GUILayout.BeginVertical();
@@ -471,6 +483,13 @@ namespace GitHub.Unity
                 GUILayout.EndVertical();
               }
             EditorGUILayout.EndScrollView();
+
+            GUILayout.BeginHorizontal();
+            {
+              GUILayout.Button("Unlock");
+              GUILayout.FlexibleSpace();
+            }
+            GUILayout.EndHorizontal();
           }
           GUILayout.EndVertical();
         }
