@@ -59,6 +59,8 @@ namespace GitHub.Unity
         private const string GitConfigUserSave = "Save";
         private const string GitConfigUserSaved = "Saved";
 
+        private Vector2 lockScrollPos;
+
         // TODO: Replace me with the real values
         [SerializeField] private string gitName;
         [SerializeField] private string gitEmail;
@@ -111,6 +113,10 @@ namespace GitHub.Unity
                     // OnGitIgnoreRulesGUI();
 
                     OnUserSettingsGUI();
+
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+                    OnGitLfsLocksGUI();
 
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
@@ -434,6 +440,24 @@ namespace GitHub.Unity
                 GUILayout.EndVertical();
             }
             GUILayout.EndVertical();
+        }
+
+        private void OnGitLfsLocksGUI()
+        {
+          Debug.Log(EditorGUIUtility.currentViewWidth);
+          GUILayout.BeginVertical();
+          {
+            GUILayout.Label("Locked files", EditorStyles.boldLabel);
+
+            lockScrollPos = EditorGUILayout.BeginScrollView(lockScrollPos,
+              GUILayout.Width(EditorGUIUtility.currentViewWidth),
+              GUILayout.Height(125));
+              {
+                GUILayout.Label("Locks go here!");
+              }
+            EditorGUILayout.EndScrollView();
+          }
+          GUILayout.EndVertical();
         }
 
         private void OnInstallPathGUI()
