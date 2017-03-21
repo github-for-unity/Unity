@@ -450,12 +450,28 @@ namespace GitHub.Unity
             GUILayout.Label("Locked files", EditorStyles.boldLabel);
 
             lockScrollPos = EditorGUILayout.BeginScrollView(lockScrollPos,
-              GUILayout.Width(EditorGUIUtility.currentViewWidth),
+              Styles.GenericTableBoxStyle,
               GUILayout.Height(125));
               {
-                GUILayout.BeginVertical(Styles.GenericTableBoxStyle);
+                GUILayout.BeginVertical();
                 {
-                  GUILayout.Label("Locks go here!");
+                  GUILayout.Label("ProjectSettings/AudioManager.asset");
+                  GUILayout.Label("ProjectSettings/DynamicsManager.asset");
+                  GUILayout.Label("ProjectSettings/EditorBuildSettings.asset");
+                  GUILayout.Label("ProjectSettings/GraphicsSettings.asset");
+                  GUILayout.Label("ProjectSettings/InputManager.asset");
+
+                  GUILayout.Label("ProjectSettings/AudioManager.asset");
+                  GUILayout.Label("ProjectSettings/DynamicsManager.asset");
+                  GUILayout.Label("ProjectSettings/EditorBuildSettings.asset");
+                  GUILayout.Label("ProjectSettings/GraphicsSettings.asset");
+                  GUILayout.Label("ProjectSettings/InputManager.asset");
+
+                  GUILayout.Label("ProjectSettings/AudioManager.asset");
+                  GUILayout.Label("ProjectSettings/DynamicsManager.asset");
+                  GUILayout.Label("ProjectSettings/EditorBuildSettings.asset");
+                  GUILayout.Label("ProjectSettings/GraphicsSettings.asset");
+                  GUILayout.Label("ProjectSettings/InputManager.asset");
                 }
                 GUILayout.EndVertical();
               }
