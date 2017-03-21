@@ -453,7 +453,11 @@ namespace GitHub.Unity
               GUILayout.Width(EditorGUIUtility.currentViewWidth),
               GUILayout.Height(125));
               {
-                GUILayout.Label("Locks go here!");
+                GUILayout.BeginVertical(Styles.GenericTableBoxStyle);
+                {
+                  GUILayout.Label("Locks go here!");
+                }
+                GUILayout.EndVertical();
               }
             EditorGUILayout.EndScrollView();
           }
