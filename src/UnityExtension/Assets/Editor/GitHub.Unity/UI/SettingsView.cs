@@ -453,25 +453,20 @@ namespace GitHub.Unity
               Styles.GenericTableBoxStyle,
               GUILayout.Height(125));
               {
+                string[] fakeFiles = {
+                  "ProjectSettings/AudioManager.asset",
+                  "ProjectSettings/DynamicsManager.asset",
+                  "ProjectSettings/EditorBuildSettings.asset",
+                  "ProjectSettings/GraphicsSettings.asset",
+                  "ProjectSettings/InputManager.asset",
+                };
+
                 GUILayout.BeginVertical();
                 {
-                  GUILayout.Label("ProjectSettings/AudioManager.asset");
-                  GUILayout.Label("ProjectSettings/DynamicsManager.asset");
-                  GUILayout.Label("ProjectSettings/EditorBuildSettings.asset");
-                  GUILayout.Label("ProjectSettings/GraphicsSettings.asset");
-                  GUILayout.Label("ProjectSettings/InputManager.asset");
-
-                  GUILayout.Label("ProjectSettings/AudioManager.asset");
-                  GUILayout.Label("ProjectSettings/DynamicsManager.asset");
-                  GUILayout.Label("ProjectSettings/EditorBuildSettings.asset");
-                  GUILayout.Label("ProjectSettings/GraphicsSettings.asset");
-                  GUILayout.Label("ProjectSettings/InputManager.asset");
-
-                  GUILayout.Label("ProjectSettings/AudioManager.asset");
-                  GUILayout.Label("ProjectSettings/DynamicsManager.asset");
-                  GUILayout.Label("ProjectSettings/EditorBuildSettings.asset");
-                  GUILayout.Label("ProjectSettings/GraphicsSettings.asset");
-                  GUILayout.Label("ProjectSettings/InputManager.asset");
+                  foreach (var file in fakeFiles)
+                  {
+                    GUILayout.Label(file);
+                  }
                 }
                 GUILayout.EndVertical();
               }
