@@ -77,6 +77,8 @@ namespace GitHub.Unity
             commitDescriptionFieldStyle,
             toggleMixedStyle,
             authHeaderBoxStyle,
+            lockedFileRowSelectedStyle,
+            lockedFileRowStyle,
             genericTableBoxStyle,
             genericBoxStyle;
         static Texture2D
@@ -339,6 +341,36 @@ namespace GitHub.Unity
 
                 return historyEntryDetailsRightStyle;
             }
+        }
+
+        public static GUIStyle LockedFileRowStyle
+        {
+          get
+          {
+            if (lockedFileRowStyle == null)
+            {
+              lockedFileRowStyle = new GUIStyle();
+              lockedFileRowStyle.name = "LockedFileRowStyle";
+            }
+
+            return lockedFileRowStyle;
+          }
+        }
+
+        public static GUIStyle LockedFileRowSelectedStyle
+        {
+          get
+          {
+              if (lockedFileRowSelectedStyle == null)
+              {
+                lockedFileRowSelectedStyle = new GUIStyle(LockedFileRowStyle);
+                lockedFileRowSelectedStyle.name = "LockedFileRowSelectedStyle";
+                lockedFileRowSelectedStyle.normal.background = Utility.GetTextureFromColor(Color.blue);
+                lockedFileRowSelectedStyle.normal.textColor = Color.white;
+              }
+
+              return lockedFileRowSelectedStyle;
+          }
         }
 
 

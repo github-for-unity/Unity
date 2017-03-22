@@ -66,6 +66,7 @@ namespace GitHub.Unity
         [SerializeField] private string gitEmail;
 
         [NonSerialized] private int newGitIgnoreRulesSelection = -1;
+        [NonSerialized] private int lockedFileSelection = -1;
 
         [SerializeField] private int gitIgnoreRulesSelection = 0;
         [SerializeField] private string initDirectory;
@@ -444,7 +445,6 @@ namespace GitHub.Unity
 
         private void OnGitLfsLocksGUI()
         {
-          Debug.Log(EditorGUIUtility.currentViewWidth);
           GUILayout.BeginVertical();
           {
             GUILayout.Label("Locked files", EditorStyles.boldLabel);
@@ -453,7 +453,7 @@ namespace GitHub.Unity
               Styles.GenericTableBoxStyle,
               GUILayout.Height(125));
               {
-                string[] fakeFiles = {
+                string[] lockedFiles = {
                   "ProjectSettings/AudioManager.asset",
                   "ProjectSettings/DynamicsManager.asset",
                   "ProjectSettings/EditorBuildSettings.asset",
@@ -475,9 +475,20 @@ namespace GitHub.Unity
 
                 GUILayout.BeginVertical();
                 {
-                  foreach (var file in fakeFiles)
+                  var lockedFilesCount = lockedFiles.Length;
+                  for (var index = 0; index < lockedFilesCount; ++index)
                   {
-                    GUILayout.Label(file);
+                    GUIStyle rowStyle = (lockedFileSelection == index) ? Styles.LockedFileRowSelectedStyle : Styles.LockedFileRowStyle;
+                    GUILayout.Box(lockedFiles[index], rowStyle);
+
+                    if (Event.current.type == EventType.MouseDown &&
+                      GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
+                    {
+                      Debug.Log("AYO CLICKITY CLICK");
+                      lockedFileSelection = index;
+
+                      Event.current.Use();
+                    }
                   }
                 }
                 GUILayout.EndVertical();
