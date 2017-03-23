@@ -585,7 +585,7 @@ namespace GitHub.Unity
             var fileName = obj;
 
             EditorUtility.DisplayDialog("Force unlock file?",
-              "Are you sure you want to force unlock the file " + fileName + "? "
+              "Are you sure you want to force unlock " + fileName + "? "
               + "This will notify the owner of the lock.",
               "Unlock",
               "Cancel");
