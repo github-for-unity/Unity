@@ -385,7 +385,6 @@ namespace GitHub.Unity
               {
                 genericTableBoxStyle = new GUIStyle(GUI.skin.box);
                 genericTableBoxStyle.name = "GenericTableBoxStyle";
-                genericTableBoxStyle.padding = new RectOffset(5,5,5,5);
               }
 
               return genericTableBoxStyle;
