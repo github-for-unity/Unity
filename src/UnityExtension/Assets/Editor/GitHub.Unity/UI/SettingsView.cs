@@ -484,8 +484,18 @@ namespace GitHub.Unity
                     if (Event.current.type == EventType.MouseDown &&
                       GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
                     {
-                      Debug.Log("AYO CLICKITY CLICK");
-                      lockedFileSelection = index;
+                      var currentEvent = Event.current;
+
+                      if (currentEvent.button == 0)
+                      {
+                          lockedFileSelection = index;
+                          Debug.Log("CLICK");
+                      }
+
+                      if (currentEvent.button == 1)
+                      {
+                          Debug.Log("RIGHT CLICK");
+                      }
 
                       Event.current.Use();
                     }
