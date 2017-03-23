@@ -489,12 +489,14 @@ namespace GitHub.Unity
                       if (currentEvent.button == 0)
                       {
                           lockedFileSelection = index;
-                          Debug.Log("CLICK");
                       }
 
                       if (currentEvent.button == 1)
                       {
-                          Debug.Log("RIGHT CLICK");
+                          GenericMenu menu = new GenericMenu();
+                          menu.AddItem(new GUIContent("Force Unlock"), false, ForceUnlockFile, lockedFiles[index]);
+
+                          menu.ShowAsContext();
                       }
 
                       Event.current.Use();
@@ -576,6 +578,17 @@ namespace GitHub.Unity
         {
             initDirectory = Utility.UnityProjectPath;
             GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+        }
+
+        private void ForceUnlockFile(object obj)
+        {
+            var fileName = obj;
+
+            EditorUtility.DisplayDialog("Force unlock file?",
+              "Are you sure you want to force unlock the file " + fileName + "? "
+              + "This will notify the owner of the lock.",
+              "Unlock",
+              "Cancel");
         }
 
         private void Init()
