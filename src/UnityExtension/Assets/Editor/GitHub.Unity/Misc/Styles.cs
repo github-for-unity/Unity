@@ -351,6 +351,7 @@ namespace GitHub.Unity
             {
               lockedFileRowStyle = new GUIStyle();
               lockedFileRowStyle.name = "LockedFileRowStyle";
+              lockedFileRowStyle.padding = new RectOffset(2, 2, 1, 1);
             }
 
             return lockedFileRowStyle;
@@ -363,10 +364,12 @@ namespace GitHub.Unity
           {
               if (lockedFileRowSelectedStyle == null)
               {
+
+                GUIStyle hierarchyStyle = GUI.skin.FindStyle("PR Label");
                 lockedFileRowSelectedStyle = new GUIStyle(LockedFileRowStyle);
                 lockedFileRowSelectedStyle.name = "LockedFileRowSelectedStyle";
-                lockedFileRowSelectedStyle.normal.background = Utility.GetTextureFromColor(Color.blue);
-                lockedFileRowSelectedStyle.normal.textColor = Color.white;
+                lockedFileRowSelectedStyle.normal.background = hierarchyStyle.onFocused.background;
+                lockedFileRowSelectedStyle.normal.textColor = hierarchyStyle.onFocused.textColor;
               }
 
               return lockedFileRowSelectedStyle;
