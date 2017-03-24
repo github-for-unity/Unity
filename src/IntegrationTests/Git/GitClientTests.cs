@@ -36,19 +36,28 @@ namespace IntegrationTests
             var gitSetup = new GitSetup(environment, CancellationToken.None);
             var expectedPath = gitSetup.GitInstallationPath;
 
-            bool setupDone = false;
-            float percent;
-            long remain;
+            var setupDone = false;
+            var percent = -1f;
+
             // Root paths
             if (!gitSetup.GitExecutablePath.FileExists())
             {
-                setupDone = gitSetup.SetupIfNeeded(
-                    //new Progress<float>(x => Logger.Trace("Percentage: {0}", x)),
-                    //new Progress<long>(x => Logger.Trace("Remaining: {0}", x))
-                    new Progress<float>(x => percent = x),
-                    new Progress<long>(x => remain = x)
+                const bool force = true;
+                setupDone = gitSetup.SetupIfNeeded(force,
+                    new Progress<float>(x => percent = x)
                 ).Result;
             }
+
+            setupDone.Should().BeTrue();
+            percent.Should().Be(1);
+
+            //TODO: Fix this
+            //Expected on windows if forced: c:\GitHubUnity\LocalAppData\GitHubUnityDebug\PortableGit_f02737a78695063deace08e96d5042710d3e32db\cmd\git.exe
+            //Actual on windows if forced: C:\GitHubUnity\LocalAppData\GitHubUnityDebug\PortableGit_f02737a78695063deace08e96d5042710d3e32db\git\cmd\bin\git.exe
+
+            Logger.Trace("Expected GitExecutablePath: {0}", gitSetup.GitExecutablePath);
+            gitSetup.GitExecutablePath.FileExists().Should().BeTrue();
+
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
             var platform = new Platform(environment, filesystem, new TestUIDispatcher());

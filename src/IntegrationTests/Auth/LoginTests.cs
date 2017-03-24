@@ -63,17 +63,10 @@ namespace IntegrationTests
             var expectedPath = gitSetup.GitInstallationPath;
 
             bool setupDone = false;
-            float percent;
-            long remain;
             // Root paths
             if (!gitSetup.GitExecutablePath.FileExists())
             {
-                setupDone = await gitSetup.SetupIfNeeded(
-                    //new Progress<float>(x => Logger.Trace("Percentage: {0}", x)),
-                    //new Progress<long>(x => Logger.Trace("Remaining: {0}", x))
-                    new Progress<float>(x => percent = x),
-                    new Progress<long>(x => remain = x)
-                );
+                await gitSetup.SetupIfNeeded();
             }
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
             IPlatform platform = null;
