@@ -17,11 +17,17 @@ namespace TestUtils
         {
             createEnvironmentOptions = createEnvironmentOptions ?? new CreateEnvironmentOptions();
 
+            var userPath = createEnvironmentOptions.UserProfilePath.ToNPath();
+            var localAppData = userPath.Parent.Combine("LocalAppData").ToString();
+            var appData = userPath.Parent.Combine("AppData").ToString();
+
             var environment = Substitute.For<IEnvironment>();
             environment.RepositoryPath.Returns(createEnvironmentOptions.RepositoryPath);
             environment.ExtensionInstallPath.Returns(createEnvironmentOptions.Extensionfolder);
             environment.UserProfilePath.Returns(createEnvironmentOptions.UserProfilePath);
             environment.UnityProjectPath.Returns(createEnvironmentOptions.UnityProjectPath);
+            environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).Returns(localAppData);
+            environment.GetSpecialFolder(System.Environment.SpecialFolder.ApplicationData).Returns(appData);
             return environment;
         }
 

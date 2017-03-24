@@ -9,9 +9,20 @@ namespace IntegrationTests
 {
     class BaseGitIntegrationTest : BaseIntegrationTest
     {
+        public IEnvironment Environment { get; private set; }
+
         protected override void OnSetup()
         {
             base.OnSetup();
+
+            Environment = new IntegrationTestEnvironment {
+                RepositoryPath = TestBasePath
+            };
+
+            var gitSetup = new GitSetup(Environment, CancellationToken.None);
+            gitSetup.SetupIfNeeded().Wait();
+
+            Environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
             TestRepoPath = TestBasePath.Combine("IOTestsRepo");
             FileSystem.SetCurrentDirectory(TestRepoPath);

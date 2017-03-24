@@ -102,7 +102,7 @@ namespace GitHub.Unity
             return true;
         }
 
-        public async Task<bool> Setup(IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+        public async Task<bool> SetupIfNeeded(bool force = false, IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -118,11 +118,11 @@ namespace GitHub.Unity
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var ret = await ExtractGitIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
+                var ret = await SetupGitIfNeeded(tempPath, force, zipFileProgress, estimatedDurationProgress);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                ret &= await ExtractGitLfsIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
+                ret &= await SetupGitLfsIfNeeded(tempPath, force, zipFileProgress, estimatedDurationProgress);
 
                 var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "gitconfig", tempPath);
                 if (archiveFilePath.FileExists())
@@ -154,12 +154,12 @@ namespace GitHub.Unity
             return false;
         }
 
-        public Task<bool> ExtractGitIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
+        public Task<bool> SetupGitIfNeeded(NPath tempPath, bool force = false, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (IsPortableGitExtracted())
+            if (!force && IsPortableGitExtracted())
             {
                 logger.Trace("Already extracted {0}, returning", PackageDestinationDirectory);
                 return TaskEx.FromResult(true);
@@ -168,7 +168,7 @@ namespace GitHub.Unity
             cancellationToken.ThrowIfCancellationRequested();
 
             var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitZipFile, tempPath);
-            if (!archiveFilePath.FileExists())
+            if (!force && !archiveFilePath.FileExists())
             {
                 archiveFilePath = environment.ExtensionInstallPath.ToNPath().Combine(archiveFilePath);
                 if (!archiveFilePath.FileExists())
@@ -181,6 +181,8 @@ namespace GitHub.Unity
 
             try
             {
+                logger.Trace("Extracting \"{0}\" to \"{1}\"", archiveFilePath, unzipPath);
+
                 extractCallback(archiveFilePath, unzipPath, cancellationToken, zipFileProgress,
                     estimatedDurationProgress);
             }
@@ -194,6 +196,8 @@ namespace GitHub.Unity
 
             try
             {
+                logger.Trace("Copying \"{0}\" to \"{1}\"", unzipPath, PackageDestinationDirectory);
+
                 unzipPath.Copy(PackageDestinationDirectory);
             }
             catch (Exception ex)
@@ -205,12 +209,12 @@ namespace GitHub.Unity
             return TaskEx.FromResult(true);
         }
 
-        public Task<bool> ExtractGitLfsIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
+        public Task<bool> SetupGitLfsIfNeeded(NPath tempPath, bool force = false, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (IsGitLfsExtracted())
+            if (!force && IsGitLfsExtracted())
             {
                 logger.Trace("Already extracted {0}, returning", GitLfsDestinationPath);
                 return TaskEx.FromResult(false);
@@ -219,7 +223,7 @@ namespace GitHub.Unity
             cancellationToken.ThrowIfCancellationRequested();
 
             var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitLfsZipFile, tempPath);
-            if (!archiveFilePath.FileExists())
+            if (!force && !archiveFilePath.FileExists())
             {
                 archiveFilePath = environment.ExtensionInstallPath.ToNPath().Combine(archiveFilePath);
                 if (!archiveFilePath.FileExists())
@@ -232,6 +236,8 @@ namespace GitHub.Unity
 
             try
             {
+                logger.Trace("Extracting \"{0}\" to \"{1}\"", archiveFilePath, unzipPath);
+
                 extractCallback(archiveFilePath, unzipPath, cancellationToken, zipFileProgress,
                     estimatedDurationProgress);
             }
@@ -245,7 +251,10 @@ namespace GitHub.Unity
 
             try
             {
-                unzipPath.Combine(GitLfsExecutable).Copy(GitLfsDestinationPath);
+                var unzippedGitLfsExecutablePath = unzipPath.Combine(GitLfsExecutable);
+                logger.Trace("Copying \"{0}\" to \"{1}\"", unzippedGitLfsExecutablePath, GitLfsDestinationPath);
+
+                unzippedGitLfsExecutablePath.Copy(GitLfsDestinationPath);
             }
             catch (Exception ex)
             {
