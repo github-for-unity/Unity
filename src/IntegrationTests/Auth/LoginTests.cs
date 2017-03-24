@@ -57,53 +57,35 @@ namespace IntegrationTests
         {
             var filesystem = new FileSystem();
             NPathFileSystemProvider.Current = filesystem;
-            using (var environment = new IntegrationTestEnvironment())
+            IPlatform platform = null;
+            platform = new Platform(Environment, filesystem, new TestUIDispatcher(() => {
+                Logger.Debug("Called");
+                platform.CredentialManager.Save(new Credential("https://github.com", "username", "token")).Wait();
+                return true;
+            }));
+            var gitEnvironment = platform.GitEnvironment;
+            var processManager = new ProcessManager(Environment, gitEnvironment);
+            await platform.Initialize(processManager);
+            using (var repoManager = new RepositoryManager(TestBasePath, platform, CancellationToken.None))
             {
-                var gitSetup = new GitSetup(environment, CancellationToken.None);
-                var expectedPath = gitSetup.GitInstallationPath;
+                var repository = repoManager.Repository;
+                Environment.Repository = repoManager.Repository;
 
-                bool setupDone = false;
-                // Root paths
-                if (!gitSetup.GitExecutablePath.FileExists())
-                {
-                    await gitSetup.SetupIfNeeded();
-                }
-                environment.GitExecutablePath = gitSetup.GitExecutablePath;
-                IPlatform platform = null;
-                platform = new Platform(environment, filesystem, new TestUIDispatcher(() =>
-                {
-                    Logger.Debug("Called");
-                    platform.CredentialManager.Save(new Credential("https://github.com", "username", "token")).Wait();
-                    return true;
-                }));
-                var gitEnvironment = platform.GitEnvironment;
-                var processManager = new ProcessManager(environment, gitEnvironment);
-                await platform.Initialize(processManager);
-                using (var repoManager = new RepositoryManager(TestBasePath, platform, CancellationToken.None))
-                {
-                    var repository = repoManager.Repository;
-                    environment.Repository = repoManager.Repository;
+                var task =
+                    repository.Pull(new TaskResultDispatcher<string>(x => { Logger.Debug("Pull result: {0}", x); }));
+                await task.RunAsync(CancellationToken.None);
 
-                    var task = repository.Pull(
-                        new TaskResultDispatcher<string>(x =>
-                        {
-                            Logger.Debug("Pull result: {0}", x);
-                        })
-                    );
-                    await task.RunAsync(CancellationToken.None);
+                //string credHelper = null;
+                //var task = new GitConfigGetTask(environment, processManager,
+                //    new TaskResultDispatcher<string>(x =>
+                //    {
+                //        Logger.Debug("CredHelper set to {0}", x);
+                //        credHelper = x;
+                //    }),
+                //    "credential.helper", GitConfigSource.NonSpecified);
 
-                    //string credHelper = null;
-                    //var task = new GitConfigGetTask(environment, processManager,
-                    //    new TaskResultDispatcher<string>(x =>
-                    //    {
-                    //        Logger.Debug("CredHelper set to {0}", x);
-                    //        credHelper = x;
-                    //    }),
-                    //    "credential.helper", GitConfigSource.NonSpecified);
-
-                    //await task.RunAsync(CancellationToken.None);
-                    //Assert.NotNull(credHelper);
-                }
+                //await task.RunAsync(CancellationToken.None);
+                //Assert.NotNull(credHelper);
             }
 
             //string remoteUrl = null;
