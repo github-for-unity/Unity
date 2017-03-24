@@ -44,11 +44,12 @@ namespace IntegrationTests
         {
             try
             {
+                Logger.Debug("Deleting TestBasePath: {0}", TestBasePath.ToString());
                 TestBasePath.Delete();
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Logger.Warning(e, "Error deleting TestBasePath: {0}", TestBasePath.ToString());
+                Logger.Warning("Error deleting TestBasePath: {0}", TestBasePath.ToString());
             }
 
             FileSystem = null;
