@@ -33,44 +33,36 @@ namespace IntegrationTests
             var filesystem = new FileSystem();
             NPathFileSystemProvider.Current = filesystem;
 
-            using (var environment = new IntegrationTestEnvironment())
-            {
-                var gitSetup = new GitSetup(environment, CancellationToken.None);
-                var expectedPath = gitSetup.GitInstallationPath;
+            var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
+            var environment = new IntegrationTestEnvironment(environmentPath);
+            var gitSetup = new GitSetup(environment, CancellationToken.None);
+            var expectedPath = gitSetup.GitInstallationPath;
 
-                var setupDone = false;
-                var percent = -1f;
+            var setupDone = false;
+            var percent = -1f;
 
-                // Root paths
-                gitSetup.GitExecutablePath.FileExists().Should().BeFalse();
+            // Root paths
+            gitSetup.GitExecutablePath.FileExists().Should().BeFalse();
 
-                const bool force = true;
-                setupDone = gitSetup.SetupIfNeeded(force,
-                    new Progress<float>(x => percent = x)
-                ).Result;
+            setupDone = gitSetup.SetupIfNeeded(percentage: new Progress<float>(x => percent = x)).Result;
 
-                setupDone.Should().BeTrue();
-                percent.Should().Be(1);
+            setupDone.Should().BeTrue();
+            percent.Should().Be(1);
 
-                //TODO: Fix this
-                //Expected on windows if forced: c:\GitHubUnity\LocalAppData\GitHubUnityDebug\PortableGit_f02737a78695063deace08e96d5042710d3e32db\cmd\git.exe
-                //Actual on windows if forced: C:\GitHubUnity\LocalAppData\GitHubUnityDebug\PortableGit_f02737a78695063deace08e96d5042710d3e32db\git\cmd\bin\git.exe
+            Logger.Trace("Expected GitExecutablePath: {0}", gitSetup.GitExecutablePath);
+            gitSetup.GitExecutablePath.FileExists().Should().BeTrue();
 
-                Logger.Trace("Expected GitExecutablePath: {0}", gitSetup.GitExecutablePath);
-                gitSetup.GitExecutablePath.FileExists().Should().BeTrue();
+            environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
-                environment.GitExecutablePath = gitSetup.GitExecutablePath;
+            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
+            var gitEnvironment = platform.GitEnvironment;
+            var processManager = new ProcessManager(environment, gitEnvironment);
 
-                var platform = new Platform(environment, filesystem, new TestUIDispatcher());
-                var gitEnvironment = platform.GitEnvironment;
-                var processManager = new ProcessManager(environment, gitEnvironment);
+            var gitBranches = processManager.GetGitBranches(TestBasePath, environment.GitExecutablePath);
 
-                var gitBranches = processManager.GetGitBranches(TestBasePath, environment.GitExecutablePath);
-
-                gitBranches.Should().BeEquivalentTo(
-                    new GitBranch("master", string.Empty, true),
-                    new GitBranch("feature/document", string.Empty, false));
-            }
+            gitBranches.Should()
+                       .BeEquivalentTo(new GitBranch("master", string.Empty, true),
+                           new GitBranch("feature/document", string.Empty, false));
         }
     }
 }

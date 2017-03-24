@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using FluentAssertions;
 using NUnit.Framework;
 using GitHub.Unity;
@@ -10,7 +11,6 @@ namespace IntegrationTests
     {
         protected NPath TestBasePath { get; private set; }
         protected ILogging Logger { get; private set; }
-        protected IEnvironment Environment { get; private set; }
         protected IFileSystem FileSystem { get; private set; }
         protected TestUtils.SubstituteFactory Factory { get; set; }
 
@@ -29,7 +29,6 @@ namespace IntegrationTests
 
         protected virtual void OnSetup()
         {
-            Environment = new DefaultEnvironment();
             FileSystem = new FileSystem(TestBasePath);
 
             NPathFileSystemProvider.Current.Should().BeNull("Test should run in isolation");

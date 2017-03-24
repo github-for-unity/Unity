@@ -3,7 +3,7 @@ using GitHub.Unity;
 
 namespace IntegrationTests
 {
-    class IntegrationTestEnvironment : IEnvironment, IDisposable
+    class IntegrationTestEnvironment : IEnvironment
     {
         private static readonly ILogging logger = Logging.GetLogger<IntegrationTestEnvironment>();
         private DefaultEnvironment defaultEnvironment;
@@ -11,11 +11,18 @@ namespace IntegrationTests
         private string gitExecutablePath;
         private NPath integrationTestEnvironmentPath;
 
-        public IntegrationTestEnvironment()
+        public IntegrationTestEnvironment(NPath environmentPath = null)
         {
             defaultEnvironment = new DefaultEnvironment();
 
-            integrationTestEnvironmentPath = NPath.CreateTempDirectory("integration-test-environment");
+            environmentPath = environmentPath ??
+                defaultEnvironment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
+                           .ToNPath()
+                           .EnsureDirectoryExists(ApplicationInfo.ApplicationName + "-IntegrationTests");
+
+            logger.Trace("EnvironmentPath: \"{0}\"", environmentPath);
+
+            integrationTestEnvironmentPath = environmentPath;
         }
 
         public string ExpandEnvironmentVariables(string name)
@@ -73,18 +80,5 @@ namespace IntegrationTests
         }
 
         public IRepository Repository { get; set; }
-
-        public void Dispose()
-        {
-            try
-            {
-                logger.Debug("Deleting Integration Test Environment: {0}", integrationTestEnvironmentPath.ToString());
-                integrationTestEnvironmentPath.Delete();
-            }
-            catch (Exception)
-            {
-                logger.Warning("Error deleting Integration Test Environment: {0}", integrationTestEnvironmentPath.ToString());
-            }
-        }
     }
 }
