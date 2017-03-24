@@ -81,7 +81,7 @@ namespace IntegrationTests
             var portableGitManager = new GitInstaller(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
             sharpZipLibHelper);
             var tempPath = NPath.CreateTempDirectory("integration-tests");
-            portableGitManager.ExtractGitIfNeeded(tempPath);
+            portableGitManager.SetupGitIfNeeded(tempPath);
             tempPath.Delete();
 
             sharpZipLibHelper.Received().Extract(WindowsPortableGitZip, Args.String);
@@ -104,7 +104,7 @@ namespace IntegrationTests
             var portableGitManager = new GitInstaller(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
                 sharpZipLibHelper);
             var tempPath = NPath.CreateTempDirectory("integration-tests");
-            portableGitManager.ExtractGitIfNeeded(tempPath);
+            portableGitManager.SetupGitIfNeeded(tempPath);
             tempPath.Delete();
 
             const string shouldExtractTo = CreateFileSystemOptions.DefaultTemporaryPath + @"\randomFile1.deleteme";
@@ -163,7 +163,7 @@ namespace IntegrationTests
 
             var portableGitManager = new GitInstaller(Factory.CreateEnvironment(), sharpZipLibHelper);
             var tempPath = NPath.CreateTempDirectory("integration-tests");
-            portableGitManager.ExtractGitIfNeeded(tempPath);
+            portableGitManager.SetupGitIfNeeded(tempPath);
             tempPath.Delete();
 
             sharpZipLibHelper.DidNotReceiveWithAnyArgs().Extract(Args.String, Args.String);
@@ -189,7 +189,7 @@ namespace IntegrationTests
             var portableGitManager = new GitInstaller(Factory.CreateEnvironment(new CreateEnvironmentOptions()),
                 sharpZipLibHelper);
             var tempPath = NPath.CreateTempDirectory("integration-tests");
-            portableGitManager.ExtractGitIfNeeded(tempPath);
+            portableGitManager.SetupGitIfNeeded(tempPath);
             tempPath.Delete();
 
             sharpZipLibHelper.DidNotReceiveWithAnyArgs().Extract(Args.String, Args.String);
