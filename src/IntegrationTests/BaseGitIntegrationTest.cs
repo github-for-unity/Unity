@@ -1,5 +1,4 @@
 using System.IO;
-using System.Linq;
 using System.Threading;
 using GitHub.Unity;
 using Ionic.Zip;
@@ -9,14 +8,14 @@ namespace IntegrationTests
 {
     class BaseGitIntegrationTest : BaseIntegrationTest
     {
-        public IEnvironment Environment { get; private set; }
-
         protected override void OnSetup()
         {
             base.OnSetup();
 
+            TestRepoPath = TestBasePath.Combine("IOTestsRepo");
+
             Environment = new IntegrationTestEnvironment {
-                RepositoryPath = TestBasePath
+                RepositoryPath = TestRepoPath
             };
 
             var gitSetup = new GitSetup(Environment, CancellationToken.None);
@@ -24,7 +23,6 @@ namespace IntegrationTests
 
             Environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
-            TestRepoPath = TestBasePath.Combine("IOTestsRepo");
             FileSystem.SetCurrentDirectory(TestRepoPath);
 
             Platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
@@ -41,10 +39,13 @@ namespace IntegrationTests
             }
 
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TestRepoPath, CancellationToken.None);
+            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TestRepoPath,
+                CancellationToken.None);
 
             Environment.Repository = repositoryManager.Repository;
         }
+
+        public IEnvironment Environment { get; private set; }
 
         protected NPath TestRepoPath { get; private set; }
 
