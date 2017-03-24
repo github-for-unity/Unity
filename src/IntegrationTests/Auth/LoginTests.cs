@@ -5,6 +5,7 @@ using NUnit.Framework;
 using System.Threading;
 using System.Threading.Tasks;
 using Rackspace.Threading;
+using TestUtils;
 
 namespace IntegrationTests
 {
@@ -56,7 +57,7 @@ namespace IntegrationTests
         {
             var filesystem = new FileSystem();
             NPathFileSystemProvider.Current = filesystem;
-            var environment = new DefaultEnvironment();
+            var environment = Factory.CreateEnvironment(new CreateEnvironmentOptions { UnityProjectPath = TestBasePath });
 
             var gitSetup = new GitSetup(environment, CancellationToken.None);
             var expectedPath = gitSetup.GitInstallationPath;
@@ -75,7 +76,6 @@ namespace IntegrationTests
                 );
             }
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
-            environment.UnityProjectPath = TestBasePath;
             IPlatform platform = null;
             platform = new Platform(environment, filesystem, new TestUIDispatcher(() =>
             {

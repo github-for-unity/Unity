@@ -2,6 +2,7 @@ using System;
 using FluentAssertions;
 using NUnit.Framework;
 using GitHub.Unity;
+using NSubstitute.Core;
 
 namespace IntegrationTests
 {
@@ -11,11 +12,13 @@ namespace IntegrationTests
         protected ILogging Logger { get; private set; }
         protected IEnvironment Environment { get; private set; }
         protected IFileSystem FileSystem { get; private set; }
+        protected TestUtils.SubstituteFactory Factory { get; set; }
 
         [TestFixtureSetUp]
         public void TestFixtureSetup()
         {
             Logger = Logging.GetLogger(GetType());
+            Factory = new TestUtils.SubstituteFactory();
         }
 
         [SetUp]
