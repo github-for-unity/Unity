@@ -46,11 +46,11 @@ namespace IntegrationTests
 
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
-            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
+            var platform = new Platform(environment, FileSystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
 
-            var gitBranches = processManager.GetGitBranches(TestBasePath, environment.GitExecutablePath);
+            var gitBranches = processManager.GetGitBranches(TestRepoPath, environment.GitExecutablePath);
 
             gitBranches.Should()
                        .BeEquivalentTo(new GitBranch("master", string.Empty, true),
