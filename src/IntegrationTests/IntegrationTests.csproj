@@ -92,13 +92,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auth\LoginTests.cs" />
-    <Compile Include="BaseGitIntegrationTest.cs" />
+    <Compile Include="BaseGitEnvironmentTest.cs" />
+    <Compile Include="BaseGitRepoTest.cs" />
     <Compile Include="BaseIntegrationTest.cs" />
+    <Compile Include="Git\GitSetupTests.cs" />
     <Compile Include="Events\RepositoryWatcherTests.cs" />
     <Compile Include="Git\IntegrationTestEnvironment.cs" />
     <Compile Include="Watches\FileSystemWatcherTests.cs" />
     <Compile Include="Helpers\TestUIDispatcher.cs" />
-    <Compile Include="Git\GitClientTests.cs" />
+    <Compile Include="Git\RepositoryLocatorTests.cs" />
     <Compile Include="Installer\GitInstallerTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="Process\ProcessManagerIntegrationTests.cs" />
