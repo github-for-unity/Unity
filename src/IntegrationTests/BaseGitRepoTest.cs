@@ -14,7 +14,7 @@ namespace IntegrationTests
 
             TestRepoPath = TestBasePath.Combine("IOTestsRepo");
 
-            Environment = new IntegrationTestEnvironment {
+            Environment = new IntegrationTestEnvironment(SolutionDirectory) {
                 RepositoryPath = TestRepoPath
             };
 
