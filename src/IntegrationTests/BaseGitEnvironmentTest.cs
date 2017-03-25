@@ -12,7 +12,8 @@ namespace IntegrationTests
             base.OnSetup();
 
             Environment = new IntegrationTestEnvironment {
-                RepositoryPath = TestBasePath
+                RepositoryPath = TestRepoPath,
+                UnityProjectPath = TestRepoPath
             };
 
             var gitSetup = new GitSetup(Environment, CancellationToken.None);

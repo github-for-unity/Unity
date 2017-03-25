@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading;
 using GitHub.Unity;
 using Ionic.Zip;
 using NUnit.Framework;

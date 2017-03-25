@@ -7,9 +7,9 @@ using NSubstitute;
 using NUnit.Framework;
 using TestUtils;
 
-namespace IntegrationTests.Events
+namespace IntegrationTests
 {
-    class RepositoryWatcherTests : BaseGitIntegrationTest
+    class RepositoryWatcherTests : BaseGitRepoTest
     {
         private int ThreadSleepTimeout = 500;
 
