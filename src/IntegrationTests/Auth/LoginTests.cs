@@ -10,7 +10,7 @@ using TestUtils;
 namespace IntegrationTests
 {
     [TestFixture]
-    class LoginIntegrationTests : BaseGitIntegrationTest
+    class LoginIntegrationTests : BaseGitEnvironmentTest
     {
         string FindCommonPath(IEnumerable<string> paths)
         {

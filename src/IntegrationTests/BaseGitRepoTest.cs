@@ -1,12 +1,11 @@
 using System.IO;
-using System.Threading;
 using GitHub.Unity;
 using Ionic.Zip;
 using NUnit.Framework;
 
 namespace IntegrationTests
 {
-    class BaseGitIntegrationTest : BaseIntegrationTest
+    class BaseGitRepoTest : BaseIntegrationTest
     {
         protected override void OnSetup()
         {
