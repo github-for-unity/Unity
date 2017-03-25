@@ -20,9 +20,10 @@ namespace GitHub.Unity
             GitInstallationPath = gitInstaller.PackageDestinationDirectory;
             GitExecutablePath = gitInstaller.GitDestinationPath;
         }
-        public Task<bool> SetupIfNeeded(IProgress<float> percentage = null, IProgress<long> timeRemaining = null)
+
+        public Task<bool> SetupIfNeeded(bool force = false, IProgress<float> percentage = null, IProgress<long> timeRemaining = null)
         {
-            return gitInstaller.Setup(percentage, timeRemaining);
+            return gitInstaller.SetupIfNeeded(force, percentage, timeRemaining);
         }
     }
 }
