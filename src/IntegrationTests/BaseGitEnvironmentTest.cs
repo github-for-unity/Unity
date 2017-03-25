@@ -17,7 +17,7 @@ namespace IntegrationTests
         {
             base.OnSetup();
 
-            Environment = new IntegrationTestEnvironment
+            Environment = new IntegrationTestEnvironment(SolutionDirectory)
             {
                 RepositoryPath = TestRepoPath
             };
