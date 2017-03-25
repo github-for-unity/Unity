@@ -10,7 +10,7 @@ using TestUtils;
 namespace IntegrationTests
 {
     [TestFixture]
-    class LoginIntegrationTests : BaseGitIntegrationTest
+    class LoginIntegrationTests : BaseGitEnvironmentTest
     {
         string FindCommonPath(IEnumerable<string> paths)
         {
@@ -36,7 +36,7 @@ namespace IntegrationTests
         [Test]
         public void CommonParentTest()
         {
-            var filesystem = new FileSystem(TestBasePath);
+            var filesystem = new FileSystem(TestRepoPath);
             NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
 
@@ -66,7 +66,9 @@ namespace IntegrationTests
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(Environment, gitEnvironment);
             await platform.Initialize(processManager);
-            using (var repoManager = new RepositoryManager(TestBasePath, platform, CancellationToken.None))
+
+            var repositoryManagerFactory = new RepositoryManagerFactory();
+            using (var repoManager = repositoryManagerFactory.CreateRepositoryManager(platform, TestRepoPath, CancellationToken.None))
             {
                 var repository = repoManager.Repository;
                 Environment.Repository = repoManager.Repository;
