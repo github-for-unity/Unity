@@ -4,9 +4,9 @@ namespace TestUtils
 {
     class CreateEnvironmentOptions
     {
-        public const string DefaultExtensionFolder = @"c:\ExtensionFolder";
-        public const string DefaultUserProfilePath = @"c:\UserProfile";
-        public const string DefaultUnityProjectPathAndRepositoryPath = @"c:\UnityProject";
+        public const string DefaultExtensionFolder = @"c:\GitHubUnity\ExtensionFolder";
+        public const string DefaultUserProfilePath = @"c:\GitHubUnity\UserProfile";
+        public const string DefaultUnityProjectPathAndRepositoryPath = @"c:\GitHubUnity\UnityProject";
 
         public string Extensionfolder { get; set; } = DefaultExtensionFolder;
         public string UserProfilePath { get; set; } = DefaultUserProfilePath;
