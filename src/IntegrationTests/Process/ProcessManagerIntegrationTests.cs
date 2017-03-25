@@ -10,7 +10,7 @@ using TestUtils;
 namespace IntegrationTests
 {
     [TestFixture]
-    class ProcessManagerIntegrationTests : BaseGitIntegrationTest
+    class ProcessManagerIntegrationTests : BaseGitEnvironmentTest
     {
         [Test]
         public void BranchListTest()
