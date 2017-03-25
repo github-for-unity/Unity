@@ -5,11 +5,12 @@ using System.Threading;
 using FluentAssertions;
 using NUnit.Framework;
 using GitHub.Unity;
+using TestUtils;
 
 namespace IntegrationTests
 {
     [TestFixture]
-    class ProcessManagerIntegrationTests : BaseGitIntegrationTest
+    class ProcessManagerIntegrationTests : BaseGitEnvironmentTest
     {
         public ProcessManager ProcessManager { get; set; }
 
@@ -21,7 +22,9 @@ namespace IntegrationTests
 
             var platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
             GitEnvironment = platform.GitEnvironment;
+
             ProcessManager = new ProcessManager(Environment, GitEnvironment);
+            platform.Initialize(ProcessManager);
 
             Environment.UnityProjectPath = TestBasePath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;

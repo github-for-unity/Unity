@@ -15,6 +15,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguage("en-US")]
 
+[assembly: InternalsVisibleTo("TestUtils", AllInternalsVisible = true)]
 [assembly: InternalsVisibleTo("UnitTests", AllInternalsVisible = true)]
 [assembly: InternalsVisibleTo("IntegrationTests", AllInternalsVisible = true)]
 

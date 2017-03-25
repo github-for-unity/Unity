@@ -1,37 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NSubstitute;
 using GitHub.Unity;
+using NSubstitute;
 
-namespace IntegrationTests
+namespace TestUtils
 {
     class SubstituteFactory
     {
+        public SubstituteFactory()
+        {}
+
         public IEnvironment CreateEnvironment(CreateEnvironmentOptions createEnvironmentOptions = null)
         {
             createEnvironmentOptions = createEnvironmentOptions ?? new CreateEnvironmentOptions();
 
+            var userPath = createEnvironmentOptions.UserProfilePath.ToNPath();
+            var localAppData = userPath.Parent.Combine("LocalAppData").ToString();
+            var appData = userPath.Parent.Combine("AppData").ToString();
+
             var environment = Substitute.For<IEnvironment>();
+            environment.RepositoryPath.Returns(createEnvironmentOptions.RepositoryPath);
             environment.ExtensionInstallPath.Returns(createEnvironmentOptions.Extensionfolder);
             environment.UserProfilePath.Returns(createEnvironmentOptions.UserProfilePath);
+            environment.UnityProjectPath.Returns(createEnvironmentOptions.UnityProjectPath);
+            environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).Returns(localAppData);
+            environment.GetSpecialFolder(System.Environment.SpecialFolder.ApplicationData).Returns(appData);
             return environment;
         }
 
-        public IFileSystem CreateFileSystem(CreateFileSystemOptions createFileSystemOptions = null, string currentDirectory = null)
+        public IFileSystem CreateFileSystem(CreateFileSystemOptions createFileSystemOptions = null)
         {
             createFileSystemOptions = createFileSystemOptions ?? new CreateFileSystemOptions();
-            if (currentDirectory == null)
-                currentDirectory = CreateFileSystemOptions.DefaultTemporaryPath;
             var fileSystem = Substitute.For<IFileSystem>();
             var realFileSystem = new FileSystem();
             var logger = Logging.GetLogger("TestFileSystem");
 
             fileSystem.DirectorySeparatorChar.Returns(realFileSystem.DirectorySeparatorChar);
-            fileSystem.GetCurrentDirectory().Returns(currentDirectory);
+            fileSystem.GetCurrentDirectory().Returns(createFileSystemOptions.CurrentDirectory);
 
-            fileSystem.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns(info =>
+            fileSystem.Combine(Args.String, Args.String).Returns(info =>
             {
                 var path1 = (string)info[0];
                 var path2 = (string)info[1];
@@ -40,7 +48,7 @@ namespace IntegrationTests
                 return combine;
             });
 
-            fileSystem.Combine(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(info =>
+            fileSystem.Combine(Args.String, Args.String, Args.String).Returns(info =>
             {
                 var path1 = (string)info[0];
                 var path2 = (string)info[1];
@@ -50,7 +58,7 @@ namespace IntegrationTests
                 return combine;
             });
 
-            fileSystem.FileExists(Arg.Any<string>()).Returns(info =>
+            fileSystem.FileExists(Args.String).Returns(info =>
             {
                 var path = (string)info[0];
 
@@ -64,7 +72,7 @@ namespace IntegrationTests
                 return result;
             });
 
-            fileSystem.WhenForAnyArgs(system => system.FileCopy(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>()))
+            fileSystem.WhenForAnyArgs(system => system.FileCopy(Args.String, Args.String, Args.Bool))
                       .Do(
                           info =>
                           {
@@ -72,7 +80,7 @@ namespace IntegrationTests
                                   (string)info[1], (bool)info[2]);
                           });
 
-            fileSystem.DirectoryExists(Arg.Any<string>()).Returns(info =>
+            fileSystem.DirectoryExists(Args.String).Returns(info =>
             {
                 var path1 = (string)info[0];
 
@@ -86,7 +94,7 @@ namespace IntegrationTests
                 return result;
             });
 
-            fileSystem.ExistingPathIsDirectory(Arg.Any<string>()).Returns(info =>
+            fileSystem.ExistingPathIsDirectory(Args.String).Returns(info =>
             {
                 var path = (string)info[0];
 
@@ -100,7 +108,7 @@ namespace IntegrationTests
                 return result;
             });
 
-            fileSystem.ReadAllText(Arg.Any<string>()).Returns(info =>
+            fileSystem.ReadAllText(Args.String).Returns(info =>
             {
                 var path = (string)info[0];
 
@@ -144,11 +152,11 @@ namespace IntegrationTests
                 return createFileSystemOptions.TemporaryPath;
             });
 
-            fileSystem.GetFiles(Arg.Any<string>()).Returns(info =>
+            fileSystem.GetFiles(Args.String).Returns(info =>
             {
                 var path = (string)info[0];
 
-                var result = new string[0];
+                string[] result = null;
                 if (createFileSystemOptions.ChildFiles != null)
                 {
                     var key = new ContentsKey(path);
@@ -158,17 +166,19 @@ namespace IntegrationTests
                     }
                 }
 
-                logger.Trace(@"FileSystem.GetFiles(""{0}"") -> {1} items", path, result.Length);
+                var resultLength = result != null ? $"{result.Length} items" : "ERROR";
+
+                logger.Trace(@"FileSystem.GetFiles(""{0}"") -> {1}", path, resultLength);
 
                 return result;
             });
 
-            fileSystem.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns(info =>
+            fileSystem.GetFiles(Args.String, Args.String).Returns(info =>
             {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
 
-                var result = new string[0];
+                string[] result = null;
                 if (createFileSystemOptions.ChildFiles != null)
                 {
                     var key = new ContentsKey(path, pattern);
@@ -178,18 +188,20 @@ namespace IntegrationTests
                     }
                 }
 
-                logger.Trace(@"FileSystem.GetFiles(""{0}"", ""{1}"") -> {2} items", path, pattern, result.Length);
+                var resultLength = result != null ? $"{result.Length} items" : "ERROR";
+
+                logger.Trace(@"FileSystem.GetFiles(""{0}"", ""{1}"") -> {2}", path, pattern, resultLength);
 
                 return result;
             });
 
-            fileSystem.GetFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>()).Returns(info =>
+            fileSystem.GetFiles(Args.String, Args.String, Args.SearchOption).Returns(info =>
             {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
                 var searchOption = (SearchOption)info[2];
 
-                var result = new string[0];
+                string[] result = null;
                 if (createFileSystemOptions.ChildFiles != null)
                 {
                     var key = new ContentsKey(path, pattern, searchOption);
@@ -199,17 +211,19 @@ namespace IntegrationTests
                     }
                 }
 
-                logger.Trace(@"FileSystem.GetFiles(""{0}"", ""{1}"", {2}) -> {3} items", path, pattern, searchOption,
-                    result.Length);
+                var resultLength = result != null ? $"{result.Length} items" : "ERROR";
+
+                logger.Trace(@"FileSystem.GetFiles(""{0}"", ""{1}"", {2}) -> {3}", path, pattern, searchOption,
+                    resultLength);
 
                 return result;
             });
 
-            fileSystem.GetDirectories(Arg.Any<string>()).Returns(info =>
+            fileSystem.GetDirectories(Args.String).Returns(info =>
             {
                 var path = (string)info[0];
 
-                string[] result = new string[0];
+                string[] result = null;
                 if (createFileSystemOptions.ChildDirectories != null)
                 {
                     var key = new ContentsKey(path);
@@ -219,17 +233,19 @@ namespace IntegrationTests
                     }
                 }
 
-                logger.Trace(@"FileSystem.GetDirectories(""{0}"") -> {1} itemss", path, result.Length);
+                var resultLength = result != null ? $"{result.Length} items" : "ERROR";
+
+                logger.Trace(@"FileSystem.GetDirectories(""{0}"") -> {1}", path, resultLength);
 
                 return result;
             });
 
-            fileSystem.GetDirectories(Arg.Any<string>(), Arg.Any<string>()).Returns(info =>
+            fileSystem.GetDirectories(Args.String, Args.String).Returns(info =>
             {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
 
-                string[] result = new string[0];
+                string[] result = null;
                 if (createFileSystemOptions.ChildDirectories != null)
                 {
                     var key = new ContentsKey(path, pattern);
@@ -239,12 +255,14 @@ namespace IntegrationTests
                     }
                 }
 
-                logger.Trace(@"FileSystem.GetDirectories(""{0}"", ""{1}"") -> {2} items", path, pattern, result.Length);
+                var resultLength = result != null ? $"{result.Length} items" : "ERROR";
+
+                logger.Trace(@"FileSystem.GetDirectories(""{0}"", ""{1}"") -> {2}", path, pattern, resultLength);
 
                 return result;
             });
 
-            fileSystem.GetDirectories(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>()).Returns(info =>
+            fileSystem.GetDirectories(Args.String, Args.String, Args.SearchOption).Returns(info =>
             {
                 var path = (string)info[0];
                 var pattern = (string)info[1];
@@ -268,7 +286,7 @@ namespace IntegrationTests
                 return result;
             });
 
-            fileSystem.GetFullPath(Arg.Any<string>())
+            fileSystem.GetFullPath(Args.String)
                       .Returns(info => Path.GetFullPath((string)info[0]));
 
             return fileSystem;
@@ -277,6 +295,39 @@ namespace IntegrationTests
         public IZipHelper CreateSharpZipLibHelper()
         {
             return Substitute.For<IZipHelper>();
+        }
+
+        public IGitObjectFactory CreateGitObjectFactory(string gitRepoPath)
+        {
+            var gitObjectFactory = Substitute.For<IGitObjectFactory>();
+
+            gitObjectFactory.CreateGitStatusEntry(Args.String, Args.GitFileStatus, Args.String, Args.Bool)
+                                 .Returns(info => {
+                                     var path = (string)info[0];
+                                     var status = (GitFileStatus)info[1];
+                                     var originalPath = (string)info[2];
+                                     var staged = (bool)info[3];
+
+                                     return new GitStatusEntry(path, gitRepoPath + @"\" + path, null, status,
+                                         originalPath, staged);
+                                 });
+
+            gitObjectFactory.CreateGitLock(Args.String, Args.String)
+                                 .Returns(info => {
+                                     var path = (string)info[0];
+                                     var user = (string)info[1];
+
+                                     return new GitLock(path, gitRepoPath + @"\" + path, user);
+                                 });
+
+            return gitObjectFactory;
+        }
+
+        public IProcessEnvironment CreateProcessEnvironment(string root)
+        {
+            var processEnvironment = Substitute.For<IProcessEnvironment>();
+            processEnvironment.FindRoot(Args.String).Returns(root);
+            return processEnvironment;
         }
 
         public struct ContentsKey

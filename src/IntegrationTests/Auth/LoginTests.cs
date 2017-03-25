@@ -5,11 +5,12 @@ using NUnit.Framework;
 using System.Threading;
 using System.Threading.Tasks;
 using Rackspace.Threading;
+using TestUtils;
 
 namespace IntegrationTests
 {
     [TestFixture]
-    class LoginIntegrationTests : BaseGitIntegrationTest
+    class LoginIntegrationTests : BaseGitEnvironmentTest
     {
         string FindCommonPath(IEnumerable<string> paths)
         {
@@ -35,7 +36,7 @@ namespace IntegrationTests
         [Test]
         public void CommonParentTest()
         {
-            var filesystem = new FileSystem(TestBasePath);
+            var filesystem = new FileSystem(TestRepoPath);
             NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
 
@@ -51,54 +52,29 @@ namespace IntegrationTests
             Assert.AreEqual("Assets", ret);
         }
 
-        [Test]
+        [Test, Ignore]
         public async void NetworkTaskTest()
         {
             var filesystem = new FileSystem();
             NPathFileSystemProvider.Current = filesystem;
-            var environment = new DefaultEnvironment();
-
-            var gitSetup = new GitSetup(environment, CancellationToken.None);
-            var expectedPath = gitSetup.GitInstallationPath;
-
-            bool setupDone = false;
-            float percent;
-            long remain;
-            // Root paths
-            if (!gitSetup.GitExecutablePath.FileExists())
-            {
-                setupDone = await gitSetup.SetupIfNeeded(
-                    //new Progress<float>(x => Logger.Trace("Percentage: {0}", x)),
-                    //new Progress<long>(x => Logger.Trace("Remaining: {0}", x))
-                    new Progress<float>(x => percent = x),
-                    new Progress<long>(x => remain = x)
-                );
-            }
-            environment.GitExecutablePath = gitSetup.GitExecutablePath;
-            environment.UnityProjectPath = TestBasePath;
             IPlatform platform = null;
-            platform = new Platform(environment, filesystem, new TestUIDispatcher(() =>
-            {
+            platform = new Platform(Environment, filesystem, new TestUIDispatcher(() => {
                 Logger.Debug("Called");
                 platform.CredentialManager.Save(new Credential("https://github.com", "username", "token")).Wait();
                 return true;
             }));
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment);
+            var processManager = new ProcessManager(Environment, gitEnvironment);
             await platform.Initialize(processManager);
 
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            using (var repoManager = repositoryManagerFactory.CreateRepositoryManager(platform, TestBasePath, CancellationToken.None))
+            using (var repoManager = repositoryManagerFactory.CreateRepositoryManager(platform, TestRepoPath, CancellationToken.None))
             {
                 var repository = repoManager.Repository;
-                environment.Repository = repoManager.Repository;
+                Environment.Repository = repoManager.Repository;
 
-                var task = repository.Pull(
-                     new TaskResultDispatcher<string>(x =>
-                    {
-                        Logger.Debug("Pull result: {0}", x);
-                    })
-                );
+                var task =
+                    repository.Pull(new TaskResultDispatcher<string>(x => { Logger.Debug("Pull result: {0}", x); }));
                 await task.RunAsync(CancellationToken.None);
 
                 //string credHelper = null;
