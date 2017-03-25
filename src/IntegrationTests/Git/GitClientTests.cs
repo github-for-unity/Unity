@@ -1,10 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using GitHub.Unity;
 using Rackspace.Threading;
 using System.Threading;
 using FluentAssertions;
 using NCrunch.Framework;
+using TestUtils;
 
 namespace IntegrationTests
 {
@@ -30,35 +32,37 @@ namespace IntegrationTests
         {
             var filesystem = new FileSystem();
             NPathFileSystemProvider.Current = filesystem;
-            var environment = new DefaultEnvironment();
 
+            var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
+            var environment = new IntegrationTestEnvironment(environmentPath);
             var gitSetup = new GitSetup(environment, CancellationToken.None);
             var expectedPath = gitSetup.GitInstallationPath;
 
-            bool setupDone = false;
-            float percent;
-            long remain;
+            var setupDone = false;
+            var percent = -1f;
+
             // Root paths
-            if (!gitSetup.GitExecutablePath.FileExists())
-            {
-                setupDone = gitSetup.SetupIfNeeded(
-                    //new Progress<float>(x => Logger.Trace("Percentage: {0}", x)),
-                    //new Progress<long>(x => Logger.Trace("Remaining: {0}", x))
-                    new Progress<float>(x => percent = x),
-                    new Progress<long>(x => remain = x)
-                ).Result;
-            }
+            gitSetup.GitExecutablePath.FileExists().Should().BeFalse();
+
+            setupDone = gitSetup.SetupIfNeeded(percentage: new Progress<float>(x => percent = x)).Result;
+
+            setupDone.Should().BeTrue();
+            percent.Should().Be(1);
+
+            Logger.Trace("Expected GitExecutablePath: {0}", gitSetup.GitExecutablePath);
+            gitSetup.GitExecutablePath.FileExists().Should().BeTrue();
+
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
-            environment.UnityProjectPath = TestBasePath;
+
             var platform = new Platform(environment, filesystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
 
             var gitBranches = processManager.GetGitBranches(TestBasePath, environment.GitExecutablePath);
 
-            gitBranches.Should().BeEquivalentTo(
-                new GitBranch("master", string.Empty, true),
-                new GitBranch("feature/document", string.Empty, false));
+            gitBranches.Should()
+                       .BeEquivalentTo(new GitBranch("master", string.Empty, true),
+                           new GitBranch("feature/document", string.Empty, false));
         }
     }
 }

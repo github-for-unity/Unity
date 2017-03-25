@@ -1,5 +1,6 @@
 ﻿using GitHub.Unity;
 using NUnit.Framework;
+using TestUtils;
 
 namespace UnitTests
 {

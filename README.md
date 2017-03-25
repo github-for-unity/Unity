@@ -1,5 +1,7 @@
 # GitHub for Unity
 
+[![GDC 2017 - How GitHub Works With Unity](https://github-talks.s3.amazonaws.com/uploads/366/968/e27a6744-4d6f-40e7-9692-2c9d8a3b0d79.embed_cover.jpg)](https://githubber.tv/shana/gdc-2017-how-github-works-with-unity)
+
 ## How to install
 
 ### Requirements
