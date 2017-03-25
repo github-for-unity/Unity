@@ -1,5 +1,13 @@
 ﻿<ProjectConfiguration>
   <Settings>
+    <AdditionalFilesToIncludeForProject>
+      <Value>..\..\lib\sfw.net\win\x86\Debug\**.*</Value>
+      <Value>..\GitHub.Api\PlatformResources\**.*</Value>
+    </AdditionalFilesToIncludeForProject>
+    <HiddenComponentWarnings>
+      <Value>AbnormalReferenceResolution</Value>
+    </HiddenComponentWarnings>
     <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
+    <RunPostBuildEvents>True</RunPostBuildEvents>
   </Settings>
 </ProjectConfiguration>

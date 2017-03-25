@@ -30,7 +30,24 @@ namespace GitHub.Unity
         }
     }
 
-    class GitConfig
+    interface IGitConfig
+    {
+        void Reset();
+        IEnumerable<ConfigBranch> GetBranches();
+        IEnumerable<ConfigRemote> GetRemotes();
+        ConfigRemote? GetRemote(string remote);
+        ConfigBranch? GetBranch(string branch);
+        bool TryGet<T>(string section, string key, out T value);
+        string GetString(string section, string key);
+        float GetFloat(string section, string key);
+        int GetInt(string section, string key);
+        void Set<T>(string section, string key, T value);
+        void SetString(string section, string key, string value);
+        void SetFloat(string section, string key, float value);
+        void SetInt(string section, string key, int value);
+    }
+
+    class GitConfig : IGitConfig
     {
         private readonly ConfigFileManager manager;
         private SectionParser sectionParser;

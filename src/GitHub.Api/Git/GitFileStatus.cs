@@ -12,8 +12,6 @@ namespace GitHub.Unity
         Unmerged,
         Unknown,
         Broken,
-        Tracked,
-        LockedModified,
-        Locked
+        Tracked
     }
 }
