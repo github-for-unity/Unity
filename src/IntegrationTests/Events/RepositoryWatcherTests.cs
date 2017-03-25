@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using FluentAssertions;
 using GitHub.Unity;
@@ -7,9 +6,9 @@ using NSubstitute;
 using NUnit.Framework;
 using TestUtils;
 
-namespace IntegrationTests.Events
+namespace IntegrationTests
 {
-    class RepositoryWatcherTests : BaseGitIntegrationTest
+    class RepositoryWatcherTests : BaseGitEnvironmentTest
     {
         private int ThreadSleepTimeout = 500;
 

@@ -92,8 +92,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auth\LoginTests.cs" />
-    <Compile Include="BaseGitIntegrationTest.cs" />
-    <Compile Include="BaseIntegrationTest.cs" />
     <Compile Include="Events\RepositoryWatcherTests.cs" />
     <Compile Include="BaseGitEnvironmentTest.cs" />
     <Compile Include="BaseGitRepoTest.cs" />
