@@ -1,32 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using NUnit.Framework;
-using GitHub.Unity;
-using Rackspace.Threading;
 using System.Threading;
 using FluentAssertions;
-using NCrunch.Framework;
-using TestUtils;
+using GitHub.Unity;
+using NUnit.Framework;
+using Rackspace.Threading;
 
 namespace IntegrationTests
 {
-    [TestFixture]
-    class GitClientTests : BaseGitIntegrationTest
+    class GitSetupTests : BaseGitRepoTest
     {
-        [Test]
-        public void FindRepoRootTest()
-        {
-            var filesystem = new FileSystem(TestBasePath);
-            NPathFileSystemProvider.Current = filesystem;
-
-            var environment = new DefaultEnvironment();
-            environment.UnityProjectPath = TestBasePath;
-
-            var repositoryLocator = new RepositoryLocator(environment.UnityProjectPath);
-
-            repositoryLocator.FindRepositoryRoot().ToString().Should().Be(new NPath(TestBasePath).ToString());
-        }
-
         [Test]
         public void InstallGit()
         {

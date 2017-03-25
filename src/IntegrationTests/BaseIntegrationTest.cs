@@ -13,6 +13,7 @@ namespace IntegrationTests
         protected ILogging Logger { get; private set; }
         protected IFileSystem FileSystem { get; private set; }
         protected TestUtils.SubstituteFactory Factory { get; set; }
+        protected static string SolutionDirectory => TestContext.CurrentContext.TestDirectory;
 
         [TestFixtureSetUp]
         public void TestFixtureSetup()
