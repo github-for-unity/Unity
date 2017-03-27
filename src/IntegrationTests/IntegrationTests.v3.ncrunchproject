@@ -4,7 +4,6 @@
       <Value>..\..\lib\sfw.net\win\x64\Debug\**.*</Value>
       <Value>..\GitHub.Api\PlatformResources\**.*</Value>
     </AdditionalFilesToIncludeForProject>
-    <BuildProcessArchitecture>x64</BuildProcessArchitecture>
     <HiddenComponentWarnings>
       <Value>AbnormalReferenceResolution</Value>
     </HiddenComponentWarnings>
