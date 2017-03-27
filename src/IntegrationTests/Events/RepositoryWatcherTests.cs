@@ -40,7 +40,7 @@ namespace IntegrationTests
         private RepositoryWatcher CreateRepositoryWatcher()
         {
             var paths = new RepositoryPathConfiguration(TestRepoPath);
-            return new RepositoryWatcher(Platform, paths);
+            return new RepositoryWatcher(Platform, paths, CancellationToken.None);
         }
 
         protected IRepositoryManager RepositoryManager { get; private set; }
