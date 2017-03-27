@@ -66,7 +66,6 @@ namespace GitHub.Unity
     class RepositoryWatcher : IRepositoryWatcher
     {
         private readonly CompositeDisposable disposables = new CompositeDisposable();
-        //private readonly IFileSystemWatch fileHierarchyWatcher;
         private readonly IFileSystemWatch gitConfigWatcher;
         private readonly IFileSystemWatch gitHeadWatcher;
         private readonly IFileSystemWatch gitIndexWatcher;
@@ -90,32 +89,6 @@ namespace GitHub.Unity
 
         public RepositoryWatcher(IPlatform platform, IRepositoryPathConfiguration repositoryPath)
         {
-            //fileHierarchyWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath, true);
-            //fileHierarchyWatcher.Changed += f => {
-            //    if (!ignore.Any(f.IsChildOf))
-            //    {
-            //        RepositoryChanged?.Invoke();
-            //    }
-            //};
-            //fileHierarchyWatcher.Created += f => {
-            //    if (!ignore.Any(f.IsChildOf))
-            //    {
-            //        RepositoryChanged?.Invoke();
-            //    }
-            //};
-            //fileHierarchyWatcher.Deleted += f => {
-            //    if (!ignore.Any(f.IsChildOf))
-            //    {
-            //        RepositoryChanged?.Invoke();
-            //    }
-            //};
-            //fileHierarchyWatcher.Renamed += (f, __) => {
-            //    if (!ignore.Any(f.IsChildOf))
-            //    {
-            //        RepositoryChanged?.Invoke();
-            //    }
-            //};
-
             gitConfigWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath.DotGitConfig, false);
             gitConfigWatcher.Changed += _ => ConfigChanged?.Invoke();
 
@@ -165,7 +138,6 @@ namespace GitHub.Unity
                 };
             }
 
-            //disposables.Add(fileHierarchyWatcher);
             disposables.Add(gitConfigWatcher);
             disposables.Add(gitHeadWatcher);
             disposables.Add(gitIndexWatcher);
