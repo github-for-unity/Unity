@@ -23,7 +23,7 @@ namespace GitHub.Unity
 
         public GitLock CreateGitLock(string path, string user)
         {
-            var npath = new NPath(path);
+            var npath = new NPath(path).MakeAbsolute();
             var fullPath = npath.RelativeTo(environment.RepositoryPath);
 
             return new GitLock(path, fullPath, user);

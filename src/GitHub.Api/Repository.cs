@@ -46,7 +46,6 @@ namespace GitHub.Unity
             User = user;
 
             repositoryManager.OnRepositoryChanged += RepositoryManager_OnRepositoryChanged;
-            repositoryManager.OnRefreshTrackedFileList += s => OnRefreshTrackedFileList?.Invoke(s);
             repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
             repositoryManager.OnActiveRemoteChanged += RepositoryManager_OnActiveRemoteChanged;
             repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;
