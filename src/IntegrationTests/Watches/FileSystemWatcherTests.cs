@@ -14,7 +14,7 @@ namespace IntegrationTests
         {
             int expected = 9;
             int count = 0;
-            var platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
+            var platform = new Platform(new DefaultEnvironment(), FileSystem, new TestUIDispatcher());
             var watcher = platform.FileSystemWatchFactory.GetOrCreate(TestBasePath, true);
 
             watcher.Created += f =>
@@ -50,7 +50,7 @@ namespace IntegrationTests
             var renamedCount = 0;
             var deletedCount = 0;
 
-            var platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
+            var platform = new Platform(new DefaultEnvironment(), FileSystem, new TestUIDispatcher());
             var file = TestBasePath.Combine("file.txt").CreateFile("foobar");
             var watcher = platform.FileSystemWatchFactory.GetOrCreate(file);
 
