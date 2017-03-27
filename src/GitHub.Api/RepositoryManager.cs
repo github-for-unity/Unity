@@ -76,7 +76,9 @@ namespace GitHub.Unity
         {
             var repositoryRepositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
             var gitConfig = new GitConfig(repositoryRepositoryPathConfiguration.DotGitConfig);
-            var repositoryWatcher = new RepositoryWatcher(platform, repositoryRepositoryPathConfiguration);
+
+            var repositoryWatcher = new RepositoryWatcher(platform, repositoryRepositoryPathConfiguration, cancellationToken);
+
             var repositoryProcessRunner = new RepositoryProcessRunner(platform.Environment, platform.ProcessManager,
                 platform.CredentialManager, platform.UIDispatcher, cancellationToken);
 
