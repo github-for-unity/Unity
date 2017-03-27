@@ -37,6 +37,34 @@ namespace UnitTests
             AssertProcessOutput(output, expected);
         }
 
+        [Test, Ignore]
+        public void GitLFSLocksFormat1()
+        {
+            var output = new[]
+            {
+                "test/foobar.txt\tsomeone",
+                "asdf.txt\tsomeoneElse",
+                string.Empty,
+                "2 lock (s) matched query.",
+                null
+            };
+
+            AssertProcessOutput(output, null);
+        }
+
+        [Test, Ignore]
+        public void GitLFSLocksFormat2()
+        {
+            var output = new[]
+            {
+                "test/foobar.txt\tsomeone\tID:320",
+                "asdf.txt\tsomeoneElse\tID:321",
+                null
+            };
+
+            AssertProcessOutput(output, null);
+        }
+
         [Test]
         public void ShouldParseTwoLocks()
         {
