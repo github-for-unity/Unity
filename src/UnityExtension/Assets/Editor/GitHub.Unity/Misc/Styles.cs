@@ -677,8 +677,6 @@ namespace GitHub.Unity
                     return renamedStatusIcon = renamedStatusIcon ?? Utility.GetIcon("renamed.png", "renamed@2x.png");
                 case GitFileStatus.Untracked:
                     return untrackedStatusIcon = untrackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
-                case GitFileStatus.Tracked:
-                    return trackedStatusIcon = trackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
             }
 
             return null;
