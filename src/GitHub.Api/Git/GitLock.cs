@@ -12,5 +12,10 @@ namespace GitHub.Unity
             FullPath = fullPath;
             User = user;
         }
+
+        public override string ToString()
+        {
+            return $"{{GitLock ({User}) '{Path}'}}";
+        }
     }
 }

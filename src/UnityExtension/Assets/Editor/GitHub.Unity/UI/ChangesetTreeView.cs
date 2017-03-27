@@ -333,7 +333,7 @@ namespace GitHub.Unity
                         if (idx > 0)
                         {
                             status = entries[idx].Status;
-                            var statusIcon = Styles.GetGitFileStatusIcon(status.Value);
+                            var statusIcon = Styles.GetGitFileStatusIcon(entries[idx]);
                             if (statusIcon != null)
                                 GUI.DrawTexture(statusRect, statusIcon);
                         }
