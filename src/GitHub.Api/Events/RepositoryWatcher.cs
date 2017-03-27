@@ -23,8 +23,6 @@ namespace GitHub.Unity
 
     class CompositeDisposable : List<IDisposable>, IDisposable
     {
-        private bool disposed = false;
-
         public new void Remove(IDisposable item)
         {
             base.Remove(item);
@@ -44,11 +42,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
+        private bool disposed = false;
         private void Dispose(bool disposing)
         {
             if (disposing)
@@ -62,54 +56,39 @@ namespace GitHub.Unity
                 Clear();
             }
         }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
     }
 
     class RepositoryWatcher : IRepositoryWatcher
     {
         private readonly CompositeDisposable disposables = new CompositeDisposable();
-        //private readonly IFileSystemWatch fileHierarchyWatcher;
         private readonly IFileSystemWatch gitConfigWatcher;
         private readonly IFileSystemWatch gitHeadWatcher;
         private readonly IFileSystemWatch gitIndexWatcher;
         private readonly IFileSystemWatch localBranchesWatcher;
-
-        private readonly Dictionary<string, IFileSystemWatch> remoteBranchesWatchers =
-            new Dictionary<string, IFileSystemWatch>();
+        private readonly Dictionary<string, IFileSystemWatch> remoteBranchesWatchers = new Dictionary<string, IFileSystemWatch>();
         private readonly IFileSystemWatch remotesDirWatcher;
 
-        private bool disposed = false;
         private bool running = false;
 
-        public RepositoryWatcher(IPlatform platform, IRepositoryPathConfiguration repositoryPath)
+        public event Action<string> HeadChanged;
+        public event Action IndexChanged;
+        public event Action ConfigChanged;
+        public event Action<string> LocalBranchCreated;
+        public event Action<string> LocalBranchDeleted;
+        public event Action<string, string> LocalBranchMoved;
+        public event Action RepositoryChanged;
+        public event Action<string, string> RemoteBranchCreated;
+        public event Action<string, string> RemoteBranchDeleted;
+        public event Action<string, string> RemoteBranchChanged;
+        public event Action<string, string, string> RemoteBranchRenamed;
 
+        public RepositoryWatcher(IPlatform platform, IRepositoryPathConfiguration repositoryPath)
         {
-/*
-            fileHierarchyWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath, true);
-            fileHierarchyWatcher.Changed += f => {
-                if (!ignore.Any(f.IsChildOf))
-                {
-                    RepositoryChanged?.Invoke();
-                }
-            };
-            fileHierarchyWatcher.Created += f => {
-                if (!ignore.Any(f.IsChildOf))
-                {
-                    RepositoryChanged?.Invoke();
-                }
-            };
-            fileHierarchyWatcher.Deleted += f => {
-                if (!ignore.Any(f.IsChildOf))
-                {
-                    RepositoryChanged?.Invoke();
-                }
-            };
-            fileHierarchyWatcher.Renamed += (f, __) => {
-                if (!ignore.Any(f.IsChildOf))
-                {
-                    RepositoryChanged?.Invoke();
-                }
-            };
-*/
             gitConfigWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath.DotGitConfig, false);
             gitConfigWatcher.Changed += _ => ConfigChanged?.Invoke();
 
@@ -120,14 +99,12 @@ namespace GitHub.Unity
             gitIndexWatcher.Changed += _ => IndexChanged?.Invoke();
 
             localBranchesWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath.BranchesPath, true);
-            localBranchesWatcher.Created +=
-                s => LocalBranchCreated?.Invoke(s.RelativeTo(repositoryPath.BranchesPath).ToString(SlashMode.Forward));
-            localBranchesWatcher.Deleted +=
-                s => LocalBranchDeleted?.Invoke(s.RelativeTo(repositoryPath.BranchesPath).ToString(SlashMode.Forward));
-            localBranchesWatcher.Renamed +=
-                (o, n) =>
-                    LocalBranchMoved?.Invoke(o.RelativeTo(repositoryPath.BranchesPath).ToString(SlashMode.Forward),
-                        n.RelativeTo(repositoryPath.BranchesPath).ToString(SlashMode.Forward));
+            localBranchesWatcher.Created += s => LocalBranchCreated?.Invoke(s.RelativeTo(repositoryPath.BranchesPath).ToString(SlashMode.Forward));
+            localBranchesWatcher.Deleted += s => LocalBranchDeleted?.Invoke(s.RelativeTo(repositoryPath.BranchesPath).ToString(SlashMode.Forward));
+
+            localBranchesWatcher.Renamed += (o, n) => LocalBranchMoved?.Invoke(
+                    o.RelativeTo(repositoryPath.BranchesPath).ToString(SlashMode.Forward),
+                    n.RelativeTo(repositoryPath.BranchesPath).ToString(SlashMode.Forward));
 
             if (repositoryPath.RemotesPath.DirectoryExists())
             {
@@ -141,7 +118,8 @@ namespace GitHub.Unity
             {
                 remotesDirWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath.RemotesPath.Parent, false);
                 disposables.Add(remotesDirWatcher);
-                remotesDirWatcher.Created += s => {
+                remotesDirWatcher.Created += s =>
+                {
                     if (s.RelativeTo(repositoryPath.RemotesPath.Parent) == "remotes")
                     {
                         remotesDirWatcher.Enable = false;
@@ -160,7 +138,6 @@ namespace GitHub.Unity
                 };
             }
 
-            //disposables.Add(fileHierarchyWatcher);
             disposables.Add(gitConfigWatcher);
             disposables.Add(gitHeadWatcher);
             disposables.Add(gitIndexWatcher);
@@ -177,42 +154,30 @@ namespace GitHub.Unity
             ToggleWatchers(false);
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        public event Action<string> HeadChanged;
-        public event Action IndexChanged;
-        public event Action ConfigChanged;
-        public event Action<string> LocalBranchCreated;
-        public event Action<string> LocalBranchDeleted;
-        public event Action<string, string> LocalBranchMoved;
-        public event Action RepositoryChanged;
-        public event Action<string, string> RemoteBranchCreated;
-        public event Action<string, string> RemoteBranchDeleted;
-        public event Action<string, string> RemoteBranchChanged;
-        public event Action<string, string, string> RemoteBranchRenamed;
-
         private IFileSystemWatch AddRemoteBranchesWatcher(IPlatform platform, NPath dir, string remote)
         {
             var watcher = platform.FileSystemWatchFactory.GetOrCreate(dir, true, true);
-            watcher.Created +=
-                f => { RemoteBranchCreated?.Invoke(remote, f.RelativeTo(dir).ToString(SlashMode.Forward)); };
-            watcher.Deleted +=
-                f => { RemoteBranchDeleted?.Invoke(remote, f.RelativeTo(dir).ToString(SlashMode.Forward)); };
-            watcher.Changed += f => {
+            watcher.Created += f =>
+            {
+                RemoteBranchCreated?.Invoke(remote, f.RelativeTo(dir).ToString(SlashMode.Forward));
+            };
+            watcher.Deleted += f =>
+            {
+                RemoteBranchDeleted?.Invoke(remote, f.RelativeTo(dir).ToString(SlashMode.Forward));
+            };
+            watcher.Changed += f =>
+            {
                 var name = f.RelativeTo(dir).ToString(SlashMode.Forward);
                 if (name != "HEAD")
                 {
                     RemoteBranchChanged?.Invoke(remote, name);
                 }
             };
-            watcher.Renamed +=
-                (o, n) => {
-                    RemoteBranchRenamed?.Invoke(remote, o.RelativeTo(dir).ToString(SlashMode.Forward),
-                        n.RelativeTo(dir).ToString(SlashMode.Forward));
-                };
+            watcher.Renamed += (o, n) =>
+            {
+                RemoteBranchRenamed?.Invoke(remote, o.RelativeTo(dir).ToString(SlashMode.Forward), n.RelativeTo(dir).ToString(SlashMode.Forward));
+            };
+
             remoteBranchesWatchers.Add(dir, watcher);
             disposables.Add(watcher);
             return watcher;
@@ -240,12 +205,14 @@ namespace GitHub.Unity
             {
                 remotesDirWatcher.Enable = enable;
             }
+
             foreach (var watcher in remoteBranchesWatchers.Values)
             {
                 watcher.Enable = enable;
             }
         }
 
+        private bool disposed = false;
         private void Dispose(bool disposing)
         {
             if (disposing)
@@ -259,6 +226,11 @@ namespace GitHub.Unity
                 ToggleWatchers(false);
                 disposables.Dispose();
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
         }
 
         protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryWatcher>();

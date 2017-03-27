@@ -7,7 +7,6 @@ namespace IntegrationTests
 {
     class BaseGitRepoTest : BaseIntegrationTest
     {
-        private static string SolutionDirectory => TestContext.CurrentContext.TestDirectory;
         private static string TestZipFilePath => Path.Combine(SolutionDirectory, "IOTestsRepo.zip");
 		
         protected NPath TestRepoPath { get; private set; }
