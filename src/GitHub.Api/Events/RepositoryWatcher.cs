@@ -161,12 +161,10 @@ namespace GitHub.Unity
             {
                 RemoteBranchCreated?.Invoke(remote, f.RelativeTo(dir).ToString(SlashMode.Forward));
             };
-
             watcher.Deleted += f =>
             {
                 RemoteBranchDeleted?.Invoke(remote, f.RelativeTo(dir).ToString(SlashMode.Forward));
             };
-
             watcher.Changed += f =>
             {
                 var name = f.RelativeTo(dir).ToString(SlashMode.Forward);
@@ -175,11 +173,9 @@ namespace GitHub.Unity
                     RemoteBranchChanged?.Invoke(remote, name);
                 }
             };
-
             watcher.Renamed += (o, n) =>
             {
-                RemoteBranchRenamed?.Invoke(remote, o.RelativeTo(dir).ToString(SlashMode.Forward),
-                    n.RelativeTo(dir).ToString(SlashMode.Forward));
+                RemoteBranchRenamed?.Invoke(remote, o.RelativeTo(dir).ToString(SlashMode.Forward), n.RelativeTo(dir).ToString(SlashMode.Forward));
             };
 
             remoteBranchesWatchers.Add(dir, watcher);
