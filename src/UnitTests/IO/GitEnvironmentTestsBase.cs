@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using NSubstitute;
 using GitHub.Unity;
+using TestUtils;
 
 namespace UnitTests
 {
@@ -13,13 +14,13 @@ namespace UnitTests
             var filesystem = Substitute.For<IFileSystem>();
 
             filesystem
-                .GetDirectoryName(Arg.Any<string>())
+                .GetDirectoryName(Args.String)
                 .Returns(info => Path.GetDirectoryName((string) info[0]));
 
-            filesystem.Combine(Arg.Any<string>(), Arg.Any<string>())
+            filesystem.Combine(Args.String, Args.String)
                 .Returns(info => Path.Combine((string) info[0], (string) info[1]));
 
-            filesystem.GetParentDirectory(Arg.Any<string>())
+            filesystem.GetParentDirectory(Args.String)
                 .Returns(info =>
                 {
                     switch ((string) info[0])
@@ -43,7 +44,7 @@ namespace UnitTests
                     }
                 });
 
-            filesystem.DirectoryExists(Arg.Any<string>())
+            filesystem.DirectoryExists(Args.String)
                 .Returns(info =>
                 {
                     switch ((string) info[0])

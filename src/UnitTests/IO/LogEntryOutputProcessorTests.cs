@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using FluentAssertions;
 using NUnit.Framework;
+using TestUtils;
 using GitHub.Unity;
 
 namespace UnitTests
@@ -67,7 +66,7 @@ namespace UnitTests
 
         private void AssertProcessOutput(IEnumerable<string> lines, GitLogEntry[] expected)
         {
-            var gitObjectFactory = CreateGitObjectFactory();
+            var gitObjectFactory = SubstituteFactory.CreateGitObjectFactory(TestRootPath);
 
             var results = new List<GitLogEntry>();
             var outputProcessor = new LogEntryOutputProcessor(gitObjectFactory);

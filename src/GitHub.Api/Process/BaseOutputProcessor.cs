@@ -18,6 +18,7 @@ namespace GitHub.Unity
             {
                 return;
             }
+
             OnData?.Invoke(line);
         }
 
