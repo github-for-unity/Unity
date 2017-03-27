@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using sfw.net;
 
 namespace GitHub.Unity
@@ -22,16 +23,18 @@ namespace GitHub.Unity
     class RepositoryWatcher : IRepositoryWatcher
     {
         private readonly RepositoryPathConfiguration paths;
+        private readonly CancellationToken cancellationToken;
         private readonly NPath[] ignoredPaths;
+        private readonly Task task;
+        private readonly AutoResetEvent autoResetEvent;
 
-        private bool disposed;
         private NativeInterface nativeInterface;
         private bool running;
-        private Thread thread;
 
-        public RepositoryWatcher(IPlatform platform, RepositoryPathConfiguration paths)
+        public RepositoryWatcher(IPlatform platform, RepositoryPathConfiguration paths, CancellationToken cancellationToken)
         {
             this.paths = paths;
+            this.cancellationToken = cancellationToken;
 
             ignoredPaths = new[] {
                 platform.Environment.UnityProjectPath.ToNPath().Combine("Library"),
@@ -39,31 +42,19 @@ namespace GitHub.Unity
             };
 
             nativeInterface = new NativeInterface(paths.RepositoryPath);
-            thread = new Thread(ThreadLoop);
+            task = new Task(WatcherLoop);
+            autoResetEvent = new AutoResetEvent(false);
         }
 
         public void Start()
         {
             running = true;
-            thread.Start();
+            task.Start(TaskScheduler.Current);
         }
 
         public void Stop()
         {
             running = false;
-        }
-
-        public void Dispose()
-        {
-            if (disposed)
-            {
-                return;
-            }
-
-            disposed = true;
-
-            nativeInterface.Dispose();
-            nativeInterface = null;
         }
 
         public event Action<string> HeadChanged;
@@ -75,13 +66,23 @@ namespace GitHub.Unity
         public event Action<string, string> RemoteBranchCreated;
         public event Action<string, string> RemoteBranchDeleted;
 
-        private void ThreadLoop()
+        private void WatcherLoop()
         {
-            while (running)
+            while (running && !cancellationToken.IsCancellationRequested && !disposed)
             {
                 foreach (var fileEvent in nativeInterface.GetEvents())
                 {
                     if (!running)
+                    {
+                        break;
+                    }
+
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    if (disposed)
                     {
                         break;
                     }
@@ -213,8 +214,36 @@ namespace GitHub.Unity
                     }
                 }
 
-                Thread.Sleep(200);
+                if (autoResetEvent.WaitOne(200))
+                {
+                    break;
+                }
             }
+        }
+
+        private bool disposed;
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (disposed)
+                {
+                    return;
+                }
+
+                disposed = true;
+
+                autoResetEvent.Set();
+
+                nativeInterface.Dispose();
+                nativeInterface = null;
+            }
+		}
+
+        public void Dispose()
+        {
+            Dispose(true);
         }
 
         protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryWatcher>();
