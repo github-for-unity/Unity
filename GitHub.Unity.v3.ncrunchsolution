@@ -10,5 +10,7 @@
       <Value>src\packaging\CopyLibrariesToExternalTestProject\CopyLibrariesToExternalTestProject.csproj</Value>
     </MetricsExclusionList>
     <SolutionConfigured>True</SolutionConfigured>
+    <UseBuildPlatform>AnyCPU</UseBuildPlatform>
+    <UseCPUArchitecture>x64</UseCPUArchitecture>
   </Settings>
 </SolutionConfiguration>

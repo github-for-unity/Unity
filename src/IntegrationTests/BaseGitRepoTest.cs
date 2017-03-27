@@ -51,8 +51,6 @@ namespace IntegrationTests
 
         protected Platform Platform { get; private set; }
 
-        private static string SolutionDirectory => TestContext.CurrentContext.TestDirectory;
-
         private static string TestZipFilePath => Path.Combine(SolutionDirectory, "IOTestsRepo.zip");
 
         protected ProcessManager ProcessManager { get; private set; }

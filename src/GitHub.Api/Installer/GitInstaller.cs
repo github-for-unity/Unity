@@ -102,7 +102,7 @@ namespace GitHub.Unity
             return true;
         }
 
-        public async Task<bool> SetupIfNeeded(bool force = false, IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+        public async Task<bool> SetupIfNeeded(IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -118,11 +118,11 @@ namespace GitHub.Unity
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var ret = await SetupGitIfNeeded(tempPath, force, zipFileProgress, estimatedDurationProgress);
+                var ret = await SetupGitIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                ret &= await SetupGitLfsIfNeeded(tempPath, force, zipFileProgress, estimatedDurationProgress);
+                ret &= await SetupGitLfsIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
 
                 var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "gitconfig", tempPath);
                 if (archiveFilePath.FileExists())
@@ -154,12 +154,12 @@ namespace GitHub.Unity
             return false;
         }
 
-        public Task<bool> SetupGitIfNeeded(NPath tempPath, bool force = false, IProgress<float> zipFileProgress = null,
+        public Task<bool> SetupGitIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!force && IsPortableGitExtracted())
+            if (IsPortableGitExtracted())
             {
                 logger.Trace("Already extracted {0}, returning", PackageDestinationDirectory);
                 return TaskEx.FromResult(true);
@@ -214,12 +214,12 @@ namespace GitHub.Unity
             return TaskEx.FromResult(true);
         }
 
-        public Task<bool> SetupGitLfsIfNeeded(NPath tempPath, bool force = false, IProgress<float> zipFileProgress = null,
+        public Task<bool> SetupGitLfsIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!force && IsGitLfsExtracted())
+            if (IsGitLfsExtracted())
             {
                 logger.Trace("Already extracted {0}, returning", GitLfsDestinationPath);
                 return TaskEx.FromResult(false);
