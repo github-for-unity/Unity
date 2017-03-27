@@ -24,7 +24,6 @@ namespace GitHub.Unity
         private readonly RepositoryPathConfiguration paths;
         private readonly NPath[] ignoredPaths;
 
-        private bool disposed;
         private NativeInterface nativeInterface;
         private bool running;
         private Thread thread;
@@ -51,19 +50,6 @@ namespace GitHub.Unity
         public void Stop()
         {
             running = false;
-        }
-
-        public void Dispose()
-        {
-            if (disposed)
-            {
-                return;
-            }
-
-            disposed = true;
-
-            nativeInterface.Dispose();
-            nativeInterface = null;
         }
 
         public event Action<string> HeadChanged;
@@ -215,6 +201,28 @@ namespace GitHub.Unity
 
                 Thread.Sleep(200);
             }
+        }
+
+        private bool disposed;
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (disposed)
+                {
+                    return;
+                }
+
+                disposed = true;
+
+                nativeInterface.Dispose();
+                nativeInterface = null;
+            }
+		}
+
+        public void Dispose()
+        {
+            Dispose(true);
         }
 
         protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryWatcher>();
