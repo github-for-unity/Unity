@@ -64,6 +64,7 @@ namespace TestUtils
             gitStatusEntry.ProjectPath.Should().Be(other.ProjectPath);
             gitStatusEntry.Status.Should().Be(other.Status);
             gitStatusEntry.Staged.Should().Be(other.Staged);
+            gitStatusEntry.Lock.Should().Be(other.Lock);
         }
 
         public static void AssertNotEqual(this GitStatusEntry gitStatusEntry, GitStatusEntry other)
