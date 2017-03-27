@@ -3,7 +3,6 @@
     <AdditionalFilesToIncludeForProject>
       <Value>..\..\lib\sfw.net\win\x64\Debug\**.*</Value>
     </AdditionalFilesToIncludeForProject>
-    <BuildProcessArchitecture>x64</BuildProcessArchitecture>
     <HiddenComponentWarnings>
       <Value>PostBuildEventDisabled</Value>
     </HiddenComponentWarnings>
