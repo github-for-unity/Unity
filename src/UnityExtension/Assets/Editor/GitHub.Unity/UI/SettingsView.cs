@@ -504,7 +504,17 @@ namespace GitHub.Unity
 
                 GUILayout.BeginHorizontal();
                 {
+                    if (lockedFileSelection < 0)
+                    {
+                      GUI.enabled = false;
+                    }
+                    else
+                    {
+                      GUI.enabled = true;
+                    }
                     GUILayout.Button("Unlock");
+                    GUI.enabled = true;
+
                     GUILayout.FlexibleSpace();
                 }
                 GUILayout.EndHorizontal();
