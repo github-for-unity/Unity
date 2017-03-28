@@ -508,18 +508,18 @@ namespace GitHub.Unity
 
             if (node.Active == true)
             {
-              iconContent = Styles.ActiveBranchIcon;
+                iconContent = Styles.ActiveBranchIcon;
             }
             else
             {
-              if (node.Children.Count > 0)
-              {
-                iconContent = Styles.FolderIcon;
-              }
-              else
-              {
-                iconContent = Styles.BranchIcon;
-              }
+                if (node.Children.Count > 0)
+                {
+                    iconContent = Styles.FolderIcon;
+                }
+                else
+                {
+                    iconContent = Styles.BranchIcon;
+                }
             }
 
             var content = new GUIContent(node.Label, iconContent);
