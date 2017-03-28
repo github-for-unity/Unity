@@ -15,8 +15,8 @@ namespace GitHub.Unity
         private const string ConfirmSwitchCancel = "Cancel";
         private const string NewBranchCancelButton = "x";
         private const string NewBranchConfirmButton = "Create";
-        private const string FavouritesSetting = "Favourites";
-        private const string FavouritesTitle = "Favourites";
+        private const string FavoritesSetting = "Favorites";
+        private const string FavoritesTitle = "Favorites";
         private const string LocalTitle = "Local branches";
         private const string RemoteTitle = "Remote branches";
         private const string CreateBranchButton = "+ New branch";
@@ -125,7 +125,7 @@ namespace GitHub.Unity
                 // Favourites list
                 if (favourites.Count > 0)
                 {
-                    GUILayout.Label(FavouritesTitle);
+                    GUILayout.Label(FavoritesTitle);
                     GUILayout.BeginHorizontal();
                     {
                         GUILayout.BeginVertical();
@@ -258,7 +258,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            return EntryPoint.LocalSettings.Get(FavouritesSetting, new List<string>()).Contains(branchName);
+            return EntryPoint.LocalSettings.Get(FavoritesSetting, new List<string>()).Contains(branchName);
         }
 
         private void OnLocalBranchesUpdate(IEnumerable<GitBranch> list)
@@ -286,7 +286,7 @@ namespace GitHub.Unity
 
             // Prepare for updated favourites listing
             favourites.Clear();
-            var cachedFavs = EntryPoint.LocalSettings.Get<List<string>>(FavouritesSetting, new List<string>());
+            var cachedFavs = EntryPoint.LocalSettings.Get<List<string>>(FavoritesSetting, new List<string>());
 
             // Just build directly on the local root, keep track of active branch
             localRoot = new BranchTreeNode("", NodeType.Folder, false);
@@ -407,13 +407,13 @@ namespace GitHub.Unity
             if (!favourite)
             {
                 favourites.Remove(branch);
-                EntryPoint.LocalSettings.Set(FavouritesSetting, favourites.Select(x => x.Name).ToList());
+                EntryPoint.LocalSettings.Set(FavoritesSetting, favourites.Select(x => x.Name).ToList());
             }
             else
             {
                 favourites.Remove(branch);
                 favourites.Add(branch);
-                EntryPoint.LocalSettings.Set(FavouritesSetting, favourites.Select(x => x.Name).ToList());
+                EntryPoint.LocalSettings.Set(FavoritesSetting, favourites.Select(x => x.Name).ToList());
             }
         }
 
