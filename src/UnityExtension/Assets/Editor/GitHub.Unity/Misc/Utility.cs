@@ -155,7 +155,7 @@ namespace GitHub.Unity
             Color[] pix = new Color[1];
             pix[0] = color;
 
-            Texture2D result = new Texture2D(1,1);
+            Texture2D result = new Texture2D(1, 1);
             result.SetPixels(pix);
             result.Apply();
 
