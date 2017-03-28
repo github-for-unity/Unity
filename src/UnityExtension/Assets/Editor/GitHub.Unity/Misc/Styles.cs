@@ -345,49 +345,47 @@ namespace GitHub.Unity
 
         public static GUIStyle LockedFileRowStyle
         {
-          get
-          {
-            if (lockedFileRowStyle == null)
+            get
             {
-              lockedFileRowStyle = new GUIStyle();
-              lockedFileRowStyle.name = "LockedFileRowStyle";
-              lockedFileRowStyle.padding = new RectOffset(2, 2, 1, 1);
-            }
+                if (lockedFileRowStyle == null)
+                {
+                    lockedFileRowStyle = new GUIStyle();
+                    lockedFileRowStyle.name = "LockedFileRowStyle";
+                    lockedFileRowStyle.padding = new RectOffset(2, 2, 1, 1);
+                }
 
-            return lockedFileRowStyle;
-          }
+                return lockedFileRowStyle;
+            }
         }
 
         public static GUIStyle LockedFileRowSelectedStyle
         {
-          get
-          {
-              if (lockedFileRowSelectedStyle == null)
-              {
+            get
+            {
+                if (lockedFileRowSelectedStyle == null)
+                {
+                    GUIStyle hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    lockedFileRowSelectedStyle = new GUIStyle(LockedFileRowStyle);
+                    lockedFileRowSelectedStyle.name = "LockedFileRowSelectedStyle";
+                    lockedFileRowSelectedStyle.normal.background = hierarchyStyle.onFocused.background;
+                    lockedFileRowSelectedStyle.normal.textColor = hierarchyStyle.onFocused.textColor;
+                }
 
-                GUIStyle hierarchyStyle = GUI.skin.FindStyle("PR Label");
-                lockedFileRowSelectedStyle = new GUIStyle(LockedFileRowStyle);
-                lockedFileRowSelectedStyle.name = "LockedFileRowSelectedStyle";
-                lockedFileRowSelectedStyle.normal.background = hierarchyStyle.onFocused.background;
-                lockedFileRowSelectedStyle.normal.textColor = hierarchyStyle.onFocused.textColor;
-              }
-
-              return lockedFileRowSelectedStyle;
-          }
+                return lockedFileRowSelectedStyle;
+            }
         }
-
 
         public static GUIStyle GenericTableBoxStyle
         {
             get
             {
-              if (genericTableBoxStyle == null)
-              {
-                genericTableBoxStyle = new GUIStyle(GUI.skin.box);
-                genericTableBoxStyle.name = "GenericTableBoxStyle";
-              }
+                if (genericTableBoxStyle == null)
+                {
+                    genericTableBoxStyle = new GUIStyle(GUI.skin.box);
+                    genericTableBoxStyle.name = "GenericTableBoxStyle";
+                }
 
-              return genericTableBoxStyle;
+                return genericTableBoxStyle;
             }
         }
 

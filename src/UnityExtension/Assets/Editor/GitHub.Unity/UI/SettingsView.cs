@@ -445,76 +445,72 @@ namespace GitHub.Unity
 
         private void OnGitLfsLocksGUI()
         {
-          GUILayout.BeginVertical();
-          {
-            GUILayout.Label("Locked files", EditorStyles.boldLabel);
-
-            lockScrollPos = EditorGUILayout.BeginScrollView(lockScrollPos,
-              Styles.GenericTableBoxStyle,
-              GUILayout.Height(125));
-              {
-                string[] lockedFiles = {
-                  "ProjectSettings/AudioManager.asset",
-                  "ProjectSettings/DynamicsManager.asset",
-                  "ProjectSettings/EditorBuildSettings.asset",
-                  "ProjectSettings/GraphicsSettings.asset",
-                  "ProjectSettings/InputManager.asset",
-
-                  "ProjectSettings/AudioManager.asset",
-                  "ProjectSettings/DynamicsManager.asset",
-                  "ProjectSettings/EditorBuildSettings.asset",
-                  "ProjectSettings/GraphicsSettings.asset",
-                  "ProjectSettings/InputManager.asset",
-
-                  "ProjectSettings/AudioManager.asset",
-                  "ProjectSettings/DynamicsManager.asset",
-                  "ProjectSettings/EditorBuildSettings.asset",
-                  "ProjectSettings/GraphicsSettings.asset",
-                  "ProjectSettings/InputManager.asset",
-                };
-
-                GUILayout.BeginVertical();
-                {
-                  var lockedFilesCount = lockedFiles.Length;
-                  for (var index = 0; index < lockedFilesCount; ++index)
-                  {
-                    GUIStyle rowStyle = (lockedFileSelection == index) ? Styles.LockedFileRowSelectedStyle : Styles.LockedFileRowStyle;
-                    GUILayout.Box(lockedFiles[index], rowStyle);
-
-                    if (Event.current.type == EventType.MouseDown &&
-                      GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
-                    {
-                      var currentEvent = Event.current;
-
-                      if (currentEvent.button == 0)
-                      {
-                          lockedFileSelection = index;
-                      }
-
-                      if (currentEvent.button == 1)
-                      {
-                          GenericMenu menu = new GenericMenu();
-                          menu.AddItem(new GUIContent("Force Unlock"), false, ForceUnlockFile, lockedFiles[index]);
-
-                          menu.ShowAsContext();
-                      }
-
-                      Event.current.Use();
-                    }
-                  }
-                }
-                GUILayout.EndVertical();
-              }
-            EditorGUILayout.EndScrollView();
-
-            GUILayout.BeginHorizontal();
+            GUILayout.BeginVertical();
             {
-              GUILayout.Button("Unlock");
-              GUILayout.FlexibleSpace();
+                GUILayout.Label("Locked files", EditorStyles.boldLabel);
+
+                lockScrollPos = EditorGUILayout.BeginScrollView(lockScrollPos, Styles.GenericTableBoxStyle,
+                    GUILayout.Height(125));
+                {
+                    string[] lockedFiles = {
+                        "ProjectSettings/AudioManager.asset",
+                        "ProjectSettings/DynamicsManager.asset", "ProjectSettings/EditorBuildSettings.asset",
+                        "ProjectSettings/GraphicsSettings.asset", "ProjectSettings/InputManager.asset",
+                        "ProjectSettings/AudioManager.asset", "ProjectSettings/DynamicsManager.asset",
+                        "ProjectSettings/EditorBuildSettings.asset", "ProjectSettings/GraphicsSettings.asset",
+                        "ProjectSettings/InputManager.asset", "ProjectSettings/AudioManager.asset",
+                        "ProjectSettings/DynamicsManager.asset", "ProjectSettings/EditorBuildSettings.asset",
+                        "ProjectSettings/GraphicsSettings.asset", "ProjectSettings/InputManager.asset",
+                    };
+
+                    GUILayout.BeginVertical();
+                    {
+                        var lockedFilesCount = lockedFiles.Length;
+                        for (var index = 0; index < lockedFilesCount; ++index)
+                        {
+                            GUIStyle rowStyle = (lockedFileSelection == index)
+                                ? Styles.LockedFileRowSelectedStyle
+                                : Styles.LockedFileRowStyle;
+                            GUILayout.Box(lockedFiles[index], rowStyle);
+
+                            if (Event.current.type == EventType.MouseDown &&
+                                GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
+                            {
+                                var currentEvent = Event.current;
+
+                                if (currentEvent.button == 0)
+                                {
+                                    lockedFileSelection = index;
+                                }
+
+                                if (currentEvent.button == 1)
+                                {
+                                    GenericMenu menu = new GenericMenu();
+                                    menu.AddItem(new GUIContent("Force Unlock"), false, ForceUnlockFile,
+                                        lockedFiles[index]);
+
+                                    menu.ShowAsContext();
+                                }
+
+                                Event.current.Use();
+                            }
+                        }
+                    }
+
+                    GUILayout.EndVertical();
+                }
+
+                EditorGUILayout.EndScrollView();
+
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Button("Unlock");
+                    GUILayout.FlexibleSpace();
+                }
+                GUILayout.EndHorizontal();
             }
-            GUILayout.EndHorizontal();
-          }
-          GUILayout.EndVertical();
+
+            GUILayout.EndVertical();
         }
 
         private void OnInstallPathGUI()
