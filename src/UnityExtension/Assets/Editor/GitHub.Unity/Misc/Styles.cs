@@ -490,18 +490,17 @@ namespace GitHub.Unity
             }
         }
 
-
         public static Texture2D BranchIcon
         {
-          get
-          {
-            if (branchIcon == null)
+            get
             {
-              branchIcon = Utility.GetIcon("branch.png", "branch@2x.png");
-            }
+                if (branchIcon == null)
+                {
+                    branchIcon = Utility.GetIcon("branch.png", "branch@2x.png");
+                }
 
-            return branchIcon;
-          }
+                return branchIcon;
+            }
         }
 
         public static Texture2D TrackingBranchIcon
