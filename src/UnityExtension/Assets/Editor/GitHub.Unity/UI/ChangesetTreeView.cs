@@ -270,7 +270,7 @@ namespace GitHub.Unity
                     if (Readonly)
                     {
                         foldoutRect = GUILayoutUtility.GetRect(1, 1);
-                        foldoutRect.Set(foldoutRect.x - 5f, foldoutRect.y, 0f, EditorGUIUtility.singleLineHeight);
+                        foldoutRect.Set(foldoutRect.x - 7f, foldoutRect.y + 3f, 0f, EditorGUIUtility.singleLineHeight);
                     }
                     else
                     {

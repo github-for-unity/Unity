@@ -26,7 +26,8 @@ namespace GitHub.Unity
         private const string PushConfirmDescription = "Would you like to push changes to remote '{0}'?";
         private const string PushConfirmYes = "Push";
         private const string PushConfirmCancel = "Cancel";
-        private const string ClearSelectionButton = "x";
+        private const string CommitDetailsTitle = "Commit details";
+        private const string ClearSelectionButton = "×";
         private const int HistoryExtraItemCount = 10;
         private const float MaxChangelistHeightRatio = .2f;
 
@@ -335,7 +336,7 @@ namespace GitHub.Unity
                 // Top bar for scrolling to selection or clearing it
                 GUILayout.BeginHorizontal(EditorStyles.toolbar);
                 {
-                    if (GUILayout.Button(selection.ShortID, Styles.HistoryToolbarButtonStyle))
+                    if (GUILayout.Button(CommitDetailsTitle, Styles.HistoryToolbarButtonStyle))
                     {
                         ScrollTo(selectionIndex);
                     }
@@ -349,17 +350,19 @@ namespace GitHub.Unity
                 // Log entry details - including changeset tree (if any changes are found)
                 if (changesetTree.Entries.Any())
                 {
-                    detailsScroll = GUILayout.BeginScrollView(detailsScroll,
-                        GUILayout.MinHeight(Mathf.Min(changesetTree.Height, Position.height * MaxChangelistHeightRatio)));
+                    detailsScroll = GUILayout.BeginScrollView(detailsScroll, GUILayout.Height(250));
                     {
-                        HistoryEntry(selection, GetEntryState(selectionIndex), false);
+                        HistoryDetailsEntry(selection);
 
                         GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                        GUILayout.Label("Files changed", EditorStyles.boldLabel);
+                        GUILayout.Space(-5);
 
                         GUILayout.BeginHorizontal();
                         {
                             GUILayout.Space(Styles.HistoryChangesIndentation);
                             changesetTree.OnGUI();
+                            GUILayout.Space(Styles.HistoryChangesIndentation);
                         }
                         GUILayout.EndHorizontal();
 
@@ -369,7 +372,9 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    HistoryEntry(selection, GetEntryState(selectionIndex), false);
+                    detailsScroll = GUILayout.BeginScrollView(detailsScroll, GUILayout.Height(246));
+                    HistoryDetailsEntry(selection);
+                    GUILayout.EndScrollView();
                 }
             }
 
@@ -501,13 +506,14 @@ namespace GitHub.Unity
                     summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorWidth, summaryRect.height);
                 }
 
-                if (state == LogEntryState.Local)
+                if (state == LogEntryState.Local && string.IsNullOrEmpty(entry.MergeA))
                 {
-                    const float LocalIndicatorSize = 40f;
-                    var localIndicatorRect = new Rect(summaryRect.x, summaryRect.y, LocalIndicatorSize, summaryRect.height);
+                    const float LocalIndicatorSize = 6f;
+                    var localIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2), summaryRect.y + 5, LocalIndicatorSize, LocalIndicatorSize);
 
-                    // TODO: Get an icon or something here
-                    Styles.HistoryEntryDetailsStyle.Draw(localIndicatorRect, "Local:", false, false, selected, keyboardFocus);
+                    drawTimelineRectAroundIconRect(entryRect, localIndicatorRect);
+
+                    GUI.DrawTexture(localIndicatorRect, Styles.LocalCommitIcon);
 
                     summaryRect.Set(localIndicatorRect.xMax, summaryRect.y, summaryRect.width - LocalIndicatorSize, summaryRect.height);
                 }
@@ -534,6 +540,23 @@ namespace GitHub.Unity
             }
 
             return false;
+        }
+
+        private void HistoryDetailsEntry(GitLogEntry entry)
+        {
+            GUILayout.BeginVertical(Styles.HeaderBoxStyle);
+            GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle, GUILayout.Width(Position.width));
+
+            GUILayout.Space(-5);
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(entry.PrettyTimeString, Styles.HistoryDetailsMetaInfoStyle);
+            GUILayout.Label(entry.AuthorName, Styles.HistoryDetailsMetaInfoStyle);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(3);
+            GUILayout.EndVertical();
         }
 
         private void Pull()
