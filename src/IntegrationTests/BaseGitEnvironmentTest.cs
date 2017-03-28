@@ -9,7 +9,8 @@ namespace IntegrationTests
         {
             base.OnSetup();
 
-            Environment = new IntegrationTestEnvironment {
+            Environment = new IntegrationTestEnvironment
+            {
                 RepositoryPath = TestRepoPath,
                 UnityProjectPath = TestRepoPath
             };
@@ -18,6 +19,30 @@ namespace IntegrationTests
             gitSetup.SetupIfNeeded().Wait();
 
             Environment.GitExecutablePath = gitSetup.GitExecutablePath;
+
+            FileSystem.SetCurrentDirectory(TestRepoPath);
+
+            Platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
+            GitEnvironment = Platform.GitEnvironment;
+            ProcessManager = new ProcessManager(Environment, GitEnvironment);
+            Platform.Initialize(ProcessManager);
+
+            Environment.UnityProjectPath = TestRepoPath;
+            Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
+
+            var repositoryManagerFactory = new RepositoryManagerFactory();
+            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TestRepoPath,
+                CancellationToken.None);
+
+            Environment.Repository = repositoryManager.Repository;
         }
+
+        public IEnvironment Environment { get; private set; }
+
+        protected Platform Platform { get; private set; }
+
+        protected ProcessManager ProcessManager { get; private set; }
+
+        protected IProcessEnvironment GitEnvironment { get; private set; }
     }
 }
