@@ -45,7 +45,7 @@ namespace IntegrationTests
             Environment.Repository = repositoryManager.Repository;
         }
 
-        public IEnvironment Environment { get; private set; }
+        public IEnvironment Environment { get; protected set; }
 
         protected NPath TestRepoPath { get; private set; }
 
