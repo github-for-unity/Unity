@@ -350,8 +350,7 @@ namespace GitHub.Unity
                 // Log entry details - including changeset tree (if any changes are found)
                 if (changesetTree.Entries.Any())
                 {
-                    detailsScroll = GUILayout.BeginScrollView(detailsScroll,
-                        GUILayout.Height(250));
+                    detailsScroll = GUILayout.BeginScrollView(detailsScroll, GUILayout.Height(250));
                     {
                         HistoryDetailsEntry(selection);
 
@@ -374,7 +373,7 @@ namespace GitHub.Unity
                 else
                 {
                     detailsScroll = GUILayout.BeginScrollView(detailsScroll, GUILayout.Height(246));
-                      HistoryDetailsEntry(selection);
+                    HistoryDetailsEntry(selection);
                     GUILayout.EndScrollView();
                 }
             }
@@ -510,14 +509,11 @@ namespace GitHub.Unity
                 if (state == LogEntryState.Local && string.IsNullOrEmpty(entry.MergeA))
                 {
                     const float LocalIndicatorSize = 6f;
-                    var localIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2),
-                      summaryRect.y + 5,
-                      LocalIndicatorSize,
-                      LocalIndicatorSize);
+                    var localIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2), summaryRect.y + 5, LocalIndicatorSize, LocalIndicatorSize);
 
-                      drawTimelineRectAroundIconRect(entryRect, localIndicatorRect);
+                    drawTimelineRectAroundIconRect(entryRect, localIndicatorRect);
 
-                      GUI.DrawTexture(localIndicatorRect, Styles.LocalCommitIcon);
+                    GUI.DrawTexture(localIndicatorRect, Styles.LocalCommitIcon);
 
                     summaryRect.Set(localIndicatorRect.xMax, summaryRect.y, summaryRect.width - LocalIndicatorSize, summaryRect.height);
                 }
@@ -548,19 +544,19 @@ namespace GitHub.Unity
 
         private void HistoryDetailsEntry(GitLogEntry entry)
         {
-          GUILayout.BeginVertical(Styles.HeaderBoxStyle);
+            GUILayout.BeginVertical(Styles.HeaderBoxStyle);
             GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle, GUILayout.Width(Position.width));
 
             GUILayout.Space(-5);
 
             GUILayout.BeginHorizontal();
-              GUILayout.Label(entry.PrettyTimeString, Styles.HistoryDetailsMetaInfoStyle);
-              GUILayout.Label(entry.AuthorName, Styles.HistoryDetailsMetaInfoStyle);
-              GUILayout.FlexibleSpace();
+            GUILayout.Label(entry.PrettyTimeString, Styles.HistoryDetailsMetaInfoStyle);
+            GUILayout.Label(entry.AuthorName, Styles.HistoryDetailsMetaInfoStyle);
+            GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
             GUILayout.Space(3);
-          GUILayout.EndVertical();
+            GUILayout.EndVertical();
         }
 
         private void Pull()
