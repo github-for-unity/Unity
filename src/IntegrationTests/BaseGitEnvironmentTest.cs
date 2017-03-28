@@ -5,8 +5,6 @@ namespace IntegrationTests
 {
     class BaseGitEnvironmentTest : BaseGitRepoTest
     {
-        protected IEnvironment Environment { get; private set; }
-
         protected override void OnSetup()
         {
             base.OnSetup();
