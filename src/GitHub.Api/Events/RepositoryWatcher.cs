@@ -239,7 +239,7 @@ namespace GitHub.Unity
                 nativeInterface.Dispose();
                 nativeInterface = null;
             }
-		}
+        }
 
         public void Dispose()
         {
