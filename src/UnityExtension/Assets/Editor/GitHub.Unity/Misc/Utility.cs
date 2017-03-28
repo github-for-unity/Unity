@@ -86,6 +86,16 @@ namespace GitHub.Unity
             return AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
         }
 
+        public static Texture2D CreateTextureFromColor(Color color)
+        {
+            Texture2D backgroundTexture = new Texture2D(1, 1);
+            Color c = color;
+            backgroundTexture.SetPixel(1, 1, c);
+            backgroundTexture.Apply();
+
+            return backgroundTexture;
+        }
+
         // Based on: https://www.rosettacode.org/wiki/Find_common_directory_path#C.23
         public static string FindCommonPath(IEnumerable<string> paths)
         {
