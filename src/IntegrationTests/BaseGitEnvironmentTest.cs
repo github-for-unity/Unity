@@ -5,14 +5,6 @@ namespace IntegrationTests
 {
     class BaseGitEnvironmentTest : BaseGitRepoTest
     {
-        protected IEnvironment Environment { get; private set; }
-
-        protected Platform Platform { get; private set; }
-
-        protected ProcessManager ProcessManager { get; private set; }
-
-        protected IProcessEnvironment GitEnvironment { get; private set; }
-
         protected override void OnSetup()
         {
             base.OnSetup();
@@ -44,5 +36,13 @@ namespace IntegrationTests
 
             Environment.Repository = repositoryManager.Repository;
         }
+
+        public IEnvironment Environment { get; private set; }
+
+        protected Platform Platform { get; private set; }
+
+        protected ProcessManager ProcessManager { get; private set; }
+
+        protected IProcessEnvironment GitEnvironment { get; private set; }
     }
 }
