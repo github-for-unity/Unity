@@ -36,9 +36,9 @@ namespace IntegrationTests
 
             var gitBranches = processManager.GetGitBranches(TestRepoMasterDirty, environment.GitExecutablePath);
 
-            gitBranches.Should()
-                       .BeEquivalentTo(new GitBranch("master", string.Empty, true),
-                           new GitBranch("feature/document", string.Empty, false));
+            gitBranches.Should().BeEquivalentTo(
+                new GitBranch("master", "origin/master: behind 1", true),
+                new GitBranch("feature/document", "origin/feature/document", false));
         }
     }
 }
