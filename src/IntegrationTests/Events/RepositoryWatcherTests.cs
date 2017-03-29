@@ -306,29 +306,36 @@ namespace IntegrationTests
         [Test]
         public void ShouldDetectGitFetch()
         {
-            InitializeEnvironment(TestRepoMasterClean);
+            InitializeEnvironment(TestRepoMasterCleanUnsynchronized);
 
-            var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterClean);
+            var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanUnsynchronized);
 
             var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
             repositoryWatcherListener.AttachListener(repositoryWatcher);
 
             repositoryWatcher.Start();
-            GitFetch("origin");
 
-            Thread.Sleep(ThreadSleepTimeout);
+            try
+            {
+                GitFetch("origin");
 
-            repositoryWatcherListener.DidNotReceive().ConfigChanged();
-            repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
-            repositoryWatcherListener.DidNotReceive().IndexChanged();
-            repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
-            repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
-            repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
-            repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
-            repositoryWatcherListener.DidNotReceive().RemoteBranchCreated(Args.String, Args.String);
-            repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
-            repositoryWatcherListener.DidNotReceive().RepositoryChanged();
-            repositoryWatcher.Stop();
+                Thread.Sleep(ThreadSleepTimeout);
+
+                repositoryWatcherListener.DidNotReceive().ConfigChanged();
+                repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+                repositoryWatcherListener.DidNotReceive().IndexChanged();
+                repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
+                repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
+                repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
+                repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
+                repositoryWatcherListener.Received(1).RemoteBranchCreated("origin", "feature/other-feature");
+                repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
+                repositoryWatcherListener.DidNotReceive().RepositoryChanged();
+            }
+            finally
+            {
+                repositoryWatcher.Stop();
+            }
         }
 
         private void SwitchBranch(string branch)
