@@ -12,7 +12,8 @@ namespace IntegrationTests
         {
             base.OnSetup();
 
-            TestRepoPath = TestBasePath.Combine("IOTestsRepo");
+            TestRepoMasterClean = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_clean");
+            TestRepoMasterDirty = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_dirty");
 
             using (var zipFile = new ZipFile(TestZipFilePath))
             {
@@ -20,7 +21,9 @@ namespace IntegrationTests
             }
         }
         
-        protected NPath TestRepoPath { get; private set; }
+        protected NPath TestRepoMasterClean { get; private set; }
+
+        protected NPath TestRepoMasterDirty { get; private set; }
 
         private static string TestZipFilePath => Path.Combine(SolutionDirectory, "IOTestsRepo.zip");
     }

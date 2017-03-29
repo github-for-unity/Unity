@@ -18,7 +18,7 @@ namespace IntegrationTests
 
             RepositoryManager = Substitute.For<IRepositoryManager>();
 
-            DotGitPath = TestRepoPath.Combine(".git");
+            DotGitPath = TestRepoMasterDirty.Combine(".git");
 
             if (DotGitPath.FileExists())
             {
@@ -36,9 +36,9 @@ namespace IntegrationTests
             DotGitConfig = DotGitPath.Combine("config");
         }
 
-        private RepositoryWatcher CreateRepositoryWatcher()
+        private RepositoryWatcher CreateRepositoryWatcher(NPath path)
         {
-            var paths = new RepositoryPathConfiguration(TestRepoPath);
+            var paths = new RepositoryPathConfiguration(path);
             return new RepositoryWatcher(Platform, paths, CancellationToken.None);
         }
 
@@ -59,7 +59,9 @@ namespace IntegrationTests
         [Test]
         public void ShouldDetectFileChanges()
         {
-            var repositoryWatcher = CreateRepositoryWatcher();
+            InitializeEnvironment(TestRepoMasterClean);
+
+            var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterClean);
 
             var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
             repositoryWatcherListener.AttachListener(repositoryWatcher);
@@ -68,7 +70,7 @@ namespace IntegrationTests
 
             try
             {
-                var foobarTxt = TestRepoPath.Combine("foobar.txt");
+                var foobarTxt = TestRepoMasterClean.Combine("foobar.txt");
                 foobarTxt.WriteAllText("foobar");
 
                 Thread.Sleep(ThreadSleepTimeout);
@@ -93,7 +95,9 @@ namespace IntegrationTests
         [Test]
         public void ShouldDetectBranchChange()
         {
-            var repositoryWatcher = CreateRepositoryWatcher();
+            InitializeEnvironment(TestRepoMasterClean);
+
+            var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterClean);
 
             var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
             repositoryWatcherListener.AttachListener(repositoryWatcher);
@@ -126,7 +130,9 @@ namespace IntegrationTests
         [Test]
         public void ShouldDetectBranchDelete()
         {
-            var repositoryWatcher = CreateRepositoryWatcher();
+            InitializeEnvironment(TestRepoMasterClean);
+
+            var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterClean);
 
             var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
             repositoryWatcherListener.AttachListener(repositoryWatcher);
@@ -159,7 +165,9 @@ namespace IntegrationTests
         [Test]
         public void ShouldDetectBranchCreate()
         {
-            var repositoryWatcher = CreateRepositoryWatcher();
+            InitializeEnvironment(TestRepoMasterClean);
+
+            var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterClean);
 
             var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
             repositoryWatcherListener.AttachListener(repositoryWatcher);
@@ -211,7 +219,9 @@ namespace IntegrationTests
         [Test]
         public void ShouldDetectChangesToRemotes()
         {
-            var repositoryWatcher = CreateRepositoryWatcher();
+            InitializeEnvironment(TestRepoMasterClean);
+
+            var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterClean);
 
             var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
             repositoryWatcherListener.AttachListener(repositoryWatcher);
@@ -224,7 +234,7 @@ namespace IntegrationTests
 
                 Thread.Sleep(ThreadSleepTimeout);
 
-                repositoryWatcherListener.Received(1).ConfigChanged();
+                repositoryWatcherListener.Received().ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
                 repositoryWatcherListener.DidNotReceive().IndexChanged();
                 repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
@@ -240,7 +250,7 @@ namespace IntegrationTests
 
                 Thread.Sleep(ThreadSleepTimeout);
 
-                repositoryWatcherListener.Received(2).ConfigChanged();
+                repositoryWatcherListener.Received().ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
                 repositoryWatcherListener.DidNotReceive().IndexChanged();
                 repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
@@ -257,10 +267,12 @@ namespace IntegrationTests
             }
         }
 
-        [Test, Ignore]
+        [Test]
         public void ShouldDetectGitPull()
         {
-            var repositoryWatcher = CreateRepositoryWatcher();
+            InitializeEnvironment(TestRepoMasterClean);
+
+            var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterClean);
 
             var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
             repositoryWatcherListener.AttachListener(repositoryWatcher);
@@ -268,8 +280,18 @@ namespace IntegrationTests
             repositoryWatcher.Start();
             GitPull("origin", "master");
 
-            //TODO: This is not expected
-            repositoryWatcherListener.AssertDidNotReceiveAnyCalls();
+            Thread.Sleep(ThreadSleepTimeout);
+
+            repositoryWatcherListener.DidNotReceive().ConfigChanged();
+            repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+            repositoryWatcherListener.DidNotReceive().IndexChanged();
+            repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchCreated(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RepositoryChanged();
             repositoryWatcher.Stop();
         }
 
