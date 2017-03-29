@@ -268,8 +268,18 @@ namespace IntegrationTests
             repositoryWatcher.Start();
             GitPull("origin", "master");
 
-                //TODO: This is not expected
-            repositoryWatcherListener.AssertDidNotReceiveAnyCalls();
+            Thread.Sleep(ThreadSleepTimeout);
+
+            repositoryWatcherListener.DidNotReceive().ConfigChanged();
+            repositoryWatcherListener.Received().HeadChanged(Args.String);
+            repositoryWatcherListener.DidNotReceive().IndexChanged();
+            repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchCreated(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
+            repositoryWatcherListener.Received().RepositoryChanged();
             repositoryWatcher.Stop();
         }
 

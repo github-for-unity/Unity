@@ -38,6 +38,7 @@ namespace GitHub.Unity
             {
                 logger.Trace("Setting GitExecutablePath to " + value);
                 gitExecutablePath = value;
+                gitInstallPath = null;
             }
         }
 

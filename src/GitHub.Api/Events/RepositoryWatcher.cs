@@ -124,8 +124,11 @@ namespace GitHub.Unity
             }
         }
 
-        private void HandleEventInDotGit(Event fileEvent, NPath fileA, NPath fileB)
+        private void HandleEventInDotGit(Event fileEvent, NPath fileA, NPath fileB = null)
         {
+            Logger.Trace("HandleEventInDotGit: {0} \"{1}\"", fileEvent.Type.ToString(), fileA.ToString(),
+                fileB?.ToString() != null ? "\"" + fileB + "\"" : "[NULL]");
+
             if (fileA.Equals(paths.DotGitConfig))
             {
                 Logger.Debug("ConfigChanged");
