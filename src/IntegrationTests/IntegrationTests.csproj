@@ -78,7 +78,6 @@
     <Compile Include="Git\GitSetupTests.cs" />
     <Compile Include="Events\RepositoryWatcherTests.cs" />
     <Compile Include="Git\IntegrationTestEnvironment.cs" />
-    <Compile Include="Watches\FileSystemWatcherTests.cs" />
     <Compile Include="Helpers\TestUIDispatcher.cs" />
     <Compile Include="Git\RepositoryLocatorTests.cs" />
     <Compile Include="Installer\GitInstallerTests.cs" />
