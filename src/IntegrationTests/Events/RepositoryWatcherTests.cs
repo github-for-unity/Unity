@@ -295,6 +295,34 @@ namespace IntegrationTests
             repositoryWatcher.Stop();
         }
 
+        [Test]
+        public void ShouldDetectGitFetch()
+        {
+            InitializeEnvironment(TestRepoMasterClean);
+
+            var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterClean);
+
+            var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
+            repositoryWatcherListener.AttachListener(repositoryWatcher);
+
+            repositoryWatcher.Start();
+            GitFetch("origin");
+
+            Thread.Sleep(ThreadSleepTimeout);
+
+            repositoryWatcherListener.DidNotReceive().ConfigChanged();
+            repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+            repositoryWatcherListener.DidNotReceive().IndexChanged();
+            repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
+            repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchCreated(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
+            repositoryWatcherListener.DidNotReceive().RepositoryChanged();
+            repositoryWatcher.Stop();
+        }
+
         private void SwitchBranch(string branch)
         {
             var completed = false;
@@ -314,6 +342,20 @@ namespace IntegrationTests
             var credentialManager = new GitCredentialManager(Environment, ProcessManager);
             var gitPullTask = new GitPullTask(Environment, ProcessManager, new TaskResultDispatcher<string>(s => { completed = true; }),
                 credentialManager, new TestUIDispatcher(), remote, branch);
+
+            gitPullTask.RunAsync(CancellationToken.None).Wait();
+            Thread.Sleep(100);
+
+            completed.Should().BeTrue();
+        }
+
+        private void GitFetch(string remote)
+        {
+            var completed = false;
+
+            var credentialManager = new GitCredentialManager(Environment, ProcessManager);
+            var gitPullTask = new GitFetchTask(Environment, ProcessManager, new TaskResultDispatcher<string>(s => { completed = true; }),
+                credentialManager, new TestUIDispatcher(), remote);
 
             gitPullTask.RunAsync(CancellationToken.None).Wait();
             Thread.Sleep(100);
