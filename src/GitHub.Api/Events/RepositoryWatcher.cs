@@ -31,6 +31,15 @@ namespace GitHub.Unity
         private NativeInterface nativeInterface;
         private bool running;
 
+        public event Action<string> HeadChanged;
+        public event Action IndexChanged;
+        public event Action ConfigChanged;
+        public event Action<string> LocalBranchCreated;
+        public event Action<string> LocalBranchDeleted;
+        public event Action RepositoryChanged;
+        public event Action<string, string> RemoteBranchCreated;
+        public event Action<string, string> RemoteBranchDeleted;
+
         public RepositoryWatcher(IPlatform platform, RepositoryPathConfiguration paths, CancellationToken cancellationToken)
         {
             this.paths = paths;
@@ -55,21 +64,19 @@ namespace GitHub.Unity
         public void Stop()
         {
             running = false;
+            autoResetEvent.Set();
         }
-
-        public event Action<string> HeadChanged;
-        public event Action IndexChanged;
-        public event Action ConfigChanged;
-        public event Action<string> LocalBranchCreated;
-        public event Action<string> LocalBranchDeleted;
-        public event Action RepositoryChanged;
-        public event Action<string, string> RemoteBranchCreated;
-        public event Action<string, string> RemoteBranchDeleted;
 
         private void WatcherLoop()
         {
-            while (running && !cancellationToken.IsCancellationRequested && !disposed)
+            while (running)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    Stop();
+                    break;
+                }
+
                 foreach (var fileEvent in nativeInterface.GetEvents())
                 {
                     if (!running)
@@ -79,127 +86,23 @@ namespace GitHub.Unity
 
                     if (cancellationToken.IsCancellationRequested)
                     {
+                        Stop();
                         break;
                     }
 
-                    if (disposed)
-                    {
-                        break;
-                    }
-
-                    var fileA = new NPath(fileEvent.Directory).Combine(fileEvent.FileA);
+                    var eventDirectory = new NPath(fileEvent.Directory);
+                    var fileA = eventDirectory.Combine(fileEvent.FileA);
 
                     NPath fileB = null;
                     if (fileEvent.FileB != null)
                     {
-                        fileB = new NPath(fileEvent.Directory).Combine(fileEvent.FileB);
+                        fileB = eventDirectory.Combine(fileEvent.FileB);
                     }
 
+                    // handling events in .git/*
                     if (fileA.IsChildOf(paths.DotGitPath))
                     {
-                        if (fileA.Equals(paths.DotGitConfig))
-                        {
-                            Logger.Debug("ConfigChanged");
-
-                            ConfigChanged?.Invoke();
-                        }
-                        else if (fileA.Equals(paths.DotGitHead))
-                        {
-                            string headContent = null;
-                            if (fileEvent.Type != EventType.DELETED)
-                            {
-                                headContent = paths.DotGitHead.ReadAllLines().FirstOrDefault();
-                            }
-
-                            Logger.Debug("HeadChanged: {0}", headContent ?? "[null]");
-                            HeadChanged?.Invoke(headContent);
-                        }
-                        else if (fileA.Equals(paths.DotGitIndex))
-                        {
-                            Logger.Debug("IndexChanged");
-                            IndexChanged?.Invoke();
-                        }
-                        else if (fileA.IsChildOf(paths.RemotesPath))
-                        {
-                            if (fileA.ExtensionWithDot == ".lock")
-                            {
-                                continue;
-                            }
-
-                            var relativePath = fileA.RelativeTo(paths.RemotesPath);
-                            var relativePathElements = relativePath.Elements.ToArray();
-
-                            if (fileEvent.Type == EventType.DELETED && relativePathElements.Length > 1)
-                            {
-                                var origin = relativePathElements[0];
-                                var branch = string.Join(@"/", relativePathElements.Skip(1).ToArray());
-
-                                Logger.Debug("RemoteBranchDeleted: {0}", branch);
-                                RemoteBranchDeleted?.Invoke(origin, branch);
-                            }
-                            else if (fileEvent.Type == EventType.CREATED)
-                            {}
-                            else if (fileEvent.Type == EventType.MODIFIED)
-                            {}
-                            else if (fileEvent.Type == EventType.RENAMED)
-                            {}
-                            else
-                            {
-                                throw new ArgumentOutOfRangeException();
-                            }
-                        }
-                        else if (fileA.IsChildOf(paths.BranchesPath))
-                        {
-                            if (fileA.ExtensionWithDot == ".lock" && fileEvent.Type != EventType.RENAMED)
-                            {
-                                continue;
-                            }
-
-                            if (fileEvent.Type == EventType.DELETED)
-                            {
-                                var relativePath = fileA.RelativeTo(paths.BranchesPath);
-                                var relativePathElements = relativePath.Elements.ToArray();
-
-                                if (!relativePathElements.Any())
-                                {
-                                    continue;
-                                }
-
-                                var branch = string.Join(@"/", relativePathElements.ToArray());
-
-                                Logger.Debug("LocalBranchDeleted: {0}", branch);
-                                LocalBranchDeleted?.Invoke(branch);
-                            }
-                            else if (fileEvent.Type == EventType.CREATED)
-                            {}
-                            else if (fileEvent.Type == EventType.MODIFIED)
-                            {}
-                            else if (fileEvent.Type == EventType.RENAMED)
-                            {
-                                if (fileB != null && fileB.FileExists())
-                                {
-                                    if (fileA.FileNameWithoutExtension == fileB.FileNameWithoutExtension)
-                                    {
-                                        var relativePath = fileB.RelativeTo(paths.BranchesPath);
-                                        var relativePathElements = relativePath.Elements.ToArray();
-
-                                        if (!relativePathElements.Any())
-                                        {
-                                            continue;
-                                        }
-
-                                        var branch = string.Join(@"/", relativePathElements.ToArray());
-
-                                        Logger.Debug("LocalBranchCreated: {0}", branch);
-                                        LocalBranchCreated?.Invoke(branch);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                throw new ArgumentOutOfRangeException();
-                            }
-                        }
+                        HandleEventInDotGit(fileEvent, fileA, fileB);
                     }
                     else
                     {
@@ -221,25 +124,111 @@ namespace GitHub.Unity
             }
         }
 
-        private bool disposed;
-
-        private void Dispose(bool disposing)
+        private void HandleEventInDotGit(Event fileEvent, NPath fileA, NPath fileB)
         {
-            if (disposing)
+            if (fileA.Equals(paths.DotGitConfig))
             {
-                if (disposed)
+                Logger.Debug("ConfigChanged");
+
+                ConfigChanged?.Invoke();
+            }
+            else if (fileA.Equals(paths.DotGitHead))
+            {
+                string headContent = null;
+                if (fileEvent.Type != EventType.DELETED)
+                {
+                    headContent = paths.DotGitHead.ReadAllLines().FirstOrDefault();
+                }
+
+                Logger.Debug("HeadChanged: {0}", headContent ?? "[null]");
+                HeadChanged?.Invoke(headContent);
+            }
+            else if (fileA.Equals(paths.DotGitIndex))
+            {
+                Logger.Debug("IndexChanged");
+                IndexChanged?.Invoke();
+            }
+            else if (fileA.IsChildOf(paths.RemotesPath))
+            {
+                if (fileA.ExtensionWithDot == ".lock")
                 {
                     return;
                 }
 
-                disposed = true;
+                var relativePath = fileA.RelativeTo(paths.RemotesPath);
+                var relativePathElements = relativePath.Elements.ToArray();
 
-                autoResetEvent.Set();
+                if (fileEvent.Type == EventType.DELETED && relativePathElements.Length > 1)
+                {
+                    var origin = relativePathElements[0];
+                    var branch = string.Join(@"/", relativePathElements.Skip(1).ToArray());
 
-                nativeInterface.Dispose();
-                nativeInterface = null;
+                    Logger.Debug("RemoteBranchDeleted: {0}", branch);
+                    RemoteBranchDeleted?.Invoke(origin, branch);
+                }
             }
-		}
+            else if (fileA.IsChildOf(paths.BranchesPath))
+            {
+                // when a branch is created, we detect it by looking for a rename event
+                // from a branch-name.lock file to a branch-name file
+                if (fileA.ExtensionWithDot == ".lock" && fileEvent.Type != EventType.RENAMED)
+                {
+                    return;
+                }
+
+                if (fileEvent.Type == EventType.DELETED)
+                {
+                    var relativePath = fileA.RelativeTo(paths.BranchesPath);
+                    var relativePathElements = relativePath.Elements.ToArray();
+
+                    if (!relativePathElements.Any())
+                    {
+                        return;
+                    }
+
+                    var branch = string.Join(@"/", relativePathElements.ToArray());
+
+                    Logger.Debug("LocalBranchDeleted: {0}", branch);
+                    LocalBranchDeleted?.Invoke(branch);
+                }
+                else if (fileEvent.Type == EventType.RENAMED)
+                {
+                    if (fileB != null && fileB.FileExists())
+                    {
+                        if (fileA.FileNameWithoutExtension == fileB.FileNameWithoutExtension)
+                        {
+                            var relativePath = fileB.RelativeTo(paths.BranchesPath);
+                            var relativePathElements = relativePath.Elements.ToArray();
+
+                            if (!relativePathElements.Any())
+                            {
+                                return;
+                            }
+
+                            var branch = string.Join(@"/", relativePathElements.ToArray());
+
+                            Logger.Debug("LocalBranchCreated: {0}", branch);
+                            LocalBranchCreated?.Invoke(branch);
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool disposed;
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (!disposed)
+                {
+                    disposed = true;
+                    Stop();
+                    nativeInterface.Dispose();
+                    nativeInterface = null;
+                }
+            }
+        }
 
         public void Dispose()
         {

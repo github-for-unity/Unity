@@ -8,7 +8,7 @@ using TestUtils;
 
 namespace IntegrationTests
 {
-    class RepositoryWatcherTests : BaseGitRepoTest
+    class RepositoryWatcherTests : BaseGitEnvironmentTest
     {
         private int ThreadSleepTimeout = 500;
 
