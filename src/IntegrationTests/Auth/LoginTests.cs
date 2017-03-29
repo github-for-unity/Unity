@@ -36,7 +36,7 @@ namespace IntegrationTests
         [Test]
         public void CommonParentTest()
         {
-            var filesystem = new FileSystem(TestRepoPath);
+            var filesystem = new FileSystem(TestRepoMasterDirty);
             NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
 
@@ -68,7 +68,7 @@ namespace IntegrationTests
             await platform.Initialize(processManager);
 
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            using (var repoManager = repositoryManagerFactory.CreateRepositoryManager(platform, TestRepoPath, CancellationToken.None))
+            using (var repoManager = repositoryManagerFactory.CreateRepositoryManager(platform, TestRepoMasterDirty, CancellationToken.None))
             {
                 var repository = repoManager.Repository;
                 Environment.Repository = repoManager.Repository;

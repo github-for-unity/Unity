@@ -11,6 +11,8 @@ namespace IntegrationTests
         [Test, Isolated]
         public void ShouldWork()
         {
+            InitializeEnvironment(TestRepoMasterClean);
+
             var en = new WindowsGitEnvironment(Environment, FileSystem);
             var processManager = new ProcessManager(Environment, en, CancellationToken.None);
 
