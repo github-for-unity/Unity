@@ -43,7 +43,12 @@ namespace IntegrationTests
 
         public string GetSpecialFolder(Environment.SpecialFolder folder)
         {
-            return integrationTestEnvironmentPath.EnsureDirectoryExists(folder.ToString());
+            var ensureDirectoryExists = integrationTestEnvironmentPath.EnsureDirectoryExists(folder.ToString());
+            var specialFolderPath = ensureDirectoryExists.ToString();
+
+            logger.Trace("GetSpecialFolder: {0}", specialFolderPath);
+
+            return specialFolderPath;
         }
 
         public string UserProfilePath => integrationTestEnvironmentPath.CreateDirectory("user-profile-path");
