@@ -56,7 +56,6 @@ namespace GitHub.Unity
             // We need to essentially fake up what git-cmd.bat does
             string homeDir = NPath.HomeDirectory;
 
-            var appPath = workingDirectory;
             var gitPathRoot = Environment.GitInstallPath;
             var gitLfsPath = Environment.GitInstallPath;
 
@@ -72,12 +71,12 @@ namespace GitHub.Unity
             if (Environment.IsWindows)
             {
                 var userPath = @"C:\windows\system32;C:\windows";
-                path = String.Format(CultureInfo.InvariantCulture, @"{0}\cmd;{0}\usr\bin;{0}\mingw32\libexec\git-core;{0}\mingw64\libexec\git-core;{0}\usr\share\git-tfs;{1};{2};{3}{4}", gitPathRoot, appPath, gitLfsPath, userPath, developerPaths);
+                path = String.Format(CultureInfo.InvariantCulture, @"{0}\cmd;{0}\usr\bin;{0}\mingw32\bin;{0}\mingw32\libexec\git-core;{0}\mingw64\bin;{0}\mingw64\libexec\git-core;{0}\usr\share\git-tfs;{1};{2}{3}", gitPathRoot, gitLfsPath, userPath, developerPaths);
             }
             else
             {
                 var userPath = Environment.Path;
-                path = String.Format(CultureInfo.InvariantCulture, @"{0}:{0}/libexec/git-core:{1}:{2}:{3}{4}", gitPathRoot, appPath, gitLfsPath, userPath, developerPaths);
+                path = String.Format(CultureInfo.InvariantCulture, @"{0}:{0}/libexec/git-core:{1}:{2}{3}", gitPathRoot, gitLfsPath, userPath, developerPaths);
             }
 
             Logger.Trace("EnvironmentVariables[\"PATH\"]=\"{0}\"", path);
