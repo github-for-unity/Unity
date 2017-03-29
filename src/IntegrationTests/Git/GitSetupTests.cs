@@ -34,7 +34,7 @@ namespace IntegrationTests
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
 
-            var gitBranches = processManager.GetGitBranches(TestRepoPath, environment.GitExecutablePath);
+            var gitBranches = processManager.GetGitBranches(TestRepoMasterDirty, environment.GitExecutablePath);
 
             gitBranches.Should()
                        .BeEquivalentTo(new GitBranch("master", string.Empty, true),
