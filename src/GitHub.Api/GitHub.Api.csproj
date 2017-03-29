@@ -96,7 +96,6 @@
     <Compile Include="ApplicationManagerBase.cs" />
     <Compile Include="DefaultEnvironment.cs" />
     <Compile Include="Events\RepositoryWatcher.cs" />
-    <Compile Include="Events\StatusEventDispatcher.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="GitSetup.cs" />
     <Compile Include="Git\GitFileStatus.cs" />
@@ -132,9 +131,6 @@
     <Compile Include="IO\NPathFileSystemProvider.cs" />
     <Compile Include="Process\ProcessOutputManager.cs" />
     <Compile Include="Process\RemoteListOutputProcessor.cs" />
-    <Compile Include="Events\IFileSystemWatch.cs" />
-    <Compile Include="Events\IFileSystemWatchFactory.cs" />
-    <Compile Include="Events\BaseFileSystemWatcher.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="ISettings.cs" />
     <Compile Include="Localization.Designer.cs">
@@ -145,12 +141,8 @@
     <Compile Include="Platform\GitProcessEnvironment.cs" />
     <Compile Include="Platform\IFileSystem.cs" />
     <Compile Include="Platform\IProcessEnvironment.cs" />
-    <Compile Include="Events\LinuxFileSystemWatch.cs" />
     <Compile Include="Platform\LinuxGitEnvironment.cs" />
-    <Compile Include="Events\MacFileSystemWatch.cs" />
     <Compile Include="Platform\MacGitEnvironment.cs" />
-    <Compile Include="Events\PlatformFileSystemWatchFactory.cs" />
-    <Compile Include="Events\WindowsFileSystemWatch.cs" />
     <Compile Include="Platform\WindowsGitEnvironment.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
