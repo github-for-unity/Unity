@@ -53,6 +53,8 @@ namespace GitHub.Unity
             BrowseButton = "...",
             WarningLabel = "<b>Warning:</b> {0}";
 
+        static Color
+            headerGreyColor = new Color(0.878f,0.878f,0.878f,1.0f);
 
         static GUIStyle
             label,
@@ -77,6 +79,8 @@ namespace GitHub.Unity
             commitDescriptionFieldStyle,
             toggleMixedStyle,
             authHeaderBoxStyle,
+            historyDetailsTitleStyle,
+            historyDetailsMetaInfoStyle,
             genericBoxStyle;
         static Texture2D
             modifiedStatusIcon,
@@ -98,6 +102,7 @@ namespace GitHub.Unity
             folderIcon,
             mergeIcon,
             dotIcon,
+            localCommitIcon,
             repoIcon,
             lockIcon,
             dropdownListIcon;
@@ -341,6 +346,35 @@ namespace GitHub.Unity
             }
         }
 
+        public static GUIStyle HistoryDetailsTitleStyle
+        {
+            get
+            {
+                if (historyDetailsTitleStyle == null)
+                {
+                    historyDetailsTitleStyle = new GUIStyle(EditorStyles.boldLabel);
+                    historyDetailsTitleStyle.name = "HistoryDetailsTitleStyle";
+                    historyDetailsTitleStyle.wordWrap = true;
+                }
+
+                return historyDetailsTitleStyle;
+            }
+        }
+
+        public static GUIStyle HistoryDetailsMetaInfoStyle
+        {
+            get
+            {
+                if (historyDetailsMetaInfoStyle == null)
+                {
+                    historyDetailsMetaInfoStyle = new GUIStyle(EditorStyles.miniLabel);
+                    historyDetailsMetaInfoStyle.name = "HistoryDetailsMetaInfoStyle";
+                    historyDetailsMetaInfoStyle.normal.textColor = new Color(0f, 0f, 0f, 0.6f);
+                }
+
+                return historyDetailsMetaInfoStyle;
+            }
+        }
 
         public static GUIStyle CommitFileAreaStyle
         {
@@ -597,6 +631,19 @@ namespace GitHub.Unity
 				return dotIcon;
 			}
 		}
+
+        public static Texture2D LocalCommitIcon
+        {
+            get
+            {
+                if (localCommitIcon == null)
+                {
+                    localCommitIcon = Utility.GetIcon("local-commit-icon.png", "local-commit-icon@2x.png");
+                }
+
+                return localCommitIcon;
+            }
+        }
 
         public static Texture2D DefaultAssetIcon
         {
