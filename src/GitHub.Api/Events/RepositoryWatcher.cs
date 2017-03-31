@@ -50,7 +50,10 @@ namespace GitHub.Unity
                 platform.Environment.UnityProjectPath.ToNPath().Combine("Temp")
             };
 
-            nativeInterface = new NativeInterface(paths.RepositoryPath);
+            var pathsRepositoryPath = paths.RepositoryPath.ToString();
+            Logger.Trace("Watching Path: \"{0}\"", pathsRepositoryPath);
+
+            nativeInterface = new NativeInterface(pathsRepositoryPath);
             task = new Task(WatcherLoop);
             autoResetEvent = new AutoResetEvent(false);
         }
@@ -99,6 +102,9 @@ namespace GitHub.Unity
                         fileB = eventDirectory.Combine(fileEvent.FileB);
                     }
 
+                    //Logger.Trace("FileEvent: {0} \"{1}\"", fileEvent.Type.ToString(), fileA.ToString(),
+                    //  fileB?.ToString() != null ? "\"" + fileB + "\"" : "[NULL]");
+
                     // handling events in .git/*
                     if (fileA.IsChildOf(paths.DotGitPath))
                     {
@@ -113,6 +119,7 @@ namespace GitHub.Unity
 
                         Logger.Debug("RepositoryChanged {0}: {1} {2}", fileEvent.Type, fileA.ToString(),
                             fileB?.ToString() ?? "[NULL]");
+
                         RepositoryChanged?.Invoke();
                     }
                 }
@@ -124,7 +131,7 @@ namespace GitHub.Unity
             }
         }
 
-        private void HandleEventInDotGit(Event fileEvent, NPath fileA, NPath fileB)
+        private void HandleEventInDotGit(Event fileEvent, NPath fileA, NPath fileB = null)
         {
             if (fileA.Equals(paths.DotGitConfig))
             {
