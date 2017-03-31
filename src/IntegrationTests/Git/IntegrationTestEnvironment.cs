@@ -11,7 +11,6 @@ namespace IntegrationTests
         private readonly NPath integrationTestEnvironmentPath;
 
         private DefaultEnvironment defaultEnvironment;
-        private string gitExecutablePath;
         private string unityProjectPath;
 
         public IntegrationTestEnvironment(NPath solutionDirectory, NPath environmentPath = null)
@@ -44,7 +43,12 @@ namespace IntegrationTests
 
         public string GetSpecialFolder(Environment.SpecialFolder folder)
         {
-            return integrationTestEnvironmentPath.EnsureDirectoryExists(folder.ToString());
+            var ensureDirectoryExists = integrationTestEnvironmentPath.EnsureDirectoryExists(folder.ToString());
+            var specialFolderPath = ensureDirectoryExists.ToString();
+
+            logger.Trace("GetSpecialFolder: {0}", specialFolderPath);
+
+            return specialFolderPath;
         }
 
         public string UserProfilePath => integrationTestEnvironmentPath.CreateDirectory("user-profile-path");
@@ -54,11 +58,11 @@ namespace IntegrationTests
 
         public string GitExecutablePath
         {
-            get { return gitExecutablePath; }
+            get { return defaultEnvironment.GitExecutablePath; }
             set
             {
                 logger.Trace("Setting GitExecutablePath to " + value);
-                gitExecutablePath = value;
+                defaultEnvironment.GitExecutablePath = value;
             }
         }
 
@@ -88,8 +92,7 @@ namespace IntegrationTests
 
         public string GitInstallPath
         {
-            get { return integrationTestEnvironmentPath.EnsureDirectoryExists("GitInstallPath"); }
-            set { throw new NotImplementedException(); }
+            get { return defaultEnvironment.GitInstallPath; }
         }
 
         public IRepository Repository { get; set; }
