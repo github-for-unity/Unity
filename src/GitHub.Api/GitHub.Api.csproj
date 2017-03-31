@@ -72,7 +72,7 @@
     </Reference>
     <Reference Include="sfw.net">
       <HintPath>..\..\lib\sfw.net\win\x64\$(Configuration)\sfw.net.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
