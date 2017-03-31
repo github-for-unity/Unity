@@ -12,33 +12,10 @@ namespace IntegrationTests
     [TestFixture]
     class ProcessManagerIntegrationTests : BaseGitEnvironmentTest
     {
-        public ProcessManager ProcessManager { get; set; }
-
-        public IProcessEnvironment GitEnvironment { get; set; }
-
-        protected override void OnSetup()
-        {
-            base.OnSetup();
-
-            var platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
-            GitEnvironment = platform.GitEnvironment;
-
-            ProcessManager = new ProcessManager(Environment, GitEnvironment);
-            platform.Initialize(ProcessManager);
-
-            Environment.UnityProjectPath = TestBasePath;
-            Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
-
-            var repositoryManagerFactory = new RepositoryManagerFactory();
-            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(platform, TestBasePath, CancellationToken.None);
-
-            Environment.Repository = repositoryManager.Repository;
-        }
-
         [Test]
         public void BranchListTest()
         {
-            var gitBranches = ProcessManager.GetGitBranches(TestBasePath);
+            var gitBranches = ProcessManager.GetGitBranches(TestRepoPath);
 
             gitBranches.Should().BeEquivalentTo(
                 new GitBranch("master", string.Empty, true),
@@ -49,7 +26,7 @@ namespace IntegrationTests
         public void LogEntriesTest()
         {
             var logEntries =
-                ProcessManager.GetGitLogEntries(TestBasePath, Environment, FileSystem, GitEnvironment, 2)
+                ProcessManager.GetGitLogEntries(TestRepoPath, Environment, FileSystem, GitEnvironment, 2)
                     .ToArray();
 
             logEntries.AssertEqual(new[]
@@ -63,7 +40,7 @@ namespace IntegrationTests
                     Changes = new List<GitStatusEntry>
                     {
                         new GitStatusEntry("Assets/TestDocument.txt".ToNPath(),
-                            TestBasePath + "/Assets/TestDocument.txt".ToNPath(), "Assets/TestDocument.txt".ToNPath(),
+                            TestRepoPath + "/Assets/TestDocument.txt".ToNPath(), "Assets/TestDocument.txt".ToNPath(),
                             GitFileStatus.Renamed, "TestDocument.txt")
                     },
                     CommitID = "018997938335742f8be694240a7c2b352ec0835f",
@@ -81,7 +58,7 @@ namespace IntegrationTests
                     Changes = new List<GitStatusEntry>
                     {
                         new GitStatusEntry("TestDocument.txt".ToNPath(),
-                            TestBasePath + "/TestDocument.txt".ToNPath(), "TestDocument.txt".ToNPath(),
+                            TestRepoPath + "/TestDocument.txt".ToNPath(), "TestDocument.txt".ToNPath(),
                             GitFileStatus.Added),
                     },
                     CommitID = "03939ffb3eb8486dba0259b43db00842bbe6eca1",
@@ -96,7 +73,7 @@ namespace IntegrationTests
         [Test]
         public void RemoteListTest()
         {
-            var gitRemotes = ProcessManager.GetGitRemoteEntries(TestBasePath);
+            var gitRemotes = ProcessManager.GetGitRemoteEntries(TestRepoPath);
 
             gitRemotes.Should().BeEquivalentTo(new GitRemote()
             {
@@ -110,7 +87,7 @@ namespace IntegrationTests
         [Test]
         public void StatusTest()
         {
-            var gitStatus = ProcessManager.GetGitStatus(TestBasePath, Environment, FileSystem, GitEnvironment);
+            var gitStatus = ProcessManager.GetGitStatus(TestRepoPath, Environment, FileSystem, GitEnvironment);
 
             gitStatus.AssertEqual(new GitStatus()
             {
@@ -118,17 +95,17 @@ namespace IntegrationTests
                 Entries = new List<GitStatusEntry>
                 {
                     new GitStatusEntry("Assets/Added Document.txt".ToNPath(),
-                        TestBasePath.Combine("Assets/Added Document.txt"),
+                        TestRepoPath.Combine("Assets/Added Document.txt"),
                         "Assets/Added Document.txt".ToNPath(),
                         GitFileStatus.Added, staged: true),
 
                     new GitStatusEntry("Assets/Renamed TestDocument.txt".ToNPath(),
-                        TestBasePath.Combine("Assets/Renamed TestDocument.txt"),
+                        TestRepoPath.Combine("Assets/Renamed TestDocument.txt"),
                         "Assets/Renamed TestDocument.txt".ToNPath(),
                         GitFileStatus.Renamed, "Assets/TestDocument.txt".ToNPath(), true),
 
                     new GitStatusEntry("Assets/Untracked Document.txt".ToNPath(),
-                        TestBasePath.Combine("Assets/Untracked Document.txt"),
+                        TestRepoPath.Combine("Assets/Untracked Document.txt"),
                         "Assets/Untracked Document.txt".ToNPath(),
                         GitFileStatus.Untracked),
                 }
@@ -138,7 +115,7 @@ namespace IntegrationTests
         [Test]
         public void CredentialHelperGetTest()
         {
-            var s = ProcessManager.GetGitCreds(TestBasePath, Environment, FileSystem, GitEnvironment);
+            var s = ProcessManager.GetGitCreds(TestRepoPath, Environment, FileSystem, GitEnvironment);
             s.Should().NotBeNull();
         }
     }

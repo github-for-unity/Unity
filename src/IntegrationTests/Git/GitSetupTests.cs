@@ -11,9 +11,6 @@ namespace IntegrationTests
         [Test]
         public void InstallGit()
         {
-            var filesystem = new FileSystem();
-            NPathFileSystemProvider.Current = filesystem;
-
             var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
             var environment = new IntegrationTestEnvironment(environmentPath);
             var gitSetup = new GitSetup(environment, CancellationToken.None);
@@ -21,8 +18,6 @@ namespace IntegrationTests
 
             var setupDone = false;
             var percent = -1f;
-
-            // Root paths
             gitSetup.GitExecutablePath.FileExists().Should().BeFalse();
 
             setupDone = gitSetup.SetupIfNeeded(percentage: new Progress<float>(x => percent = x)).Result;
@@ -35,11 +30,11 @@ namespace IntegrationTests
 
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
-            var platform = new Platform(environment, filesystem, new TestUIDispatcher());
+            var platform = new Platform(environment, FileSystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
 
-            var gitBranches = processManager.GetGitBranches(TestBasePath, environment.GitExecutablePath);
+            var gitBranches = processManager.GetGitBranches(TestRepoPath, environment.GitExecutablePath);
 
             gitBranches.Should()
                        .BeEquivalentTo(new GitBranch("master", string.Empty, true),
