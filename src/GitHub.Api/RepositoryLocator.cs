@@ -63,6 +63,9 @@ namespace GitHub.Unity
                             filesForInitialCommit.Add(placeholder);
                         }
                         var addTask = new GitAddTask(environment, processManager, null, filesForInitialCommit);
+
+                        applicationManager.SetProjectToTextSerialization();
+
                         return addTask.RunAsync(token);
                     }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, TaskScheduler.Default)
                     .ContinueWith(_ =>
