@@ -14,7 +14,7 @@ namespace IntegrationTests
         private string gitExecutablePath;
         private string unityProjectPath;
 
-        public IntegrationTestEnvironment(NPath solutionDirectory = null, NPath environmentPath = null)
+        public IntegrationTestEnvironment(NPath solutionDirectory, NPath environmentPath = null)
         {
             defaultEnvironment = new DefaultEnvironment();
 
