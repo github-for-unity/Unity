@@ -1,6 +1,8 @@
 ﻿<ProjectConfiguration>
   <Settings>
-    <HiddenComponentWarnings />
+    <HiddenComponentWarnings>
+      <Value>PostBuildEventDisabled</Value>
+    </HiddenComponentWarnings>
     <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
   </Settings>
 </ProjectConfiguration>
