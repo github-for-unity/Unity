@@ -8,11 +8,11 @@ namespace GitHub.Unity
 
         public GitBranchDeleteTask(IEnvironment environment, IProcessManager processManager,
             ITaskResultDispatcher<string> resultDispatcher,
-            string branch, Action onSuccess, Action onFailure)
+            string branch, bool deleteUnmerged = false)
             : base(environment, processManager, resultDispatcher)
         {
             Guard.ArgumentNotNullOrWhiteSpace(branch, "branch");
-            arguments = String.Format("branch -d {0}", branch);
+            arguments = !deleteUnmerged ? $"branch -d {branch}" : $"branch -D {branch}";
         }
 
         public override bool Blocking { get { return false; } }

@@ -6,23 +6,27 @@ namespace IntegrationTests
     class IntegrationTestEnvironment : IEnvironment
     {
         private static readonly ILogging logger = Logging.GetLogger<IntegrationTestEnvironment>();
+
+        private readonly string extensionInstallPath;
+        private readonly NPath integrationTestEnvironmentPath;
+
         private DefaultEnvironment defaultEnvironment;
+        private string unityProjectPath;
 
-        private string gitExecutablePath;
-        private NPath integrationTestEnvironmentPath;
-
-        public IntegrationTestEnvironment(NPath environmentPath = null)
+        public IntegrationTestEnvironment(NPath solutionDirectory, NPath environmentPath = null)
         {
             defaultEnvironment = new DefaultEnvironment();
 
             environmentPath = environmentPath ??
                 defaultEnvironment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
-                           .ToNPath()
-                           .EnsureDirectoryExists(ApplicationInfo.ApplicationName + "-IntegrationTests");
+                                  .ToNPath()
+                                  .EnsureDirectoryExists(ApplicationInfo.ApplicationName + "-IntegrationTests");
 
-            logger.Trace("EnvironmentPath: \"{0}\"", environmentPath);
-
+            extensionInstallPath = solutionDirectory.Parent.Parent.Parent.Combine("GitHub.Api");
             integrationTestEnvironmentPath = environmentPath;
+
+            logger.Trace("EnvironmentPath: \"{0}\" SolutionDirectory: \"{1}\" ExtensionInstallPath: \"{2}\"", environmentPath, solutionDirectory, extensionInstallPath);
+
         }
 
         public string ExpandEnvironmentVariables(string name)
@@ -39,7 +43,12 @@ namespace IntegrationTests
 
         public string GetSpecialFolder(Environment.SpecialFolder folder)
         {
-            return integrationTestEnvironmentPath.EnsureDirectoryExists(folder.ToString());
+            var ensureDirectoryExists = integrationTestEnvironmentPath.EnsureDirectoryExists(folder.ToString());
+            var specialFolderPath = ensureDirectoryExists.ToString();
+
+            logger.Trace("GetSpecialFolder: {0}", specialFolderPath);
+
+            return specialFolderPath;
         }
 
         public string UserProfilePath => integrationTestEnvironmentPath.CreateDirectory("user-profile-path");
@@ -49,11 +58,11 @@ namespace IntegrationTests
 
         public string GitExecutablePath
         {
-            get { return gitExecutablePath; }
+            get { return defaultEnvironment.GitExecutablePath; }
             set
             {
                 logger.Trace("Setting GitExecutablePath to " + value);
-                gitExecutablePath = value;
+                defaultEnvironment.GitExecutablePath = value;
             }
         }
 
@@ -63,11 +72,19 @@ namespace IntegrationTests
 
         public string UnityAssetsPath { get; set; }
 
-        public string UnityProjectPath { get; set; }
+        public string UnityProjectPath
+        {
+            get { return unityProjectPath; }
+            set
+            {
+                logger.Trace("Setting UnityProjectPath to " + value);
+                unityProjectPath = value;
+            }
+        }
 
         public string ExtensionInstallPath
         {
-            get { return integrationTestEnvironmentPath.EnsureDirectoryExists("ExtensionInstallPath"); }
+            get { return extensionInstallPath; }
             set { throw new NotImplementedException(); }
         }
 
@@ -75,8 +92,7 @@ namespace IntegrationTests
 
         public string GitInstallPath
         {
-            get { return integrationTestEnvironmentPath.EnsureDirectoryExists("GitInstallPath"); }
-            set { throw new NotImplementedException(); }
+            get { return defaultEnvironment.GitInstallPath; }
         }
 
         public IRepository Repository { get; set; }
