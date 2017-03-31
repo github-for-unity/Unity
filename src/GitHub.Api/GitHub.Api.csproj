@@ -166,6 +166,7 @@
     <Compile Include="Tasks\GitConfigListTask.cs" />
     <Compile Include="Tasks\GitConfigSetTask.cs" />
     <Compile Include="Tasks\GitConfigSource.cs" />
+    <Compile Include="Tasks\GitFetchTask.cs" />
     <Compile Include="Tasks\GitInitTask.cs" />
     <Compile Include="Tasks\GitListBranchesTask.cs" />
     <Compile Include="Tasks\GitListLocksTask.cs" />
