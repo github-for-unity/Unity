@@ -39,10 +39,10 @@ namespace GitHub.Unity
                 return initTask.RunAsync(token)
                     .ContinueWith(_ =>
                     {
-                        Logger.Trace("LFS init");
+                        Logger.Trace("LFS install");
 
                         var t = new GitInitTask(environment, processManager, null);
-                        t.SetArguments("lfs init");
+                        t.SetArguments("lfs install");
                         return t.RunAsync(token);
                     }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, TaskScheduler.Default)
                     .ContinueWith(_ =>

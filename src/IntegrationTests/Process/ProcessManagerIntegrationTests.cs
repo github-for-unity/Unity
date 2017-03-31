@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using FluentAssertions;
 using NUnit.Framework;
 using GitHub.Unity;
@@ -12,44 +11,25 @@ namespace IntegrationTests
     [TestFixture]
     class ProcessManagerIntegrationTests : BaseGitEnvironmentTest
     {
-        public ProcessManager ProcessManager { get; set; }
-
-        public IProcessEnvironment GitEnvironment { get; set; }
-
-        protected override void OnSetup()
-        {
-            base.OnSetup();
-
-            var platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
-            GitEnvironment = platform.GitEnvironment;
-
-            ProcessManager = new ProcessManager(Environment, GitEnvironment);
-            platform.Initialize(ProcessManager);
-
-            Environment.UnityProjectPath = TestBasePath;
-            Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
-
-            var repositoryManagerFactory = new RepositoryManagerFactory();
-            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(platform, TestBasePath, CancellationToken.None);
-
-            Environment.Repository = repositoryManager.Repository;
-        }
-
         [Test]
         public void BranchListTest()
         {
-            var gitBranches = ProcessManager.GetGitBranches(TestBasePath);
+            InitializeEnvironment(TestRepoMasterCleanUnsynchronized);
+
+            var gitBranches = ProcessManager.GetGitBranches(TestRepoMasterCleanUnsynchronized);
 
             gitBranches.Should().BeEquivalentTo(
-                new GitBranch("master", string.Empty, true),
-                new GitBranch("feature/document", string.Empty, false));
+                new GitBranch("master", "origin/master: behind 1", true),
+                new GitBranch("feature/document", "origin/feature/document", false));
         }
 
         [Test]
         public void LogEntriesTest()
         {
+            InitializeEnvironment(TestRepoMasterCleanUnsynchronized);
+
             var logEntries =
-                ProcessManager.GetGitLogEntries(TestBasePath, Environment, FileSystem, GitEnvironment, 2)
+                ProcessManager.GetGitLogEntries(TestRepoMasterCleanUnsynchronized, Environment, FileSystem, GitEnvironment, 2)
                     .ToArray();
 
             logEntries.AssertEqual(new[]
@@ -63,7 +43,7 @@ namespace IntegrationTests
                     Changes = new List<GitStatusEntry>
                     {
                         new GitStatusEntry("Assets/TestDocument.txt".ToNPath(),
-                            TestBasePath + "/Assets/TestDocument.txt".ToNPath(), "Assets/TestDocument.txt".ToNPath(),
+                            TestRepoMasterCleanUnsynchronized + "/Assets/TestDocument.txt".ToNPath(), "Assets/TestDocument.txt".ToNPath(),
                             GitFileStatus.Renamed, "TestDocument.txt")
                     },
                     CommitID = "018997938335742f8be694240a7c2b352ec0835f",
@@ -81,7 +61,7 @@ namespace IntegrationTests
                     Changes = new List<GitStatusEntry>
                     {
                         new GitStatusEntry("TestDocument.txt".ToNPath(),
-                            TestBasePath + "/TestDocument.txt".ToNPath(), "TestDocument.txt".ToNPath(),
+                            TestRepoMasterCleanUnsynchronized + "/TestDocument.txt".ToNPath(), "TestDocument.txt".ToNPath(),
                             GitFileStatus.Added),
                     },
                     CommitID = "03939ffb3eb8486dba0259b43db00842bbe6eca1",
@@ -96,7 +76,9 @@ namespace IntegrationTests
         [Test]
         public void RemoteListTest()
         {
-            var gitRemotes = ProcessManager.GetGitRemoteEntries(TestBasePath);
+            InitializeEnvironment(TestRepoMasterCleanSynchronized);
+
+            var gitRemotes = ProcessManager.GetGitRemoteEntries(TestRepoMasterCleanSynchronized);
 
             gitRemotes.Should().BeEquivalentTo(new GitRemote()
             {
@@ -110,25 +92,29 @@ namespace IntegrationTests
         [Test]
         public void StatusTest()
         {
-            var gitStatus = ProcessManager.GetGitStatus(TestBasePath, Environment, FileSystem, GitEnvironment);
+            InitializeEnvironment(TestRepoMasterDirtyUnsynchronized);
+
+            var gitStatus = ProcessManager.GetGitStatus(TestRepoMasterDirtyUnsynchronized, Environment, FileSystem, GitEnvironment);
 
             gitStatus.AssertEqual(new GitStatus()
             {
                 LocalBranch = "master",
+                RemoteBranch = "origin/master",
+                Behind = 1,
                 Entries = new List<GitStatusEntry>
                 {
                     new GitStatusEntry("Assets/Added Document.txt".ToNPath(),
-                        TestBasePath.Combine("Assets/Added Document.txt"),
+                        TestRepoMasterDirtyUnsynchronized.Combine("Assets/Added Document.txt"),
                         "Assets/Added Document.txt".ToNPath(),
                         GitFileStatus.Added, staged: true),
 
                     new GitStatusEntry("Assets/Renamed TestDocument.txt".ToNPath(),
-                        TestBasePath.Combine("Assets/Renamed TestDocument.txt"),
+                        TestRepoMasterDirtyUnsynchronized.Combine("Assets/Renamed TestDocument.txt"),
                         "Assets/Renamed TestDocument.txt".ToNPath(),
                         GitFileStatus.Renamed, "Assets/TestDocument.txt".ToNPath(), true),
 
                     new GitStatusEntry("Assets/Untracked Document.txt".ToNPath(),
-                        TestBasePath.Combine("Assets/Untracked Document.txt"),
+                        TestRepoMasterDirtyUnsynchronized.Combine("Assets/Untracked Document.txt"),
                         "Assets/Untracked Document.txt".ToNPath(),
                         GitFileStatus.Untracked),
                 }
@@ -138,7 +124,9 @@ namespace IntegrationTests
         [Test]
         public void CredentialHelperGetTest()
         {
-            var s = ProcessManager.GetGitCreds(TestBasePath, Environment, FileSystem, GitEnvironment);
+            InitializeEnvironment(TestRepoMasterCleanSynchronized);
+
+            var s = ProcessManager.GetGitCreds(TestRepoMasterCleanSynchronized, Environment, FileSystem, GitEnvironment);
             s.Should().NotBeNull();
         }
     }

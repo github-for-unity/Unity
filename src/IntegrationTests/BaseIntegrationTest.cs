@@ -55,13 +55,5 @@ namespace IntegrationTests
             FileSystem = null;
             NPathFileSystemProvider.Current = null;
         }
-
-        protected void CreateFilePaths(NPath[] dirs)
-        {
-            foreach (var file in dirs)
-            {
-                TestBasePath.Combine(file).CreateFile();
-            }
-        }
     }
 }

@@ -27,8 +27,8 @@ namespace GitHub.Unity
             MinCommitTreePadding = 20f,
             FoldoutWidth = 11f,
             FoldoutIndentation = -2f,
-            TreeIndentation = 18f,
-            TreeRootIndentation = 7f,
+            TreeIndentation = 12f,
+            TreeRootIndentation = -5f,
             TreeVerticalSpacing = 3f,
             CommitIconSize = 16f,
             CommitIconHorizontalPadding = -5f,
@@ -88,6 +88,7 @@ namespace GitHub.Unity
             deletedStatusIcon,
             renamedStatusIcon,
             untrackedStatusIcon,
+            branchIcon,
             trackedStatusIcon,
             lockedStatusIcon,
             lockedModifiedStatusIcon,
@@ -516,13 +517,25 @@ namespace GitHub.Unity
             {
                 if (activeBranchIcon == null)
                 {
-                    activeBranchIcon = Utility.GetIcon("current-branch-indicator.png");
+                    activeBranchIcon = Utility.GetIcon("current-branch-indicator.png", "current-branch-indicator@2x.png");
                 }
 
                 return activeBranchIcon;
             }
         }
 
+        public static Texture2D BranchIcon
+        {
+            get
+            {
+                if (branchIcon == null)
+                {
+                    branchIcon = Utility.GetIcon("branch.png", "branch@2x.png");
+                }
+
+                return branchIcon;
+            }
+        }
 
         public static Texture2D TrackingBranchIcon
         {
@@ -530,6 +543,7 @@ namespace GitHub.Unity
             {
                 if (trackingBranchIcon == null)
                 {
+                    // trackingBranchIcon = Utility.GetIcon("tracked-branch-indicator.png", "tracked-branch-indicator@2x.png");
                     trackingBranchIcon = Utility.GetIcon("tracked-branch-indicator.png");
                 }
 

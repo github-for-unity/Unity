@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading;
 using GitHub.Unity;
 using Ionic.Zip;
 using NUnit.Framework;
@@ -7,20 +8,26 @@ namespace IntegrationTests
 {
     class BaseGitRepoTest : BaseIntegrationTest
     {
-        private static string TestZipFilePath => Path.Combine(SolutionDirectory, "IOTestsRepo.zip");
-		
-        protected NPath TestRepoPath { get; private set; }
-
         protected override void OnSetup()
         {
             base.OnSetup();
+
+            TestRepoMasterCleanUnsynchronized = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_clean_unsync");
+            TestRepoMasterCleanSynchronized = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_clean_sync");
+            TestRepoMasterDirtyUnsynchronized = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_dirty_unsync");
 
             using (var zipFile = new ZipFile(TestZipFilePath))
             {
                 zipFile.ExtractAll(TestBasePath.ToString(), ExtractExistingFileAction.OverwriteSilently);
             }
-
-            TestRepoPath = TestBasePath.Combine("IOTestsRepo");
         }
+
+        protected NPath TestRepoMasterCleanSynchronized { get; private set; }
+
+        protected NPath TestRepoMasterCleanUnsynchronized { get; private set; }
+
+        protected NPath TestRepoMasterDirtyUnsynchronized { get; private set; }
+
+        private static string TestZipFilePath => Path.Combine(SolutionDirectory, "IOTestsRepo.zip");
     }
 }

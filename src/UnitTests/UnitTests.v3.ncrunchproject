@@ -1,6 +1,11 @@
 ﻿<ProjectConfiguration>
   <Settings>
-    <HiddenComponentWarnings />
+    <AdditionalFilesToIncludeForProject>
+      <Value>..\..\lib\sfw.net\win\x64\Debug\**.*</Value>
+    </AdditionalFilesToIncludeForProject>
+    <HiddenComponentWarnings>
+      <Value>PostBuildEventDisabled</Value>
+    </HiddenComponentWarnings>
     <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
   </Settings>
 </ProjectConfiguration>
