@@ -151,6 +151,7 @@ namespace GitHub.Unity
                             GUILayout.FlexibleSpace();
                             if (GUILayout.Button(String.Format(CommitButton, currentBranch), Styles.CommitButtonStyle))
                             {
+                                GUI.FocusControl(null);
                                 Commit();
                             }
                         }
