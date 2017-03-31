@@ -55,6 +55,8 @@ namespace GitHub.Unity
                         AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath);
                         AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath);
 
+                        applicationManager.SetProjectToTextSerialization();
+
                         var assetsPath = targetPath.Combine("Assets");
                         var hasFiles = assetsPath.Files(true).Any();
                         if (!hasFiles)
@@ -63,9 +65,6 @@ namespace GitHub.Unity
                             filesForInitialCommit.Add(placeholder);
                         }
                         var addTask = new GitAddTask(environment, processManager, null, filesForInitialCommit);
-
-                        applicationManager.SetProjectToTextSerialization();
-
                         return addTask.RunAsync(token);
                     }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, TaskScheduler.Default)
                     .ContinueWith(_ =>
