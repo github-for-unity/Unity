@@ -13,8 +13,8 @@ namespace GitHub.Unity
         private const string ProcessKey = "process";
         private const string TypeKey = "type";
 
-        private readonly StringWriter error = new StringWriter();
-        private readonly StringWriter output = new StringWriter();
+        private readonly StringWriter errorBuffer = new StringWriter();
+        private readonly StringWriter outputBuffer = new StringWriter();
         private readonly IProcessManager processManager;
         private readonly IEnvironment environment;
         private readonly ITaskResultDispatcher<string> resultDispatcher;
@@ -290,7 +290,10 @@ namespace GitHub.Unity
         {
             var output = OutputBuffer.ToString().Trim();
 
-            Logger.Trace("Success: \"{0}\"", output);
+            //Note: Do not log success output, as it may contain sensitive data
+            //Logger.Trace("Success: \"{0}\"", output);
+            Logger.Trace("Success");
+
             resultDispatcher?.ReportSuccess(output);
         }
 
@@ -331,8 +334,8 @@ namespace GitHub.Unity
 
         protected virtual CachedTask CachedTaskType { get { return CachedTask.ProcessTask; } }
 
-        protected StringWriter OutputBuffer { get { return output; } }
-        protected StringWriter ErrorBuffer { get { return error; } }
+        protected StringWriter OutputBuffer { get { return outputBuffer; } }
+        protected StringWriter ErrorBuffer { get { return errorBuffer; } }
 
         protected IProcessManager ProcessManager => processManager;
         protected IEnvironment Environment => environment;
