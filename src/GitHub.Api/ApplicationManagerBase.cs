@@ -97,6 +97,9 @@ namespace GitHub.Unity
                 repositoryManager.Start();
             }
         }
+        public virtual void SetProjectToTextSerialization()
+        {
+        }
 
         private async Task RunInternal()
         {

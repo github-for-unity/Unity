@@ -17,5 +17,6 @@ namespace GitHub.Unity
         ISettings LocalSettings { get; }
         ISettings UserSettings { get; }
         Task RestartRepository();
+        void SetProjectToTextSerialization();
     }
 }

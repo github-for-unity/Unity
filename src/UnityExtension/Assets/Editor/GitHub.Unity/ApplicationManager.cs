@@ -96,6 +96,12 @@ namespace GitHub.Unity
                 }, UIScheduler);
         }
 
+        public override void SetProjectToTextSerialization()
+        {
+            logger.Trace("SetProjectToTextSerialization");
+            Tasks.Add(new SimpleTask(() => { EditorSettings.serializationMode = SerializationMode.ForceText; }, ThreadingHelper.MainThreadScheduler));
+        }
+
         private void ListenToUnityExit()
         {
             EditorApplicationQuit = (UnityAction)Delegate.Combine(EditorApplicationQuit, new UnityAction(Dispose));
