@@ -9,7 +9,6 @@ namespace GitHub.Unity
         {
             Environment = environment;
             UIDispatcher = uiDispatcher;
-            FileSystemWatchFactory = new PlatformFileSystemWatchFactory(environment);
 
             if (environment.IsWindows)
             {
@@ -39,7 +38,6 @@ namespace GitHub.Unity
         public IEnvironment Environment { get; private set; }
         public IProcessEnvironment GitEnvironment { get; private set; }
         public ICredentialManager CredentialManager { get; private set; }
-        public IFileSystemWatchFactory FileSystemWatchFactory { get; private set; }
         public IProcessManager ProcessManager { get; private set; }
         public IUIDispatcher UIDispatcher { get; private set; }
 
