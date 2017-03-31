@@ -123,6 +123,12 @@
     <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\pthreadVC2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
