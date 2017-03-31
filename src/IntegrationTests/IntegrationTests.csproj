@@ -80,7 +80,6 @@
     <Compile Include="Git\IntegrationTestEnvironment.cs" />
     <Compile Include="Helpers\TestUIDispatcher.cs" />
     <Compile Include="Git\RepositoryLocatorTests.cs" />
-    <Compile Include="Installer\GitInstallerTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="Process\ProcessManagerIntegrationTests.cs" />
     <Compile Include="SetupFixture.cs" />
