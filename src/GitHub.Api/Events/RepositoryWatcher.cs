@@ -1,6 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using sfw.net;
 
 namespace GitHub.Unity
 {
@@ -13,218 +15,218 @@ namespace GitHub.Unity
         event Action ConfigChanged;
         event Action<string> LocalBranchCreated;
         event Action<string> LocalBranchDeleted;
-        event Action<string, string> LocalBranchMoved;
         event Action RepositoryChanged;
         event Action<string, string> RemoteBranchCreated;
         event Action<string, string> RemoteBranchDeleted;
-        event Action<string, string> RemoteBranchChanged;
-        event Action<string, string, string> RemoteBranchRenamed;
-    }
-
-    class CompositeDisposable : List<IDisposable>, IDisposable
-    {
-        public new void Remove(IDisposable item)
-        {
-            base.Remove(item);
-            try
-            {
-                item.Dispose();
-            }
-            catch
-            {}
-        }
-
-        public new void Clear()
-        {
-            foreach (var item in ToArray())
-            {
-                Remove(item);
-            }
-        }
-
-        private bool disposed = false;
-        private void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (disposed)
-                {
-                    throw new ObjectDisposedException(nameof(CompositeDisposable));
-                }
-
-                disposed = true;
-                Clear();
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
     }
 
     class RepositoryWatcher : IRepositoryWatcher
     {
-        private readonly CompositeDisposable disposables = new CompositeDisposable();
-        private readonly IFileSystemWatch gitConfigWatcher;
-        private readonly IFileSystemWatch gitHeadWatcher;
-        private readonly IFileSystemWatch gitIndexWatcher;
-        private readonly IFileSystemWatch localBranchesWatcher;
-        private readonly Dictionary<string, IFileSystemWatch> remoteBranchesWatchers = new Dictionary<string, IFileSystemWatch>();
-        private readonly IFileSystemWatch remotesDirWatcher;
+        private readonly RepositoryPathConfiguration paths;
+        private readonly CancellationToken cancellationToken;
+        private readonly NPath[] ignoredPaths;
+        private readonly Task task;
+        private readonly AutoResetEvent autoResetEvent;
 
-        private bool running = false;
+        private NativeInterface nativeInterface;
+        private bool running;
 
         public event Action<string> HeadChanged;
         public event Action IndexChanged;
         public event Action ConfigChanged;
         public event Action<string> LocalBranchCreated;
         public event Action<string> LocalBranchDeleted;
-        public event Action<string, string> LocalBranchMoved;
         public event Action RepositoryChanged;
         public event Action<string, string> RemoteBranchCreated;
         public event Action<string, string> RemoteBranchDeleted;
-        public event Action<string, string> RemoteBranchChanged;
-        public event Action<string, string, string> RemoteBranchRenamed;
 
-        public RepositoryWatcher(IPlatform platform, IRepositoryPathConfiguration repositoryPath)
+        public RepositoryWatcher(IPlatform platform, RepositoryPathConfiguration paths, CancellationToken cancellationToken)
         {
-            gitConfigWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath.DotGitConfig, false);
-            gitConfigWatcher.Changed += _ => ConfigChanged?.Invoke();
+            this.paths = paths;
+            this.cancellationToken = cancellationToken;
 
-            gitHeadWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath.DotGitHead, false);
-            gitHeadWatcher.Changed += s => HeadChanged?.Invoke(s.ReadAllLines().FirstOrDefault());
+            ignoredPaths = new[] {
+                platform.Environment.UnityProjectPath.ToNPath().Combine("Library"),
+                platform.Environment.UnityProjectPath.ToNPath().Combine("Temp")
+            };
 
-            gitIndexWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath.DotGitIndex, false);
-            gitIndexWatcher.Changed += _ => IndexChanged?.Invoke();
-
-            localBranchesWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath.BranchesPath, true);
-            localBranchesWatcher.Created += s => LocalBranchCreated?.Invoke(s.RelativeTo(repositoryPath.BranchesPath).ToString(SlashMode.Forward));
-            localBranchesWatcher.Deleted += s => LocalBranchDeleted?.Invoke(s.RelativeTo(repositoryPath.BranchesPath).ToString(SlashMode.Forward));
-
-            localBranchesWatcher.Renamed += (o, n) => LocalBranchMoved?.Invoke(
-                    o.RelativeTo(repositoryPath.BranchesPath).ToString(SlashMode.Forward),
-                    n.RelativeTo(repositoryPath.BranchesPath).ToString(SlashMode.Forward));
-
-            if (repositoryPath.RemotesPath.DirectoryExists())
-            {
-                foreach (var dir in repositoryPath.RemotesPath.Directories())
-                {
-                    var remote = dir.FileName;
-                    AddRemoteBranchesWatcher(platform, dir, remote);
-                }
-            }
-            else
-            {
-                remotesDirWatcher = platform.FileSystemWatchFactory.GetOrCreate(repositoryPath.RemotesPath.Parent, false);
-                disposables.Add(remotesDirWatcher);
-                remotesDirWatcher.Created += s =>
-                {
-                    if (s.RelativeTo(repositoryPath.RemotesPath.Parent) == "remotes")
-                    {
-                        remotesDirWatcher.Enable = false;
-                        disposables.Remove(remotesDirWatcher);
-
-                        foreach (var dir in repositoryPath.RemotesPath.Directories())
-                        {
-                            var remote = dir.FileName;
-                            var watcher = AddRemoteBranchesWatcher(platform, dir, remote);
-                            if (running)
-                            {
-                                watcher.Enable = true;
-                            }
-                        }
-                    }
-                };
-            }
-
-            disposables.Add(gitConfigWatcher);
-            disposables.Add(gitHeadWatcher);
-            disposables.Add(gitIndexWatcher);
-            disposables.Add(localBranchesWatcher);
+            nativeInterface = new NativeInterface(paths.RepositoryPath);
+            task = new Task(WatcherLoop);
+            autoResetEvent = new AutoResetEvent(false);
         }
 
         public void Start()
         {
-            ToggleWatchers(true);
+            running = true;
+            task.Start(TaskScheduler.Current);
         }
 
         public void Stop()
         {
-            ToggleWatchers(false);
+            running = false;
+            autoResetEvent.Set();
         }
 
-        private IFileSystemWatch AddRemoteBranchesWatcher(IPlatform platform, NPath dir, string remote)
+        private void WatcherLoop()
         {
-            var watcher = platform.FileSystemWatchFactory.GetOrCreate(dir, true, true);
-            watcher.Created += f =>
+            while (running)
             {
-                RemoteBranchCreated?.Invoke(remote, f.RelativeTo(dir).ToString(SlashMode.Forward));
-            };
-            watcher.Deleted += f =>
-            {
-                RemoteBranchDeleted?.Invoke(remote, f.RelativeTo(dir).ToString(SlashMode.Forward));
-            };
-            watcher.Changed += f =>
-            {
-                var name = f.RelativeTo(dir).ToString(SlashMode.Forward);
-                if (name != "HEAD")
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    RemoteBranchChanged?.Invoke(remote, name);
+                    Stop();
+                    break;
                 }
-            };
-            watcher.Renamed += (o, n) =>
-            {
-                RemoteBranchRenamed?.Invoke(remote, o.RelativeTo(dir).ToString(SlashMode.Forward), n.RelativeTo(dir).ToString(SlashMode.Forward));
-            };
 
-            remoteBranchesWatchers.Add(dir, watcher);
-            disposables.Add(watcher);
-            return watcher;
-        }
+                foreach (var fileEvent in nativeInterface.GetEvents())
+                {
+                    if (!running)
+                    {
+                        break;
+                    }
 
-        private void RemoveRemoteBranchesWatcher(string remote)
-        {
-            IFileSystemWatch watcher = null;
-            if (remoteBranchesWatchers.TryGetValue(remote, out watcher))
-            {
-                remoteBranchesWatchers.Remove(remote);
-                watcher.Enable = false;
-                disposables.Remove(watcher);
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        Stop();
+                        break;
+                    }
+
+                    var eventDirectory = new NPath(fileEvent.Directory);
+                    var fileA = eventDirectory.Combine(fileEvent.FileA);
+
+                    NPath fileB = null;
+                    if (fileEvent.FileB != null)
+                    {
+                        fileB = eventDirectory.Combine(fileEvent.FileB);
+                    }
+
+                    // handling events in .git/*
+                    if (fileA.IsChildOf(paths.DotGitPath))
+                    {
+                        HandleEventInDotGit(fileEvent, fileA, fileB);
+                    }
+                    else
+                    {
+                        if (ignoredPaths.Any(ignoredPath => fileA.IsChildOf(ignoredPath)))
+                        {
+                            continue;
+                        }
+
+                        Logger.Debug("RepositoryChanged {0}: {1} {2}", fileEvent.Type, fileA.ToString(),
+                            fileB?.ToString() ?? "[NULL]");
+                        RepositoryChanged?.Invoke();
+                    }
+                }
+
+                if (autoResetEvent.WaitOne(200))
+                {
+                    break;
+                }
             }
         }
 
-        private void ToggleWatchers(bool enable)
+        private void HandleEventInDotGit(Event fileEvent, NPath fileA, NPath fileB)
         {
-            //fileHierarchyWatcher.Enable = enable;
-            gitConfigWatcher.Enable = enable;
-            gitHeadWatcher.Enable = enable;
-            gitIndexWatcher.Enable = enable;
-            localBranchesWatcher.Enable = enable;
-            if (remotesDirWatcher != null)
+            if (fileA.Equals(paths.DotGitConfig))
             {
-                remotesDirWatcher.Enable = enable;
-            }
+                Logger.Debug("ConfigChanged");
 
-            foreach (var watcher in remoteBranchesWatchers.Values)
-            {
-                watcher.Enable = enable;
+                ConfigChanged?.Invoke();
             }
-        }
-
-        private bool disposed = false;
-        private void Dispose(bool disposing)
-        {
-            if (disposing)
+            else if (fileA.Equals(paths.DotGitHead))
             {
-                if (disposed)
+                string headContent = null;
+                if (fileEvent.Type != EventType.DELETED)
+                {
+                    headContent = paths.DotGitHead.ReadAllLines().FirstOrDefault();
+                }
+
+                Logger.Debug("HeadChanged: {0}", headContent ?? "[null]");
+                HeadChanged?.Invoke(headContent);
+            }
+            else if (fileA.Equals(paths.DotGitIndex))
+            {
+                Logger.Debug("IndexChanged");
+                IndexChanged?.Invoke();
+            }
+            else if (fileA.IsChildOf(paths.RemotesPath))
+            {
+                if (fileA.ExtensionWithDot == ".lock")
                 {
                     return;
                 }
 
-                disposed = true;
-                ToggleWatchers(false);
-                disposables.Dispose();
+                var relativePath = fileA.RelativeTo(paths.RemotesPath);
+                var relativePathElements = relativePath.Elements.ToArray();
+
+                if (fileEvent.Type == EventType.DELETED && relativePathElements.Length > 1)
+                {
+                    var origin = relativePathElements[0];
+                    var branch = string.Join(@"/", relativePathElements.Skip(1).ToArray());
+
+                    Logger.Debug("RemoteBranchDeleted: {0}", branch);
+                    RemoteBranchDeleted?.Invoke(origin, branch);
+                }
+            }
+            else if (fileA.IsChildOf(paths.BranchesPath))
+            {
+                // when a branch is created, we detect it by looking for a rename event
+                // from a branch-name.lock file to a branch-name file
+                if (fileA.ExtensionWithDot == ".lock" && fileEvent.Type != EventType.RENAMED)
+                {
+                    return;
+                }
+
+                if (fileEvent.Type == EventType.DELETED)
+                {
+                    var relativePath = fileA.RelativeTo(paths.BranchesPath);
+                    var relativePathElements = relativePath.Elements.ToArray();
+
+                    if (!relativePathElements.Any())
+                    {
+                        return;
+                    }
+
+                    var branch = string.Join(@"/", relativePathElements.ToArray());
+
+                    Logger.Debug("LocalBranchDeleted: {0}", branch);
+                    LocalBranchDeleted?.Invoke(branch);
+                }
+                else if (fileEvent.Type == EventType.RENAMED)
+                {
+                    if (fileB != null && fileB.FileExists())
+                    {
+                        if (fileA.FileNameWithoutExtension == fileB.FileNameWithoutExtension)
+                        {
+                            var relativePath = fileB.RelativeTo(paths.BranchesPath);
+                            var relativePathElements = relativePath.Elements.ToArray();
+
+                            if (!relativePathElements.Any())
+                            {
+                                return;
+                            }
+
+                            var branch = string.Join(@"/", relativePathElements.ToArray());
+
+                            Logger.Debug("LocalBranchCreated: {0}", branch);
+                            LocalBranchCreated?.Invoke(branch);
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool disposed;
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (!disposed)
+                {
+                    disposed = true;
+                    Stop();
+                    nativeInterface.Dispose();
+                    nativeInterface = null;
+                }
             }
         }
 

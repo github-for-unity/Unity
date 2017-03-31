@@ -10,6 +10,7 @@ namespace IntegrationTests
 
         private string gitExecutablePath;
         private NPath integrationTestEnvironmentPath;
+        private string unityProjectPath;
 
         public IntegrationTestEnvironment(NPath environmentPath = null)
         {
@@ -63,7 +64,15 @@ namespace IntegrationTests
 
         public string UnityAssetsPath { get; set; }
 
-        public string UnityProjectPath { get; set; }
+        public string UnityProjectPath
+        {
+            get { return unityProjectPath; }
+            set
+            {
+                logger.Trace("Setting UnityProjectPath to " + value);
+                unityProjectPath = value;
+            }
+        }
 
         public string ExtensionInstallPath
         {
