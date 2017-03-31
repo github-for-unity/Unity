@@ -157,13 +157,21 @@
     <EmbeddedResource Include="Icons\big-logo.png" />
     <EmbeddedResource Include="Icons\small-logo.png" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Content Include="$(SolutionDir)\lib\sfw.net\osx\libsfw.dylib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content -->
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\pthreadVC2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /F "$(SolutionDir)lib\sfw.net\win\x64\$(Configuration)\*.dll" "$(SolutionDir)unity\TestProject\Assets\Editor\"
-xcopy /Y /F "$(SolutionDir)lib\sfw.net\win\x64\$(Configuration)\*.pdb" "$(SolutionDir)unity\TestProject\Assets\Editor\"</PostBuildEvent>
-  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
