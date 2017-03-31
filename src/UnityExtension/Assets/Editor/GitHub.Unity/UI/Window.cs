@@ -97,6 +97,7 @@ namespace GitHub.Unity
 
         private void SwitchView(Subview from, Subview to)
         {
+            GUI.FocusControl(null);
             from.OnHide();
             to.OnShow();
             Refresh();
