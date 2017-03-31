@@ -12,7 +12,7 @@ namespace IntegrationTests
         public void InstallGit()
         {
             var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
-            var environment = new IntegrationTestEnvironment(environmentPath);
+            var environment = new IntegrationTestEnvironment(SolutionDirectory, environmentPath);
             var gitSetup = new GitSetup(environment, CancellationToken.None);
             var expectedPath = gitSetup.GitInstallationPath;
 

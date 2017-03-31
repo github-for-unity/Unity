@@ -6,24 +6,28 @@ namespace IntegrationTests
     class IntegrationTestEnvironment : IEnvironment
     {
         private static readonly ILogging logger = Logging.GetLogger<IntegrationTestEnvironment>();
-        private DefaultEnvironment defaultEnvironment;
 
+        private readonly string extensionInstallPath;
+        private readonly NPath integrationTestEnvironmentPath;
+
+        private DefaultEnvironment defaultEnvironment;
         private string gitExecutablePath;
-        private NPath integrationTestEnvironmentPath;
         private string unityProjectPath;
 
-        public IntegrationTestEnvironment(NPath environmentPath = null)
+        public IntegrationTestEnvironment(NPath solutionDirectory, NPath environmentPath = null)
         {
             defaultEnvironment = new DefaultEnvironment();
 
             environmentPath = environmentPath ??
                 defaultEnvironment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
-                           .ToNPath()
-                           .EnsureDirectoryExists(ApplicationInfo.ApplicationName + "-IntegrationTests");
+                                  .ToNPath()
+                                  .EnsureDirectoryExists(ApplicationInfo.ApplicationName + "-IntegrationTests");
 
-            logger.Trace("EnvironmentPath: \"{0}\"", environmentPath);
-
+            extensionInstallPath = solutionDirectory.Parent.Parent.Parent.Combine("GitHub.Api");
             integrationTestEnvironmentPath = environmentPath;
+
+            logger.Trace("EnvironmentPath: \"{0}\" SolutionDirectory: \"{1}\" ExtensionInstallPath: \"{2}\"", environmentPath, solutionDirectory, extensionInstallPath);
+
         }
 
         public string ExpandEnvironmentVariables(string name)
@@ -76,7 +80,7 @@ namespace IntegrationTests
 
         public string ExtensionInstallPath
         {
-            get { return integrationTestEnvironmentPath.EnsureDirectoryExists("ExtensionInstallPath"); }
+            get { return extensionInstallPath; }
             set { throw new NotImplementedException(); }
         }
 

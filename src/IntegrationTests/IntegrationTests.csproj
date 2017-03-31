@@ -72,11 +72,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auth\LoginTests.cs" />
+    <Compile Include="Events\RepositoryWatcherTests.cs" />
     <Compile Include="BaseGitEnvironmentTest.cs" />
     <Compile Include="BaseGitRepoTest.cs" />
     <Compile Include="BaseIntegrationTest.cs" />
     <Compile Include="Git\GitSetupTests.cs" />
-    <Compile Include="Events\RepositoryWatcherTests.cs" />
     <Compile Include="Git\IntegrationTestEnvironment.cs" />
     <Compile Include="Helpers\TestUIDispatcher.cs" />
     <Compile Include="Git\RepositoryLocatorTests.cs" />

@@ -1,5 +1,18 @@
 ﻿<ProjectConfiguration>
   <Settings>
+    <AdditionalFilesToIncludeForProject>
+      <Value>..\..\lib\sfw.net\win\x64\Debug\**.*</Value>
+      <Value>..\GitHub.Api\PlatformResources\**.*</Value>
+    </AdditionalFilesToIncludeForProject>
+    <HiddenComponentWarnings>
+      <Value>AbnormalReferenceResolution</Value>
+    </HiddenComponentWarnings>
+    <IgnoredTests>
+      <NamedTestSelector>
+        <TestName>IntegrationTests.GitSetupTests.InstallGit</TestName>
+      </NamedTestSelector>
+    </IgnoredTests>
     <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
+    <RunPostBuildEvents>True</RunPostBuildEvents>
   </Settings>
 </ProjectConfiguration>

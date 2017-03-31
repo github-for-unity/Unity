@@ -170,9 +170,14 @@ namespace GitHub.Unity
             var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitZipFile, tempPath);
             if (!archiveFilePath.FileExists())
             {
+                logger.Warning("Archive \"{0}\" missing", archiveFilePath.ToString());
+
                 archiveFilePath = environment.ExtensionInstallPath.ToNPath().Combine(archiveFilePath);
                 if (!archiveFilePath.FileExists())
+                {
+                    logger.Warning("Archive \"{0}\" missing, returning", archiveFilePath.ToString());
                     return TaskEx.FromResult(false);
+                }
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -225,9 +230,14 @@ namespace GitHub.Unity
             var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitLfsZipFile, tempPath);
             if (!archiveFilePath.FileExists())
             {
+                logger.Warning("Archive \"{0}\" missing", archiveFilePath.ToString());
+
                 archiveFilePath = environment.ExtensionInstallPath.ToNPath().Combine(archiveFilePath);
                 if (!archiveFilePath.FileExists())
+                {
+                    logger.Warning("Archive \"{0}\" missing, returning", archiveFilePath.ToString());
                     return TaskEx.FromResult(false);
+                }
             }
 
             cancellationToken.ThrowIfCancellationRequested();
