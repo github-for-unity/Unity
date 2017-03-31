@@ -76,7 +76,9 @@ namespace GitHub.Unity
         {
             var repositoryRepositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
             var gitConfig = new GitConfig(repositoryRepositoryPathConfiguration.DotGitConfig);
-            var repositoryWatcher = new RepositoryWatcher(platform, repositoryRepositoryPathConfiguration);
+
+            var repositoryWatcher = new RepositoryWatcher(platform, repositoryRepositoryPathConfiguration, cancellationToken);
+
             var repositoryProcessRunner = new RepositoryProcessRunner(platform.Environment, platform.ProcessManager,
                 platform.CredentialManager, platform.UIDispatcher, cancellationToken);
 
@@ -127,12 +129,9 @@ namespace GitHub.Unity
             watcher.IndexChanged += OnIndexChanged;
             watcher.LocalBranchCreated += OnLocalBranchCreated;
             watcher.LocalBranchDeleted += OnLocalBranchDeleted;
-            watcher.LocalBranchMoved += OnLocalBranchMoved;
             watcher.RepositoryChanged += OnRepositoryUpdated;
             watcher.RemoteBranchCreated += OnRemoteBranchCreated;
-            watcher.RemoteBranchChanged += OnRemoteBranchChanged;
             watcher.RemoteBranchDeleted += OnRemoteBranchDeleted;
-            watcher.RemoteBranchRenamed += OnRemoteBranchRenamed;
         }
 
         public void Start()
@@ -283,10 +282,8 @@ namespace GitHub.Unity
             RemoveLocalBranch(name);
         }
 
-        private void OnLocalBranchMoved(string oldName, string name)
+        private void OnLocalBranchChanged(string name)
         {
-            RemoveLocalBranch(oldName);
-            AddLocalBranch(name);
         }
 
         private IRepository InitializeRepository()
@@ -324,8 +321,6 @@ namespace GitHub.Unity
 
             ActiveBranch = GetActiveBranch();
             ActiveRemote = GetActiveRemote();
-
-            //Logger.Debug("Active remote {0}", ActiveRemote);
         }
 
         private void LoadBranchesFromConfig()
