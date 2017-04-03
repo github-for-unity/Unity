@@ -15,10 +15,10 @@ namespace GitHub.Unity
         private const string ConfirmSwitchCancel = "Cancel";
         private const string NewBranchCancelButton = "x";
         private const string NewBranchConfirmButton = "Create";
-        private const string FavouritesSetting = "Favourites";
-        private const string FavouritesTitle = "FAVOURITES";
-        private const string LocalTitle = "LOCAL BRANCHES";
-        private const string RemoteTitle = "REMOTE BRANCHES";
+        private const string FavoritesSetting = "Favorites";
+        private const string FavoritesTitle = "Favorites";
+        private const string LocalTitle = "Local branches";
+        private const string RemoteTitle = "Remote branches";
         private const string CreateBranchButton = "+ New branch";
 
         [NonSerialized] private List<BranchTreeNode> favourites = new List<BranchTreeNode>();
@@ -125,10 +125,9 @@ namespace GitHub.Unity
                 // Favourites list
                 if (favourites.Count > 0)
                 {
-                    GUILayout.Label(FavouritesTitle);
+                    GUILayout.Label(FavoritesTitle);
                     GUILayout.BeginHorizontal();
                     {
-                        GUILayout.Space(Styles.BranchListIndentation);
                         GUILayout.BeginVertical();
                         {
                             for (var index = 0; index < favourites.Count; ++index)
@@ -146,10 +145,9 @@ namespace GitHub.Unity
                 }
 
                 // Local branches and "create branch" button
-                GUILayout.Label(LocalTitle);
+                GUILayout.Label(LocalTitle, EditorStyles.boldLabel);
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Space(Styles.BranchListIndentation);
                     GUILayout.BeginVertical();
                     {
                         OnTreeNodeChildrenGUI(localRoot);
@@ -165,15 +163,14 @@ namespace GitHub.Unity
                 GUILayout.Space(Styles.BranchListSeperation);
 
                 // Remotes
-                GUILayout.Label(RemoteTitle);
+                GUILayout.Label(RemoteTitle, EditorStyles.boldLabel);
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Space(Styles.BranchListIndentation);
                     GUILayout.BeginVertical();
                     for (var index = 0; index < remotes.Count; ++index)
                     {
                         var remote = remotes[index];
-                        GUILayout.Label(remote.Name);
+                        GUILayout.Label(new GUIContent(remote.Name, Styles.FolderIcon), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
 
                         // Branches of the remote
                         GUILayout.BeginHorizontal();
@@ -261,7 +258,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            return EntryPoint.LocalSettings.Get(FavouritesSetting, new List<string>()).Contains(branchName);
+            return EntryPoint.LocalSettings.Get(FavoritesSetting, new List<string>()).Contains(branchName);
         }
 
         private void OnLocalBranchesUpdate(IEnumerable<GitBranch> list)
@@ -289,7 +286,7 @@ namespace GitHub.Unity
 
             // Prepare for updated favourites listing
             favourites.Clear();
-            var cachedFavs = EntryPoint.LocalSettings.Get<List<string>>(FavouritesSetting, new List<string>());
+            var cachedFavs = EntryPoint.LocalSettings.Get<List<string>>(FavoritesSetting, new List<string>());
 
             // Just build directly on the local root, keep track of active branch
             localRoot = new BranchTreeNode("", NodeType.Folder, false);
@@ -410,13 +407,13 @@ namespace GitHub.Unity
             if (!favourite)
             {
                 favourites.Remove(branch);
-                EntryPoint.LocalSettings.Set(FavouritesSetting, favourites.Select(x => x.Name).ToList());
+                EntryPoint.LocalSettings.Set(FavoritesSetting, favourites.Select(x => x.Name).ToList());
             }
             else
             {
                 favourites.Remove(branch);
                 favourites.Add(branch);
-                EntryPoint.LocalSettings.Set(FavouritesSetting, favourites.Select(x => x.Name).ToList());
+                EntryPoint.LocalSettings.Set(FavoritesSetting, favourites.Select(x => x.Name).ToList());
             }
         }
 
@@ -506,7 +503,26 @@ namespace GitHub.Unity
         private void OnTreeNodeGUI(BranchTreeNode node)
         {
             // Content, style, and rects
-            var content = new GUIContent(node.Label, node.Children.Count > 0 ? Styles.FolderIcon : Styles.DefaultAssetIcon);
+
+            Texture2D iconContent;
+
+            if (node.Active == true)
+            {
+                iconContent = Styles.ActiveBranchIcon;
+            }
+            else
+            {
+                if (node.Children.Count > 0)
+                {
+                    iconContent = Styles.FolderIcon;
+                }
+                else
+                {
+                    iconContent = Styles.BranchIcon;
+                }
+            }
+
+            var content = new GUIContent(node.Label, iconContent);
             var style = node.Active ? Styles.BoldLabel : Styles.Label;
             var rect = GUILayoutUtility.GetRect(content, style, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
             var clickRect = new Rect(0f, rect.y, Position.width, rect.height);
@@ -547,28 +563,6 @@ namespace GitHub.Unity
             if (Event.current.type == EventType.Repaint)
             {
                 style.Draw(rect, content, false, false, selected, keyboardFocus);
-            }
-
-            // State marks
-            if (Event.current.type == EventType.Repaint)
-            {
-                var indicatorRect = new Rect(rect.x - rect.height, rect.y, rect.height, rect.height);
-
-                // Being tracked by current selection mark
-                if (selectedNode != null && selectedNode.Tracking == node)
-                {
-                    GUI.DrawTexture(indicatorRect, Styles.TrackingBranchIcon);
-                }
-                // Active branch mark
-                else if (node.Active)
-                {
-                    GUI.DrawTexture(indicatorRect, Styles.ActiveBranchIcon);
-                }
-                // Tracking mark
-                else if (node.Tracking != null)
-                {
-                    GUI.DrawTexture(indicatorRect, Styles.TrackingBranchIcon);
-                }
             }
 
             // Children

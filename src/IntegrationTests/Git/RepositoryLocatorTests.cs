@@ -10,9 +10,11 @@ namespace IntegrationTests
         [Test]
         public void FindRepoRootTest()
         {
+            InitializeEnvironment(TestRepoMasterCleanSynchronized);
+
             var repositoryLocator = new RepositoryLocator(Environment.UnityProjectPath);
 
-            repositoryLocator.FindRepositoryRoot().ToString().Should().Be(new NPath(TestRepoPath).ToString());
+            repositoryLocator.FindRepositoryRoot().ToString().Should().Be(new NPath(TestRepoMasterCleanSynchronized).ToString());
         }
     }
 }
