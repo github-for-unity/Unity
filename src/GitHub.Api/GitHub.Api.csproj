@@ -95,6 +95,7 @@
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="ApplicationManagerBase.cs" />
     <Compile Include="DefaultEnvironment.cs" />
+    <Compile Include="Extensions\FileEventExtensions.cs" />
     <Compile Include="Events\RepositoryWatcher.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="GitSetup.cs" />
@@ -109,6 +110,7 @@
     <Compile Include="Installer\GitInstaller.cs" />
     <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
+    <Compile Include="ITaskRunner.cs" />
     <Compile Include="LocalSettings.cs" />
     <Compile Include="Process\BranchListOutputProcessor.cs" />
     <Compile Include="Process\ConfigOutputProcessor.cs" />
@@ -161,6 +163,7 @@
     <Compile Include="Tasks\GitBranch.cs" />
     <Compile Include="Tasks\GitBranchCreateTask.cs" />
     <Compile Include="Tasks\GitBranchDeleteTask.cs" />
+    <Compile Include="Tasks\GitCommitFilesTask.cs" />
     <Compile Include="Tasks\GitCommitTask.cs" />
     <Compile Include="Tasks\GitConfigGetTask.cs" />
     <Compile Include="Tasks\GitConfigListTask.cs" />

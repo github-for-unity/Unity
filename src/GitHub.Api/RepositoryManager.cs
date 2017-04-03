@@ -3,27 +3,41 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
     interface IRepositoryManager : IDisposable
     {
         void Refresh();
+        void Fetch(ITaskResultDispatcher<string> resultDispatcher, string remote);
+        void Pull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch);
+        void Push(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch);
+        void SwitchBranch(ITaskResultDispatcher<string> resultDispatcher, string branch);
+        void DeleteBranch(ITaskResultDispatcher<string> resultDispatcher, string branch, bool deleteUnmerged = false);
+        void CreateBranch(ITaskResultDispatcher<string> resultDispatcher, string branch, string baseBranch);
+        void RemoteRemove(ITaskResultDispatcher<string> resultDispatcher, string remote);
+        void RemoteAdd(ITaskResultDispatcher<string> resultDispatcher, string remote, string url);
+        void CommitFiles(TaskResultDispatcher<string> resultDispatcher, List<string> files, string message, string body);
+        void Initialize();
+        void Start();
 
         IGitConfig Config { get; }
-        ConfigBranch? ActiveBranch { get; set; }
-        ConfigRemote? ActiveRemote { get; set; }
+        bool IsBusy { get; }
+        ConfigBranch? ActiveBranch { get; }
+        ConfigRemote? ActiveRemote { get; }
         IRepositoryProcessRunner ProcessRunner { get; }
         Dictionary<string, ConfigBranch> LocalBranches { get; }
         Dictionary<string, Dictionary<string, ConfigBranch>> RemoteBranches { get; }
+
         event Action OnActiveBranchChanged;
         event Action OnActiveRemoteChanged;
         event Action OnRemoteBranchListChanged;
+        event Action<bool> OnIsBusyChanged;
         event Action OnLocalBranchListChanged;
         event Action<GitStatus> OnRepositoryChanged;
         event Action OnHeadChanged;
         event Action OnRemoteOrTrackingChanged;
+
     }
 
     interface IRepositoryPathConfiguration
@@ -71,19 +85,19 @@ namespace GitHub.Unity
 
     class RepositoryManagerFactory
     {
-        public RepositoryManager CreateRepositoryManager(IPlatform platform, NPath repositoryRoot,
+        public RepositoryManager CreateRepositoryManager(IPlatform platform, ITaskRunner taskRunner, NPath repositoryRoot,
             CancellationToken cancellationToken)
         {
-            var repositoryRepositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
-            var gitConfig = new GitConfig(repositoryRepositoryPathConfiguration.DotGitConfig);
+            var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
+            var gitConfig = new GitConfig(repositoryPathConfiguration.DotGitConfig);
 
-            var repositoryWatcher = new RepositoryWatcher(platform, repositoryRepositoryPathConfiguration, cancellationToken);
+            var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, cancellationToken);
 
             var repositoryProcessRunner = new RepositoryProcessRunner(platform.Environment, platform.ProcessManager,
                 platform.CredentialManager, platform.UIDispatcher, cancellationToken);
 
-            return new RepositoryManager(repositoryRepositoryPathConfiguration, platform, gitConfig, repositoryWatcher,
-                repositoryProcessRunner, cancellationToken);
+            return new RepositoryManager(platform, taskRunner, gitConfig, repositoryWatcher,
+                repositoryProcessRunner, repositoryPathConfiguration, cancellationToken);
         }
     }
 
@@ -93,29 +107,30 @@ namespace GitHub.Unity
         private readonly CancellationToken cancellationToken;
         private readonly IGitConfig config;
         private readonly IPlatform platform;
+        private readonly ITaskRunner taskRunner;
         private readonly IRepository repository;
         private readonly IRepositoryPathConfiguration repositoryPaths;
         private readonly IRepositoryProcessRunner repositoryProcessRunner;
         private readonly IRepositoryWatcher watcher;
         private ConfigBranch? activeBranch;
         private ConfigRemote? activeRemote;
-        private bool disposed;
+        private Action repositoryUpdateCallback;
+        private bool handlingRepositoryUpdate;
 
         private string head;
+        private bool isBusy;
         private DateTime lastLocksUpdate;
         private DateTime lastStatusUpdate;
         private Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranches =
             new Dictionary<string, Dictionary<string, ConfigBranch>>();
         private Dictionary<string, ConfigRemote> remotes;
-        private bool statusUpdateRequested;
 
-        public RepositoryManager(IRepositoryPathConfiguration repositoryRepositoryPathConfiguration, IPlatform platform,
-            IGitConfig gitConfig, IRepositoryWatcher repositoryWatcher, IRepositoryProcessRunner repositoryProcessRunner,
-            CancellationToken cancellationToken)
+        public RepositoryManager(IPlatform platform, ITaskRunner taskRunner, IGitConfig gitConfig, IRepositoryWatcher repositoryWatcher, IRepositoryProcessRunner repositoryProcessRunner, IRepositoryPathConfiguration repositoryPathConfiguration, CancellationToken cancellationToken)
         {
-            repositoryPaths = repositoryRepositoryPathConfiguration;
+            repositoryPaths = repositoryPathConfiguration;
 
             this.platform = platform;
+            this.taskRunner = taskRunner;
             this.cancellationToken = cancellationToken;
             this.repositoryProcessRunner = repositoryProcessRunner;
 
@@ -124,24 +139,34 @@ namespace GitHub.Unity
 
             watcher = repositoryWatcher;
 
-            watcher.ConfigChanged += OnConfigChanged;
             watcher.HeadChanged += HeadChanged;
             watcher.IndexChanged += OnIndexChanged;
+            watcher.LocalBranchChanged += OnLocalBranchChanged;
             watcher.LocalBranchCreated += OnLocalBranchCreated;
             watcher.LocalBranchDeleted += OnLocalBranchDeleted;
             watcher.RepositoryChanged += OnRepositoryUpdated;
             watcher.RemoteBranchCreated += OnRemoteBranchCreated;
+            watcher.RemoteBranchChanged += OnRemoteBranchChanged;
             watcher.RemoteBranchDeleted += OnRemoteBranchDeleted;
+
+            repositoryUpdateCallback = TaskExtensions.Debounce(OnRepositoryUpdatedHandler, 500);
+        }
+
+        public void Initialize()
+        {
+            Logger.Trace("Initialize");
+            watcher.Initialize();
         }
 
         public void Start()
         {
+            Logger.Trace("Start");
             watcher.Start();
-            OnRepositoryUpdated();
         }
 
         public void Stop()
         {
+            Logger.Trace("Stop");
             watcher.Stop();
         }
 
@@ -149,7 +174,6 @@ namespace GitHub.Unity
         {
             OnRepositoryUpdated();
         }
-
         public void Dispose()
         {
             Dispose(true);
@@ -161,12 +185,118 @@ namespace GitHub.Unity
         public event Action OnLocalBranchListChanged;
         public event Action<GitStatus> OnRepositoryChanged;
         public event Action OnHeadChanged;
+        public event Action<bool> OnIsBusyChanged;
         public event Action OnRemoteOrTrackingChanged;
 
-        private void OnRemoteBranchRenamed(string remote, string oldName, string name)
+        public void CommitFiles(TaskResultDispatcher<string> resultDispatcher, List<string> files, string message, string body)
         {
-            RemoveRemoteBranch(remote, oldName);
-            AddRemoteBranch(remote, name);
+            var task = ProcessRunner.PrepareGitCommitFileTask(resultDispatcher, files, message, body);
+
+            PrepareTask(task, "Git CommitFiles");
+
+            taskRunner.AddTask(task);
+        }
+
+        public void Fetch(ITaskResultDispatcher<string> resultDispatcher, string remote)
+        {
+            var task = ProcessRunner.PrepareGitFetch(resultDispatcher, remote);
+
+            PrepareTask(task, "Git Fetch");
+
+            taskRunner.AddTask(task);
+        }
+
+        public void Pull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch)
+        {
+            var task = ProcessRunner.PrepareGitPull(resultDispatcher, remote, branch);
+
+            PrepareTask(task, "Git Pull", true);
+
+            taskRunner.AddTask(task);
+        }
+
+        public void Push(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch)
+        {
+            var task = ProcessRunner.PrepareGitPush(resultDispatcher, remote, branch);
+
+            PrepareTask(task, "Git Push");
+
+            taskRunner.AddTask(task);
+        }
+
+        public void RemoteAdd(ITaskResultDispatcher<string> resultDispatcher, string remote, string url)
+        {
+            var task = ProcessRunner.PrepareGitRemoteAdd(resultDispatcher, remote, url);
+
+            PrepareTask(task, "Git RemoteAdd");
+
+            taskRunner.AddTask(task);
+        }
+
+        public void RemoteRemove(ITaskResultDispatcher<string> resultDispatcher, string remote)
+        {
+            var task = ProcessRunner.PrepareGitRemoteRemove(resultDispatcher, remote);
+
+            PrepareTask(task, "Git RemoteRemove");
+
+            taskRunner.AddTask(task);
+        }
+
+        public void SwitchBranch(ITaskResultDispatcher<string> resultDispatcher, string branch)
+        {
+            var task = ProcessRunner.PrepareSwitchBranch(resultDispatcher, branch);
+
+            PrepareTask(task, "Git SwitchBranch", true);
+
+            taskRunner.AddTask(task);
+        }
+
+        public void DeleteBranch(ITaskResultDispatcher<string> resultDispatcher, string branch, bool deleteUnmerged = false)
+        {
+            var task = ProcessRunner.PrepareDeleteBranch(resultDispatcher, branch, deleteUnmerged);
+
+            PrepareTask(task, "Git DeleteBranch");
+
+            taskRunner.AddTask(task);
+        }
+
+        public void CreateBranch(ITaskResultDispatcher<string> resultDispatcher, string branch, string baseBranch)
+        {
+            var task = ProcessRunner.PrepareCreateBranch(resultDispatcher, branch, baseBranch);
+
+            PrepareTask(task, "Git CreateBranch");
+
+            taskRunner.AddTask(task);
+        }
+
+        private void PrepareTask(ITask task, string operation, bool disableWatcher = false)
+        {
+            task.OnBegin = t => {
+                Logger.Trace("Start " + operation);
+
+                if (IsBusy)
+                {
+                    throw new Exception("System Busy");
+                }
+
+                IsBusy = true;
+
+                if (disableWatcher)
+                {
+                    watcher.Stop();
+                }
+            };
+
+            task.OnEnd = t => {
+                if (disableWatcher)
+                {
+                    watcher.Start();
+                }
+
+                IsBusy = false;
+
+                Logger.Trace("Finish " + operation);
+            };
         }
 
         private void OnRemoteBranchDeleted(string remote, string name)
@@ -184,23 +314,27 @@ namespace GitHub.Unity
 
         private void OnRepositoryUpdated()
         {
-            Logger.Trace("Starting OnRepositoryUpdated");
+            Logger.Trace("OnRepositoryUpdated Trigger OnRepositoryUpdatedHandler");
+            repositoryUpdateCallback.Invoke();
+        }
 
-            if (statusUpdateRequested)
+        private void OnRepositoryUpdatedHandler()
+        {
+            Logger.Trace("Starting OnRepositoryUpdatedHandler");
+
+            if (handlingRepositoryUpdate)
             {
-                Logger.Trace("Exiting OnRepositoryUpdated");
+                Logger.Trace("Exiting OnRepositoryUpdatedHandler");
                 return;
             }
 
-            statusUpdateRequested = true;
+            handlingRepositoryUpdate = true;
 
             GitStatus? gitStatus = null;
             var runGitStatus = repositoryProcessRunner.RunGitStatus(new TaskResultDispatcher<GitStatus>(s => {
                 Logger.Debug("RunGitStatus Success: {0}", s);
                 gitStatus = s;
-            }, () => {
-                Logger.Warning("RunGitStatus Failed");
-            }));
+            }, () => { Logger.Warning("RunGitStatus Failed"); }));
 
             GitLock[] gitLocks = null;
             var runGitListLocks =
@@ -208,16 +342,13 @@ namespace GitHub.Unity
                     var resultArray = s.ToArray();
                     Logger.Debug("RunGitListLocks Success: {0}", resultArray.Count());
                     gitLocks = resultArray;
-
-                }, () => {
-                    Logger.Warning("RunGitListLocks Failed");
-                }));
+                }, () => { Logger.Warning("RunGitListLocks Failed"); }));
 
             runGitStatus.Wait(cancellationToken);
             runGitListLocks.Wait(cancellationToken);
 
-            Logger.Trace("OnRepositoryUpdated Processing Results");
-            statusUpdateRequested = false;
+            Logger.Trace("OnRepositoryUpdatedHandler Processing Results");
+            handlingRepositoryUpdate = false;
 
             if (gitStatus.HasValue)
             {
@@ -228,7 +359,7 @@ namespace GitHub.Unity
                 {
                     lastStatusUpdate = DateTime.Now;
                 }
-                
+
                 if (gitLocks != null)
                 {
                     lastLocksUpdate = DateTime.Now;
@@ -249,7 +380,8 @@ namespace GitHub.Unity
                 OnRepositoryChanged?.Invoke(gitStatusValue);
             }
 
-            Logger.Trace("Ending OnRepositoryUpdated lastStatusUpdate:{0} lastLocksUpdate:{1}", lastStatusUpdate, lastLocksUpdate);
+            Logger.Trace("Ending OnRepositoryUpdatedHandler lastStatusUpdate:{0} lastLocksUpdate:{1}", lastStatusUpdate,
+                lastLocksUpdate);
         }
 
         private void OnConfigChanged()
@@ -269,7 +401,8 @@ namespace GitHub.Unity
 
         private void OnIndexChanged()
         {
-            OnRepositoryUpdated();
+            Logger.Trace("OnIndexChanged Trigger OnRepositoryUpdatedHandler");
+            repositoryUpdateCallback.Invoke();
         }
 
         private void OnLocalBranchCreated(string name)
@@ -461,6 +594,8 @@ namespace GitHub.Unity
             }
         }
 
+        private bool disposed;
+
         private void Dispose(bool disposing)
         {
             if (disposing)
@@ -485,7 +620,7 @@ namespace GitHub.Unity
         public ConfigBranch? ActiveBranch
         {
             get { return activeBranch; }
-            set
+            private set
             {
                 activeBranch = value;
                 OnActiveBranchChanged?.Invoke();
@@ -495,7 +630,7 @@ namespace GitHub.Unity
         public ConfigRemote? ActiveRemote
         {
             get { return activeRemote; }
-            set
+            private set
             {
                 activeRemote = value;
                 OnActiveRemoteChanged?.Invoke();
@@ -503,6 +638,20 @@ namespace GitHub.Unity
         }
 
         public IRepositoryProcessRunner ProcessRunner => repositoryProcessRunner;
+
+        public bool IsBusy
+        {
+            get { return isBusy; }
+            private set
+            {
+                if (isBusy != value)
+                {
+                    isBusy = value;
+                    OnIsBusyChanged?.Invoke(isBusy);
+                }
+            }
+        }
+
         protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryManager>();
     }
 }
