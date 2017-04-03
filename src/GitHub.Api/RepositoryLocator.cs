@@ -11,17 +11,18 @@ namespace GitHub.Unity
         void Queue(ITask task);
     }
 
-
-    class RepositoryInitializer
+    class RepositoryInitializerBase
     {
         private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
         private readonly ITaskQueueScheduler scheduler;
         private readonly IApplicationManager applicationManager;
 
-        public RepositoryInitializer(IEnvironment environment, IProcessManager processManager,
+        public RepositoryInitializerBase(IEnvironment environment, IProcessManager processManager,
             ITaskQueueScheduler scheduler, IApplicationManager applicationManager)
         {
+            Logger = Logging.GetLogger(GetType());
+
             this.environment = environment;
             this.processManager = processManager;
             this.scheduler = scheduler;
@@ -39,10 +40,10 @@ namespace GitHub.Unity
                 return initTask.RunAsync(token)
                     .ContinueWith(_ =>
                     {
-                        Logger.Trace("LFS init");
+                        Logger.Trace("LFS install");
 
                         var t = new GitInitTask(environment, processManager, null);
-                        t.SetArguments("lfs init");
+                        t.SetArguments("lfs install");
                         return t.RunAsync(token);
                     }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, TaskScheduler.Default)
                     .ContinueWith(_ =>
@@ -54,6 +55,8 @@ namespace GitHub.Unity
                         var filesForInitialCommit = new List<string> { gitignore, gitAttrs };
                         AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath);
                         AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath);
+
+                        SetProjectToTextSerialization();
 
                         var assetsPath = targetPath.Combine("Assets");
                         var hasFiles = assetsPath.Files(true).Any();
@@ -90,7 +93,11 @@ namespace GitHub.Unity
             scheduler.Queue(task);
         }
 
-        protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryInitializer>();
+        protected virtual void SetProjectToTextSerialization()
+        {
+        }
+
+        protected static ILogging Logger { get; private set; }
     }
 
     interface IRepositoryLocator

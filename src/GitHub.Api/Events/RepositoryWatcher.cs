@@ -50,7 +50,10 @@ namespace GitHub.Unity
                 platform.Environment.UnityProjectPath.ToNPath().Combine("Temp")
             };
 
-            nativeInterface = new NativeInterface(paths.RepositoryPath);
+            var pathsRepositoryPath = paths.RepositoryPath.ToString();
+            Logger.Trace("Watching Path: \"{0}\"", pathsRepositoryPath);
+
+            nativeInterface = new NativeInterface(pathsRepositoryPath);
             task = new Task(WatcherLoop);
             autoResetEvent = new AutoResetEvent(false);
         }
@@ -99,6 +102,15 @@ namespace GitHub.Unity
                         fileB = eventDirectory.Combine(fileEvent.FileB);
                     }
 
+                    if (fileB == null)
+                    {
+                        Logger.Trace("FileEvent: {0} \"{1}\"", fileEvent.Type.ToString(), fileA.ToString());
+                    }
+                    else
+                    {
+                        Logger.Trace("FileEvent: {0} \"{1}\"->\"{2}\"", fileEvent.Type.ToString(), fileA.ToString(),fileB.ToString());
+                    }
+
                     // handling events in .git/*
                     if (fileA.IsChildOf(paths.DotGitPath))
                     {
@@ -113,6 +125,7 @@ namespace GitHub.Unity
 
                         Logger.Debug("RepositoryChanged {0}: {1} {2}", fileEvent.Type, fileA.ToString(),
                             fileB?.ToString() ?? "[NULL]");
+
                         RepositoryChanged?.Invoke();
                     }
                 }
@@ -124,7 +137,7 @@ namespace GitHub.Unity
             }
         }
 
-        private void HandleEventInDotGit(Event fileEvent, NPath fileA, NPath fileB)
+        private void HandleEventInDotGit(Event fileEvent, NPath fileA, NPath fileB = null)
         {
             if (fileA.Equals(paths.DotGitConfig))
             {
@@ -150,34 +163,55 @@ namespace GitHub.Unity
             }
             else if (fileA.IsChildOf(paths.RemotesPath))
             {
-                if (fileA.ExtensionWithDot == ".lock")
+                var relativePath = fileA.RelativeTo(paths.RemotesPath);
+                var relativePathElements = relativePath.Elements.ToArray();
+
+                if (!relativePathElements.Any())
                 {
                     return;
                 }
 
-                var relativePath = fileA.RelativeTo(paths.RemotesPath);
-                var relativePathElements = relativePath.Elements.ToArray();
+                var origin = relativePathElements[0];
 
-                if (fileEvent.Type == EventType.DELETED && relativePathElements.Length > 1)
+                if (fileEvent.Type == EventType.DELETED)
                 {
-                    var origin = relativePathElements[0];
                     var branch = string.Join(@"/", relativePathElements.Skip(1).ToArray());
 
                     Logger.Debug("RemoteBranchDeleted: {0}", branch);
                     RemoteBranchDeleted?.Invoke(origin, branch);
                 }
+                else if (fileEvent.Type == EventType.RENAMED)
+                {
+                    if (fileA.ExtensionWithDot != ".lock")
+                    {
+                        return;
+                    }
+
+                    if (fileB != null && fileB.FileExists())
+                    {
+                        if (fileA.FileNameWithoutExtension == fileB.FileNameWithoutExtension)
+                        {
+                            var branchPathElement = relativePathElements.Skip(1)
+                                                              .Take(relativePathElements.Length-2)
+                                                              .Union(new [] { fileA.FileNameWithoutExtension }).ToArray();
+
+                            var branch = string.Join(@"/", branchPathElement);
+
+                            Logger.Debug("LocalBranchCreated: {0}", branch);
+                            RemoteBranchCreated?.Invoke(origin, branch);
+                        }
+                    }
+                }
             }
             else if (fileA.IsChildOf(paths.BranchesPath))
             {
-                // when a branch is created, we detect it by looking for a rename event
-                // from a branch-name.lock file to a branch-name file
-                if (fileA.ExtensionWithDot == ".lock" && fileEvent.Type != EventType.RENAMED)
-                {
-                    return;
-                }
-
                 if (fileEvent.Type == EventType.DELETED)
                 {
+                    if (fileA.ExtensionWithDot == ".lock")
+                    {
+                        return;
+                    }
+
                     var relativePath = fileA.RelativeTo(paths.BranchesPath);
                     var relativePathElements = relativePath.Elements.ToArray();
 
@@ -193,6 +227,11 @@ namespace GitHub.Unity
                 }
                 else if (fileEvent.Type == EventType.RENAMED)
                 {
+                    if (fileA.ExtensionWithDot != ".lock")
+                    {
+                        return;
+                    }
+
                     if (fileB != null && fileB.FileExists())
                     {
                         if (fileA.FileNameWithoutExtension == fileB.FileNameWithoutExtension)

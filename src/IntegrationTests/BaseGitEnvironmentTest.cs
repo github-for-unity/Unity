@@ -5,14 +5,11 @@ namespace IntegrationTests
 {
     class BaseGitEnvironmentTest : BaseGitRepoTest
     {
-        protected override void OnSetup()
+        protected void InitializeEnvironment(NPath repoPath)
         {
-            base.OnSetup();
-
-            Environment = new IntegrationTestEnvironment
-            {
-                RepositoryPath = TestRepoPath,
-                UnityProjectPath = TestRepoPath
+            Environment = new IntegrationTestEnvironment(SolutionDirectory) {
+                RepositoryPath = repoPath,
+                UnityProjectPath = repoPath
             };
 
             var gitSetup = new GitSetup(Environment, CancellationToken.None);
@@ -20,18 +17,18 @@ namespace IntegrationTests
 
             Environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
-            FileSystem.SetCurrentDirectory(TestRepoPath);
+            FileSystem.SetCurrentDirectory(repoPath);
 
             Platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
             GitEnvironment = Platform.GitEnvironment;
             ProcessManager = new ProcessManager(Environment, GitEnvironment);
             Platform.Initialize(ProcessManager);
 
-            Environment.UnityProjectPath = TestRepoPath;
+            Environment.UnityProjectPath = repoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
 
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TestRepoPath,
+            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, repoPath,
                 CancellationToken.None);
 
             Environment.Repository = repositoryManager.Repository;
