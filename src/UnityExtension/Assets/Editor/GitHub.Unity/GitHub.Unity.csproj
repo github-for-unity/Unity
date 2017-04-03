@@ -60,6 +60,7 @@
     <Compile Include="ApplicationManager.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="Logging\FileLogAdapter.cs" />
+    <Compile Include="Misc\RepositoryInitializer.cs" />
     <Compile Include="RunLocationShim.cs" />
     <Compile Include="Services\AuthenticationUIDispatcher.cs" />
     <Compile Include="Tasks\MainThreadTaskResultDispatcher.cs" />
