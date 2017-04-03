@@ -57,7 +57,7 @@ namespace GitHub.Unity
 
         private void RunRefreshEmbeddedOnMainThread()
         {
-            Tasks.ScheduleMainThread(RefreshEmbedded);
+            TaskRunner.ScheduleMainThread(RefreshEmbedded);
         }
 
         public override void Refresh()
@@ -485,7 +485,7 @@ namespace GitHub.Unity
                         var task = new GitBranchCreateTask(EntryPoint.Environment, EntryPoint.ProcessManager,
                             new MainThreadTaskResultDispatcher<string>(_ => Refresh()),
                             newBranchName, selectedNode.Name);
-                        Tasks.Add(task);
+                        TaskRunner.Add(task);
                     }
 
                     // Cleanup
@@ -592,14 +592,14 @@ namespace GitHub.Unity
                         var task = new GitSwitchBranchesTask(EntryPoint.Environment, EntryPoint.ProcessManager,
                             new MainThreadTaskResultDispatcher<string>(_ => Refresh()),
                             node.Name);
-                        Tasks.Add(task);
+                        TaskRunner.Add(task);
                     }
                     else if (node.Type == NodeType.RemoteBranch)
                     {
                         var task = new GitBranchCreateTask(EntryPoint.Environment, EntryPoint.ProcessManager,
                             new MainThreadTaskResultDispatcher<string>(_ => Refresh()),
                             selectedNode.Name.Substring(selectedNode.Name.IndexOf('/') + 1), selectedNode.Name);
-                        Tasks.Add(task);
+                        TaskRunner.Add(task);
                     }
                 }
             }

@@ -87,13 +87,14 @@ namespace GitHub.Unity
                 try
                 {
                     var repositoryManagerFactory = new RepositoryManagerFactory();
-                    repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, repositoryRoot, CancellationToken);
+                    repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskRunner, repositoryRoot, CancellationToken);
                 }
                 catch (Exception ex)
                 {
                     logger.Error(ex);
                 }
                 Environment.Repository = repositoryManager.Repository;
+                repositoryManager.Initialize();
                 repositoryManager.Start();
             }
         }
@@ -169,6 +170,7 @@ namespace GitHub.Unity
         public IProcessManager ProcessManager { get; protected set; }
         public ITaskResultDispatcher MainThreadResultDispatcher { get; protected set; }
         public CancellationToken CancellationToken { get; protected set; }
+        public ITaskRunner TaskRunner { get; protected set; }
 
         protected CancellationTokenSource CancellationTokenSource { get; private set; }
         protected TaskScheduler UIScheduler { get; private set; }

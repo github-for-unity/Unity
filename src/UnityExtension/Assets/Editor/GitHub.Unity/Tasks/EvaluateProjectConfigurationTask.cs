@@ -195,7 +195,7 @@ namespace GitHub.Unity
 
         public static void Schedule()
         {
-            Tasks.Add(new EvaluateProjectConfigurationTask());
+            TaskRunner.Add(new EvaluateProjectConfigurationTask());
         }
 
         public static Object LoadEditorSettings()
@@ -213,7 +213,7 @@ namespace GitHub.Unity
             OnBegin.SafeInvoke(this);
 
             // Unity project config
-            Tasks.ScheduleMainThread(EvaluateLocalConfiguration);
+            TaskRunner.ScheduleMainThread(EvaluateLocalConfiguration);
 
             // Git config
             EvaluateGitIgnore();

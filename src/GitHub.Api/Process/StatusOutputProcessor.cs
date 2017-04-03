@@ -73,6 +73,9 @@ namespace GitHub.Unity
                                 {
                                     gitStatus.Behind = Int32.Parse(deltaComponents[1]);
                                 }
+                                else if (deltaComponents[0] == "gone")
+                                {
+                                }
                                 else
                                 {
                                     throw new Exception("Unexpected deltaComponent in o");
