@@ -445,6 +445,17 @@ namespace GitHub.Unity
 
         private void OnGitLfsLocksGUI()
         {
+            string[] lockedFiles = {
+                "ProjectSettings/AudioManager.asset",
+                "ProjectSettings/DynamicsManager.asset", "ProjectSettings/EditorBuildSettings.asset",
+                "ProjectSettings/GraphicsSettings.asset", "ProjectSettings/InputManager.asset",
+                "ProjectSettings/AudioManager.asset", "ProjectSettings/DynamicsManager.asset",
+                "ProjectSettings/EditorBuildSettings.asset", "ProjectSettings/GraphicsSettings.asset",
+                "ProjectSettings/InputManager.asset", "ProjectSettings/AudioManager.asset",
+                "ProjectSettings/DynamicsManager.asset", "ProjectSettings/EditorBuildSettings.asset",
+                "ProjectSettings/GraphicsSettings.asset", "ProjectSettings/InputManager.asset",
+            };
+
             GUILayout.BeginVertical();
             {
                 GUILayout.Label("Locked files", EditorStyles.boldLabel);
@@ -452,17 +463,6 @@ namespace GitHub.Unity
                 lockScrollPos = EditorGUILayout.BeginScrollView(lockScrollPos, Styles.GenericTableBoxStyle,
                     GUILayout.Height(125));
                 {
-                    string[] lockedFiles = {
-                        "ProjectSettings/AudioManager.asset",
-                        "ProjectSettings/DynamicsManager.asset", "ProjectSettings/EditorBuildSettings.asset",
-                        "ProjectSettings/GraphicsSettings.asset", "ProjectSettings/InputManager.asset",
-                        "ProjectSettings/AudioManager.asset", "ProjectSettings/DynamicsManager.asset",
-                        "ProjectSettings/EditorBuildSettings.asset", "ProjectSettings/GraphicsSettings.asset",
-                        "ProjectSettings/InputManager.asset", "ProjectSettings/AudioManager.asset",
-                        "ProjectSettings/DynamicsManager.asset", "ProjectSettings/EditorBuildSettings.asset",
-                        "ProjectSettings/GraphicsSettings.asset", "ProjectSettings/InputManager.asset",
-                    };
-
                     GUILayout.BeginVertical();
                     {
                         var lockedFilesCount = lockedFiles.Length;
@@ -497,7 +497,7 @@ namespace GitHub.Unity
                 {
                     GUILayout.BeginVertical();
                     {
-                        GUILayout.Label("ProjectSettings/AudioManager.asset", EditorStyles.boldLabel);
+                        GUILayout.Label(lockedFiles[lockedFileSelection], EditorStyles.boldLabel);
 
                         GUILayout.BeginHorizontal();
                         {
