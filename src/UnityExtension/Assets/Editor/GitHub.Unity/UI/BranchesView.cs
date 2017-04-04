@@ -471,22 +471,21 @@ namespace GitHub.Unity
                     }
                     newBranchName = EditorGUILayout.TextField(newBranchName, GUILayout.MaxWidth(200f));
 
-                    // Cancel create
-                    GUILayout.Space(-5f);
-                    if (GUILayout.Button(NewBranchCancelButton, EditorStyles.miniButtonMid, GUILayout.ExpandWidth(false)))
-                    {
-                        cancelCreate = true;
-                    }
-
                     // Create
                     EditorGUI.BeginDisabledGroup(cannotCreate);
                     {
-                        if (GUILayout.Button(NewBranchConfirmButton, EditorStyles.miniButtonRight, GUILayout.ExpandWidth(false)))
+                        if (GUILayout.Button(NewBranchConfirmButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                         {
                             createBranch = true;
                         }
                     }
                     EditorGUI.EndDisabledGroup();
+
+                    // Cancel create
+                    if (GUILayout.Button(NewBranchCancelButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                    {
+                        cancelCreate = true;
+                    }
 
                     // Effectuate create
                     if (createBranch)
