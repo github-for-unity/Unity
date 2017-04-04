@@ -502,23 +502,23 @@ namespace GitHub.Unity
 
                 EditorGUILayout.EndScrollView();
 
-                GUILayout.BeginHorizontal();
+                if (lockedFileSelection > -1)
                 {
-                    if (lockedFileSelection < 0)
+                    GUILayout.BeginVertical();
                     {
-                      GUI.enabled = false;
-                    }
-                    else
-                    {
-                      GUI.enabled = true;
-                    }
-                    GUILayout.Button("Unlock");
-                    GUI.enabled = true;
+                        GUILayout.Label("ProjectSettings/AudioManager.asset", EditorStyles.boldLabel);
 
-                    GUILayout.FlexibleSpace();
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.Label("Locked by Andreia Gaita");
+                            GUILayout.FlexibleSpace();
+                            GUILayout.Button("Unlock");
+                        }
+                        GUILayout.EndHorizontal();
+                    }
+                    GUILayout.EndVertical();
                 }
-                GUILayout.EndHorizontal();
-            }
+           }
 
             GUILayout.EndVertical();
         }
