@@ -14,12 +14,12 @@ namespace GitHub.Unity
         private const string ConfirmSwitchOK = "Switch";
         private const string ConfirmSwitchCancel = "Cancel";
         private const string NewBranchCancelButton = "x";
-        private const string NewBranchConfirmButton = "Create";
+        private const string NewBranchConfirmButton = "Create Branch";
         private const string FavoritesSetting = "Favorites";
         private const string FavoritesTitle = "Favorites";
         private const string LocalTitle = "Local branches";
         private const string RemoteTitle = "Remote branches";
-        private const string CreateBranchButton = "+ New branch";
+        private const string CreateBranchButton = "New Branch";
 
         [NonSerialized] private List<BranchTreeNode> favourites = new List<BranchTreeNode>();
         [NonSerialized] private int listID = -1;
@@ -122,10 +122,9 @@ namespace GitHub.Unity
             {
                 listID = GUIUtility.GetControlID(FocusType.Keyboard);
 
-                GUILayout.BeginHorizontal();
+                GUILayout.BeginHorizontal(Styles.CommitFileAreaStyle);
                 {
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Button("Create New Branch", EditorStyles.miniButton);
+                    OnCreateGUI();
                 }
                 GUILayout.EndHorizontal();
 
@@ -160,10 +159,6 @@ namespace GitHub.Unity
                         GUILayout.BeginVertical();
                         {
                             OnTreeNodeChildrenGUI(localRoot);
-
-                            GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                            OnCreateGUI();
                         }
                         GUILayout.EndVertical();
                     }
@@ -200,6 +195,8 @@ namespace GitHub.Unity
                     }
 
                     GUILayout.EndHorizontal();
+
+                    GUILayout.FlexibleSpace();
                 }
                 GUILayout.EndVertical();
             }
@@ -433,7 +430,8 @@ namespace GitHub.Unity
             // Create button
             if (mode == BranchesMode.Default)
             {
-                if (GUILayout.Button(CreateBranchButton, GUI.skin.label, GUILayout.ExpandWidth(false)))
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button(CreateBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                 {
                     targetMode = BranchesMode.Create;
                 }
