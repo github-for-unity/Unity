@@ -61,6 +61,7 @@ namespace GitHub.Unity
 
         public BaseTask(Func<Task<bool>> runAction)
         {
+            Logger = Logging.GetLogger(GetType());
             this.runAction = runAction;
         }
 
