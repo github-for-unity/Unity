@@ -483,15 +483,6 @@ namespace GitHub.Unity
                                     lockedFileSelection = index;
                                 }
 
-                                if (currentEvent.button == 1)
-                                {
-                                    GenericMenu menu = new GenericMenu();
-                                    menu.AddItem(new GUIContent("Force Unlock"), false, ForceUnlockFile,
-                                        lockedFiles[index]);
-
-                                    menu.ShowAsContext();
-                                }
-
                                 Event.current.Use();
                             }
                         }
