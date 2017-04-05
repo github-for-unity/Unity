@@ -417,6 +417,10 @@ namespace GitHub.Unity
 
         private void OnLocalBranchChanged(string name)
         {
+            if (name == this.Repository.CurrentBranch)
+            {
+                OnActiveBranchChanged?.Invoke();
+            }
         }
 
         private IRepository InitializeRepository()

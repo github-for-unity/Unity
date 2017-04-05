@@ -142,7 +142,7 @@ namespace IntegrationTests
                 repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
                 result.AssertEqual(expectedAfterCommit);
 
-                repositoryManagerListener.DidNotReceive().OnActiveBranchChanged();
+                repositoryManagerListener.Received(1).OnActiveBranchChanged();
                 repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
                 repositoryManagerListener.DidNotReceive().OnHeadChanged();
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
@@ -392,7 +392,7 @@ namespace IntegrationTests
                 repositoryManagerListener.ReceivedWithAnyArgs(2).OnIsBusyChanged(Args.Bool);
                 repositoryManager.IsBusy.Should().BeFalse();
 
-                repositoryManagerListener.DidNotReceive().OnActiveBranchChanged();
+                repositoryManagerListener.Received(1).OnActiveBranchChanged();
                 repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
                 repositoryManagerListener.DidNotReceive().OnHeadChanged();
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
