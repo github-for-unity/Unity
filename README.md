@@ -2,6 +2,22 @@
 
 [![GDC 2017 - How GitHub Works With Unity](https://github-talks.s3.amazonaws.com/uploads/366/968/e27a6744-4d6f-40e7-9692-2c9d8a3b0d79.embed_cover.jpg)](https://githubber.tv/shana/gdc-2017-how-github-works-with-unity)
 
+## How to package a new release
+
+The OSX build will include mono symbols, so it's better to do it there than on Windows.
+
+### OSX
+
+- run `./package.sh`
+- The package will be created in unity/PackageProject
+
+### Windows
+
+- Do a release build
+- Switch to the "Publish" configuration and build
+- Open a command prompt and run `package.cmd [path to Unity.exe]`
+- The package will be created in unity\PackageProject
+
 ## How to install
 
 ### Requirements
