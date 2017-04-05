@@ -290,6 +290,7 @@ namespace IntegrationTests
                 repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
                 repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
                 repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
+                repositoryWatcherListener.Received(1).RemoteBranchCreated("origin", "feature/new-feature");
                 repositoryWatcherListener.Received(1).RemoteBranchCreated("origin", "feature/other-feature");
                 repositoryWatcherListener.DidNotReceive().RemoteBranchDeleted(Args.String, Args.String);
                 repositoryWatcherListener.DidNotReceive().RepositoryChanged();

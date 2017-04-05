@@ -128,7 +128,7 @@ namespace GitHub.Unity
                         break;
                     }
 
-                    //Logger.Trace(fileEvent.Describe());
+                    Logger.Trace(fileEvent.Describe());
 
                     var eventDirectory = new NPath(fileEvent.Directory);
                     var fileA = eventDirectory.Combine(fileEvent.FileA);
@@ -208,7 +208,7 @@ namespace GitHub.Unity
                 {
                     var branch = string.Join(@"/", relativePathElements.Skip(1).ToArray());
 
-                    Logger.Debug("RemoteBranchDeleted: {0}", branch);
+                    Logger.Debug("RemoteBranchDeleted: {0}/{1}", origin, branch);
                     RemoteBranchDeleted?.Invoke(origin, branch);
                 }
                 else if (fileEvent.Type == EventType.RENAMED)
@@ -228,7 +228,7 @@ namespace GitHub.Unity
 
                             var branch = string.Join(@"/", branchPathElement);
 
-                            Logger.Debug("LocalBranchCreated: {0}", branch);
+                            Logger.Debug("RemoteBranchCreated: {0}/{1}", origin, branch);
                             RemoteBranchCreated?.Invoke(origin, branch);
                         }
                     }
