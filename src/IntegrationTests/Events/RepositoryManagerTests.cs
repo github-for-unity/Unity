@@ -410,7 +410,7 @@ namespace IntegrationTests
         {
             InitializeEnvironment(TestRepoMasterCleanUnsynchronized);
 
-            var repositoryManager = CreateRepositoryManager(TestRepoMasterCleanSynchronized);
+            var repositoryManager = CreateRepositoryManager(TestRepoMasterCleanUnsynchronized);
             repositoryManager.Initialize();
             repositoryManager.Start();
 
@@ -423,7 +423,7 @@ namespace IntegrationTests
 
                 repositoryManager.Fetch(new TaskResultDispatcher<string>(s => { }), "origin");
 
-                Thread.Sleep(1000);
+                Thread.Sleep(3000);
 
                 Logger.Trace("Continue test");
 
@@ -433,7 +433,7 @@ namespace IntegrationTests
                 repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
                 repositoryManagerListener.DidNotReceive().OnHeadChanged();
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
-                repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
+                repositoryManagerListener.Received(2).OnRemoteBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
             }
             finally
