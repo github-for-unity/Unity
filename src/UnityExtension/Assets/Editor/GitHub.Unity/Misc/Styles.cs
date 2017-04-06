@@ -28,7 +28,7 @@ namespace GitHub.Unity
             FoldoutWidth = 11f,
             FoldoutIndentation = -2f,
             TreeIndentation = 12f,
-            TreeRootIndentation = 15f,
+            TreeRootIndentation = -5f,
             TreeVerticalSpacing = 3f,
             CommitIconSize = 16f,
             CommitIconHorizontalPadding = -5f,
