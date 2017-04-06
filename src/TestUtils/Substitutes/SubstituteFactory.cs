@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using GitHub.Unity;
 using NSubstitute;
+using System.Threading;
 
 namespace TestUtils
 {
@@ -419,10 +420,6 @@ namespace TestUtils
                     {
                         result = gitStatsResultsEnumerator.Current;
                     }
-                    else
-                    {
-                        gitStatsResultsEnumerator = null;
-                    }
                 }
 
                 if (result != null)
@@ -436,46 +433,46 @@ namespace TestUtils
 
                 logger.Trace(@"RunGitStatus({0}) -> {1}", resultDispatcher != null ? "[instance]" : "[null]",
                     result != null ? $"Success: \"{result.Value}\"" : "Failure");
-                var task = Substitute.For<ITask<GitStatus?>>();
+                var task = Args.GitStatusTask;
                 task.TaskResult.Returns(result);
                 return task;
             });
 
             var gitListLocksEnumerator = options.GitListLocksResults?.GetEnumerator();
             repositoryProcessRunner.PrepareGitListLocks(Arg.Any<ITaskResultDispatcher<IEnumerable<GitLock>>>())
-                                   .Returns(info => {
-                                       var resultDispatcher = (ITaskResultDispatcher<IEnumerable<GitLock>>)info[0];
+                .Returns(info => {
+                    var resultDispatcher = (ITaskResultDispatcher<IEnumerable<GitLock>>)info[0];
 
-                                       IEnumerable<GitLock> result = null;
-                                       if (gitListLocksEnumerator != null)
-                                       {
-                                           if (gitListLocksEnumerator.MoveNext())
-                                           {
-                                               result = gitListLocksEnumerator.Current;
-                                           }
-                                           else
-                                           {
-                                               result = new List<GitLock>();
-                                           }
-                                       }
+                    IEnumerable<GitLock> result = null;
+                    if (gitListLocksEnumerator != null)
+                    {
+                        if (gitListLocksEnumerator.MoveNext())
+                        {
+                            result = gitListLocksEnumerator.Current;
+                        }
+                        else
+                        {
+                            result = new List<GitLock>();
+                        }
+                    }
 
-                                       if (result.Any())
-                                       {
-                                           resultDispatcher.ReportSuccess(result);
-                                       }
-                                       else
-                                       {
-                                           resultDispatcher.ReportFailure();
-                                       }
+                    if (result.Any())
+                    {
+                        resultDispatcher.ReportSuccess(result);
+                    }
+                    else
+                    {
+                        resultDispatcher.ReportFailure();
+                    }
 
-                                       logger.Trace(@"RunGitListLocks({0}) -> {1}",
-                                           resultDispatcher != null ? "[instance]" : "[null]",
-                                           result != null ? $"Success" : "Failure");
+                    logger.Trace(@"RunGitListLocks({0}) -> {1}",
+                        resultDispatcher != null ? "[instance]" : "[null]",
+                        result != null ? $"Success" : "Failure");
 
-                                       var task = Substitute.For<ITask<IEnumerable<GitLock>>>();
-                                       task.TaskResult.Returns(result);
-                                       return task;
-                                   });
+                    var task = Args.GitListLocksTask;
+                    task.TaskResult.Returns(result);
+                    return task;
+                });
 
             return repositoryProcessRunner;
         }
