@@ -475,12 +475,12 @@ namespace GitHub.Unity
                             Event.current.Use();
                         }
                     }
-                    newBranchName = EditorGUILayout.TextField(newBranchName, GUILayout.MaxWidth(200f));
+                    newBranchName = EditorGUILayout.TextField(newBranchName);
 
                     // Create
                     EditorGUI.BeginDisabledGroup(cannotCreate);
                     {
-                        if (GUILayout.Button(NewBranchConfirmButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                        if (GUILayout.Button(NewBranchConfirmButton, EditorStyles.miniButtonLeft, GUILayout.ExpandWidth(false)))
                         {
                             createBranch = true;
                         }
@@ -488,7 +488,7 @@ namespace GitHub.Unity
                     EditorGUI.EndDisabledGroup();
 
                     // Cancel create
-                    if (GUILayout.Button(NewBranchCancelButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(NewBranchCancelButton, EditorStyles.miniButtonRight, GUILayout.ExpandWidth(false)))
                     {
                         cancelCreate = true;
                     }
