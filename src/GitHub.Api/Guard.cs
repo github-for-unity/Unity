@@ -15,6 +15,21 @@ namespace GitHub.Unity
             throw new ArgumentNullException(name, message);
         }
 
+        public static void ArgumentNotNullOrEmpty<T>(IList<T> value, string name)
+        {
+            if (value == null)
+            {
+                string message = String.Format(CultureInfo.InvariantCulture, "Failed Null Check on '{0}'", name);
+                throw new ArgumentNullException(name, message);
+            }
+
+            if (!value.Any())
+            {
+                string message = String.Format(CultureInfo.InvariantCulture, "Failed Empty Check on '{0}'", name);
+                throw new ArgumentNullException(name, message);
+            }
+        }
+
         public static void ArgumentNonNegative(int value, string name)
         {
             if (value > -1) return;
