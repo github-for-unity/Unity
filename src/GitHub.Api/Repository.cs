@@ -14,7 +14,6 @@ namespace GitHub.Unity
         private GitStatus currentStatus;
 
         public event Action<GitStatus> OnRepositoryChanged;
-        public event Action<GitStatus> OnRefreshTrackedFileList;
         public event Action<string> OnActiveBranchChanged;
         public event Action<string> OnActiveRemoteChanged;
         public event Action OnLocalBranchListChanged;
@@ -81,14 +80,14 @@ namespace GitHub.Unity
             OnCommitChanged?.Invoke();
         }
 
-        public ITask Pull(ITaskResultDispatcher<string> resultDispatcher)
+        public void Pull(ITaskResultDispatcher<string> resultDispatcher)
         {
-            return repositoryManager.ProcessRunner.PrepareGitPull(resultDispatcher, CurrentRemote, CurrentBranch);
+            repositoryManager.Pull(resultDispatcher, CurrentRemote, CurrentBranch);
         }
 
-        public ITask Push(ITaskResultDispatcher<string> resultDispatcher)
+        public void Push(ITaskResultDispatcher<string> resultDispatcher)
         {
-            return repositoryManager.ProcessRunner.PrepareGitPush(resultDispatcher, CurrentRemote, CurrentBranch);
+            repositoryManager.Push(resultDispatcher, CurrentRemote, CurrentBranch);
         }
 
         private void RepositoryManager_OnLocalBranchListChanged()

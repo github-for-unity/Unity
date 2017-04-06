@@ -44,11 +44,10 @@ namespace GitHub.Unity
         IUser User { get; set; }
 
         event Action<GitStatus> OnRepositoryChanged;
-        event Action<GitStatus> OnRefreshTrackedFileList;
         event Action<string> OnActiveBranchChanged;
         event Action<string> OnActiveRemoteChanged;
-        ITask Pull(ITaskResultDispatcher<string> resultDispatcher);
-        ITask Push(ITaskResultDispatcher<string> resultDispatcher);
+        void Pull(ITaskResultDispatcher<string> resultDispatcher);
+        void Push(ITaskResultDispatcher<string> resultDispatcher);
         event Action OnLocalBranchListChanged;
         event Action OnCommitChanged;
     }

@@ -54,7 +54,7 @@ namespace GitHub.Unity
 
         private void RunStatusUpdateOnMainThread(GitStatus status)
         {
-            Tasks.ScheduleMainThread(() => OnStatusUpdate(status));
+            TaskRunner.ScheduleMainThread(() => OnStatusUpdate(status));
         }
 
         private void OnStatusUpdate(GitStatus update)
@@ -207,9 +207,9 @@ namespace GitHub.Unity
 
             // run add, then commit
             var addTask = new GitAddTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                            TaskResultDispatcher.Default.GetDispatcher<string>(_ => Tasks.Add(commitTask), () => lockCommit = false),
+                            TaskResultDispatcher.Default.GetDispatcher<string>(_ => TaskRunner.Add(commitTask), () => lockCommit = false),
                             files);
-            Tasks.Add(addTask);
+            TaskRunner.Add(addTask);
         }
     }
 }
