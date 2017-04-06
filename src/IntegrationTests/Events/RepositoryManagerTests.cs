@@ -396,7 +396,7 @@ namespace IntegrationTests
                 repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
                 result.AssertEqual(expected);
 
-                repositoryManagerListener.ReceivedWithAnyArgs(2).OnIsBusyChanged(Args.Bool);
+                repositoryManagerListener.ReceivedWithAnyArgs(6).OnIsBusyChanged(Args.Bool);
                 repositoryManager.IsBusy.Should().BeFalse();
 
                 repositoryManagerListener.Received(1).OnActiveBranchChanged();
