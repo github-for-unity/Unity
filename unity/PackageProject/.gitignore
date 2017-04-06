@@ -1,0 +1,9 @@
+*.dll
+*.pdb
+*.mdb
+*.xml
+*.local.json
+*.zip
+ProjectVersion.txt
+
+Library/
