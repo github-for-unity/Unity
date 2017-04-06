@@ -22,5 +22,11 @@ namespace GitHub.Unity
         Action<ITask> OnBegin { get; set; }
         Action<ITask> OnEnd { get; set; }
         string Label { get; }
-    };
+        object Result { get; }
+    }
+
+    interface ITask<T> : ITask
+    {
+        T TaskResult { get; }
+    }
 }

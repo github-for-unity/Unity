@@ -40,11 +40,11 @@ namespace GitHub.Unity
                                  var gitCommitTask = new GitCommitTask(environment, processManager,
                                      new TaskResultDispatcher<string>(s => { }), message, body);
                                  return gitCommitTask.RunAsync(cancellationToken);
-                             }, cancellationToken, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, TaskScheduler.Default)
+                             }, cancellationToken, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler)
                              .ContinueWith(_ => {
                                  resultDispatcher.ReportSuccess(string.Empty);
                                  return true;
-                             }, cancellationToken, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, TaskScheduler.Default);
+                             }, cancellationToken, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler);
         }
 
         public override void Run(CancellationToken cancellationToken)

@@ -2,12 +2,10 @@ using System.Collections.Generic;
 
 namespace GitHub.Unity
 {
-    class GitListLocksTask : GitTask
+    class GitListLocksTask : GitTask, ITask<IEnumerable<GitLock>>
     {
         private readonly ITaskResultDispatcher<IEnumerable<GitLock>> resultDispatcher;
         private readonly LockOutputProcessor processor;
-
-        private List<GitLock> gitLocks = new List<GitLock>();
 
         public GitListLocksTask(
             IEnvironment environment, IProcessManager processManager,
@@ -29,12 +27,12 @@ namespace GitHub.Unity
 
         protected override void RaiseOnSuccess()
         {
-            resultDispatcher.ReportSuccess(gitLocks);
+            resultDispatcher.ReportSuccess(TaskResult);
         }
 
         private void AddLock(GitLock gitLock)
         {
-            gitLocks.Add(gitLock);
+            (TaskResult as List<GitLock>).Add(gitLock);
         }
 
         public override bool Blocking { get { return false; } }
@@ -43,5 +41,17 @@ namespace GitHub.Unity
         public override bool Cached { get { return false; } }
         public override string Label { get { return "git lfs locks"; } }
         protected override string ProcessArguments { get { return "lfs locks"; } }
+        public IEnumerable<GitLock> TaskResult
+        {
+            get
+            {
+                if (Result == null)
+                {
+                    Result = new List<GitLock>();
+                }
+                return (List<GitLock>)Result;
+            }
+        }
+
     }
 }
