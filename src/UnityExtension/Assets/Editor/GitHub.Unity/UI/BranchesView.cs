@@ -14,12 +14,15 @@ namespace GitHub.Unity
         private const string ConfirmSwitchOK = "Switch";
         private const string ConfirmSwitchCancel = "Cancel";
         private const string NewBranchCancelButton = "x";
-        private const string NewBranchConfirmButton = "Create Branch";
+        private const string NewBranchConfirmButton = "Create";
         private const string FavoritesSetting = "Favorites";
         private const string FavoritesTitle = "Favorites";
         private const string LocalTitle = "Local branches";
         private const string RemoteTitle = "Remote branches";
         private const string CreateBranchButton = "New Branch";
+
+        private bool showLocalBranches = true;
+        private bool showRemoteBranches = true;
 
         [NonSerialized] private List<BranchTreeNode> favourites = new List<BranchTreeNode>();
         [NonSerialized] private int listID = -1;
@@ -122,13 +125,13 @@ namespace GitHub.Unity
             {
                 listID = GUIUtility.GetControlID(FocusType.Keyboard);
 
-                GUILayout.BeginHorizontal(Styles.CommitFileAreaStyle);
+                GUILayout.BeginHorizontal();
                 {
                     OnCreateGUI();
                 }
                 GUILayout.EndHorizontal();
 
-                GUILayout.BeginVertical();
+                GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
                 {
                     // Favourites list
                     if (favourites.Count > 0)
@@ -153,48 +156,51 @@ namespace GitHub.Unity
                     }
 
                     // Local branches and "create branch" button
-                    GUILayout.Label(LocalTitle, EditorStyles.boldLabel);
-                    GUILayout.BeginHorizontal();
+                    showLocalBranches = EditorGUILayout.Foldout(showLocalBranches, LocalTitle);
+                    if (showLocalBranches)
                     {
-                        GUILayout.BeginVertical();
+                        GUILayout.BeginHorizontal();
                         {
-                            OnTreeNodeChildrenGUI(localRoot);
+                            GUILayout.BeginVertical();
+                            {
+                                OnTreeNodeChildrenGUI(localRoot);
+                            }
+                            GUILayout.EndVertical();
                         }
-                        GUILayout.EndVertical();
+                        GUILayout.EndHorizontal();
                     }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Space(Styles.BranchListSeperation);
 
                     // Remotes
-                    GUILayout.Label(RemoteTitle, EditorStyles.boldLabel);
-                    GUILayout.BeginHorizontal();
+                    showRemoteBranches = EditorGUILayout.Foldout(showRemoteBranches, RemoteTitle);
+                    if (showRemoteBranches)
                     {
-                        GUILayout.BeginVertical();
-                        for (var index = 0; index < remotes.Count; ++index)
+                        GUILayout.BeginHorizontal();
                         {
-                            var remote = remotes[index];
-                            GUILayout.Label(new GUIContent(remote.Name, Styles.FolderIcon), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
-
-                            // Branches of the remote
-                            GUILayout.BeginHorizontal();
+                            GUILayout.BeginVertical();
+                            for (var index = 0; index < remotes.Count; ++index)
                             {
-                                GUILayout.Space(Styles.TreeIndentation);
-                                GUILayout.BeginVertical();
+                                var remote = remotes[index];
+                                GUILayout.Label(new GUIContent(remote.Name, Styles.FolderIcon), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
+
+                                // Branches of the remote
+                                GUILayout.BeginHorizontal();
                                 {
-                                    OnTreeNodeChildrenGUI(remote.Root);
+                                    GUILayout.Space(Styles.TreeIndentation);
+                                    GUILayout.BeginVertical();
+                                    {
+                                        OnTreeNodeChildrenGUI(remote.Root);
+                                    }
+                                    GUILayout.EndVertical();
                                 }
-                                GUILayout.EndVertical();
+                                GUILayout.EndHorizontal();
+
+                                GUILayout.Space(Styles.BranchListSeperation);
                             }
-                            GUILayout.EndHorizontal();
 
-                            GUILayout.Space(Styles.BranchListSeperation);
+                            GUILayout.EndVertical();
                         }
-
-                        GUILayout.EndVertical();
+                        GUILayout.EndHorizontal();
                     }
-
-                    GUILayout.EndHorizontal();
 
                     GUILayout.FlexibleSpace();
                 }
