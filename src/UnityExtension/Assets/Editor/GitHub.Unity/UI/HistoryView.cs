@@ -66,6 +66,8 @@ namespace GitHub.Unity
 
             changesetTree.Initialize(this);
             changesetTree.Readonly = true;
+
+            parent.Repository.OnActiveBranchChanged += s => { Refresh(); };
         }
 
         public override void OnShow()
@@ -102,19 +104,18 @@ namespace GitHub.Unity
 
         public override void Refresh()
         {
+            Logger.Trace("Refresh");
 
-            if (historyTarget != null)
-            {
-                //TODO: Create a task that can get the log of one target
-                //GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)),);
-            }
-            else
-            {
-                ITask task = new GitLogTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                    new MainThreadTaskResultDispatcher<IEnumerable<GitLogEntry>>(OnLogUpdate),
-                    EntryPoint.GitObjectFactory);
-                TaskRunner.Add(task);
-            }
+//            if (historyTarget != null)
+//            {
+//                //TODO: Create a task that can get the log of one target
+//                //GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)),);
+//            }
+
+            ITask task = new GitLogTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                new MainThreadTaskResultDispatcher<IEnumerable<GitLogEntry>>(OnLogUpdate),
+                EntryPoint.GitObjectFactory);
+            TaskRunner.Add(task);
 
 #if ENABLE_BROADMODE
             if (broadMode)
@@ -402,6 +403,8 @@ namespace GitHub.Unity
 
         private void OnLogUpdate(IEnumerable<GitLogEntry> entries)
         {
+            Logger.Trace("OnLogUpdate");
+
             updated = true;
 
             history.Clear();
