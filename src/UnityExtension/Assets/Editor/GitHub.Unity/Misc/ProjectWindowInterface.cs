@@ -19,9 +19,6 @@ namespace GitHub.Unity
             repository = repo;
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
-            repository.OnRefreshTrackedFileList += status => {
-                TaskRunner.ScheduleMainThread(() => OnStatusUpdate(status));
-            };
             initialized = true;
         }
 
