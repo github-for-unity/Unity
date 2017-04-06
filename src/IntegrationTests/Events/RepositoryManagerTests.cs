@@ -45,7 +45,7 @@ namespace IntegrationTests
                 var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
                 foobarTxt.WriteAllText("foobar");
 
-                Thread.Sleep(2000);
+                Thread.Sleep(4000);
 
                 Logger.Trace("Continue test");
 
