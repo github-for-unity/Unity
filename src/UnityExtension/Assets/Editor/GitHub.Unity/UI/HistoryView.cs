@@ -88,7 +88,7 @@ namespace GitHub.Unity
             if (Parent.Repository == null)
                 return;
 
-            Tasks.ScheduleMainThread(() =>
+            TaskRunner.ScheduleMainThread(() =>
             {
                 var status = Parent.Repository.CurrentStatus;
                 currentRemote = Parent.Repository.CurrentRemote;
@@ -113,7 +113,7 @@ namespace GitHub.Unity
                 ITask task = new GitLogTask(EntryPoint.Environment, EntryPoint.ProcessManager,
                     new MainThreadTaskResultDispatcher<IEnumerable<GitLogEntry>>(OnLogUpdate),
                     EntryPoint.GitObjectFactory);
-                Tasks.Add(task);
+                TaskRunner.Add(task);
             }
 
 #if ENABLE_BROADMODE
@@ -575,8 +575,7 @@ namespace GitHub.Unity
                     Localization.Ok);
             });
 
-            var task = Parent.Repository.Pull(resultDispatcher);
-            Tasks.Add(task);
+            Parent.Repository.Pull(resultDispatcher);
         }
 
         private void Push()
@@ -588,8 +587,8 @@ namespace GitHub.Unity
                     String.Format(Localization.PushSuccessDescription, remote),
                     Localization.Ok);
             });
-            var task = Parent.Repository.Push(resultDispatcher);
-            Tasks.Add(task);
+
+            Parent.Repository.Push(resultDispatcher);
         }
 
         void drawTimelineRectAroundIconRect(Rect parentRect, Rect iconRect)

@@ -20,7 +20,7 @@ namespace GitHub.Unity
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
             repository.OnRefreshTrackedFileList += status => {
-                Tasks.ScheduleMainThread(() => OnStatusUpdate(status));
+                TaskRunner.ScheduleMainThread(() => OnStatusUpdate(status));
             };
             initialized = true;
         }

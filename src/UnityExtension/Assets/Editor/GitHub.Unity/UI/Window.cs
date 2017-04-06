@@ -293,7 +293,7 @@ namespace GitHub.Unity
         private void SignOut(object obj)
         {
             var task = new SimpleTask(() => EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedCredentials.Host));
-            Tasks.Add(task);
+            TaskRunner.Add(task);
         }
 
         private bool ValidateSettings()

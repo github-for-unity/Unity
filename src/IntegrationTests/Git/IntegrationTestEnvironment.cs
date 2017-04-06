@@ -6,6 +6,7 @@ namespace IntegrationTests
     class IntegrationTestEnvironment : IEnvironment
     {
         private static readonly ILogging logger = Logging.GetLogger<IntegrationTestEnvironment>();
+        private readonly bool enableTrace;
 
         private readonly string extensionInstallPath;
         private readonly NPath integrationTestEnvironmentPath;
@@ -13,7 +14,8 @@ namespace IntegrationTests
         private DefaultEnvironment defaultEnvironment;
         private string unityProjectPath;
 
-        public IntegrationTestEnvironment(NPath solutionDirectory, NPath environmentPath = null)
+        public IntegrationTestEnvironment(NPath solutionDirectory, NPath environmentPath = null,
+            bool enableTrace = false)
         {
             defaultEnvironment = new DefaultEnvironment();
 
@@ -24,9 +26,13 @@ namespace IntegrationTests
 
             extensionInstallPath = solutionDirectory.Parent.Parent.Parent.Combine("GitHub.Api");
             integrationTestEnvironmentPath = environmentPath;
+            this.enableTrace = enableTrace;
 
-            logger.Trace("EnvironmentPath: \"{0}\" SolutionDirectory: \"{1}\" ExtensionInstallPath: \"{2}\"", environmentPath, solutionDirectory, extensionInstallPath);
-
+            if (enableTrace)
+            {
+                logger.Trace("EnvironmentPath: \"{0}\" SolutionDirectory: \"{1}\" ExtensionInstallPath: \"{2}\"",
+                    environmentPath, solutionDirectory, extensionInstallPath);
+            }
         }
 
         public string ExpandEnvironmentVariables(string name)
@@ -37,7 +43,10 @@ namespace IntegrationTests
         public string GetEnvironmentVariable(string v)
         {
             var environmentVariable = defaultEnvironment.GetEnvironmentVariable(v);
-            logger.Trace("GetEnvironmentVariable: {0}={1}", v, environmentVariable);
+            if (enableTrace)
+            {
+                logger.Trace("GetEnvironmentVariable: {0}={1}", v, environmentVariable);
+            }
             return environmentVariable;
         }
 
@@ -46,7 +55,10 @@ namespace IntegrationTests
             var ensureDirectoryExists = integrationTestEnvironmentPath.EnsureDirectoryExists(folder.ToString());
             var specialFolderPath = ensureDirectoryExists.ToString();
 
-            logger.Trace("GetSpecialFolder: {0}", specialFolderPath);
+            if (enableTrace)
+            {
+                logger.Trace("GetSpecialFolder: {0}", specialFolderPath);
+            }
 
             return specialFolderPath;
         }
@@ -61,7 +73,10 @@ namespace IntegrationTests
             get { return defaultEnvironment.GitExecutablePath; }
             set
             {
-                logger.Trace("Setting GitExecutablePath to " + value);
+                if (enableTrace)
+                {
+                    logger.Trace("Setting GitExecutablePath to " + value);
+                }
                 defaultEnvironment.GitExecutablePath = value;
             }
         }
@@ -77,7 +92,10 @@ namespace IntegrationTests
             get { return unityProjectPath; }
             set
             {
-                logger.Trace("Setting UnityProjectPath to " + value);
+                if (enableTrace)
+                {
+                    logger.Trace("Setting UnityProjectPath to " + value);
+                }
                 unityProjectPath = value;
             }
         }

@@ -81,7 +81,7 @@
     <Compile Include="Services\StatusService.cs" />
     <Compile Include="Tasks\EvaluateProjectConfigurationTask.cs" />
     <Compile Include="Tasks\TaskException.cs" />
-    <Compile Include="Tasks\Tasks.cs" />
+    <Compile Include="Tasks\TaskRunner.cs" />
     <Compile Include="Tools\MozRoots.cs" />
     <Compile Include="UI\AuthenticationView.cs" />
     <Compile Include="UI\AuthenticationWindow.cs" />

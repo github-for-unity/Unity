@@ -37,3 +37,6 @@ using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("UnitTests", AllInternalsVisible = true)]
 [assembly: InternalsVisibleTo("IntegrationTests", AllInternalsVisible = true)]
+
+//Required for NSubstitute
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2", AllInternalsVisible = true)]
