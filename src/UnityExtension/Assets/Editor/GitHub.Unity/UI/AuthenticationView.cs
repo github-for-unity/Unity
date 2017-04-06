@@ -185,6 +185,8 @@ namespace GitHub.Unity
 
         private void DoRequire2fa(string msg)
         {
+            Logger.Trace("Strating 2FA - Message:\"{0}\"", msg);
+
             need2fa = true;
             message = msg;
             busy = false;
@@ -193,6 +195,8 @@ namespace GitHub.Unity
 
         private void DoResult(bool success, string msg)
         {
+            Logger.Trace("DoResult - Success:{0} Message:\"{1}\"", success, msg);
+
             message = msg;
             busy = false;
 

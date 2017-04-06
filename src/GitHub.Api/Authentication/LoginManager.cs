@@ -85,28 +85,46 @@ namespace GitHub.Unity
 
             try
             {
+                logger.Info("Login Username:{0}", username);
+
                 auth = await CreateAndDeleteExistingApplicationAuthorization(client, newAuth, null);
                 EnsureNonNullAuthorization(auth);
             }
             catch (TwoFactorAuthorizationException e)
             {
-                var result = e is TwoFactorRequiredException ? LoginResultCodes.CodeRequired : LoginResultCodes.CodeFailed;
+                LoginResultCodes result;
+                if (e is TwoFactorRequiredException)
+                {
+                    result = LoginResultCodes.CodeRequired;
+                    logger.Trace("2FA TwoFactorAuthorizationException: {0} {1}", LoginResultCodes.CodeRequired, e.Message);
+                }
+                else
+                {
+                    result = LoginResultCodes.CodeFailed;
+                    logger.Error(e, "2FA TwoFactorAuthorizationException: {0} {1}", LoginResultCodes.CodeRequired, e.Message);
+                }
+
                 return new LoginResultData(result, e.Message, client, host, newAuth);
             }
-            catch(LoginAttemptsExceededException)
+            catch(LoginAttemptsExceededException e)
             {
+                logger.Warning(e, "Login LoginAttemptsExceededException: {0}", e.Message);
+
                 await credentialManager.Delete(host);
                 return new LoginResultData(LoginResultCodes.LockedOut, Localization.LockedOut, host);
             }
             catch (ApiValidationException e)
             {
+                logger.Warning(e, "Login ApiValidationException: {0}", e.Message);
+
                 var message = e.ApiError.FirstErrorMessageSafe();
                 await credentialManager.Delete(host);
                 return new LoginResultData(LoginResultCodes.Failed, message, host);
             }
             catch (Exception e)
             {
-                logger.Debug(e);
+                logger.Warning(e, "Login Exception");
+
                 // Some enterprise instances don't support OAUTH, so fall back to using the
                 // supplied password - on instances that don't support OAUTH the user should
                 // be using a personal access token as the password.
@@ -134,6 +152,8 @@ namespace GitHub.Unity
 
             try
             {
+                logger.Trace("2FA Continue");
+
                 var auth = await CreateAndDeleteExistingApplicationAuthorization(
                     client,
                     newAuth,
@@ -146,12 +166,16 @@ namespace GitHub.Unity
                 await credentialManager.Save(credential);
                 return new LoginResultData(LoginResultCodes.Success, "", host);
             }
-            catch (TwoFactorAuthorizationException)
+            catch (TwoFactorAuthorizationException e)
             {
+                logger.Trace(e, "2FA TwoFactorAuthorizationException: {0} {1}", LoginResultCodes.CodeFailed, e.Message);
+
                 return new LoginResultData(LoginResultCodes.CodeFailed, Localization.Wrong2faCode, client, host, newAuth);
             }
             catch (ApiValidationException e)
             {
+                logger.Trace(e, "2FA ApiValidationException: {0}", e.Message);
+
                 var message = e.ApiError.FirstErrorMessageSafe();
                 await credentialManager.Delete(host);
                 return new LoginResultData(LoginResultCodes.Failed, message, host);
@@ -163,6 +187,8 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(hostAddress, nameof(hostAddress));
             Guard.ArgumentNotNull(client, nameof(client));
+
+            logger.Trace("Logout");
 
             await credentialManager.Delete(hostAddress);
         }
