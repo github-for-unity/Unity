@@ -157,7 +157,11 @@ namespace GitHub.Unity
             watcher.RemoteBranchChanged += OnRemoteBranchChanged;
             watcher.RemoteBranchDeleted += OnRemoteBranchDeleted;
 
-            repositoryUpdateCallback = TaskExtensions.Debounce(OnRepositoryUpdatedHandler, 0);
+            const int debounceTimeout = 0;
+
+            repositoryUpdateCallback = debounceTimeout == 0 ?
+                OnRepositoryUpdatedHandler 
+                : TaskExtensions.Debounce(OnRepositoryUpdatedHandler, debounceTimeout);
         }
 
         public void Initialize()
@@ -289,7 +293,7 @@ namespace GitHub.Unity
                     watcher.Start();
                 }
 
-                IsBusy = false && !handlingRepositoryUpdate;
+                IsBusy = false;
 
                 Logger.Trace("Finish " + task.Label);
             };
@@ -650,6 +654,7 @@ namespace GitHub.Unity
             {
                 if (isBusy != value)
                 {
+                    Logger.Trace("IsBusyChanged Value:{0}", value);
                     isBusy = value;
                     OnIsBusyChanged?.Invoke(isBusy);
                 }
