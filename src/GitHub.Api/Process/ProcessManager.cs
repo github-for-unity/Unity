@@ -32,7 +32,7 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(executableFileName, nameof(executableFileName));
 
-            logger.Trace("Configuring process - \"" + executableFileName + " " + arguments + "\" cwd:" + workingDirectory);
+            //logger.Trace("Configuring process - \"" + executableFileName + " " + arguments + "\" cwd:" + workingDirectory);
             var startInfo = new ProcessStartInfo
             {
                 RedirectStandardInput = true,
