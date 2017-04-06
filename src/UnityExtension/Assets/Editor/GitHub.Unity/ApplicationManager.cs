@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -29,8 +30,8 @@ namespace GitHub.Unity
             MainThreadResultDispatcher = taskResultDispatcher;
         }
 
-        public ApplicationManager(MainThreadSynchronizationContext synchronizationContext)
-            : base(synchronizationContext)
+        public ApplicationManager(IMainThreadSynchronizationContext synchronizationContext)
+            : base(synchronizationContext as SynchronizationContext)
         {
             ListenToUnityExit();
             DetermineInstallationPath();
@@ -44,7 +45,7 @@ namespace GitHub.Unity
         {
             Utility.Initialize();
 
-            taskRunner = new TaskRunner((MainThreadSynchronizationContext)SynchronizationContext,
+            taskRunner = new TaskRunner((IMainThreadSynchronizationContext)SynchronizationContext,
                 CancellationTokenSource.Token);
 
             TaskRunner = taskRunner;

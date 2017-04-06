@@ -9,9 +9,11 @@ namespace TestUtils
 
         public IList<GitStatus> GitStatusResults { get; set; }
 
-        public IList<IList<GitLock>> GitListLocksResults { get; set; }
+        public IList<IEnumerable<GitLock>> GitListLocksResults { get; set; }
 
-        public CreateRepositoryProcessRunnerOptions(Dictionary<GitConfigGetKey, string> getConfigResults = null, IList<GitStatus> gitStatusResults = null, IList<IList<GitLock>> gitListLocksResults = null)
+        public CreateRepositoryProcessRunnerOptions(Dictionary<GitConfigGetKey, string> getConfigResults = null,
+            IList<GitStatus> gitStatusResults = null,
+            IList<IEnumerable<GitLock>> gitListLocksResults = null)
         {
             GitListLocksResults = gitListLocksResults;
             GitStatusResults = gitStatusResults;

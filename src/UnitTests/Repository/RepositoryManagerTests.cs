@@ -8,6 +8,7 @@ using NSubstitute;
 using NUnit.Framework;
 using TestUtils;
 using TestUtils.Events;
+using System.Threading.Tasks;
 
 namespace UnitTests
 {
@@ -84,7 +85,7 @@ namespace UnitTests
 
         private RepositoryManager CreateRepositoryManager(IRepositoryProcessRunner repositoryProcessRunner)
         {
-            var taskRunner = new TaskRunner(new MainThreadSynchronizationContextBase(), CancellationToken.None);
+            var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
             taskRunner.Run();
 
             return new RepositoryManager(platform, taskRunner, gitConfig, repositoryWatcher,
@@ -92,7 +93,7 @@ namespace UnitTests
         }
 
         private IRepositoryProcessRunner CreateRepositoryProcessRunner(IList<GitStatus> gitStatusResults = null,
-            IList<IList<GitLock>> gitListLocksResults = null)
+            IList<IEnumerable<GitLock>> gitListLocksResults = null)
         {
             return
                 SubstituteFactory.CreateRepositoryProcessRunner(new CreateRepositoryProcessRunnerOptions {
@@ -158,7 +159,7 @@ namespace UnitTests
             };
 
             var repositoryProcessRunner = CreateRepositoryProcessRunner(new[] { responseGitStatus },
-                new IList<GitLock>[] { responseGitLocks });
+                new IEnumerable<GitLock>[] { responseGitLocks });
 
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
             repositoryManager.Initialize();

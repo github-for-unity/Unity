@@ -11,7 +11,7 @@ namespace GitHub.Unity
         private readonly TaskScheduler scheduler;
 
         public SimpleTask(Action action)
-            : this(action, TaskScheduler.Default)
+            : this(action, ThreadingHelper.TaskScheduler)
         {}
 
         public SimpleTask(Action action, TaskScheduler scheduler)
@@ -82,7 +82,7 @@ namespace GitHub.Unity
             if (runAction != null)
             {
                 var t = runAction();
-                t.Start();
+                t.Start(ThreadingHelper.TaskScheduler);
                 t.Wait(cancellationToken);
             }
 
@@ -136,9 +136,8 @@ namespace GitHub.Unity
         public virtual string Label { get; set; }
         public virtual TaskQueueSetting Queued { get; set; }
         public virtual Action<ITask> OnBegin { get; set; }
-
         public Action<ITask> OnEnd { get; set; }
-
         public virtual float Progress { get; protected set; }
+        public object Result { get; protected set; }
     }
 }
