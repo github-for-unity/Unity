@@ -66,6 +66,8 @@ namespace GitHub.Unity
 
             changesetTree.Initialize(this);
             changesetTree.Readonly = true;
+
+            parent.Repository.OnActiveBranchChanged += s => { Refresh(); };
         }
 
         public override void OnShow()
@@ -88,7 +90,7 @@ namespace GitHub.Unity
             if (Parent.Repository == null)
                 return;
 
-            Tasks.ScheduleMainThread(() =>
+            TaskRunner.ScheduleMainThread(() =>
             {
                 var status = Parent.Repository.CurrentStatus;
                 currentRemote = Parent.Repository.CurrentRemote;
@@ -102,19 +104,18 @@ namespace GitHub.Unity
 
         public override void Refresh()
         {
+            Logger.Trace("Refresh");
 
-            if (historyTarget != null)
-            {
-                //TODO: Create a task that can get the log of one target
-                //GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)),);
-            }
-            else
-            {
-                ITask task = new GitLogTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                    new MainThreadTaskResultDispatcher<IEnumerable<GitLogEntry>>(OnLogUpdate),
-                    EntryPoint.GitObjectFactory);
-                Tasks.Add(task);
-            }
+//            if (historyTarget != null)
+//            {
+//                //TODO: Create a task that can get the log of one target
+//                //GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)),);
+//            }
+
+            ITask task = new GitLogTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                new MainThreadTaskResultDispatcher<IEnumerable<GitLogEntry>>(OnLogUpdate),
+                EntryPoint.GitObjectFactory);
+            TaskRunner.Add(task);
 
 #if ENABLE_BROADMODE
             if (broadMode)
@@ -402,6 +403,8 @@ namespace GitHub.Unity
 
         private void OnLogUpdate(IEnumerable<GitLogEntry> entries)
         {
+            Logger.Trace("OnLogUpdate");
+
             updated = true;
 
             history.Clear();
@@ -575,8 +578,7 @@ namespace GitHub.Unity
                     Localization.Ok);
             });
 
-            var task = Parent.Repository.Pull(resultDispatcher);
-            Tasks.Add(task);
+            Parent.Repository.Pull(resultDispatcher);
         }
 
         private void Push()
@@ -588,8 +590,8 @@ namespace GitHub.Unity
                     String.Format(Localization.PushSuccessDescription, remote),
                     Localization.Ok);
             });
-            var task = Parent.Repository.Push(resultDispatcher);
-            Tasks.Add(task);
+
+            Parent.Repository.Push(resultDispatcher);
         }
 
         void drawTimelineRectAroundIconRect(Rect parentRect, Rect iconRect)

@@ -6,7 +6,7 @@ namespace GitHub.Unity
     {
         protected override void Run(Action<bool> onClose)
         {
-            Tasks.ScheduleMainThread(() => AuthenticationWindow.Open(onClose));
+            TaskRunner.ScheduleMainThread(() => AuthenticationWindow.Open(onClose));
         }
     }
 }

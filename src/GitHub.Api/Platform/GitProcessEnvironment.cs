@@ -79,7 +79,7 @@ namespace GitHub.Unity
                 path = String.Format(CultureInfo.InvariantCulture, @"{0}:{0}/libexec/git-core:{1}:{2}{3}", gitPathRoot, gitLfsPath, userPath, developerPaths);
             }
 
-            Logger.Trace("EnvironmentVariables[\"PATH\"]=\"{0}\"", path);
+            //Logger.Trace("EnvironmentVariables[\"PATH\"]=\"{0}\"", path);
 
             psi.EnvironmentVariables["PATH"] = path;
             psi.EnvironmentVariables["GIT_EXEC_PATH"] = Environment.GitInstallPath;
