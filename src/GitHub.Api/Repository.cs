@@ -14,7 +14,6 @@ namespace GitHub.Unity
         private GitStatus currentStatus;
 
         public event Action<GitStatus> OnRepositoryChanged;
-        public event Action<GitStatus> OnRefreshTrackedFileList;
         public event Action<string> OnActiveBranchChanged;
         public event Action<string> OnActiveRemoteChanged;
         public event Action OnLocalBranchListChanged;
