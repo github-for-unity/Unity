@@ -106,6 +106,7 @@
 
   <PropertyGroup>
     <PublishTo Condition="'$(PublishTo)' == '' ">$(SolutionDir)\unity\PackageProject\Assets\Editor\GitHub</PublishTo>
+    <ExternalPublishTo>$(SolutionDir)..\github-unity-test\GitHubExtensionProject\Assets\Editor\GitHub</ExternalPublishTo>
   </PropertyGroup>
 
   <Target Name="AfterBuild">
@@ -122,6 +123,15 @@
         !$([System.String]::Copy('%(Extension)').Contains('dll.mdb'))
         "
       />
+
+    <CreateItem Include="$(PublishTo)\**\*.*">
+        <Output TaskParameter="Include" ItemName="ToMoreCopy" />
+      </CreateItem>
+
+    <Copy SourceFiles="@(ToMoreCopy)"
+      DestinationFiles="@(ToMoreCopy->'$(ExternalPublishTo)\%(RecursiveDir)%(Filename)%(Extension)')"
+      />
+
   </Target>
 
   <Target Name="CopyMainAssembly" DependsOnTargets="DetectMainAssembly">
