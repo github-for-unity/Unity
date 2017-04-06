@@ -11,7 +11,7 @@ namespace GitHub.Unity
 
         public void ReportFailure(FailureSeverity severity, string title, string error)
         {
-            Tasks.ReportFailure(severity, title, error);
+            TaskRunner.ReportFailure(severity, title, error);
         }
 
     }
@@ -29,17 +29,17 @@ namespace GitHub.Unity
 
         public void ReportFailure()
         {
-            Tasks.ScheduleMainThread(failureCallback);
+            TaskRunner.ScheduleMainThread(failureCallback);
         }
 
         public void ReportFailure(FailureSeverity severity, string title, string error)
         {
-            Tasks.ReportFailure(severity, title, error);
+            TaskRunner.ReportFailure(severity, title, error);
         }
 
         public void ReportSuccess(T data)
         {
-            Tasks.ScheduleMainThread(() => successCallback.SafeInvoke(data));
+            TaskRunner.ScheduleMainThread(() => successCallback.SafeInvoke(data));
         }
     }
 }

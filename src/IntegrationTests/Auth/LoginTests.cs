@@ -67,15 +67,14 @@ namespace IntegrationTests
             var processManager = new ProcessManager(Environment, gitEnvironment);
             await platform.Initialize(processManager);
 
+            var taskRunner = new TaskRunner(new MainThreadSynchronizationContextBase(), CancellationToken.None);
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            using (var repoManager = repositoryManagerFactory.CreateRepositoryManager(platform, TestRepoMasterDirtyUnsynchronized, CancellationToken.None))
+            using (var repoManager = repositoryManagerFactory.CreateRepositoryManager(platform, taskRunner, TestRepoMasterDirtyUnsynchronized, CancellationToken.None))
             {
                 var repository = repoManager.Repository;
                 Environment.Repository = repoManager.Repository;
 
-                var task =
-                    repository.Pull(new TaskResultDispatcher<string>(x => { Logger.Debug("Pull result: {0}", x); }));
-                await task.RunAsync(CancellationToken.None);
+                repository.Pull(new TaskResultDispatcher<string>(x => { Logger.Debug("Pull result: {0}", x); }));
 
                 //string credHelper = null;
                 //var task = new GitConfigGetTask(environment, processManager,

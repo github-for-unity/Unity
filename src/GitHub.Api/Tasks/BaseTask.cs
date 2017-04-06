@@ -60,6 +60,7 @@ namespace GitHub.Unity
         }
 
         public BaseTask(Func<Task<bool>> runAction)
+            : this()
         {
             this.runAction = runAction;
         }

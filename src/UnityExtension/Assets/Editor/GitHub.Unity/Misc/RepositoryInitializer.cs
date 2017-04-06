@@ -11,7 +11,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("SetProjectToTextSerialization");
 
-            Tasks.Add(new SimpleTask(() => { EditorSettings.serializationMode = SerializationMode.ForceText; },
+            TaskRunner.Add(new SimpleTask(() => { EditorSettings.serializationMode = SerializationMode.ForceText; },
                 ThreadingHelper.MainThreadScheduler));
         }
     }
