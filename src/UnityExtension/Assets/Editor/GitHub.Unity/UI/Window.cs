@@ -228,7 +228,12 @@ namespace GitHub.Unity
                 GUILayout.BeginVertical();
                 {
                     GUILayout.Space(3);
-                    GUILayout.Label(String.Format("{0}/{1}", Repository.Owner, Repository.Name), Styles.HeaderRepoLabelStyle);
+
+                    var headerRepoLabelText = String.IsNullOrEmpty(Repository.Owner)
+                        ? Repository.Name
+                        : String.Format("{0}/{1}", Repository.Owner, Repository.Name);
+
+                    GUILayout.Label(headerRepoLabelText, Styles.HeaderRepoLabelStyle);
                     GUILayout.Space(-2);
                     GUILayout.Label(Repository.CurrentBranch, Styles.HeaderBranchLabelStyle);
                 }
