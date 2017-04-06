@@ -96,7 +96,7 @@ namespace GitHub.Unity
                 if (e is TwoFactorRequiredException)
                 {
                     result = LoginResultCodes.CodeRequired;
-                    logger.Trace("2FA TwoFactorAuthorizationException: {0} {1}", LoginResultCodes.CodeRequired, e.Message);
+                    logger.Debug("2FA TwoFactorAuthorizationException: {0} {1}", LoginResultCodes.CodeRequired, e.Message);
                 }
                 else
                 {
@@ -168,13 +168,13 @@ namespace GitHub.Unity
             }
             catch (TwoFactorAuthorizationException e)
             {
-                logger.Trace(e, "2FA TwoFactorAuthorizationException: {0} {1}", LoginResultCodes.CodeFailed, e.Message);
+                logger.Debug(e, "2FA TwoFactorAuthorizationException: {0} {1}", LoginResultCodes.CodeFailed, e.Message);
 
                 return new LoginResultData(LoginResultCodes.CodeFailed, Localization.Wrong2faCode, client, host, newAuth);
             }
             catch (ApiValidationException e)
             {
-                logger.Trace(e, "2FA ApiValidationException: {0}", e.Message);
+                logger.Debug(e, "2FA ApiValidationException: {0}", e.Message);
 
                 var message = e.ApiError.FirstErrorMessageSafe();
                 await credentialManager.Delete(host);
