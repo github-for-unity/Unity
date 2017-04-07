@@ -19,7 +19,7 @@ namespace GitHub.Unity
             HistorySummaryHeight = 16f,
             HistoryDetailsHeight = 16f,
             HistoryEntryPadding = 16f,
-            HistoryChangesIndentation = 8f,
+            HistoryChangesIndentation = 17f,
             CommitAreaMinHeight = 16f,
             CommitAreaDefaultRatio = .4f,
             CommitAreaMaxHeight = 12 * 15f,
@@ -71,11 +71,11 @@ namespace GitHub.Unity
             historyLockStyle,
             historyEntryDetailsStyle,
             historyEntryDetailsRightStyle,
+            historyFileTreeBoxStyle,
             commitFileAreaStyle,
             commitButtonStyle,
             textFieldStyle,
             centeredLabel,
-            boldCenteredLabel,
             commitDescriptionFieldStyle,
             toggleMixedStyle,
             authHeaderBoxStyle,
@@ -110,6 +110,23 @@ namespace GitHub.Unity
        static Color
            timelineBarColor;
 
+        public static GUIStyle HistoryFileTreeBoxStyle
+        {
+            get
+            {
+                if (historyFileTreeBoxStyle == null)
+                {
+                    var padding = new RectOffset((int)HistoryChangesIndentation,
+                        (int)HistoryChangesIndentation,
+                        0,
+                        0);
+                    historyFileTreeBoxStyle = new GUIStyle();
+                    historyFileTreeBoxStyle.padding = padding;
+                }
+
+                return historyFileTreeBoxStyle;
+            }
+        }
 
         public static GUIStyle Label
         {
