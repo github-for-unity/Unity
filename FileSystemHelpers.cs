@@ -5,7 +5,6 @@ namespace GitHub.Unity
 {
     static class FileSystemHelpers
     {
-        // Based on: https://www.rosettacode.org/wiki/Find_common_directory_path#C.23
         public static string FindCommonPath(IEnumerable<string> paths)
         {
             var pathsArray = paths.Select(s => s.ToNPath().Parent).ToArray();
