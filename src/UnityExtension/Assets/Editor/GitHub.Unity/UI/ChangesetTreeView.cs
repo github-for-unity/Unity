@@ -152,7 +152,7 @@ namespace GitHub.Unity
 
             // Build tree structure
 
-            tree = new FileTreeNode(Utility.FindCommonPath(entries.Select(e => e.Path)));
+            tree = new FileTreeNode(FileSystemHelpers.FindCommonPath(entries.Select(e => e.Path)));
             tree.RepositoryPath = tree.Path;
             for (var index = 0; index < entries.Count; index++)
             {
