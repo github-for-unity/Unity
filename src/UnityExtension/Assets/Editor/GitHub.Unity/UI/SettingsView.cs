@@ -156,7 +156,7 @@ namespace GitHub.Unity
                     var needsSaving = gitName != Repository.User.Name || gitEmail != Repository.User.Email;
                     if (gitName != Repository.User.Name)
                     {
-                        Tasks.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                        TaskRunner.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
                                 new TaskResultDispatcher<string>(value =>
                                 {
                                     Repository.User.Name = value;
@@ -164,14 +164,14 @@ namespace GitHub.Unity
                     }
                     if (gitEmail != Repository.User.Email)
                     {
-                        Tasks.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
+                        TaskRunner.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
                                 new TaskResultDispatcher<string>(value =>
                                 {
                                     Repository.User.Email = value;
                                 }), "user.email", gitEmail, GitConfigSource.User));
                     }
                     if (needsSaving)
-                        Tasks.Add(new SimpleTask(() => busy = false, ThreadingHelper.MainThreadScheduler));
+                        TaskRunner.Add(new SimpleTask(() => busy = false, ThreadingHelper.MainThreadScheduler));
                     else
                         busy = false;
                 }

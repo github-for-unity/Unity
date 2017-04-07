@@ -3,6 +3,7 @@ using FluentAssertions;
 using GitHub.Unity;
 using NUnit.Framework;
 using Rackspace.Threading;
+using TestUtils;
 
 namespace IntegrationTests
 {

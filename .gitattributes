@@ -7,3 +7,6 @@
 *.zip filter=lfs diff=lfs merge=lfs -text
 *.7z filter=lfs diff=lfs merge=lfs -text
 *.gz filter=lfs diff=lfs merge=lfs -text
+*.meta -text
+*.asset -text
+*.unity -text

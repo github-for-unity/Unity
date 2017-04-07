@@ -1,5 +1,9 @@
+using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
+using FluentAssertions;
 using GitHub.Unity;
+using TestUtils;
 
 namespace IntegrationTests
 {
@@ -27,11 +31,29 @@ namespace IntegrationTests
             Environment.UnityProjectPath = repoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
 
+            var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
+
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, repoPath,
-                CancellationToken.None);
+            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, repoPath, CancellationToken.None);
 
             Environment.Repository = repositoryManager.Repository;
+
+            DotGitPath = repoPath.Combine(".git");
+
+            if (DotGitPath.FileExists())
+            {
+                DotGitPath =
+                    DotGitPath.ReadAllLines()
+                              .Where(x => x.StartsWith("gitdir:"))
+                              .Select(x => x.Substring(7).Trim())
+                              .First();
+            }
+
+            BranchesPath = DotGitPath.Combine("refs", "heads");
+            RemotesPath = DotGitPath.Combine("refs", "remotes");
+            DotGitIndex = DotGitPath.Combine("index");
+            DotGitHead = DotGitPath.Combine("HEAD");
+            DotGitConfig = DotGitPath.Combine("config");
         }
 
         public IEnvironment Environment { get; private set; }
@@ -41,5 +63,17 @@ namespace IntegrationTests
         protected ProcessManager ProcessManager { get; private set; }
 
         protected IProcessEnvironment GitEnvironment { get; private set; }
+
+        protected NPath DotGitConfig { get; private set; }
+
+        protected NPath DotGitHead { get; private set; }
+
+        protected NPath DotGitIndex { get; private set; }
+
+        protected NPath RemotesPath { get; private set; }
+
+        protected NPath BranchesPath { get; private set; }
+
+        protected NPath DotGitPath { get; private set; }
     }
 }

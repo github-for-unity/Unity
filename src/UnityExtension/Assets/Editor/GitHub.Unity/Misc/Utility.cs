@@ -99,12 +99,12 @@ namespace GitHub.Unity
         // Based on: https://www.rosettacode.org/wiki/Find_common_directory_path#C.23
         public static string FindCommonPath(IEnumerable<string> paths)
         {
-            var longestPath =
-                paths.First(first => first.Length == paths.Max(second => second.Length))
-                .ToNPath();
+            var pathsArray = paths.Select(s => s.ToNPath().Parent).ToArray();
+            var maxDepth = pathsArray.Max(path => path.Depth);
+            var deepestPath = pathsArray.First(path => path.Depth == maxDepth);
 
-            NPath commonParent = longestPath;
-            foreach (var path in paths)
+            var commonParent = deepestPath;
+            foreach (var path in pathsArray)
             {
                 var cp = commonParent.GetCommonParent(path);
                 if (cp != null)
