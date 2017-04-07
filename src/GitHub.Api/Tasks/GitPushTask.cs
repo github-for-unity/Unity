@@ -47,8 +47,8 @@ namespace GitHub.Unity
             }
         }
 
-        public override bool Blocking { get { return true; } }
-        public override bool Critical { get { return false; } }
+        public override bool Blocking => true;
+        public override bool Critical => false;
         public override string Label { get { return "git push"; } }
         protected override string ProcessArguments { get { return arguments; } }
     }

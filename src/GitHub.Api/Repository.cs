@@ -82,6 +82,7 @@ namespace GitHub.Unity
         public void Push(ITaskResultDispatcher<string> resultDispatcher)
         {
             repositoryManager.Push(resultDispatcher, CurrentRemote.Value.Name, CurrentBranch);
+            repositoryManager.Refresh();
         }
 
         public void ListLocks()

@@ -162,7 +162,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Update progress bars to match progress of given task
         /// </summary>
-        private void WaitForTask(ITask task, WaitMode mode = WaitMode.Background)
+        protected override void WaitForTask(ITask task, WaitMode mode = WaitMode.Background)
         {
             if (activeTask != task)
             {
@@ -174,24 +174,26 @@ namespace GitHub.Unity
             // Unintrusive background process
             if (mode == WaitMode.Background)
             {
-                DisplayBackgroundProgressBar(task.Label, task.Progress);
-
-                //if (!task.Done)
+                //do
                 //{
-                //    ScheduleMainThreadInternal(() => WaitForTask(task, mode));
-                //}
+                //    DisplayBackgroundProgressBar(task.Label, task.Progress);
+                //    Thread.Sleep(BlockingTaskWaitSleep);
+                //} while (!task.Done);
             }
             // Obstruct editor interface, while offering cancel button
             else if (mode == WaitMode.Modal)
             {
-                if (!EditorUtility.DisplayCancelableProgressBar(TaskProgressTitle, task.Label, task.Progress) && !task.Done)
+                do
                 {
-                    //ScheduleMainThreadInternal(() => WaitForTask(task, mode));
-                }
-                else if (!task.Done)
-                {
-                    task.Abort();
-                }
+                    if (!EditorUtility.DisplayCancelableProgressBar(TaskProgressTitle, task.Label, task.Progress) && !task.Done)
+                    {
+                        Thread.Sleep(BlockingTaskWaitSleep);
+                    }
+                    else if (!task.Done)
+                    {
+                        task.Abort();
+                    }
+                } while (!task.Done);
             }
             // Offer to interrupt task via dialog box, else block main thread until completion
             else
@@ -223,13 +225,6 @@ namespace GitHub.Unity
         {
             ScheduleMainThreadInternal(() => EditorUtility.ClearProgressBar());
         }
-
-        private enum WaitMode
-        {
-            Background,
-            Modal,
-            Blocking
-        };
 
         private delegate void ProgressBarDisplayMethod(string text, float progress);
     }
