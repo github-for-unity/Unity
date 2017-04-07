@@ -5,9 +5,17 @@ using UnityEditor;
 
 namespace GitHub.Unity
 {
-    class MainThreadSynchronizationContext : SynchronizationContext
+    class MainThreadSynchronizationContext : SynchronizationContext, IMainThreadSynchronizationContext
     {
         private static readonly ILogging logger = Logging.GetLogger<MainThreadSynchronizationContext>();
+
+        public void Schedule(Action action)
+        {
+            //logger.Debug("Scheduling action");
+
+            Guard.ArgumentNotNull(action, "action");
+            Post(_ => action.SafeInvoke(), null);
+        }
 
         public override void Post(SendOrPostCallback d, object state)
         {
@@ -15,14 +23,6 @@ namespace GitHub.Unity
                 return;
 
             EditorApplication.delayCall += () => d(state);
-        }
-
-        public virtual void Schedule(Action action)
-        {
-            //logger.Debug("Scheduling action");
-
-            Guard.ArgumentNotNull(action, "action");
-            Post(_ => action.SafeInvoke(), null);
         }
     }
 }

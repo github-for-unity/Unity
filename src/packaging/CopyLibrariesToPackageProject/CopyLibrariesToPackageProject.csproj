@@ -2,7 +2,7 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Publish</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{7DEF4226-7740-457F-9199-34174C49A978}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -11,17 +11,18 @@
     <AssemblyName>CopyLibrariesToDevelopmentFolder</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <OutputPath>..\..\..\..\..\unity\ExtensionTestProject\Assets\Editor\GitHubForUnity\</OutputPath>
+    <OutputPath>build</OutputPath>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Publish|AnyCPU' ">
+    <Config>Release</Config>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'PublishDebug|AnyCPU'">
+    <Config>Debug</Config>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
@@ -55,24 +56,24 @@
       <Private>False</Private>
     </ProjectReference>
     <Reference Include="AsyncBridge.Net35, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\AsyncBridge.Net35.0.2.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\AsyncBridge.Net35.0.2.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Rackspace.Threading, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bb62785d398726f0, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\Rackspace.Threading.2.0.0-alpha001\lib\net35-client\Rackspace.Threading.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\Rackspace.Threading.2.0.0-alpha001\lib\net35-client\Rackspace.Threading.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ReadOnlyCollectionsInterfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET20\ReadOnlyCollectionsInterfaces.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET20\ReadOnlyCollectionsInterfaces.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Threading, Version=1.0.2856.102, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\TaskParallelLibrary.1.0.2856.0\lib\Net35\System.Threading.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\TaskParallelLibrary.1.0.2856.0\lib\Net35\System.Threading.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="sfw.net">
-      <HintPath>..\..\..\lib\sfw.net\win\x64\$(Configuration)\sfw.net.dll</HintPath>
+      <HintPath>$(SolutionDir)\lib\sfw.net\win\x64\$(Config)\sfw.net.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -89,13 +90,10 @@
     <!-- Content Include="$(SolutionDir)\lib\sfw.net\osx\libsfw.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content -->
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw.dll">
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Config)\sfw.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw.pdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\pthreadVC2.dll">
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Config)\pthreadVC2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -104,9 +102,38 @@
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
+-->
+
+  <PropertyGroup>
+    <PublishTo Condition="'$(PublishTo)' == '' ">$(SolutionDir)\unity\PackageProject\Assets\Editor\GitHub</PublishTo>
+    <ExternalPublishTo>$(SolutionDir)..\github-unity-test\GitHubExtensionProject\Assets\Editor\GitHub</ExternalPublishTo>
+  </PropertyGroup>
+
   <Target Name="AfterBuild">
+    <CreateItem Include="$(OutputPath)\**\*.*">
+        <Output TaskParameter="Include" ItemName="ToCopy" />
+    </CreateItem>
+
+    <Copy SourceFiles="@(ToCopy)"
+      DestinationFiles="@(ToCopy->'$(PublishTo)\%(RecursiveDir)%(Filename)%(Extension)')"
+      Condition="
+        !$([System.String]::Copy('%(Filename)').Contains('CopyLibraries')) and
+        !$([System.String]::Copy('%(Extension)').Contains('xml')) and
+        !$([System.String]::Copy('%(Extension)').Contains('pdb')) and
+        !$([System.String]::Copy('%(Extension)').Contains('dll.mdb'))
+        "
+      />
+
+    <CreateItem Include="$(PublishTo)\**\*.*">
+        <Output TaskParameter="Include" ItemName="ToMoreCopy" />
+      </CreateItem>
+
+    <Copy SourceFiles="@(ToMoreCopy)"
+      DestinationFiles="@(ToMoreCopy->'$(ExternalPublishTo)\%(RecursiveDir)%(Filename)%(Extension)')"
+      />
+
   </Target>
-  -->
+
   <Target Name="CopyMainAssembly" DependsOnTargets="DetectMainAssembly">
     <Copy Condition="'%(IndirectDependency.FullPath)'!=''" SourceFiles="%(IndirectDependency.FullPath)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true">
       <Output TaskParameter="CopiedFiles" ItemName="IndirectDependencyCopied" />

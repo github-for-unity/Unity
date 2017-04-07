@@ -19,7 +19,10 @@ namespace GitHub.Unity
         private const string FavoritesTitle = "Favorites";
         private const string LocalTitle = "Local branches";
         private const string RemoteTitle = "Remote branches";
-        private const string CreateBranchButton = "+ New branch";
+        private const string CreateBranchButton = "New Branch";
+
+        private bool showLocalBranches = true;
+        private bool showRemoteBranches = true;
 
         [NonSerialized] private List<BranchTreeNode> favourites = new List<BranchTreeNode>();
         [NonSerialized] private int listID = -1;
@@ -57,7 +60,7 @@ namespace GitHub.Unity
 
         private void RunRefreshEmbeddedOnMainThread()
         {
-            Tasks.ScheduleMainThread(RefreshEmbedded);
+            TaskRunner.ScheduleMainThread(RefreshEmbedded);
         }
 
         public override void Refresh()
@@ -122,75 +125,86 @@ namespace GitHub.Unity
             {
                 listID = GUIUtility.GetControlID(FocusType.Keyboard);
 
-                // Favourites list
-                if (favourites.Count > 0)
-                {
-                    GUILayout.Label(FavoritesTitle);
-                    GUILayout.BeginHorizontal();
-                    {
-                        GUILayout.BeginVertical();
-                        {
-                            for (var index = 0; index < favourites.Count; ++index)
-                            {
-                                OnTreeNodeGUI(favourites[index]);
-                            }
-                        }
-
-                        GUILayout.EndVertical();
-                    }
-
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Space(Styles.BranchListSeperation);
-                }
-
-                // Local branches and "create branch" button
-                GUILayout.Label(LocalTitle, EditorStyles.boldLabel);
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.BeginVertical();
-                    {
-                        OnTreeNodeChildrenGUI(localRoot);
-
-                        GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                        OnCreateGUI();
-                    }
-                    GUILayout.EndVertical();
+                    OnCreateGUI();
                 }
                 GUILayout.EndHorizontal();
 
-                GUILayout.Space(Styles.BranchListSeperation);
-
-                // Remotes
-                GUILayout.Label(RemoteTitle, EditorStyles.boldLabel);
-                GUILayout.BeginHorizontal();
+                GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
                 {
-                    GUILayout.BeginVertical();
-                    for (var index = 0; index < remotes.Count; ++index)
+                    // Favourites list
+                    if (favourites.Count > 0)
                     {
-                        var remote = remotes[index];
-                        GUILayout.Label(new GUIContent(remote.Name, Styles.FolderIcon), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
-
-                        // Branches of the remote
+                        GUILayout.Label(FavoritesTitle);
                         GUILayout.BeginHorizontal();
                         {
-                            GUILayout.Space(Styles.TreeIndentation);
                             GUILayout.BeginVertical();
                             {
-                                OnTreeNodeChildrenGUI(remote.Root);
+                                for (var index = 0; index < favourites.Count; ++index)
+                                {
+                                    OnTreeNodeGUI(favourites[index]);
+                                }
                             }
+
                             GUILayout.EndVertical();
                         }
+
                         GUILayout.EndHorizontal();
 
                         GUILayout.Space(Styles.BranchListSeperation);
                     }
 
-                    GUILayout.EndVertical();
-                }
+                    // Local branches and "create branch" button
+                    showLocalBranches = EditorGUILayout.Foldout(showLocalBranches, LocalTitle);
+                    if (showLocalBranches)
+                    {
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.BeginVertical();
+                            {
+                                OnTreeNodeChildrenGUI(localRoot);
+                            }
+                            GUILayout.EndVertical();
+                        }
+                        GUILayout.EndHorizontal();
+                    }
 
-                GUILayout.EndHorizontal();
+                    // Remotes
+                    showRemoteBranches = EditorGUILayout.Foldout(showRemoteBranches, RemoteTitle);
+                    if (showRemoteBranches)
+                    {
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.BeginVertical();
+                            for (var index = 0; index < remotes.Count; ++index)
+                            {
+                                var remote = remotes[index];
+                                GUILayout.Label(new GUIContent(remote.Name, Styles.FolderIcon), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
+
+                                // Branches of the remote
+                                GUILayout.BeginHorizontal();
+                                {
+                                    GUILayout.Space(Styles.TreeIndentation);
+                                    GUILayout.BeginVertical();
+                                    {
+                                        OnTreeNodeChildrenGUI(remote.Root);
+                                    }
+                                    GUILayout.EndVertical();
+                                }
+                                GUILayout.EndHorizontal();
+
+                                GUILayout.Space(Styles.BranchListSeperation);
+                            }
+
+                            GUILayout.EndVertical();
+                        }
+                        GUILayout.EndHorizontal();
+                    }
+
+                    GUILayout.FlexibleSpace();
+                }
+                GUILayout.EndVertical();
             }
 
             GUILayout.EndScrollView();
@@ -422,7 +436,8 @@ namespace GitHub.Unity
             // Create button
             if (mode == BranchesMode.Default)
             {
-                if (GUILayout.Button(CreateBranchButton, GUI.skin.label, GUILayout.ExpandWidth(false)))
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button(CreateBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                 {
                     targetMode = BranchesMode.Create;
                 }
@@ -460,24 +475,23 @@ namespace GitHub.Unity
                             Event.current.Use();
                         }
                     }
-                    newBranchName = EditorGUILayout.TextField(newBranchName, GUILayout.MaxWidth(200f));
-
-                    // Cancel create
-                    GUILayout.Space(-5f);
-                    if (GUILayout.Button(NewBranchCancelButton, EditorStyles.miniButtonMid, GUILayout.ExpandWidth(false)))
-                    {
-                        cancelCreate = true;
-                    }
+                    newBranchName = EditorGUILayout.TextField(newBranchName);
 
                     // Create
                     EditorGUI.BeginDisabledGroup(cannotCreate);
                     {
-                        if (GUILayout.Button(NewBranchConfirmButton, EditorStyles.miniButtonRight, GUILayout.ExpandWidth(false)))
+                        if (GUILayout.Button(NewBranchConfirmButton, EditorStyles.miniButtonLeft, GUILayout.ExpandWidth(false)))
                         {
                             createBranch = true;
                         }
                     }
                     EditorGUI.EndDisabledGroup();
+
+                    // Cancel create
+                    if (GUILayout.Button(NewBranchCancelButton, EditorStyles.miniButtonRight, GUILayout.ExpandWidth(false)))
+                    {
+                        cancelCreate = true;
+                    }
 
                     // Effectuate create
                     if (createBranch)
@@ -485,7 +499,7 @@ namespace GitHub.Unity
                         var task = new GitBranchCreateTask(EntryPoint.Environment, EntryPoint.ProcessManager,
                             new MainThreadTaskResultDispatcher<string>(_ => Refresh()),
                             newBranchName, selectedNode.Name);
-                        Tasks.Add(task);
+                        TaskRunner.Add(task);
                     }
 
                     // Cleanup
@@ -592,14 +606,14 @@ namespace GitHub.Unity
                         var task = new GitSwitchBranchesTask(EntryPoint.Environment, EntryPoint.ProcessManager,
                             new MainThreadTaskResultDispatcher<string>(_ => Refresh()),
                             node.Name);
-                        Tasks.Add(task);
+                        TaskRunner.Add(task);
                     }
                     else if (node.Type == NodeType.RemoteBranch)
                     {
                         var task = new GitBranchCreateTask(EntryPoint.Environment, EntryPoint.ProcessManager,
                             new MainThreadTaskResultDispatcher<string>(_ => Refresh()),
                             selectedNode.Name.Substring(selectedNode.Name.IndexOf('/') + 1), selectedNode.Name);
-                        Tasks.Add(task);
+                        TaskRunner.Add(task);
                     }
                 }
             }

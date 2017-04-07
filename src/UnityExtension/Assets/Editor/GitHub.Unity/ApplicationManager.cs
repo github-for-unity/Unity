@@ -10,17 +10,16 @@ namespace GitHub.Unity
 {
     class ApplicationManager : ApplicationManagerBase
     {
-
         private const string QuitActionFieldName = "editorApplicationQuit";
         private const BindingFlags quitActionBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
 
+        private IEnvironment environment;
         private FieldInfo quitActionField;
-
-        private Tasks taskRunner;
+        private TaskRunner taskRunner;
 
         // for unit testing (TODO)
-        public ApplicationManager(IEnvironment environment, IFileSystem fileSystem,
-            IPlatform platform, IProcessManager processManager, ITaskResultDispatcher taskResultDispatcher)
+        public ApplicationManager(IEnvironment environment, IFileSystem fileSystem, IPlatform platform,
+            IProcessManager processManager, ITaskResultDispatcher taskResultDispatcher)
             : base(null)
         {
             Environment = environment;
@@ -31,8 +30,8 @@ namespace GitHub.Unity
             MainThreadResultDispatcher = taskResultDispatcher;
         }
 
-        public ApplicationManager(MainThreadSynchronizationContext synchronizationContext)
-            : base(synchronizationContext)
+        public ApplicationManager(IMainThreadSynchronizationContext synchronizationContext)
+            : base(synchronizationContext as SynchronizationContext)
         {
             ListenToUnityExit();
             DetermineInstallationPath();
@@ -46,9 +45,10 @@ namespace GitHub.Unity
         {
             Utility.Initialize();
 
-            taskRunner = new Tasks((MainThreadSynchronizationContext)SynchronizationContext,
+            taskRunner = new TaskRunner((IMainThreadSynchronizationContext)SynchronizationContext,
                 CancellationTokenSource.Token);
 
+            TaskRunner = taskRunner;
             return base.Run()
                 .ContinueWith(_ =>
                 {
@@ -151,6 +151,7 @@ namespace GitHub.Unity
         }
 
         private bool disposed = false;
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
@@ -164,7 +165,6 @@ namespace GitHub.Unity
             }
         }
 
-        private IEnvironment environment;
         public override IEnvironment Environment
         {
             get
