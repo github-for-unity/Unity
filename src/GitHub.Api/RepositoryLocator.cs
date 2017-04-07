@@ -45,7 +45,7 @@ namespace GitHub.Unity
                         var t = new GitInitTask(environment, processManager, null);
                         t.SetArguments("lfs install");
                         return t.RunAsync(token);
-                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, TaskScheduler.Default)
+                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler)
                     .ContinueWith(_ =>
                     {
                         Logger.Trace("Adding files");
@@ -67,21 +67,21 @@ namespace GitHub.Unity
                         }
                         var addTask = new GitAddTask(environment, processManager, null, filesForInitialCommit);
                         return addTask.RunAsync(token);
-                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, TaskScheduler.Default)
+                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler)
                     .ContinueWith(_ =>
                     {
                         Logger.Trace("Commiting");
 
                         var commitTask = new GitCommitTask(environment, processManager, null, "Initial commit", null);
                         return commitTask.RunAsync(token);
-                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, TaskScheduler.Default)
+                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler)
                     .ContinueWith(_ =>
                     {
                         Logger.Trace("Restarting");
 
                         applicationManager.RestartRepository();
                         return true;
-                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, TaskScheduler.Default);
+                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler);
 
             });
 
