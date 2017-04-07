@@ -631,6 +631,7 @@ namespace GitHub.Unity
             private set
             {
                 activeBranch = value;
+                Logger.Trace("OnActiveBranchChanged: {0}", value);
                 OnActiveBranchChanged?.Invoke();
             }
         }
@@ -641,6 +642,7 @@ namespace GitHub.Unity
             private set
             {
                 activeRemote = value;
+                Logger.Trace("OnActiveRemoteChanged: {0}", value);
                 OnActiveRemoteChanged?.Invoke();
             }
         }
