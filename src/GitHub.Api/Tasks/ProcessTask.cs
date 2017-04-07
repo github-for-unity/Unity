@@ -321,9 +321,9 @@ namespace GitHub.Unity
             }
         }
 
-        public override bool Blocking { get { return true; } }
-        public override bool Critical { get { return true; } }
-        public override bool Cached { get { return true; } }
+        public override bool Blocking { get { return false; } }
+        public override bool Critical { get { return false; } }
+        public override bool Cached { get { return false; } }
 
         public override TaskQueueSetting Queued { get { return TaskQueueSetting.Queue; } }
 
