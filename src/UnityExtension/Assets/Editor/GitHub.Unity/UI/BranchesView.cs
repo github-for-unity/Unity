@@ -48,19 +48,32 @@ namespace GitHub.Unity
         {
             base.OnShow();
             if (Parent.Repository != null)
+            {
                 Parent.Repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
+                Parent.Repository.OnActiveBranchChanged += HandleRepositoryBranchChangeEvent;
+                Parent.Repository.OnActiveRemoteChanged += HandleRepositoryBranchChangeEvent;
+            }
         }
 
         public override void OnHide()
         {
             base.OnHide();
             if (Parent.Repository != null)
+            {
                 Parent.Repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
+                Parent.Repository.OnActiveBranchChanged -= HandleRepositoryBranchChangeEvent;
+                Parent.Repository.OnActiveRemoteChanged -= HandleRepositoryBranchChangeEvent;
+            }
         }
 
         private void RunRefreshEmbeddedOnMainThread()
         {
             TaskRunner.ScheduleMainThread(RefreshEmbedded);
+        }
+
+        private void HandleRepositoryBranchChangeEvent(string obj)
+        {
+            RunRefreshEmbeddedOnMainThread();
         }
 
         public override void Refresh()
