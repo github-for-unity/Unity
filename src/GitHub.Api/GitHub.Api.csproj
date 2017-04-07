@@ -95,6 +95,7 @@
     <Compile Include="Git\GitObjectFactory.cs" />
     <Compile Include="Git\GitStatusEntry.cs" />
     <Compile Include="Git\IGitObjectFactory.cs" />
+    <Compile Include="IO\FileSystemHelpers.cs" />
     <Compile Include="IApplicationManager.cs" />
     <Compile Include="Installer\IGitInstaller.cs" />
     <Compile Include="Installer\IZipHelper.cs" />
