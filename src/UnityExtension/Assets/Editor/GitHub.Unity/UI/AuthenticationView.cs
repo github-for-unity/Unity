@@ -106,7 +106,7 @@ namespace GitHub.Unity
                 GUILayout.Label(usernameLabel, GUILayout.Width(cellWidth));
                 GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                username = GUILayout.TextField(username, Styles.TextFieldStyle, GUILayout.Width(cellWidth));
+                username = EditorGUILayout.TextField(username, Styles.TextFieldStyle, GUILayout.Width(cellWidth));
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
@@ -116,7 +116,7 @@ namespace GitHub.Unity
                 GUILayout.Label(passwordLabel, GUILayout.Width(cellWidth));
                 GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                password = GUILayout.PasswordField(password, '•', Styles.TextFieldStyle, GUILayout.Width(cellWidth));
+                password = EditorGUILayout.PasswordField(password, Styles.TextFieldStyle, GUILayout.Width(cellWidth));
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
