@@ -44,7 +44,6 @@ namespace GitHub.Unity
         private const string GitInstallPickInvalidMessage = "The selected file is not a valid Git install. {0}";
         private const string GitInstallPickInvalidOK = "OK";
         private const string GitInstallFindButton = "Find install";
-        private const string GitInstallButton = "New Git install";
         private const string GitInstallURL = "http://desktop.github.com";
         private const string GitIgnoreRulesTitle = "gitignore rules";
         private const string GitIgnoreRulesEffect = "Effect";
@@ -559,12 +558,6 @@ namespace GitHub.Unity
                         );
                 }
                 GUILayout.FlexibleSpace();
-
-                // Install button if git is not installed or we want a new install
-                if (GUILayout.Button(GitInstallButton, GUILayout.ExpandWidth(false)))
-                {
-                    Application.OpenURL(GitInstallURL);
-                }
             }
             GUILayout.EndHorizontal();
 

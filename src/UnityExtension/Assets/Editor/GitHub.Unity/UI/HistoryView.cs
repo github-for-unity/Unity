@@ -359,11 +359,9 @@ namespace GitHub.Unity
                         GUILayout.Label("Files changed", EditorStyles.boldLabel);
                         GUILayout.Space(-5);
 
-                        GUILayout.BeginHorizontal();
+                        GUILayout.BeginHorizontal(Styles.HistoryFileTreeBoxStyle);
                         {
-                            GUILayout.Space(Styles.HistoryChangesIndentation);
                             changesetTree.OnGUI();
-                            GUILayout.Space(Styles.HistoryChangesIndentation);
                         }
                         GUILayout.EndHorizontal();
 
