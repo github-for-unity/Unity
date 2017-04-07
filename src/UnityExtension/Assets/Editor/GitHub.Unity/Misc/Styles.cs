@@ -116,10 +116,8 @@ namespace GitHub.Unity
             {
                 if (historyFileTreeBoxStyle == null)
                 {
-                    var padding = new RectOffset((int)HistoryChangesIndentation,
-                        (int)HistoryChangesIndentation,
-                        0,
-                        0);
+                    var padding = new RectOffset((int)HistoryChangesIndentation, 0, 0, 0);
+
                     historyFileTreeBoxStyle = new GUIStyle();
                     historyFileTreeBoxStyle.padding = padding;
                 }
