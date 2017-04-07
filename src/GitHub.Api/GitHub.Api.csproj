@@ -97,6 +97,7 @@
     <Compile Include="Git\IGitObjectFactory.cs" />
     <Compile Include="IO\FileSystemHelpers.cs" />
     <Compile Include="IApplicationManager.cs" />
+    <Compile Include="Threading\IMainThreadSynchronizationContext.cs" />
     <Compile Include="Installer\IGitInstaller.cs" />
     <Compile Include="Installer\IZipHelper.cs" />
     <Compile Include="Installer\GitInstaller.cs" />
@@ -184,6 +185,7 @@
     <Compile Include="Tasks\ITaskResultDispatcher.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskQueueSetting.cs" />
+    <Compile Include="Tasks\TaskRunnerBase.cs" />
     <Compile Include="Threading\IAwaitable.cs" />
     <Compile Include="Threading\IAwaiter.cs" />
     <Compile Include="Threading\ThreadingHelper.cs" />

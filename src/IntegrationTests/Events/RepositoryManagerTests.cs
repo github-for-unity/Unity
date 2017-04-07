@@ -6,6 +6,7 @@ using NSubstitute;
 using NUnit.Framework;
 using TestUtils;
 using TestUtils.Events;
+using System.Linq;
 
 namespace IntegrationTests
 {
@@ -44,20 +45,24 @@ namespace IntegrationTests
                 var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
                 foobarTxt.WriteAllText("foobar");
 
-                Thread.Sleep(2000);
+                Thread.Sleep(4000);
 
                 Logger.Trace("Continue test");
 
                 repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
                 result.AssertEqual(expected);
 
-                repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
+                repositoryManagerListener.Received().OnIsBusyChanged(true);
+                repositoryManagerListener.Received().OnIsBusyChanged(false);
+
                 repositoryManagerListener.DidNotReceive().OnActiveBranchChanged();
                 repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
                 repositoryManagerListener.DidNotReceive().OnHeadChanged();
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
+
+                //Assert.AreEqual(3, repositoryManagerListener.ReceivedCalls().Count());
             }
             finally
             {
@@ -101,8 +106,9 @@ namespace IntegrationTests
                     Entries = new List<GitStatusEntry>()
                 };
 
+                ManualResetEvent evt = new ManualResetEvent(false);
                 var result = new GitStatus();
-                repositoryManager.OnRepositoryChanged += status => { result = status; };
+                repositoryManager.OnRepositoryChanged += status => { result = status; evt.Set(); };
 
                 Logger.Trace("Issuing Changes");
 
@@ -112,14 +118,15 @@ namespace IntegrationTests
                 var testDocumentTxt = TestRepoMasterCleanSynchronized.Combine("Assets", "TestDocument.txt");
                 testDocumentTxt.WriteAllText("foobar");
 
-                Thread.Sleep(2000);
+                Assert.True(evt.WaitOne(5000));
+                evt.Reset();
 
                 Logger.Trace("Continue test");
 
                 repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
                 result.AssertEqual(expectedAfterChanges);
 
-                repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
+                //repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().OnActiveBranchChanged();
                 repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
                 repositoryManagerListener.DidNotReceive().OnHeadChanged();
@@ -135,11 +142,11 @@ namespace IntegrationTests
                     new List<string>() { "Assets\\TestDocument.txt", "foobar.txt" }, "IntegrationTest Commit",
                     string.Empty);
 
-                Thread.Sleep(2000);
+                Assert.True(evt.WaitOne(5000));
+                evt.Reset();
 
                 Logger.Trace("Continue test");
 
-                repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
                 result.AssertEqual(expectedAfterCommit);
 
                 repositoryManagerListener.Received(1).OnActiveBranchChanged();
@@ -188,7 +195,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
                 result.AssertEqual(expected);
-                repositoryManagerListener.Received(2).OnIsBusyChanged(Args.Bool);
+                repositoryManagerListener.Received(6).OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received(1).OnActiveBranchChanged();
                 repositoryManagerListener.Received(1).OnActiveRemoteChanged();
                 repositoryManagerListener.Received(1).OnHeadChanged();
@@ -389,7 +396,7 @@ namespace IntegrationTests
                 repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
                 result.AssertEqual(expected);
 
-                repositoryManagerListener.ReceivedWithAnyArgs(2).OnIsBusyChanged(Args.Bool);
+                repositoryManagerListener.ReceivedWithAnyArgs(6).OnIsBusyChanged(Args.Bool);
                 repositoryManager.IsBusy.Should().BeFalse();
 
                 repositoryManagerListener.Received(1).OnActiveBranchChanged();
@@ -445,7 +452,7 @@ namespace IntegrationTests
         private RepositoryManager CreateRepositoryManager(NPath path)
         {
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            var taskRunner = new TaskRunnerBase(new MainThreadSynchronizationContextBase(), CancellationToken.None);
+            var taskRunner = new TaskRunnerBase(new TestSynchronizationContext(), CancellationToken.None);
             taskRunner.Run();
             return repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, path, CancellationToken.None);
         }

@@ -1,9 +1,11 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
 using GitHub.Unity;
 using NSubstitute.Core;
+using TestUtils;
 
 namespace IntegrationTests
 {
@@ -16,7 +18,7 @@ namespace IntegrationTests
         protected static string SolutionDirectory => TestContext.CurrentContext.TestDirectory;
 
         [TestFixtureSetUp]
-        public void TestFixtureSetup()
+        public void TestFixtureSetUp()
         {
             Logger = Logging.GetLogger(GetType());
             Factory = new TestUtils.SubstituteFactory();
