@@ -6,6 +6,8 @@ namespace GitHub.Unity
 {
     class GitInstaller : IGitInstaller
     {
+        public const string GitLfsExecutableMD5 = "CD59072535B9DFF416676C8A84571B0C";
+
         private const string PortableGitExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
         private const string PackageName = "PortableGit";
         private const string TempPathPrefix = "github-unity-portable";
@@ -16,22 +18,23 @@ namespace GitHub.Unity
         private readonly CancellationToken cancellationToken;
         private readonly IEnvironment environment;
         private readonly ILogging logger;
+        private readonly IFileSystem fileSystem;
 
         private delegate void ExtractZipFile(string archive, string outFolder, CancellationToken cancellationToken,
             IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null);
         private ExtractZipFile extractCallback;
 
-        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper)
-            : this(environment, sharpZipLibHelper, CancellationToken.None)
+        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, IFileSystem fileSystem)
+            : this(environment, sharpZipLibHelper, fileSystem, CancellationToken.None)
         {
         }
 
-        public GitInstaller(IEnvironment environment, CancellationToken cancellationToken)
-            : this(environment, null, CancellationToken.None)
+        public GitInstaller(IEnvironment environment, IFileSystem fileSystem, CancellationToken cancellationToken)
+            : this(environment, null, fileSystem, CancellationToken.None)
         {
         }
 
-        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, CancellationToken cancellationToken)
+        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, IFileSystem fileSystem, CancellationToken cancellationToken)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));
 
@@ -39,6 +42,7 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
 
             this.environment = environment;
+            this.fileSystem = fileSystem;
             this.extractCallback = sharpZipLibHelper != null
                  ? (ExtractZipFile)sharpZipLibHelper.Extract
                  : ZipHelper.ExtractZipFile;
@@ -96,6 +100,12 @@ namespace GitHub.Unity
             if (!GitLfsDestinationPath.FileExists())
             {
                 logger.Trace("{0} not installed yet", GitLfsDestinationPath);
+                return false;
+            }
+
+            if (fileSystem.CalculateMD5(GitLfsDestinationPath) == GitLfsExecutableMD5)
+            {
+                logger.Trace("{0} has incorrect MD5", GitDestinationPath);
                 return false;
             }
 

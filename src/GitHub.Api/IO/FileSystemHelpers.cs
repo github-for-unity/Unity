@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace GitHub.Unity
 {
@@ -23,6 +24,7 @@ namespace GitHub.Unity
                     break;
                 }
             }
+
             return commonParent;
         }
     }

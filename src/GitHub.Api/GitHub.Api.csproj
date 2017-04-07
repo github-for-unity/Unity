@@ -88,6 +88,7 @@
     <Compile Include="DefaultEnvironment.cs" />
     <Compile Include="Extensions\FileEventExtensions.cs" />
     <Compile Include="Events\RepositoryWatcher.cs" />
+    <Compile Include="Extensions\FileSystemExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="GitSetup.cs" />
     <Compile Include="Git\GitFileStatus.cs" />
