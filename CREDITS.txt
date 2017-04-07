@@ -1,4 +1,6 @@
-	Port of Mono's System.Net.Http (https://github.com/shana/dotnet-httpclient35)
+===============================================================================
+Port of Mono's System.Net.Http (https://github.com/shana/dotnet-httpclient35)
+===============================================================================
 
 Copyright (c) 2001, 2002, 2003 Ximian, Inc and the individuals listed
 on the ChangeLog entries.
@@ -22,7 +24,9 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-	Port of Axosoft's NSFW (https://github.com/StanleyGoldman/sfw)
+===============================================================================
+Port of Axosoft's NSFW (https://github.com/StanleyGoldman/sfw)
+===============================================================================
 
 The MIT License (MIT)
 
@@ -46,7 +50,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-	Octokit.NET (https://github.com/editor-tools/octokit.net/tree/net3.5)
+===============================================================================
+Octokit.NET (https://github.com/editor-tools/octokit.net/tree/net3.5)
+===============================================================================
 
 Copyright (c) 2012 GitHub, Inc.
 
@@ -67,7 +73,9 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-	AsyncBridge (https://github.com/OmerMor/AsyncBridge)
+===============================================================================
+AsyncBridge (https://github.com/OmerMor/AsyncBridge)
+===============================================================================
 
 The MIT License (MIT)
 
@@ -91,7 +99,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-	TaskParallelLibrary (https://www.nuget.org/packages/TaskParallelLibrary/)
+===============================================================================
+TaskParallelLibrary (https://www.nuget.org/packages/TaskParallelLibrary/)
+===============================================================================
 
 MICROSOFT SOFTWARE LICENSE TERMS
 
@@ -154,7 +164,9 @@ This limitation applies to
 
 It also applies even if Microsoft knew or should have known about the possibility of the damages. The above limitation or exclusion may not apply to you because your country may not allow the exclusion or limitation of incidental, consequential or other damages.
 
-	dotnet-threading (https://github.com/tunnelvisionlabs/dotnet-threading)
+===============================================================================
+dotnet-threading (https://github.com/tunnelvisionlabs/dotnet-threading)
+===============================================================================
 
 Copyright (c) Tunnel Vision Laboratories, LLC. All rights reserved.
 
@@ -210,9 +222,10 @@ Microsoft .NET Reference Source
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
-
     
-	ReadOnlyCollectionInterfaces (https://www.openhub.net/p/ReadOnlyCollections)
+===============================================================================
+ReadOnlyCollectionInterfaces (https://www.openhub.net/p/ReadOnlyCollections)
+===============================================================================
 
 Apache License, Version 2.0
 
