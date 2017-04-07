@@ -92,6 +92,8 @@ namespace GitHub.Unity
                 return false;
             }
 
+            logger.Trace("Git Present");
+
             return true;
         }
 
@@ -103,23 +105,25 @@ namespace GitHub.Unity
                 return false;
             }
 
-            if (fileSystem.CalculateMD5(GitLfsDestinationPath) != GitLfsExecutableMD5)
+            var calculateMd5 = fileSystem.CalculateMD5(GitLfsDestinationPath);
+            logger.Trace("GitLFS MD5: {0}", calculateMd5);
+
+            if (calculateMd5 != GitLfsExecutableMD5)
             {
                 logger.Trace("{0} has incorrect MD5", GitDestinationPath);
                 return false;
             }
+
+            logger.Trace("GitLFS Present");
 
             return true;
         }
 
         public async Task<bool> SetupIfNeeded(IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            logger.Trace("SetupIfNeeded");
 
-            if (InstalledGitIsValid())
-            {
-                return true;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             NPath tempPath = null;
             try
@@ -159,14 +163,11 @@ namespace GitHub.Unity
             }
         }
 
-        private bool InstalledGitIsValid()
-        {
-            return false;
-        }
-
         public Task<bool> SetupGitIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
+            logger.Trace("SetupGitIfNeeded");
+
             cancellationToken.ThrowIfCancellationRequested();
 
             if (IsPortableGitExtracted())
@@ -227,6 +228,8 @@ namespace GitHub.Unity
         public Task<bool> SetupGitLfsIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
+            logger.Trace("SetupGitLfsIfNeeded");
+
             cancellationToken.ThrowIfCancellationRequested();
 
             if (IsGitLfsExtracted())
