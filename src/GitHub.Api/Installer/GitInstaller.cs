@@ -103,7 +103,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            if (fileSystem.CalculateMD5(GitLfsDestinationPath) == GitLfsExecutableMD5)
+            if (fileSystem.CalculateMD5(GitLfsDestinationPath) != GitLfsExecutableMD5)
             {
                 logger.Trace("{0} has incorrect MD5", GitDestinationPath);
                 return false;
