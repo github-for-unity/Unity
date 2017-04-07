@@ -16,7 +16,7 @@ namespace IntegrationTests
                 UnityProjectPath = repoPath
             };
 
-            var gitSetup = new GitSetup(Environment, CancellationToken.None);
+            var gitSetup = new GitSetup(Environment, FileSystem, CancellationToken.None);
             gitSetup.SetupIfNeeded().Wait();
 
             Environment.GitExecutablePath = gitSetup.GitExecutablePath;
