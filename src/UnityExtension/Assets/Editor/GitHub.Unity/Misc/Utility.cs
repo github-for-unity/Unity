@@ -106,7 +106,7 @@ namespace GitHub.Unity
             var commonParent = deepestPath;
             foreach (var path in pathsArray)
             {
-                var cp = commonParent.GetCommonParent(path);
+                var cp = path.Elements.Any() ? commonParent.GetCommonParent(path) : null;
                 if (cp != null)
                     commonParent = cp;
                 else
