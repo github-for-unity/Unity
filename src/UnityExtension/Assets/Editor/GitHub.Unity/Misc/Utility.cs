@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -94,28 +93,6 @@ namespace GitHub.Unity
             backgroundTexture.Apply();
 
             return backgroundTexture;
-        }
-
-        // Based on: https://www.rosettacode.org/wiki/Find_common_directory_path#C.23
-        public static string FindCommonPath(IEnumerable<string> paths)
-        {
-            var pathsArray = paths.Select(s => s.ToNPath().Parent).ToArray();
-            var maxDepth = pathsArray.Max(path => path.Depth);
-            var deepestPath = pathsArray.First(path => path.Depth == maxDepth);
-
-            var commonParent = deepestPath;
-            foreach (var path in pathsArray)
-            {
-                var cp = commonParent.GetCommonParent(path);
-                if (cp != null)
-                    commonParent = cp;
-                else
-                {
-                    commonParent = null;
-                    break;
-                }
-            }
-            return commonParent;
         }
 
         public static string GitInstallPath
