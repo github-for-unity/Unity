@@ -67,33 +67,34 @@ namespace GitHub.Unity
             changesetTree.Initialize(this);
             changesetTree.Readonly = true;
 
-            parent.Repository.OnActiveBranchChanged += s => { Refresh(); };
+            Repository.OnActiveBranchChanged += s => { Refresh(); };
+            Repository.OnActiveRemoteChanged += s => { Refresh(); };
         }
 
         public override void OnShow()
         {
             base.OnShow();
             UpdateLog();
-            if (Parent.Repository != null)
-                Parent.Repository.OnCommitChanged += UpdateLog;
+            if (Repository != null)
+                Repository.OnCommitChanged += UpdateLog;
         }
 
         public override void OnHide()
         {
             base.OnHide();
-            if (Parent.Repository != null)
-                Parent.Repository.OnCommitChanged -= UpdateLog;
+            if (Repository != null)
+                Repository.OnCommitChanged -= UpdateLog;
         }
 
         private void UpdateLog()
         {
-            if (Parent.Repository == null)
+            if (Repository == null)
                 return;
 
             TaskRunner.ScheduleMainThread(() =>
             {
-                var status = Parent.Repository.CurrentStatus;
-                currentRemote = Parent.Repository.CurrentRemote;
+                var status = Repository.CurrentStatus;
+                currentRemote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : null;
                 statusAhead = status.Ahead;
                 statusBehind = status.Behind;
 
@@ -104,8 +105,6 @@ namespace GitHub.Unity
 
         public override void Refresh()
         {
-            Logger.Trace("Refresh");
-
 //            if (historyTarget != null)
 //            {
 //                //TODO: Create a task that can get the log of one target
@@ -242,7 +241,7 @@ namespace GitHub.Unity
                 }
 
                 var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
-                GUI.enabled = statusAhead > 0 && statusBehind == 0;
+                GUI.enabled = statusBehind == 0;
                 var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
                 GUI.enabled = true;
                 if (pushClicked &&
@@ -562,13 +561,13 @@ namespace GitHub.Unity
 
         private void Pull()
         {
-            var status = Parent.Repository.CurrentStatus;
+            var status = Repository.CurrentStatus;
             if (status.Entries != null && status.Entries.Count > 0)
             {
                 EntryPoint.TaskResultDispatcher.ReportFailure(FailureSeverity.Critical, "Pull", "You need to commit your changes before pulling.");
             }
 
-            var remote = Parent.Repository.CurrentRemote;
+            var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
             var resultDispatcher = new MainThreadTaskResultDispatcher<string>(_ =>
             {
                 EditorUtility.DisplayDialog(Localization.PullActionTitle,
@@ -576,12 +575,12 @@ namespace GitHub.Unity
                     Localization.Ok);
             });
 
-            Parent.Repository.Pull(resultDispatcher);
+            Repository.Pull(resultDispatcher);
         }
 
         private void Push()
         {
-            var remote = Parent.Repository.CurrentRemote;
+            var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
             var resultDispatcher = new MainThreadTaskResultDispatcher<string>(_ =>
             {
                 EditorUtility.DisplayDialog(Localization.PushActionTitle,
@@ -589,7 +588,7 @@ namespace GitHub.Unity
                     Localization.Ok);
             });
 
-            Parent.Repository.Push(resultDispatcher);
+            Repository.Push(resultDispatcher);
         }
 
         void drawTimelineRectAroundIconRect(Rect parentRect, Rect iconRect)

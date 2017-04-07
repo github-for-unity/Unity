@@ -90,7 +90,7 @@ namespace UnitTests
         public void ShouldNotBeEqualIfOneIsLocked()
         {
             var gitStatusEntry = new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
-                GitFileStatus.Added, "SomeOriginalPath", gitLock:new GitLock("SomePath", "SomeFullPath", "Someone"));
+                GitFileStatus.Added, "SomeOriginalPath");
 
             var gitStatusEntry2= new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
                 GitFileStatus.Added, "SomeOriginalPath");
@@ -102,10 +102,10 @@ namespace UnitTests
         public void ShouldBeEqualIfBothAreLocked()
         {
             var gitStatusEntry = new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
-                GitFileStatus.Added, "SomeOriginalPath", gitLock: new GitLock("SomePath", "SomeFullPath", "Someone"));
+                GitFileStatus.Added, "SomeOriginalPath");
 
             var gitStatusEntry2= new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
-                GitFileStatus.Added, "SomeOriginalPath", gitLock: new GitLock("SomePath", "SomeFullPath", "Someone"));
+                GitFileStatus.Added, "SomeOriginalPath");
 
             gitStatusEntry.Should().Be(gitStatusEntry2);
         }
@@ -114,10 +114,10 @@ namespace UnitTests
         public void ShouldNotBeEqualIfLocksAreDifferent()
         {
             var gitStatusEntry = new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
-                GitFileStatus.Added, "SomeOriginalPath", gitLock: new GitLock("SomePath", "SomeFullPath", "Someone"));
+                GitFileStatus.Added, "SomeOriginalPath");
 
             var gitStatusEntry2= new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
-                GitFileStatus.Added, "SomeOriginalPath", gitLock: new GitLock("SomePath", "SomeFullPath", "SomeoneElse"));
+                GitFileStatus.Added, "SomeOriginalPath");
 
             gitStatusEntry.Should().NotBe(gitStatusEntry2);
         }

@@ -2,7 +2,9 @@ namespace GitHub.Unity
 {
     enum GitFileStatus
     {
+        None,
         Untracked,
+        Ignored,
         Modified,
         Added,
         Deleted,
