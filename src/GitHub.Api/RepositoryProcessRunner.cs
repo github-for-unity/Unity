@@ -6,9 +6,9 @@ namespace GitHub.Unity
 {
     interface IRepositoryProcessRunner
     {
-        Task<bool> RunGitStatus(ITaskResultDispatcher<GitStatus> resultDispatcher);
+        ITask<GitStatus?> PrepareGitStatus(ITaskResultDispatcher<GitStatus> resultDispatcher);
         Task<bool> RunGitConfigGet(ITaskResultDispatcher<string> resultDispatcher, string key, GitConfigSource configSource);
-        Task<bool> RunGitListLocks(ITaskResultDispatcher<IEnumerable<GitLock>> resultDispatcher);
+        ITask<IEnumerable<GitLock>> PrepareGitListLocks(ITaskResultDispatcher<IEnumerable<GitLock>> resultDispatcher);
         ITask PrepareGitPull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch);
         ITask PrepareGitPush(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch);
         ITask PrepareSwitchBranch(ITaskResultDispatcher<string> resultDispatcher, string branch);
@@ -41,10 +41,9 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
         }
 
-        public Task<bool> RunGitStatus(ITaskResultDispatcher<GitStatus> resultDispatcher)
+        public ITask<GitStatus?> PrepareGitStatus(ITaskResultDispatcher<GitStatus> resultDispatcher)
         {
-            var task = new GitStatusTask(environment, processManager, resultDispatcher, new GitObjectFactory(environment));
-            return task.RunAsync(cancellationToken);
+            return new GitStatusTask(environment, processManager, resultDispatcher, new GitObjectFactory(environment));
         }
 
         public Task<bool> RunGitConfigGet(ITaskResultDispatcher<string> resultDispatcher, string key, GitConfigSource configSource)
@@ -53,11 +52,10 @@ namespace GitHub.Unity
             return task.RunAsync(cancellationToken);
         }
 
-        public Task<bool> RunGitListLocks(ITaskResultDispatcher<IEnumerable<GitLock>> resultDispatcher)
+        public ITask<IEnumerable<GitLock>> PrepareGitListLocks(ITaskResultDispatcher<IEnumerable<GitLock>> resultDispatcher)
         {
             var gitObjectFactory = new GitObjectFactory(environment);
-            var task = new GitListLocksTask(environment, processManager, resultDispatcher, gitObjectFactory);
-            return task.RunAsync(cancellationToken);
+            return new GitListLocksTask(environment, processManager, resultDispatcher, gitObjectFactory);
         }
 
         public ITask PrepareGitPull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch)

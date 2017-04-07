@@ -69,8 +69,6 @@ namespace GitHub.Unity
 
         public void Start()
         {
-            Logger.Trace("Starting watcher");
-
             if (nativeInterface == null)
             {
                 Logger.Warning("NativeInterface is null");
@@ -78,8 +76,7 @@ namespace GitHub.Unity
             }
 
             running = true;
-            task = new Task(WatcherLoop);
-            task.Start(TaskScheduler.Current);
+            task = Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, ThreadingHelper.TaskScheduler);
         }
 
         public void Stop()
@@ -98,6 +95,8 @@ namespace GitHub.Unity
 
         private void WatcherLoop()
         {
+            Logger.Trace("Starting watcher");
+
             while (running)
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -172,7 +171,7 @@ namespace GitHub.Unity
         {
             if (fileA.Equals(paths.DotGitConfig))
             {
-                Logger.Debug("ConfigChanged");
+                Logger.Trace("ConfigChanged");
 
                 ConfigChanged?.Invoke();
             }
@@ -184,12 +183,12 @@ namespace GitHub.Unity
                     headContent = paths.DotGitHead.ReadAllLines().FirstOrDefault();
                 }
 
-                Logger.Debug("HeadChanged: {0}", headContent ?? "[null]");
+                Logger.Trace("HeadChanged: {0}", headContent ?? "[null]");
                 HeadChanged?.Invoke(headContent);
             }
             else if (fileA.Equals(paths.DotGitIndex))
             {
-                Logger.Debug("IndexChanged");
+                Logger.Trace("IndexChanged");
                 IndexChanged?.Invoke();
             }
             else if (fileA.IsChildOf(paths.RemotesPath))
@@ -208,7 +207,7 @@ namespace GitHub.Unity
                 {
                     var branch = string.Join(@"/", relativePathElements.Skip(1).ToArray());
 
-                    Logger.Debug("RemoteBranchDeleted: {0}/{1}", origin, branch);
+                    Logger.Trace("RemoteBranchDeleted: {0}/{1}", origin, branch);
                     RemoteBranchDeleted?.Invoke(origin, branch);
                 }
                 else if (fileEvent.Type == EventType.RENAMED)
@@ -228,7 +227,7 @@ namespace GitHub.Unity
 
                             var branch = string.Join(@"/", branchPathElement);
 
-                            Logger.Debug("RemoteBranchCreated: {0}/{1}", origin, branch);
+                            Logger.Trace("RemoteBranchCreated: {0}/{1}", origin, branch);
                             RemoteBranchCreated?.Invoke(origin, branch);
                         }
                     }
