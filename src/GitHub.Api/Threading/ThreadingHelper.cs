@@ -8,6 +8,19 @@ namespace GitHub.Unity
     static class ThreadingHelper
     {
         public static TaskScheduler MainThreadScheduler { get; set; }
+
+        static TaskScheduler taskScheduler = TaskScheduler.Current;
+        public static TaskScheduler TaskScheduler
+        {
+            get
+            {
+                return taskScheduler;
+            }
+            set
+            {
+                taskScheduler = value;
+            }
+        }
         public static int MainThread { get; set; }
         public static bool InMainThread { get { return MainThread == 0 || Thread.CurrentThread.ManagedThreadId == MainThread; } }
 

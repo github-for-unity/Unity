@@ -2,11 +2,10 @@ using System;
 
 namespace GitHub.Unity
 {
-    class GitStatusTask : GitTask
+    class GitStatusTask : GitTask, ITask<GitStatus?>
     {
         private readonly ITaskResultDispatcher<GitStatus> resultDispatcher;
         private readonly StatusOutputProcessor processor;
-        private GitStatus gitStatus;
 
         public GitStatusTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher<GitStatus> resultDispatcher,
                 IGitObjectFactory gitObjectFactory)
@@ -19,8 +18,8 @@ namespace GitHub.Unity
         protected override ProcessOutputManager HookupOutput(IProcess process)
         {
             processor.OnStatus += status => {
-                gitStatus = status;
-                resultDispatcher.ReportSuccess(gitStatus);
+                Result = status;
+                resultDispatcher.ReportSuccess(status);
             };
             return new ProcessOutputManager(process, processor);
         }
@@ -35,5 +34,7 @@ namespace GitHub.Unity
         {
             get { return "status -b -u --porcelain"; }
         }
+
+        public GitStatus? TaskResult { get { return Result as GitStatus?; } }
     }
 }

@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using FluentAssertions;
 using GitHub.Unity;
+using TestUtils;
 
 namespace IntegrationTests
 {
@@ -30,7 +31,7 @@ namespace IntegrationTests
             Environment.UnityProjectPath = repoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
 
-            var taskRunner = new TaskRunner(new MainThreadSynchronizationContextBase(), CancellationToken.None);
+            var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
 
             var repositoryManagerFactory = new RepositoryManagerFactory();
             var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, repoPath, CancellationToken.None);
