@@ -2,6 +2,28 @@ using System;
 
 namespace GitHub.Unity
 {
+    class GitRemoteChangeTask : GitTask
+    {
+        private readonly string arguments;
+
+        public GitRemoteChangeTask(IEnvironment environment, IProcessManager processManager,
+            ITaskResultDispatcher<string> resultDispatcher,
+                string name, string url)
+            : base(environment, processManager, resultDispatcher)
+        {
+            Guard.ArgumentNotNullOrWhiteSpace(name, "name");
+            Guard.ArgumentNotNullOrWhiteSpace(url, "url");
+
+            arguments = String.Format("remote set-url {0} {1}", name, url);
+        }
+
+        public override bool Blocking { get { return false; } }
+        public override bool Critical { get { return false; } }
+        public override string Label { get { return "git remote set-url"; } }
+        protected override string ProcessArguments { get { return arguments; } }
+    }
+
+
     class GitRemoteAddTask : GitTask
     {
         private readonly string arguments;

@@ -776,11 +776,11 @@ namespace GitHub.Unity
             }
         }
 
-        public static Texture2D GetGitFileStatusIcon(GitStatusEntry gitStatusEntry)
+        public static Texture2D GetFileStatusIcon(GitFileStatus status, bool isLocked)
         {
-            if (gitStatusEntry.Lock.HasValue)
+            if (isLocked)
             {
-                switch (gitStatusEntry.Status)
+                switch (status)
                 {
                     case GitFileStatus.Modified:
                         return lockedModifiedStatusIcon = lockedModifiedStatusIcon ?? Utility.GetIcon("locked.png", "locked@2x.png");
@@ -790,7 +790,7 @@ namespace GitHub.Unity
                 }
             }
 
-            switch (gitStatusEntry.Status)
+            switch (status)
             {
                 case GitFileStatus.Modified:
                     return modifiedStatusIcon = modifiedStatusIcon ?? Utility.GetIcon("modified.png", "modified@2x.png");

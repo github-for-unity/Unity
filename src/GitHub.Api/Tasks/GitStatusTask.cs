@@ -32,7 +32,7 @@ namespace GitHub.Unity
 
         protected override string ProcessArguments
         {
-            get { return "status -b -u --porcelain"; }
+            get { return "status -b -u --ignored --porcelain"; }
         }
 
         public GitStatus? TaskResult { get { return Result as GitStatus?; } }
