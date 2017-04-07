@@ -67,23 +67,46 @@ namespace GitHub.Unity
             changesetTree.Initialize(this);
             changesetTree.Readonly = true;
 
-            Repository.OnActiveBranchChanged += s => { Refresh(); };
-            Repository.OnActiveRemoteChanged += s => { Refresh(); };
+            Repository.OnActiveBranchChanged += s => Refresh();
+            Repository.OnActiveRemoteChanged += s => Refresh();
         }
 
         public override void OnShow()
         {
             base.OnShow();
-            UpdateLog();
             if (Repository != null)
-                Repository.OnCommitChanged += UpdateLog;
+            {
+                Repository.OnCommitChanged += UpdateLogOnMainThread;
+                Repository.OnRepositoryChanged += UpdateStatusOnMainThread;
+            }
+            UpdateLog();
         }
 
         public override void OnHide()
         {
             base.OnHide();
             if (Repository != null)
-                Repository.OnCommitChanged -= UpdateLog;
+            {
+                Repository.OnCommitChanged -= UpdateLogOnMainThread;
+                Repository.OnRepositoryChanged -= UpdateStatusOnMainThread;
+            }
+        }
+
+        private void UpdateStatusOnMainThread(GitStatus status)
+        {
+            TaskRunner.ScheduleMainThread(() => UpdateStatus(status));
+        }
+
+        private void UpdateStatus(GitStatus status)
+        {
+            currentRemote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : null;
+            statusAhead = status.Ahead;
+            statusBehind = status.Behind;
+        }
+
+        private void UpdateLogOnMainThread()
+        {
+            TaskRunner.ScheduleMainThread(UpdateLog);
         }
 
         private void UpdateLog()
@@ -91,31 +114,27 @@ namespace GitHub.Unity
             if (Repository == null)
                 return;
 
-            TaskRunner.ScheduleMainThread(() =>
-            {
-                var status = Repository.CurrentStatus;
-                currentRemote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : null;
-                statusAhead = status.Ahead;
-                statusBehind = status.Behind;
-
-                Refresh();
-            });
+            UpdateStatus(Repository.CurrentStatus);
+            Refresh();
         }
 
-
-        public override void Refresh()
+        private void RefreshLog()
         {
-//            if (historyTarget != null)
-//            {
-//                //TODO: Create a task that can get the log of one target
-//                //GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)),);
-//            }
-
             ITask task = new GitLogTask(EntryPoint.Environment, EntryPoint.ProcessManager,
                 new MainThreadTaskResultDispatcher<IEnumerable<GitLogEntry>>(OnLogUpdate),
                 EntryPoint.GitObjectFactory);
             TaskRunner.Add(task);
+        }
 
+        public override void Refresh()
+        {
+            //            if (historyTarget != null)
+            //            {
+            //                //TODO: Create a task that can get the log of one target
+            //                //GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)),);
+            //            }
+
+            RefreshLog();
 #if ENABLE_BROADMODE
             if (broadMode)
             {
@@ -581,11 +600,12 @@ namespace GitHub.Unity
         private void Push()
         {
             var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
-            var resultDispatcher = new MainThreadTaskResultDispatcher<string>(_ =>
+            var resultDispatcher = new TaskResultDispatcher<string>(_ =>
             {
-                EditorUtility.DisplayDialog(Localization.PushActionTitle,
-                    String.Format(Localization.PushSuccessDescription, remote),
-                    Localization.Ok);
+                //EditorUtility.DisplayDialog(Localization.PushActionTitle,
+                //    String.Format(Localization.PushSuccessDescription, remote),
+                //    Localization.Ok);
+                RefreshLog();
             });
 
             Repository.Push(resultDispatcher);
