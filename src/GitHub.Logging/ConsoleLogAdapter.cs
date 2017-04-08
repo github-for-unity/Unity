@@ -23,6 +23,8 @@ namespace GitHub.Unity
         public override void Debug(string message)
         {
 #if DEBUG
+            if (!Logging.TracingEnabled) return;
+
             WriteLine("DEBUG", message);
 #endif
         }

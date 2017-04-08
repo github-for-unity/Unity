@@ -79,6 +79,8 @@ namespace GitHub.Unity
         public void Trace(string format, params object[] objects)
         {
 #if ENABLE_TRACE
+            if (!Logging.TracingEnabled) return;
+
             Trace(String.Format(format, objects));
 #endif
         }
@@ -86,6 +88,8 @@ namespace GitHub.Unity
         public void Trace(Exception ex, string message)
         {
 #if ENABLE_TRACE
+            if (!Logging.TracingEnabled) return;
+
             var exceptionMessage = GetExceptionMessage(ex);
             Trace(String.Concat(message, Environment.NewLine, (string)exceptionMessage));
 #endif
@@ -94,6 +98,8 @@ namespace GitHub.Unity
         public void Trace(Exception ex)
         {
 #if ENABLE_TRACE
+            if (!Logging.TracingEnabled) return;
+
             Trace(ex, string.Empty);
 #endif
         }
@@ -101,6 +107,8 @@ namespace GitHub.Unity
         public void Trace(Exception ex, string format, params object[] objects)
         {
 #if ENABLE_TRACE
+            if (!Logging.TracingEnabled) return;
+
             Trace(ex, String.Format(format, objects));
 #endif
         }

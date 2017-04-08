@@ -57,6 +57,8 @@ namespace GitHub.Unity
         private const string GitConfigEmailLabel = "Email";
         private const string GitConfigUserSave = "Save";
         private const string GitConfigUserSaved = "Saved";
+        private const string DebugSettingsTitle = "Debug";
+        private const string EnableTraceLoggingLabel = "Enable Trace Logging";
 
         // TODO: Replace me with the real values
         [SerializeField] private string gitName;
@@ -114,6 +116,8 @@ namespace GitHub.Unity
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
                     OnInstallPathGUI();
+
+                    OnLoggingSettingsGui();
                 //}
             }
 
@@ -484,6 +488,27 @@ namespace GitHub.Unity
             GUILayout.EndHorizontal();
 
             GUI.enabled = true;
+        }
+
+        private void OnLoggingSettingsGui()
+        {
+            // Install path
+            GUILayout.Label(DebugSettingsTitle, EditorStyles.boldLabel);
+
+            GUI.enabled = !busy;
+
+            var traceLogging = Logging.TracingEnabled;
+
+            // Install path field
+            EditorGUI.BeginChangeCheck();
+            {
+                traceLogging = EditorGUILayout.Toggle(EnableTraceLoggingLabel, traceLogging);
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                Logging.TracingEnabled = traceLogging;
+                GUI.FocusControl(null);
+            }
         }
 
         private void ResetInitDirectory()
