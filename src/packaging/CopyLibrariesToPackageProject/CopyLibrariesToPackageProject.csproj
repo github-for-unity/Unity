@@ -14,7 +14,7 @@
     <OutputPath>build</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Publish|AnyCPU' ">
-    <Config>Release</Config>
+    <BuildConfiguration>Release</BuildConfiguration>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
@@ -22,7 +22,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'PublishDebug|AnyCPU'">
-    <Config>Debug</Config>
+    <BuildConfiguration>Debug</BuildConfiguration>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
@@ -53,7 +53,7 @@
     <ProjectReference Include="..\..\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
       <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
       <Name>GitHub.Unity</Name>
-      <Private>False</Private>
+      <Private>True</Private>
     </ProjectReference>
     <Reference Include="AsyncBridge.Net35, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\AsyncBridge.Net35.0.2.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
@@ -73,7 +73,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="sfw.net">
-      <HintPath>$(SolutionDir)\lib\sfw.net\win\x64\$(Config)\sfw.net.dll</HintPath>
+      <HintPath>$(SolutionDir)\lib\sfw.net\win\x64\$(BuildConfiguration)\sfw.net.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -90,10 +90,10 @@
     <!-- Content Include="$(SolutionDir)\lib\sfw.net\osx\libsfw.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content -->
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Config)\sfw.dll">
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(BuildConfiguration)\sfw.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Config)\pthreadVC2.dll">
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(BuildConfiguration)\pthreadVC2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -148,7 +148,11 @@
     <Copy Condition="'%(IndirectDependency.FullPath)'!=''" SourceFiles="%(IndirectDependency.FullPath)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true">
       <Output TaskParameter="CopiedFiles" ItemName="IndirectDependencyCopied" />
     </Copy>
-    <Message Importance="low" Condition="'%(IndirectDependencyCopied.FullPath)'!='' &#xD;&#xA;               and '%(IndirectDependencyCopied.Extension)'!='.pdb' &#xD;&#xA;               and '%(IndirectDependencyCopied.Extension)'!='.xml'" Text="Dependency copied: %(IndirectDependencyCopied.FullPath)" />
+    <Message Importance="low" Condition="
+        '%(IndirectDependencyCopied.FullPath)'!='' and
+        '%(IndirectDependencyCopied.Extension)'!='.pdb' and
+        '%(IndirectDependencyCopied.Extension)'!='.xml'"
+        Text="Dependency copied: %(IndirectDependencyCopied.FullPath)" />
   </Target>
   <Target Name="DetectMainAssembly" DependsOnTargets="ResolveAssemblyReferences">
     <Message Importance="low" Text="Dependency: %(ReferencePath.Filename)%(ReferencePath.Extension) %(ReferencePath.CopyLocal)" />
