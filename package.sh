@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh -xeu
 
 Configuration="Release"
 Publish="Publish"
@@ -9,8 +9,8 @@ case x"$2" in
 		;;
 esac
 
-xbuild GitHub.Unity.sln /Configuration:$Configuration
-xbuild GitHub.Unity.sln /Configuration:$Publish
+nuget restore
+xbuild GitHub.Unity.sln /property:Configuration=$Configuration
 
 Unity=""
 if [ -f $1/Unity.app/Contents/MacOS/Unity ]; then
@@ -21,6 +21,6 @@ else
 	echo "Can't find Unity in $1"
 	exit 1
 fi
-
+rm unity/PackageProject/Assets/Editor/GitHub/CopyLibraries*
 export GITHUB_UNITY_DISABLE=1
 $Unity -batchmode -projectPath `pwd`/unity/PackageProject -exportPackage Assets/Editor/GitHub github-for-unity-windows.unitypackage -force-free -quit

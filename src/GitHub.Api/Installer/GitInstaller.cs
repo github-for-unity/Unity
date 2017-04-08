@@ -151,7 +151,7 @@ namespace GitHub.Unity
 
         private bool InstalledGitIsValid()
         {
-            return false;
+            return IsExtracted();
         }
 
         public Task<bool> SetupGitIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,

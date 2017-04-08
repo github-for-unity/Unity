@@ -6,17 +6,23 @@ namespace GitHub.Unity
     {
         private readonly ITaskResultDispatcher<IEnumerable<GitLock>> resultDispatcher;
         private readonly LockOutputProcessor processor;
+        private readonly string args;
 
         public GitListLocksTask(
             IEnvironment environment, IProcessManager processManager,
             ITaskResultDispatcher<IEnumerable<GitLock>> resultDispatcher,
-            IGitObjectFactory gitObjectFactory)
+            IGitObjectFactory gitObjectFactory, bool local = false)
             : base(environment, processManager)
         {
             Guard.ArgumentNotNull(gitObjectFactory, "gitStatusEntryFactory");
 
             this.resultDispatcher = resultDispatcher;
             processor = new LockOutputProcessor(gitObjectFactory);
+            args = "lfs locks";
+            if (local)
+            {
+                args += " --local";
+            }
         }
 
         protected override ProcessOutputManager HookupOutput(IProcess process)
@@ -40,7 +46,7 @@ namespace GitHub.Unity
         public override bool Critical { get { return false; } }
         public override bool Cached { get { return false; } }
         public override string Label { get { return "git lfs locks"; } }
-        protected override string ProcessArguments { get { return "lfs locks"; } }
+        protected override string ProcessArguments => args;
         public IEnumerable<GitLock> TaskResult
         {
             get
