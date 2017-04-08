@@ -31,6 +31,8 @@ namespace GitHub.Unity
         public override void Trace(string message)
         {
 #if ENABLE_TRACE
+            if (!Logging.TracingEnabled) return;
+      
             UnityEngine.Debug.Log(GetMessage(message));
 #endif
         }
