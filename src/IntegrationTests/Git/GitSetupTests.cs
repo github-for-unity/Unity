@@ -42,6 +42,9 @@ namespace IntegrationTests
 
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
+            setupDone = gitSetup.SetupIfNeeded(percentage: new Progress<float>(x => percent = x)).Result;
+            setupDone.Should().BeFalse();
+
             var platform = new Platform(environment, FileSystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
