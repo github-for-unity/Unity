@@ -62,15 +62,17 @@ namespace GitHub.Unity
             repositoryManager.Refresh();
         }
 
-        public void SetupRemote(string remoteName, string remoteUrl)
+        public void SetupRemote(string remote, string remoteUrl)
         {
-            if (!CurrentRemote.HasValue) // there's no remote at all
+            Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
+            Guard.ArgumentNotNullOrWhiteSpace(remoteUrl, "remoteUrl");
+            if (!CurrentRemote.HasValue || String.IsNullOrEmpty(CurrentRemote.Value.Name)) // there's no remote at all
             {
-                repositoryManager.RemoteAdd(new TaskResultDispatcher<string>(_ => { }), remoteName, remoteUrl);
+                repositoryManager.RemoteAdd(new TaskResultDispatcher<string>(_ => { }), remote, remoteUrl);
             }
             else
             {
-                repositoryManager.RemoteChange(new TaskResultDispatcher<string>(_ => { }), remoteName, remoteUrl);
+                repositoryManager.RemoteChange(new TaskResultDispatcher<string>(_ => { }), remote, remoteUrl);
             }
         }
 

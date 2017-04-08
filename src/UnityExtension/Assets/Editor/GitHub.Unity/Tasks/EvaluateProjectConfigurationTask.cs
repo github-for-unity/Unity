@@ -210,7 +210,7 @@ namespace GitHub.Unity
 
             issues.Clear();
 
-            OnBegin.SafeInvoke(this);
+            RaiseOnBegin();
 
             // Unity project config
             TaskRunner.ScheduleMainThread(EvaluateLocalConfiguration);
@@ -227,7 +227,7 @@ namespace GitHub.Unity
             Progress = 1f;
             Done = true;
 
-            OnEnd.SafeInvoke(this);
+            RaiseOnEnd();
             onEvaluationResult.SafeInvoke(issues);
         }
 

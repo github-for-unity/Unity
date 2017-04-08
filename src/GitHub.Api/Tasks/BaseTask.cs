@@ -53,6 +53,8 @@ namespace GitHub.Unity
     class BaseTask : ITask, IDisposable
     {
         private readonly Func<Task<bool>> runAction;
+        public event Action<ITask> OnBegin;
+        public event Action<ITask> OnEnd;
 
         public BaseTask()
         {
@@ -111,12 +113,16 @@ namespace GitHub.Unity
         protected virtual void OnCompleted()
         {}
 
-        protected void RaiseOnEnd()
+        public void RaiseOnBegin()
+        {
+            OnBegin?.Invoke(this);
+        }
+
+        public void RaiseOnEnd()
         {
             OnEnd?.Invoke(this);
             Done = true;
         }
-
 
         public virtual void Dispose(bool disposing)
         {}
@@ -135,8 +141,6 @@ namespace GitHub.Unity
         public virtual bool Done { get; protected set; }
         public virtual string Label { get; set; }
         public virtual TaskQueueSetting Queued { get; set; }
-        public virtual Action<ITask> OnBegin { get; set; }
-        public Action<ITask> OnEnd { get; set; }
         public virtual float Progress { get; protected set; }
         public object Result { get; protected set; }
     }

@@ -93,7 +93,7 @@ namespace GitHub.Unity
             }
             else if (currentRemote.HasValue)
             {
-                repositoryRemoteName = currentRemote.Value.Name;
+                repositoryRemoteName = !String.IsNullOrEmpty(currentRemote.Value.Name) ? currentRemote.Value.Name : "origin";
                 repositoryRemoteUrl = currentRemote.Value.Url;
             }
         }
@@ -241,18 +241,17 @@ namespace GitHub.Unity
         private void OnRepositorySettingsGUI()
         {
             GUILayout.Label(GitRepositoryTitle, EditorStyles.boldLabel);
-            GUI.enabled = !busy && Repository != null;
+            GUI.enabled = !busy && Repository != null && !String.IsNullOrEmpty(repositoryRemoteName);
 
             repositoryRemoteUrl = EditorGUILayout.TextField(GitRepositoryRemoteLabel + ": " + repositoryRemoteName, repositoryRemoteUrl);
 
-            GUI.enabled = !busy;
             if (GUILayout.Button(GitRepositorySave, GUILayout.ExpandWidth(false)))
             {
                 try
                 {
                     busy = true;
                     var needsSaving = !Repository.CurrentRemote.HasValue ||
-                        repositoryRemoteUrl != Repository.CurrentRemote.Value.Name;
+                        (!String.IsNullOrEmpty(repositoryRemoteUrl) && repositoryRemoteUrl != Repository.CurrentRemote.Value.Name);
                     if (needsSaving)
                     {
                         Repository.SetupRemote(repositoryRemoteName, repositoryRemoteUrl);

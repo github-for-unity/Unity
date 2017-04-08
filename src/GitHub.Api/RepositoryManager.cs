@@ -228,14 +228,24 @@ namespace GitHub.Unity
 
         public void RemoteAdd(ITaskResultDispatcher<string> resultDispatcher, string remote, string url)
         {
-            var task = ProcessRunner.PrepareGitRemoteAdd(resultDispatcher, remote, url);
+            var task = ProcessRunner.PrepareGitRemoteAdd(new TaskResultDispatcher<string>(s => {
+                resultDispatcher.ReportSuccess(s);
+                if (!platform.Environment.IsWindows)
+                    OnConfigChanged();
+            }, resultDispatcher.ReportFailure), remote, url);
+
             PrepareTask(task);
             taskRunner.AddTask(task);
         }
 
         public void RemoteRemove(ITaskResultDispatcher<string> resultDispatcher, string remote)
         {
-            var task = ProcessRunner.PrepareGitRemoteRemove(resultDispatcher, remote);
+            var task = ProcessRunner.PrepareGitRemoteRemove(new TaskResultDispatcher<string>(s => {
+                resultDispatcher.ReportSuccess(s);
+                if (!platform.Environment.IsWindows)
+                    OnConfigChanged();
+            }, resultDispatcher.ReportFailure), remote);
+
             PrepareTask(task);
             taskRunner.AddTask(task);
         }
@@ -302,7 +312,7 @@ namespace GitHub.Unity
 
         private void PrepareTask(ITask task, bool disableWatcher = false)
         {
-            task.OnBegin = t => {
+            task.OnBegin += t => {
                 Logger.Trace("Start " + task.Label);
 
                 if (IsBusy)
@@ -318,7 +328,7 @@ namespace GitHub.Unity
                 }
             };
 
-            task.OnEnd = t => {
+            task.OnEnd += t => {
                 if (disableWatcher)
                 {
                     watcher.Start();

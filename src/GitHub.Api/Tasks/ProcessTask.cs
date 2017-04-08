@@ -76,7 +76,7 @@ namespace GitHub.Unity
             Done = false;
             Progress = 0.0f;
 
-            OnBegin?.Invoke(this);
+            RaiseOnBegin();
 
             var firstTime = process == null;
 
@@ -142,7 +142,7 @@ namespace GitHub.Unity
             Done = false;
             Progress = 0.0f;
 
-            OnBegin?.Invoke(this);
+            RaiseOnBegin();
 
             var firstTime = process == null;
 
