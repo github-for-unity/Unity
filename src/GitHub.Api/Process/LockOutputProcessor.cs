@@ -35,13 +35,13 @@ namespace GitHub.Unity
             {
                 return;
             }
-
+            Logger.Debug(line);
             var path = proc.ReadUntil('\t').Trim();
-            proc.MoveNext();
+            var user = proc.ReadUntilLast("ID:").Trim();
+            proc.MoveToAfter("ID:");
+            var id = int.Parse(proc.ReadToEnd().Trim());
 
-            var user = proc.ReadToEnd();
-
-            OnGitLock(gitObjectFactory.CreateGitLock(path, user));
+            OnGitLock(gitObjectFactory.CreateGitLock(path, user, id));
         }
 
         public event Action<GitLock> OnGitLock;

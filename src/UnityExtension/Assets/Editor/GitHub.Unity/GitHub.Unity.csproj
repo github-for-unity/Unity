@@ -74,7 +74,7 @@
     <Compile Include="Logging\UnityLogAdapter.cs" />
     <Compile Include="EntryPoint.cs" />
     <Compile Include="Misc\Installer.cs" />
-    <Compile Include="Misc\ProjectWindowInterface.cs" />
+    <Compile Include="UI\ProjectWindowInterface.cs" />
     <Compile Include="Misc\Styles.cs" />
     <Compile Include="Misc\Utility.cs" />
     <Compile Include="Services\AuthenticationService.cs" />
@@ -94,29 +94,6 @@
     <Compile Include="UI\SettingsView.cs" />
     <Compile Include="UI\Subview.cs" />
     <Compile Include="UI\Window.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Icons\added%402x.png" />
-    <EmbeddedResource Include="Icons\added.png" />
-    <EmbeddedResource Include="Icons\conflicted%402x.png" />
-    <EmbeddedResource Include="Icons\conflicted.png" />
-    <EmbeddedResource Include="Icons\current-branch-indicator.png" />
-    <EmbeddedResource Include="Icons\favorite-branch-indicator.png" />
-    <EmbeddedResource Include="Icons\locked%402x.png" />
-    <EmbeddedResource Include="Icons\locked-by-person%402x.png" />
-    <EmbeddedResource Include="Icons\locked-by-person.png" />
-    <EmbeddedResource Include="Icons\locked-modified%402x.png" />
-    <EmbeddedResource Include="Icons\locked-modified.png" />
-    <EmbeddedResource Include="Icons\locked-removed%402x.png" />
-    <EmbeddedResource Include="Icons\locked-removed.png" />
-    <EmbeddedResource Include="Icons\locked.png" />
-    <EmbeddedResource Include="Icons\modified%402x.png" />
-    <EmbeddedResource Include="Icons\modified.png" />
-    <EmbeddedResource Include="Icons\moved%402x.png" />
-    <EmbeddedResource Include="Icons\moved.png" />
-    <EmbeddedResource Include="Icons\removed%402x.png" />
-    <EmbeddedResource Include="Icons\removed.png" />
-    <EmbeddedResource Include="Icons\tracked-branch-indicator.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(SolutionDir)common\GitHub.ruleset">
@@ -143,22 +120,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Icons\dot%402x.png" />
-    <EmbeddedResource Include="Icons\dot.png" />
-    <EmbeddedResource Include="Icons\git-merge%402x.png" />
-    <EmbeddedResource Include="Icons\git-merge.png" />
-    <EmbeddedResource Include="Icons\lock%402x.png" />
-    <EmbeddedResource Include="Icons\lock.png" />
-    <EmbeddedResource Include="Icons\repo%402x.png" />
-    <EmbeddedResource Include="Icons\repo.png" />
-    <EmbeddedResource Include="Icons\untracked%402x.png" />
-    <EmbeddedResource Include="Icons\untracked.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Icons\big-logo.png" />
-    <EmbeddedResource Include="Icons\small-logo.png" />
-  </ItemGroup>
-  <ItemGroup>
     <!-- Content Include="$(SolutionDir)\lib\sfw.net\osx\libsfw.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content -->
@@ -171,6 +132,80 @@
     <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\pthreadVC2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Icons\added%402x.png" />
+    <EmbeddedResource Include="Icons\added.png" />
+    <EmbeddedResource Include="Icons\big-logo%402x.png" />
+    <EmbeddedResource Include="Icons\big-logo-light%402x.png" />
+    <EmbeddedResource Include="Icons\big-logo-light.png" />
+    <EmbeddedResource Include="Icons\big-logo.png" />
+    <EmbeddedResource Include="Icons\branch%402x.png" />
+    <EmbeddedResource Include="Icons\branch-light%402x.png" />
+    <EmbeddedResource Include="Icons\branch-light.png" />
+    <EmbeddedResource Include="Icons\branch.png" />
+    <EmbeddedResource Include="Icons\conflicted%402x.png" />
+    <EmbeddedResource Include="Icons\conflicted.png" />
+    <EmbeddedResource Include="Icons\current-branch-indicator%402x.png" />
+    <EmbeddedResource Include="Icons\current-branch-indicator-light%402x.png" />
+    <EmbeddedResource Include="Icons\current-branch-indicator-light.png" />
+    <EmbeddedResource Include="Icons\current-branch-indicator.png" />
+    <EmbeddedResource Include="Icons\dot%402x.png" />
+    <EmbeddedResource Include="Icons\dot-light%402x.png" />
+    <EmbeddedResource Include="Icons\dot-light.png" />
+    <EmbeddedResource Include="Icons\dot.png" />
+    <EmbeddedResource Include="Icons\dropdown-list-icon%402x.png" />
+    <EmbeddedResource Include="Icons\dropdown-list-icon.png" />
+    <EmbeddedResource Include="Icons\favorite-branch-indicator.png" />
+    <EmbeddedResource Include="Icons\git-merge%402x.png" />
+    <EmbeddedResource Include="Icons\git-merge-light%402x.png" />
+    <EmbeddedResource Include="Icons\git-merge-light.png" />
+    <EmbeddedResource Include="Icons\git-merge.png" />
+    <EmbeddedResource Include="Icons\local-commit%402x.png" />
+    <EmbeddedResource Include="Icons\local-commit-icon%402x.png" />
+    <EmbeddedResource Include="Icons\local-commit-icon.png" />
+    <EmbeddedResource Include="Icons\local-commit-light%402x.png" />
+    <EmbeddedResource Include="Icons\local-commit-light.png" />
+    <EmbeddedResource Include="Icons\local-commit.png" />
+    <EmbeddedResource Include="Icons\lock%402x.png" />
+    <EmbeddedResource Include="Icons\lock-light%402x.png" />
+    <EmbeddedResource Include="Icons\lock-light.png" />
+    <EmbeddedResource Include="Icons\lock.png" />
+    <EmbeddedResource Include="Icons\locked%402x.png" />
+    <EmbeddedResource Include="Icons\locked-by-person%402x.png" />
+    <EmbeddedResource Include="Icons\locked-by-person.png" />
+    <EmbeddedResource Include="Icons\locked-modified%402x.png" />
+    <EmbeddedResource Include="Icons\locked-modified.png" />
+    <EmbeddedResource Include="Icons\locked-removed%402x.png" />
+    <EmbeddedResource Include="Icons\locked-removed.png" />
+    <EmbeddedResource Include="Icons\locked.png" />
+    <EmbeddedResource Include="Icons\modified%402x.png" />
+    <EmbeddedResource Include="Icons\modified.png" />
+    <EmbeddedResource Include="Icons\moved%402x.png" />
+    <EmbeddedResource Include="Icons\moved.png" />
+    <EmbeddedResource Include="Icons\removed%402x.png" />
+    <EmbeddedResource Include="Icons\removed.png" />
+    <EmbeddedResource Include="Icons\repo%402x.png" />
+    <EmbeddedResource Include="Icons\repo-light%402x.png" />
+    <EmbeddedResource Include="Icons\repo-light.png" />
+    <EmbeddedResource Include="Icons\repo.png" />
+    <EmbeddedResource Include="Icons\small-logo%402x.png" />
+    <EmbeddedResource Include="Icons\small-logo-light%402x.png" />
+    <EmbeddedResource Include="Icons\small-logo-light.png" />
+    <EmbeddedResource Include="Icons\small-logo.png" />
+    <EmbeddedResource Include="Icons\tracked-branch-indicator.png" />
+    <EmbeddedResource Include="Icons\untracked%402x.png" />
+    <EmbeddedResource Include="Icons\untracked.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(SolutionDir)EULA.txt">
+      <Link>EULA.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(SolutionDir)CREDITS.txt">
+      <Link>CREDITS.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

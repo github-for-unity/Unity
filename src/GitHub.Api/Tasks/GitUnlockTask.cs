@@ -8,7 +8,8 @@ namespace GitHub.Unity
     {
         private readonly string arguments;
 
-        public GitUnlockTask(IEnvironment environment, IProcessManager processManager, ITaskResultDispatcher<string> resultDispatcher, 
+        public GitUnlockTask(IEnvironment environment, IProcessManager processManager,
+                ITaskResultDispatcher<string> resultDispatcher,
                 string path, bool force = false)
             : base(environment, processManager, resultDispatcher)
         {
@@ -22,28 +23,13 @@ namespace GitHub.Unity
             }
 
             stringBuilder.Append(path);
-
             arguments = stringBuilder.ToString();
         }
 
-        public override bool Blocking
-        {
-            get { return false; }
-        }
+        public override bool Blocking => false;
+        public override bool Critical => false;
+        public override string Label { get; set; } = "git lfs unlock";
+        protected override string ProcessArguments => arguments;
 
-        public override bool Critical
-        {
-            get { return false; }
-        }
-
-        public override string Label
-        {
-            get { return "git lfs unlock"; }
-        }
-
-        protected override string ProcessArguments
-        {
-            get { return arguments; }
-        }
     }
 }

@@ -10,7 +10,7 @@ namespace GitHub.Unity
         public string RemoteBranch;
         public int Ahead;
         public int Behind;
-        public IList<GitStatusEntry> Entries;
+        public List<GitStatusEntry> Entries;
 
         public override string ToString()
         {

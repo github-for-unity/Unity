@@ -36,20 +36,20 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
-            if (Parent.Repository == null)
+            if (Repository == null)
                 return;
 
-            OnStatusUpdate(Parent.Repository.CurrentStatus);
-            Parent.Repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
-            System.Threading.Tasks.Task.Factory.StartNew(Parent.Repository.Refresh);
+            OnStatusUpdate(Repository.CurrentStatus);
+            Repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
+            Repository.Refresh();
         }
 
         public override void OnHide()
         {
             base.OnHide();
-            if (Parent == null || Parent.Repository == null)
+            if (Repository == null)
                 return;
-            Parent.Repository.OnRepositoryChanged -= RunStatusUpdateOnMainThread;
+            Repository.OnRepositoryChanged -= RunStatusUpdateOnMainThread;
         }
 
         private void RunStatusUpdateOnMainThread(GitStatus status)
@@ -69,7 +69,7 @@ namespace GitHub.Unity
             currentBranch = update.LocalBranch;
 
             // (Re)build tree
-            tree.UpdateEntries(update.Entries);
+            tree.UpdateEntries(update.Entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
 
             lockCommit = false;
         }

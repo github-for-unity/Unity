@@ -9,6 +9,11 @@ namespace GitHub.Unity
     interface IRepository : IEquatable<IRepository>
     {
         void Refresh();
+        void Pull(ITaskResultDispatcher<string> resultDispatcher);
+        void Push(ITaskResultDispatcher<string> resultDispatcher);
+        void ListLocks();
+        void RequestLock(ITaskResultDispatcher<string> resultDispatcher, string file);
+        void ReleaseLock(ITaskResultDispatcher<string> resultDispatcher, string file, bool force);
 
         /// <summary>
         /// Gets the name of the repository.
@@ -33,7 +38,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Gets the current remote of the repository.
         /// </summary>
-        string CurrentRemote { get; }
+        ConfigRemote? CurrentRemote { get; }
         /// <summary>
         /// Gets the current branch of the repository.
         /// </summary>
@@ -42,13 +47,14 @@ namespace GitHub.Unity
         IEnumerable<GitBranch> LocalBranches { get; }
         IEnumerable<GitBranch> RemoteBranches { get; }
         IUser User { get; set; }
+        IEnumerable<GitLock> CurrentLocks { get; }
 
         event Action<GitStatus> OnRepositoryChanged;
         event Action<string> OnActiveBranchChanged;
         event Action<string> OnActiveRemoteChanged;
-        void Pull(ITaskResultDispatcher<string> resultDispatcher);
-        void Push(ITaskResultDispatcher<string> resultDispatcher);
         event Action OnLocalBranchListChanged;
         event Action OnCommitChanged;
+        event Action<IEnumerable<GitLock>> OnLocksUpdated;
+        void SetupRemote(string remoteName, string remoteUrl);
     }
 }

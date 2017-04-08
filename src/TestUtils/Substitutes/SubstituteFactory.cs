@@ -318,11 +318,12 @@ namespace TestUtils
                                     staged);
                             });
 
-            gitObjectFactory.CreateGitLock(Args.String, Args.String).Returns(info => {
+            gitObjectFactory.CreateGitLock(Args.String, Args.String, Args.Int).Returns(info => {
                 var path = (string)info[0];
                 var user = (string)info[1];
+                var id = (int)info[2];
 
-                return new GitLock(path, gitRepoPath + @"\" + path, user);
+                return new GitLock(path, gitRepoPath + @"\" + path, user, id);
             });
 
             return gitObjectFactory;
@@ -439,7 +440,7 @@ namespace TestUtils
             });
 
             var gitListLocksEnumerator = options.GitListLocksResults?.GetEnumerator();
-            repositoryProcessRunner.PrepareGitListLocks(Arg.Any<ITaskResultDispatcher<IEnumerable<GitLock>>>())
+            repositoryProcessRunner.PrepareGitListLocks(Arg.Any<ITaskResultDispatcher<IEnumerable<GitLock>>>(), Args.Bool)
                 .Returns(info => {
                     var resultDispatcher = (ITaskResultDispatcher<IEnumerable<GitLock>>)info[0];
 

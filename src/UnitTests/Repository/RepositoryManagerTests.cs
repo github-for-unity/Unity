@@ -143,17 +143,19 @@ namespace UnitTests
             };
 
             var responseGitLocks = new GitLock[] {
-                new GitLock("SomeLockedBinary.psd", "SomeLockedBinary.psd", "Someone"),
-                new GitLock("SomeoneElsesBinary.psd", "SomeoneElsesBinary.psd", "SomeoneElse"),
-                new GitLock("subFolder/AnotherLockedBinary.psd", "subFolder/AnotherLockedBinary.psd", "Someone"),
+                new GitLock("SomeLockedBinary.psd", "SomeLockedBinary.psd", "Someone", 1),
+                new GitLock("SomeoneElsesBinary.psd", "SomeoneElsesBinary.psd", "SomeoneElse", 2),
+                new GitLock("subFolder/AnotherLockedBinary.psd", "subFolder/AnotherLockedBinary.psd", "Someone", 3),
             };
 
             var expectedGitStatus = new GitStatus {
                 LocalBranch = "master",
                 Entries =
                     new List<GitStatusEntry> {
-                        new GitStatusEntry("SomeLockedBinary.psd", null, "SomeLockedBinary.psd", GitFileStatus.Modified, gitLock: new GitLock("SomeLockedBinary.psd", "SomeLockedBinary.psd", "Someone")),
-                        new GitStatusEntry("subFolder/AnotherLockedBinary.psd", null, "subFolder/AnotherLockedBinary.psd", GitFileStatus.Modified, gitLock: new GitLock("subFolder/AnotherLockedBinary.psd", "subFolder/AnotherLockedBinary.psd", "Someone")),
+                        new GitStatusEntry("SomeLockedBinary.psd", null, "SomeLockedBinary.psd",
+                            GitFileStatus.Modified),
+                        new GitStatusEntry("subFolder/AnotherLockedBinary.psd", null, "subFolder/AnotherLockedBinary.psd",
+                            GitFileStatus.Modified),
                         new GitStatusEntry("subFolder/UnLockedBinary.psd", null, "subFolder/UnLockedBinary.psd", GitFileStatus.Modified),
                     }
             };
@@ -202,17 +204,16 @@ namespace UnitTests
             };
 
             var responseGitLocks = new GitLock[] {
-                new GitLock("SomeLockedBinary.psd", "SomeLockedBinary.psd", "Someone"),
-                new GitLock("SomeoneElsesBinary.psd", "SomeoneElsesBinary.psd", "SomeoneElse"),
-                new GitLock("subFolder/AnotherLockedBinary.psd", "subFolder/AnotherLockedBinary.psd", "Someone"),
+                new GitLock("SomeLockedBinary.psd", "SomeLockedBinary.psd", "Someone", 1),
+                new GitLock("SomeoneElsesBinary.psd", "SomeoneElsesBinary.psd", "SomeoneElse", 2),
+                new GitLock("subFolder/AnotherLockedBinary.psd", "subFolder/AnotherLockedBinary.psd", "Someone", 3),
             };
 
             var expectedGitStatus = new GitStatus {
                 LocalBranch = "master",
                 Entries =
                     new List<GitStatusEntry> {
-                        new GitStatusEntry("SomeLockedBinary.psd", null, "SomeLockedBinary.psd", GitFileStatus.Modified,
-                            gitLock: new GitLock("SomeLockedBinary.psd", "SomeLockedBinary.psd", "Someone")),
+                        new GitStatusEntry("SomeLockedBinary.psd", null, "SomeLockedBinary.psd", GitFileStatus.Modified),
                         new GitStatusEntry("subFolder/AnotherLockedBinary.psd", null, "subFolder/AnotherLockedBinary.psd", GitFileStatus.Modified),
                         new GitStatusEntry("subFolder/UnLockedBinary.psd", null, "subFolder/UnLockedBinary.psd", GitFileStatus.Modified
                             
