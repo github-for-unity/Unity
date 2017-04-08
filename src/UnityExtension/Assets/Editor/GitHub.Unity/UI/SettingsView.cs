@@ -492,14 +492,12 @@ namespace GitHub.Unity
 
         private void OnLoggingSettingsGui()
         {
-            // Install path
             GUILayout.Label(DebugSettingsTitle, EditorStyles.boldLabel);
 
             GUI.enabled = !busy;
 
             var traceLogging = Logging.TracingEnabled;
 
-            // Install path field
             EditorGUI.BeginChangeCheck();
             {
                 traceLogging = EditorGUILayout.Toggle(EnableTraceLoggingLabel, traceLogging);
