@@ -118,6 +118,8 @@ namespace GitHub.Unity
 
         private static void Refresh()
         {
+            if (repository == null)
+                return;
             if (initialized)
             {
                 if (!DefaultEnvironment.OnWindows)
