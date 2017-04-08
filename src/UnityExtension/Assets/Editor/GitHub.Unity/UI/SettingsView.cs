@@ -60,8 +60,11 @@ namespace GitHub.Unity
         private const string GitRepositoryTitle = "Repository Configuration";
         private const string GitRepositoryRemoteLabel = "Remote";
         private const string GitRepositorySave = "Save Repository";
+        private const string DebugSettingsTitle = "Debug";
+        private const string EnableTraceLoggingLabel = "Enable Trace Logging";
 
         private Vector2 lockScrollPos;
+
 
         // TODO: Replace me with the real values
         [SerializeField] private string gitName;
@@ -177,6 +180,8 @@ namespace GitHub.Unity
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
                     OnInstallPathGUI();
+
+                    OnLoggingSettingsGui();
                 //}
             }
 
@@ -640,6 +645,27 @@ namespace GitHub.Unity
                 }
             }
             GUILayout.EndHorizontal();
+
+            GUI.enabled = true;
+        }
+
+        private void OnLoggingSettingsGui()
+        {
+            GUILayout.Label(DebugSettingsTitle, EditorStyles.boldLabel);
+
+            GUI.enabled = !busy;
+
+            var traceLogging = Logging.TracingEnabled;
+
+            EditorGUI.BeginChangeCheck();
+            {
+                traceLogging = EditorGUILayout.Toggle(EnableTraceLoggingLabel, traceLogging);
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                Logging.TracingEnabled = traceLogging;
+                GUI.FocusControl(null);
+            }
 
             GUI.enabled = true;
         }
