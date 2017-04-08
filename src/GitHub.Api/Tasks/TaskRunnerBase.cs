@@ -220,7 +220,7 @@ namespace GitHub.Unity
                         catch (Exception ex)
                         {
                             Logger.Error(ex);
-                            activeTask.OnEnd?.Invoke(activeTask);
+                            activeTask.RaiseOnEnd();
                             activeTask = null;
                         }
                     }, cancellationToken, TaskCreationOptions.None, ThreadingHelper.TaskScheduler);

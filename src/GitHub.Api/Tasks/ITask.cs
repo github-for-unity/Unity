@@ -13,16 +13,18 @@ namespace GitHub.Unity
         void Disconnect();
         void Reconnect();
         void WriteCache(TextWriter cache);
+        void RaiseOnBegin();
+        void RaiseOnEnd();
         bool Blocking { get; }
         float Progress { get; }
         bool Done { get; }
         TaskQueueSetting Queued { get; }
         bool Critical { get; }
         bool Cached { get; }
-        Action<ITask> OnBegin { get; set; }
-        Action<ITask> OnEnd { get; set; }
         string Label { get; }
         object Result { get; }
+        event Action<ITask> OnBegin;
+        event Action<ITask> OnEnd;
     }
 
     interface ITask<T> : ITask

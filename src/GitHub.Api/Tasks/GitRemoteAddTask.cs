@@ -8,13 +8,13 @@ namespace GitHub.Unity
 
         public GitRemoteChangeTask(IEnvironment environment, IProcessManager processManager,
             ITaskResultDispatcher<string> resultDispatcher,
-                string name, string url)
+                string remote, string url)
             : base(environment, processManager, resultDispatcher)
         {
-            Guard.ArgumentNotNullOrWhiteSpace(name, "name");
+            Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
             Guard.ArgumentNotNullOrWhiteSpace(url, "url");
 
-            arguments = String.Format("remote set-url {0} {1}", name, url);
+            arguments = String.Format("remote set-url {0} {1}", remote, url);
         }
 
         public override bool Blocking { get { return false; } }
@@ -30,13 +30,13 @@ namespace GitHub.Unity
 
         public GitRemoteAddTask(IEnvironment environment, IProcessManager processManager,
             ITaskResultDispatcher<string> resultDispatcher,
-                string name, string url)
+                string remote, string url)
             : base(environment, processManager, resultDispatcher)
         {
-            Guard.ArgumentNotNullOrWhiteSpace(name, "name");
+            Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
             Guard.ArgumentNotNullOrWhiteSpace(url, "url");
 
-            arguments = String.Format("remote add {0} {1}", name, url);
+            arguments = String.Format("remote add {0} {1}", remote, url);
         }
 
         public override bool Blocking { get { return false; } }
