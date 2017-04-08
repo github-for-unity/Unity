@@ -8,6 +8,13 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
+    enum WaitMode
+    {
+        Background,
+        Modal,
+        Blocking
+    };
+
     class TaskRunnerBase : ITaskRunner
     {
         private const string TaskThreadExceptionRestartError = "GitHub task thread restarting after encountering an exception: {0}";
@@ -176,7 +183,7 @@ namespace GitHub.Unity
                             if (activeTask.Blocking)
                             {
                                 activeTask.OnEnd += t => {
-                                    Logger.Trace("Task {0} endded", activeTask.Label);
+                                    Logger.Trace("Task {0} ended", activeTask.Label);
                                     activeTask = null;
                                     OnWaitingModalTaskEnd(t);
                                 };
@@ -184,7 +191,7 @@ namespace GitHub.Unity
                             else
                             {
                                 activeTask.OnEnd += t => {
-                                    Logger.Trace("Task {0} endded", activeTask.Label);
+                                    Logger.Trace("Task {0} ended", activeTask.Label);
                                     activeTask = null;
                                     OnWaitingBackgroundTaskEnd(t);
                                 };
@@ -200,7 +207,7 @@ namespace GitHub.Unity
                     {
                         if (activeTask != null)
                         {
-                            //WaitForTask(activeTask, activeTask.Blocking ? WaitMode.Modal : WaitMode.Background);
+                            WaitForTask(activeTask, activeTask.Blocking ? WaitMode.Modal : WaitMode.Background);
                         }
                     });
 
@@ -213,7 +220,7 @@ namespace GitHub.Unity
                         catch (Exception ex)
                         {
                             Logger.Error(ex);
-                            activeTask.OnEnd?.Invoke(activeTask);
+                            activeTask.RaiseOnEnd();
                             activeTask = null;
                         }
                     }, cancellationToken, TaskCreationOptions.None, ThreadingHelper.TaskScheduler);
@@ -223,6 +230,10 @@ namespace GitHub.Unity
                 PumpMainThread();
                 Thread.Sleep(NoTasksSleep);
             }
+        }
+
+        protected virtual void WaitForTask(ITask task, WaitMode mode = WaitMode.Background)
+        {
         }
 
         protected virtual void OnWaitingBackgroundTaskEnd(ITask task)

@@ -86,9 +86,9 @@ namespace GitHub.Unity
 
             });
 
-            task.Critical = true;
+            task.Critical = false;
             task.Queued = TaskQueueSetting.QueueSingle;
-            task.Blocking = true;
+            task.Blocking = false;
             task.Label = "Initializing repository";
 
             scheduler.Queue(task);
