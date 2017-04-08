@@ -32,7 +32,7 @@ namespace GitHub.Unity
         private string LookForPortableGit()
         {
             var localAppDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData);
-            var gitHubLocalAppDataPath = System.IO.Path.Combine(localAppDataPath, "GitHub");
+            var gitHubLocalAppDataPath = System.IO.Path.Combine(localAppDataPath, ApplicationInfo.ApplicationName);
 
             var searchPath = System.IO.Path.Combine(gitHubLocalAppDataPath, "PortableGit_");
 

@@ -47,22 +47,22 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
-            if (Parent.Repository != null)
+            if (Repository != null)
             {
-                Parent.Repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
-                Parent.Repository.OnActiveBranchChanged += HandleRepositoryBranchChangeEvent;
-                Parent.Repository.OnActiveRemoteChanged += HandleRepositoryBranchChangeEvent;
+                Repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
+                Repository.OnActiveBranchChanged += HandleRepositoryBranchChangeEvent;
+                Repository.OnActiveRemoteChanged += HandleRepositoryBranchChangeEvent;
             }
         }
 
         public override void OnHide()
         {
             base.OnHide();
-            if (Parent.Repository != null)
+            if (Repository != null)
             {
-                Parent.Repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
-                Parent.Repository.OnActiveBranchChanged -= HandleRepositoryBranchChangeEvent;
-                Parent.Repository.OnActiveRemoteChanged -= HandleRepositoryBranchChangeEvent;
+                Repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
+                Repository.OnActiveBranchChanged -= HandleRepositoryBranchChangeEvent;
+                Repository.OnActiveRemoteChanged -= HandleRepositoryBranchChangeEvent;
             }
         }
 
@@ -90,11 +90,11 @@ namespace GitHub.Unity
 
         public void RefreshEmbedded()
         {
-            if (Parent.Repository == null)
+            if (Repository == null)
                 return;
 
-            OnLocalBranchesUpdate(Parent.Repository.LocalBranches);
-            OnRemoteBranchesUpdate(Parent.Repository.RemoteBranches);
+            OnLocalBranchesUpdate(Repository.LocalBranches);
+            OnRemoteBranchesUpdate(Repository.RemoteBranches);
 
             //ITask task = new GitListLocalBranchesTask(
             //    EntryPoint.Environment, EntryPoint.ProcessManager,

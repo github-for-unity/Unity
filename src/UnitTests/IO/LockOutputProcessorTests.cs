@@ -55,16 +55,16 @@ namespace UnitTests
         {
             var output = new[]
             {
-                "folder/somefile.png\tGitHub User 12",
-                "somezip.zip\tGitHub User 21",
+                "folder/somefile.png\tGitHub User\tID:12",
+                "somezip.zip\tGitHub User\tID:21",
                 string.Empty,
                 "2 lock(s) matched query.",
                 null
             };
 
             var expected = new[] {
-                new GitLock("folder/somefile.png", TestRootPath + @"\folder/somefile.png", "GitHub User 12"),
-                new GitLock("somezip.zip", TestRootPath + @"\somezip.zip", "GitHub User 21")
+                new GitLock("folder/somefile.png", TestRootPath + @"\folder/somefile.png", "GitHub User", 12),
+                new GitLock("somezip.zip", TestRootPath + @"\somezip.zip", "GitHub User", 21)
             };
 
             AssertProcessOutput(output, expected);
@@ -75,14 +75,14 @@ namespace UnitTests
         {
             var output = new[]
             {
-                "folder/somefile.png\tGitHub User 12",
-                "somezip.zip\tGitHub User 21",
+                "folder/somefile.png\tGitHub User\tID:12",
+                "somezip.zip\tGitHub User\tID:21",
                 null
             };
 
             var expected = new[] {
-                new GitLock("folder/somefile.png", TestRootPath + @"\folder/somefile.png", "GitHub User 12"),
-                new GitLock("somezip.zip", TestRootPath + @"\somezip.zip", "GitHub User 21")
+                new GitLock("folder/somefile.png", TestRootPath + @"\folder/somefile.png", "GitHub User", 12),
+                new GitLock("somezip.zip", TestRootPath + @"\somezip.zip", "GitHub User", 21)
             };
 
             AssertProcessOutput(output, expected);
@@ -93,11 +93,11 @@ namespace UnitTests
         {
             var output = new[]
             {
-                "2_TurtleDoves.jpg\tTree",
+                "2_TurtleDoves.jpg\tTree\tID:100",
             };
 
             var expected = new[] {
-                new GitLock("2_TurtleDoves.jpg", TestRootPath + @"\2_TurtleDoves.jpg", "Tree")
+                new GitLock("2_TurtleDoves.jpg", TestRootPath + @"\2_TurtleDoves.jpg", "Tree", 100)
             };
 
             AssertProcessOutput(output, expected);

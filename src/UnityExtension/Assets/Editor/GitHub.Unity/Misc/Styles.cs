@@ -79,6 +79,9 @@ namespace GitHub.Unity
             commitDescriptionFieldStyle,
             toggleMixedStyle,
             authHeaderBoxStyle,
+            lockedFileRowSelectedStyle,
+            lockedFileRowStyle,
+            genericTableBoxStyle,
             historyDetailsTitleStyle,
             historyDetailsMetaInfoStyle,
             genericBoxStyle;
@@ -358,6 +361,52 @@ namespace GitHub.Unity
                 historyEntryDetailsRightStyle.alignment = TextAnchor.MiddleRight;
 
                 return historyEntryDetailsRightStyle;
+            }
+        }
+
+        public static GUIStyle LockedFileRowStyle
+        {
+            get
+            {
+                if (lockedFileRowStyle == null)
+                {
+                    lockedFileRowStyle = new GUIStyle();
+                    lockedFileRowStyle.name = "LockedFileRowStyle";
+                    lockedFileRowStyle.padding = new RectOffset(2, 2, 1, 1);
+                }
+
+                return lockedFileRowStyle;
+            }
+        }
+
+        public static GUIStyle LockedFileRowSelectedStyle
+        {
+            get
+            {
+                if (lockedFileRowSelectedStyle == null)
+                {
+                    GUIStyle hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    lockedFileRowSelectedStyle = new GUIStyle(LockedFileRowStyle);
+                    lockedFileRowSelectedStyle.name = "LockedFileRowSelectedStyle";
+                    lockedFileRowSelectedStyle.normal.background = hierarchyStyle.onFocused.background;
+                    lockedFileRowSelectedStyle.normal.textColor = hierarchyStyle.onFocused.textColor;
+                }
+
+                return lockedFileRowSelectedStyle;
+            }
+        }
+
+        public static GUIStyle GenericTableBoxStyle
+        {
+            get
+            {
+                if (genericTableBoxStyle == null)
+                {
+                    genericTableBoxStyle = new GUIStyle(GUI.skin.box);
+                    genericTableBoxStyle.name = "GenericTableBoxStyle";
+                }
+
+                return genericTableBoxStyle;
             }
         }
 
@@ -727,11 +776,11 @@ namespace GitHub.Unity
             }
         }
 
-        public static Texture2D GetGitFileStatusIcon(GitStatusEntry gitStatusEntry)
+        public static Texture2D GetFileStatusIcon(GitFileStatus status, bool isLocked)
         {
-            if (gitStatusEntry.Lock.HasValue)
+            if (isLocked)
             {
-                switch (gitStatusEntry.Status)
+                switch (status)
                 {
                     case GitFileStatus.Modified:
                         return lockedModifiedStatusIcon = lockedModifiedStatusIcon ?? Utility.GetIcon("locked.png", "locked@2x.png");
@@ -741,7 +790,7 @@ namespace GitHub.Unity
                 }
             }
 
-            switch (gitStatusEntry.Status)
+            switch (status)
             {
                 case GitFileStatus.Modified:
                     return modifiedStatusIcon = modifiedStatusIcon ?? Utility.GetIcon("modified.png", "modified@2x.png");

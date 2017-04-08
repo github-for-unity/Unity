@@ -121,6 +121,15 @@ namespace GitHub.Unity
                         path = proc.ReadToEnd().Trim('"');
                         status = GitFileStatus.Untracked;
                     }
+                    else if (proc.Matches('!'))
+                    {
+                        //?? something.txt
+                        proc.MoveToAfter('!');
+                        proc.SkipWhitespace();
+
+                        path = proc.ReadToEnd().Trim('"');
+                        status = GitFileStatus.Ignored;
+                    }
                     else
                     {
                         if (proc.IsAtWhitespace)
