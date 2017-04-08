@@ -666,6 +666,8 @@ namespace GitHub.Unity
                 Logging.TracingEnabled = traceLogging;
                 GUI.FocusControl(null);
             }
+
+            GUI.enabled = true;
         }
 
         private void ResetInitDirectory()
