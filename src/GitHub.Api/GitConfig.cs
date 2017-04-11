@@ -14,7 +14,7 @@ namespace GitHub.Unity
 
         public override string ToString()
         {
-            return String.Format("{0} {1}", Name, Url);
+            return String.Format("{{Remote {0} {1}}}", Name, Url);
         }
     }
 
@@ -26,7 +26,7 @@ namespace GitHub.Unity
 
         public override string ToString()
         {
-            return String.Format("{0} tracking:{1} remote:{2}", Name, IsTracking, Remote);
+            return String.Format("{{Branch {0} {1}}}", Name, Remote?.ToString() ?? "Untracked");
         }
     }
 
