@@ -195,7 +195,7 @@ namespace IntegrationTests
                 result.AssertEqual(expected);
                 repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received(1).OnActiveBranchChanged();
-                repositoryManagerListener.Received(1).OnActiveRemoteChanged();
+                repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
                 repositoryManagerListener.Received(1).OnHeadChanged();
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
@@ -236,7 +236,7 @@ namespace IntegrationTests
                 repositoryManagerListener.DidNotReceive().OnHeadChanged();
                 repositoryManagerListener.Received(1).OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-                repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.Received().OnRemoteOrTrackingChanged();
             }
             finally
             {
@@ -327,12 +327,12 @@ namespace IntegrationTests
 
                 repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
                 repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.DidNotReceive().OnActiveBranchChanged();
-                repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
+                repositoryManagerListener.Received().OnActiveBranchChanged();
+                repositoryManagerListener.Received().OnActiveRemoteChanged();
                 repositoryManagerListener.DidNotReceive().OnHeadChanged();
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
-                repositoryManagerListener.Received().OnRemoteBranchListChanged();
-                repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
+                repositoryManagerListener.Received().OnRemoteOrTrackingChanged();
 
                 repositoryManagerListener.ClearReceivedCalls();
 
@@ -348,11 +348,11 @@ namespace IntegrationTests
                 repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
                 repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().OnActiveBranchChanged();
-                repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
+                repositoryManagerListener.Received().OnActiveRemoteChanged();
                 repositoryManagerListener.DidNotReceive().OnHeadChanged();
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-                repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.Received().OnRemoteOrTrackingChanged();
             }
             finally
             {
