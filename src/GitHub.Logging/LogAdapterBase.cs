@@ -1,4 +1,3 @@
-#define ENABLE_TRACE
 using System;
 using System.Linq;
 
@@ -20,7 +19,12 @@ namespace GitHub.Unity
             }
         }
 
-        public abstract void Info(string message);
+        protected abstract void OnInfo(string message);
+
+        public void Info(string message)
+        {
+            OnInfo(message);
+        }
 
         public void Info(string format, params object[] objects)
         {
@@ -43,7 +47,14 @@ namespace GitHub.Unity
             Info(ex, String.Format(format, objects));
         }
 
-        public abstract void Debug(string message);
+        protected abstract void OnDebug(string message);
+
+        public void Debug(string message)
+        {
+#if DEBUG
+            OnDebug(message);
+#endif
+        }
 
         public void Debug(string format, params object[] objects)
         {
@@ -74,46 +85,50 @@ namespace GitHub.Unity
 #endif
         }
 
-        public abstract void Trace(string message);
+        protected abstract void OnTrace(string message);
+
+        public void Trace(string message)
+        {
+            if (!Logging.TracingEnabled) return;
+
+            OnTrace(message);
+        }
 
         public void Trace(string format, params object[] objects)
         {
-#if ENABLE_TRACE
             if (!Logging.TracingEnabled) return;
 
             Trace(String.Format(format, objects));
-#endif
         }
 
         public void Trace(Exception ex, string message)
         {
-#if ENABLE_TRACE
             if (!Logging.TracingEnabled) return;
 
             var exceptionMessage = GetExceptionMessage(ex);
             Trace(String.Concat(message, Environment.NewLine, (string)exceptionMessage));
-#endif
         }
 
         public void Trace(Exception ex)
         {
-#if ENABLE_TRACE
             if (!Logging.TracingEnabled) return;
 
             Trace(ex, string.Empty);
-#endif
         }
 
         public void Trace(Exception ex, string format, params object[] objects)
         {
-#if ENABLE_TRACE
             if (!Logging.TracingEnabled) return;
 
             Trace(ex, String.Format(format, objects));
-#endif
         }
 
-        public abstract void Warning(string message);
+        protected abstract void OnWarning(string message);
+
+        public void Warning(string message)
+        {
+            OnWarning(message);
+        }
 
         public void Warning(string format, params object[] objects)
         {
@@ -136,7 +151,12 @@ namespace GitHub.Unity
             Warning(ex, String.Format(format, objects));
         }
 
-        public abstract void Error(string message);
+        protected abstract void OnError(string message);
+
+        public void Error(string message)
+        {
+            OnError(message);
+        }
 
         public void Error(string format, params object[] objects)
         {

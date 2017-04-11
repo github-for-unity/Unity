@@ -17,7 +17,7 @@ namespace GitHub.Unity
                 if (tracingEnabled != value)
                 {
                     tracingEnabled = value;
-                    Instance.Info("Trace Logging " + (value ? "Enabled" : "Disabled"));
+                    Instance?.Info("Trace Logging " + (value ? "Enabled" : "Disabled"));
                 }
             }
         }
@@ -41,7 +41,7 @@ namespace GitHub.Unity
             get {
                 if (instance == null)
                 {
-                    instance = loggerFactory(null);
+                    instance = loggerFactory?.Invoke(null);
                 }
                 return instance;
             }
