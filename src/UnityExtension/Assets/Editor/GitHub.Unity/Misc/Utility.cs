@@ -15,7 +15,7 @@ namespace GitHub.Unity
         public const string StatusRenameDivider = "->";
         public static readonly Regex ListBranchesRegex =
             new Regex(@"^(?<active>\*)?\s+(?<name>[\w\d\/\-\_]+)\s*(?:[a-z|0-9]{7} \[(?<tracking>[\w\d\/\-\_]+)\])?");
-        public static readonly Regex ListRemotesRegex = 
+        public static readonly Regex ListRemotesRegex =
             new Regex(@"(?<name>[\w\d\-\_]+)\s+(?<url>https?:\/\/(?<login>(?<user>[\w\d]+)(?::(?<token>[\w\d]+))?)@(?<host>[\w\d\.\/\%]+))\s+\((?<function>fetch|push)\)");
         public static readonly Regex LogCommitRegex = new Regex(@"commit\s(\S+)");
         public static readonly Regex LogMergeRegex = new Regex(@"Merge:\s+(\S+)\s+(\S+)");
@@ -49,7 +49,7 @@ namespace GitHub.Unity
                 {
                     Debug.LogException(ex);
                 }
-                
+
             }
         }
 
@@ -135,6 +135,18 @@ namespace GitHub.Unity
         public static bool IsDevelopmentBuild
         {
             get { return File.Exists(Path.Combine(UnityProjectPath.Replace('/', Path.DirectorySeparatorChar), ".devroot")); }
+        }
+
+        public static Texture2D GetTextureFromColor(Color color)
+        {
+            Color[] pix = new Color[1];
+            pix[0] = color;
+
+            Texture2D result = new Texture2D(1, 1);
+            result.SetPixels(pix);
+            result.Apply();
+
+            return result;
         }
     }
 

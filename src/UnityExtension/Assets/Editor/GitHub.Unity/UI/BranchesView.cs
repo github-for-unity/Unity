@@ -47,20 +47,33 @@ namespace GitHub.Unity
         public override void OnShow()
         {
             base.OnShow();
-            if (Parent.Repository != null)
-                Parent.Repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
+            if (Repository != null)
+            {
+                Repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
+                Repository.OnActiveBranchChanged += HandleRepositoryBranchChangeEvent;
+                Repository.OnActiveRemoteChanged += HandleRepositoryBranchChangeEvent;
+            }
         }
 
         public override void OnHide()
         {
             base.OnHide();
-            if (Parent.Repository != null)
-                Parent.Repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
+            if (Repository != null)
+            {
+                Repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
+                Repository.OnActiveBranchChanged -= HandleRepositoryBranchChangeEvent;
+                Repository.OnActiveRemoteChanged -= HandleRepositoryBranchChangeEvent;
+            }
         }
 
         private void RunRefreshEmbeddedOnMainThread()
         {
             TaskRunner.ScheduleMainThread(RefreshEmbedded);
+        }
+
+        private void HandleRepositoryBranchChangeEvent(string obj)
+        {
+            RunRefreshEmbeddedOnMainThread();
         }
 
         public override void Refresh()
@@ -77,11 +90,11 @@ namespace GitHub.Unity
 
         public void RefreshEmbedded()
         {
-            if (Parent.Repository == null)
+            if (Repository == null)
                 return;
 
-            OnLocalBranchesUpdate(Parent.Repository.LocalBranches);
-            OnRemoteBranchesUpdate(Parent.Repository.RemoteBranches);
+            OnLocalBranchesUpdate(Repository.LocalBranches);
+            OnRemoteBranchesUpdate(Repository.RemoteBranches);
 
             //ITask task = new GitListLocalBranchesTask(
             //    EntryPoint.Environment, EntryPoint.ProcessManager,

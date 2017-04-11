@@ -106,14 +106,10 @@ namespace GitHub.Unity
             var gitSetup = new GitSetup(Environment, FileSystem, CancellationToken);
             var expectedPath = gitSetup.GitInstallationPath;
 
-            bool setupDone = gitSetup.GitExecutablePath.FileExists();
-            if (!setupDone)
-            {
-                setupDone = await gitSetup.SetupIfNeeded(
-                    //new Progress<float>(x => logger.Trace("Percentage: {0}", x)),
-                    //new Progress<long>(x => logger.Trace("Remaining: {0}", x))
-                );
-            }
+            var setupDone = await gitSetup.SetupIfNeeded(
+                //new Progress<float>(x => logger.Trace("Percentage: {0}", x)),
+                //new Progress<long>(x => logger.Trace("Remaining: {0}", x))
+            );
 
             if (setupDone)
                 Environment.GitExecutablePath = gitSetup.GitExecutablePath;

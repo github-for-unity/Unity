@@ -30,7 +30,7 @@ namespace GitHub.Unity
         private readonly CancellationToken cancellationToken;
         private readonly NPath[] ignoredPaths;
         private readonly AutoResetEvent autoResetEvent;
-
+        private readonly bool disableNative;
         private NativeInterface nativeInterface;
         private bool running;
         private Task task;
@@ -57,6 +57,7 @@ namespace GitHub.Unity
             };
 
             autoResetEvent = new AutoResetEvent(false);
+            disableNative = !platform.Environment.IsWindows;
         }
 
         public void Initialize()
@@ -64,11 +65,18 @@ namespace GitHub.Unity
             var pathsRepositoryPath = paths.RepositoryPath.ToString();
             Logger.Trace("Watching Path: \"{0}\"", pathsRepositoryPath);
 
-            nativeInterface = new NativeInterface(pathsRepositoryPath);
+            if (!disableNative)
+                nativeInterface = new NativeInterface(pathsRepositoryPath);
         }
 
         public void Start()
         {
+            if (disableNative)
+            {
+                Logger.Debug("Native interface is disabled");
+                return;
+            }
+
             if (nativeInterface == null)
             {
                 Logger.Warning("NativeInterface is null");

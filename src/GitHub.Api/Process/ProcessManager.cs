@@ -53,7 +53,8 @@ namespace GitHub.Unity
 
         public void RunCommandLineWindow(string workingDirectory)
         {
-            var startInfo = new ProcessStartInfo("cmd")
+            var shell = environment.IsWindows ? "cmd" : environment.IsMac ? "xterm" : "sh";
+            var startInfo = new ProcessStartInfo(shell)
             {
                 RedirectStandardInput = false,
                 RedirectStandardOutput = false,

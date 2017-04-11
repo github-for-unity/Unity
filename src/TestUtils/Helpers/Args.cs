@@ -10,6 +10,7 @@ namespace TestUtils
     {
         public static string String { get { return Arg.Any<string>(); } }
         public static bool Bool { get { return Arg.Any<bool>(); } }
+        public static int Int { get { return Arg.Any<int>(); } }
         public static SearchOption SearchOption { get { return Arg.Any<SearchOption>(); } }
         public static GitFileStatus GitFileStatus { get { return Arg.Any<GitFileStatus>(); } }
         public static GitConfigSource GitConfigSource { get { return Arg.Any<GitConfigSource>(); } }

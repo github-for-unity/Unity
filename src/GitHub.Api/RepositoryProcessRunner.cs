@@ -8,7 +8,7 @@ namespace GitHub.Unity
     {
         ITask<GitStatus?> PrepareGitStatus(ITaskResultDispatcher<GitStatus> resultDispatcher);
         Task<bool> RunGitConfigGet(ITaskResultDispatcher<string> resultDispatcher, string key, GitConfigSource configSource);
-        ITask<IEnumerable<GitLock>> PrepareGitListLocks(ITaskResultDispatcher<IEnumerable<GitLock>> resultDispatcher);
+        ITask<IEnumerable<GitLock>> PrepareGitListLocks(ITaskResultDispatcher<IEnumerable<GitLock>> resultDispatcher, bool local);
         ITask PrepareGitPull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch);
         ITask PrepareGitPush(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch);
         ITask PrepareSwitchBranch(ITaskResultDispatcher<string> resultDispatcher, string branch);
@@ -19,7 +19,10 @@ namespace GitHub.Unity
         ITask PrepareGitRemoteRemove(ITaskResultDispatcher<string> resultDispatcher, string remote);
         ITask PrepareGitCommit(ITaskResultDispatcher<string> resultDispatcher, string message, string body);
         ITask PrepareGitAdd(ITaskResultDispatcher<string> resultDispatcher, List<string> files);
-        ITask PrepareGitCommitFileTask(TaskResultDispatcher<string> resultDispatcher, List<string> files, string message, string body);
+        ITask PrepareGitCommitFileTask(ITaskResultDispatcher<string> resultDispatcher, List<string> files, string message, string body);
+        ITask PrepareGitLockFile(ITaskResultDispatcher<string> resultDispatcher, string file);
+        ITask PrepareGitUnlockFile(ITaskResultDispatcher<string> resultDispatcher, string file, bool force);
+        ITask PrepareGitRemoteChange(ITaskResultDispatcher<string> resultDispatcher, string remote, string url);
     }
 
     class RepositoryProcessRunner: IRepositoryProcessRunner
@@ -52,10 +55,11 @@ namespace GitHub.Unity
             return task.RunAsync(cancellationToken);
         }
 
-        public ITask<IEnumerable<GitLock>> PrepareGitListLocks(ITaskResultDispatcher<IEnumerable<GitLock>> resultDispatcher)
+        public ITask<IEnumerable<GitLock>> PrepareGitListLocks(ITaskResultDispatcher<IEnumerable<GitLock>> resultDispatcher,
+            bool local)
         {
             var gitObjectFactory = new GitObjectFactory(environment);
-            return new GitListLocksTask(environment, processManager, resultDispatcher, gitObjectFactory);
+            return new GitListLocksTask(environment, processManager, resultDispatcher, gitObjectFactory, local);
         }
 
         public ITask PrepareGitPull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch)
@@ -103,6 +107,11 @@ namespace GitHub.Unity
             return new GitRemoteRemoveTask(environment, processManager, resultDispatcher, remote);
         }
 
+        public ITask PrepareGitRemoteChange(ITaskResultDispatcher<string> resultDispatcher, string remote, string url)
+        {
+            return new GitRemoteChangeTask(environment, processManager, resultDispatcher, remote, url);
+        }
+
         public ITask PrepareGitCommit(ITaskResultDispatcher<string> resultDispatcher, string message, string body)
         {
             return new GitCommitTask(environment, processManager, resultDispatcher, message, body);
@@ -113,9 +122,19 @@ namespace GitHub.Unity
             return new GitAddTask(environment, processManager, resultDispatcher, files);
         }
 
-        public ITask PrepareGitCommitFileTask(TaskResultDispatcher<string> resultDispatcher, List<string> files, string message, string body)
+        public ITask PrepareGitCommitFileTask(ITaskResultDispatcher<string> resultDispatcher, List<string> files, string message, string body)
         {
             return new GitCommitFilesTask(environment, processManager, resultDispatcher, files, message, body);
+        }
+
+        public ITask PrepareGitLockFile(ITaskResultDispatcher<string> resultDispatcher, string file)
+        {
+            return new GitLockTask(environment, processManager, resultDispatcher, file);
+        }
+
+        public ITask PrepareGitUnlockFile(ITaskResultDispatcher<string> resultDispatcher, string file, bool force)
+        {
+            return new GitUnlockTask(environment, processManager, resultDispatcher, file, force);
         }
 
         protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryProcessRunner>();

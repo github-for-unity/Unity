@@ -55,14 +55,23 @@ namespace GitHub.Unity
         private const string GitConfigTitle = "Git Configuration";
         private const string GitConfigNameLabel = "Name";
         private const string GitConfigEmailLabel = "Email";
-        private const string GitConfigUserSave = "Save";
+        private const string GitConfigUserSave = "Save User";
         private const string GitConfigUserSaved = "Saved";
+        private const string GitRepositoryTitle = "Repository Configuration";
+        private const string GitRepositoryRemoteLabel = "Remote";
+        private const string GitRepositorySave = "Save Repository";
+        private const string DebugSettingsTitle = "Debug";
+        private const string EnableTraceLoggingLabel = "Enable Trace Logging";
+
+        private Vector2 lockScrollPos;
+
 
         // TODO: Replace me with the real values
         [SerializeField] private string gitName;
         [SerializeField] private string gitEmail;
 
         [NonSerialized] private int newGitIgnoreRulesSelection = -1;
+        [NonSerialized] private int lockedFileSelection = -1;
 
         [SerializeField] private int gitIgnoreRulesSelection = 0;
         [SerializeField] private string initDirectory;
@@ -70,14 +79,49 @@ namespace GitHub.Unity
 
         [NonSerialized] private bool busy = false;
 
+        [SerializeField] List<GitLock> lockedFiles = new List<GitLock>();
+        [SerializeField] private string repositoryRemoteName;
+        [SerializeField] private string repositoryRemoteUrl;
+
+        public override void Initialize(IView parent)
+        {
+            base.Initialize(parent);
+
+            var currentRemote = Repository.CurrentRemote;
+            if (!currentRemote.HasValue && String.IsNullOrEmpty(repositoryRemoteName))
+            {
+                repositoryRemoteName = "origin";
+                repositoryRemoteUrl = "";
+                Repository.OnActiveRemoteChanged += Repository_OnActiveRemoteChanged;
+            }
+            else if (currentRemote.HasValue)
+            {
+                repositoryRemoteName = !String.IsNullOrEmpty(currentRemote.Value.Name) ? currentRemote.Value.Name : "origin";
+                repositoryRemoteUrl = currentRemote.Value.Url;
+            }
+        }
+
+        private void Repository_OnActiveRemoteChanged(string remote)
+        {
+            var currentRemote = Repository.CurrentRemote;
+            repositoryRemoteName = currentRemote.Value.Name;
+            repositoryRemoteUrl = currentRemote.Value.Url;
+        }
+
         public override void OnShow()
         {
             base.OnShow();
-            if (Repository != null)
-            {
-                gitName = Repository.User.Name;
-                gitEmail = Repository.User.Email;
-            }
+            if (Repository == null)
+                return;
+
+            if (lockedFiles == null)
+                lockedFiles = new List<GitLock>();
+            OnLocksUpdate(Repository.CurrentLocks);
+            Repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
+            Repository.ListLocks();
+
+            gitName = Repository.User.Name;
+            gitEmail = Repository.User.Email;
         }
 
         public override void OnHide()
@@ -85,10 +129,24 @@ namespace GitHub.Unity
             base.OnHide();
         }
 
-        //public override void Refresh()
-        //{
-        //    StatusService.Instance.Run();
-        //}
+        private void RunLocksUpdateOnMainThread(IEnumerable<GitLock> locks)
+        {
+            TaskRunner.ScheduleMainThread(() => OnLocksUpdate(locks));
+        }
+
+        private void OnLocksUpdate(IEnumerable<GitLock> update)
+        {
+            if (update == null)
+            {
+                return;
+            }
+            lockedFiles = update.ToList();
+            if (lockedFiles.Count <= lockedFileSelection)
+            {
+                lockedFileSelection = -1;
+            }
+            Redraw();
+        }
 
         public override void OnGUI()
         {
@@ -113,7 +171,17 @@ namespace GitHub.Unity
 
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
+                    OnRepositorySettingsGUI();
+
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+                    OnGitLfsLocksGUI();
+
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
                     OnInstallPathGUI();
+
+                    OnLoggingSettingsGui();
                 //}
             }
 
@@ -164,6 +232,36 @@ namespace GitHub.Unity
                     }
                     if (needsSaving)
                         TaskRunner.Add(new SimpleTask(() => busy = false, ThreadingHelper.MainThreadScheduler));
+                    else
+                        busy = false;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug(ex);
+                }
+            }
+            GUI.enabled = true;
+        }
+
+        private void OnRepositorySettingsGUI()
+        {
+            GUILayout.Label(GitRepositoryTitle, EditorStyles.boldLabel);
+            GUI.enabled = !busy && Repository != null && !String.IsNullOrEmpty(repositoryRemoteName);
+
+            repositoryRemoteUrl = EditorGUILayout.TextField(GitRepositoryRemoteLabel + ": " + repositoryRemoteName, repositoryRemoteUrl);
+
+            if (GUILayout.Button(GitRepositorySave, GUILayout.ExpandWidth(false)))
+            {
+                try
+                {
+                    busy = true;
+                    var needsSaving = !Repository.CurrentRemote.HasValue ||
+                        (!String.IsNullOrEmpty(repositoryRemoteUrl) && repositoryRemoteUrl != Repository.CurrentRemote.Value.Name);
+                    if (needsSaving)
+                    {
+                        Repository.SetupRemote(repositoryRemoteName, repositoryRemoteUrl);
+                        TaskRunner.Add(new SimpleTask(() => busy = false, ThreadingHelper.MainThreadScheduler));
+                    }
                     else
                         busy = false;
                 }
@@ -435,6 +533,72 @@ namespace GitHub.Unity
             GUILayout.EndVertical();
         }
 
+        private void OnGitLfsLocksGUI()
+        {
+            GUI.enabled = !busy && Repository != null;
+            GUILayout.BeginVertical();
+            {
+                GUILayout.Label("Locked files", EditorStyles.boldLabel);
+
+                lockScrollPos = EditorGUILayout.BeginScrollView(lockScrollPos, Styles.GenericTableBoxStyle,
+                    GUILayout.Height(125));
+                {
+                    GUILayout.BeginVertical();
+                    {
+                        var lockedFilesCount = lockedFiles.Count;
+                        for (var index = 0; index < lockedFilesCount; ++index)
+                        {
+                            GUIStyle rowStyle = (lockedFileSelection == index)
+                                ? Styles.LockedFileRowSelectedStyle
+                                : Styles.LockedFileRowStyle;
+                            GUILayout.Box(lockedFiles[index].Path, rowStyle);
+
+                            if (Event.current.type == EventType.MouseDown &&
+                                GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
+                            {
+                                var currentEvent = Event.current;
+
+                                if (currentEvent.button == 0)
+                                {
+                                    lockedFileSelection = index;
+                                }
+
+                                Event.current.Use();
+                            }
+                        }
+                    }
+
+                    GUILayout.EndVertical();
+                }
+
+                EditorGUILayout.EndScrollView();
+
+                if (lockedFileSelection > -1)
+                {
+                    GUILayout.BeginVertical();
+                    {
+                        var lck = lockedFiles[lockedFileSelection];
+                        GUILayout.Label(lck.Path, EditorStyles.boldLabel);
+
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.Label("Locked by " + lck.User);
+                            GUILayout.FlexibleSpace();
+                            if (GUILayout.Button("Unlock"))
+                            {
+                                Repository.ReleaseLock(null, lck.Path, false);
+                            }
+                        }
+                        GUILayout.EndHorizontal();
+                    }
+                    GUILayout.EndVertical();
+                }
+           }
+
+            GUILayout.EndVertical();
+            GUI.enabled = true;
+        }
+
         private void OnInstallPathGUI()
         {
             // Install path
@@ -479,9 +643,29 @@ namespace GitHub.Unity
                             })
                         );
                 }
-                GUILayout.FlexibleSpace();
             }
             GUILayout.EndHorizontal();
+
+            GUI.enabled = true;
+        }
+
+        private void OnLoggingSettingsGui()
+        {
+            GUILayout.Label(DebugSettingsTitle, EditorStyles.boldLabel);
+
+            GUI.enabled = !busy;
+
+            var traceLogging = Logging.TracingEnabled;
+
+            EditorGUI.BeginChangeCheck();
+            {
+                traceLogging = EditorGUILayout.Toggle(EnableTraceLoggingLabel, traceLogging);
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                Logging.TracingEnabled = traceLogging;
+                GUI.FocusControl(null);
+            }
 
             GUI.enabled = true;
         }
@@ -490,6 +674,17 @@ namespace GitHub.Unity
         {
             initDirectory = Utility.UnityProjectPath;
             GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+        }
+
+        private void ForceUnlockFile(object obj)
+        {
+            var fileName = obj;
+
+            EditorUtility.DisplayDialog("Force unlock file?",
+              "Are you sure you want to force unlock " + fileName + "? "
+              + "This will notify the owner of the lock.",
+              "Unlock",
+              "Cancel");
         }
 
         private void Init()
