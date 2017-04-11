@@ -22,7 +22,10 @@ namespace GitHub.Unity
                 stringBuilder.Append("--force ");
             }
 
+            stringBuilder.Append("\"");
             stringBuilder.Append(path);
+            stringBuilder.Append("\"");
+
             arguments = stringBuilder.ToString();
         }
 
