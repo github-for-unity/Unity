@@ -32,7 +32,7 @@ namespace IntegrationTests
 
         protected virtual void OnSetup()
         {
-            FileSystem = new FileSystem(TestBasePath);
+            FileSystem = new FileSystem();
 
             NPathFileSystemProvider.Current.Should().BeNull("Test should run in isolation");
             NPathFileSystemProvider.Current = FileSystem;

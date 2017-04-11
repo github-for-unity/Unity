@@ -18,7 +18,7 @@ namespace IntegrationTests
 
             using (var zipFile = new ZipFile(TestZipFilePath))
             {
-                zipFile.ExtractAll(TestBasePath.ToString(), ExtractExistingFileAction.OverwriteSilently);
+                zipFile.ExtractAll(TestBasePath.ToString());
             }
         }
 

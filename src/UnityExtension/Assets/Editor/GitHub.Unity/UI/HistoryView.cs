@@ -581,20 +581,22 @@ namespace GitHub.Unity
         private void Pull()
         {
             var status = Repository.CurrentStatus;
-            if (status.Entries != null && status.Entries.Count > 0)
+            if (status.Entries != null && status.GetEntriesExcludingIgnoredAndUntracked().Any())
             {
                 EntryPoint.TaskResultDispatcher.ReportFailure(FailureSeverity.Critical, "Pull", "You need to commit your changes before pulling.");
             }
-
-            var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
-            var resultDispatcher = new MainThreadTaskResultDispatcher<string>(_ =>
+            else
             {
-                EditorUtility.DisplayDialog(Localization.PullActionTitle,
-                    String.Format(Localization.PullSuccessDescription, remote),
-                    Localization.Ok);
-            });
+                var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
+                var resultDispatcher = new MainThreadTaskResultDispatcher<string>(_ =>
+                {
+                    EditorUtility.DisplayDialog(Localization.PullActionTitle,
+                        String.Format(Localization.PullSuccessDescription, remote),
+                        Localization.Ok);
+                });
 
-            Repository.Pull(resultDispatcher);
+                Repository.Pull(resultDispatcher);
+            }
         }
 
         private void Push()
