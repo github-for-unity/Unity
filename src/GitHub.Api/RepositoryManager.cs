@@ -285,6 +285,8 @@ namespace GitHub.Unity
                 if (locks == null || !locks.SequenceEqual(l))
                 {
                     locks = l;
+
+                    Logger.Trace("OnLocksUpdated");
                     OnLocksUpdated(locks);
                 }
             });
