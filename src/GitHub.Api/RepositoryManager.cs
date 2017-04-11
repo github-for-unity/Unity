@@ -380,7 +380,7 @@ namespace GitHub.Unity
 
         private void HeadChanged(string contents)
         {
-            Logger.Trace("HeadChanged Trigger OnRepositoryUpdatedHandler");
+            Logger.Trace("HeadChanged");
             head = contents;
             ActiveBranch = GetActiveBranch();
             ActiveRemote = GetActiveRemote();
@@ -443,6 +443,7 @@ namespace GitHub.Unity
 
         private void RefreshConfigData()
         {
+            Logger.Trace("RefreshConfigData");
             LoadBranchesFromConfig();
             LoadRemotesFromConfig();
 
@@ -452,6 +453,7 @@ namespace GitHub.Unity
 
         private void LoadBranchesFromConfig()
         {
+            branches.Clear();
             LoadBranchesFromConfig(repositoryPaths.BranchesPath, config.GetBranches().Where(x => x.IsTracking), "");
         }
 
@@ -619,7 +621,7 @@ namespace GitHub.Unity
             private set
             {
                 activeBranch = value;
-                Logger.Trace("OnActiveBranchChanged: {0}", value);
+                Logger.Trace("OnActiveBranchChanged: {0}", value.HasValue ? value.Value.Name : "NULL");
                 OnActiveBranchChanged?.Invoke();
             }
         }
@@ -630,7 +632,7 @@ namespace GitHub.Unity
             private set
             {
                 activeRemote = value;
-                Logger.Trace("OnActiveRemoteChanged: {0}", value);
+                Logger.Trace("OnActiveRemoteChanged: {0}", value.HasValue ? value.Value.Name : "NULL");
                 OnActiveRemoteChanged?.Invoke();
             }
         }
