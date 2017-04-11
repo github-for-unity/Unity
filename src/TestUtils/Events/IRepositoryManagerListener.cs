@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using GitHub.Unity;
 using NSubstitute;
 
@@ -13,6 +14,7 @@ namespace TestUtils.Events
         void OnRemoteBranchListChanged();
         void OnRemoteOrTrackingChanged();
         void OnIsBusyChanged(bool obj);
+        void OnLocksUpdated(IEnumerable<GitLock> locks);
     }
 
     static class RepositoryManagerListenerExtensions
@@ -27,6 +29,7 @@ namespace TestUtils.Events
             repositoryManager.OnLocalBranchListChanged += listener.OnLocalBranchListChanged;
             repositoryManager.OnRemoteBranchListChanged += listener.OnRemoteBranchListChanged;
             repositoryManager.OnRemoteOrTrackingChanged += listener.OnRemoteOrTrackingChanged;
+            repositoryManager.OnLocksUpdated += listener.OnLocksUpdated;
         }
 
         public static void AssertDidNotReceiveAnyCalls(this IRepositoryManagerListener repositoryManagerListener)
@@ -38,6 +41,7 @@ namespace TestUtils.Events
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
+            repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
     }
 }
