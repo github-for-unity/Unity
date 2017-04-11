@@ -4,6 +4,24 @@ namespace GitHub.Unity
 {
     public static class Logging
     {
+        private static bool tracingEnabled;
+
+        public static bool TracingEnabled
+        {
+            get
+            {
+                return tracingEnabled;
+            }
+            set
+            {
+                if (tracingEnabled != value)
+                {
+                    tracingEnabled = value;
+                    Instance.Info("Trace Logging " + (value ? "Enabled" : "Disabled"));
+                }
+            }
+        }
+
         private static Func<string, ILogging> loggerFactory;
 
         public static Func<string, ILogging> LoggerFactory

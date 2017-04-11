@@ -45,6 +45,17 @@ namespace GitHub.Unity
                 current++;
         }
 
+        public void MoveToAfter(string str)
+        {
+            if (IsAtEnd)
+                throw new InvalidOperationException("Reached end of line");
+
+            var skip = line.Substring(current).IndexOf(str);
+            if (skip < 0)
+                return;
+            current += skip + str.Length;
+        }
+
         public void SkipWhitespace()
         {
             if (IsAtEnd)
@@ -111,6 +122,19 @@ namespace GitHub.Unity
                 throw new InvalidOperationException("Already at end");
             LastSubstring = line.Substring(current);
             current = line.Length;
+            return LastSubstring;
+        }
+
+        public string ReadUntilLast(string str)
+        {
+            if (IsAtEnd)
+                throw new InvalidOperationException("Already at end");
+            var substr = line.Substring(current);
+            var idx = substr.LastIndexOf(str);
+            if (idx < 0)
+                return ReadToEnd();
+            LastSubstring = substr.Substring(0, idx);
+            current += idx;
             return LastSubstring;
         }
 

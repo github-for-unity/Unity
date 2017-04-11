@@ -36,14 +36,15 @@ namespace GitHub.Unity
             var token = CancellationToken.None;
             var task = new BaseTask(() =>
             {
+                Logger.Trace("Git Init");
+
                 var initTask = new GitInitTask(environment, processManager, null);
                 return initTask.RunAsync(token)
                     .ContinueWith(_ =>
                     {
                         Logger.Trace("LFS install");
 
-                        var t = new GitInitTask(environment, processManager, null);
-                        t.SetArguments("lfs install");
+                        var t = new GitLfsInstallTask(environment, processManager, null);
                         return t.RunAsync(token);
                     }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler)
                     .ContinueWith(_ =>
@@ -85,9 +86,9 @@ namespace GitHub.Unity
 
             });
 
-            task.Critical = true;
+            task.Critical = false;
             task.Queued = TaskQueueSetting.QueueSingle;
-            task.Blocking = true;
+            task.Blocking = false;
             task.Label = "Initializing repository";
 
             scheduler.Queue(task);

@@ -8,13 +8,13 @@ namespace GitHub.Unity
     {
         private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
-        private readonly TaskResultDispatcher<string> resultDispatcher;
+        private readonly ITaskResultDispatcher<string> resultDispatcher;
         private readonly IEnumerable<string> files;
         private readonly string message;
         private readonly string body;
 
         public GitCommitFilesTask(IEnvironment environment, IProcessManager processManager,
-            TaskResultDispatcher<string> resultDispatcher,
+            ITaskResultDispatcher<string> resultDispatcher,
             IEnumerable<string> files, string message, string body)
         {
             Guard.ArgumentNotNull(files, "files");

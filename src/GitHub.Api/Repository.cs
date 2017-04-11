@@ -11,13 +11,13 @@ namespace GitHub.Unity
     class Repository : IRepository, IEquatable<Repository>
     {
         private readonly IRepositoryManager repositoryManager;
-        private GitStatus currentStatus;
 
         public event Action<GitStatus> OnRepositoryChanged;
         public event Action<string> OnActiveBranchChanged;
         public event Action<string> OnActiveRemoteChanged;
         public event Action OnLocalBranchListChanged;
         public event Action OnCommitChanged;
+        public event Action<IEnumerable<GitLock>> OnLocksUpdated;
 
         public IEnumerable<GitBranch> LocalBranches => repositoryManager.LocalBranches.Values.Select(
             x => new GitBranch(x.Name, (x.IsTracking ? (x.Remote.Value.Name + "/" + x.Name) : "[None]"), x.Name == CurrentBranch));
@@ -49,12 +49,12 @@ namespace GitHub.Unity
             repositoryManager.OnActiveRemoteChanged += RepositoryManager_OnActiveRemoteChanged;
             repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;
             repositoryManager.OnHeadChanged += RepositoryManager_OnHeadChanged;
+            repositoryManager.OnLocksUpdated += RepositoryManager_OnLocksUpdated;
 
             if (String.IsNullOrEmpty(CloneUrl))
             {
                 repositoryManager.OnRemoteOrTrackingChanged += RepositoryManager_OnRemoteOrTrackingChanged; ;
             }
-            
         }
 
         public void Refresh()
@@ -62,32 +62,62 @@ namespace GitHub.Unity
             repositoryManager.Refresh();
         }
 
+        public void SetupRemote(string remote, string remoteUrl)
+        {
+            Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
+            Guard.ArgumentNotNullOrWhiteSpace(remoteUrl, "remoteUrl");
+            if (!CurrentRemote.HasValue || String.IsNullOrEmpty(CurrentRemote.Value.Name)) // there's no remote at all
+            {
+                repositoryManager.RemoteAdd(new TaskResultDispatcher<string>(_ => { }), remote, remoteUrl);
+            }
+            else
+            {
+                repositoryManager.RemoteChange(new TaskResultDispatcher<string>(_ => { }), remote, remoteUrl);
+            }
+        }
+
+        public void Pull(ITaskResultDispatcher<string> resultDispatcher)
+        {
+            repositoryManager.Pull(resultDispatcher, CurrentRemote.Value.Name, CurrentBranch);
+        }
+
+        public void Push(ITaskResultDispatcher<string> resultDispatcher)
+        {
+            repositoryManager.Push(resultDispatcher, CurrentRemote.Value.Name, CurrentBranch);
+            repositoryManager.Refresh();
+        }
+
+        public void ListLocks()
+        {
+            repositoryManager.ListLocks(false);
+        }
+
+        public void RequestLock(ITaskResultDispatcher<string> resultDispatcher, string file)
+        {
+            repositoryManager.LockFile(resultDispatcher, file);
+        }
+
+        public void ReleaseLock(ITaskResultDispatcher<string> resultDispatcher, string file, bool force)
+        {
+            repositoryManager.UnlockFile(resultDispatcher, file, force);
+        }
+
         private void RepositoryManager_OnRemoteOrTrackingChanged()
         {
-            if (String.IsNullOrEmpty(CloneUrl))
-            {
+            //if (String.IsNullOrEmpty(CloneUrl))
+            //{
                 var remote = repositoryManager.Config.GetRemotes()
                                .Where(x => HostAddress.Create(new UriString(x.Url).ToRepositoryUri()).IsGitHubDotCom())
                                .FirstOrDefault();
                 if (remote.Url != null)
                     CloneUrl = new UriString(remote.Url).ToRepositoryUrl();
-                repositoryManager.OnRemoteOrTrackingChanged -= RepositoryManager_OnRemoteOrTrackingChanged;
-            }
+                //repositoryManager.OnRemoteOrTrackingChanged -= RepositoryManager_OnRemoteOrTrackingChanged;
+            //}
         }
 
         private void RepositoryManager_OnHeadChanged()
         {
             OnCommitChanged?.Invoke();
-        }
-
-        public void Pull(ITaskResultDispatcher<string> resultDispatcher)
-        {
-            repositoryManager.Pull(resultDispatcher, CurrentRemote, CurrentBranch);
-        }
-
-        public void Push(ITaskResultDispatcher<string> resultDispatcher)
-        {
-            repositoryManager.Push(resultDispatcher, CurrentRemote, CurrentBranch);
         }
 
         private void RepositoryManager_OnLocalBranchListChanged()
@@ -97,7 +127,7 @@ namespace GitHub.Unity
 
         private void RepositoryManager_OnActiveRemoteChanged()
         {
-            OnActiveRemoteChanged?.Invoke(CurrentRemote);
+            OnActiveRemoteChanged?.Invoke(CurrentRemote.Value.Name);
         }
 
         private void RepositoryManager_OnActiveBranchChanged()
@@ -107,9 +137,15 @@ namespace GitHub.Unity
 
         private void RepositoryManager_OnRepositoryChanged(GitStatus status)
         {
-            currentStatus = status;
+            CurrentStatus = status;
             //Logger.Debug("Got STATUS 2 {0} {1}", OnRepositoryChanged, status);
-            OnRepositoryChanged?.Invoke(status);
+            OnRepositoryChanged?.Invoke(CurrentStatus);
+        }
+
+        private void RepositoryManager_OnLocksUpdated(IEnumerable<GitLock> locks)
+        {
+            CurrentLocks = locks;
+            OnLocksUpdated?.Invoke(CurrentLocks);
         }
 
         /// <summary>
@@ -160,11 +196,11 @@ namespace GitHub.Unity
         /// <summary>
         /// Gets the current remote of the repository.
         /// </summary>
-        public string CurrentRemote
+        public ConfigRemote? CurrentRemote
         {
             get
             {
-                return repositoryManager.ActiveRemote?.Name;
+                return repositoryManager.ActiveRemote;
             }
         }
 
@@ -183,8 +219,9 @@ namespace GitHub.Unity
             LocalPath,
             GetHashCode());
 
-        public GitStatus CurrentStatus => currentStatus;
+        public GitStatus CurrentStatus { get; private set; }
         public IUser User { get; set; }
+        public IEnumerable<GitLock> CurrentLocks { get; private set; }
         protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
     }
 
