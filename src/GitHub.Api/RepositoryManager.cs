@@ -375,6 +375,8 @@ namespace GitHub.Unity
         {
             config.Reset();
             RefreshConfigData();
+
+            Logger.Trace("OnRemoteOrTrackingChanged");
             OnRemoteOrTrackingChanged?.Invoke();
         }
 
@@ -620,9 +622,12 @@ namespace GitHub.Unity
             get { return activeBranch; }
             private set
             {
-                activeBranch = value;
-                Logger.Trace("OnActiveBranchChanged: {0}", value.HasValue ? value.Value.Name : "NULL");
-                OnActiveBranchChanged?.Invoke();
+                if(activeBranch.HasValue ^ value.HasValue || activeBranch.HasValue && value.HasValue && !activeBranch.Value.Equals(value.Value))
+                {
+                    activeBranch = value;
+                    Logger.Trace("OnActiveBranchChanged: {0}", value?.ToString() ?? "NULL");
+                    OnActiveBranchChanged?.Invoke();
+                }
             }
         }
 
@@ -631,9 +636,12 @@ namespace GitHub.Unity
             get { return activeRemote; }
             private set
             {
-                activeRemote = value;
-                Logger.Trace("OnActiveRemoteChanged: {0}", value.HasValue ? value.Value.Name : "NULL");
-                OnActiveRemoteChanged?.Invoke();
+                if (activeRemote.HasValue ^ value.HasValue || activeRemote.HasValue && value.HasValue && !activeRemote.Value.Equals(value.Value))
+                {
+                    activeRemote = value;
+                    Logger.Trace("OnActiveRemoteChanged: {0}", value?.ToString() ?? "NULL");
+                    OnActiveRemoteChanged?.Invoke();
+                }
             }
         }
 
