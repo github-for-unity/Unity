@@ -64,12 +64,12 @@ namespace GitHub.Unity
             var path = AssetDatabase.GetAssetPath(selected.GetInstanceID());
             repository.RequestLock(new MainThreadTaskResultDispatcher<string>(s => {
                 isBusy = false;
-                GUI.FocusControl(null);
+                Selection.activeGameObject = null;
                 EditorApplication.RepaintProjectWindow();
             },
             () => {
                 isBusy = false;
-                GUI.FocusControl(null);
+                Selection.activeGameObject = null;
                 EditorApplication.RepaintProjectWindow();
             }), path);
         }
@@ -101,7 +101,7 @@ namespace GitHub.Unity
             repository.ReleaseLock(new MainThreadTaskResultDispatcher<string>(s =>
             {
                 isBusy = false;
-                GUI.FocusControl(null);
+                Selection.activeGameObject = null;
                 EditorApplication.RepaintProjectWindow();
             },
             () => isBusy = false), path, false);
