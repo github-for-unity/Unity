@@ -59,6 +59,7 @@ namespace IntegrationTests
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
 
                 //Assert.AreEqual(3, repositoryManagerListener.ReceivedCalls().Count());
             }
@@ -131,6 +132,7 @@ namespace IntegrationTests
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
 
                 repositoryManagerListener.ClearReceivedCalls();
 
@@ -153,6 +155,7 @@ namespace IntegrationTests
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
             }
             finally
             {
@@ -200,6 +203,7 @@ namespace IntegrationTests
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
             }
             finally
             {
@@ -237,6 +241,7 @@ namespace IntegrationTests
                 repositoryManagerListener.Received(1).OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
                 repositoryManagerListener.Received().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
             }
             finally
             {
@@ -275,6 +280,7 @@ namespace IntegrationTests
                 repositoryManagerListener.Received(1).OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
 
                 repositoryManagerListener.ClearReceivedCalls();
 
@@ -294,6 +300,7 @@ namespace IntegrationTests
                 repositoryManagerListener.Received(1).OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
 
                 repositoryManagerListener.ClearReceivedCalls();
             }
@@ -333,6 +340,7 @@ namespace IntegrationTests
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
                 repositoryManagerListener.Received().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
 
                 repositoryManagerListener.ClearReceivedCalls();
 
@@ -353,6 +361,7 @@ namespace IntegrationTests
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
                 repositoryManagerListener.Received().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
             }
             finally
             {
@@ -403,6 +412,7 @@ namespace IntegrationTests
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
             }
             finally
             {
@@ -440,6 +450,7 @@ namespace IntegrationTests
                 repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
                 repositoryManagerListener.Received(2).OnRemoteBranchListChanged();
                 repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
+                repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
             }
             finally
             {
