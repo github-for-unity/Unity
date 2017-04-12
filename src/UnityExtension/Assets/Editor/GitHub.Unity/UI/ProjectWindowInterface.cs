@@ -24,11 +24,6 @@ namespace GitHub.Unity
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
             initialized = true;
-            InitializeRepo(repo);
-        }
-
-        public static void InitializeRepo(IRepository repo)
-        {
             repository = repo;
             if (repository != null)
             {
