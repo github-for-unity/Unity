@@ -56,7 +56,9 @@ namespace GitHub.Unity
         public static void ShowWindow()
         {
             var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.InspectorWindow");
-            GetWindow<Window>(type).Show();
+            var window = GetWindow<Window>(type);
+            window.Setup(EntryPoint.Environment.Repository);
+            window.Show();
         }
 
         public static void Initialize(IRepository repository)
