@@ -1,13 +1,11 @@
-﻿using System;
-
-namespace GitHub.Models
+﻿namespace GitHub.Unity
 {
     public class UsageModel
     {
         public bool IsGitHubUser { get; set; }
         public bool IsEnterpriseUser { get; set; }
         public string AppVersion { get; set; }
-        public string VSVersion { get; set; }
+        public string UnityVersion { get; set; }
         public string Lang { get; set; }
         public int NumberOfStartups { get; set; }
         public int NumberOfStartupsWeek { get; set; }
@@ -35,7 +33,7 @@ namespace GitHub.Models
                 IsGitHubUser = IsGitHubUser,
                 IsEnterpriseUser = IsEnterpriseUser,
                 AppVersion = AppVersion,
-                VSVersion = VSVersion,
+                UnityVersion = UnityVersion,
                 Lang = Lang,
                 NumberOfStartups = NumberOfStartups,
                 NumberOfStartupsWeek = includeWeekly ? NumberOfStartupsWeek : 0,

@@ -1,33 +1,28 @@
-﻿using Microsoft.VisualStudio.Shell;
-using System;
-using System.ComponentModel.Composition;
-using Task = System.Threading.Tasks.Task;
+﻿using System.Threading.Tasks;
+using GitHub.Services;
 
-namespace GitHub.Services
+namespace GitHub.Unity
 {
-    [Export(typeof(IUsageTracker))]
-    [PartCreationPolicy(CreationPolicy.NonShared)]
     public class UsageTrackerDispatcher : IUsageTracker
     {
-        readonly IUsageTracker inner;
+        private readonly IUsageTracker usageTracker;
 
-        [ImportingConstructor]
-        public UsageTrackerDispatcher([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public UsageTrackerDispatcher(IUsageTracker usageTracker)
         {
-            inner = serviceProvider.GetService(typeof(IUsageTracker)) as IUsageTracker;
+            this.usageTracker = usageTracker;
         }
 
-        public Task IncrementCloneCount() => inner.IncrementCloneCount();
-        public Task IncrementCreateCount() => inner.IncrementCreateCount();
-        public Task IncrementCreateGistCount() => inner.IncrementCreateGistCount();
-        public Task IncrementLaunchCount() => inner.IncrementLaunchCount();
-        public Task IncrementLinkToGitHubCount() => inner.IncrementLinkToGitHubCount();
-        public Task IncrementLoginCount() => inner.IncrementLoginCount();
-        public Task IncrementOpenInGitHubCount() => inner.IncrementOpenInGitHubCount();
-        public Task IncrementPublishCount() => inner.IncrementPublishCount();
-        public Task IncrementUpstreamPullRequestCount() => inner.IncrementUpstreamPullRequestCount();
-        public Task IncrementPullRequestCheckOutCount(bool fork) => inner.IncrementPullRequestCheckOutCount(fork);
-        public Task IncrementPullRequestPullCount(bool fork) => inner.IncrementPullRequestPullCount(fork);
-        public Task IncrementPullRequestPushCount(bool fork) => inner.IncrementPullRequestPushCount(fork);
+        public Task IncrementCloneCount() => usageTracker.IncrementCloneCount();
+        public Task IncrementCreateCount() => usageTracker.IncrementCreateCount();
+        public Task IncrementCreateGistCount() => usageTracker.IncrementCreateGistCount();
+        public Task IncrementLaunchCount() => usageTracker.IncrementLaunchCount();
+        public Task IncrementLinkToGitHubCount() => usageTracker.IncrementLinkToGitHubCount();
+        public Task IncrementLoginCount() => usageTracker.IncrementLoginCount();
+        public Task IncrementOpenInGitHubCount() => usageTracker.IncrementOpenInGitHubCount();
+        public Task IncrementPublishCount() => usageTracker.IncrementPublishCount();
+        public Task IncrementUpstreamPullRequestCount() => usageTracker.IncrementUpstreamPullRequestCount();
+        public Task IncrementPullRequestCheckOutCount(bool fork) => usageTracker.IncrementPullRequestCheckOutCount(fork);
+        public Task IncrementPullRequestPullCount(bool fork) => usageTracker.IncrementPullRequestPullCount(fork);
+        public Task IncrementPullRequestPushCount(bool fork) => usageTracker.IncrementPullRequestPushCount(fork);
     }
 }

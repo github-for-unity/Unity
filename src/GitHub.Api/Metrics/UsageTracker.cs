@@ -1,32 +1,20 @@
 ﻿using System;
-using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Text;
-using System.Windows.Threading;
-using GitHub.Models;
-using GitHub.Settings;
-using Task = System.Threading.Tasks.Task;
-using GitHub.Extensions;
 using System.Threading.Tasks;
-using GitHub.Helpers;
 using GitHub.Unity;
 
 namespace GitHub.Services
 {
     public class UsageTracker : IUsageTracker
     {
-        const string StoreFileName = "ghfvs.usage";
+        const string StoreFileName = "ghfunity.usage";
         static readonly Calendar cal = CultureInfo.InvariantCulture.Calendar;
 
-        readonly IGitHubServiceProvider gitHubServiceProvider;
-        readonly DispatcherTimer timer;
+        //readonly DispatcherTimer timer;
+        //IMetricsService client;
 
-        IMetricsService client;
-        IConnectionManager connectionManager;
-        IPackageSettings userSettings;
-        IVSServices vsservices;
         string storePath;
         bool firstRun = true;
 
@@ -35,10 +23,8 @@ namespace GitHub.Services
         Action<string, string, Encoding> writeAllText;
         Action<string> dirCreate;
 
-        public UsageTracker(IGitHubServiceProvider gitHubServiceProvider)
+        public UsageTracker()
         {
-            this.gitHubServiceProvider = gitHubServiceProvider;
-
             fileExists = (path) => System.IO.File.Exists(path);
             readAllText = (path, encoding) =>
             {
@@ -61,11 +47,11 @@ namespace GitHub.Services
             };
             dirCreate = (path) => System.IO.Directory.CreateDirectory(path);
 
-            this.timer = new DispatcherTimer(
-                TimeSpan.FromMinutes(3),
-                DispatcherPriority.Background,
-                TimerTick,
-                ThreadingHelper.MainThreadDispatcher);
+//            this.timer = new DispatcherTimer(
+//                TimeSpan.FromMinutes(3),
+//                DispatcherPriority.Background,
+//                TimerTick,
+//                ThreadingHelper.MainThreadDispatcher);
 
             RunTimer();
         }
@@ -175,21 +161,21 @@ namespace GitHub.Services
         {
             // The services needed by the usage tracker are loaded when they are first needed to
             // improve the startup time of the extension.
-            if (userSettings == null)
-            {
-                await ThreadingHelper.SwitchToMainThreadAsync();
-
-                client = gitHubServiceProvider.GetService<IMetricsService>();
-                connectionManager = gitHubServiceProvider.GetService<IConnectionManager>();
-                userSettings = gitHubServiceProvider.GetService<IPackageSettings>();
-                vsservices = gitHubServiceProvider.GetService<IVSServices>();
-
-                var program = gitHubServiceProvider.GetService<IProgram>();
-                storePath = System.IO.Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    program.ApplicationName,
-                    StoreFileName);
-            }
+//            if (userSettings == null)
+//            {
+//                await ThreadingHelper.SwitchToMainThreadAsync();
+//
+//                client = gitHubServiceProvider.GetService<IMetricsService>();
+//                connectionManager = gitHubServiceProvider.GetService<IConnectionManager>();
+//                userSettings = gitHubServiceProvider.GetService<IPackageSettings>();
+//                vsservices = gitHubServiceProvider.GetService<IVSServices>();
+//
+//                var program = gitHubServiceProvider.GetService<IProgram>();
+//                storePath = System.IO.Path.Combine(
+//                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+//                    program.ApplicationName,
+//                    StoreFileName);
+//            }
         }
 
         async Task<UsageStore> LoadUsage()
@@ -211,7 +197,7 @@ namespace GitHub.Services
 
             result.Model.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
             result.Model.AppVersion = AssemblyVersionInformation.Version;
-            result.Model.VSVersion = vsservices.VSVersion;
+            //result.Model.VSVersion = vsservices.VSVersion;
 
             return result;
         }
@@ -227,35 +213,35 @@ namespace GitHub.Services
         {
             // The timer first ticks after 3 minutes to allow things to settle down after startup.
             // This will be changed to 8 hours after the first tick by the TimerTick method.
-            timer.Start();
+            //timer.Start();
         }
 
         void TimerTick(object sender, EventArgs e)
         {
-            TimerTick()
-                .Catch(ex =>
-                {
-                    //log.Warn("Failed submitting usage data", ex);
-                })
-                .Forget();
+//            TimerTick()
+//                .Catch(ex =>
+//                {
+//                    //log.Warn("Failed submitting usage data", ex);
+//                })
+//                .Forget();
         }
 
         async Task TimerTick()
         {
             await Initialize();
 
-            if (firstRun)
-            {
-                await IncrementLaunchCount();
-                timer.Interval = TimeSpan.FromHours(8);
-                firstRun = false;
-            }
-
-            if (client == null || !userSettings.CollectMetrics)
-            {
-                timer.Stop();
-                return;
-            }
+//            if (firstRun)
+//            {
+//                await IncrementLaunchCount();
+//                timer.Interval = TimeSpan.FromHours(8);
+//                firstRun = false;
+//            }
+//
+//            if (client == null || !userSettings.CollectMetrics)
+//            {
+//                timer.Stop();
+//                return;
+//            }
 
             // Every time we increment the launch count we increment both daily and weekly
             // launch count but we only submit (and clear) the weekly launch count when we've
@@ -279,20 +265,21 @@ namespace GitHub.Services
 
         async Task SendUsage(UsageModel usage, bool weekly, bool monthly)
         {
-            Debug.Assert(client != null, "SendUsage should not be called when there is no IMetricsService");
+//            Debug.Assert(client != null, "SendUsage should not be called when there is no IMetricsService");
 
-            if (connectionManager.Connections.Any(x => x.HostAddress.IsGitHubDotCom()))
-            {
-                usage.IsGitHubUser = true;
-            }
-
-            if (connectionManager.Connections.Any(x => !x.HostAddress.IsGitHubDotCom()))
-            {
-                usage.IsEnterpriseUser = true;
-            }
+//            if (connectionManager.Connections.Any(x => x.HostAddress.IsGitHubDotCom()))
+//            {
+//                usage.IsGitHubUser = true;
+//            }
+//
+//            if (connectionManager.Connections.Any(x => !x.HostAddress.IsGitHubDotCom()))
+//            {
+//                usage.IsEnterpriseUser = true;
+//            }
 
             var model = usage.Clone(weekly, monthly);
-            await client.PostUsage(model);
+//            await client.PostUsage(model);
+            throw new NotImplementedException();
         }
 
         // http://blogs.msdn.com/b/shawnste/archive/2006/01/24/iso-8601-week-of-year-format-in-microsoft-net.aspx

@@ -1,8 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using GitHub.Models;
+﻿using System.Threading.Tasks;
 
-namespace GitHub.Services
+namespace GitHub.Unity
 {
     public interface IMetricsService
     {

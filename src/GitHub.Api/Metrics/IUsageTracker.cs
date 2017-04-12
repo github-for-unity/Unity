@@ -1,10 +1,7 @@
-﻿using GitHub.VisualStudio;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-namespace GitHub.Services
+namespace GitHub.Unity
 {
-    [Guid(Guids.UsageTrackerId)]
     public interface IUsageTracker
     {
         Task IncrementLaunchCount();
