@@ -1,14 +1,12 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
 using GitHub.Unity;
-using NSubstitute.Core;
-using TestUtils;
+using NCrunch.Framework;
 
 namespace IntegrationTests
 {
+    [Isolated]
     class BaseIntegrationTest
     {
         protected NPath TestBasePath { get; private set; }
