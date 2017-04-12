@@ -97,6 +97,14 @@
     <Compile Include="Git\IGitObjectFactory.cs" />
     <Compile Include="IO\FileSystemHelpers.cs" />
     <Compile Include="IApplicationManager.cs" />
+    <Compile Include="Metrics\IMetricsService.cs" />
+    <Compile Include="Metrics\IUsageTracker.cs" />
+    <Compile Include="Metrics\UsageModel.cs" />
+    <Compile Include="Metrics\UsageTracker.cs" />
+    <Compile Include="Metrics\UsageTrackerDispatcher.cs" />
+    <Compile Include="..\..\script\src\MetricsService.cs" Condition="$(Buildtype) == 'Internal'">
+      <Link>Metrics\MetricsService.cs</Link>
+    </Compile>
     <Compile Include="Tasks\GitLfsInstallTask.cs" />
     <Compile Include="Threading\IMainThreadSynchronizationContext.cs" />
     <Compile Include="Installer\IGitInstaller.cs" />
@@ -217,6 +225,10 @@
     <Compile Include="Api\ApiClientFactory.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\submodules\dotnet-httpClient35\System.Net.Http\System.Net.Http-net_3_5.csproj">
+      <Project>{9862694D-E4FA-418B-8692-A0280FEDDF36}</Project>
+      <Name>System.Net.Http-net_3_5</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">
       <Project>{eb4b074e-62a7-4f1d-8f95-e64b7aea0236}</Project>
       <Name>Octokit-Extensions35</Name>
