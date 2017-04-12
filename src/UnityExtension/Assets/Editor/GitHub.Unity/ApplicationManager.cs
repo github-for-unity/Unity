@@ -92,6 +92,7 @@ namespace GitHub.Unity
                 .ContinueWith(_ =>
                 {
                     logger.Trace("Restarted");
+                    ProjectWindowInterface.InitializeRepo(Environment.Repository);
                     Window.Initialize(Environment.Repository);
                 }, UIScheduler);
         }
