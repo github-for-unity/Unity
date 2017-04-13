@@ -88,7 +88,7 @@ namespace UnitTests
             var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
             taskRunner.Run();
 
-            return new RepositoryManager(platform, taskRunner, gitConfig, repositoryWatcher,
+            return new RepositoryManager(platform, taskRunner, new NullUsageTracker(), gitConfig, repositoryWatcher,
                 repositoryProcessRunner, repositoryPathConfiguration, cancellationToken);
         }
 

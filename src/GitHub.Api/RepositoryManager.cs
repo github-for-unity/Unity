@@ -89,7 +89,7 @@ namespace GitHub.Unity
 
     class RepositoryManagerFactory
     {
-        public RepositoryManager CreateRepositoryManager(IPlatform platform, ITaskRunner taskRunner, NPath repositoryRoot,
+        public RepositoryManager CreateRepositoryManager(IPlatform platform, ITaskRunner taskRunner, IUsageTracker usageTracker, NPath repositoryRoot,
             CancellationToken cancellationToken)
         {
             var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
@@ -100,7 +100,7 @@ namespace GitHub.Unity
             var repositoryProcessRunner = new RepositoryProcessRunner(platform.Environment, platform.ProcessManager,
                 platform.CredentialManager, platform.UIDispatcher, cancellationToken);
 
-            return new RepositoryManager(platform, taskRunner, gitConfig, repositoryWatcher,
+            return new RepositoryManager(platform, taskRunner, usageTracker, gitConfig, repositoryWatcher,
                 repositoryProcessRunner, repositoryPathConfiguration, cancellationToken);
         }
     }
@@ -112,6 +112,7 @@ namespace GitHub.Unity
         private readonly IGitConfig config;
         private readonly IPlatform platform;
         private readonly ITaskRunner taskRunner;
+        private readonly IUsageTracker usageTracker;
         private readonly IRepository repository;
         private readonly IRepositoryPathConfiguration repositoryPaths;
         private readonly IRepositoryProcessRunner repositoryProcessRunner;
@@ -139,13 +140,14 @@ namespace GitHub.Unity
         public event Action OnRemoteOrTrackingChanged;
         public event Action<IEnumerable<GitLock>> OnLocksUpdated;
 
-        public RepositoryManager(IPlatform platform, ITaskRunner taskRunner, IGitConfig gitConfig,
+        public RepositoryManager(IPlatform platform, ITaskRunner taskRunner, IUsageTracker usageTracker, IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IRepositoryProcessRunner repositoryProcessRunner,
             IRepositoryPathConfiguration repositoryPaths, CancellationToken cancellationToken)
         {
             this.repositoryPaths = repositoryPaths;
             this.platform = platform;
             this.taskRunner = taskRunner;
+            this.usageTracker = usageTracker;
             this.cancellationToken = cancellationToken;
             this.repositoryProcessRunner = repositoryProcessRunner;
 
@@ -200,6 +202,7 @@ namespace GitHub.Unity
             var task = ProcessRunner.PrepareGitAdd(resultDispatcher, files);
             PrepareTask(task);
             var taskCommit = ProcessRunner.PrepareGitCommit(resultDispatcher, message, body);
+            taskCommit.OnEnd += t => { usageTracker.IncrementCommitCount(); };
             PrepareTask(taskCommit);
             taskRunner.AddTask(task);
             taskRunner.AddTask(taskCommit);
@@ -208,6 +211,7 @@ namespace GitHub.Unity
         public void Fetch(ITaskResultDispatcher<string> resultDispatcher, string remote)
         {
             var task = ProcessRunner.PrepareGitFetch(resultDispatcher, remote);
+            task.OnEnd += t => { usageTracker.IncrementFetchCount(); };
             PrepareTask(task);
             taskRunner.AddTask(task);
         }
@@ -215,6 +219,7 @@ namespace GitHub.Unity
         public void Pull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch)
         {
             var task = ProcessRunner.PrepareGitPull(resultDispatcher, remote, branch);
+            task.OnEnd += t => { usageTracker.IncrementPullCount(); };
             PrepareTask(task, true);
             taskRunner.AddTask(task);
         }
@@ -222,6 +227,7 @@ namespace GitHub.Unity
         public void Push(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch)
         {
             var task = ProcessRunner.PrepareGitPush(resultDispatcher, remote, branch);
+            task.OnEnd += t => { usageTracker.IncrementPushCount(); };
             PrepareTask(task);
             taskRunner.AddTask(task);
         }
@@ -297,6 +303,7 @@ namespace GitHub.Unity
         public void LockFile(ITaskResultDispatcher<string> resultDispatcher, string file)
         {
             var task = ProcessRunner.PrepareGitLockFile(resultDispatcher, file);
+            task.OnEnd += t => { usageTracker.IncrementLockCount(); };
             PrepareTask(task);
             taskRunner.AddTask(task);
             ListLocks(false);
@@ -305,6 +312,7 @@ namespace GitHub.Unity
         public void UnlockFile(ITaskResultDispatcher<string> resultDispatcher, string file, bool force)
         {
             var task = ProcessRunner.PrepareGitUnlockFile(resultDispatcher, file, force);
+            task.OnEnd += t => { usageTracker.IncrementUnlockCount(); };
             PrepareTask(task);
             taskRunner.AddTask(task);
             ListLocks(false);

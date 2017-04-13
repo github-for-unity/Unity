@@ -34,7 +34,7 @@ namespace IntegrationTests
             var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
 
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, repoPath, CancellationToken.None);
+            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, new NullUsageTracker(), repoPath, CancellationToken.None);
 
             Environment.Repository = repositoryManager.Repository;
 

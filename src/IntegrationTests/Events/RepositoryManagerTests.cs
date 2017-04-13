@@ -463,7 +463,7 @@ namespace IntegrationTests
             var repositoryManagerFactory = new RepositoryManagerFactory();
             var taskRunner = new TaskRunnerBase(new TestSynchronizationContext(), CancellationToken.None);
             taskRunner.Run();
-            return repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, path, CancellationToken.None);
+            return repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, new NullUsageTracker(), path, CancellationToken.None);
         }
     }
 }

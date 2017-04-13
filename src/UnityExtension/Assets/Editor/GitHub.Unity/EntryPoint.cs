@@ -100,6 +100,8 @@ namespace GitHub.Unity
 
         public static IFileSystem FileSystem { get { return ApplicationManager.FileSystem; } }
 
+        public static IUsageTracker UsageTracker { get { return ApplicationManager.UsageTracker; } }
+
         public static IPlatform Platform { get { return ApplicationManager.Platform; } }
         public static ICredentialManager CredentialManager { get { return Platform.CredentialManager; } }
 

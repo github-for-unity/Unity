@@ -87,7 +87,7 @@ namespace GitHub.Unity
                 try
                 {
                     var repositoryManagerFactory = new RepositoryManagerFactory();
-                    repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskRunner, repositoryRoot, CancellationToken);
+                    repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskRunner, UsageTracker, repositoryRoot, CancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -101,6 +101,9 @@ namespace GitHub.Unity
 
         private async Task RunInternal()
         {
+            UsageTracker = new NullUsageTracker();
+            await UsageTracker.IncrementLaunchCount();
+
             await ThreadingHelper.SwitchToThreadAsync();
 
             var gitSetup = new GitSetup(Environment, CancellationToken);
@@ -120,8 +123,6 @@ namespace GitHub.Unity
 
             await RestartRepository();
         }
-
-
 
         private async Task<string> LookForGitInstallationPath()
         {
@@ -143,6 +144,7 @@ namespace GitHub.Unity
         }
 
         private bool disposed = false;
+
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -176,5 +178,7 @@ namespace GitHub.Unity
         public ISettings LocalSettings { get; protected set; }
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
+
+        public IUsageTracker UsageTracker { get; protected set; }
     }
 }

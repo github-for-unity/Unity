@@ -11,7 +11,13 @@
         public int NumberOfStartupsWeek { get; set; }
         public int NumberOfStartupsMonth { get; set; }
         public int NumberOfUpstreamPullRequests { get; set; }
+        public int NumberOfCommits { get; set; }
         public int NumberOfClones { get; set; }
+        public int NumberOfFetches { get; set; }
+        public int NumberOfPulls { get; set; }
+        public int NumberOfPushes { get; set; }
+        public int NumberOfLocks { get; set; }
+        public int NumberOfUnlocks { get; set; }
         public int NumberOfReposCreated { get; set; }
         public int NumberOfReposPublished { get; set; }
         public int NumberOfGists { get; set; }
@@ -25,7 +31,6 @@
         public int NumberOfForkPullRequestsCheckedOut { get; set; }
         public int NumberOfForkPullRequestPulls { get; set; }
         public int NumberOfForkPullRequestPushes { get; set; }
-
         public UsageModel Clone(bool includeWeekly, bool includeMonthly)
         {
             return new UsageModel
@@ -39,6 +44,7 @@
                 NumberOfStartupsWeek = includeWeekly ? NumberOfStartupsWeek : 0,
                 NumberOfStartupsMonth = includeMonthly ? NumberOfStartupsMonth : 0,
                 NumberOfUpstreamPullRequests = NumberOfUpstreamPullRequests,
+                NumberOfCommits = NumberOfCommits,
                 NumberOfClones = NumberOfClones,
                 NumberOfReposCreated = NumberOfReposCreated,
                 NumberOfReposPublished = NumberOfReposPublished,

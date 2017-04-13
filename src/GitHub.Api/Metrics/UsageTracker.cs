@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
-using GitHub.Unity;
 
-namespace GitHub.Services
+namespace GitHub.Unity
 {
     public class UsageTracker : IUsageTracker
     {
@@ -69,6 +67,48 @@ namespace GitHub.Services
         {
             var usage = await LoadUsage();
             ++usage.Model.NumberOfClones;
+            SaveUsage(usage);
+        }
+
+        public async Task IncrementCommitCount()
+        {
+            var usage = await LoadUsage();
+            ++usage.Model.NumberOfCommits;
+            SaveUsage(usage);
+        }
+
+        public async Task IncrementFetchCount()
+        {
+            var usage = await LoadUsage();
+            ++usage.Model.NumberOfFetches;
+            SaveUsage(usage);
+        }
+
+        public async Task IncrementPullCount()
+        {
+            var usage = await LoadUsage();
+            ++usage.Model.NumberOfPulls;
+            SaveUsage(usage);
+        }
+
+        public async Task IncrementPushCount()
+        {
+            var usage = await LoadUsage();
+            ++usage.Model.NumberOfPushes;
+            SaveUsage(usage);
+        }
+
+        public async Task IncrementLockCount()
+        {
+            var usage = await LoadUsage();
+            ++usage.Model.NumberOfLocks;
+            SaveUsage(usage);
+        }
+
+        public async Task IncrementUnlockCount()
+        {
+            var usage = await LoadUsage();
+            ++usage.Model.NumberOfUnlocks;
             SaveUsage(usage);
         }
 

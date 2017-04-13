@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using GitHub.Services;
 
 namespace GitHub.Unity
 {
@@ -13,6 +12,12 @@ namespace GitHub.Unity
         }
 
         public Task IncrementCloneCount() => usageTracker.IncrementCloneCount();
+        public Task IncrementCommitCount() => usageTracker.IncrementCommitCount();
+        public Task IncrementFetchCount() => usageTracker.IncrementFetchCount();
+        public Task IncrementPullCount() => usageTracker.IncrementPullCount();
+        public Task IncrementPushCount() => usageTracker.IncrementPushCount();
+        public Task IncrementLockCount() => usageTracker.IncrementLockCount();
+        public Task IncrementUnlockCount() => usageTracker.IncrementUnlockCount();
         public Task IncrementCreateCount() => usageTracker.IncrementCreateCount();
         public Task IncrementCreateGistCount() => usageTracker.IncrementCreateGistCount();
         public Task IncrementLaunchCount() => usageTracker.IncrementLaunchCount();
