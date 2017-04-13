@@ -1,7 +1,5 @@
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
-using FluentAssertions;
 using GitHub.Unity;
 using TestUtils;
 
@@ -31,7 +29,7 @@ namespace IntegrationTests
             Environment.UnityProjectPath = repoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
 
-            var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
+            var taskRunner = new TaskRunnerBase(new TestSynchronizationContext(), CancellationToken.None);
             taskRunner.Run();
 
             var repositoryManagerFactory = new RepositoryManagerFactory();
