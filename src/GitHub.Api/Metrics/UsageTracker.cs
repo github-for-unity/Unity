@@ -270,22 +270,10 @@ namespace GitHub.Unity
         {
             // The services needed by the usage tracker are loaded when they are first needed to
             // improve the startup time of the extension.
-            //            if (userSettings == null)
-            //            {
             await ThreadingHelper.SwitchToMainThreadAsync();
 #if HAS_METRICS_SERVICE
-            client = gitHubServiceProvider.GetService<IMetricsService>();
+            client = new MetricsService($"GitHub4Unity{AssemblyVersionInformation.Version}");
 #endif
-            //                connectionManager = gitHubServiceProvider.GetService<IConnectionManager>();
-            //                userSettings = gitHubServiceProvider.GetService<IPackageSettings>();
-            //                vsservices = gitHubServiceProvider.GetService<IVSServices>();
-            //
-            //                var program = gitHubServiceProvider.GetService<IProgram>();
-            //                storePath = System.IO.Path.Combine(
-            //                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            //                    program.ApplicationName,
-            //                    StoreFileName);
-            //            }
         }
 
         private async Task<UsageStore> LoadUsage()
