@@ -104,7 +104,7 @@ namespace GitHub.Unity
             var usagePath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
                 .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity-usage.json");
 
-            UsageTracker = new UsageTracker(FileSystem, usagePath);
+            UsageTracker = new UsageTracker(usagePath);
 
             await ThreadingHelper.SwitchToThreadAsync();
 

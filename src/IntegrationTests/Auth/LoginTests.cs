@@ -67,7 +67,7 @@ namespace IntegrationTests
             var repositoryManagerFactory = new RepositoryManagerFactory();
             using (
                 var repoManager = repositoryManagerFactory.CreateRepositoryManager(platform, taskRunner,
-                    new UsageTracker(FileSystem, UsageFile), TestRepoMasterDirtyUnsynchronized, CancellationToken.None))
+                    new UsageTracker(UsageFile), TestRepoMasterDirtyUnsynchronized, CancellationToken.None))
             {
                 var repository = repoManager.Repository;
                 Environment.Repository = repoManager.Repository;

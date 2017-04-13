@@ -2,28 +2,26 @@
 using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
+using Rackspace.Threading;
 
 namespace GitHub.Unity
 {
     class UsageTracker : IUsageTracker
     {
-        private const string StoreFileName = "ghfunity.usage";
-
         private static readonly Calendar cal = CultureInfo.InvariantCulture.Calendar;
         private static readonly ILogging logger = Logging.GetLogger<UsageTracker>();
 
-        private readonly IFileSystem fileSystem;
         private readonly NPath storePath;
 
         private IMetricsService client = null;
         private bool firstRun = true;
-        private System.Timers.Timer timer;
+        private Timer timer;
 
-        public UsageTracker(IFileSystem fileSystem, NPath storePath)
+        public UsageTracker(NPath storePath)
         {
             logger.Trace("Created");
 
-            this.fileSystem = fileSystem;
             this.storePath = storePath;
 
             RunTimer();
@@ -338,15 +336,19 @@ namespace GitHub.Unity
         {
             // The timer first ticks after 3 minutes to allow things to settle down after startup.
             // This will be changed to 8 hours after the first tick by the TimerTick method.
-            timer = new System.Timers.Timer(TimeSpan.FromMinutes(3).TotalMilliseconds);
+            timer = new Timer(TimeSpan.FromMinutes(3).TotalMilliseconds);
+            timer.Elapsed += TimerTick;
+            timer.Start();
         }
 
-        private void TimerTick()
+        private void TimerTick(object sender, ElapsedEventArgs e)
         {
-            TimerTickAsync().Forget();
+            TimerTick().Catch((Action<Task, Exception>)((task, exception) => {
+                logger.Error(exception, "TimerTicker Error: {0}", exception.Message);
+            })).Forget();
         }
 
-        private async Task TimerTickAsync()
+        private async Task TimerTick()
         {
             logger.Trace("TimerTick");
 

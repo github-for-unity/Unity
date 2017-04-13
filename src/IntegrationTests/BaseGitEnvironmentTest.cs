@@ -33,7 +33,7 @@ namespace IntegrationTests
             taskRunner.Run();
 
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, new UsageTracker(FileSystem, UsageFile), repoPath, CancellationToken.None);
+            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, new UsageTracker(UsageFile), repoPath, CancellationToken.None);
             RepositoryManager.Initialize();
             RepositoryManager.Start();
 
