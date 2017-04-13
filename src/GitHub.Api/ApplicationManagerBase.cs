@@ -101,11 +101,10 @@ namespace GitHub.Unity
 
         private async Task RunInternal()
         {
-            //var usagePath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
-                //.ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity-usage.json");
+            var usagePath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
+                .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity-usage.json");
 
-            //UsageTracker = new UsageTracker(FileSystem, usagePath);
-            //await UsageTracker.IncrementLaunchCount();
+            UsageTracker = new UsageTracker(FileSystem, usagePath);
 
             await ThreadingHelper.SwitchToThreadAsync();
 

@@ -360,11 +360,12 @@ namespace GitHub.Unity
 
         private async Task TimerTickAsync()
         {
+            logger.Trace("TimerTick");
+
             await Initialize();
 
             if (firstRun)
             {
-                //TODO: This is an additional launch count
                 await IncrementLaunchCount();
 
                 timer.Interval = TimeSpan.FromHours(8).TotalMilliseconds;
