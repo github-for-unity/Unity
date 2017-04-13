@@ -42,6 +42,11 @@ namespace IntegrationTests
         [TearDown]
         public void TearDown()
         {
+            OnTearDown();
+        }
+
+        protected virtual void OnTearDown()
+        {
             try
             {
                 Logger.Debug("Deleting TestBasePath: {0}", TestBasePath.ToString());
