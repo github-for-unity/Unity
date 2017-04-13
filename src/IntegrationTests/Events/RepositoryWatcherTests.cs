@@ -9,7 +9,7 @@ namespace IntegrationTests
 {
     class RepositoryWatcherTests : BaseGitEnvironmentTest
     {
-        private const int ThreadSleepTimeout = 500;
+        private const int ThreadSleepTimeout = 2000;
 
         [Test]
         public void ShouldDetectFileChanges()
@@ -33,7 +33,7 @@ namespace IntegrationTests
 
                 repositoryWatcherListener.DidNotReceive().ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
-                repositoryWatcherListener.DidNotReceive().IndexChanged();
+                repositoryWatcherListener.Received().IndexChanged();
                 repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
                 repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
                 repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
@@ -69,7 +69,7 @@ namespace IntegrationTests
 
                 repositoryWatcherListener.DidNotReceive().ConfigChanged();
                 repositoryWatcherListener.Received(1).HeadChanged("ref: refs/heads/feature/document");
-                repositoryWatcherListener.Received(1).IndexChanged();
+                repositoryWatcherListener.Received().IndexChanged();
                 repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
                 repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
                 repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
