@@ -140,6 +140,7 @@
 
     <Copy SourceFiles="@(ToMoreCopy)"
       DestinationFiles="@(ToMoreCopy->'$(ExternalPublishTo)\%(RecursiveDir)%(Filename)%(Extension)')"
+      ContinueOnError="WarnAndContinue"
       />
 
   </Target>
