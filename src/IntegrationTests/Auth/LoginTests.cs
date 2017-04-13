@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using GitHub.Unity;
 using NUnit.Framework;
-using System.Threading;
-using System.Threading.Tasks;
-using Rackspace.Threading;
 using TestUtils;
 
 namespace IntegrationTests
@@ -12,24 +10,25 @@ namespace IntegrationTests
     [TestFixture]
     class LoginIntegrationTests : BaseGitEnvironmentTest
     {
-        string FindCommonPath(IEnumerable<string> paths)
+        private string FindCommonPath(IEnumerable<string> paths)
         {
-            var longestPath =
-                paths.First(first => first.Length == paths.Max(second => second.Length))
-                .ToNPath();
+            var longestPath = paths.First(first => first.Length == paths.Max(second => second.Length)).ToNPath();
 
-            NPath commonParent = longestPath;
+            var commonParent = longestPath;
             foreach (var path in paths)
             {
                 var cp = commonParent.GetCommonParent(path);
                 if (cp != null)
+                {
                     commonParent = cp;
+                }
                 else
                 {
                     commonParent = null;
                     break;
                 }
             }
+
             return commonParent;
         }
 
@@ -40,14 +39,11 @@ namespace IntegrationTests
             NPathFileSystemProvider.Current = filesystem;
             var environment = new DefaultEnvironment();
 
-            var ret = FindCommonPath(new string[]
-            {
-                "Assets/Test/Path/file",
-                "Assets/Test/something",
-                "Assets/Test/Path/another",
-                "Assets/alkshdsd",
-                "Assets/Test/sometkjh",
-            });
+            var ret =
+                FindCommonPath(new string[] {
+                    "Assets/Test/Path/file", "Assets/Test/something", "Assets/Test/Path/another", "Assets/alkshdsd",
+                    "Assets/Test/sometkjh",
+                });
 
             Assert.AreEqual("Assets", ret);
         }
@@ -69,7 +65,9 @@ namespace IntegrationTests
 
             var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            using (var repoManager = repositoryManagerFactory.CreateRepositoryManager(platform, taskRunner, new NullUsageTracker(), TestRepoMasterDirtyUnsynchronized, CancellationToken.None))
+            using (
+                var repoManager = repositoryManagerFactory.CreateRepositoryManager(platform, taskRunner,
+                    new UsageTracker(FileSystem, UsageFile), TestRepoMasterDirtyUnsynchronized, CancellationToken.None))
             {
                 var repository = repoManager.Repository;
                 Environment.Repository = repoManager.Repository;

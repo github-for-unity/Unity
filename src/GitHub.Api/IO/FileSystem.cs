@@ -1,6 +1,7 @@
 using GitHub.Unity;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace GitHub.Unity
 {
@@ -155,9 +156,19 @@ namespace GitHub.Unity
             File.WriteAllText(path, contents);
         }
 
+        public void WriteAllText(string path, string contents, Encoding encoding)
+        {
+            File.WriteAllText(path, contents, encoding);
+        }
+
         public string ReadAllText(string path)
         {
             return File.ReadAllText(path);
+        }
+
+        public string ReadAllText(string path, Encoding encoding)
+        {
+            return File.ReadAllText(path, encoding);
         }
 
         public void WriteAllLines(string path, string[] contents)

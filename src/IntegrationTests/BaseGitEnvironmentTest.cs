@@ -32,11 +32,14 @@ namespace IntegrationTests
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
 
             var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
+            taskRunner.Run();
 
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, new NullUsageTracker(), repoPath, CancellationToken.None);
+            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, new UsageTracker(FileSystem, UsageFile), repoPath, CancellationToken.None);
+            RepositoryManager.Initialize();
+            RepositoryManager.Start();
 
-            Environment.Repository = repositoryManager.Repository;
+            Environment.Repository = RepositoryManager.Repository;
 
             DotGitPath = repoPath.Combine(".git");
 
@@ -55,6 +58,14 @@ namespace IntegrationTests
             DotGitHead = DotGitPath.Combine("HEAD");
             DotGitConfig = DotGitPath.Combine("config");
         }
+
+        protected override void OnTearDown()
+        {
+            base.OnTearDown();
+            RepositoryManager?.Stop();
+        }
+
+        public RepositoryManager RepositoryManager { get; private set; }
 
         public IEnvironment Environment { get; private set; }
 

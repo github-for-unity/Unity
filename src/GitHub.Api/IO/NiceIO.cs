@@ -859,10 +859,24 @@ GitHub.Unity
             return this;
         }
 
+        public NPath WriteAllText(string contents, Encoding encoding)
+        {
+            ThrowIfRelative();
+            EnsureParentDirectoryExists();
+            NPathFileSystemProvider.Current.WriteAllText(ToString(), contents, encoding);
+            return this;
+        }
+
         public string ReadAllText()
         {
             ThrowIfRelative();
             return NPathFileSystemProvider.Current.ReadAllText(ToString());
+        }
+
+        public string ReadAllText(Encoding encoding)
+        {
+            ThrowIfRelative();
+            return NPathFileSystemProvider.Current.ReadAllText(ToString(), encoding);
         }
 
         public NPath WriteAllLines(string[] contents)

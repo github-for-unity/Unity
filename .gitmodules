@@ -1,3 +1,6 @@
+[submodule "script"]
+	path = script
+	url = https://github.com/StanleyGoldman/UnityBuildScripts
 [submodule "submodules/octokit.net"]
 	path = submodules/octokit.net
 	url = https://github.com/editor-tools/octokit.net.git

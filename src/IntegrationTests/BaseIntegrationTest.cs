@@ -18,6 +18,7 @@ namespace IntegrationTests
         [TestFixtureSetUp]
         public void TestFixtureSetUp()
         {
+            GitHub.Unity.Guard.InUnitTestRunner = true;
             Logger = Logging.GetLogger(GetType());
             Factory = new TestUtils.SubstituteFactory();
         }
@@ -41,6 +42,11 @@ namespace IntegrationTests
 
         [TearDown]
         public void TearDown()
+        {
+            OnTearDown();
+        }
+
+        protected virtual void OnTearDown()
         {
             try
             {

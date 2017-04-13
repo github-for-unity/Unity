@@ -12,6 +12,8 @@ namespace IntegrationTests
         {
             base.OnSetup();
 
+            UsageFile = TestBasePath.Combine("usage.json");
+
             TestRepoMasterCleanUnsynchronized = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_clean_unsync");
             TestRepoMasterCleanSynchronized = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_clean_sync");
             TestRepoMasterDirtyUnsynchronized = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_dirty_unsync");
@@ -21,6 +23,8 @@ namespace IntegrationTests
                 zipFile.ExtractAll(TestBasePath.ToString(), ExtractExistingFileAction.OverwriteSilently);
             }
         }
+
+        protected NPath UsageFile { get; set; }
 
         protected NPath TestRepoMasterCleanSynchronized { get; private set; }
 
