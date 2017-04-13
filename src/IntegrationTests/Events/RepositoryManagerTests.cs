@@ -219,7 +219,7 @@ namespace IntegrationTests
             RepositoryManager.CreateBranch(new TaskResultDispatcher<string>(s => { }), "feature/document2",
                 "feature/document");
 
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
 
             Logger.Trace("Continue test");
 
