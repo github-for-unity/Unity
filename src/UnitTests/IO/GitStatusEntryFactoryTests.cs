@@ -1,14 +1,12 @@
-using System;
-using System.Collections.Generic;
 using FluentAssertions;
-using NSubstitute;
 using NUnit.Framework;
 using GitHub.Unity;
+using NCrunch.Framework;
 using TestUtils;
 
 namespace UnitTests
 {
-    [TestFixture]
+    [TestFixture, Isolated]
     class GitStatusEntryFactoryTests
     {
         protected SubstituteFactory SubstituteFactory { get; private set; }

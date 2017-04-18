@@ -622,7 +622,7 @@ namespace GitHub.Unity
             get { return activeBranch; }
             private set
             {
-                if(activeBranch.HasValue ^ value.HasValue || activeBranch.HasValue && value.HasValue && !activeBranch.Value.Equals(value.Value))
+                if (activeBranch.HasValue != value.HasValue || (activeBranch.HasValue && !activeBranch.Value.Equals(value.Value)))
                 {
                     activeBranch = value;
                     Logger.Trace("OnActiveBranchChanged: {0}", value?.ToString() ?? "NULL");
@@ -636,7 +636,7 @@ namespace GitHub.Unity
             get { return activeRemote; }
             private set
             {
-                if (activeRemote.HasValue ^ value.HasValue || activeRemote.HasValue && value.HasValue && !activeRemote.Value.Equals(value.Value))
+                if (activeRemote.HasValue != value.HasValue || (activeRemote.HasValue && !activeRemote.Value.Equals(value.Value)))
                 {
                     activeRemote = value;
                     Logger.Trace("OnActiveRemoteChanged: {0}", value?.ToString() ?? "NULL");

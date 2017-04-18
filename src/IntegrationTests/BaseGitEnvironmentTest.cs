@@ -1,7 +1,5 @@
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
-using FluentAssertions;
 using GitHub.Unity;
 using TestUtils;
 
@@ -31,12 +29,15 @@ namespace IntegrationTests
             Environment.UnityProjectPath = repoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
 
-            var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
+            var taskRunner = new TaskRunnerBase(new TestSynchronizationContext(), CancellationToken.None);
+            taskRunner.Run();
 
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            var repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, repoPath, CancellationToken.None);
+            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, repoPath, CancellationToken.None);
+            RepositoryManager.Initialize();
+            RepositoryManager.Start();
 
-            Environment.Repository = repositoryManager.Repository;
+            Environment.Repository = RepositoryManager.Repository;
 
             DotGitPath = repoPath.Combine(".git");
 
@@ -55,6 +56,14 @@ namespace IntegrationTests
             DotGitHead = DotGitPath.Combine("HEAD");
             DotGitConfig = DotGitPath.Combine("config");
         }
+
+        protected override void OnTearDown()
+        {
+            base.OnTearDown();
+            RepositoryManager?.Stop();
+        }
+
+        public RepositoryManager RepositoryManager { get; private set; }
 
         public IEnvironment Environment { get; private set; }
 
