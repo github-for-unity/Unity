@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using FluentAssertions;
 using GitHub.Unity;
-using NSubstitute.Core;
+using NCrunch.Framework;
 using NUnit.Framework;
 using TestUtils;
 
 namespace UnitTests
 {
-    [TestFixture]
+    [TestFixture, Isolated]
     class FindCommonPathTests
     {
         [TestFixtureSetUp]
