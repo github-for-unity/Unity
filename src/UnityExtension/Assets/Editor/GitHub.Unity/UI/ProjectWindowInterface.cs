@@ -61,7 +61,10 @@ namespace GitHub.Unity
         {
             isBusy = true;
             var selected = Selection.activeObject;
-            var path = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+
+            var assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+            var repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+
             repository.RequestLock(new MainThreadTaskResultDispatcher<string>(s => {
                 isBusy = false;
                 GUI.FocusControl(null);
@@ -71,7 +74,7 @@ namespace GitHub.Unity
                 isBusy = false;
                 GUI.FocusControl(null);
                 EditorApplication.RepaintProjectWindow();
-            }), path);
+            }), repositoryPath);
         }
 
         [MenuItem("Assets/Release lock", true, 1000)]
@@ -87,8 +90,11 @@ namespace GitHub.Unity
                 return false;
             if (locks == null || locks.Count == 0)
                 return false;
-            NPath path = AssetDatabase.GetAssetPath(selected.GetInstanceID());
-            var isLocked = locks.Any(x => x.Path == path);
+
+            var assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+            var repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+
+            var isLocked = locks.Any(x => x.Path == repositoryPath);
             return isLocked;
         }
 
@@ -97,14 +103,17 @@ namespace GitHub.Unity
         {
             isBusy = true;
             var selected = Selection.activeObject;
-            var path = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+
+            var assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+            var repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+
             repository.ReleaseLock(new MainThreadTaskResultDispatcher<string>(s =>
             {
                 isBusy = false;
                 GUI.FocusControl(null);
                 EditorApplication.RepaintProjectWindow();
             },
-            () => isBusy = false), path, false);
+            () => isBusy = false), repositoryPath, false);
         }
         public static void Run()
         {
