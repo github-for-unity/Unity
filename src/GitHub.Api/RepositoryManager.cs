@@ -375,12 +375,14 @@ namespace GitHub.Unity
         {
             config.Reset();
             RefreshConfigData();
+
+            Logger.Trace("OnRemoteOrTrackingChanged");
             OnRemoteOrTrackingChanged?.Invoke();
         }
 
         private void HeadChanged(string contents)
         {
-            Logger.Trace("HeadChanged Trigger OnRepositoryUpdatedHandler");
+            Logger.Trace("HeadChanged");
             head = contents;
             ActiveBranch = GetActiveBranch();
             ActiveRemote = GetActiveRemote();
@@ -443,6 +445,7 @@ namespace GitHub.Unity
 
         private void RefreshConfigData()
         {
+            Logger.Trace("RefreshConfigData");
             LoadBranchesFromConfig();
             LoadRemotesFromConfig();
 
@@ -452,6 +455,7 @@ namespace GitHub.Unity
 
         private void LoadBranchesFromConfig()
         {
+            branches.Clear();
             LoadBranchesFromConfig(repositoryPaths.BranchesPath, config.GetBranches().Where(x => x.IsTracking), "");
         }
 
@@ -618,9 +622,12 @@ namespace GitHub.Unity
             get { return activeBranch; }
             private set
             {
-                activeBranch = value;
-                Logger.Trace("OnActiveBranchChanged: {0}", value);
-                OnActiveBranchChanged?.Invoke();
+                if (activeBranch.HasValue != value.HasValue || (activeBranch.HasValue && !activeBranch.Value.Equals(value.Value)))
+                {
+                    activeBranch = value;
+                    Logger.Trace("OnActiveBranchChanged: {0}", value?.ToString() ?? "NULL");
+                    OnActiveBranchChanged?.Invoke();
+                }
             }
         }
 
@@ -629,9 +636,12 @@ namespace GitHub.Unity
             get { return activeRemote; }
             private set
             {
-                activeRemote = value;
-                Logger.Trace("OnActiveRemoteChanged: {0}", value);
-                OnActiveRemoteChanged?.Invoke();
+                if (activeRemote.HasValue != value.HasValue || (activeRemote.HasValue && !activeRemote.Value.Equals(value.Value)))
+                {
+                    activeRemote = value;
+                    Logger.Trace("OnActiveRemoteChanged: {0}", value?.ToString() ?? "NULL");
+                    OnActiveRemoteChanged?.Invoke();
+                }
             }
         }
 
