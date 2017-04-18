@@ -42,16 +42,19 @@ namespace GitHub.Unity
                 return false;
             if (locks == null)
                 return false;
-            NPath path = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+
+            var assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+            var repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+
             var alreadyLocked = locks.Any(x =>
             {
-                return x.Path == path;
+                return x.Path == repositoryPath;
 
             });
             GitFileStatus status = GitFileStatus.None;
             if (entries != null)
             {
-                status = entries.FirstOrDefault(x => x.Path.ToNPath() == path).Status;
+                status = entries.FirstOrDefault(x => x.Path.ToNPath() == repositoryPath).Status;
             }
             return !alreadyLocked && status != GitFileStatus.Untracked && status != GitFileStatus.Ignored;
         }
@@ -153,8 +156,10 @@ namespace GitHub.Unity
             guidsLocks.Clear();
             foreach (var lck in locks)
             {
-                var path = lck.Path;
-                var g = AssetDatabase.AssetPathToGUID(path);
+                var repositoryPath = lck.Path;
+                var assetPath = EntryPoint.Environment.GetAssetPath(repositoryPath);
+
+                var g = AssetDatabase.AssetPathToGUID(assetPath);
                 if (!guidsLocks.Contains(g))
                 {
                     guidsLocks.Add(g);
