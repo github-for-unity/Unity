@@ -17,7 +17,7 @@ namespace GitHub.Unity
 
             if (repositoryPath.IsChildOf(projectPath))
             {
-                throw new Exception($"RepositoryPath:\"{projectPath}\" should not be child or ProjectPath:\"{repositoryPath}\"");
+                throw new Exception($"RepositoryPath:\"{repositoryPath}\" should not be child of ProjectPath:\"{projectPath}\"");
             }
 
             return projectPath.RelativeTo(repositoryPath).Combine(path).ToString();
@@ -36,7 +36,7 @@ namespace GitHub.Unity
 
             if (repositoryPath.IsChildOf(projectPath))
             {
-                throw new Exception($"RepositoryPath:\"{projectPath}\" should not be child or ProjectPath:\"{repositoryPath}\"");
+                throw new Exception($"RepositoryPath:\"{repositoryPath}\" should not be child of ProjectPath:\"{projectPath}\"");
             }
 
             return repositoryPath.Combine(path).MakeAbsolute().RelativeTo(projectPath);
