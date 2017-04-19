@@ -4,7 +4,7 @@ namespace GitHub.Unity
 {
     static class EnvironmentExtensions
     {
-        public static string GetRepositoryPath(this IEnvironment environment, string path)
+        public static NPath GetRepositoryPath(this IEnvironment environment, NPath path)
         {
             Guard.ArgumentNotNull(path, nameof(path));
             if (environment.UnityProjectPath == environment.RepositoryPath)
@@ -12,18 +12,18 @@ namespace GitHub.Unity
                 return path;
             }
 
-            var projectPath = environment.UnityProjectPath.ToNPath();
-            var repositoryPath = environment.RepositoryPath.ToNPath();
+            NPath projectPath = environment.UnityProjectPath;
+            NPath repositoryPath = environment.RepositoryPath;
 
             if (repositoryPath.IsChildOf(projectPath))
             {
                 throw new InvalidOperationException($"RepositoryPath:\"{repositoryPath}\" should not be child of ProjectPath:\"{projectPath}\"");
             }
 
-            return projectPath.RelativeTo(repositoryPath).Combine(path).ToString();
+            return projectPath.RelativeTo(repositoryPath).Combine(path);
         }
 
-        public static string GetAssetPath(this IEnvironment environment, string path)
+        public static NPath GetAssetPath(this IEnvironment environment, NPath path)
         {
             Guard.ArgumentNotNull(path, nameof(path));
             if (environment.UnityProjectPath == environment.RepositoryPath)
@@ -31,8 +31,8 @@ namespace GitHub.Unity
                 return path;
             }
 
-            var projectPath = environment.UnityProjectPath.ToNPath();
-            var repositoryPath = environment.RepositoryPath.ToNPath();
+            NPath projectPath = environment.UnityProjectPath;
+            NPath repositoryPath = environment.RepositoryPath;
 
             if (repositoryPath.IsChildOf(projectPath))
             {
