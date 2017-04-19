@@ -21,12 +21,15 @@ namespace GitHub.Unity
 
         public static void Initialize(IRepository repo)
         {
-            repository = repo;
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
             initialized = true;
-            repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
-            repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
+            repository = repo;
+            if (repository != null)
+            {
+                repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
+                repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
+            }
         }
 
         [MenuItem("Assets/Request Lock", true)]
