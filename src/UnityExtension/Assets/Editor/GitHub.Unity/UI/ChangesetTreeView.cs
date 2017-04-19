@@ -330,7 +330,7 @@ namespace GitHub.Unity
                     if (target != null)
                     {
                         var idx = entryCommitTargets.IndexOf(target);
-                        if (idx > 0)
+                        if (idx > -1)
                         {
                             status = entries[idx].Status;
                             var statusIcon = Styles.GetFileStatusIcon(entries[idx].Status, false);
