@@ -1,4 +1,0 @@
-test:
-  categories:
-    except:
-      - Long
