@@ -70,12 +70,12 @@ namespace GitHub.Unity
 
             repository.RequestLock(new MainThreadTaskResultDispatcher<string>(s => {
                 isBusy = false;
-                GUI.FocusControl(null);
+                Selection.activeGameObject = null;
                 EditorApplication.RepaintProjectWindow();
             },
             () => {
                 isBusy = false;
-                GUI.FocusControl(null);
+                Selection.activeGameObject = null;
                 EditorApplication.RepaintProjectWindow();
             }), repositoryPath);
         }
@@ -113,7 +113,7 @@ namespace GitHub.Unity
             repository.ReleaseLock(new MainThreadTaskResultDispatcher<string>(s =>
             {
                 isBusy = false;
-                GUI.FocusControl(null);
+                Selection.activeGameObject = null;
                 EditorApplication.RepaintProjectWindow();
             },
             () => isBusy = false), repositoryPath, false);
