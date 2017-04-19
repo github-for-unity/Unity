@@ -31,6 +31,7 @@ namespace GitHub.Unity
         void DirectoryMove(string toString, string s);
         string GetCurrentDirectory();
         void WriteAllText(string path, string contents);
+        Stream OpenRead(string path);
         string ReadAllText(string path);
         void WriteAllLines(string path, string[] contents);
         string[] ReadAllLines(string path);
