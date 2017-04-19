@@ -3,34 +3,21 @@ using FluentAssertions;
 using NUnit.Framework;
 using GitHub.Unity;
 using NCrunch.Framework;
+using TestUtils;
 
 namespace IntegrationTests
 {
     [Isolated]
-    class BaseIntegrationTest
+    abstract class BaseIntegrationTest : BaseTest
     {
         protected NPath TestBasePath { get; private set; }
-        protected ILogging Logger { get; private set; }
         protected IFileSystem FileSystem { get; private set; }
-        protected TestUtils.SubstituteFactory Factory { get; set; }
         protected static string SolutionDirectory => TestContext.CurrentContext.TestDirectory;
 
-        [TestFixtureSetUp]
-        public void TestFixtureSetUp()
+        protected override void OnSetup()
         {
-            GitHub.Unity.Guard.InUnitTestRunner = true;
-            Logger = Logging.GetLogger(GetType());
-            Factory = new TestUtils.SubstituteFactory();
-        }
+            base.OnSetup();
 
-        [SetUp]
-        public void SetUp()
-        {
-            OnSetup();
-        }
-
-        protected virtual void OnSetup()
-        {
             FileSystem = new FileSystem(TestBasePath);
 
             NPathFileSystemProvider.Current.Should().BeNull("Test should run in isolation");
@@ -40,14 +27,10 @@ namespace IntegrationTests
             FileSystem.SetCurrentDirectory(TestBasePath);
         }
 
-        [TearDown]
-        public void TearDown()
+        protected override void OnTearDown()
         {
-            OnTearDown();
-        }
+            base.OnTearDown();
 
-        protected virtual void OnTearDown()
-        {
             try
             {
                 Logger.Debug("Deleting TestBasePath: {0}", TestBasePath.ToString());

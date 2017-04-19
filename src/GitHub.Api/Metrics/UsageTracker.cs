@@ -30,7 +30,7 @@ namespace GitHub.Unity
         public async Task IncrementLaunchCount()
         {
             logger.Trace("IncrementLaunchCount");
-
+            
             var usage = await LoadUsage();
             ++usage.Model.NumberOfStartups;
             ++usage.Model.NumberOfStartupsWeek;
