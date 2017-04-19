@@ -13,94 +13,77 @@ namespace UnitTests
     {
         private SubstituteFactory SubstituteFactory { get; } = new SubstituteFactory();
 
-        [Test]
-        public void GetRepositoryPathShouldReturnWhenProjectRepositoryRootsAreEqual() => AssertGetRepositoryPath(@"c:\UnityProject", @"c:\UnityProject", "test.txt", "test.txt");
-
-        [Test]
-        public void GetRepositoryPathShouldReturnWhenProjectRootIsChild() => AssertGetRepositoryPath(@"c:\Projects", @"c:\Projects\UnityProject", "test.txt", @"UnityProject\test.txt");
-
-        [Test]
-        public void GetRepositoryPathShouldThrowWhenRepositoryRootIsChild() => AssertGetRepositoryPathThrows<Exception>(@"c:\Projects\UnityProject\Assets", @"c:\Projects\UnityProject\", "test.txt");
-
-        [Test]
-        public void GetAssetPathShouldReturnWhenProjectRepositoryRootsAreEqual() => AssertGetAssetPath(@"c:\UnityProject", @"c:\UnityProject", "test.txt", "test.txt");
-
-        [Test]
-        public void GetAssetPathShouldReturnWhenProjectRootIsChild() => AssertGetAssetPath(@"c:\Projects", @"c:\Projects\UnityProject", @"UnityProject\test.txt", "test.txt");
-
-        [Test]
-        public void GetAssetPathShouldThrowWhenRepositoryRootIsChild() => AssertGetAssetPathThrows<Exception>(@"c:\Projects\UnityProject\Assets", @"c:\Projects\UnityProject\", "test.txt");
-
-        private void AssertGetRepositoryPath(string repositoryPath, string projectPath, string path, string expected)
+        [SetUp]
+        public void TestSetup()
         {
             var fileSystem = SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions());
-
-            NPathFileSystemProvider.Current.Should().BeNull();
             NPathFileSystemProvider.Current = fileSystem;
+        }
 
+        [TearDown]
+        public void TestTearDown()
+        {
+            NPathFileSystemProvider.Current = null;
+        }
+
+        [Test, Sequential]
+        public void GetRepositoryPathReturnsRelativePathToRepository(
+            [Values(@"c:\UnityProject", "/Projects")] string repositoryPath,
+            [Values(@"c:\UnityProject", "/Projects/UnityProject")]string projectPath,
+            [Values(@"test.txt", "test.txt")]string path,
+            [Values(@"test.txt", "UnityProject/test.txt")]string expected)
+        {
+            var environment = Substitute.For<IEnvironment>();
+            environment.RepositoryPath.Returns(repositoryPath);
+            environment.UnityProjectPath.Returns(projectPath);
+
+            NPath nExpected = expected;
+            var repositoryFilePath = environment.GetRepositoryPath(path);
+            repositoryFilePath.Should().Be(nExpected);
+        }
+
+        [Test, Sequential]
+        [ExpectedException(ExpectedException = typeof(InvalidOperationException))]
+        public void GetRepositoryPathThrowsWhenRepositoryIsChildOfProject(
+            [Values(@"c:\UnityProject\UnityProject\Assets")] string repositoryPath,
+            [Values(@"c:\UnityProject\UnityProject")]string projectPath,
+            [Values(@"test.txt")]string path)
+        {
             var environment = Substitute.For<IEnvironment>();
             environment.RepositoryPath.Returns(repositoryPath);
             environment.UnityProjectPath.Returns(projectPath);
 
             var repositoryFilePath = environment.GetRepositoryPath(path);
-            repositoryFilePath.Should().Be(expected);
-
-            NPathFileSystemProvider.Current.Should().NotBeNull();
-            NPathFileSystemProvider.Current = null;
         }
 
-        private void AssertGetRepositoryPathThrows<T>(string repositoryPath, string projectPath, string path) where T : Exception
+        [Test, Sequential]
+        public void GetAssetPathReturnsRelativePathToProject(
+            [Values(@"c:\Projects", "/Projects", "/UnityProject")] string repositoryPath,
+            [Values(@"c:\Projects\UnityProject", "/Projects/Unity/UnityProject", "/UnityProject")] string projectPath,
+            [Values(@"UnityProject\test.txt", "Unity/UnityProject/Assets/test.txt", "test.txt")] string path,
+            [Values("test.txt", "Assets/test.txt", "test.txt")] string expected)
         {
-            var fileSystem = SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions());
-
-            NPathFileSystemProvider.Current.Should().BeNull();
-            NPathFileSystemProvider.Current = fileSystem;
-
             var environment = Substitute.For<IEnvironment>();
             environment.RepositoryPath.Returns(repositoryPath);
             environment.UnityProjectPath.Returns(projectPath);
 
-            Action action = () => { environment.GetRepositoryPath(path); };
-            action.ShouldThrow<T>();
-
-            NPathFileSystemProvider.Current.Should().NotBeNull();
-            NPathFileSystemProvider.Current = null;
+            NPath nExpected = expected;
+            var repositoryFilePath = environment.GetAssetPath(path);
+            repositoryFilePath.Should().Be(nExpected);
         }
 
-        private void AssertGetAssetPath(string repositoryPath, string projectPath, string path, string expected)
+        [Test]
+        [ExpectedException(ExpectedException = typeof(InvalidOperationException))]
+        public void GetAssetPathShouldThrowWhenRepositoryRootIsChild(
+            [Values(@"c:\Projects\UnityProject\Assets")] string repositoryPath,
+            [Values(@"c:\Projects\UnityProject")] string projectPath,
+            [Values("test.txt")] string path)
         {
-            var fileSystem = SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions());
-
-            NPathFileSystemProvider.Current.Should().BeNull();
-            NPathFileSystemProvider.Current = fileSystem;
-
             var environment = Substitute.For<IEnvironment>();
             environment.RepositoryPath.Returns(repositoryPath);
             environment.UnityProjectPath.Returns(projectPath);
 
             var repositoryFilePath = environment.GetAssetPath(path);
-            repositoryFilePath.Should().Be(expected);
-
-            NPathFileSystemProvider.Current.Should().NotBeNull();
-            NPathFileSystemProvider.Current = null;
-        }
-
-        private void AssertGetAssetPathThrows<T>(string repositoryPath, string projectPath, string path) where T : Exception
-        {
-            var fileSystem = SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions());
-
-            NPathFileSystemProvider.Current.Should().BeNull();
-            NPathFileSystemProvider.Current = fileSystem;
-
-            var environment = Substitute.For<IEnvironment>();
-            environment.RepositoryPath.Returns(repositoryPath);
-            environment.UnityProjectPath.Returns(projectPath);
-
-            Action action = () => { environment.GetAssetPath(path); };
-            action.ShouldThrow<T>();
-
-            NPathFileSystemProvider.Current.Should().NotBeNull();
-            NPathFileSystemProvider.Current = null;
         }
     }
 }
