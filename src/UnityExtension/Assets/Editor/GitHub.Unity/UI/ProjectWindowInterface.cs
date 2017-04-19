@@ -21,12 +21,15 @@ namespace GitHub.Unity
 
         public static void Initialize(IRepository repo)
         {
-            repository = repo;
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
             initialized = true;
-            repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
-            repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
+            repository = repo;
+            if (repository != null)
+            {
+                repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
+                repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
+            }
         }
 
         [MenuItem("Assets/Request Lock", true)]
@@ -42,16 +45,19 @@ namespace GitHub.Unity
                 return false;
             if (locks == null)
                 return false;
-            NPath path = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+
+            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+
             var alreadyLocked = locks.Any(x =>
             {
-                return x.Path == path;
+                return repositoryPath == x.Path;
 
             });
             GitFileStatus status = GitFileStatus.None;
             if (entries != null)
             {
-                status = entries.FirstOrDefault(x => x.Path.ToNPath() == path).Status;
+                status = entries.FirstOrDefault(x => repositoryPath == x.Path).Status;
             }
             return !alreadyLocked && status != GitFileStatus.Untracked && status != GitFileStatus.Ignored;
         }
@@ -61,17 +67,20 @@ namespace GitHub.Unity
         {
             isBusy = true;
             var selected = Selection.activeObject;
-            var path = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+
+            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+
             repository.RequestLock(new MainThreadTaskResultDispatcher<string>(s => {
                 isBusy = false;
-                GUI.FocusControl(null);
+                Selection.activeGameObject = null;
                 EditorApplication.RepaintProjectWindow();
             },
             () => {
                 isBusy = false;
-                GUI.FocusControl(null);
+                Selection.activeGameObject = null;
                 EditorApplication.RepaintProjectWindow();
-            }), path);
+            }), repositoryPath);
         }
 
         [MenuItem("Assets/Release lock", true, 1000)]
@@ -87,8 +96,11 @@ namespace GitHub.Unity
                 return false;
             if (locks == null || locks.Count == 0)
                 return false;
-            NPath path = AssetDatabase.GetAssetPath(selected.GetInstanceID());
-            var isLocked = locks.Any(x => x.Path == path);
+
+            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+
+            var isLocked = locks.Any(x => repositoryPath == x.Path);
             return isLocked;
         }
 
@@ -97,14 +109,17 @@ namespace GitHub.Unity
         {
             isBusy = true;
             var selected = Selection.activeObject;
-            var path = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+
+            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+
             repository.ReleaseLock(new MainThreadTaskResultDispatcher<string>(s =>
             {
                 isBusy = false;
-                GUI.FocusControl(null);
+                Selection.activeGameObject = null;
                 EditorApplication.RepaintProjectWindow();
             },
-            () => isBusy = false), path, false);
+            () => isBusy = false), repositoryPath, false);
         }
         public static void Run()
         {
@@ -144,8 +159,10 @@ namespace GitHub.Unity
             guidsLocks.Clear();
             foreach (var lck in locks)
             {
-                var path = lck.Path;
-                var g = AssetDatabase.AssetPathToGUID(path);
+                NPath repositoryPath = lck.Path;
+                NPath assetPath = EntryPoint.Environment.GetAssetPath(repositoryPath);
+
+                var g = AssetDatabase.AssetPathToGUID(assetPath);
                 if (!guidsLocks.Contains(g))
                 {
                     guidsLocks.Add(g);

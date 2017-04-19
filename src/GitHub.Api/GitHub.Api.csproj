@@ -86,8 +86,10 @@
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="ApplicationManagerBase.cs" />
     <Compile Include="DefaultEnvironment.cs" />
+    <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Extensions\FileEventExtensions.cs" />
     <Compile Include="Events\RepositoryWatcher.cs" />
+    <Compile Include="Extensions\FileSystemExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="GitSetup.cs" />
     <Compile Include="Git\GitFileStatus.cs" />
@@ -98,6 +100,7 @@
     <Compile Include="IO\FileSystemHelpers.cs" />
     <Compile Include="IApplicationManager.cs" />
     <Compile Include="Tasks\GitLfsInstallTask.cs" />
+    <Compile Include="Extensions\GitStatusExtensions.cs" />
     <Compile Include="Threading\IMainThreadSynchronizationContext.cs" />
     <Compile Include="Installer\IGitInstaller.cs" />
     <Compile Include="Installer\IZipHelper.cs" />

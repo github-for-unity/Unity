@@ -21,33 +21,27 @@ namespace GitHub.Unity
             return string.Format("{0} {1} [{2,2}] {3,-35} {4}{5}", time, level, threadId, ContextPrefix, message, Environment.NewLine);
         }
 
-        public override void Info(string message)
+        protected override void OnInfo(string message)
         {
             WriteLine("INFO", message);
         }
 
-        public override void Debug(string message)
+        protected override void OnDebug(string message)
         {
-#if DEBUG
             WriteLine("DEBUG", message);
-#endif
         }
 
-        public override void Trace(string message)
+        protected override void OnTrace(string message)
         {
-#if DEBUG
-            if (!Logging.TracingEnabled) return;
-
             WriteLine("TRACE", message);
-#endif
         }
 
-        public override void Warning(string message)
+        protected override void OnWarning(string message)
         {
             WriteLine("WARN", message);
         }
 
-        public override void Error(string message)
+        protected override void OnError(string message)
         {
             WriteLine("ERROR", message);
         }
