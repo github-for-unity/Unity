@@ -40,7 +40,8 @@ namespace GitHub.Unity
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8
+                StandardOutputEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8
             };
 
             gitEnvironment.Configure(startInfo, workingDirectory);
