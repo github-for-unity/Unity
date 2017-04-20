@@ -73,6 +73,11 @@ namespace GitHub.Unity
             Instance.Debug(s);
         }
 
+        public static void Trace(string s)
+        {
+            Instance.Trace(s);
+        }
+
         public static void Warning(string s)
         {
             Instance.Warning(s);
@@ -87,9 +92,10 @@ namespace GitHub.Unity
         {
             Instance.Debug(format, objects);
         }
-        public static void Debug(Exception ex)
+
+        public static void Trace(string format, params object[] objects)
         {
-            Instance.Debug(ex);
+            Instance.Trace(format, objects);
         }
 
         public static void Warning(string format, params object[] objects)
