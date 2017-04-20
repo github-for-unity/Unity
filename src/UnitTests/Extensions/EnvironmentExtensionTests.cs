@@ -28,10 +28,10 @@ namespace UnitTests
 
         [Test, Sequential]
         public void GetRepositoryPathReturnsRelativePathToRepository(
-            [Values(@"c:\UnityProject", "/Projects")] string repositoryPath,
-            [Values(@"c:\UnityProject", "/Projects/UnityProject")]string projectPath,
-            [Values(@"test.txt", "test.txt")]string path,
-            [Values(@"test.txt", "UnityProject/test.txt")]string expected)
+            [Values(@"c:\UnityProject", "/Projects", @"c:\UnityProject")] string repositoryPath,
+            [Values(@"c:\UnityProject", "/Projects/UnityProject", "c:/UnityProject")]string projectPath,
+            [Values(@"test.txt", "test.txt", "test.txt")]string path,
+            [Values(@"test.txt", "UnityProject/test.txt", "test.txt")]string expected)
         {
             var environment = Substitute.For<IEnvironment>();
             environment.RepositoryPath.Returns(repositoryPath);
