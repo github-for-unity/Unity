@@ -2,18 +2,18 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Publish</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{7DEF4226-7740-457F-9199-34174C49A978}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CopyLibrariesToDevelopmentFolder</RootNamespace>
-    <AssemblyName>CopyLibrariesToDevelopmentFolder</AssemblyName>
+    <RootNamespace>deleteme</RootNamespace>
+    <AssemblyName>deleteme</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <OutputPath>build</OutputPath>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Publish|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <BuildConfiguration>Release</BuildConfiguration>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
@@ -21,7 +21,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'PublishDebug|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <BuildConfiguration>Debug</BuildConfiguration>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
@@ -113,48 +113,41 @@
   <Target Name="BeforeBuild">
   </Target>
 -->
-
   <PropertyGroup>
     <PublishTo Condition="'$(PublishTo)' == '' ">$(SolutionDir)\unity\PackageProject\Assets\Editor\GitHub</PublishTo>
     <ExternalPublishTo>$(SolutionDir)..\github-unity-test\GitHubExtensionProject\Assets\Editor\GitHub</ExternalPublishTo>
   </PropertyGroup>
-
   <Target Name="AfterBuild">
     <CreateItem Include="$(OutputPath)\**\*.*">
-        <Output TaskParameter="Include" ItemName="ToCopy" />
+      <Output TaskParameter="Include" ItemName="ToCopy" />
     </CreateItem>
-
-    <Copy SourceFiles="@(ToCopy)"
+    <Copy
+      SourceFiles="@(ToCopy)"
       DestinationFiles="@(ToCopy->'$(PublishTo)\%(RecursiveDir)%(Filename)%(Extension)')"
-      Condition="
-        !$([System.String]::Copy('%(Filename)').Contains('CopyLibraries')) and
-        !$([System.String]::Copy('%(Extension)').Contains('xml')) and
-        !$([System.String]::Copy('%(Extension)').Contains('pdb')) and
-        !$([System.String]::Copy('%(Extension)').Contains('dll.mdb'))
-        "
-      />
-
+      Condition="!$([System.String]::Copy('%(Filename)').Contains('deleteme')) and !$([System.String]::Copy('%(Extension)').Contains('xml')) and !$([System.String]::Copy('%(Extension)').Contains('pdb')) and !$([System.String]::Copy('%(Extension)').Contains('dll.mdb'))" />
     <CreateItem Include="$(PublishTo)\**\*.*">
-        <Output TaskParameter="Include" ItemName="ToMoreCopy" />
-      </CreateItem>
-
+      <Output TaskParameter="Include" ItemName="ToMoreCopy" />
+    </CreateItem>
     <Copy SourceFiles="@(ToMoreCopy)"
-      DestinationFiles="@(ToMoreCopy->'$(ExternalPublishTo)\%(RecursiveDir)%(Filename)%(Extension)')"
-      ContinueOnError="WarnAndContinue"
-      />
-
+      DestinationFiles="@(ToMoreCopy->'$(ExternalPublishTo)\%(RecursiveDir)%(Filename)%(Extension)')" ContinueOnError="WarnAndContinue" />
   </Target>
 
-  <Target Name="CopyMainAssembly" DependsOnTargets="DetectMainAssembly">
-    <Copy Condition="'%(IndirectDependency.FullPath)'!=''" SourceFiles="%(IndirectDependency.FullPath)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true">
+  <Target
+    Name="CopyMainAssembly"
+    DependsOnTargets="DetectMainAssembly">
+    
+    <Copy
+      Condition="'%(IndirectDependency.FullPath)'!=''"
+      SourceFiles="%(IndirectDependency.FullPath)"
+      DestinationFolder="$(OutputPath)"
+      SkipUnchangedFiles="true">
       <Output TaskParameter="CopiedFiles" ItemName="IndirectDependencyCopied" />
     </Copy>
-    <Message Importance="low" Condition="
-        '%(IndirectDependencyCopied.FullPath)'!='' and
-        '%(IndirectDependencyCopied.Extension)'!='.pdb' and
-        '%(IndirectDependencyCopied.Extension)'!='.xml'"
-        Text="Dependency copied: %(IndirectDependencyCopied.FullPath)" />
+    <Message Importance="high"
+      Condition="'%(IndirectDependencyCopied.FullPath)'!='' and '%(IndirectDependencyCopied.Extension)'!='.pdb' and '%(IndirectDependencyCopied.Extension)'!='.xml'"
+      Text="Dependency copied: %(IndirectDependencyCopied.FullPath)" />
   </Target>
+
   <Target Name="DetectMainAssembly" DependsOnTargets="ResolveAssemblyReferences">
     <Message Importance="low" Text="Dependency: %(ReferencePath.Filename)%(ReferencePath.Extension) %(ReferencePath.CopyLocal)" />
     <!-- Creating indirect dependency list -->
