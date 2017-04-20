@@ -1,17 +1,14 @@
 #!/bin/sh -xeu
 
 Configuration="Release"
-Publish="Publish"
 case x"$2" in
 	xdebug | xDebug)
 		Configuration="Debug"
-		Publish="PublishDebug"
 		;;
 esac
 
 nuget restore
 xbuild GitHub.Unity.sln /property:Configuration=$Configuration
-xbuild GitHub.Unity.sln /property:Configuration=$Publish
 
 Unity=""
 if [ -f "$1/Unity.app/Contents/MacOS/Unity" ]; then
