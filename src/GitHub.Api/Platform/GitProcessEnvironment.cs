@@ -68,21 +68,36 @@ namespace GitHub.Unity
             //psi.EnvironmentVariables["GIT_TRACE"] = "1";
 
             string path;
+            NPath baseExecPath = gitPathRoot;
+            NPath binPath = baseExecPath;
+            if (Environment.IsWindows)
+            {
+                if (baseExecPath.DirectoryExists("mingw32"))
+                    baseExecPath = baseExecPath.Combine("mingw32");
+                else
+                    baseExecPath = baseExecPath.Combine("mingw64");
+                binPath = baseExecPath.Combine("bin");
+            }
+            NPath execPath = baseExecPath.Combine("libexec", "git-core");
+
             if (Environment.IsWindows)
             {
                 var userPath = @"C:\windows\system32;C:\windows";
-                path = String.Format(CultureInfo.InvariantCulture, @"{0}\cmd;{0}\usr\bin;{0}\mingw32\bin;{0}\mingw32\libexec\git-core;{0}\mingw64\bin;{0}\mingw64\libexec\git-core;{0}\usr\share\git-tfs;{1};{2}{3}", gitPathRoot, gitLfsPath, userPath, developerPaths);
+                path = String.Format(CultureInfo.InvariantCulture, @"{0}\cmd;{0}\usr\bin;{1};{2};{0}\usr\share\git-tfs;{3};{4}{5}",
+                    gitPathRoot, execPath, binPath,
+                    gitLfsPath, userPath, developerPaths);
             }
             else
             {
                 var userPath = Environment.Path;
-                path = String.Format(CultureInfo.InvariantCulture, @"{0}:{0}/libexec/git-core:{1}:{2}{3}", gitPathRoot, gitLfsPath, userPath, developerPaths);
+                path = String.Format(CultureInfo.InvariantCulture, @"{0}:{1}:{2}:{3}{4}",
+                    binPath, execPath, gitLfsPath, userPath, developerPaths);
             }
+            psi.EnvironmentVariables["GIT_EXEC_PATH"] = execPath.ToString();
 
             //Logger.Trace("EnvironmentVariables[\"PATH\"]=\"{0}\"", path);
 
             psi.EnvironmentVariables["PATH"] = path;
-            psi.EnvironmentVariables["GIT_EXEC_PATH"] = Environment.GitInstallPath;
 
             //psi.EnvironmentVariables["github_shell"] = "true";
             //psi.EnvironmentVariables["git_install_root"] = gitPath; // todo: remove in favor of github_git
