@@ -29,15 +29,15 @@ namespace IntegrationTests
             Logger.Trace("Expected GitExecutablePath: {0}", gitSetup.GitExecutablePath);
             gitSetup.GitExecutablePath.FileExists().Should().BeTrue();
             
-            var GitLfsDestinationPath = gitSetup.GitInstallationPath;
+            var gitLfsDestinationPath = gitSetup.GitInstallationPath;
             if (environment.IsWindows)
             {
-                GitLfsDestinationPath = GitLfsDestinationPath.Combine("mingw32");
+                gitLfsDestinationPath = gitLfsDestinationPath.Combine("mingw32");
             }
-            GitLfsDestinationPath = GitLfsDestinationPath.Combine("libexec", "git-core", "git-lfs.exe");
-            GitLfsDestinationPath.FileExists().Should().BeTrue();
+            gitLfsDestinationPath = gitLfsDestinationPath.Combine("libexec", "git-core", "git-lfs.exe");
+            gitLfsDestinationPath.FileExists().Should().BeTrue();
 
-            var calculateMd5 = NPathFileSystemProvider.Current.CalculateMD5(GitLfsDestinationPath);
+            var calculateMd5 = NPathFileSystemProvider.Current.CalculateMD5(gitLfsDestinationPath);
             GitInstaller.GitLfsExecutableMD5.Should().Be(calculateMd5);
 
             environment.GitExecutablePath = gitSetup.GitExecutablePath;
