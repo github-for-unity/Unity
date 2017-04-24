@@ -32,8 +32,8 @@ namespace IntegrationTests
                 var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
                 foobarTxt.WriteAllText("foobar");
 
-                watcherAutoResetEvent.IndexChanged.WaitOne(TimeSpan.FromSeconds(2));
-                watcherAutoResetEvent.RepositoryChanged.WaitOne(TimeSpan.FromSeconds(2));
+                watcherAutoResetEvent.IndexChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                watcherAutoResetEvent.RepositoryChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
                 repositoryWatcherListener.DidNotReceive().ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
@@ -71,9 +71,9 @@ namespace IntegrationTests
             {
                 SwitchBranch("feature/document");
 
-                watcherAutoResetEvent.HeadChanged.WaitOne(TimeSpan.FromSeconds(2));
-                watcherAutoResetEvent.IndexChanged.WaitOne(TimeSpan.FromSeconds(2));
-                watcherAutoResetEvent.RepositoryChanged.WaitOne(TimeSpan.FromSeconds(2));
+                watcherAutoResetEvent.HeadChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                watcherAutoResetEvent.IndexChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                watcherAutoResetEvent.RepositoryChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
                 repositoryWatcherListener.DidNotReceive().ConfigChanged();
                 repositoryWatcherListener.Received(1).HeadChanged("ref: refs/heads/feature/document");
@@ -111,8 +111,8 @@ namespace IntegrationTests
             {
                 DeleteBranch("feature/document");
 
-                watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2));
-                watcherAutoResetEvent.LocalBranchDeleted.WaitOne(TimeSpan.FromSeconds(2));
+                watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                watcherAutoResetEvent.LocalBranchDeleted.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
                 repositoryWatcherListener.Received(1).ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
@@ -150,7 +150,7 @@ namespace IntegrationTests
             {
                 CreateBranch("feature/document2", "feature/document");
 
-                watcherAutoResetEvent.LocalBranchCreated.WaitOne(TimeSpan.FromSeconds(2));
+                watcherAutoResetEvent.LocalBranchCreated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
                 repositoryWatcherListener.DidNotReceive().ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
@@ -167,7 +167,7 @@ namespace IntegrationTests
 
                 CreateBranch("feature2/document2", "feature/document");
 
-                watcherAutoResetEvent.LocalBranchCreated.WaitOne(TimeSpan.FromSeconds(2));
+                watcherAutoResetEvent.LocalBranchCreated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
                 repositoryWatcherListener.DidNotReceive().ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
@@ -207,10 +207,10 @@ namespace IntegrationTests
             {
                 GitRemoteRemove("origin");
 
-                watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2));
-                watcherAutoResetEvent.RemoteBranchDeleted.WaitOne(TimeSpan.FromSeconds(2));
-                watcherAutoResetEvent.RemoteBranchDeleted.WaitOne(TimeSpan.FromSeconds(2));
-                watcherAutoResetEvent.RemoteBranchDeleted.WaitOne(TimeSpan.FromSeconds(2));
+                watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                watcherAutoResetEvent.RemoteBranchDeleted.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                watcherAutoResetEvent.RemoteBranchDeleted.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                watcherAutoResetEvent.RemoteBranchDeleted.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
                 repositoryWatcherListener.Received().ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
@@ -227,7 +227,7 @@ namespace IntegrationTests
 
                 GitRemoteAdd("origin", "https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
 
-                watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2));
+                watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
                 repositoryWatcherListener.Received().ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
@@ -265,9 +265,9 @@ namespace IntegrationTests
             {
                 GitPull("origin", "master");
 
-                watcherAutoResetEvent.IndexChanged.WaitOne(TimeSpan.FromSeconds(2));
-                watcherAutoResetEvent.LocalBranchChanged.WaitOne(TimeSpan.FromSeconds(2));
-                watcherAutoResetEvent.RepositoryChanged.WaitOne(TimeSpan.FromSeconds(2));
+                watcherAutoResetEvent.IndexChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                watcherAutoResetEvent.LocalBranchChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                watcherAutoResetEvent.RepositoryChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
                 repositoryWatcherListener.DidNotReceive().ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
@@ -305,8 +305,8 @@ namespace IntegrationTests
             {
                 GitFetch("origin");
 
-                watcherAutoResetEvent.RemoteBranchCreated.WaitOne(TimeSpan.FromSeconds(2));
-                watcherAutoResetEvent.RemoteBranchCreated.WaitOne(TimeSpan.FromSeconds(2));
+                watcherAutoResetEvent.RemoteBranchCreated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                watcherAutoResetEvent.RemoteBranchCreated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
                 repositoryWatcherListener.DidNotReceive().ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
