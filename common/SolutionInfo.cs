@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyInformationalVersion(System.AssemblyVersionInformation.Version)]
 [assembly: ComVisible(false)]
 [assembly: AssemblyCompany("GitHub, Inc.")]
-[assembly: AssemblyCopyright("Copyright © GitHub, Inc. 2017")]
+[assembly: AssemblyCopyright("Copyright GitHub, Inc. 2017")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -28,6 +28,6 @@ using System.Runtime.InteropServices;
 namespace System
 {
     internal static class AssemblyVersionInformation {
-        internal const string Version = "0.8.0.0";
+        internal const string Version = "0.10.0.0";
     }
 }

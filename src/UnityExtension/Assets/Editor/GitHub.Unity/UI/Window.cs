@@ -21,9 +21,6 @@ namespace GitHub.Unity
         private const string BranchesTitle = "Branches";
         private const string SettingsTitle = "Settings";
         private const string AuthenticationTitle = "Auth";
-        private const string NoRepoTitle = "No Git repository found for this project";
-        private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
-
 
         [NonSerialized] private double notificationClearTime = -1;
 
@@ -76,7 +73,10 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
+
+#if DEVELOPER_BUILD
             Selection.activeObject = this;
+#endif
 
             // Set window title
             titleContent = new GUIContent(Title, Styles.SmallLogo);
@@ -133,81 +133,19 @@ namespace GitHub.Unity
                 DoNotInitializedGUI();
                 return;
             }
-            else if (Repository == null)
+
+            if (Repository != null)
             {
-                DoOfferToInitializeRepositoryGUI();
-                return;
+                DoHeaderGUI();
             }
-            //if (!ValidateSettings())
-            //{
-            //    activeTab = SubTab.Settings; // If we do complete init, make sure that we return to the settings tab for further setup
-            //}
 
-
-            DoHeaderGUI();
+            DoToolbarGUI();
 
             // GUI for the active tab
             if (ActiveTab != null)
+            {
                 ActiveTab.OnGUI();
-        }
-
-        private void DoOfferToInitializeRepositoryGUI()
-        {
-            var headerRect = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
-            {
-                GUILayout.Space(5);
-                GUILayout.BeginVertical(GUILayout.Width(16));
-                {
-                    GUILayout.Space(5);
-
-                    var iconRect = GUILayoutUtility.GetRect(new GUIContent(Styles.BigLogo), GUIStyle.none, GUILayout.Height(20), GUILayout.Width(20));
-                    iconRect.y = headerRect.center.y - (iconRect.height / 2);
-                    GUI.DrawTexture(iconRect, Styles.BigLogo, ScaleMode.ScaleToFit);
-
-                    GUILayout.Space(5);
-                }
-                GUILayout.EndVertical();
-
-                GUILayout.Space(5);
-
-                GUILayout.BeginVertical();
-                {
-                    var headerContent = new GUIContent(NoRepoTitle);
-                    var headerTitleRect = GUILayoutUtility.GetRect(headerContent, Styles.HeaderTitleStyle);
-                    headerTitleRect.y = headerRect.center.y - (headerTitleRect.height / 2);
-
-                    GUI.Label(headerTitleRect, headerContent, Styles.HeaderTitleStyle);
-                }
-                GUILayout.EndVertical();
             }
-            EditorGUILayout.EndHorizontal();
-
-            GUILayout.BeginVertical(Styles.GenericBoxStyle);
-            {
-                GUILayout.FlexibleSpace();
-
-                GUILayout.Label(NoRepoDescription, Styles.CenteredLabel);
-
-                GUILayout.BeginHorizontal();
-                  GUILayout.FlexibleSpace();
-                  if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
-                  {
-                      var repoInit = new RepositoryInitializer(EntryPoint.Environment, EntryPoint.ProcessManager, new TaskQueueScheduler(), EntryPoint.AppManager);
-                      repoInit.Run();
-                  }
-                  GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
-
-                GUILayout.FlexibleSpace();
-            }
-            GUILayout.EndVertical();
-
-            //GUILayout.BeginVertical();
-            //{
-            //    var padding = 10;
-            //    GUILayout.Label(Styles.BigLogo, GUILayout.Height(this.Position.width - padding * 2), GUILayout.Width(this.Position.width - padding * 2));
-            //}
-            //GUILayout.EndVertical();
         }
 
         private void DoNotInitializedGUI()
@@ -252,16 +190,26 @@ namespace GitHub.Unity
                 GUILayout.EndVertical();
             }
             GUILayout.EndHorizontal();
+        }
 
+        private void DoToolbarGUI()
+        {
             // Subtabs & toolbar
             Rect mainNavRect = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
                 SubTab tab = activeTab;
                 EditorGUI.BeginChangeCheck();
                 {
-                    tab = TabButton(SubTab.Changes, ChangesTitle, tab);
-                    tab = TabButton(SubTab.History, HistoryTitle, tab);
-                    tab = TabButton(SubTab.Branches, BranchesTitle, tab);
+                    if (Repository != null)
+                    {
+                        tab = TabButton(SubTab.Changes, ChangesTitle, tab);
+                        tab = TabButton(SubTab.History, HistoryTitle, tab);
+                        tab = TabButton(SubTab.Branches, BranchesTitle, tab);
+                    }
+                    else
+                    {
+                        tab = TabButton(SubTab.History, HistoryTitle, tab);
+                    }
                     tab = TabButton(SubTab.Settings, SettingsTitle, tab);
                 }
                 if (EditorGUI.EndChangeCheck())
@@ -276,7 +224,6 @@ namespace GitHub.Unity
                 if(GUILayout.Button("Account", EditorStyles.toolbarDropDown))
                   DoAccountDropdown();
             }
-
             EditorGUILayout.EndHorizontal();
         }
 
