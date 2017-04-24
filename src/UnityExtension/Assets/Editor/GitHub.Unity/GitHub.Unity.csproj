@@ -31,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <BuildConfid>Release</BuildConfid>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'dev|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -42,6 +43,9 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CodeAnalysisRuleSet>$(SolutionDir)common\GitHub.ruleset</CodeAnalysisRuleSet>
     <LangVersion>4</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <BuildConfig Condition=" '$(BuildConfig)' == '' ">Debug</BuildConfig>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
@@ -134,13 +138,13 @@
     <!-- Content Include="$(SolutionDir)\lib\sfw.net\osx\libsfw.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content -->
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw.dll">
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(BuildConfig)\sfw.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw.pdb">
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(BuildConfig)\sfw.pdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\pthreadVC2.dll">
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(BuildConfig)\pthreadVC2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
