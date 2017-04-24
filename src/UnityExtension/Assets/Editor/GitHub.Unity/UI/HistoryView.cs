@@ -68,9 +68,12 @@ namespace GitHub.Unity
 
             changesetTree.Initialize(this);
             changesetTree.Readonly = true;
-
-            Repository.OnActiveBranchChanged += s => Refresh();
-            Repository.OnActiveRemoteChanged += s => Refresh();
+            
+            if (Repository != null)
+            {
+                Repository.OnActiveBranchChanged += s => Refresh();
+                Repository.OnActiveRemoteChanged += s => Refresh();
+            }
         }
 
         public override void OnShow()
