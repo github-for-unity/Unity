@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using FluentAssertions;
 using GitHub.Unity;
@@ -16,8 +17,10 @@ namespace IntegrationTests
         {
             InitializeEnvironment(TestRepoMasterCleanSynchronized);
 
+            var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
+
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager);
+            repositoryManagerListener.AttachListener(RepositoryManager, managerAutoResetEvent);
 
             var expected = new GitStatus {
                 Behind = 1,
@@ -38,7 +41,7 @@ namespace IntegrationTests
             var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
             foobarTxt.WriteAllText("foobar");
 
-            Thread.Sleep(4000);
+            managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
@@ -53,8 +56,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
-
-            //Assert.AreEqual(3, repositoryManagerListener.ReceivedCalls().Count());
         }
 
         [Test]
@@ -62,8 +63,10 @@ namespace IntegrationTests
         {
             InitializeEnvironment(TestRepoMasterCleanSynchronized);
 
+            var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
+
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager);
+            repositoryManagerListener.AttachListener(RepositoryManager, managerAutoResetEvent);
 
             var expectedAfterChanges = new GitStatus {
                 Behind = 1,
@@ -87,11 +90,9 @@ namespace IntegrationTests
                 Entries = new List<GitStatusEntry>()
             };
 
-            ManualResetEvent evt = new ManualResetEvent(false);
             var result = new GitStatus();
             RepositoryManager.OnRepositoryChanged += status => {
                 result = status;
-                evt.Set();
             };
 
             Logger.Trace("Issuing Changes");
@@ -102,8 +103,7 @@ namespace IntegrationTests
             var testDocumentTxt = TestRepoMasterCleanSynchronized.Combine("Assets", "TestDocument.txt");
             testDocumentTxt.WriteAllText("foobar");
 
-            Assert.True(evt.WaitOne(5000));
-            evt.Reset();
+            managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(5)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
@@ -126,12 +126,9 @@ namespace IntegrationTests
             RepositoryManager.CommitFiles(new TaskResultDispatcher<string>(s => { }),
                 new List<string>() { "Assets\\TestDocument.txt", "foobar.txt" }, "IntegrationTest Commit", string.Empty);
 
-            Assert.True(evt.WaitOne(5000));
-            evt.Reset();
+            managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(5)).Should().BeTrue();
 
             Logger.Trace("Continue test");
-
-            result.AssertEqual(expectedAfterCommit);
 
             repositoryManagerListener.Received(1).OnActiveBranchChanged();
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
@@ -147,8 +144,10 @@ namespace IntegrationTests
         {
             InitializeEnvironment(TestRepoMasterCleanSynchronized);
 
+            var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
+
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager);
+            repositoryManagerListener.AttachListener(RepositoryManager, managerAutoResetEvent);
 
             var expected = new GitStatus {
                 LocalBranch = "feature/document",
@@ -163,7 +162,9 @@ namespace IntegrationTests
 
             RepositoryManager.SwitchBranch(new TaskResultDispatcher<string>(s => { }), "feature/document");
 
-            Thread.Sleep(3000);
+            managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();
+            managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();
+            managerAutoResetEvent.OnHeadChanged.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
@@ -184,14 +185,17 @@ namespace IntegrationTests
         {
             InitializeEnvironment(TestRepoMasterCleanSynchronized);
 
+            var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
+
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager);
+            repositoryManagerListener.AttachListener(RepositoryManager, managerAutoResetEvent);
 
             Logger.Trace("Issuing Command");
 
             RepositoryManager.DeleteBranch(new TaskResultDispatcher<string>(s => { }), "feature/document", true);
 
-            Thread.Sleep(2000);
+            managerAutoResetEvent.OnLocalBranchListChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            managerAutoResetEvent.OnRemoteOrTrackingChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
@@ -211,15 +215,17 @@ namespace IntegrationTests
         {
             InitializeEnvironment(TestRepoMasterCleanSynchronized);
 
+            var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
+
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager);
+            repositoryManagerListener.AttachListener(RepositoryManager, managerAutoResetEvent);
 
             Logger.Trace("Issuing Command");
 
             RepositoryManager.CreateBranch(new TaskResultDispatcher<string>(s => { }), "feature/document2",
                 "feature/document");
 
-            Thread.Sleep(2000);
+            managerAutoResetEvent.OnLocalBranchListChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
@@ -261,14 +267,18 @@ namespace IntegrationTests
         {
             InitializeEnvironment(TestRepoMasterCleanSynchronized);
 
+            var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
+
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager);
+            repositoryManagerListener.AttachListener(RepositoryManager, managerAutoResetEvent);
 
             Logger.Trace("Issuing Command");
 
             RepositoryManager.RemoteRemove(new TaskResultDispatcher<string>(s => { }), "origin");
 
-            Thread.Sleep(2000);
+            managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            managerAutoResetEvent.OnActiveRemoteChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            managerAutoResetEvent.OnRemoteOrTrackingChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
@@ -289,7 +299,8 @@ namespace IntegrationTests
             RepositoryManager.RemoteAdd(new TaskResultDispatcher<string>(s => { }), "origin",
                 "https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
 
-            Thread.Sleep(2000);
+            managerAutoResetEvent.OnActiveRemoteChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            managerAutoResetEvent.OnRemoteOrTrackingChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
@@ -309,8 +320,10 @@ namespace IntegrationTests
         {
             InitializeEnvironment(TestRepoMasterCleanSynchronized);
 
+            var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
+
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager);
+            repositoryManagerListener.AttachListener(RepositoryManager, managerAutoResetEvent);
 
             var expected = new GitStatus {
                 LocalBranch = "master",
@@ -325,7 +338,8 @@ namespace IntegrationTests
 
             RepositoryManager.Pull(new TaskResultDispatcher<string>(s => { }), "origin", "master");
 
-            Thread.Sleep(7000);
+            managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(7)).Should().BeTrue();
+            managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(7)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
@@ -349,14 +363,17 @@ namespace IntegrationTests
         {
             InitializeEnvironment(TestRepoMasterCleanUnsynchronized);
 
+            var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
+
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager);
+            repositoryManagerListener.AttachListener(RepositoryManager, managerAutoResetEvent);
 
             Logger.Trace("Issuing Command");
 
             RepositoryManager.Fetch(new TaskResultDispatcher<string>(s => { }), "origin");
 
-            Thread.Sleep(3000);
+            managerAutoResetEvent.OnRemoteBranchListChanged.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();
+            managerAutoResetEvent.OnRemoteBranchListChanged.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
