@@ -215,7 +215,14 @@ namespace GitHub.Unity
             }
 
             var status = index >= 0 ? entries[index].Status : GitFileStatus.None;
-            var texture = Styles.GetFileStatusIcon(status, indexLock >= 0);
+            var isLocked = indexLock >= 0;
+            var texture = Styles.GetFileStatusIcon(status, isLocked);
+
+            if (texture == null)
+            {
+                logger.Warning("Unable to retrieve texture for Status: {0} IsLocked:{1}", isLocked);
+                return;
+            }
 
             Rect rect;
 
