@@ -7,13 +7,13 @@ namespace GitHub.Unity
         public static NPath GetRepositoryPath(this IEnvironment environment, NPath path)
         {
             Guard.ArgumentNotNull(path, nameof(path));
-            if (environment.UnityProjectPath == environment.RepositoryPath)
-            {
-                return path;
-            }
 
             NPath projectPath = environment.UnityProjectPath;
             NPath repositoryPath = environment.RepositoryPath;
+            if (projectPath == repositoryPath)
+            {
+                return path;
+            }
 
             if (repositoryPath.IsChildOf(projectPath))
             {
@@ -26,13 +26,13 @@ namespace GitHub.Unity
         public static NPath GetAssetPath(this IEnvironment environment, NPath path)
         {
             Guard.ArgumentNotNull(path, nameof(path));
-            if (environment.UnityProjectPath == environment.RepositoryPath)
-            {
-                return path;
-            }
 
             NPath projectPath = environment.UnityProjectPath;
             NPath repositoryPath = environment.RepositoryPath;
+            if (projectPath == repositoryPath)
+            {
+                return path;
+            }
 
             if (repositoryPath.IsChildOf(projectPath))
             {

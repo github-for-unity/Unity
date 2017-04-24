@@ -86,6 +86,15 @@ namespace GitHub.Unity
         public override void Initialize(IView parent)
         {
             base.Initialize(parent);
+            Setup();
+        }
+
+        private void Setup()
+        {
+            if (Repository == null)
+            {
+                return;
+            }
 
             var currentRemote = Repository.CurrentRemote;
             if (!currentRemote.HasValue && String.IsNullOrEmpty(repositoryRemoteName))
@@ -166,6 +175,10 @@ namespace GitHub.Unity
                     // TODO: Clean up OnGitIgnoreRulesList
                     // gitignore rules list
                     // OnGitIgnoreRulesGUI();
+                //}
+
+                if (Repository != null)
+                {
 
                     OnUserSettingsGUI();
 
@@ -178,11 +191,10 @@ namespace GitHub.Unity
                     OnGitLfsLocksGUI();
 
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                }
 
-                    OnInstallPathGUI();
-
-                    OnLoggingSettingsGui();
-                //}
+                OnInstallPathGUI();
+                OnLoggingSettingsGui();
             }
 
             GUILayout.EndScrollView();
