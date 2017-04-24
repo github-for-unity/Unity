@@ -1,13 +1,19 @@
 #!/bin/sh -xeu
 
 Configuration="Release"
-Publish="Publish"
 case x"$2" in
 	xdebug | xDebug)
 		Configuration="Debug"
-		Publish="PublishDebug"
 		;;
 esac
+
+pushd unity/PackageProject/Assets
+git clean -xdf
+popd
+
+pushd src
+git clean -xdf
+popd
 
 nuget restore
 xbuild GitHub.Unity.sln /property:Configuration=$Configuration
@@ -21,6 +27,10 @@ else
 	echo "Can't find Unity in $1"
 	exit 1
 fi
-rm unity/PackageProject/Assets/Editor/GitHub/CopyLibraries*
+rm -f unity/PackageProject/Assets/Editor/GitHub/deleteme*
+rm -f unity/PackageProject/Assets/Editor/GitHub/*.pdb
+rm -f unity/PackageProject/Assets/Editor/GitHub/*.xml
+
+Version=`sed -En 's,.*Version = "(.*)".*,\1,p' common/SolutionInfo.cs`
 export GITHUB_UNITY_DISABLE=1
-"$Unity" -batchmode -projectPath "`pwd`/unity/PackageProject" -exportPackage Assets/Editor/GitHub github-for-unity-windows.unitypackage -force-free -quit
+"$Unity" -batchmode -projectPath "`pwd`/unity/PackageProject" -exportPackage Assets/Editor/GitHub github-for-unity-$Version-alpha.unitypackage -force-free -quit

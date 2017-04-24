@@ -75,7 +75,7 @@ namespace GitHub.Unity
 
         private const string NullParentError = "Subview parent is null";
         protected IView Parent { get; private set; }
-        public IRepository Repository { get { return Parent.Repository; } }
+        public IRepository Repository { get { return Parent != null ? Parent.Repository : null; } }
 
         public virtual void Initialize(IView parent)
         {

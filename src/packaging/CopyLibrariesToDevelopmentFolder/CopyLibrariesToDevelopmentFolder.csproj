@@ -7,8 +7,8 @@
     <ProjectGuid>{44257C81-EE4A-4817-9AF4-A26C02AA6DD4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CopyLibrariesToDevelopmentFolder</RootNamespace>
-    <AssemblyName>CopyLibrariesToDevelopmentFolder</AssemblyName>
+    <RootNamespace>deleteme</RootNamespace>
+    <AssemblyName>deleteme</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <OutputPath>$(SolutionDir)src\UnityExtension\Assets\Editor\build</OutputPath>
