@@ -157,7 +157,7 @@ namespace GitHub.Unity
                     estimatedDuration = Math.Max(1L, (long)((fs.Length - totalBytes) * elapsedMillisecondsPerFile));
 
                     estimatedDurationProgress?.Report(estimatedDuration);
-                    zipFileProgress?.Report((float)processed / zf.Count);
+                    zipFileProgress?.Report((float)processed / zf.Size);
                     cancellationToken.ThrowIfCancellationRequested();
                 }
             }

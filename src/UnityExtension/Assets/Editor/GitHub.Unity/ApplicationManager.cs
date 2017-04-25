@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Rackspace.Threading;
@@ -14,12 +15,13 @@ namespace GitHub.Unity
         private const string QuitActionFieldName = "editorApplicationQuit";
         private const BindingFlags quitActionBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
 
+        private static Regex UnityVersionRegex = new Regex(@"(?<major>\d+)\.(?<minor>\d+)(\.(?<micro>\d+))?(\.?(?<special>.+))?", RegexOptions.Compiled);
+
         private FieldInfo quitActionField;
 
         public ApplicationManager(IMainThreadSynchronizationContext synchronizationContext)
             : base(synchronizationContext as SynchronizationContext)
         {
-            ListenToUnityExit();
             DetermineInstallationPath();
 
             Initialize();
@@ -36,6 +38,12 @@ namespace GitHub.Unity
                     Utility.Run();
 
                     ProjectWindowInterface.Initialize(Environment.Repository);
+
+                    var match = UnityVersionRegex.Match(Application.unityVersion);
+                    Environment.UnityVersionMajor = int.Parse(match.Groups["major"].Value);
+                    Environment.UnityVersionMinor = int.Parse(match.Groups["minor"].Value);
+
+                    ListenToUnityExit();
 
                     var view = Window.GetView();
                     if (view != null)
@@ -89,7 +97,11 @@ namespace GitHub.Unity
 
         private void ListenToUnityExit()
         {
-            EditorApplicationQuit = (UnityAction)Delegate.Combine(EditorApplicationQuit, new UnityAction(Dispose));
+            if (!(Environment.UnityVersionMajor == 5 && Environment.UnityVersionMinor <= 3))
+            {
+                EditorApplicationQuit = (UnityAction)Delegate.Combine(EditorApplicationQuit, new UnityAction(Dispose));
+            }
+
             EditorApplication.playmodeStateChanged += () => {
                 if (EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
                 {

@@ -28,5 +28,7 @@ namespace GitHub.Unity
         IFileSystem FileSystem { get; set; }
         IRepository Repository { get; set; }
         string ExecutableExtension { get; }
+        int UnityVersionMajor { get; set; }
+        int UnityVersionMinor { get; set; }
     }
 }
