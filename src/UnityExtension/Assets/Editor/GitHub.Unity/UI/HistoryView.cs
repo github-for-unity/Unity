@@ -550,7 +550,14 @@ namespace GitHub.Unity
 
         private void RevertCommit()
         {
-            Debug.Log("Hello from RevertCommit();");
+            var commitSummary = "An awesome commit title";
+            var dialogTitle = "Revert commit";
+            var dialogBody = "Are you sure you want to revert the following commit:\n" + "\"" + commitSummary + "\"";
+
+            if (EditorUtility.DisplayDialog(dialogTitle, dialogBody, "Revert", "Cancel"))
+            {
+                Debug.Log("(Pretend a commit was reverted)");
+            }
         }
 
         private bool HistoryEntry(GitLogEntry entry, LogEntryState state, bool selected)
