@@ -51,9 +51,7 @@ namespace GitHub.Unity
         public override void OnGUI()
         {
             // Ensure a nice looking grid for our auth UI
-            // Not really sure why I need to divide by 4... Retina perhaps??
-            // If so, seems very brittle...
-            cellWidth = (Screen.width / 4) - Convert.ToInt32(Styles.BaseSpacing * 2);
+            cellWidth = (Screen.width / 2) - Convert.ToInt32(Styles.BaseSpacing * 2);
 
             scroll = GUILayout.BeginScrollView(scroll);
             {
