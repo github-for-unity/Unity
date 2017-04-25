@@ -68,7 +68,7 @@ namespace GitHub.Unity
                 return;
             }
             sb.AppendLine(line);
-            Logger.Debug(@"Phase {0} - LineReceived: ""{1}""", phase, line == null ? "null" : line);
+            //Logger.Debug(@"Phase {0} - LineReceived: ""{1}""", phase, line == null ? "null" : line);
 
             if (phase == ProcessingPhase.Files && seenBodyEnd)
             {
