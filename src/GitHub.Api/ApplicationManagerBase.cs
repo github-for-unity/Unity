@@ -116,7 +116,7 @@ namespace GitHub.Unity
             else
                 Environment.GitExecutablePath = await LookForGitInstallationPath();
 
-            logger.Trace("GitInstallationPath {0} {1} {2}", expectedPath, gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
+            logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
 
             await RestartRepository();
         }

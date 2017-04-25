@@ -152,16 +152,16 @@ namespace GitHub.Unity
         }
 
         private bool disposed = false;
-
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
             if (disposing)
             {
+                base.Dispose(disposing);
                 if (!disposed)
                 {
                     disposed = true;
-                    taskRunner.Shutdown();
+                    if (taskRunner != null)
+                        taskRunner.Shutdown();
                 }
             }
         }

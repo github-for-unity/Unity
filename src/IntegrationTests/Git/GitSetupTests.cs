@@ -9,7 +9,7 @@ namespace IntegrationTests
 {
     class GitSetupTests : BaseGitRepoTest
     {
-        [Test]
+        [Test, Category("Long")]
         public void InstallGit()
         {
             var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
