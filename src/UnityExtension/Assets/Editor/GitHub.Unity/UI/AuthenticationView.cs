@@ -141,10 +141,8 @@ namespace GitHub.Unity
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label(twofaLabel, GUILayout.Width(cellWidth));
-                GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                two2fa = GUILayout.TextField(two2fa, Styles.TextFieldStyle, GUILayout.Width(55));
+                two2fa = EditorGUILayout.TextField(twofaLabel, two2fa, Styles.TextFieldStyle);
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
