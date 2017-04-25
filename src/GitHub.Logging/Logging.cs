@@ -95,6 +95,11 @@ namespace GitHub.Unity
             Instance.Error(s);
         }
 
+        public static void Info(string format, params object[] objects)
+        {
+            Instance.Info(format, objects);
+        }
+
         public static void Debug(string format, params object[] objects)
         {
             Instance.Debug(format, objects);
