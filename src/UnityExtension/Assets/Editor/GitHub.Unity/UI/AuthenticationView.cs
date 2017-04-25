@@ -101,20 +101,16 @@ namespace GitHub.Unity
             GUILayout.Space(3);
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label(usernameLabel, GUILayout.Width(cellWidth));
-                GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                username = EditorGUILayout.TextField(username, Styles.TextFieldStyle, GUILayout.Width(cellWidth));
+                username = EditorGUILayout.TextField("Username" ,username, Styles.TextFieldStyle);
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
             GUILayout.Space(Styles.BaseSpacing);
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label(passwordLabel, GUILayout.Width(cellWidth));
-                GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                password = EditorGUILayout.PasswordField(password, Styles.TextFieldStyle, GUILayout.Width(cellWidth));
+                password = EditorGUILayout.PasswordField("Password", password, Styles.TextFieldStyle);
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
