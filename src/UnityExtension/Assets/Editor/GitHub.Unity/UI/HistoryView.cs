@@ -548,6 +548,11 @@ namespace GitHub.Unity
                                 EntryHeight + 1, 0, history.Count);
         }
 
+        private void RevertCommit()
+        {
+            Debug.Log("Hello from RevertCommit();");
+        }
+
         private bool HistoryEntry(GitLogEntry entry, LogEntryState state, bool selected)
         {
             var entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
@@ -610,6 +615,14 @@ namespace GitHub.Unity
 
                     GUI.DrawTexture(normalIndicatorRect, Styles.DotIcon);
                 }
+            }
+            else if (Event.current.type == EventType.ContextClick && entryRect.Contains(Event.current.mousePosition))
+            {
+                GenericMenu menu = new GenericMenu();
+                menu.AddItem(new GUIContent("Revert"), false, RevertCommit);
+                menu.ShowAsContext();
+
+                Event.current.Use();
             }
             else if (Event.current.type == EventType.MouseDown && entryRect.Contains(Event.current.mousePosition))
             {
