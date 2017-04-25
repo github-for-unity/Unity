@@ -73,7 +73,10 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
+
+#if DEVELOPER_BUILD
             Selection.activeObject = this;
+#endif
 
             // Set window title
             titleContent = new GUIContent(Title, Styles.SmallLogo);
