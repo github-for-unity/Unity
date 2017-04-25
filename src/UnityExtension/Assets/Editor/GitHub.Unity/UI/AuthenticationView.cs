@@ -146,6 +146,7 @@ namespace GitHub.Unity
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
+            GUILayout.Space(Styles.BaseSpacing);
 
             ShowMessage(message, Styles.ErrorLabel);
 
