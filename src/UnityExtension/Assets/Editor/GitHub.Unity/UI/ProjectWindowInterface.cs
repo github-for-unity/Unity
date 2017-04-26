@@ -220,7 +220,7 @@ namespace GitHub.Unity
 
             if (texture == null)
             {
-                logger.Warning("Unable to retrieve texture for Status: {0} IsLocked:{1}", isLocked);
+                logger.Warning("Unable to retrieve texture for Status: {0} IsLocked:{1}", status, isLocked);
                 return;
             }
 
