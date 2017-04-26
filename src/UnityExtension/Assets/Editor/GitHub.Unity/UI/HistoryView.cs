@@ -313,42 +313,47 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-
-                // Pull / Push buttons
-                var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
-                GUI.enabled = currentRemote != null;
-                var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
-                GUI.enabled = true;
-                if (pullClicked &&
-                    EditorUtility.DisplayDialog(PullConfirmTitle,
-                        String.Format(PullConfirmDescription, currentRemote),
-                        PullConfirmYes,
-                        PullConfirmCancel)
-                )
+                var isPublished = false;
+                if (isPublished)
                 {
-                    Pull();
+                    // Pull / Push buttons
+                    var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
+                    GUI.enabled = currentRemote != null;
+                    var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
+                    GUI.enabled = true;
+                    if (pullClicked &&
+                        EditorUtility.DisplayDialog(PullConfirmTitle,
+                            String.Format(PullConfirmDescription, currentRemote),
+                            PullConfirmYes,
+                            PullConfirmCancel)
+                    )
+                    {
+                        Pull();
+                    }
+
+                    var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
+                    GUI.enabled = currentRemote != null && statusBehind == 0;
+                    var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
+                    GUI.enabled = true;
+                    if (pushClicked &&
+                        EditorUtility.DisplayDialog(PushConfirmTitle,
+                            String.Format(PushConfirmDescription, currentRemote),
+                            PushConfirmYes,
+                            PushConfirmCancel)
+                    )
+                    {
+                        Push();
+                    }
                 }
-
-                var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
-                GUI.enabled = currentRemote != null && statusBehind == 0;
-                var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
-                GUI.enabled = true;
-                if (pushClicked &&
-                    EditorUtility.DisplayDialog(PushConfirmTitle,
-                        String.Format(PushConfirmDescription, currentRemote),
-                        PushConfirmYes,
-                        PushConfirmCancel)
-                )
+                else
                 {
-                    Push();
-                }
-
-                // Publishing a repo
-                var publishedClicked = GUILayout.Button(publishButton, Styles.HistoryToolbarButtonStyle);
-                if (publishedClicked)
-                {
-                    PublishWindow publishWindow = (PublishWindow)EditorWindow.GetWindow(typeof(PublishWindow));
-                    publishWindow.Show();
+                    // Publishing a repo
+                    var publishedClicked = GUILayout.Button(publishButton, Styles.HistoryToolbarButtonStyle);
+                    if (publishedClicked)
+                    {
+                        PublishWindow publishWindow = (PublishWindow)EditorWindow.GetWindow(typeof(PublishWindow));
+                        publishWindow.Show();
+                    }
                 }
             }
             GUILayout.EndHorizontal();
