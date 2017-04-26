@@ -111,6 +111,7 @@
     <Compile Include="UI\GitCommitTarget.cs" />
     <Compile Include="UI\HistoryView.cs" />
     <Compile Include="UI\IView.cs" />
+    <Compile Include="UI\PublishWindow.cs" />
     <Compile Include="UI\SettingsView.cs" />
     <Compile Include="UI\Subview.cs" />
     <Compile Include="UI\Window.cs" />
