@@ -18,8 +18,6 @@ namespace GitHub.Unity
         const string twofaDescription = "Open the two-factor authentication app on your device to view your authentication code and verify your identity.";
         const string twofaButton = "Verify";
 
-        int cellWidth;
-
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string username = "";
         [SerializeField] private string password = "";
@@ -50,9 +48,6 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            // Ensure a nice looking grid for our auth UI
-            cellWidth = (Screen.width / 2) - Convert.ToInt32(Styles.BaseSpacing * 2);
-
             scroll = GUILayout.BeginScrollView(scroll);
             {
                 Rect authHeader = EditorGUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
