@@ -79,6 +79,8 @@ namespace GitHub.Unity
             var assetsPath = Application.dataPath.ToNPath();
             var projectPath = assetsPath.Parent;
 
+            Environment.UnityApplication = EditorApplication.applicationPath;
+
             Environment.UnityAssetsPath = assetsPath.ToString(SlashMode.Forward);
             Environment.UnityProjectPath = projectPath.ToString(SlashMode.Forward);
 

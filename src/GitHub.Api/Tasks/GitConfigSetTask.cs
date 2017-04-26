@@ -8,6 +8,7 @@ namespace GitHub.Unity
         private readonly string value;
         private readonly string arguments;
         private bool done = false;
+        private string label;
 
         public GitConfigSetTask(IEnvironment environment, IProcessManager processManager,
             ITaskResultDispatcher<string> resultDispatcher,
@@ -23,6 +24,7 @@ namespace GitHub.Unity
                         configSource == GitConfigSource.User ? "--replace-all --global" :
                             "--replace-all --system";
             arguments = String.Format("config {0} {1} \"{2}\"", source, key, value);
+            label = String.Format("config {0} {1} \"{2}\"", source, key, new String('*', value.Length));
         }
 
         protected override ProcessOutputManager HookupOutput(IProcess process)
@@ -43,7 +45,7 @@ namespace GitHub.Unity
         public override bool Blocking { get { return false; } }
         public override bool Critical { get { return false; } }
         public override bool Cached { get { return false; } }
-        public override string Label { get { return "git config"; } }
+        public override string Label { get { return label;} }
         protected override string ProcessArguments { get { return arguments; } }
     }
 }
