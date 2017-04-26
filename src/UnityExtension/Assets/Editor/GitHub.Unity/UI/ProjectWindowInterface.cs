@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,8 +17,8 @@ namespace GitHub.Unity
         private static bool initialized = false;
         private static IRepository repository;
         private static bool isBusy = false;
-        private static ILogging logger = Logging.GetLogger<ProjectWindowInterface>();
-        private static ILogging Logger { get { return logger; } }
+        private static ILogging logger;
+        private static ILogging Logger { get { return logger = logger ?? Logging.GetLogger<ProjectWindowInterface>(); } }
 
         public static void Initialize(IRepository repo)
         {
@@ -156,6 +157,7 @@ namespace GitHub.Unity
                 return;
             }
             locks = update.ToList();
+
             guidsLocks.Clear();
             foreach (var lck in locks)
             {
@@ -163,10 +165,7 @@ namespace GitHub.Unity
                 NPath assetPath = EntryPoint.Environment.GetAssetPath(repositoryPath);
 
                 var g = AssetDatabase.AssetPathToGUID(assetPath);
-                if (!guidsLocks.Contains(g))
-                {
-                    guidsLocks.Add(g);
-                }
+                guidsLocks.Add(g);
             }
         }
 
@@ -188,12 +187,26 @@ namespace GitHub.Unity
             guids.Clear();
             for (var index = 0; index < entries.Count; ++index)
             {
-                var path = entries[index].ProjectPath;
-                var g = string.IsNullOrEmpty(path) ? string.Empty : AssetDatabase.AssetPathToGUID(path);
-                if (!guids.Contains(g))
+                var gitStatusEntry = entries[index];
+
+                var path = gitStatusEntry.ProjectPath;
+                if (gitStatusEntry.Status == GitFileStatus.Ignored)
                 {
-                    guids.Add(g);
+                    continue;
                 }
+
+                if (!path.StartsWith("Assets", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (path.EndsWith(".meta", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    continue;
+                }
+
+                var guid = AssetDatabase.AssetPathToGUID(path);
+                guids.Add(guid);
             }
 
             EditorApplication.RepaintProjectWindow();
@@ -214,13 +227,22 @@ namespace GitHub.Unity
                 return;
             }
 
-            var status = index >= 0 ? entries[index].Status : GitFileStatus.None;
+            GitStatusEntry? gitStatusEntry = null;
+            GitFileStatus status = GitFileStatus.None;
+
+            if (index >= 0)
+            {
+                gitStatusEntry = entries[index];
+                status = gitStatusEntry.Value.Status;
+            }
+
             var isLocked = indexLock >= 0;
             var texture = Styles.GetFileStatusIcon(status, isLocked);
 
             if (texture == null)
             {
-                logger.Warning("Unable to retrieve texture for Status: {0} IsLocked:{1}", isLocked);
+                var path = gitStatusEntry.HasValue ? gitStatusEntry.Value.Path : string.Empty;
+                Logger.Warning("Unable to retrieve texture for Guid:{0} EntryPath:{1} Status: {2} IsLocked:{3}", guid, path, status.ToString(), isLocked);
                 return;
             }
 
