@@ -8,7 +8,10 @@ namespace GitHub.Unity
         private const string PublishTitle = "Publish this repository to GitHub";
         private string repoName = "";
         private string repoDescription = "";
+        private int selectedOrg = 0;
         private bool togglePrivate = false;
+
+        private string[] orgs = { "donokuda", "github", "donokudallc", "another-org" };
 
         static void Init()
         {
@@ -31,6 +34,7 @@ namespace GitHub.Unity
                 togglePrivate = GUILayout.Toggle(togglePrivate, "Keep my code private");
             }
             GUILayout.EndHorizontal();
+            selectedOrg = EditorGUILayout.Popup("Organization", 0, orgs);
 
             GUILayout.Space(5);
 
