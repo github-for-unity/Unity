@@ -73,6 +73,38 @@ namespace IntegrationTests
             });
         }
 
+        [Test, Category("DoNotRunOnAppVeyor")]
+        public void RussianLogEntriesTest()
+        {
+            InitializeEnvironment(TestRepoMasterCleanUnsynchronizedRussianLanguage);
+
+            var logEntries =
+                ProcessManager.GetGitLogEntries(TestRepoMasterCleanUnsynchronizedRussianLanguage, Environment, FileSystem, GitEnvironment, 1)
+                    .ToArray();
+
+            logEntries.AssertEqual(new[]
+            {
+                new GitLogEntry
+                {
+                    AuthorEmail = "author@example.com",
+                    CommitEmail = "author@example.com",
+                    AuthorName = "Author Person",
+                    CommitName = "Author Person",
+                    Changes = new List<GitStatusEntry>
+                    {
+                        new GitStatusEntry(@"Assets\A new file.txt".ToNPath(),
+                            TestRepoMasterCleanUnsynchronizedRussianLanguage + "/Assets/A new file.txt".ToNPath(), "Assets/A new file.txt".ToNPath(),
+                            GitFileStatus.Added),
+                    },
+                    CommitID = "06d6451d351626894a30e9134f551db12c74254b",
+                    Description = "Я люблю github",
+                    Summary = "Я люблю github",
+                    Time = new DateTimeOffset(2017, 4, 20, 11, 47, 18, TimeSpan.FromHours(-4)),
+                    CommitTime = new DateTimeOffset(2017, 4, 20, 11, 47, 18, TimeSpan.FromHours(-4)),
+                }
+            });
+        }
+
         [Test]
         public void RemoteListTest()
         {
