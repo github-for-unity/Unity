@@ -135,7 +135,7 @@ namespace GitHub.Unity
         {
             GUILayout.BeginVertical();
             GUILayout.Label(twofaTitle, EditorStyles.boldLabel);
-            GUILayout.Label(twofaDescription, EditorStyles.wordWrappedLabel, GUILayout.Width(cellWidth * 2));
+            GUILayout.Label(twofaDescription, EditorStyles.wordWrappedLabel);
 
             GUILayout.Space(Styles.BaseSpacing);
 
