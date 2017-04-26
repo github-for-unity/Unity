@@ -11,6 +11,9 @@ namespace GitHub.Unity
         private int selectedOrg = 0;
         private bool togglePrivate = false;
 
+        // TODO: Replace me since this is just to test rendering errors
+        private bool error = true;
+
         private string[] orgs = { "donokuda", "github", "donokudallc", "another-org" };
 
         static void Init()
@@ -37,6 +40,9 @@ namespace GitHub.Unity
             selectedOrg = EditorGUILayout.Popup("Organization", 0, orgs);
 
             GUILayout.Space(5);
+
+            if (error)
+                GUILayout.Label("There was an error", Styles.ErrorLabel);
 
             GUILayout.BeginHorizontal();
             {
