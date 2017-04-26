@@ -129,7 +129,7 @@
       <Output TaskParameter="Include" ItemName="ToMoreCopy" />
     </CreateItem>
     <Copy SourceFiles="@(ToMoreCopy)"
-      DestinationFiles="@(ToMoreCopy->'$(ExternalPublishTo)\%(RecursiveDir)%(Filename)%(Extension)')" ContinueOnError="WarnAndContinue" />
+      DestinationFiles="@(ToMoreCopy->'$(ExternalPublishTo)\%(RecursiveDir)%(Filename)%(Extension)')" Retries="0" ContinueOnError="WarnAndContinue" />
   </Target>
 
   <Target
