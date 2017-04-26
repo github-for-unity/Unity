@@ -9,7 +9,7 @@ namespace IntegrationTests
 {
     class GitSetupTests : BaseGitRepoTest
     {
-        [Test, Category("Long")]
+        [Test, Category("DoNotRunOnAppVeyor")]
         public void InstallGit()
         {
             var environmentPath = NPath.CreateTempDirectory("integration-test-environment");

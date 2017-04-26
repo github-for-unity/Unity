@@ -73,7 +73,7 @@ namespace IntegrationTests
             });
         }
 
-        [Test]
+        [Test, Category("DoNotRunOnAppVeyor")]
         public void RussianLogEntriesTest()
         {
             InitializeEnvironment(TestRepoMasterCleanUnsynchronizedRussianLanguage);
