@@ -352,6 +352,8 @@ namespace GitHub.Unity
                     if (publishedClicked)
                     {
                         PublishWindow publishWindow = (PublishWindow)EditorWindow.GetWindow(typeof(PublishWindow));
+                        GUIContent titleContent = new GUIContent("Publish");
+                        publishWindow.titleContent = titleContent;
                         publishWindow.Show();
                     }
                 }
