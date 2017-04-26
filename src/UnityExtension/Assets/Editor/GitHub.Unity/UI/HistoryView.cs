@@ -341,6 +341,18 @@ namespace GitHub.Unity
                 {
                     Push();
                 }
+
+                // Publishing a repo
+                var publishButtonText = "Publish";
+
+                // We're going to want to capture the position of the button so we can
+                // pop up a container for the publishing this repo
+                var publishButtonRect = GUILayoutUtility.GetRect(new GUIContent(publishButtonText), Styles.HistoryToolbarButtonStyle);
+                var publishedClicked = GUI.Button(publishButtonRect, publishButtonText, Styles.HistoryToolbarButtonStyle);
+                if (publishedClicked)
+                {
+                    Debug.Log(publishButtonRect);
+                }
             }
             GUILayout.EndHorizontal();
 
