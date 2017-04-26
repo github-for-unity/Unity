@@ -13,7 +13,6 @@ namespace GitHub.Unity
         private const string TempPathPrefix = "github-unity-portable";
         private const string GitZipFile = "git.zip";
         private const string GitLfsZipFile = "git-lfs.zip";
-        private NPath gitConfigDestinationPath;
 
         private readonly CancellationToken cancellationToken;
         private readonly IEnvironment environment;
@@ -68,15 +67,13 @@ namespace GitHub.Unity
             GitDestinationPath = GitDestinationPath.Combine(GitExecutable);
 
             GitLfsDestinationPath = PackageDestinationDirectory;
-            gitConfigDestinationPath = PackageDestinationDirectory;
+
             if (DefaultEnvironment.OnWindows)
             {
                 GitLfsDestinationPath = GitLfsDestinationPath.Combine("mingw32");
-                gitConfigDestinationPath = gitConfigDestinationPath.Combine("mingw32");
             }
-            GitLfsDestinationPath = GitLfsDestinationPath.Combine("libexec", "git-core", GitLfsExecutable);
-            gitConfigDestinationPath = gitConfigDestinationPath.Combine("etc", "gitconfig");
 
+            GitLfsDestinationPath = GitLfsDestinationPath.Combine("libexec", "git-core", GitLfsExecutable);
         }
 
         public bool IsExtracted()
@@ -137,12 +134,6 @@ namespace GitHub.Unity
                 cancellationToken.ThrowIfCancellationRequested();
 
                 ret &= await SetupGitLfsIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
-
-                var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "gitconfig", tempPath);
-                if (archiveFilePath.FileExists())
-                {
-                    archiveFilePath.Copy(gitConfigDestinationPath);
-                }
 
                 tempPath.Delete();
                 return ret;
