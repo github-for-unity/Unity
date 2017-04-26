@@ -158,7 +158,6 @@ namespace GitHub.Unity
             }
             locks = update.ToList();
 
-            Logger.Trace("Clearing Lock guids");
             guidsLocks.Clear();
             foreach (var lck in locks)
             {
@@ -166,15 +165,7 @@ namespace GitHub.Unity
                 NPath assetPath = EntryPoint.Environment.GetAssetPath(repositoryPath);
 
                 var g = AssetDatabase.AssetPathToGUID(assetPath);
-                if (!guidsLocks.Contains(g))
-                {
-                    Logger.Trace("Tracking Lock Path:{0}, Guid: {1}, LockId: {2}, LockUser: {3}", assetPath, g, lck.ID, lck.User);
-                    guidsLocks.Add(g);
-                }
-                else
-                {
-                    Logger.Warning("Error Tracking Lock Path:{0}, Guid: {1}, LockId: {2}, LockUser: {3}", assetPath, g, lck.ID, lck.User);
-                }
+                guidsLocks.Add(g);
             }
         }
 
@@ -193,7 +184,6 @@ namespace GitHub.Unity
             entries.Clear();
             entries.AddRange(update.Entries);
 
-            Logger.Trace("Clearing Entry guids");
             guids.Clear();
             for (var index = 0; index < entries.Count; ++index)
             {
@@ -216,16 +206,7 @@ namespace GitHub.Unity
                 }
 
                 var guid = AssetDatabase.AssetPathToGUID(path);
-
-                if (!guids.Contains(guid))
-                {
-                    Logger.Trace("Tracking Entry Path:{0}, Guid: {1}, Status: {2}", path, guid, gitStatusEntry.Status);
-                    guids.Add(guid);
-                }
-                else
-                {
-                    Logger.Warning("Error Entry Path:{0}, Guid: {1}, Status: {2}", path, guid, gitStatusEntry.Status);
-                }
+                guids.Add(guid);
             }
 
             EditorApplication.RepaintProjectWindow();
