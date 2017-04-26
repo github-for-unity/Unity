@@ -352,6 +352,10 @@ namespace GitHub.Unity
                 if (publishedClicked)
                 {
                     Debug.Log(publishButtonRect);
+                    Debug.Log("Here come dat window");
+
+                    PublishWindow publishWindow = (PublishWindow)EditorWindow.GetWindow(typeof(PublishWindow));
+                    publishWindow.Show();
                 }
             }
             GUILayout.EndHorizontal();
