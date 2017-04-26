@@ -18,8 +18,6 @@ namespace GitHub.Unity
         const string twofaDescription = "Open the two-factor authentication app on your device to view your authentication code and verify your identity.";
         const string twofaButton = "Verify";
 
-        int cellWidth;
-
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string username = "";
         [SerializeField] private string password = "";
@@ -50,11 +48,6 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            // Ensure a nice looking grid for our auth UI
-            // Not really sure why I need to divide by 4... Retina perhaps??
-            // If so, seems very brittle...
-            cellWidth = (Screen.width / 4) - Convert.ToInt32(Styles.BaseSpacing * 2);
-
             scroll = GUILayout.BeginScrollView(scroll);
             {
                 Rect authHeader = EditorGUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
@@ -103,20 +96,16 @@ namespace GitHub.Unity
             GUILayout.Space(3);
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label(usernameLabel, GUILayout.Width(cellWidth));
-                GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                username = EditorGUILayout.TextField(username, Styles.TextFieldStyle, GUILayout.Width(cellWidth));
+                username = EditorGUILayout.TextField("Username" ,username, Styles.TextFieldStyle);
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
             GUILayout.Space(Styles.BaseSpacing);
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label(passwordLabel, GUILayout.Width(cellWidth));
-                GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                password = EditorGUILayout.PasswordField(password, Styles.TextFieldStyle, GUILayout.Width(cellWidth));
+                password = EditorGUILayout.PasswordField("Password", password, Styles.TextFieldStyle);
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
@@ -141,19 +130,18 @@ namespace GitHub.Unity
         {
             GUILayout.BeginVertical();
             GUILayout.Label(twofaTitle, EditorStyles.boldLabel);
-            GUILayout.Label(twofaDescription, EditorStyles.wordWrappedLabel, GUILayout.Width(cellWidth * 2));
+            GUILayout.Label(twofaDescription, EditorStyles.wordWrappedLabel);
 
             GUILayout.Space(Styles.BaseSpacing);
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label(twofaLabel, GUILayout.Width(cellWidth));
-                GUILayout.FlexibleSpace();
                 if (busy) GUI.enabled = false;
-                two2fa = GUILayout.TextField(two2fa, Styles.TextFieldStyle, GUILayout.Width(55));
+                two2fa = EditorGUILayout.TextField(twofaLabel, two2fa, Styles.TextFieldStyle);
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
+            GUILayout.Space(Styles.BaseSpacing);
 
             ShowMessage(message, Styles.ErrorLabel);
 
