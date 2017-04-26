@@ -219,8 +219,6 @@ namespace GitHub.Unity
                 return;
             }
 
-            var guidToAssetPath = AssetDatabase.GUIDToAssetPath(guid);
-
             var index = guids.IndexOf(guid);
             var indexLock = guidsLocks.IndexOf(guid);
 
@@ -229,24 +227,22 @@ namespace GitHub.Unity
                 return;
             }
 
-            GitStatusEntry? gitStatusEntry;
-            gitStatusEntry = entries[index];
-            GitFileStatus status;
+            GitStatusEntry? gitStatusEntry = null;
+            GitFileStatus status = GitFileStatus.None;
+
             if (index >= 0)
             {
                 gitStatusEntry = entries[index];
                 status = gitStatusEntry.Value.Status;
             }
-            else
-            {
-                status = GitFileStatus.None;
-            }
+
             var isLocked = indexLock >= 0;
             var texture = Styles.GetFileStatusIcon(status, isLocked);
 
             if (texture == null)
             {
-                Logger.Warning("Unable to retrieve texture for Guid:{0} EntryPath:{1} DatabasePath:{2} Status: {3} IsLocked:{4}", guid, gitStatusEntry.HasValue ? gitStatusEntry.Value.Path : string.Empty, guidToAssetPath, status.ToString(), isLocked);
+                var path = gitStatusEntry.HasValue ? gitStatusEntry.Value.Path : string.Empty;
+                Logger.Warning("Unable to retrieve texture for Guid:{0} EntryPath:{1} Status: {2} IsLocked:{3}", guid, path, status.ToString(), isLocked);
                 return;
             }
 
