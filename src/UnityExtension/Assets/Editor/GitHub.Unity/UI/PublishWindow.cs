@@ -41,7 +41,11 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal();
             {
                 GUILayout.FlexibleSpace();
-                GUILayout.Button("Create");
+                if (GUILayout.Button("Create"))
+                {
+                    Debug.Log("CREATING A REPO HAPPENS HERE!");
+                    this.Close();
+                }
             }
             GUILayout.EndHorizontal();
         }
