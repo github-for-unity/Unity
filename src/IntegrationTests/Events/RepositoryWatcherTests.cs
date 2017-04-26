@@ -281,7 +281,7 @@ namespace IntegrationTests
             {
                 GitFetch("origin");
 
-                Thread.Sleep(ThreadSleepTimeout);
+                Thread.Sleep(5000);
 
                 repositoryWatcherListener.DidNotReceive().ConfigChanged();
                 repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
