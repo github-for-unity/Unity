@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,8 +17,8 @@ namespace GitHub.Unity
         private static bool initialized = false;
         private static IRepository repository;
         private static bool isBusy = false;
-        private static ILogging logger = Logging.GetLogger<ProjectWindowInterface>();
-        private static ILogging Logger { get { return logger; } }
+        private static ILogging logger;
+        private static ILogging Logger { get { return logger = logger ?? Logging.GetLogger<ProjectWindowInterface>(); } }
 
         public static void Initialize(IRepository repo)
         {
@@ -156,6 +157,8 @@ namespace GitHub.Unity
                 return;
             }
             locks = update.ToList();
+
+            Logger.Trace("Clearing Lock guids");
             guidsLocks.Clear();
             foreach (var lck in locks)
             {
@@ -165,7 +168,12 @@ namespace GitHub.Unity
                 var g = AssetDatabase.AssetPathToGUID(assetPath);
                 if (!guidsLocks.Contains(g))
                 {
+                    Logger.Trace("Tracking Lock Path:{0}, Guid: {1}, LockId: {2}, LockUser: {3}", assetPath, g, lck.ID, lck.User);
                     guidsLocks.Add(g);
+                }
+                else
+                {
+                    Logger.Warning("Error Tracking Lock Path:{0}, Guid: {1}, LockId: {2}, LockUser: {3}", assetPath, g, lck.ID, lck.User);
                 }
             }
         }
@@ -185,14 +193,38 @@ namespace GitHub.Unity
             entries.Clear();
             entries.AddRange(update.Entries);
 
+            Logger.Trace("Clearing Entry guids");
             guids.Clear();
             for (var index = 0; index < entries.Count; ++index)
             {
-                var path = entries[index].ProjectPath;
-                var g = string.IsNullOrEmpty(path) ? string.Empty : AssetDatabase.AssetPathToGUID(path);
-                if (!guids.Contains(g))
+                var gitStatusEntry = entries[index];
+
+                var path = gitStatusEntry.ProjectPath;
+                if (gitStatusEntry.Status == GitFileStatus.Ignored)
                 {
-                    guids.Add(g);
+                    continue;
+                }
+
+                if (!path.StartsWith("Assets", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (path.EndsWith(".meta", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    continue;
+                }
+
+                var guid = AssetDatabase.AssetPathToGUID(path);
+
+                if (!guids.Contains(guid))
+                {
+                    Logger.Trace("Tracking Entry Path:{0}, Guid: {1}, Status: {2}", path, guid, gitStatusEntry.Status);
+                    guids.Add(guid);
+                }
+                else
+                {
+                    Logger.Warning("Error Entry Path:{0}, Guid: {1}, Status: {2}", path, guid, gitStatusEntry.Status);
                 }
             }
 
@@ -206,6 +238,8 @@ namespace GitHub.Unity
                 return;
             }
 
+            var guidToAssetPath = AssetDatabase.GUIDToAssetPath(guid);
+
             var index = guids.IndexOf(guid);
             var indexLock = guidsLocks.IndexOf(guid);
 
@@ -214,13 +248,24 @@ namespace GitHub.Unity
                 return;
             }
 
-            var status = index >= 0 ? entries[index].Status : GitFileStatus.None;
+            GitStatusEntry? gitStatusEntry;
+            gitStatusEntry = entries[index];
+            GitFileStatus status;
+            if (index >= 0)
+            {
+                gitStatusEntry = entries[index];
+                status = gitStatusEntry.Value.Status;
+            }
+            else
+            {
+                status = GitFileStatus.None;
+            }
             var isLocked = indexLock >= 0;
             var texture = Styles.GetFileStatusIcon(status, isLocked);
 
             if (texture == null)
             {
-                logger.Warning("Unable to retrieve texture for Status: {0} IsLocked:{1}", status, isLocked);
+                Logger.Warning("Unable to retrieve texture for Guid:{0} EntryPath:{1} DatabasePath:{2} Status: {3} IsLocked:{4}", guid, gitStatusEntry.HasValue ? gitStatusEntry.Value.Path : string.Empty, guidToAssetPath, status.ToString(), isLocked);
                 return;
             }
 
