@@ -85,6 +85,8 @@ namespace IntegrationTests
         public bool IsLinux => defaultEnvironment.IsLinux;
         public bool IsMac => defaultEnvironment.IsMac;
 
+        public string UnityApplication { get; set; }
+
         public string UnityAssetsPath { get; set; }
 
         public string UnityProjectPath

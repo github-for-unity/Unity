@@ -22,6 +22,7 @@ namespace GitHub.Unity
             return Environment.GetEnvironmentVariable(variable);
         }
 
+        public string UnityApplication { get; set; }
         public string UnityAssetsPath { get; set; }
         public string UnityProjectPath { get; set; }
         public string ExtensionInstallPath { get; set; }
