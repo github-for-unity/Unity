@@ -103,7 +103,7 @@
       <Name>GitHub.Unity</Name>
     </ProjectReference>
     <Reference Include="sfw.net">
-      <HintPath>$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw.net.dll</HintPath>
+      <HintPath>$(SolutionDir)\lib\sfw.net\$(Configuration)\sfw.net.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -119,10 +119,10 @@
     <!-- Content Include="$(SolutionDir)\lib\sfw.net\osx\libsfw.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content -->
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw.dll">
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw_x64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw.pdb">
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw_x64.pdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\pthreadVC2.dll">

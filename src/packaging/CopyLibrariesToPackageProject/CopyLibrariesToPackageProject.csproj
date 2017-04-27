@@ -73,7 +73,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="sfw.net">
-      <HintPath>$(SolutionDir)\lib\sfw.net\win\x64\$(BuildConfiguration)\sfw.net.dll</HintPath>
+      <HintPath>$(SolutionDir)\lib\sfw.net\$(BuildConfiguration)\sfw.net.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -90,10 +90,20 @@
     <!-- Content Include="$(SolutionDir)\lib\sfw.net\osx\libsfw.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content -->
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(BuildConfiguration)\sfw.dll">
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x86\$(BuildConfiguration)\sfw_x86.dll">
+      <Link>x86\sfw_x86.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x86\$(BuildConfiguration)\pthreadVC2.dll">
+      <Link>x86\pthreadVC2.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(BuildConfiguration)\sfw_x64.dll">
+      <Link>x64\sfw_x64.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(BuildConfiguration)\pthreadVC2.dll">
+      <Link>x64\pthreadVC2.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
