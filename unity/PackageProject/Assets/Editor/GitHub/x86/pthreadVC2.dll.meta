@@ -17,7 +17,7 @@ PluginImporter:
       enabled: 0
       settings:
         Exclude Android: 1
-        Exclude Editor: 1
+        Exclude Editor: 0
         Exclude Linux: 1
         Exclude Linux64: 1
         Exclude LinuxUniversal: 1
@@ -33,11 +33,11 @@ PluginImporter:
         Exclude iOS: 1
         Exclude tvOS: 1
     Editor:
-      enabled: 0
+      enabled: 1
       settings:
-        CPU: AnyCPU
+        CPU: x86
         DefaultValueInitialized: true
-        OS: AnyOS
+        OS: Windows
     Linux:
       enabled: 0
       settings:
