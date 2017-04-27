@@ -69,21 +69,19 @@ namespace GitHub.Unity
                     {
                         Logger.Trace("Adding files");
 
+                        SetProjectToTextSerialization();
+
                         var gitignore = targetPath.Combine(".gitignore");
                         var gitAttrs = targetPath.Combine(".gitattributes");
-                        var filesForInitialCommit = new List<string> { gitignore, gitAttrs };
+
                         AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath);
                         AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath);
 
-                        SetProjectToTextSerialization();
+                        var assetsGitignore = targetPath.Combine("Assets", ".gitignore");
+                        assetsGitignore.CreateFile();
 
-                        var assetsPath = targetPath.Combine("Assets");
-                        var hasFiles = assetsPath.Files(true).Any();
-                        if (!hasFiles)
-                        {
-                            var placeholder = assetsPath.CreateFile(".placeholder");
-                            filesForInitialCommit.Add(placeholder);
-                        }
+                        var filesForInitialCommit = new List<string> { gitignore, gitAttrs, assetsGitignore };
+
                         var addTask = new GitAddTask(environment, processManager, null, filesForInitialCommit);
                         return addTask.RunAsync(token);
                     }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler)
