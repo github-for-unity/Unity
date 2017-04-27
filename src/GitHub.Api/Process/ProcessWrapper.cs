@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 
 namespace GitHub.Unity
@@ -35,7 +36,16 @@ namespace GitHub.Unity
                 
                 try
                 {
-                    OnOutputData?.Invoke(e.Data);
+                    if (OnOutputData != null)
+                    {
+                        string encodedData = null;
+                        if (e.Data != null)
+                        {
+                            encodedData = Encoding.UTF8.GetString(Encoding.Default.GetBytes(e.Data));
+                        }
+                        OnOutputData.Invoke(encodedData);
+                    }
+                    
                 }
                 catch(Exception ex)
                 {
@@ -62,7 +72,15 @@ namespace GitHub.Unity
 
                 try
                 {
-                    OnErrorData?.Invoke(e.Data);
+                    if (OnErrorData != null)
+                    {
+                        string encodedData = null;
+                        if (e.Data != null)
+                        {
+                            encodedData = Encoding.UTF8.GetString(Encoding.Default.GetBytes(e.Data));
+                        }
+                        OnErrorData.Invoke(encodedData);
+                    }
                 }
                 catch (Exception ex)
                 {
