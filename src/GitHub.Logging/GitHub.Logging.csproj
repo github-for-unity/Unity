@@ -57,9 +57,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileLogAdapter.cs" />
     <Compile Include="ILogging.cs" />
     <Compile Include="LogAdapterBase.cs" />
     <Compile Include="Logging.cs" />
+    <Compile Include="MultipleLogAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
