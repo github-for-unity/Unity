@@ -15,10 +15,6 @@ pushd src
 git clean -xdf
 popd
 
-nuget restore
-xbuild GitHub.Unity.sln /property:Configuration=$Configuration
-
-Unity=""
 if [ -f "$1/Unity.app/Contents/MacOS/Unity" ]; then
 	Unity="$1/Unity.app/Contents/MacOS/Unity"
 elif [ -f $1/Unity ]; then
@@ -27,6 +23,20 @@ else
 	echo "Can't find Unity in $1"
 	exit 1
 fi
+
+OS="Mac"
+if [ -e "/c/" ]; then
+	OS="Windows"
+fi
+
+if [ x"$OS" == x"Windows" ]; then
+	common/nuget restore
+else
+	nuget restore
+fi
+xbuild GitHub.Unity.sln /property:Configuration=$Configuration
+
+
 rm -f unity/PackageProject/Assets/Editor/GitHub/deleteme*
 rm -f unity/PackageProject/Assets/Editor/GitHub/*.pdb
 rm -f unity/PackageProject/Assets/Editor/GitHub/*.xml
