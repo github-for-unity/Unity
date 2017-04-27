@@ -46,6 +46,7 @@ xbuild GitHub.Unity.sln /property:Configuration=$Configuration
 
 rm -f unity/PackageProject/Assets/Editor/GitHub/deleteme*
 rm -f unity/PackageProject/Assets/Editor/GitHub/*.pdb
+rm -f unity/PackageProject/Assets/Editor/GitHub/*.pdb.meta
 rm -f unity/PackageProject/Assets/Editor/GitHub/*.xml
 
 Version=`sed -En 's,.*Version = "(.*)".*,\1,p' common/SolutionInfo.cs`
