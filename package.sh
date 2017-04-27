@@ -1,11 +1,18 @@
-#!/bin/sh -xeu
+#!/bin/sh -eu
 
 Configuration="Release"
-case x"$2" in
-	xdebug | xDebug)
-		Configuration="Debug"
-		;;
-esac
+if [ $# -lt 1 ]; then
+	echo "Need path to Unity"
+	exit 1
+fi
+
+if [ $# -gt 1 ]; then
+	case x"$2" in
+		xdebug | xDebug)
+			Configuration="Debug"
+			;;
+	esac
+fi
 
 pushd unity/PackageProject/Assets
 git clean -xdf
