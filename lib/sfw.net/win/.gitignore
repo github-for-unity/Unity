@@ -1,0 +1,6 @@
+*.exp
+*.iobj
+*.ipdb
+*.ilk
+*.lib
+test-console.*
