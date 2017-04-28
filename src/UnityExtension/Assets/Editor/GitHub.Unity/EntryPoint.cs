@@ -1,12 +1,85 @@
-﻿using System.IO;
+﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
+    [InitializeOnLoad]
+    internal sealed class ApplicationCache : ScriptableObject
+    {
+        static ApplicationCache()
+        {
+            cachePath = Application.dataPath + "/../Temp/github_cache.yaml";
+        }
+
+        private static ApplicationCache instance;
+        private static string cachePath;
+
+        public static ApplicationCache Instance {
+            get {
+                return instance ?? (instance = CreateInstance());
+            }
+        }
+
+        private static ApplicationCache CreateInstance()
+        {
+            var foundInstance = FindObjectOfType<ApplicationCache>();
+            if (foundInstance != null)
+            {
+                Debug.Log("Instance Found");
+                return foundInstance;
+            }
+
+            if (System.IO.File.Exists(cachePath))
+            {
+                Debug.Log("Loading from cache");
+
+                var objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(cachePath);
+                if (objects.Any())
+                {
+                    var applicationCache = objects[0] as ApplicationCache;
+                    if (applicationCache != null)
+                    {
+                        Debug.Log("Loading from cache successful");
+                        return applicationCache;
+                    }
+                }
+            }
+
+            Debug.Log("Creating instance");
+            var createdInstance = CreateInstance<ApplicationCache>();
+            createdInstance.Initialize();
+
+            return createdInstance;
+        }
+
+        [SerializeField] public bool Initialized;
+
+        [SerializeField] public string CreatedDate;
+
+        public void Initialize()
+        {
+            if (!Initialized)
+            {
+                Debug.Log("Initializing");
+                Initialized = true;
+                CreatedDate = DateTime.Now.ToLongTimeString();
+            }
+        }
+
+        private void OnDisable()
+        {
+            Debug.Log("ApplicationCache Disable");
+
+            UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget(new Object[] { Instance }, cachePath, true);
+        }
+    }
+
     [InitializeOnLoad]
     class EntryPoint : ScriptableObject
     {
