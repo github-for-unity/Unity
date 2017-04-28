@@ -436,10 +436,16 @@ namespace GitHub.Unity
             // Create button
             if (mode == BranchesMode.Default)
             {
+                // If the current branch is selected, then do not enable the Delete button
+                GUI.enabled = activeBranchNode != selectedNode;
                 if (GUILayout.Button("Delete", EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                 {
-                    EditorUtility.DisplayDialog("Delete Branch?", "Are you sure you want to delete the branch: BRANCHNAME", "Delete", "Cancel");
+                    var selectedBranchName = selectedNode.Name;
+                    var dialogTitle = "Delete Branch: " + selectedBranchName;
+                    var dialogMessage = "Are you sure you want to delete the branch: " + selectedBranchName + "?";
+                    EditorUtility.DisplayDialog("Delete Branch?", dialogMessage, "Delete", "Cancel");
                 }
+                GUI.enabled = true;
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button(CreateBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                 {
