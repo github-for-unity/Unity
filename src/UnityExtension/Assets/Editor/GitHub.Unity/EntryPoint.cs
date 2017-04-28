@@ -9,16 +9,9 @@ using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
-    [InitializeOnLoad]
     internal sealed class ApplicationCache : ScriptableObject
     {
-        static ApplicationCache()
-        {
-            cachePath = Application.dataPath + "/../Temp/github_cache.yaml";
-        }
-
         private static ApplicationCache instance;
-        private static string cachePath;
 
         public static ApplicationCache Instance {
             get {
@@ -35,11 +28,11 @@ namespace GitHub.Unity
                 return foundInstance;
             }
 
-            if (System.IO.File.Exists(cachePath))
+            if (System.IO.File.Exists(GetCachePath()))
             {
                 Debug.Log("Loading from cache");
 
-                var objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(cachePath);
+                var objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(GetCachePath());
                 if (objects.Any())
                 {
                     var applicationCache = objects[0] as ApplicationCache;
@@ -72,11 +65,18 @@ namespace GitHub.Unity
             }
         }
 
+        private static string GetCachePath()
+        {
+            return Application.dataPath + "/../Temp/github_cache.yaml";
+        }
+
         private void OnDisable()
         {
             Debug.Log("ApplicationCache Disable");
-
-            UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget(new Object[] { Instance }, cachePath, true);
+            if (instance != null)
+            {
+                UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget(new Object[] { instance }, GetCachePath(), true);
+            }
         }
     }
 
@@ -104,6 +104,8 @@ namespace GitHub.Unity
             cctorCalled = true;
             Logging.LoggerFactory = s => new UnityLogAdapter(s);
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
+
+            Logging.Trace("ApplicationCache: " + ApplicationCache.Instance.CreatedDate);
 
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
