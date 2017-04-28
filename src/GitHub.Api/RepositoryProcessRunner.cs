@@ -8,6 +8,7 @@ namespace GitHub.Unity
     {
         ITask<GitStatus?> PrepareGitStatus(ITaskResultDispatcher<GitStatus> resultDispatcher);
         Task<bool> RunGitConfigGet(ITaskResultDispatcher<string> resultDispatcher, string key, GitConfigSource configSource);
+        Task<bool> RunGitConfigSet(ITaskResultDispatcher<string> resultDispatcher, string key, string value, GitConfigSource configSource);
         ITask<IEnumerable<GitLock>> PrepareGitListLocks(ITaskResultDispatcher<IEnumerable<GitLock>> resultDispatcher, bool local);
         ITask PrepareGitPull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch);
         ITask PrepareGitPush(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch);
@@ -52,6 +53,12 @@ namespace GitHub.Unity
         public Task<bool> RunGitConfigGet(ITaskResultDispatcher<string> resultDispatcher, string key, GitConfigSource configSource)
         {
             var task = new GitConfigGetTask(environment, processManager, resultDispatcher, key, configSource);
+            return task.RunAsync(cancellationToken);
+        }
+
+        public Task<bool> RunGitConfigSet(ITaskResultDispatcher<string> resultDispatcher, string key, string value, GitConfigSource configSource)
+        {
+            var task = new GitConfigSetTask(environment, processManager, resultDispatcher, key, value, configSource);
             return task.RunAsync(cancellationToken);
         }
 
