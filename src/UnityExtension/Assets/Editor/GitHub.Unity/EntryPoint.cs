@@ -10,6 +10,7 @@ using Object = UnityEngine.Object;
 namespace GitHub.Unity
 {
     internal sealed class ApplicationCache : ScriptableObject
+        //, ISerializationCallbackReceiver
     {
         private static ApplicationCache instance;
 
@@ -54,6 +55,13 @@ namespace GitHub.Unity
         [SerializeField] public bool Initialized;
 
         [SerializeField] public string CreatedDate;
+        public static Texture2D LockedModifiedStatusIcon;
+        public static Texture2D LockedStatusIcon;
+        public static Texture2D ModifiedStatusIcon;
+        public static Texture2D AddedStatusIcon;
+        public static Texture2D DeletedStatusIcon;
+        public static Texture2D RenamedStatusIcon;
+        public static Texture2D UntrackedStatusIcon;
 
         public void Initialize()
         {
@@ -72,12 +80,21 @@ namespace GitHub.Unity
 
         private void OnDisable()
         {
-            Debug.Log("ApplicationCache Disable");
+            Debug.Log("ApplicationCache OnDisable");
             if (instance != null)
             {
                 UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget(new Object[] { instance }, GetCachePath(), true);
             }
         }
+
+//        public void OnBeforeSerialize()
+//        {
+//            Debug.Log("ApplicationCache OnBeforeSerialize");
+//        }
+//
+//        public void OnAfterDeserialize()
+//        {
+//        }
     }
 
     [InitializeOnLoad]

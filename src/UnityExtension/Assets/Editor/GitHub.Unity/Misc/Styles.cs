@@ -783,25 +783,25 @@ namespace GitHub.Unity
                 switch (status)
                 {
                     case GitFileStatus.Modified:
-                        return Utility.GetIcon("locked.png", "locked@2x.png");
+                        return ApplicationCache.LockedModifiedStatusIcon = ApplicationCache.LockedModifiedStatusIcon ?? Utility.GetIcon("locked.png", "locked@2x.png");
 
                     default:
-                        return Utility.GetIcon("locked-by-person.png", "locked-by-person@2x.png");
+                        return ApplicationCache.LockedStatusIcon = ApplicationCache.LockedStatusIcon ?? Utility.GetIcon("locked-by-person.png", "locked-by-person@2x.png");
                 }
             }
 
             switch (status)
             {
                 case GitFileStatus.Modified:
-                    return Utility.GetIcon("modified.png", "modified@2x.png");
+                    return ApplicationCache.ModifiedStatusIcon = ApplicationCache.ModifiedStatusIcon ?? Utility.GetIcon("modified.png", "modified@2x.png");
                 case GitFileStatus.Added:
-                    return Utility.GetIcon("added.png", "added@2x.png");
+                    return ApplicationCache.AddedStatusIcon = ApplicationCache.AddedStatusIcon ?? Utility.GetIcon("added.png", "added@2x.png");
                 case GitFileStatus.Deleted:
-                    return Utility.GetIcon("removed.png", "removed@2x.png");
+                    return ApplicationCache.DeletedStatusIcon = ApplicationCache.DeletedStatusIcon ?? Utility.GetIcon("removed.png", "removed@2x.png");
                 case GitFileStatus.Renamed:
-                    return Utility.GetIcon("renamed.png", "renamed@2x.png");
+                    return ApplicationCache.RenamedStatusIcon = ApplicationCache.RenamedStatusIcon ?? Utility.GetIcon("renamed.png", "renamed@2x.png");
                 case GitFileStatus.Untracked:
-                    return Utility.GetIcon("untracked.png", "untracked@2x.png");
+                    return ApplicationCache.UntrackedStatusIcon = ApplicationCache.UntrackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
             }
 
             return null;
