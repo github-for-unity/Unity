@@ -180,7 +180,6 @@ namespace GitHub.Unity
         public ISettings LocalSettings { get; protected set; }
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
-
         public IUsageTracker UsageTracker { get; protected set; }
     }
 }
