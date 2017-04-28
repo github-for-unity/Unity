@@ -436,6 +436,10 @@ namespace GitHub.Unity
             // Create button
             if (mode == BranchesMode.Default)
             {
+                if (GUILayout.Button("Delete", EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                {
+                    EditorUtility.DisplayDialog("Delete Branch?", "Are you sure you want to delete the branch: BRANCHNAME", "Delete", "Cancel");
+                }
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button(CreateBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                 {
