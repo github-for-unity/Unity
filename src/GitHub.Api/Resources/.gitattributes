@@ -1,10 +1,10 @@
 * text=auto
 
 # Unity files
-*.meta -text
-*.unity -text
-*.asset -text
-*.prefab -text
+*.meta -text -merge=unityamlmerge
+*.unity -text -merge=unityamlmerge
+*.asset -text -merge=unityamlmerge
+*.prefab -text -merge=unityamlmerge
 
 # Image formats
 *.psd filter=lfs diff=lfs merge=lfs -text
