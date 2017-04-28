@@ -41,6 +41,22 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+    <BuildConfid>Release</BuildConfid>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'dev|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;DEVELOPER_BUILD</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+  </PropertyGroup>
+  <PropertyGroup>
+    <BuildConfig Condition=" '$(BuildConfig)' == '' ">Debug</BuildConfig>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AsyncBridge.Net35, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
@@ -62,7 +78,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="sfw.net">
-      <HintPath>..\..\lib\sfw.net\win\x64\$(Configuration)\sfw.net.dll</HintPath>
+      <HintPath>$(SolutionDir)\lib\sfw.net\$(BuildConfig)\sfw.net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -86,8 +102,10 @@
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="ApplicationManagerBase.cs" />
     <Compile Include="DefaultEnvironment.cs" />
+    <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Extensions\FileEventExtensions.cs" />
     <Compile Include="Events\RepositoryWatcher.cs" />
+    <Compile Include="Extensions\FileSystemExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="GitSetup.cs" />
     <Compile Include="Git\GitFileStatus.cs" />
@@ -106,6 +124,7 @@
       <Link>Metrics\MetricsService.cs</Link>
     </Compile>
     <Compile Include="Tasks\GitLfsInstallTask.cs" />
+    <Compile Include="Extensions\GitStatusExtensions.cs" />
     <Compile Include="Threading\IMainThreadSynchronizationContext.cs" />
     <Compile Include="Installer\IGitInstaller.cs" />
     <Compile Include="Installer\IZipHelper.cs" />

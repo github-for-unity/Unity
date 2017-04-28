@@ -4,6 +4,13 @@ namespace GitHub.Unity
 {
     public static class Logging
     {
+        static Logging()
+        {
+#if DEVELOPER_BUILD
+            tracingEnabled = true;
+#endif
+        }
+
         private static bool tracingEnabled;
 
         public static bool TracingEnabled
@@ -17,7 +24,7 @@ namespace GitHub.Unity
                 if (tracingEnabled != value)
                 {
                     tracingEnabled = value;
-                    Instance.Info("Trace Logging " + (value ? "Enabled" : "Disabled"));
+                    Instance?.Info("Trace Logging " + (value ? "Enabled" : "Disabled"));
                 }
             }
         }
@@ -41,7 +48,7 @@ namespace GitHub.Unity
             get {
                 if (instance == null)
                 {
-                    instance = loggerFactory(null);
+                    instance = loggerFactory?.Invoke(null);
                 }
                 return instance;
             }
@@ -73,6 +80,11 @@ namespace GitHub.Unity
             Instance.Debug(s);
         }
 
+        public static void Trace(string s)
+        {
+            Instance.Trace(s);
+        }
+
         public static void Warning(string s)
         {
             Instance.Warning(s);
@@ -83,13 +95,19 @@ namespace GitHub.Unity
             Instance.Error(s);
         }
 
+        public static void Info(string format, params object[] objects)
+        {
+            Instance.Info(format, objects);
+        }
+
         public static void Debug(string format, params object[] objects)
         {
             Instance.Debug(format, objects);
         }
-        public static void Debug(Exception ex)
+
+        public static void Trace(string format, params object[] objects)
         {
-            Instance.Debug(ex);
+            Instance.Trace(format, objects);
         }
 
         public static void Warning(string format, params object[] objects)

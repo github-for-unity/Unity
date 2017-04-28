@@ -9,12 +9,12 @@ namespace IntegrationTests
 {
     class GitSetupTests : BaseGitRepoTest
     {
-        [Test]
+        [Test, Category("DoNotRunOnAppVeyor")]
         public void InstallGit()
         {
             var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
             var environment = new IntegrationTestEnvironment(SolutionDirectory, environmentPath);
-            var gitSetup = new GitSetup(environment, CancellationToken.None);
+            var gitSetup = new GitSetup(environment, FileSystem, CancellationToken.None);
             var expectedPath = gitSetup.GitInstallationPath;
 
             var setupDone = false;
@@ -23,13 +23,33 @@ namespace IntegrationTests
 
             setupDone = gitSetup.SetupIfNeeded(percentage: new Progress<float>(x => percent = x)).Result;
 
-            setupDone.Should().BeTrue();
-            percent.Should().Be(1);
+            if (environment.IsWindows)
+            {
+                environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
-            Logger.Trace("Expected GitExecutablePath: {0}", gitSetup.GitExecutablePath);
-            gitSetup.GitExecutablePath.FileExists().Should().BeTrue();
+                setupDone.Should().BeTrue ();
+                percent.Should().Be (1);
 
-            environment.GitExecutablePath = gitSetup.GitExecutablePath;
+                Logger.Trace ("Expected GitExecutablePath: {0}", gitSetup.GitExecutablePath);
+                gitSetup.GitExecutablePath.FileExists ().Should ().BeTrue ();
+
+                var gitLfsDestinationPath = gitSetup.GitInstallationPath;
+                gitLfsDestinationPath = gitLfsDestinationPath.Combine ("mingw32");
+
+                gitLfsDestinationPath = gitLfsDestinationPath.Combine ("libexec", "git-core", "git-lfs.exe");
+                gitLfsDestinationPath.FileExists ().Should ().BeTrue ();
+
+                var calculateMd5 = NPathFileSystemProvider.Current.CalculateMD5 (gitLfsDestinationPath);
+                GitInstaller.GitLfsExecutableMD5.Should ().Be (calculateMd5);
+
+                setupDone = gitSetup.SetupIfNeeded (percentage: new Progress<float> (x => percent = x)).Result;
+                setupDone.Should ().BeFalse ();
+            }
+            else
+            {
+                environment.GitExecutablePath = "/usr/local/bin/git";
+                setupDone.Should().BeFalse ();
+            }
 
             var platform = new Platform(environment, FileSystem, new TestUIDispatcher());
             var gitEnvironment = platform.GitEnvironment;

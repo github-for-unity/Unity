@@ -6,32 +6,34 @@ namespace GitHub.Unity
 {
     class GitInstaller : IGitInstaller
     {
+        public const string GitLfsExecutableMD5 = "CD59072535B9DFF416676C8A84571B0C";
+
         private const string PortableGitExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
         private const string PackageName = "PortableGit";
         private const string TempPathPrefix = "github-unity-portable";
         private const string GitZipFile = "git.zip";
         private const string GitLfsZipFile = "git-lfs.zip";
-        private NPath gitConfigDestinationPath;
 
         private readonly CancellationToken cancellationToken;
         private readonly IEnvironment environment;
         private readonly ILogging logger;
+        private readonly IFileSystem fileSystem;
 
         private delegate void ExtractZipFile(string archive, string outFolder, CancellationToken cancellationToken,
             IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null);
         private ExtractZipFile extractCallback;
 
-        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper)
-            : this(environment, sharpZipLibHelper, CancellationToken.None)
+        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, IFileSystem fileSystem)
+            : this(environment, sharpZipLibHelper, fileSystem, CancellationToken.None)
         {
         }
 
-        public GitInstaller(IEnvironment environment, CancellationToken cancellationToken)
-            : this(environment, null, CancellationToken.None)
+        public GitInstaller(IEnvironment environment, IFileSystem fileSystem, CancellationToken cancellationToken)
+            : this(environment, null, fileSystem, CancellationToken.None)
         {
         }
 
-        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, CancellationToken cancellationToken)
+        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, IFileSystem fileSystem, CancellationToken cancellationToken)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));
 
@@ -39,6 +41,7 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
 
             this.environment = environment;
+            this.fileSystem = fileSystem;
             this.extractCallback = sharpZipLibHelper != null
                  ? (ExtractZipFile)sharpZipLibHelper.Extract
                  : ZipHelper.ExtractZipFile;
@@ -64,15 +67,13 @@ namespace GitHub.Unity
             GitDestinationPath = GitDestinationPath.Combine(GitExecutable);
 
             GitLfsDestinationPath = PackageDestinationDirectory;
-            gitConfigDestinationPath = PackageDestinationDirectory;
+
             if (DefaultEnvironment.OnWindows)
             {
                 GitLfsDestinationPath = GitLfsDestinationPath.Combine("mingw32");
-                gitConfigDestinationPath = gitConfigDestinationPath.Combine("mingw32");
             }
-            GitLfsDestinationPath = GitLfsDestinationPath.Combine("libexec", "git-core", GitLfsExecutable);
-            gitConfigDestinationPath = gitConfigDestinationPath.Combine("etc", "gitconfig");
 
+            GitLfsDestinationPath = GitLfsDestinationPath.Combine("libexec", "git-core", GitLfsExecutable);
         }
 
         public bool IsExtracted()
@@ -88,6 +89,8 @@ namespace GitHub.Unity
                 return false;
             }
 
+            logger.Trace("Git Present");
+
             return true;
         }
 
@@ -99,17 +102,25 @@ namespace GitHub.Unity
                 return false;
             }
 
+            var calculateMd5 = fileSystem.CalculateMD5(GitLfsDestinationPath);
+            logger.Trace("GitLFS MD5: {0}", calculateMd5);
+
+            if (calculateMd5 != GitLfsExecutableMD5)
+            {
+                logger.Trace("{0} has incorrect MD5", GitDestinationPath);
+                return false;
+            }
+
+            logger.Trace("GitLFS Present");
+
             return true;
         }
 
         public async Task<bool> SetupIfNeeded(IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            logger.Trace("SetupIfNeeded");
 
-            if (InstalledGitIsValid())
-            {
-                return true;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             NPath tempPath = null;
             try
@@ -123,12 +134,6 @@ namespace GitHub.Unity
                 cancellationToken.ThrowIfCancellationRequested();
 
                 ret &= await SetupGitLfsIfNeeded(tempPath, zipFileProgress, estimatedDurationProgress);
-
-                var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "gitconfig", tempPath);
-                if (archiveFilePath.FileExists())
-                {
-                    archiveFilePath.Copy(gitConfigDestinationPath);
-                }
 
                 tempPath.Delete();
                 return ret;
@@ -149,14 +154,11 @@ namespace GitHub.Unity
             }
         }
 
-        private bool InstalledGitIsValid()
-        {
-            return IsExtracted();
-        }
-
         public Task<bool> SetupGitIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
+            logger.Trace("SetupGitIfNeeded");
+
             cancellationToken.ThrowIfCancellationRequested();
 
             if (IsPortableGitExtracted())
@@ -217,6 +219,8 @@ namespace GitHub.Unity
         public Task<bool> SetupGitLfsIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
+            logger.Trace("SetupGitLfsIfNeeded");
+
             cancellationToken.ThrowIfCancellationRequested();
 
             if (IsGitLfsExtracted())

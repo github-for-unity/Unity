@@ -18,7 +18,7 @@ namespace GitHub.Unity
         [SerializeField] private List<GitStatusEntry> entries = new List<GitStatusEntry>();
         [SerializeField] private List<GitCommitTarget> entryCommitTargets = new List<GitCommitTarget>();
         [SerializeField] private List<string> foldedTreeEntries = new List<string>();
-        [SerializeField] private FileTreeNode tree;
+        [NonSerialized] private FileTreeNode tree;
 
         public override void OnGUI()
         {
@@ -330,7 +330,7 @@ namespace GitHub.Unity
                     if (target != null)
                     {
                         var idx = entryCommitTargets.IndexOf(target);
-                        if (idx > 0)
+                        if (idx > -1)
                         {
                             status = entries[idx].Status;
                             var statusIcon = Styles.GetFileStatusIcon(entries[idx].Status, false);
@@ -400,18 +400,17 @@ namespace GitHub.Unity
             All
         }
 
-        [Serializable]
         private class FileTreeNode
         {
-            [SerializeField] private List<FileTreeNode> children;
+            private List<FileTreeNode> children;
 
-            [SerializeField] public Texture Icon;
-            [SerializeField] public string Label;
-            [SerializeField] public bool Open = true;
-            [SerializeField] private string path;
-            [SerializeField] public string RepositoryPath;
-            [SerializeField] public GitCommitTarget Target;
-            [SerializeField] private CommitState state;
+            public Texture Icon;
+            public string Label;
+            public bool Open = true;
+            private string path;
+            public string RepositoryPath;
+            public GitCommitTarget Target;
+            private CommitState state;
 
             public FileTreeNode()
             {

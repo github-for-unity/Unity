@@ -36,6 +36,7 @@ namespace GitHub.Unity
         void WriteAllLines(string path, string[] contents);
         string ReadAllText(string path);
         string ReadAllText(string path, Encoding encoding);
+        Stream OpenRead(string path);
         string[] ReadAllLines(string path);
         char DirectorySeparatorChar { get; }
         bool ExistingPathIsDirectory(string path);

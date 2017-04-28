@@ -12,7 +12,7 @@ namespace GitHub.Unity
             : base(environment, processManager, resultDispatcher)
         {
             Guard.ArgumentNotNullOrWhiteSpace(path, "path");
-            arguments = String.Format("lfs lock {0}", path);
+            arguments = String.Format("lfs lock \"{0}\"", path);
         }
 
         public override bool Blocking => false;

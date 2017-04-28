@@ -1,5 +1,3 @@
-//#define ENABLE_TRACE
-
 using System;
 using System.Threading;
 
@@ -18,31 +16,27 @@ namespace GitHub.Unity
         }
 
 
-        public override void Info(string message)
+        protected override void OnInfo(string message)
         {
             UnityEngine.Debug.Log(GetMessage(message));
         }
 
-        public override void Debug(string message)
+        protected override void OnDebug(string message)
         {
             UnityEngine.Debug.Log(GetMessage(message));
         }
 
-        public override void Trace(string message)
+        protected override void OnTrace(string message)
         {
-#if ENABLE_TRACE
-            if (!Logging.TracingEnabled) return;
-      
             UnityEngine.Debug.Log(GetMessage(message));
-#endif
         }
 
-        public override void Warning(string message)
+        protected override void OnWarning(string message)
         {
             UnityEngine.Debug.LogWarning(GetMessage(message));
         }
 
-        public override void Error(string message)
+        protected override void OnError(string message)
         {
             UnityEngine.Debug.LogError(GetMessage(message));
         }
