@@ -783,25 +783,25 @@ namespace GitHub.Unity
                 switch (status)
                 {
                     case GitFileStatus.Modified:
-                        return ApplicationCache.LockedModifiedStatusIcon = ApplicationCache.LockedModifiedStatusIcon ?? Utility.GetIcon("locked.png", "locked@2x.png");
+                        return ApplicationCache.Instance.LockedModifiedStatusIcon = ApplicationCache.Instance.LockedModifiedStatusIcon ?? Utility.GetIcon("locked.png", "locked@2x.png");
 
                     default:
-                        return ApplicationCache.LockedStatusIcon = ApplicationCache.LockedStatusIcon ?? Utility.GetIcon("locked-by-person.png", "locked-by-person@2x.png");
+                        return ApplicationCache.Instance.LockedStatusIcon = ApplicationCache.Instance.LockedStatusIcon ?? Utility.GetIcon("locked-by-person.png", "locked-by-person@2x.png");
                 }
             }
 
             switch (status)
             {
                 case GitFileStatus.Modified:
-                    return ApplicationCache.ModifiedStatusIcon = ApplicationCache.ModifiedStatusIcon ?? Utility.GetIcon("modified.png", "modified@2x.png");
+                    return ApplicationCache.Instance.ModifiedStatusIcon = ApplicationCache.Instance.ModifiedStatusIcon ?? Utility.GetIcon("modified.png", "modified@2x.png");
                 case GitFileStatus.Added:
-                    return ApplicationCache.AddedStatusIcon = ApplicationCache.AddedStatusIcon ?? Utility.GetIcon("added.png", "added@2x.png");
+                    return ApplicationCache.Instance.AddedStatusIcon = ApplicationCache.Instance.AddedStatusIcon ?? Utility.GetIcon("added.png", "added@2x.png");
                 case GitFileStatus.Deleted:
-                    return ApplicationCache.DeletedStatusIcon = ApplicationCache.DeletedStatusIcon ?? Utility.GetIcon("removed.png", "removed@2x.png");
+                    return ApplicationCache.Instance.DeletedStatusIcon = ApplicationCache.Instance.DeletedStatusIcon ?? Utility.GetIcon("removed.png", "removed@2x.png");
                 case GitFileStatus.Renamed:
-                    return ApplicationCache.RenamedStatusIcon = ApplicationCache.RenamedStatusIcon ?? Utility.GetIcon("renamed.png", "renamed@2x.png");
+                    return ApplicationCache.Instance.RenamedStatusIcon = ApplicationCache.Instance.RenamedStatusIcon ?? Utility.GetIcon("renamed.png", "renamed@2x.png");
                 case GitFileStatus.Untracked:
-                    return ApplicationCache.UntrackedStatusIcon = ApplicationCache.UntrackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
+                    return ApplicationCache.Instance.UntrackedStatusIcon = ApplicationCache.Instance.UntrackedStatusIcon ?? Utility.GetIcon("untracked.png", "untracked@2x.png");
             }
 
             return null;
