@@ -53,7 +53,7 @@ namespace GitHub.Unity
                 togglePrivate = GUILayout.Toggle(togglePrivate, "Keep my code private");
             }
             GUILayout.EndHorizontal();
-            selectedOrg = EditorGUILayout.Popup("Organization", 0, orgs);
+            selectedOrg = EditorGUILayout.Popup("Owner", 0, orgs);
 
             GUILayout.Space(5);
 
