@@ -60,12 +60,14 @@ namespace IntegrationTests
             IPlatform platform = null;
             platform = new Platform(Environment, filesystem, new TestUIDispatcher(() => {
                 Logger.Debug("Called");
-                platform.CredentialManager.Save(new Credential("https://github.com", "username", "token")).Wait();
+                platform.KeychainManager.Save(new KeychainItem("https://github.com", "username", "token")).Wait();
                 return true;
             }));
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(Environment, gitEnvironment);
-            await platform.Initialize(processManager);
+
+            //TODO: Provide settings object
+            await platform.Initialize(processManager, null);
 
             var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
             var repositoryManagerFactory = new RepositoryManagerFactory();

@@ -2,17 +2,25 @@
 using System.Threading.Tasks;
 using Octokit;
 using System.Collections.Generic;
+using System.Linq;
 using Rackspace.Threading;
 
 namespace GitHub.Unity
 {
-    class OctokitCredentialAdapter : ICredentialStore
+    class KeychainAdapter : ICredentialStore
     {
-        Credentials octokitCredentials = Credentials.Anonymous;
+        public Credentials Credentials { get; private set; } = Credentials.Anonymous;
+        public IKeychainItem KeychainItem { get; private set; }
 
-        public void Save(ICredential credential)
+        public void Set(IKeychainItem keychainItem)
         {
-            octokitCredentials = new Credentials(credential.Username, credential.Token);
+            KeychainItem = keychainItem;
+            Credentials = new Credentials(keychainItem.Username, keychainItem.Token);
+        }
+
+        public void UpdateToken(string token)
+        {
+            KeychainItem.UpdateToken(token);
         }
 
         /// <summary>
@@ -21,14 +29,19 @@ namespace GitHub.Unity
         /// <returns>Octokit credentials</returns>
         Task<Credentials> ICredentialStore.GetCredentials()
         {
-            return TaskEx.FromResult(octokitCredentials);
+            return TaskEx.FromResult(Credentials);
         }
     }
 
     struct Connection
     {
-        UriString host;
-        string username;
+        public UriString Host;
+        public string Username;
+    }
+    struct ConnectionCacheItem
+    {
+        public string Host;
+        public string Username;
     }
 
     /// <summary>
@@ -41,47 +54,155 @@ namespace GitHub.Unity
     /// </summary>
     class Keychain : IKeychain
     {
+        private readonly ILogging logger = Logging.GetLogger<Keychain>();
+
+        private const string ConnectionCacheSettingsKey = "connectionCache";
+
+        private readonly IKeychainManager keychainManager;
+        private readonly ISettings settings;
+
         // loaded at the start of application from cached/serialized data
-        private List<Connection> connectionCache = new List<Connection>();
+        private Dictionary<UriString, Connection> connectionCache = new Dictionary<UriString, Connection>();
 
         // cached credentials loaded from git to pass to GitHub/ApiClient
-        private Dictionary<UriString, ICredentialStore> octokitStores = new Dictionary<UriString, ICredentialStore>();
+        private Dictionary<UriString, KeychainAdapter> keychainAdapters =
+            new Dictionary<UriString, KeychainAdapter>();
 
-        public void Connect(UriString host)
+        public Keychain(IKeychainManager keychainManager, ISettings settings)
         {
-            //octokitStores.Add(host, new OctokitCredentialAdapter());
+            this.keychainManager = keychainManager;
+            this.settings = settings;
         }
 
-        public async Task<ICredential> Load(UriString host)
+        public KeychainAdapter Connect(UriString host)
         {
-            ICredentialManager credentialBackend = null;
-            return await credentialBackend.Load(host);
-            
+            return FindOrCreateAdapter(host);
         }
 
-        public void Clear(UriString host)
+        public async Task<KeychainAdapter> Load(UriString host)
         {
+            logger.Trace("Load: {0}", host);
+
+            var keychainAdapter = FindOrCreateAdapter(host);
+
+            var keychainItem = await keychainManager.Load(host);
+            keychainAdapter.Set(keychainItem);
+
+            return keychainAdapter;
+        }
+
+        private KeychainAdapter FindOrCreateAdapter(UriString host)
+        {
+            KeychainAdapter value;
+            if (!keychainAdapters.TryGetValue(host, out value))
+            {
+                value = new KeychainAdapter();
+                keychainAdapters.Add(host, value);
+            }
+
+            return value;
+        }
+
+        public void Initialize()
+        {
+            logger.Trace("Initialize");
+
+            var connections = settings.Get<List<ConnectionCacheItem>>(ConnectionCacheSettingsKey);
+            if (connections != null)
+            {
+                connectionCache =
+                    connections.Select(item => new Connection { Host = new UriString(item.Host), Username = item.Username })
+                               .ToDictionary(connection => connection.Host);
+            }
+            else
+            {
+                connectionCache = new Dictionary<UriString, Connection>();
+            }
+        }
+
+        public async Task Clear(UriString host)
+        {
+            logger.Trace("Clear: {0}", host);
+       
             // delete connection in the connection list
+            connectionCache.Remove(host);
+
             // delete credential in octokit store
+            keychainAdapters.Remove(host);
+
+            //TODO: Confirm that we should delete credentials here
+            // delete credential from credential manager
+            await keychainManager.Delete(host);
         }
 
-        public void Flush(UriString host)
+        public async Task Flush(UriString host)
         {
+            logger.Trace("Flush: {0}", host);
+
+            KeychainAdapter credentialAdapter;
+            if (!keychainAdapters.TryGetValue(host, out credentialAdapter))
+            {
+                throw new ArgumentException($"Host: {host} is not found");
+            }
+
+            if (credentialAdapter.Credentials == Credentials.Anonymous)
+            {
+                throw new InvalidOperationException("Anonymous credentials cannot be stored");
+            }
+
             // create new connection in the connection cache for this host
+            connectionCache.Add(host, new Connection { Host = host, Username = credentialAdapter.Credentials.Login });
+
             // flushes credential cache to disk (host and username only)
+            var connectionCacheItems =
+                connectionCache.Select(
+                    pair =>
+                        new ConnectionCacheItem() {
+                            Host = pair.Value.Host.ToString(),
+                            Username = pair.Value.Username
+                        }).ToList();
+
+            settings.Set(ConnectionCacheSettingsKey, connectionCacheItems);
+
             // saves credential in git credential manager (host, username, token)
+            await keychainManager.Delete(host);
+            await keychainManager.Save(credentialAdapter.KeychainItem);
         }
 
-        public Task Save(ICredential credential)
+        public void Save(IKeychainItem keychainItem)
         {
-            // save to octokitStore only
-            return CompletedTask.Default;
+            logger.Trace("Save: {0}", keychainItem.Host);
+
+            var credentialAdapter = FindOrCreateAdapter(keychainItem.Host);
+            credentialAdapter.Set(keychainItem);
         }
+
+        public void UpdateToken(UriString host, string token)
+        {
+            logger.Trace("UpdateToken: {0}", host);
+
+            KeychainAdapter keychainAdapter;
+            if (!keychainAdapters.TryGetValue(host, out keychainAdapter))
+            {
+                throw new ArgumentException($"Host: {host} is not found");
+            }
+
+            var keychainItem = keychainAdapter.KeychainItem;
+            keychainItem.UpdateToken(token);
+        }
+
+        public bool HasKeys => connectionCache.Any();
     }
 
     internal interface IKeychain
     {
-        Task<ICredential> Load(UriString host);
-        Task Save(ICredential credential);
+        KeychainAdapter Connect(UriString host);
+        Task<KeychainAdapter> Load(UriString host);
+        Task Clear(UriString host);
+        Task Flush(UriString host);
+        void UpdateToken(UriString host, string token);
+        void Save(IKeychainItem keychainItem);
+        void Initialize();
+        bool HasKeys { get; }
     }
 }

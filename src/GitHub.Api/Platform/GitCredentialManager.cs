@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    class GitCredentialManager : ICredentialManager
+    class GitCredentialManager : IKeychainManager
     {
         private static readonly ILogging logger = Logging.GetLogger<GitCredentialManager>();
 
-        private ICredential credential;
+        private IKeychainItem keychainItem;
         private string credHelper = null;
 
         private readonly IEnvironment environment;
@@ -24,13 +24,18 @@ namespace GitHub.Unity
 
         public bool HasCredentials()
         {
-            return credential != null;
+            return keychainItem != null;
         }
 
-        public ICredential CachedCredentials { get { return credential; } }
+        public IKeychainItem CachedKeys { get { return keychainItem; } }
 
         public async Task Delete(UriString host)
         {
+            logger.Trace("Delete: {0}", host);
+
+            if (!await LoadCredentialHelper())
+                return;
+
             var ret = await RunCredentialHelper(
                 "erase",
                 new string[] {
@@ -38,12 +43,14 @@ namespace GitHub.Unity
                         String.Format("host={0}", host.Host)
                 });
 
-            credential = null;
+            keychainItem = null;
         }
 
-        public async Task<ICredential> Load(UriString host)
+        public async Task<IKeychainItem> Load(UriString host)
         {
-            if (credential == null)
+            logger.Trace("Load: {0}", host);
+
+            if (keychainItem == null)
             {
                 if (!await LoadCredentialHelper())
                     return null;
@@ -90,27 +97,27 @@ namespace GitHub.Unity
 
                 string user = null;
                 dict.TryGetValue("user", out user);
-                credential = new Credential(host, user, password);
+                keychainItem = new KeychainItem(host, user, password);
             }
-            return credential;
+            return keychainItem;
         }
 
-        public async Task Save(ICredential credential)
+        public async Task Save(IKeychainItem keychainItem)
         {
-            this.credential = credential;
+            logger.Trace("Save: {0}", keychainItem.Host);
+
+            this.keychainItem = keychainItem;
 
             if (!await LoadCredentialHelper())
                 return;
 
-            var host = credential.Host;
-
             string result = null;
             var data = new List<string>
             {
-                String.Format("protocol={0}", credential.Host.Protocol),
-                String.Format("host={0}", credential.Host.Host),
-                String.Format("username={0}", credential.Username),
-                String.Format("password={0}", credential.Token)
+                String.Format("protocol={0}", keychainItem.Host.Protocol),
+                String.Format("host={0}", keychainItem.Host.Host),
+                String.Format("username={0}", keychainItem.Username),
+                String.Format("password={0}", keychainItem.Token)
             };
 
             var ret = await RunCredentialHelper(
@@ -131,9 +138,12 @@ namespace GitHub.Unity
             if (credHelper != null)
                 return true;
 
+            logger.Trace("Loading Credential Helper");
+
             var task = new GitConfigGetTask(environment, processManager,
                 TaskResultDispatcher.Default.GetDispatcher<string>(x =>
                 {
+                    logger.Trace("Loaded Credential Helper: {0}", x);
                     credHelper = x;
                 }),
                 "credential.helper", GitConfigSource.NonSpecified);

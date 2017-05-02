@@ -7,12 +7,22 @@ namespace GitHub.Unity
 {
     class ApiClient : IApiClient
     {
+        public static IApiClient Create(UriString repositoryUrl, IKeychain keychain, IAppConfiguration appConfiguration)
+        {
+            var credentialStore = keychain.Connect(repositoryUrl);
+            var hostAddress = HostAddress.Create(repositoryUrl);
+
+            return new ApiClient(repositoryUrl, keychain, credentialStore,
+                new GitHubClient(appConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri));
+        }
+
         private static readonly Unity.ILogging logger = Unity.Logging.GetLogger<ApiClient>();
         public HostAddress HostAddress { get; }
         public UriString OriginalUrl { get; }
 
+        private readonly IKeychain keychain;
+        private readonly ICredentialStore credentialStore;
         private readonly IGitHubClient githubClient;
-        private readonly ICredentialManager credentialManager;
         private readonly ILoginManager loginManager;
         private static readonly SemaphoreSlim sem = new SemaphoreSlim(1);
 
@@ -20,17 +30,18 @@ namespace GitHub.Unity
         string owner;
         bool? isEnterprise;
 
-        public ApiClient(UriString hostUrl, ICredentialManager credentialManager, IGitHubClient githubClient)
+        public ApiClient(UriString hostUrl, IKeychain keychain, ICredentialStore credentialStore, IGitHubClient githubClient)
         {
             Guard.ArgumentNotNull(hostUrl, nameof(hostUrl));
-            Guard.ArgumentNotNull(credentialManager, nameof(credentialManager));
+            Guard.ArgumentNotNull(keychain, nameof(keychain));
             Guard.ArgumentNotNull(githubClient, nameof(githubClient));
 
             HostAddress = HostAddress.Create(hostUrl);
             OriginalUrl = hostUrl;
+            this.keychain = keychain;
+            this.credentialStore = credentialStore;
             this.githubClient = githubClient;
-            this.credentialManager = credentialManager;
-            loginManager = new LoginManager(credentialManager, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
+            loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
         }
 
         public async void GetRepository(Action<Octokit.Repository> callback)
@@ -52,6 +63,7 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
+                logger.Warning(ex);
                 result(false, ex.Message);
                 return;
             }
@@ -174,9 +186,11 @@ namespace GitHub.Unity
         {
             try
             {
-                var credential = await credentialManager.Load(OriginalUrl);
-                if (credential != null)
+                var store = keychain.Connect(OriginalUrl);
+
+                if (store.Credentials != Credentials.Anonymous)
                 {
+                    var credential = store.KeychainItem;
                     await githubClient.Authorization.CheckApplicationAuthentication(ApplicationInfo.ClientId, credential.Token);
                 }
             }
@@ -185,16 +199,6 @@ namespace GitHub.Unity
                 return false;
             }
             return true;
-        }
-
-        public static IApiClient Create(UriString repositoryUrl, ICredentialManager credentialManager, IAppConfiguration appConfiguration)
-        {
-            var hostAddress = HostAddress.Create(repositoryUrl);
-            var appCredentialStore = new AppCredentialStore(repositoryUrl, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
-            var keychain = new Keychain();
-
-            return new ApiClient(repositoryUrl, credentialManager,
-                new GitHubClient(appConfiguration.ProductHeader, hostAddress.ApiUri));
         }
     }
 }

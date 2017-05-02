@@ -21,7 +21,6 @@ namespace GitHub.Unity
 
     class JsonBackedSettings : BaseSettings
     {
-        private static readonly ILogging logger = Logging.GetLogger<JsonBackedSettings>();
 
         private const string SettingsParseError = "Failed to parse settings file at '{0}'";
 
@@ -33,9 +32,11 @@ namespace GitHub.Unity
         private Func<string, bool> fileExists;
         private Func<string, Encoding, string> readAllText;
         private Action<string, string> writeAllText;
+        private readonly ILogging logger;
 
         public JsonBackedSettings()
         {
+            logger = Logging.GetLogger(GetType());
             fileExists = (path) => File.Exists(path);
             readAllText = (path, encoding) => File.ReadAllText(path, encoding);
             writeAllText = (path, content) => File.WriteAllText(path, content);
@@ -111,8 +112,9 @@ namespace GitHub.Unity
             {
                 cacheData = SimpleJson.DeserializeObject<CacheData>(data);
             }
-            catch
+            catch(Exception ex)
             {
+                logger.Error(ex, "Error Deserializing");
                 cacheData = null;
             }
 
@@ -145,6 +147,8 @@ namespace GitHub.Unity
 
         private void EnsureCachePath(string cachePath)
         {
+            logger.Trace("EnsureCachePath: {0}", cachePath);
+
             if (fileExists(cachePath))
                 return;
 

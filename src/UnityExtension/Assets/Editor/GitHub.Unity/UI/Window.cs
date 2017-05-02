@@ -231,7 +231,7 @@ namespace GitHub.Unity
         {
             GenericMenu accountMenu = new GenericMenu();
 
-            if (!EntryPoint.CredentialManager.HasCredentials())
+            if (!EntryPoint.Keychain.HasKeys)
             {
                 accountMenu.AddItem(new GUIContent("Sign in"), false, SignIn, "sign in");
             }
@@ -252,11 +252,11 @@ namespace GitHub.Unity
         private void GoToProfile(object obj)
         {
             //Logger.Debug("{0} {1}", EntryPoint.CredentialManager.CachedCredentials.Host, EntryPoint.CredentialManager.CachedCredentials.Username);
-            Application.OpenURL(EntryPoint.CredentialManager.CachedCredentials.Host.Combine(EntryPoint.CredentialManager.CachedCredentials.Username));
+            Application.OpenURL(EntryPoint.KeychainManager.CachedKeys.Host.Combine(EntryPoint.KeychainManager.CachedKeys.Username));
         }
         private void SignOut(object obj)
         {
-            var task = new SimpleTask(() => EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedCredentials.Host));
+            var task = new SimpleTask(() => EntryPoint.KeychainManager.Delete(EntryPoint.KeychainManager.CachedKeys.Host));
             TaskRunner.Add(task);
         }
 

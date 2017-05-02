@@ -7,19 +7,19 @@ namespace GitHub.Unity
         private readonly string arguments;
 
         public GitPushTask(IEnvironment environment, IProcessManager processManager,
-                ITaskResultDispatcher<string> resultDispatcher, ICredentialManager credentialManager,
+                ITaskResultDispatcher<string> resultDispatcher, IKeychainManager keychainManager,
                 IUIDispatcher uiDispatcher)
-            : base(environment, processManager, resultDispatcher, credentialManager, uiDispatcher)
+            : base(environment, processManager, resultDispatcher, keychainManager, uiDispatcher)
         {
             arguments = "push";
         }
 
         public GitPushTask(
                 IEnvironment environment, IProcessManager processManager,
-                ITaskResultDispatcher<string> resultDispatcher, ICredentialManager credentialManager,
+                ITaskResultDispatcher<string> resultDispatcher, IKeychainManager keychainManager,
                 IUIDispatcher uiDispatcher,
                 string remote, string branch, bool setUpstream)
-            : base(environment, processManager, resultDispatcher, credentialManager, uiDispatcher)
+            : base(environment, processManager, resultDispatcher, keychainManager, uiDispatcher)
         {
             Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
             Guard.ArgumentNotNullOrWhiteSpace(branch, "branch");

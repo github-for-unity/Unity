@@ -97,7 +97,6 @@
     <Compile Include="Api\LoginResult.cs" />
     <Compile Include="AppConfiguration.cs" />
     <Compile Include="AssemblyResources.cs" />
-    <Compile Include="Authentication\AppCredentialStore.cs" />
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="ApplicationManagerBase.cs" />
@@ -218,7 +217,7 @@
     <Compile Include="Extensions\ExceptionExtensions.cs" />
     <Compile Include="Guard.cs" />
     <Compile Include="Authentication\IPlatform.cs" />
-    <Compile Include="Authentication\ICredentialManager.cs" />
+    <Compile Include="Authentication\IKeychainManager.cs" />
     <Compile Include="IEnvironment.cs" />
     <Compile Include="IAppConfiguration.cs" />
     <Compile Include="Primitives\HostAddress.cs" />
