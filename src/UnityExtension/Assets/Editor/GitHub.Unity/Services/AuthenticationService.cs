@@ -15,7 +15,7 @@ namespace GitHub.Unity
         {
             this.appConfiguration = appConfiguration;
             this.credentialManager = credentialManager;
-            this.client = ApiClientFactory.Instance.Create(UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri));
+            this.client = ApiClient.Create(UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri), credentialManager, appConfiguration);
         }
 
         public void Login(string username, string password, Action<string> twofaRequired, Action<bool, string> authResult)

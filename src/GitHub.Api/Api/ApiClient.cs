@@ -12,7 +12,6 @@ namespace GitHub.Unity
         public UriString OriginalUrl { get; }
 
         private readonly IGitHubClient githubClient;
-        private readonly IGitHubClient githubAppClient;
         private readonly ICredentialManager credentialManager;
         private readonly ILoginManager loginManager;
         private static readonly SemaphoreSlim sem = new SemaphoreSlim(1);
@@ -21,7 +20,7 @@ namespace GitHub.Unity
         string owner;
         bool? isEnterprise;
 
-        public ApiClient(UriString hostUrl, ICredentialManager credentialManager, IGitHubClient githubClient, IGitHubClient githubAppClient)
+        public ApiClient(UriString hostUrl, ICredentialManager credentialManager, IGitHubClient githubClient)
         {
             Guard.ArgumentNotNull(hostUrl, nameof(hostUrl));
             Guard.ArgumentNotNull(credentialManager, nameof(credentialManager));
@@ -30,7 +29,6 @@ namespace GitHub.Unity
             HostAddress = HostAddress.Create(hostUrl);
             OriginalUrl = hostUrl;
             this.githubClient = githubClient;
-            this.githubAppClient = githubAppClient;
             this.credentialManager = credentialManager;
             loginManager = new LoginManager(credentialManager, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
         }
@@ -179,7 +177,7 @@ namespace GitHub.Unity
                 var credential = await credentialManager.Load(OriginalUrl);
                 if (credential != null)
                 {
-                    await githubAppClient.Authorization.CheckApplicationAuthentication(ApplicationInfo.ClientId, credential.Token);
+                    await githubClient.Authorization.CheckApplicationAuthentication(ApplicationInfo.ClientId, credential.Token);
                 }
             }
             catch
@@ -187,6 +185,16 @@ namespace GitHub.Unity
                 return false;
             }
             return true;
+        }
+
+        public static IApiClient Create(UriString repositoryUrl, ICredentialManager credentialManager, IAppConfiguration appConfiguration)
+        {
+            var hostAddress = HostAddress.Create(repositoryUrl);
+            var appCredentialStore = new AppCredentialStore(repositoryUrl, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
+            var keychain = new Keychain();
+
+            return new ApiClient(repositoryUrl, credentialManager,
+                new GitHubClient(appConfiguration.ProductHeader, hostAddress.ApiUri));
         }
     }
 }
