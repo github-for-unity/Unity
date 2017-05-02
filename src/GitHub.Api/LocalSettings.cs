@@ -21,9 +21,6 @@ namespace GitHub.Unity
 
     class JsonBackedSettings : BaseSettings
     {
-
-        private const string SettingsParseError = "Failed to parse settings file at '{0}'";
-
         private string cachePath;
         private CacheData cacheData = new CacheData();
         private Action<string> dirCreate;
@@ -101,6 +98,8 @@ namespace GitHub.Unity
 
         private void LoadFromCache(string cachePath)
         {
+            logger.Trace("LoadFromCache: {0}", cachePath);
+
             EnsureCachePath(cachePath);
 
             if (!fileExists(cachePath))
@@ -114,7 +113,7 @@ namespace GitHub.Unity
             }
             catch(Exception ex)
             {
-                logger.Error(ex, "Error Deserializing");
+                logger.Error(ex, "LoadFromCache Error");
                 cacheData = null;
             }
 
@@ -128,6 +127,8 @@ namespace GitHub.Unity
 
         private bool SaveToCache(string cachePath)
         {
+            logger.Trace("SaveToCache: {0}", cachePath);
+
             EnsureCachePath(cachePath);
 
             try
@@ -137,8 +138,7 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                logger.Error(SettingsParseError, cachePath);
-                logger.Error(ex);
+                logger.Error(ex, "SaveToCache Error");
                 return false;
             }
 
@@ -147,8 +147,6 @@ namespace GitHub.Unity
 
         private void EnsureCachePath(string cachePath)
         {
-            logger.Trace("EnsureCachePath: {0}", cachePath);
-
             if (fileExists(cachePath))
                 return;
 
