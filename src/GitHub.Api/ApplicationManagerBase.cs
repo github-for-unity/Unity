@@ -28,9 +28,13 @@ namespace GitHub.Unity
             UserSettings = new UserSettings(Environment, ApplicationInfo.ApplicationName);
             SystemSettings = new SystemSettings(Environment, ApplicationInfo.ApplicationName);
 
+            LocalSettings.Initialize();
+            UserSettings.Initialize();
+            SystemSettings.Initialize();
+
             Platform = new Platform(Environment, FileSystem, uiDispatcher);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
-            Platform.Initialize(ProcessManager);
+            Platform.Initialize(ProcessManager, UserSettings);
         }
 
         public virtual Task Run()

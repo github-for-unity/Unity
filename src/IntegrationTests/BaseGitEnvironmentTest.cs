@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading;
 using GitHub.Unity;
+using NSubstitute;
 using TestUtils;
 
 namespace IntegrationTests
@@ -24,7 +25,9 @@ namespace IntegrationTests
             Platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
             GitEnvironment = Platform.GitEnvironment;
             ProcessManager = new ProcessManager(Environment, GitEnvironment);
-            Platform.Initialize(ProcessManager);
+
+            var settings = Substitute.For<ISettings>();
+            Platform.Initialize(ProcessManager, settings);
 
             Environment.UnityProjectPath = repoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;

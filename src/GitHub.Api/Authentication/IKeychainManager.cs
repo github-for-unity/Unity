@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface ICredential : IDisposable
+    interface IKeychainItem : IDisposable
     {
         UriString Host { get; }
         string Username { get; }
@@ -11,12 +11,12 @@ namespace GitHub.Unity
         void UpdateToken(string token);
     }
 
-    interface ICredentialManager
+    interface IKeychainManager
     {
-        Task<ICredential> Load(UriString host);
-        Task Save(ICredential credential);
+        Task<IKeychainItem> Load(UriString host);
+        Task Save(IKeychainItem keychainItem);
         Task Delete(UriString host);
         bool HasCredentials();
-        ICredential CachedCredentials { get; }
+        IKeychainItem CachedKeys { get; }
     }
 }

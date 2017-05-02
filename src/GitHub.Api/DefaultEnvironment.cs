@@ -44,6 +44,7 @@ namespace GitHub.Unity
         }
 
         private string gitInstallPath;
+
         public string GitInstallPath
         {
             get

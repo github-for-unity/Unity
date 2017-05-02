@@ -10,9 +10,9 @@ namespace GitHub.Unity
 
         public GitFetchTask(IEnvironment environment, IProcessManager processManager,
             ITaskResultDispatcher<string> resultDispatcher,
-            ICredentialManager credentialManager, IUIDispatcher uiDispatcher,
+            IKeychainManager keychainManager, IUIDispatcher uiDispatcher,
             string remote)
-            : base(environment, processManager, resultDispatcher, credentialManager, uiDispatcher)
+            : base(environment, processManager, resultDispatcher, keychainManager, uiDispatcher)
         {
             var stringBuilder = new StringBuilder();
             stringBuilder.Append("fetch");
