@@ -212,7 +212,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\IApiClient.cs" />
-    <Compile Include="Api\IApiClientFactory.cs" />
     <Compile Include="Authentication\AuthenticationResult.cs" />
     <Compile Include="Authentication\AuthenticationResultExtensions.cs" />
     <Compile Include="Authentication\Credential.cs" />
@@ -233,7 +232,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\ApiClient.cs" />
-    <Compile Include="Api\ApiClientFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">
