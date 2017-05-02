@@ -13,7 +13,7 @@ namespace GitHub.Unity
         public ApiClientFactory(IAppConfiguration appConfiguration, ICredentialManager credentialManager)
         {
             productHeader = appConfiguration.ProductHeader;
-            this.credentialManager = credentialManager; ;
+            this.credentialManager = credentialManager;
         }
 
         public IApiClient Create(UriString repositoryUrl)
