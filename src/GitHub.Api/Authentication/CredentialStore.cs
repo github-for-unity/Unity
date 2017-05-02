@@ -56,10 +56,8 @@ namespace GitHub.Unity
     {
         private readonly ILogging logger = Logging.GetLogger<Keychain>();
 
-        private const string ConnectionCacheSettingsKey = "connectionCache";
-
         private readonly IKeychainManager keychainManager;
-        private readonly ISettings settings;
+        private readonly NPath cachePath;
 
         // loaded at the start of application from cached/serialized data
         private Dictionary<UriString, Connection> connectionCache = new Dictionary<UriString, Connection>();
@@ -68,10 +66,14 @@ namespace GitHub.Unity
         private Dictionary<UriString, KeychainAdapter> keychainAdapters =
             new Dictionary<UriString, KeychainAdapter>();
 
-        public Keychain(IKeychainManager keychainManager, ISettings settings)
+
+        public Keychain(IAppConfiguration appConfiguration, IEnvironment environment, IKeychainManager keychainManager)
         {
             this.keychainManager = keychainManager;
-            this.settings = settings;
+            cachePath =
+                environment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
+                           .ToNPath()
+                           .Combine(appConfiguration.ApplicationName, "connections.json");
         }
 
         public KeychainAdapter Connect(UriString host)
@@ -107,7 +109,20 @@ namespace GitHub.Unity
         {
             logger.Trace("Initialize");
 
-            var connections = settings.Get<List<ConnectionCacheItem>>(ConnectionCacheSettingsKey);
+            ConnectionCacheItem[] connections = null;
+            if (cachePath.FileExists())
+            {
+                var json = cachePath.ReadAllText();
+                try
+                {
+                    connections = SimpleJson.DeserializeObject<ConnectionCacheItem[]>(json);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, "Error deserializing connection cache: {0}", cachePath);
+                }
+            }
+
             if (connections != null)
             {
                 connectionCache =
@@ -160,9 +175,10 @@ namespace GitHub.Unity
                         new ConnectionCacheItem() {
                             Host = pair.Value.Host.ToString(),
                             Username = pair.Value.Username
-                        }).ToList();
+                        }).ToArray();
 
-            settings.Set(ConnectionCacheSettingsKey, connectionCacheItems);
+            var json = SimpleJson.SerializeObject(connectionCacheItems);
+            cachePath.WriteAllText(json);
 
             // saves credential in git credential manager (host, username, token)
             await keychainManager.Delete(host);
