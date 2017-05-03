@@ -246,7 +246,7 @@ namespace IntegrationTests
             RepositoryManager.CreateBranch(new TaskResultDispatcher<string>(s => { }), "feature2/document2",
                 "feature/document");
 
-            Thread.Sleep(1000);
+            managerAutoResetEvent.OnLocalBranchListChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
@@ -341,13 +341,16 @@ namespace IntegrationTests
             managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(7)).Should().BeTrue();
             managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(7)).Should().BeTrue();
 
-            Logger.Trace("Continue test");
+            WaitForNotBusy(managerAutoResetEvent, 3);
+            WaitForNotBusy(managerAutoResetEvent, 3);
 
-            repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
-            result.AssertEqual(expected);
+            Logger.Trace("Continue test");
 
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
             RepositoryManager.IsBusy.Should().BeFalse();
+
+            repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
+            result.AssertEqual(expected);
 
             repositoryManagerListener.Received(1).OnActiveBranchChanged();
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
@@ -386,6 +389,15 @@ namespace IntegrationTests
             repositoryManagerListener.Received(2).OnRemoteBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
+        }
+
+        private void WaitForNotBusy(RepositoryManagerAutoResetEvent managerAutoResetEvent, int seconds = 1)
+        {
+            if (RepositoryManager.IsBusy)
+            {
+                Logger.Trace("Waiting for activity", seconds);
+                managerAutoResetEvent.OnIsBusyChanged.WaitOne(TimeSpan.FromSeconds(seconds));
+            }
         }
     }
 }
