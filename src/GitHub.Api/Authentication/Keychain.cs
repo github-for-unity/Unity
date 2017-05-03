@@ -1,43 +1,17 @@
-﻿using System;
-using System.Threading.Tasks;
-using Octokit;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Rackspace.Threading;
+using System.Threading.Tasks;
+using Octokit;
 
 namespace GitHub.Unity
 {
-    class KeychainAdapter : ICredentialStore
-    {
-        public Credentials OctokitCredentials { get; private set; } = Credentials.Anonymous;
-        public ICredential Credential { get; private set; }
-
-        public void Set(ICredential credential)
-        {
-            Credential = credential;
-            OctokitCredentials = new Credentials(credential.Username, credential.Token);
-        }
-
-        public void UpdateToken(string token)
-        {
-            Credential.UpdateToken(token);
-        }
-
-        /// <summary>
-        /// Implementation for Octokit
-        /// </summary>
-        /// <returns>Octokit credentials</returns>
-        Task<Credentials> ICredentialStore.GetCredentials()
-        {
-            return TaskEx.FromResult(OctokitCredentials);
-        }
-    }
-
     struct Connection
     {
         public UriString Host;
         public string Username;
     }
+
     class ConnectionCacheItem
     {
         public string Host { get; set; }
@@ -56,10 +30,8 @@ namespace GitHub.Unity
     {
         private readonly ILogging logger = Logging.GetLogger<Keychain>();
 
-        private const string ConnectionCacheSettingsKey = "connectionCache";
-
         private readonly ICredentialManager credentialManager;
-        private readonly ISettings settings;
+        private readonly NPath cachePath;
 
         // loaded at the start of application from cached/serialized data
         private Dictionary<UriString, Connection> connectionCache = new Dictionary<UriString, Connection>();
@@ -68,10 +40,14 @@ namespace GitHub.Unity
         private Dictionary<UriString, KeychainAdapter> keychainAdapters =
             new Dictionary<UriString, KeychainAdapter>();
 
-        public Keychain(ICredentialManager credentialManager, ISettings settings)
+
+        public Keychain(IAppConfiguration appConfiguration, IEnvironment environment, ICredentialManager credentialManager)
         {
             this.credentialManager = credentialManager;
-            this.settings = settings;
+            cachePath =
+                environment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
+                           .ToNPath()
+                           .Combine(appConfiguration.ApplicationName, "connections.json");
         }
 
         public KeychainAdapter Connect(UriString host)
@@ -107,7 +83,21 @@ namespace GitHub.Unity
         {
             logger.Trace("Initialize");
 
-            var connections = settings.Get<ConnectionCacheItem[]>(ConnectionCacheSettingsKey);
+            ConnectionCacheItem[] connections = null;
+            if (cachePath.FileExists())
+            {
+                var json = cachePath.ReadAllText();
+                try
+                {
+                    connections = SimpleJson.DeserializeObject<ConnectionCacheItem[]>(json);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, "Error deserializing connection cache: {0}", cachePath);
+                    cachePath.Delete();
+                }
+            }
+
             if (connections != null)
             {
                 connectionCache =
@@ -162,7 +152,8 @@ namespace GitHub.Unity
                             Username = pair.Value.Username
                         }).ToArray();
 
-            settings.Set(ConnectionCacheSettingsKey, connectionCacheItems);
+            var json = SimpleJson.SerializeObject(connectionCacheItems);
+            cachePath.WriteAllText(json);
 
             // saves credential in git credential manager (host, username, token)
             await credentialManager.Delete(host);
@@ -192,17 +183,5 @@ namespace GitHub.Unity
         }
 
         public bool HasKeys => connectionCache.Any();
-    }
-
-    internal interface IKeychain
-    {
-        KeychainAdapter Connect(UriString host);
-        Task<KeychainAdapter> Load(UriString host);
-        Task Clear(UriString host);
-        Task Flush(UriString host);
-        void UpdateToken(UriString host, string token);
-        void Save(ICredential credential);
-        void Initialize();
-        bool HasKeys { get; }
     }
 }

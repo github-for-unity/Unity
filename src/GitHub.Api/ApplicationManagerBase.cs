@@ -34,7 +34,7 @@ namespace GitHub.Unity
 
             Platform = new Platform(Environment, FileSystem, uiDispatcher);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
-            Platform.Initialize(ProcessManager, UserSettings);
+            Platform.Initialize(new AppConfiguration(), ProcessManager);
         }
 
         public virtual Task Run()
