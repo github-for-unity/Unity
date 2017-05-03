@@ -186,7 +186,7 @@ namespace GitHub.Unity
             {
                 logger.Debug(e, "Exception: {0}", e.Message);
 
-                await keychain.Clear(host);
+                await credentialManager.Delete(host);
                 return new LoginResultData(LoginResultCodes.Failed, e.Message, host);
             }
         }

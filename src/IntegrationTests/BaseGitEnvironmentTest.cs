@@ -26,8 +26,8 @@ namespace IntegrationTests
             GitEnvironment = Platform.GitEnvironment;
             ProcessManager = new ProcessManager(Environment, GitEnvironment);
 
-            var appConfiguration = Substitute.For<IAppConfiguration>();
-            Platform.Initialize(appConfiguration, ProcessManager);
+            var settings = Substitute.For<ISettings>();
+            Platform.Initialize(ProcessManager, settings);
 
             Environment.UnityProjectPath = repoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
