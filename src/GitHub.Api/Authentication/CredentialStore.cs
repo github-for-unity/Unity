@@ -38,10 +38,10 @@ namespace GitHub.Unity
         public UriString Host;
         public string Username;
     }
-    struct ConnectionCacheItem
+    class ConnectionCacheItem
     {
-        public string Host;
-        public string Username;
+        public string Host { get; set; }
+        public string Username { get; set; }
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ namespace GitHub.Unity
         {
             logger.Trace("Initialize");
 
-            var connections = settings.Get<List<ConnectionCacheItem>>(ConnectionCacheSettingsKey);
+            var connections = settings.Get<ConnectionCacheItem[]>(ConnectionCacheSettingsKey);
             if (connections != null)
             {
                 connectionCache =
@@ -160,7 +160,7 @@ namespace GitHub.Unity
                         new ConnectionCacheItem() {
                             Host = pair.Value.Host.ToString(),
                             Username = pair.Value.Username
-                        }).ToList();
+                        }).ToArray();
 
             settings.Set(ConnectionCacheSettingsKey, connectionCacheItems);
 
