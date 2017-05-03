@@ -30,17 +30,17 @@ namespace GitHub.Unity
     {
         private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
-        private readonly IKeychainManager keychainManager;
+        private readonly ICredentialManager credentialManager;
         private readonly IUIDispatcher uiDispatcher;
         private readonly CancellationToken cancellationToken;
 
         public RepositoryProcessRunner(IEnvironment environment, IProcessManager processManager,
-            IKeychainManager keychainManager, IUIDispatcher uiDispatcher,
+            ICredentialManager credentialManager, IUIDispatcher uiDispatcher,
             CancellationToken cancellationToken)
         {
             this.environment = environment;
             this.processManager = processManager;
-            this.keychainManager = keychainManager;
+            this.credentialManager = credentialManager;
             this.uiDispatcher = uiDispatcher;
             this.cancellationToken = cancellationToken;
         }
@@ -72,18 +72,18 @@ namespace GitHub.Unity
         public ITask PrepareGitPull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch)
         {
             return new GitPullTask(environment, processManager, resultDispatcher,
-                keychainManager, uiDispatcher, remote, branch);
+                credentialManager, uiDispatcher, remote, branch);
         }
 
         public ITask PrepareGitPush(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch)
         {
             return new GitPushTask(environment, processManager, resultDispatcher,
-                keychainManager, uiDispatcher, remote, branch, true);
+                credentialManager, uiDispatcher, remote, branch, true);
         }
 
         public ITask PrepareGitFetch(ITaskResultDispatcher<string> resultDispatcher, string remote)
         {
-            return new GitFetchTask(environment, processManager, resultDispatcher, keychainManager, uiDispatcher,
+            return new GitFetchTask(environment, processManager, resultDispatcher, credentialManager, uiDispatcher,
                 remote);
         }
 

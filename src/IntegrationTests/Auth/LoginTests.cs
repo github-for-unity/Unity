@@ -60,7 +60,7 @@ namespace IntegrationTests
             IPlatform platform = null;
             platform = new Platform(Environment, filesystem, new TestUIDispatcher(() => {
                 Logger.Debug("Called");
-                platform.KeychainManager.Save(new KeychainItem("https://github.com", "username", "token")).Wait();
+                platform.CredentialManager.Save(new Credential("https://github.com", "username", "token")).Wait();
                 return true;
             }));
             var gitEnvironment = platform.GitEnvironment;

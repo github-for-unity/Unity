@@ -252,11 +252,11 @@ namespace GitHub.Unity
         private void GoToProfile(object obj)
         {
             //Logger.Debug("{0} {1}", EntryPoint.CredentialManager.CachedCredentials.Host, EntryPoint.CredentialManager.CachedCredentials.Username);
-            Application.OpenURL(EntryPoint.KeychainManager.CachedKeys.Host.Combine(EntryPoint.KeychainManager.CachedKeys.Username));
+            Application.OpenURL(EntryPoint.CredentialManager.CachedKeys.Host.Combine(EntryPoint.CredentialManager.CachedKeys.Username));
         }
         private void SignOut(object obj)
         {
-            var task = new SimpleTask(() => EntryPoint.KeychainManager.Delete(EntryPoint.KeychainManager.CachedKeys.Host));
+            var task = new SimpleTask(() => EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedKeys.Host));
             TaskRunner.Add(task);
         }
 

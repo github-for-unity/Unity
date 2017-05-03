@@ -98,7 +98,7 @@ namespace GitHub.Unity
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, cancellationToken);
 
             var repositoryProcessRunner = new RepositoryProcessRunner(platform.Environment, platform.ProcessManager,
-                platform.KeychainManager, platform.UIDispatcher, cancellationToken);
+                platform.CredentialManager, platform.UIDispatcher, cancellationToken);
 
             return new RepositoryManager(platform, taskRunner, gitConfig, repositoryWatcher,
                 repositoryProcessRunner, repositoryPathConfiguration, cancellationToken);

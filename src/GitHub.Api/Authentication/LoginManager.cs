@@ -71,7 +71,7 @@ namespace GitHub.Unity
             // Start by saving the username and password, these will be used by the `IGitHubClient`
             // until an authorization token has been created and acquired:
             var keychainAdapter = keychain.Connect(host);
-            var keychainItem = new KeychainItem(host, username, password);
+            var keychainItem = new Credential(host, username, password);
             keychainAdapter.Set(keychainItem);
 
             var newAuth = new NewAuthorization
@@ -162,7 +162,7 @@ namespace GitHub.Unity
                 EnsureNonNullAuthorization(auth);
 
                 var credentialStore = await keychain.Load(host);
-                var credentials = credentialStore.KeychainItem;
+                var credentials = credentialStore.Credential;
                 credentials.UpdateToken(auth.Token);
                 
                 keychain.Save(credentials);
