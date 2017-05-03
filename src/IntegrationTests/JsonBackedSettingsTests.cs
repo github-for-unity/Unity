@@ -39,7 +39,7 @@ namespace IntegrationTests
             userSettings = new UserSettings(Environment, "GitHubTest");
             userSettings.Initialize();
 
-            var loadedItems = userSettings.Get<List<ConnectionCacheItem>>("connectionCacheItems")?.ToArray();
+            var loadedItems = userSettings.Get<ConnectionCacheItem[]>("connectionCacheItems");
 
             loadedItems.Should().NotBeNull();
             connectionCacheItems.ShouldAllBeEquivalentTo(loadedItems);
