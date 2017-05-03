@@ -188,9 +188,9 @@ namespace GitHub.Unity
             {
                 var store = keychain.Connect(OriginalUrl);
 
-                if (store.Credentials != Credentials.Anonymous)
+                if (store.OctokitCredentials != Credentials.Anonymous)
                 {
-                    var credential = store.KeychainItem;
+                    var credential = store.Credential;
                     await githubClient.Authorization.CheckApplicationAuthentication(ApplicationInfo.ClientId, credential.Token);
                 }
             }

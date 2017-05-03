@@ -2,14 +2,14 @@
 
 namespace GitHub.Unity
 {
-    sealed class KeychainItem : IKeychainItem
+    sealed class Credential : ICredential
     {
-        public KeychainItem(UriString host)
+        public Credential(UriString host)
         {
             this.Host = host;
         }
 
-        public KeychainItem(UriString host, string username, string token)
+        public Credential(UriString host, string username, string token)
         {
             this.Host = host;
             this.Username = username;

@@ -217,7 +217,7 @@
     <Compile Include="Extensions\ExceptionExtensions.cs" />
     <Compile Include="Guard.cs" />
     <Compile Include="Authentication\IPlatform.cs" />
-    <Compile Include="Authentication\IKeychainManager.cs" />
+    <Compile Include="Authentication\ICredentialManager.cs" />
     <Compile Include="IEnvironment.cs" />
     <Compile Include="IAppConfiguration.cs" />
     <Compile Include="Primitives\HostAddress.cs" />

@@ -9,18 +9,18 @@ namespace GitHub.Unity
 {
     class KeychainAdapter : ICredentialStore
     {
-        public Credentials Credentials { get; private set; } = Credentials.Anonymous;
-        public IKeychainItem KeychainItem { get; private set; }
+        public Credentials OctokitCredentials { get; private set; } = Credentials.Anonymous;
+        public ICredential Credential { get; private set; }
 
-        public void Set(IKeychainItem keychainItem)
+        public void Set(ICredential credential)
         {
-            KeychainItem = keychainItem;
-            Credentials = new Credentials(keychainItem.Username, keychainItem.Token);
+            Credential = credential;
+            OctokitCredentials = new Credentials(credential.Username, credential.Token);
         }
 
         public void UpdateToken(string token)
         {
-            KeychainItem.UpdateToken(token);
+            Credential.UpdateToken(token);
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace GitHub.Unity
         /// <returns>Octokit credentials</returns>
         Task<Credentials> ICredentialStore.GetCredentials()
         {
-            return TaskEx.FromResult(Credentials);
+            return TaskEx.FromResult(OctokitCredentials);
         }
     }
 
@@ -58,7 +58,7 @@ namespace GitHub.Unity
 
         private const string ConnectionCacheSettingsKey = "connectionCache";
 
-        private readonly IKeychainManager keychainManager;
+        private readonly ICredentialManager credentialManager;
         private readonly ISettings settings;
 
         // loaded at the start of application from cached/serialized data
@@ -68,9 +68,9 @@ namespace GitHub.Unity
         private Dictionary<UriString, KeychainAdapter> keychainAdapters =
             new Dictionary<UriString, KeychainAdapter>();
 
-        public Keychain(IKeychainManager keychainManager, ISettings settings)
+        public Keychain(ICredentialManager credentialManager, ISettings settings)
         {
-            this.keychainManager = keychainManager;
+            this.credentialManager = credentialManager;
             this.settings = settings;
         }
 
@@ -85,7 +85,7 @@ namespace GitHub.Unity
 
             var keychainAdapter = FindOrCreateAdapter(host);
 
-            var keychainItem = await keychainManager.Load(host);
+            var keychainItem = await credentialManager.Load(host);
             keychainAdapter.Set(keychainItem);
 
             return keychainAdapter;
@@ -132,7 +132,7 @@ namespace GitHub.Unity
 
             //TODO: Confirm that we should delete credentials here
             // delete credential from credential manager
-            await keychainManager.Delete(host);
+            await credentialManager.Delete(host);
         }
 
         public async Task Flush(UriString host)
@@ -145,13 +145,13 @@ namespace GitHub.Unity
                 throw new ArgumentException($"Host: {host} is not found");
             }
 
-            if (credentialAdapter.Credentials == Credentials.Anonymous)
+            if (credentialAdapter.OctokitCredentials == Credentials.Anonymous)
             {
                 throw new InvalidOperationException("Anonymous credentials cannot be stored");
             }
 
             // create new connection in the connection cache for this host
-            connectionCache.Add(host, new Connection { Host = host, Username = credentialAdapter.Credentials.Login });
+            connectionCache.Add(host, new Connection { Host = host, Username = credentialAdapter.OctokitCredentials.Login });
 
             // flushes credential cache to disk (host and username only)
             var connectionCacheItems =
@@ -165,16 +165,16 @@ namespace GitHub.Unity
             settings.Set(ConnectionCacheSettingsKey, connectionCacheItems);
 
             // saves credential in git credential manager (host, username, token)
-            await keychainManager.Delete(host);
-            await keychainManager.Save(credentialAdapter.KeychainItem);
+            await credentialManager.Delete(host);
+            await credentialManager.Save(credentialAdapter.Credential);
         }
 
-        public void Save(IKeychainItem keychainItem)
+        public void Save(ICredential credential)
         {
-            logger.Trace("Save: {0}", keychainItem.Host);
+            logger.Trace("Save: {0}", credential.Host);
 
-            var credentialAdapter = FindOrCreateAdapter(keychainItem.Host);
-            credentialAdapter.Set(keychainItem);
+            var credentialAdapter = FindOrCreateAdapter(credential.Host);
+            credentialAdapter.Set(credential);
         }
 
         public void UpdateToken(UriString host, string token)
@@ -187,7 +187,7 @@ namespace GitHub.Unity
                 throw new ArgumentException($"Host: {host} is not found");
             }
 
-            var keychainItem = keychainAdapter.KeychainItem;
+            var keychainItem = keychainAdapter.Credential;
             keychainItem.UpdateToken(token);
         }
 
@@ -201,7 +201,7 @@ namespace GitHub.Unity
         Task Clear(UriString host);
         Task Flush(UriString host);
         void UpdateToken(UriString host, string token);
-        void Save(IKeychainItem keychainItem);
+        void Save(ICredential credential);
         void Initialize();
         bool HasKeys { get; }
     }

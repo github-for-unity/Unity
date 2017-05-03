@@ -9,9 +9,9 @@ namespace GitHub.Unity
 
         public GitPullTask(IEnvironment environment, IProcessManager processManager,
             ITaskResultDispatcher<string> resultDispatcher,
-            IKeychainManager keychainManager, IUIDispatcher uiDispatcher,
+            ICredentialManager credentialManager, IUIDispatcher uiDispatcher,
             string remote, string branch)
-            : base(environment, processManager, resultDispatcher, keychainManager, uiDispatcher)
+            : base(environment, processManager, resultDispatcher, credentialManager, uiDispatcher)
         {
             var stringBuilder = new StringBuilder();
             stringBuilder.Append("pull");

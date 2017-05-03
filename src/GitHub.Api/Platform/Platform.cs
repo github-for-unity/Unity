@@ -28,10 +28,10 @@ namespace GitHub.Unity
         {
             ProcessManager = processManager;
 
-            if (KeychainManager == null)
+            if (CredentialManager == null)
             {
-                KeychainManager = new GitCredentialManager(Environment, processManager);
-                Keychain = new Keychain(KeychainManager, settings);
+                CredentialManager = new GitCredentialManager(Environment, processManager);
+                Keychain = new Keychain(CredentialManager, settings);
                 Keychain.Initialize();
             }
 
@@ -40,7 +40,7 @@ namespace GitHub.Unity
 
         public IEnvironment Environment { get; private set; }
         public IProcessEnvironment GitEnvironment { get; private set; }
-        public IKeychainManager KeychainManager { get; private set; }
+        public ICredentialManager CredentialManager { get; private set; }
         public IProcessManager ProcessManager { get; private set; }
         public IUIDispatcher UIDispatcher { get; private set; }
         public IKeychain Keychain { get; private set; }

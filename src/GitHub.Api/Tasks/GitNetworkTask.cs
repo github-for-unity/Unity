@@ -8,18 +8,18 @@ namespace GitHub.Unity
 {
     class GitNetworkTask : GitTask
     {
-        private readonly IKeychainManager keychainManager;
+        private readonly ICredentialManager credentialManager;
         private readonly IUIDispatcher uiDispatcher;
 
         public GitNetworkTask(IEnvironment environment, IProcessManager processManager,
             ITaskResultDispatcher<string> resultDispatcher,
-            IKeychainManager keychainManager, IUIDispatcher uiDispatcher)
+            ICredentialManager credentialManager, IUIDispatcher uiDispatcher)
             : base(environment, processManager, resultDispatcher)
         {
-            Guard.ArgumentNotNull(keychainManager, nameof(keychainManager));
+            Guard.ArgumentNotNull(credentialManager, nameof(credentialManager));
             Guard.ArgumentNotNull(uiDispatcher, nameof(uiDispatcher));
 
-            this.keychainManager = keychainManager;
+            this.credentialManager = credentialManager;
             this.uiDispatcher = uiDispatcher;
         }
 
@@ -45,7 +45,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            canRun = await keychainManager.Load(Environment.Repository.CloneUrl) != null;
+            canRun = await credentialManager.Load(Environment.Repository.CloneUrl) != null;
             if (!canRun)
             {
                 canRun = await uiDispatcher.RunUI();
