@@ -57,7 +57,7 @@ namespace GitHub.Unity
 
         public async Task<KeychainAdapter> Load(UriString host)
         {
-            logger.Trace("Load: {0}", host);
+            logger.Trace("Load Host:{0}", host);
 
             var keychainAdapter = FindOrCreateAdapter(host);
 
@@ -82,6 +82,13 @@ namespace GitHub.Unity
         public void Initialize()
         {
             logger.Trace("Initialize");
+
+            ReadCacheFromDisk();
+        }
+
+        private void ReadCacheFromDisk()
+        {
+            logger.Trace("ReadCacheFromDisk Path:{0}", cachePath.ToString());
 
             ConnectionCacheItem[] connections = null;
             if (cachePath.FileExists())
@@ -110,12 +117,29 @@ namespace GitHub.Unity
             }
         }
 
+        private void WriteCacheToDisk()
+        {
+            logger.Trace("WriteCacheToDisk Count:{0} Path:{1}", connectionCache.Count, cachePath.ToString());
+
+            var connectionCacheItems =
+                connectionCache.Select(
+                    pair =>
+                        new ConnectionCacheItem() {
+                            Host = pair.Value.Host.ToString(),
+                            Username = pair.Value.Username
+                        }).ToArray();
+
+            var json = SimpleJson.SerializeObject(connectionCacheItems);
+            cachePath.WriteAllText(json);
+        }
+
         public async Task Clear(UriString host)
         {
-            logger.Trace("Clear: {0}", host);
+            logger.Trace("Clear Host:{0}", host);
        
             // delete connection in the connection list
             connectionCache.Remove(host);
+            WriteCacheToDisk();
 
             // delete credential in octokit store
             keychainAdapters.Remove(host);
@@ -123,6 +147,17 @@ namespace GitHub.Unity
             //TODO: Confirm that we should delete credentials here
             // delete credential from credential manager
             await credentialManager.Delete(host);
+        }
+
+        public async Task ClearAll()
+        {
+            var uriStrings = keychainAdapters.Keys.Union(connectionCache.Keys).Distinct().ToArray();
+            logger.Trace("ClearAll Count:{0}", uriStrings.Length);
+
+            foreach (var uriString in uriStrings)
+            {
+                await Clear(uriString);
+            }
         }
 
         public async Task Flush(UriString host)
@@ -144,16 +179,7 @@ namespace GitHub.Unity
             connectionCache.Add(host, new Connection { Host = host, Username = credentialAdapter.OctokitCredentials.Login });
 
             // flushes credential cache to disk (host and username only)
-            var connectionCacheItems =
-                connectionCache.Select(
-                    pair =>
-                        new ConnectionCacheItem() {
-                            Host = pair.Value.Host.ToString(),
-                            Username = pair.Value.Username
-                        }).ToArray();
-
-            var json = SimpleJson.SerializeObject(connectionCacheItems);
-            cachePath.WriteAllText(json);
+            WriteCacheToDisk();
 
             // saves credential in git credential manager (host, username, token)
             await credentialManager.Delete(host);
@@ -162,7 +188,7 @@ namespace GitHub.Unity
 
         public void Save(ICredential credential)
         {
-            logger.Trace("Save: {0}", credential.Host);
+            logger.Trace("Save Host:{0}", credential.Host);
 
             var credentialAdapter = FindOrCreateAdapter(credential.Host);
             credentialAdapter.Set(credential);
@@ -170,7 +196,7 @@ namespace GitHub.Unity
 
         public void UpdateToken(UriString host, string token)
         {
-            logger.Trace("UpdateToken: {0}", host);
+            logger.Trace("UpdateToken Host:{0}", host);
 
             KeychainAdapter keychainAdapter;
             if (!keychainAdapters.TryGetValue(host, out keychainAdapter))
