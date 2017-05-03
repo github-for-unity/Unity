@@ -8,9 +8,9 @@ namespace IntegrationTests
 {
     class BaseGitEnvironmentTest : BaseGitRepoTest
     {
-        protected void InitializeEnvironment(NPath repoPath)
+        protected void InitializeEnvironment(NPath repoPath, bool enableEnvironmentTrace = false)
         {
-            Environment = new IntegrationTestEnvironment(SolutionDirectory) {
+            Environment = new IntegrationTestEnvironment(SolutionDirectory, enableTrace: enableEnvironmentTrace) {
                 RepositoryPath = repoPath,
                 UnityProjectPath = repoPath
             };

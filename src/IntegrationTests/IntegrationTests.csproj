@@ -80,6 +80,7 @@
     <Compile Include="Git\GitSetupTests.cs" />
     <Compile Include="Git\IntegrationTestEnvironment.cs" />
     <Compile Include="Git\RepositoryLocatorTests.cs" />
+    <Compile Include="JsonBackedSettingsTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="Process\ProcessManagerIntegrationTests.cs" />
     <Compile Include="SetupFixture.cs" />
