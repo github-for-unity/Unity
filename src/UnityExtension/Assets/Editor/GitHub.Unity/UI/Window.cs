@@ -256,7 +256,7 @@ namespace GitHub.Unity
         }
         private void SignOut(object obj)
         {
-            var task = new SimpleTask(() => EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedKeys.Host));
+            var task = new SimpleTask(() => EntryPoint.Keychain.ClearAll());
             TaskRunner.Add(task);
         }
 

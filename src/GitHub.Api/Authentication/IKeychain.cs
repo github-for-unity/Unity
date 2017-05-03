@@ -12,5 +12,6 @@ namespace GitHub.Unity
         void Save(ICredential credential);
         void Initialize();
         bool HasKeys { get; }
+        Task ClearAll();
     }
 }
