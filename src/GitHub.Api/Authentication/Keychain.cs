@@ -144,7 +144,6 @@ namespace GitHub.Unity
             // delete credential in octokit store
             keychainAdapters.Remove(host);
 
-            //TODO: Confirm that we should delete credentials here
             // delete credential from credential manager
             await credentialManager.Delete(host);
         }
