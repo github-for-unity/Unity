@@ -9,7 +9,7 @@ namespace IntegrationTests
     class JsonBackedSettingsTests: BaseGitEnvironmentTest
     {
         [Test]
-        public void LocalSettingsTest()
+        public void UserSettingsTest()
         {
             InitializeEnvironment(TestRepoMasterCleanSynchronized, true);
 
