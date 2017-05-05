@@ -28,13 +28,15 @@ namespace GitHub.Unity
             UserSettings = new UserSettings(Environment, ApplicationInfo.ApplicationName);
             SystemSettings = new SystemSettings(Environment, ApplicationInfo.ApplicationName);
 
-            LocalSettings.Initialize();
-            UserSettings.Initialize();
-            SystemSettings.Initialize();
-
             Platform = new Platform(Environment, FileSystem, uiDispatcher);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
-            Platform.Initialize(new AppConfiguration(), ProcessManager);
+            AppConfiguration = new AppConfiguration();
+
+            ConnectionCachePath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData)
+                                             .ToNPath()
+                                             .Combine(AppConfiguration.ApplicationName, "connections.json");
+
+            Platform.Initialize(this, ProcessManager);
         }
 
         public virtual Task Run()
@@ -162,6 +164,7 @@ namespace GitHub.Unity
             Dispose(true);
         }
 
+        public AppConfiguration AppConfiguration { get; private set; }
         public virtual IEnvironment Environment { get; set; }
         public IFileSystem FileSystem { get; protected set; }
         public IPlatform Platform { get; protected set; }
@@ -179,5 +182,7 @@ namespace GitHub.Unity
         public ISettings LocalSettings { get; protected set; }
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
+
+        public NPath ConnectionCachePath { get; private set; }
     }
 }

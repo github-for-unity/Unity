@@ -33,7 +33,7 @@ namespace GitHub.Unity
             base.Initialize(parent);
 
             need2fa = busy = false;
-            authenticationService = new AuthenticationService(new AppConfiguration(), EntryPoint.Keychain);
+            authenticationService = new AuthenticationService(EntryPoint.AppManager.AppConfiguration, EntryPoint.Keychain);
         }
 
         public override void OnShow()

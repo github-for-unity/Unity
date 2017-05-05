@@ -25,7 +25,7 @@ namespace GitHub.Unity
             return credential != null;
         }
 
-        public ICredential CachedKeys { get { return credential; } }
+        public ICredential CachedCredentials { get { return credential; } }
 
         public async Task Delete(UriString host)
         {
