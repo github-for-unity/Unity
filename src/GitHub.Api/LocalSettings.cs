@@ -21,10 +21,6 @@ namespace GitHub.Unity
 
     class JsonBackedSettings : BaseSettings
     {
-        private static readonly ILogging logger = Logging.GetLogger<JsonBackedSettings>();
-
-        private const string SettingsParseError = "Failed to parse settings file at '{0}'";
-
         private string cachePath;
         private CacheData cacheData = new CacheData();
         private Action<string> dirCreate;
@@ -33,9 +29,11 @@ namespace GitHub.Unity
         private Func<string, bool> fileExists;
         private Func<string, Encoding, string> readAllText;
         private Action<string, string> writeAllText;
+        private readonly ILogging logger;
 
         public JsonBackedSettings()
         {
+            logger = Logging.GetLogger(GetType());
             fileExists = (path) => File.Exists(path);
             readAllText = (path, encoding) => File.ReadAllText(path, encoding);
             writeAllText = (path, content) => File.WriteAllText(path, content);
@@ -100,6 +98,8 @@ namespace GitHub.Unity
 
         private void LoadFromCache(string cachePath)
         {
+            logger.Trace("LoadFromCache: {0}", cachePath);
+
             EnsureCachePath(cachePath);
 
             if (!fileExists(cachePath))
@@ -111,8 +111,9 @@ namespace GitHub.Unity
             {
                 cacheData = SimpleJson.DeserializeObject<CacheData>(data);
             }
-            catch
+            catch(Exception ex)
             {
+                logger.Error(ex, "LoadFromCache Error");
                 cacheData = null;
             }
 
@@ -126,6 +127,8 @@ namespace GitHub.Unity
 
         private bool SaveToCache(string cachePath)
         {
+            logger.Trace("SaveToCache: {0}", cachePath);
+
             EnsureCachePath(cachePath);
 
             try
@@ -135,8 +138,7 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                logger.Error(SettingsParseError, cachePath);
-                logger.Error(ex);
+                logger.Error(ex, "SaveToCache Error");
                 return false;
             }
 
