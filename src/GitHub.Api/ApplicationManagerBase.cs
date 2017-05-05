@@ -29,7 +29,13 @@ namespace GitHub.Unity
             SystemSettings = new SystemSettings(Environment, ApplicationInfo.ApplicationName);
 
             LocalSettings.Initialize();
+
             UserSettings.Initialize();
+
+#if !DEVELOPER_BUILD
+            Logging.TracingEnabled = UserSettings.Get("EnableTraceLogging", false);
+#endif
+
             SystemSettings.Initialize();
 
             Platform = new Platform(Environment, FileSystem, uiDispatcher);
