@@ -14,12 +14,7 @@ namespace IntegrationTests
         {
             var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
             var environment = new IntegrationTestEnvironment(SolutionDirectory, environmentPath);
-
-            var platform = new Platform(environment, FileSystem, new TestUIDispatcher());
-            var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment);
-
-            var gitSetup = new GitSetup(environment, processManager, FileSystem, CancellationToken.None);
+            var gitSetup = new GitSetup(environment, FileSystem, CancellationToken.None);
             var expectedPath = gitSetup.GitInstallationPath;
 
             var setupDone = false;
@@ -55,6 +50,10 @@ namespace IntegrationTests
                 environment.GitExecutablePath = "/usr/local/bin/git";
                 setupDone.Should().BeFalse ();
             }
+
+            var platform = new Platform(environment, FileSystem, new TestUIDispatcher());
+            var gitEnvironment = platform.GitEnvironment;
+            var processManager = new ProcessManager(environment, gitEnvironment);
 
             var gitBranches = processManager.GetGitBranches(TestRepoMasterDirtyUnsynchronized, environment.GitExecutablePath);
 
