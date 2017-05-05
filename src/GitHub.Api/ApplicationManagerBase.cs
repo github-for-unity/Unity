@@ -103,7 +103,7 @@ namespace GitHub.Unity
         {
             await ThreadingHelper.SwitchToThreadAsync();
 
-            var gitSetup = new GitSetup(Environment, FileSystem, CancellationToken);
+            var gitSetup = new GitSetup(Environment, ProcessManager, FileSystem, CancellationToken);
             var expectedPath = gitSetup.GitInstallationPath;
 
             var setupDone = await gitSetup.SetupIfNeeded(
