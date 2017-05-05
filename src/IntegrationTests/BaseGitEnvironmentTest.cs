@@ -25,7 +25,6 @@ namespace IntegrationTests
             Platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
             GitEnvironment = Platform.GitEnvironment;
             ProcessManager = new ProcessManager(Environment, GitEnvironment);
-
             Platform.Initialize(Environment, ProcessManager);
 
             Environment.UnityProjectPath = repoPath;

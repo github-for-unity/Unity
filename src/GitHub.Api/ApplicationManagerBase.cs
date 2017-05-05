@@ -31,7 +31,6 @@ namespace GitHub.Unity
 
             Platform = new Platform(Environment, FileSystem, uiDispatcher);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
-
             Platform.Initialize(Environment, ProcessManager);
         }
 
@@ -144,7 +143,6 @@ namespace GitHub.Unity
         }
 
         private bool disposed = false;
-
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
