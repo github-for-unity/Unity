@@ -213,6 +213,11 @@ namespace GitHub.Unity
 
                 if (fileEvent.Type == EventType.DELETED)
                 {
+                    if (fileA.ExtensionWithDot == ".lock")
+                    {
+                        return;
+                    }
+
                     var branch = string.Join(@"/", relativePathElements.Skip(1).ToArray());
 
                     Logger.Trace("RemoteBranchDeleted: {0}/{1}", origin, branch);
