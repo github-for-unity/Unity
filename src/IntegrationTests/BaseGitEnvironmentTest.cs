@@ -14,16 +14,16 @@ namespace IntegrationTests
                 UnityProjectPath = repoPath
             };
 
-            Platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
-            GitEnvironment = Platform.GitEnvironment;
-            ProcessManager = new ProcessManager(Environment, GitEnvironment);
-
-            var gitSetup = new GitSetup(Environment, ProcessManager, FileSystem, CancellationToken.None);
+            var gitSetup = new GitSetup(Environment, FileSystem, CancellationToken.None);
             gitSetup.SetupIfNeeded().Wait();
 
             Environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
             FileSystem.SetCurrentDirectory(repoPath);
+
+            Platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
+            GitEnvironment = Platform.GitEnvironment;
+            ProcessManager = new ProcessManager(Environment, GitEnvironment);
             Platform.Initialize(ProcessManager);
 
             Environment.UnityProjectPath = repoPath;
