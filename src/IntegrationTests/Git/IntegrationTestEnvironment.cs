@@ -108,6 +108,8 @@ namespace IntegrationTests
             set { throw new NotImplementedException(); }
         }
 
+        public NPath ConnectionCachePath { get; set; }
+
         public string RepositoryPath { get; set; }
 
         public string GitInstallPath
