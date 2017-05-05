@@ -26,10 +26,6 @@ namespace GitHub.Unity
         {
             var setupIfNeeded = await gitInstaller.SetupIfNeeded(percentage, timeRemaining);
 
-            var gitConfigGetTask = new GitConfigGetTask(environment, processManager,
-                new TaskResultDispatcher<string>(s => {  }), "credential.helper",
-                GitConfigSource.Global);
-
             return setupIfNeeded;
         }
 
