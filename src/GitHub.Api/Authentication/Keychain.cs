@@ -40,14 +40,10 @@ namespace GitHub.Unity
         private Dictionary<UriString, KeychainAdapter> keychainAdapters =
             new Dictionary<UriString, KeychainAdapter>();
 
-
-        public Keychain(IAppConfiguration appConfiguration, IEnvironment environment, ICredentialManager credentialManager)
+        public Keychain(IApplicationManager appManager, ICredentialManager credentialManager)
         {
+            cachePath = appManager.ConnectionCachePath;
             this.credentialManager = credentialManager;
-            cachePath =
-                environment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
-                           .ToNPath()
-                           .Combine(appConfiguration.ApplicationName, "connections.json");
         }
 
         public KeychainAdapter Connect(UriString host)

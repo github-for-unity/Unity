@@ -16,6 +16,8 @@ namespace GitHub.Unity
         ISettings SystemSettings { get; }
         ISettings LocalSettings { get; }
         ISettings UserSettings { get; }
+        AppConfiguration AppConfiguration { get; }
+        NPath ConnectionCachePath { get; }
         Task RestartRepository();
     }
 }

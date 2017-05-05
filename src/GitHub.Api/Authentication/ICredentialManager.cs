@@ -17,6 +17,6 @@ namespace GitHub.Unity
         Task Save(ICredential credential);
         Task Delete(UriString host);
         bool HasCredentials();
-        ICredential CachedKeys { get; }
+        ICredential CachedCredentials { get; }
     }
 }
