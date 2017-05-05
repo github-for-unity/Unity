@@ -24,14 +24,14 @@ namespace GitHub.Unity
             }
         }
 
-        public Task<IPlatform> Initialize(IApplicationManager appManager, IProcessManager processManager)
+        public Task<IPlatform> Initialize(IEnvironment environment, IProcessManager processManager)
         {
             ProcessManager = processManager;
 
             if (CredentialManager == null)
             {
                 CredentialManager = new GitCredentialManager(Environment, processManager);
-                Keychain = new Keychain(appManager, CredentialManager);
+                Keychain = new Keychain(environment, CredentialManager);
                 Keychain.Initialize();
             }
 

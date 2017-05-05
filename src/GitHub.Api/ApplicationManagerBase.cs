@@ -8,6 +8,7 @@ namespace GitHub.Unity
     {
         protected static readonly ILogging logger = Logging.GetLogger<IApplicationManager>();
 
+        private AppConfiguration appConfiguration;
         private RepositoryLocator repositoryLocator;
         private RepositoryManager repositoryManager;
 
@@ -30,13 +31,8 @@ namespace GitHub.Unity
 
             Platform = new Platform(Environment, FileSystem, uiDispatcher);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
-            AppConfiguration = new AppConfiguration();
 
-            ConnectionCachePath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData)
-                                             .ToNPath()
-                                             .Combine(AppConfiguration.ApplicationName, "connections.json");
-
-            Platform.Initialize(this, ProcessManager);
+            Platform.Initialize(Environment, ProcessManager);
         }
 
         public virtual Task Run()
@@ -148,6 +144,7 @@ namespace GitHub.Unity
         }
 
         private bool disposed = false;
+
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -164,7 +161,14 @@ namespace GitHub.Unity
             Dispose(true);
         }
 
-        public AppConfiguration AppConfiguration { get; private set; }
+        public AppConfiguration AppConfiguration
+        {
+            get
+            {
+                return appConfiguration ?? (appConfiguration = new AppConfiguration());
+            }
+        }
+
         public virtual IEnvironment Environment { get; set; }
         public IFileSystem FileSystem { get; protected set; }
         public IPlatform Platform { get; protected set; }
@@ -182,7 +186,5 @@ namespace GitHub.Unity
         public ISettings LocalSettings { get; protected set; }
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
-
-        public NPath ConnectionCachePath { get; private set; }
     }
 }
