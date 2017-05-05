@@ -108,7 +108,14 @@ namespace IntegrationTests
             set { throw new NotImplementedException(); }
         }
 
-        public NPath ConnectionCachePath { get; set; }
+        public NPath ConnectionCachePath
+        {
+            get
+            {
+                return GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData).ToNPath().Combine("connections.json");
+            }
+            set { throw new NotImplementedException(); }
+        }
 
         public string RepositoryPath { get; set; }
 
