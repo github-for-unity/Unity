@@ -105,26 +105,11 @@ namespace IntegrationTests
         public string ExtensionInstallPath
         {
             get { return extensionInstallPath; }
-            set { throw new NotImplementedException(); }
+            set {}
         }
 
-        public NPath UserCachePath
-        {
-            get
-            {
-                return GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData).ToNPath().Combine(ApplicationInfo.ApplicationName);
-            }
-            set { throw new NotImplementedException(); }
-        }
-
-        public NPath SystemCachePath
-        {
-            get
-            {
-                return GetSpecialFolder(Environment.SpecialFolder.CommonApplicationData).ToNPath().Combine(ApplicationInfo.ApplicationName);
-            }
-            set { throw new NotImplementedException(); }
-        }
+        public NPath UserCachePath { get; set; }
+        public NPath SystemCachePath { get; set; }
 
         public string RepositoryPath { get; set; }
 
