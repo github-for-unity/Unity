@@ -65,7 +65,8 @@ namespace IntegrationTests
             }));
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(Environment, gitEnvironment);
-            await platform.Initialize(processManager);
+
+            await platform.Initialize(Environment, processManager);
 
             var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
             var repositoryManagerFactory = new RepositoryManagerFactory();

@@ -34,6 +34,8 @@ fi
 
 xbuild GitHub.Unity.sln /property:Configuration=$Configuration /target:$Target
 
+cp -r unity/PackageProject/Assets/Editor/GitHub ../github-unity-test/GitHubExtensionProject/Assets/Editor || true
+
 rm -f unity/PackageProject/Assets/Editor/GitHub/deleteme*
 rm -f unity/PackageProject/Assets/Editor/GitHub/deleteme*
 rm -f unity/PackageProject/Assets/Editor/GitHub/*.xml

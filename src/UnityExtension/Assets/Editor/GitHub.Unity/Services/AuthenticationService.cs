@@ -6,16 +6,14 @@ namespace GitHub.Unity
     class AuthenticationService
     {
         private readonly IAppConfiguration appConfiguration;
-        private readonly ICredentialManager credentialManager;
-        private IApiClient client;
+        private readonly IApiClient client;
 
         private LoginResult loginResultData;
 
-        public AuthenticationService(IAppConfiguration appConfiguration, ICredentialManager credentialManager)
+        public AuthenticationService(UriString host, IAppConfiguration appConfiguration, IKeychain keychain)
         {
             this.appConfiguration = appConfiguration;
-            this.credentialManager = credentialManager;
-            this.client = ApiClientFactory.Instance.Create(UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri));
+            client = ApiClient.Create(host, keychain, appConfiguration);
         }
 
         public void Login(string username, string password, Action<string> twofaRequired, Action<bool, string> authResult)

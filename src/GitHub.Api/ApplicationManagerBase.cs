@@ -8,6 +8,7 @@ namespace GitHub.Unity
     {
         protected static readonly ILogging logger = Logging.GetLogger<IApplicationManager>();
 
+        private AppConfiguration appConfiguration;
         private RepositoryLocator repositoryLocator;
         private RepositoryManager repositoryManager;
 
@@ -40,8 +41,7 @@ namespace GitHub.Unity
 
             Platform = new Platform(Environment, FileSystem, uiDispatcher);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
-            Platform.Initialize(ProcessManager);
-            ApiClientFactory.Instance = new ApiClientFactory(new AppConfiguration(), Platform.CredentialManager);
+            Platform.Initialize(Environment, ProcessManager);
         }
 
         public virtual Task Run()
@@ -129,9 +129,28 @@ namespace GitHub.Unity
             logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
 
             await RestartRepository();
+
+            if (Environment.IsWindows)
+            {
+                string credentialHelper = null;
+                var gitConfigGetTask = new GitConfigGetTask(Environment, ProcessManager,
+                    new TaskResultDispatcher<string>(s => {
+                        credentialHelper = s;
+                    }), "credential.helper", GitConfigSource.Global);
+
+
+                await gitConfigGetTask.RunAsync(CancellationToken.None);
+
+                if (string.IsNullOrEmpty(credentialHelper))
+                {
+                    var gitConfigSetTask = new GitConfigSetTask(Environment, ProcessManager,
+                        new TaskResultDispatcher<string>(s => { }), "credential.helper", "wincred",
+                        GitConfigSource.Global);
+
+                    await gitConfigSetTask.RunAsync(CancellationToken.None);
+                }
+            }
         }
-
-
 
         private async Task<string> LookForGitInstallationPath()
         {
@@ -167,6 +186,14 @@ namespace GitHub.Unity
         public void Dispose()
         {
             Dispose(true);
+        }
+
+        public AppConfiguration AppConfiguration
+        {
+            get
+            {
+                return appConfiguration ?? (appConfiguration = new AppConfiguration());
+            }
         }
 
         public virtual IEnvironment Environment { get; set; }
