@@ -119,9 +119,28 @@ namespace GitHub.Unity
             logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
 
             await RestartRepository();
+
+            if (Environment.IsWindows)
+            {
+                string credentialHelper = null;
+                var gitConfigGetTask = new GitConfigGetTask(Environment, ProcessManager,
+                    new TaskResultDispatcher<string>(s => {
+                        credentialHelper = s;
+                    }), "credential.helper", GitConfigSource.Global);
+
+
+                await gitConfigGetTask.RunAsync(CancellationToken.None);
+
+                if (string.IsNullOrEmpty(credentialHelper))
+                {
+                    var gitConfigSetTask = new GitConfigSetTask(Environment, ProcessManager,
+                        new TaskResultDispatcher<string>(s => { }), "credential.helper", "wincred",
+                        GitConfigSource.Global);
+
+                    await gitConfigSetTask.RunAsync(CancellationToken.None);
+                }
+            }
         }
-
-
 
         private async Task<string> LookForGitInstallationPath()
         {
