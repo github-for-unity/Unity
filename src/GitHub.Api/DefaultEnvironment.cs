@@ -26,7 +26,7 @@ namespace GitHub.Unity
         public string UnityAssetsPath { get; set; }
         public string UnityProjectPath { get; set; }
         public string ExtensionInstallPath { get; set; }
-
+        public NPath ConnectionCachePath { get; set; }
         public string UserProfilePath { get { return Environment.GetEnvironmentVariable("USERPROFILE"); } }
         public string Path { get { return Environment.GetEnvironmentVariable("PATH"); } }
         public string NewLine { get { return Environment.NewLine; } }

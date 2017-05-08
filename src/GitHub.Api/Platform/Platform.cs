@@ -24,14 +24,17 @@ namespace GitHub.Unity
             }
         }
 
-        public Task<IPlatform> Initialize(IProcessManager processManager)
+        public Task<IPlatform> Initialize(IEnvironment environment, IProcessManager processManager)
         {
             ProcessManager = processManager;
 
             if (CredentialManager == null)
             {
                 CredentialManager = new GitCredentialManager(Environment, processManager);
+                Keychain = new Keychain(environment, CredentialManager);
+                Keychain.Initialize();
             }
+
             return TaskEx.FromResult(this as IPlatform);
         }
 
@@ -40,6 +43,6 @@ namespace GitHub.Unity
         public ICredentialManager CredentialManager { get; private set; }
         public IProcessManager ProcessManager { get; private set; }
         public IUIDispatcher UIDispatcher { get; private set; }
-
+        public IKeychain Keychain { get; private set; }
     }
 }

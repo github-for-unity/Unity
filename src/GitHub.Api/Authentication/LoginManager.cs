@@ -20,10 +20,10 @@ namespace GitHub.Unity
     /// </summary>
     class LoginManager : ILoginManager
     {
-        private static readonly ILogging logger = Logging.GetLogger<LoginManager>();
+        private readonly ILogging logger = Logging.GetLogger<LoginManager>();
 
         private readonly string[] scopes = { "user", "repo", "gist", "write:public_key" };
-        private readonly ICredentialManager credentialManager;
+        private readonly IKeychain keychain;
         private readonly string clientId;
         private readonly string clientSecret;
         private readonly string authorizationNote;
@@ -39,17 +39,17 @@ namespace GitHub.Unity
         /// <param name="authorizationNote">An note to store with the authorization.</param>
         /// <param name="fingerprint">The machine fingerprint.</param>
         public LoginManager(
-            ICredentialManager credentialManager,
+            IKeychain keychain,
             string clientId,
             string clientSecret,
             string authorizationNote = null,
             string fingerprint = null)
         {
-            Guard.ArgumentNotNull(credentialManager, nameof(credentialManager));
+            Guard.ArgumentNotNull(keychain, nameof(keychain));
             Guard.ArgumentNotNullOrWhiteSpace(clientId, nameof(clientId));
             Guard.ArgumentNotNullOrWhiteSpace(clientSecret, nameof(clientSecret));
 
-            this.credentialManager = credentialManager;
+            this.keychain = keychain;
             this.clientId = clientId;
             this.clientSecret = clientSecret;
             this.authorizationNote = authorizationNote;
@@ -68,11 +68,11 @@ namespace GitHub.Unity
             Guard.ArgumentNotNullOrWhiteSpace(username, nameof(username));
             Guard.ArgumentNotNullOrWhiteSpace(password, nameof(password));
 
-            var credential = new Credential(host, username, password);
-
             // Start by saving the username and password, these will be used by the `IGitHubClient`
             // until an authorization token has been created and acquired:
-            await credentialManager.Save(credential);
+            var keychainAdapter = keychain.Connect(host);
+            var keychainItem = new Credential(host, username, password);
+            keychainAdapter.Set(keychainItem);
 
             var newAuth = new NewAuthorization
             {
@@ -110,7 +110,7 @@ namespace GitHub.Unity
             {
                 logger.Warning(e, "Login LoginAttemptsExceededException: {0}", e.Message);
 
-                await credentialManager.Delete(host);
+                keychain.Clear(host);
                 return new LoginResultData(LoginResultCodes.LockedOut, Localization.LockedOut, host);
             }
             catch (ApiValidationException e)
@@ -118,7 +118,7 @@ namespace GitHub.Unity
                 logger.Warning(e, "Login ApiValidationException: {0}", e.Message);
 
                 var message = e.ApiError.FirstErrorMessageSafe();
-                await credentialManager.Delete(host);
+                keychain.Clear(host);
                 return new LoginResultData(LoginResultCodes.Failed, message, host);
             }
             catch (Exception e)
@@ -134,13 +134,14 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    await credentialManager.Delete(host);
+                    keychain.Clear(host);
                     return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
                 }
             }
 
-            credential.UpdateToken(auth.Token);
-            await credentialManager.Save(credential);
+            keychainAdapter.UpdateToken(auth.Token);
+            await keychain.Flush(host);
+
             return new LoginResultData(LoginResultCodes.Success, "Success", host);
         }
 
@@ -160,10 +161,11 @@ namespace GitHub.Unity
                     twofacode);
                 EnsureNonNullAuthorization(auth);
 
-                var credential = await credentialManager.Load(host);
-                credential.UpdateToken(auth.Token);
-                
-                await credentialManager.Save(credential);
+
+                var keychainAdapter = keychain.Connect(host);
+                keychainAdapter.UpdateToken(auth.Token);
+                await keychain.Flush(host);
+
                 return new LoginResultData(LoginResultCodes.Success, "", host);
             }
             catch (TwoFactorAuthorizationException e)
@@ -177,27 +179,27 @@ namespace GitHub.Unity
                 logger.Debug(e, "2FA ApiValidationException: {0}", e.Message);
 
                 var message = e.ApiError.FirstErrorMessageSafe();
-                await credentialManager.Delete(host);
+                keychain.Clear(host);
                 return new LoginResultData(LoginResultCodes.Failed, message, host);
             }
             catch (Exception e)
             {
                 logger.Debug(e, "Exception: {0}", e.Message);
 
-                await credentialManager.Delete(host);
+                keychain.Clear(host);
                 return new LoginResultData(LoginResultCodes.Failed, e.Message, host);
             }
         }
 
         /// <inheritdoc/>
-        public async Task Logout(UriString hostAddress, IGitHubClient client)
+        public async Task Logout(UriString hostAddress)
         {
             Guard.ArgumentNotNull(hostAddress, nameof(hostAddress));
-            Guard.ArgumentNotNull(client, nameof(client));
 
             logger.Trace("Logout");
 
-            await credentialManager.Delete(hostAddress);
+            keychain.Clear(hostAddress);
+            await keychain.Flush(hostAddress);
         }
 
         private async Task<ApplicationAuthorization> CreateAndDeleteExistingApplicationAuthorization(
