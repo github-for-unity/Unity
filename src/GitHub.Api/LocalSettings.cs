@@ -16,7 +16,7 @@ namespace GitHub.Unity
         public abstract void Unset(string key);
 
         protected virtual string SettingsFileName { get; set; }
-        protected virtual string SettingsPath { get; set; }
+        protected virtual NPath SettingsPath { get; set; }
     }
 
     class JsonBackedSettings : BaseSettings
@@ -44,7 +44,7 @@ namespace GitHub.Unity
 
         public override void Initialize()
         {
-            cachePath = Path.Combine(SettingsPath, SettingsFileName);
+            cachePath = SettingsPath.Combine(SettingsFileName);
             LoadFromCache(cachePath);
         }
 
@@ -157,7 +157,7 @@ namespace GitHub.Unity
 
         private class CacheData
         {
-            public Dictionary<string, object> GitHubUnity = new Dictionary<string, object>();
+            public Dictionary<string, object> GitHubUnity { get; set; } = new Dictionary<string, object>();
         }
 
     }
@@ -179,9 +179,9 @@ namespace GitHub.Unity
     {
         private const string settingsFileName = "settings.json";
 
-        public UserSettings(IEnvironment environment, string path)
+        public UserSettings(IEnvironment environment)
         {
-            SettingsPath = environment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData).ToNPath().Combine(path);
+            SettingsPath = environment.UserCachePath;
         }
 
         protected override string SettingsFileName { get { return settingsFileName; } }
@@ -191,9 +191,9 @@ namespace GitHub.Unity
     {
         private const string settingsFileName = "settings.json";
 
-        public SystemSettings(IEnvironment environment, string path)
+        public SystemSettings(IEnvironment environment)
         {
-            SettingsPath = environment.GetSpecialFolder(Environment.SpecialFolder.ApplicationData).ToNPath().Combine(path);
+            SettingsPath = environment.SystemCachePath;
         }
 
         protected override string SettingsFileName { get { return settingsFileName; } }
