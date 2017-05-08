@@ -84,6 +84,10 @@ namespace GitHub.Unity
             Environment.UnityAssetsPath = assetsPath.ToString(SlashMode.Forward);
             Environment.UnityProjectPath = projectPath.ToString(SlashMode.Forward);
 
+            Environment.ConnectionCachePath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData)
+                                             .ToNPath()
+                                             .Combine(AppConfiguration.ApplicationName, "connections.json");
+
             base.InitializeEnvironment();
         }
 

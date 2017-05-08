@@ -8,6 +8,7 @@ namespace GitHub.Unity
     {
         protected static readonly ILogging logger = Logging.GetLogger<IApplicationManager>();
 
+        private AppConfiguration appConfiguration;
         private RepositoryLocator repositoryLocator;
         private RepositoryManager repositoryManager;
 
@@ -30,8 +31,7 @@ namespace GitHub.Unity
 
             Platform = new Platform(Environment, FileSystem, uiDispatcher);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
-            Platform.Initialize(ProcessManager);
-            ApiClientFactory.Instance = new ApiClientFactory(new AppConfiguration(), Platform.CredentialManager);
+            Platform.Initialize(Environment, ProcessManager);
         }
 
         public virtual Task Run()
@@ -176,6 +176,14 @@ namespace GitHub.Unity
         public void Dispose()
         {
             Dispose(true);
+        }
+
+        public AppConfiguration AppConfiguration
+        {
+            get
+            {
+                return appConfiguration ?? (appConfiguration = new AppConfiguration());
+            }
         }
 
         public virtual IEnvironment Environment { get; set; }
