@@ -120,22 +120,25 @@ namespace GitHub.Unity
 
             await RestartRepository();
 
-            string credentialHelper = null;
-            var gitConfigGetTask = new GitConfigGetTask(Environment, ProcessManager,
-                new TaskResultDispatcher<string>(s => {
-                    credentialHelper = s;
-                }), "credential.helper", GitConfigSource.Global);
-
-
-            await gitConfigGetTask.RunAsync(CancellationToken.None);
-
-            if (credentialHelper != "wincred")
+            if (Environment.IsWindows)
             {
-                var gitConfigSetTask = new GitConfigSetTask(Environment, ProcessManager,
-                    new TaskResultDispatcher<string>(s => { }), "credential.helper", "wincred",
-                    GitConfigSource.Global);
+                string credentialHelper = null;
+                var gitConfigGetTask = new GitConfigGetTask(Environment, ProcessManager,
+                    new TaskResultDispatcher<string>(s => {
+                        credentialHelper = s;
+                    }), "credential.helper", GitConfigSource.Global);
 
-                await gitConfigSetTask.RunAsync(CancellationToken.None);
+
+                await gitConfigGetTask.RunAsync(CancellationToken.None);
+
+                if (credentialHelper != "wincred")
+                {
+                    var gitConfigSetTask = new GitConfigSetTask(Environment, ProcessManager,
+                        new TaskResultDispatcher<string>(s => { }), "credential.helper", "wincred",
+                        GitConfigSource.Global);
+
+                    await gitConfigSetTask.RunAsync(CancellationToken.None);
+                }
             }
         }
 
