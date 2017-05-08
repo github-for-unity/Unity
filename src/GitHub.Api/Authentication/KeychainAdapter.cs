@@ -19,6 +19,11 @@ namespace GitHub.Unity
             Credential.UpdateToken(token);
         }
 
+        public void Clear()
+        {
+            OctokitCredentials = Credentials.Anonymous;
+        }
+
         /// <summary>
         /// Implementation for Octokit
         /// </summary>
