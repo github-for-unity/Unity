@@ -28,6 +28,8 @@ namespace GitHub.Unity
     /// </summary>
     class Keychain : IKeychain
     {
+        const string ConnectionFile = "connections.json";
+
         private readonly ILogging logger = Logging.GetLogger<Keychain>();
 
         private readonly ICredentialManager credentialManager;
@@ -42,7 +44,7 @@ namespace GitHub.Unity
 
         public Keychain(IEnvironment environment, ICredentialManager credentialManager)
         {
-            cachePath = environment.ConnectionCachePath;
+            cachePath = environment.UserCachePath.Combine(ConnectionFile);
             this.credentialManager = credentialManager;
         }
 

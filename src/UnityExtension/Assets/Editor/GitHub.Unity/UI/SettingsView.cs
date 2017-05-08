@@ -676,6 +676,8 @@ namespace GitHub.Unity
             if (EditorGUI.EndChangeCheck())
             {
                 Logging.TracingEnabled = traceLogging;
+                EntryPoint.AppManager.UserSettings.Set("EnableTraceLogging", traceLogging);
+
                 GUI.FocusControl(null);
             }
 
