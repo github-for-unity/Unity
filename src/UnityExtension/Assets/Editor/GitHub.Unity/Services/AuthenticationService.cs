@@ -10,10 +10,10 @@ namespace GitHub.Unity
 
         private LoginResult loginResultData;
 
-        public AuthenticationService(IAppConfiguration appConfiguration, IKeychain keychain)
+        public AuthenticationService(UriString host, IAppConfiguration appConfiguration, IKeychain keychain)
         {
             this.appConfiguration = appConfiguration;
-            client = ApiClient.Create(UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri), keychain, appConfiguration);
+            client = ApiClient.Create(host, keychain, appConfiguration);
         }
 
         public void Login(string username, string password, Action<string> twofaRequired, Action<bool, string> authResult)
