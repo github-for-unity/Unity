@@ -19,9 +19,10 @@ namespace GitHub.Unity
         string UnityAssetsPath { get; set; }
         string UnityProjectPath { get; set; }
         string ExtensionInstallPath { get; set; }
-        NPath ConnectionCachePath { get; set; }
+        NPath UserCachePath { get; set; }
         string RepositoryPath { get; }
         string GitInstallPath { get; }
         IRepository Repository { get; set; }
+        NPath SystemCachePath { get; set; }
     }
 }
