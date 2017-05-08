@@ -110,7 +110,7 @@ namespace GitHub.Unity
             {
                 logger.Warning(e, "Login LoginAttemptsExceededException: {0}", e.Message);
 
-                await keychain.Clear(host);
+                keychain.Clear(host);
                 return new LoginResultData(LoginResultCodes.LockedOut, Localization.LockedOut, host);
             }
             catch (ApiValidationException e)
@@ -118,7 +118,7 @@ namespace GitHub.Unity
                 logger.Warning(e, "Login ApiValidationException: {0}", e.Message);
 
                 var message = e.ApiError.FirstErrorMessageSafe();
-                await keychain.Clear(host);
+                keychain.Clear(host);
                 return new LoginResultData(LoginResultCodes.Failed, message, host);
             }
             catch (Exception e)
@@ -134,7 +134,7 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    await keychain.Clear(host);
+                    keychain.Clear(host);
                     return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
                 }
             }
@@ -161,11 +161,11 @@ namespace GitHub.Unity
                     twofacode);
                 EnsureNonNullAuthorization(auth);
 
-                var credentialStore = await keychain.Load(host);
-                var credentials = credentialStore.Credential;
-                credentials.UpdateToken(auth.Token);
-                
-                keychain.Save(credentials);
+
+                var keychainAdapter = keychain.Connect(host);
+                keychainAdapter.UpdateToken(auth.Token);
+                await keychain.Flush(host);
+
                 return new LoginResultData(LoginResultCodes.Success, "", host);
             }
             catch (TwoFactorAuthorizationException e)
@@ -179,27 +179,27 @@ namespace GitHub.Unity
                 logger.Debug(e, "2FA ApiValidationException: {0}", e.Message);
 
                 var message = e.ApiError.FirstErrorMessageSafe();
-                await keychain.Clear(host);
+                keychain.Clear(host);
                 return new LoginResultData(LoginResultCodes.Failed, message, host);
             }
             catch (Exception e)
             {
                 logger.Debug(e, "Exception: {0}", e.Message);
 
-                await keychain.Clear(host);
+                keychain.Clear(host);
                 return new LoginResultData(LoginResultCodes.Failed, e.Message, host);
             }
         }
 
         /// <inheritdoc/>
-        public async Task Logout(UriString hostAddress, IGitHubClient client)
+        public async Task Logout(UriString hostAddress)
         {
             Guard.ArgumentNotNull(hostAddress, nameof(hostAddress));
-            Guard.ArgumentNotNull(client, nameof(client));
 
             logger.Trace("Logout");
 
-            await keychain.Clear(hostAddress);
+            keychain.Clear(hostAddress);
+            await keychain.Flush(hostAddress);
         }
 
         private async Task<ApplicationAuthorization> CreateAndDeleteExistingApplicationAuthorization(

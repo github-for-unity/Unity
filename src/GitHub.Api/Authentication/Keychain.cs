@@ -129,30 +129,30 @@ namespace GitHub.Unity
             cachePath.WriteAllText(json);
         }
 
-        public async Task Clear(UriString host)
+        /// <summary>
+        /// Call Flush() to apply these changes
+        /// </summary>
+        public void Clear(UriString host)
         {
             logger.Trace("Clear Host:{0}", host);
        
             // delete connection in the connection list
             connectionCache.Remove(host);
-            WriteCacheToDisk();
 
             // delete credential in octokit store
-            keychainAdapters.Remove(host);
-
-            // delete credential from credential manager
-            await credentialManager.Delete(host);
+            FindOrCreateAdapter(host).Clear();
         }
 
-        public async Task ClearAll()
+        /// <summary>
+        /// Call Flush() to apply these changes
+        /// </summary>
+        public void Clear()
         {
-            var uriStrings = keychainAdapters.Keys.Union(connectionCache.Keys).Distinct().ToArray();
-            logger.Trace("ClearAll Count:{0}", uriStrings.Length);
-
-            foreach (var uriString in uriStrings)
+            foreach (var k in keychainAdapters.Values.ToArray())
             {
-                await Clear(uriString);
+                k.Clear();
             }
+            connectionCache.Clear();
         }
 
         public async Task Flush(UriString host)
@@ -171,6 +171,8 @@ namespace GitHub.Unity
             }
 
             // create new connection in the connection cache for this host
+            if (connectionCache.ContainsKey(host))
+                connectionCache.Remove(host);
             connectionCache.Add(host, new Connection { Host = host, Username = credentialAdapter.OctokitCredentials.Login });
 
             // flushes credential cache to disk (host and username only)
