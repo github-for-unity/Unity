@@ -140,7 +140,7 @@ namespace GitHub.Unity
 
         private void RunLocksUpdateOnMainThread(IEnumerable<GitLock> locks)
         {
-            TaskRunner.ScheduleMainThread(() => OnLocksUpdate(locks));
+            EntryPoint.AppManager.TaskManager.ScheduleUI(() => OnLocksUpdate(locks));
         }
 
         private void OnLocksUpdate(IEnumerable<GitLock> update)
@@ -222,34 +222,16 @@ namespace GitHub.Unity
             GUI.enabled = !busy;
             if (GUILayout.Button(GitConfigUserSave, GUILayout.ExpandWidth(false)))
             {
-                try
+                var needsSaving = gitName != Repository.User.Name || gitEmail != Repository.User.Email;
+                if (needsSaving)
                 {
+                    GitClient.SetConfig("user.name", gitName, GitConfigSource.User)
+                        .ContinueWith((success, value) => { if (success) Repository.User.Name = value; })
+                        .Then(
+                    GitClient.SetConfig("user.email", gitEmail, GitConfigSource.User)
+                        .ContinueWith((success, value) => { if (success) Repository.User.Email = value; }))
+                    .Finally(_ => busy = false);
                     busy = true;
-                    var needsSaving = gitName != Repository.User.Name || gitEmail != Repository.User.Email;
-                    if (gitName != Repository.User.Name)
-                    {
-                        TaskRunner.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                                new TaskResultDispatcher<string>(value =>
-                                {
-                                    Repository.User.Name = value;
-                                }), "user.name", gitName, GitConfigSource.User));
-                    }
-                    if (gitEmail != Repository.User.Email)
-                    {
-                        TaskRunner.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                                new TaskResultDispatcher<string>(value =>
-                                {
-                                    Repository.User.Email = value;
-                                }), "user.email", gitEmail, GitConfigSource.User));
-                    }
-                    if (needsSaving)
-                        TaskRunner.Add(new SimpleTask(() => busy = false, ThreadingHelper.MainThreadScheduler));
-                    else
-                        busy = false;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Debug(ex);
                 }
             }
             GUI.enabled = true;
@@ -271,8 +253,8 @@ namespace GitHub.Unity
                         (!String.IsNullOrEmpty(repositoryRemoteUrl) && repositoryRemoteUrl != Repository.CurrentRemote.Value.Name);
                     if (needsSaving)
                     {
-                        Repository.SetupRemote(repositoryRemoteName, repositoryRemoteUrl);
-                        TaskRunner.Add(new SimpleTask(() => busy = false, ThreadingHelper.MainThreadScheduler));
+                        Repository.SetupRemote(repositoryRemoteName, repositoryRemoteUrl)
+                            .ContinueWithUI(_ => busy = false, true);
                     }
                     else
                         busy = false;
@@ -415,7 +397,8 @@ namespace GitHub.Unity
 
                         if (GUILayout.Button(RefreshIssuesButton))
                         {
-                            EvaluateProjectConfigurationTask.Schedule();
+                            // TODO: Fix this
+                            //EvaluateProjectConfigurationTask.Schedule();
                         }
 
                         if (GUILayout.Button(SelectEditorSettingsButton))
@@ -537,7 +520,8 @@ namespace GitHub.Unity
                     if (EditorGUI.EndChangeCheck())
                     {
                         GitIgnoreRule.Save(gitIgnoreRulesSelection, newEffect, newFile, newLine, newDescription);
-                        EvaluateProjectConfigurationTask.Schedule();
+                        // TODO: Fix this
+                        //EvaluateProjectConfigurationTask.Schedule();
                     }
                 }
                 GUILayout.EndVertical();
@@ -598,7 +582,7 @@ namespace GitHub.Unity
                             GUILayout.FlexibleSpace();
                             if (GUILayout.Button("Unlock"))
                             {
-                                Repository.ReleaseLock(null, lck.Path, false);
+                                Repository.ReleaseLock(lck.Path, false);
                             }
                         }
                         GUILayout.EndHorizontal();
@@ -642,18 +626,15 @@ namespace GitHub.Unity
                 // Find button - for attempting to locate a new install
                 if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
                 {
-                    var task = new FindGitTask(
-                        EntryPoint.Environment, EntryPoint.ProcessManager,
-                        new MainThreadTaskResultDispatcher<string>(
-                            path =>
+                    var task = new FindGitTask(EntryPoint.Environment, Manager.CancellationToken)
+                        .Finally((success, path) =>
+                        {
+                            if (success && !string.IsNullOrEmpty(path))
                             {
-                                if (!string.IsNullOrEmpty(path))
-                                {
-                                    EntryPoint.Environment.GitExecutablePath = path;
-                                    GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
-                                }
-                            })
-                        );
+                                EntryPoint.Environment.GitExecutablePath = path;
+                                GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+                            }
+                        });
                 }
             }
             GUILayout.EndHorizontal();

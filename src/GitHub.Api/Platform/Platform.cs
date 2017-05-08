@@ -1,13 +1,13 @@
+using GitHub.Unity;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
     class Platform : IPlatform
     {
-        public Platform(IEnvironment environment, IFileSystem filesystem, IUIDispatcher uiDispatcher)
+        public Platform(IEnvironment environment, IFileSystem filesystem)
         {
             Environment = environment;
-            UIDispatcher = uiDispatcher;
 
             NPath localAppData;
             NPath commonAppData;
@@ -35,13 +35,13 @@ namespace GitHub.Unity
             Environment.SystemCachePath = commonAppData.Combine(ApplicationInfo.ApplicationName);
         }
 
-        public Task<IPlatform> Initialize(IEnvironment environment, IProcessManager processManager)
+        public Task<IPlatform> Initialize(IProcessManager processManager, ITaskManager taskManager, CancellationToken token)
         {
             ProcessManager = processManager;
 
             if (CredentialManager == null)
             {
-                CredentialManager = new GitCredentialManager(Environment, processManager);
+                CredentialManager = new GitCredentialManager(Environment, processManager, taskManager, token);
                 Keychain = new Keychain(environment, CredentialManager);
                 Keychain.Initialize();
             }
@@ -53,7 +53,6 @@ namespace GitHub.Unity
         public IProcessEnvironment GitEnvironment { get; private set; }
         public ICredentialManager CredentialManager { get; private set; }
         public IProcessManager ProcessManager { get; private set; }
-        public IUIDispatcher UIDispatcher { get; private set; }
         public IKeychain Keychain { get; private set; }
     }
 }

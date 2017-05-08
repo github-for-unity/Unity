@@ -1,21 +1,14 @@
-using System;
 using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
 {
-    class BranchListOutputProcessor : BaseOutputProcessor
+    class BranchListOutputProcessor : BaseOutputListProcessor<GitBranch>
     {
         private static readonly Regex trackingBranchRegex = new Regex(@"\[[\w]+\/.*\]");
 
-        private static readonly ILogging logger = Logging.GetLogger<BranchListOutputProcessor>();
-
-        public event Action<GitBranch> OnBranch;
-
         public override void LineReceived(string line)
         {
-            base.LineReceived(line);
-
-            if (line == null || OnBranch == null)
+            if (line == null)
                 return;
 
             var proc = new LineParser(line);
@@ -47,7 +40,7 @@ namespace GitHub.Unity
 
             var branch = new GitBranch(name, trackingName, active);
 
-            OnBranch(branch);
+            RaiseOnEntry(branch);
         }
     }
 }

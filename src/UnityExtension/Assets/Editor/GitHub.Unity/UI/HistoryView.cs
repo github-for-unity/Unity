@@ -98,7 +98,7 @@ namespace GitHub.Unity
 
         private void UpdateStatusOnMainThread(GitStatus status)
         {
-            TaskRunner.ScheduleMainThread(() => UpdateStatus(status));
+            Manager.TaskManager.ScheduleUI(() => UpdateStatus(status));
         }
 
         private void UpdateStatus(GitStatus status)
@@ -110,7 +110,7 @@ namespace GitHub.Unity
 
         private void UpdateLogOnMainThread()
         {
-            TaskRunner.ScheduleMainThread(UpdateLog);
+            Manager.TaskManager.ScheduleUI(UpdateLog);
         }
 
         private void UpdateLog()
@@ -124,10 +124,8 @@ namespace GitHub.Unity
 
         private void RefreshLog()
         {
-            ITask task = new GitLogTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                new MainThreadTaskResultDispatcher<IEnumerable<GitLogEntry>>(OnLogUpdate),
-                EntryPoint.GitObjectFactory);
-            TaskRunner.Add(task);
+            GitClient.Log()
+                .Finally((success, log) => { if (success) OnLogUpdate(log); });
         }
 
         public override void Refresh()
@@ -273,8 +271,7 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
                 {
-                    var repoInit = new RepositoryInitializer(EntryPoint.Environment, EntryPoint.ProcessManager, new TaskQueueScheduler(), EntryPoint.AppManager);
-                    repoInit.Run();
+                    new RepositoryInitializer(Manager).Run();
                 }
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
@@ -642,34 +639,58 @@ namespace GitHub.Unity
             var status = Repository.CurrentStatus;
             if (status.Entries != null && status.GetEntriesExcludingIgnoredAndUntracked().Any())
             {
-                EntryPoint.TaskResultDispatcher.ReportFailure(FailureSeverity.Critical, "Pull", "You need to commit your changes before pulling.");
+                EditorUtility.DisplayDialog("Pull", "You need to commit your changes before pulling.", "Cancel");
             }
             else
             {
                 var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
-                var resultDispatcher = new MainThreadTaskResultDispatcher<string>(_ =>
-                {
-                    EditorUtility.DisplayDialog(Localization.PullActionTitle,
-                        String.Format(Localization.PullSuccessDescription, remote),
-                        Localization.Ok);
-                });
-
-                Repository.Pull(resultDispatcher);
+                Repository.Pull()
+                    // we need the error propagated from the original git command to handle things appropriately
+                    .ContinueWith(success =>
+                    {
+                        if (!success)
+                        {
+                            // if Pull fails we need to parse the output of the command, figure out
+                            // whether pull triggered a merge or a rebase, and abort the operation accordingly
+                            // (either git rebase --abort or git merge --abort)
+                        }
+                        return success;
+                    })
+                    .Finally(success => {
+                        if (success)
+                        {
+                            EditorUtility.DisplayDialog(Localization.PullActionTitle,
+                                String.Format(Localization.PullSuccessDescription, remote),
+                            Localization.Ok);
+                        }
+                        else
+                        {
+                            EditorUtility.DisplayDialog(Localization.PullActionTitle,
+                                Localization.PullFailureDescription,
+                            Localization.Cancel);
+                        }
+                    });
             }
         }
 
         private void Push()
         {
             var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
-            var resultDispatcher = new TaskResultDispatcher<string>(_ =>
-            {
-                //EditorUtility.DisplayDialog(Localization.PushActionTitle,
-                //    String.Format(Localization.PushSuccessDescription, remote),
-                //    Localization.Ok);
-                RefreshLog();
-            });
-
-            Repository.Push(resultDispatcher);
+            Repository.Push()
+                .Finally(success => {
+                    if (success)
+                    {
+                        EditorUtility.DisplayDialog(Localization.PushActionTitle,
+                            String.Format(Localization.PushSuccessDescription, remote),
+                        Localization.Ok);
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog(Localization.PushActionTitle,
+                            Localization.PushFailureDescription,
+                        Localization.Cancel);
+                    }
+                });
         }
 
         void drawTimelineRectAroundIconRect(Rect parentRect, Rect iconRect)

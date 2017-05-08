@@ -20,26 +20,24 @@ namespace GitHub.Unity
             UIScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             ThreadingHelper.MainThreadScheduler = UIScheduler;
             CancellationTokenSource = new CancellationTokenSource();
+            TaskManager = new TaskManager(UIScheduler, CancellationTokenSource);
         }
 
-        protected void Initialize(IUIDispatcher uiDispatcher)
+        protected void Initialize()
         {
-            // accessing Environment triggers environment initialization if it hasn't happened yet
-            Platform = new Platform(Environment, FileSystem, uiDispatcher);
-
             UserSettings = new UserSettings(Environment);
             UserSettings.Initialize();
             Logging.TracingEnabled = UserSettings.Get("EnableTraceLogging", false);
-
             LocalSettings = new LocalSettings(Environment);
             LocalSettings.Initialize();
 
             SystemSettings = new SystemSettings(Environment);
             SystemSettings.Initialize();
 
-
+            Platform = new Platform(Environment, FileSystem);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
-            Platform.Initialize(Environment, ProcessManager);
+            Platform.Initialize(ProcessManager);
+            GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager, CancellationToken);
         }
 
         public virtual Task Run()
@@ -95,7 +93,7 @@ namespace GitHub.Unity
                 try
                 {
                     var repositoryManagerFactory = new RepositoryManagerFactory();
-                    repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskRunner, repositoryRoot, CancellationToken);
+                    repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, GitClient, repositoryRoot, CancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -199,9 +197,10 @@ namespace GitHub.Unity
         public IPlatform Platform { get; protected set; }
         public virtual IProcessEnvironment GitEnvironment { get; set; }
         public IProcessManager ProcessManager { get; protected set; }
-        public ITaskResultDispatcher MainThreadResultDispatcher { get; protected set; }
         public CancellationToken CancellationToken { get; protected set; }
-        public ITaskRunner TaskRunner { get; protected set; }
+        public ITaskManager TaskManager { get; protected set; }
+        public IGitClient GitClient { get; protected set; }
+
 
         protected CancellationTokenSource CancellationTokenSource { get; private set; }
         protected TaskScheduler UIScheduler { get; private set; }

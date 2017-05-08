@@ -68,7 +68,7 @@ namespace GitHub.Unity
 
         private void RunRefreshEmbeddedOnMainThread()
         {
-            TaskRunner.ScheduleMainThread(RefreshEmbedded);
+            EntryPoint.AppManager.TaskManager.ScheduleUI(RefreshEmbedded);
         }
 
         private void HandleRepositoryBranchChangeEvent(string obj)
@@ -510,10 +510,8 @@ namespace GitHub.Unity
                     // Effectuate create
                     if (createBranch)
                     {
-                        var task = new GitBranchCreateTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                            new MainThreadTaskResultDispatcher<string>(_ => Refresh()),
-                            newBranchName, selectedNode.Name);
-                        TaskRunner.Add(task);
+                        GitClient.CreateBranch(newBranchName, selectedNode.Name)
+                            .Finally(success => { if (success) Refresh(); });
                     }
 
                     // Cleanup
@@ -617,17 +615,33 @@ namespace GitHub.Unity
                         EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, node.Name), ConfirmSwitchOK,
                             ConfirmSwitchCancel))
                     {
-                        var task = new GitSwitchBranchesTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                            new MainThreadTaskResultDispatcher<string>(_ => Refresh()),
-                            node.Name);
-                        TaskRunner.Add(task);
+                        GitClient.SwitchBranch(node.Name)
+                            .Finally(success =>
+                            {
+                                if (success)
+                                    Refresh();
+                                else
+                                {
+                                    EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
+                                        String.Format(Localization.SwitchBranchFailedDescription, node.Name),
+                                    Localization.Cancel);
+                                }
+                            });
                     }
                     else if (node.Type == NodeType.RemoteBranch)
                     {
-                        var task = new GitBranchCreateTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                            new MainThreadTaskResultDispatcher<string>(_ => Refresh()),
-                            selectedNode.Name.Substring(selectedNode.Name.IndexOf('/') + 1), selectedNode.Name);
-                        TaskRunner.Add(task);
+                        GitClient.CreateBranch(selectedNode.Name.Substring(selectedNode.Name.IndexOf('/') + 1), selectedNode.Name)
+                            .Finally(success =>
+                            {
+                                if (success)
+                                    Refresh();
+                                else
+                                {
+                                    EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
+                                        String.Format(Localization.SwitchBranchFailedDescription, node.Name),
+                                    Localization.Cancel);
+                                }
+                            });
                     }
                 }
             }

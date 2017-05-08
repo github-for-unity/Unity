@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
 {
-    class StatusOutputProcessor : BaseOutputProcessor
+    class StatusOutputProcessor : BaseOutputProcessor<GitStatus?>
     {
         private static readonly Regex branchTrackedAndDelta = new Regex(@"(.*)\.\.\.(.*)\s\[(.*)\]",
             RegexOptions.Compiled);
@@ -21,18 +21,12 @@ namespace GitHub.Unity
 
         public StatusOutputProcessor(IGitObjectFactory gitObjectFactory)
         {
+            Guard.ArgumentNotNull(gitObjectFactory, "gitObjectFactory");
             this.gitObjectFactory = gitObjectFactory;
         }
 
         public override void LineReceived(string line)
         {
-            base.LineReceived(line);
-
-            if (OnStatus == null)
-            {
-                return;
-            }
-
             if (line == null)
             {
                 ReturnStatus();
@@ -202,7 +196,7 @@ namespace GitHub.Unity
             if (gitStatus.Entries == null)
                 return;
 
-            OnStatus(gitStatus);
+            RaiseOnEntry(gitStatus);
 
             gitStatus = new GitStatus();
         }
@@ -222,7 +216,5 @@ namespace GitHub.Unity
         {
             Logger.Error("Unexpected Input:\"{0}\"", line);
         }
-
-        public event Action<GitStatus> OnStatus;
     }
 }

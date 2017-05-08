@@ -4,9 +4,11 @@ namespace GitHub.Unity
 {
     interface IProcessManager
     {
-        IProcess Configure(string processName, string processArguments, string gitRoot);
-        IProcess Reconnect(int i);
+        T ConfigureGitProcess<T>(T processTask, bool withInput = false) where T : IProcess;
+        T Configure<T>(T processTask, string executableFileName, string arguments, string workingDirectory = null, bool withInput = false)
+            where T : IProcess;
+        IProcess Reconnect(IProcess processTask, int i);
         CancellationToken CancellationToken { get; }
-        void RunCommandLineWindow(string workingDirectory);
+        IProcess RunCommandLineWindow(string workingDirectory);
     }
 }

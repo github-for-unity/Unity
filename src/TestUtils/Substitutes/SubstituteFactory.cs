@@ -340,16 +340,16 @@ namespace TestUtils
             return Substitute.For<IPlatform>();
         }
 
-        public IRepositoryProcessRunner CreateRepositoryProcessRunner(
+        public IGitClient CreateRepositoryProcessRunner(
             CreateRepositoryProcessRunnerOptions options = null)
         {
             var logger = Logging.GetLogger("TestRepositoryProcessRunner");
 
             options = options ?? new CreateRepositoryProcessRunnerOptions();
 
-            var repositoryProcessRunner = Substitute.For<IRepositoryProcessRunner>();
+            var repositoryProcessRunner = Substitute.For<IGitClient>();
 
-            repositoryProcessRunner.PrepareGitPull(Arg.Any<ITaskResultDispatcher<string>>(), Args.String, Args.String)
+            repositoryProcessRunner.Pull(Arg.Any<ITaskResultDispatcher<string>>(), Args.String, Args.String)
                                    .Returns(info => {
                                        var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
                                        var remote = (string)info[1];
@@ -364,7 +364,7 @@ namespace TestUtils
                                        throw new NotImplementedException();
                                    });
 
-            repositoryProcessRunner.PrepareGitPush(Arg.Any<ITaskResultDispatcher<string>>(), Args.String, Args.String)
+            repositoryProcessRunner.Push(Arg.Any<ITaskResultDispatcher<string>>(), Args.String, Args.String)
                                    .Returns(info => {
                                        var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
                                        var remote = (string)info[1];
@@ -379,7 +379,7 @@ namespace TestUtils
                                        throw new NotImplementedException();
                                    });
 
-            repositoryProcessRunner.RunGitConfigGet(Arg.Any<ITaskResultDispatcher<string>>(), Args.String,
+            repositoryProcessRunner.GetConfig(Arg.Any<ITaskResultDispatcher<string>>(), Args.String,
                 Args.GitConfigSource).Returns(info => {
                 var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
                 var key = (string)info[1];
@@ -410,7 +410,7 @@ namespace TestUtils
             });
 
             var gitStatsResultsEnumerator = options.GitStatusResults?.GetEnumerator();
-            repositoryProcessRunner.PrepareGitStatus(Arg.Any<ITaskResultDispatcher<GitStatus>>()).Returns(info => {
+            repositoryProcessRunner.Status(Arg.Any<ITaskResultDispatcher<GitStatus>>()).Returns(info => {
                 var resultDispatcher = (ITaskResultDispatcher<GitStatus>)info[0];
 
                 GitStatus? result = null;
@@ -439,7 +439,7 @@ namespace TestUtils
             });
 
             var gitListLocksEnumerator = options.GitListLocksResults?.GetEnumerator();
-            repositoryProcessRunner.PrepareGitListLocks(Arg.Any<ITaskResultDispatcher<IEnumerable<GitLock>>>(), Args.Bool)
+            repositoryProcessRunner.ListLocks(Arg.Any<ITaskResultDispatcher<IEnumerable<GitLock>>>(), Args.Bool)
                 .Returns(info => {
                     var resultDispatcher = (ITaskResultDispatcher<IEnumerable<GitLock>>)info[0];
 

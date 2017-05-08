@@ -4,25 +4,18 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    class GitCommitFilesTask : BaseTask
+    class GitCommitFilesTask : ProcessTask<string>
     {
-        private readonly IEnvironment environment;
-        private readonly IProcessManager processManager;
-        private readonly ITaskResultDispatcher<string> resultDispatcher;
         private readonly IEnumerable<string> files;
         private readonly string message;
         private readonly string body;
 
-        public GitCommitFilesTask(IEnvironment environment, IProcessManager processManager,
-            ITaskResultDispatcher<string> resultDispatcher,
-            IEnumerable<string> files, string message, string body)
+        public GitCommitFilesTask(CancellationToken token, IEnumerable<string> files, string message, string body)
+            : base(token, new SimpleOutputProcessor())
         {
             Guard.ArgumentNotNull(files, "files");
             Guard.ArgumentNotNull(message, "message");
 
-            this.environment = environment;
-            this.processManager = processManager;
-            this.resultDispatcher = resultDispatcher;
             this.files = files;
             this.message = message;
             this.body = body;

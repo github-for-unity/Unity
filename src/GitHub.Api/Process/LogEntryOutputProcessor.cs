@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
 {
-    class LogEntryOutputProcessor : BaseOutputProcessor
+    class LogEntryOutputProcessor : BaseOutputListProcessor<GitLogEntry>
     {
         private readonly IGitObjectFactory gitObjectFactory;
-        public event Action<GitLogEntry> OnLogEntry;
         private ProcessingPhase phase;
         private string authorName;
         private string mergeA;
@@ -31,6 +29,7 @@ namespace GitHub.Unity
 
         public LogEntryOutputProcessor(IGitObjectFactory gitObjectFactory)
         {
+            Guard.ArgumentNotNull(gitObjectFactory, "gitObjectFactory");
             this.gitObjectFactory = gitObjectFactory;
             Reset();
         }
@@ -57,11 +56,6 @@ namespace GitHub.Unity
 
         public override void LineReceived(string line)
         {
-            base.LineReceived(line);
-
-            if (OnLogEntry == null)
-                return;
-
             if (line == null)
             {
                 ReturnGitLogEntry();
@@ -325,7 +319,7 @@ namespace GitHub.Unity
 
             if (time.HasValue)
             {
-                OnLogEntry?.Invoke(new GitLogEntry()
+                RaiseOnEntry(new GitLogEntry()
                 {
                     AuthorName = authorName,
                     CommitName = committerName,

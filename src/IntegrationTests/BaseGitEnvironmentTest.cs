@@ -10,6 +10,9 @@ namespace IntegrationTests
     {
         protected void InitializeEnvironment(NPath repoPath, bool enableEnvironmentTrace = false)
         {
+            var cts = new CancellationTokenSource();
+            var syncContext = new ThreadSynchronizationContext(cts.Token);
+
             Environment = new IntegrationTestEnvironment(SolutionDirectory, enableTrace: enableEnvironmentTrace) {
                 RepositoryPath = repoPath,
                 UnityProjectPath = repoPath
@@ -22,19 +25,18 @@ namespace IntegrationTests
 
             FileSystem.SetCurrentDirectory(repoPath);
 
-            Platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
+            TaskManager = new TaskManager(new SynchronizationContextTaskScheduler(syncContext), cts);
+            Platform = new Platform(Environment, FileSystem);
             GitEnvironment = Platform.GitEnvironment;
             ProcessManager = new ProcessManager(Environment, GitEnvironment);
-            Platform.Initialize(Environment, ProcessManager);
+
+            Platform.Initialize(ProcessManager, TaskManager, cts.Token);
 
             Environment.UnityProjectPath = repoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
 
-            var taskRunner = new TaskRunnerBase(new TestSynchronizationContext(), CancellationToken.None);
-            taskRunner.Run();
-
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, repoPath, CancellationToken.None);
+            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, repoPath, CancellationToken.None);
             RepositoryManager.Initialize();
             RepositoryManager.Start();
 
@@ -64,13 +66,14 @@ namespace IntegrationTests
             RepositoryManager?.Stop();
         }
 
-        public RepositoryManager RepositoryManager { get; private set; }
+        public IRepositoryManager RepositoryManager { get; private set; }
 
         public IEnvironment Environment { get; private set; }
 
-        protected Platform Platform { get; private set; }
+        protected IPlatform Platform { get; private set; }
 
-        protected ProcessManager ProcessManager { get; private set; }
+        protected IProcessManager ProcessManager { get; private set; }
+        protected ITaskManager TaskManager { get; private set; }
 
         protected IProcessEnvironment GitEnvironment { get; private set; }
 

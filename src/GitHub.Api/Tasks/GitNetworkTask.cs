@@ -9,11 +9,9 @@ namespace GitHub.Unity
     class GitNetworkTask : GitTask
     {
         private readonly ICredentialManager credentialManager;
-        private readonly IUIDispatcher uiDispatcher;
 
-        public GitNetworkTask(IEnvironment environment, IProcessManager processManager,
-            ITaskResultDispatcher<string> resultDispatcher,
-            ICredentialManager credentialManager, IUIDispatcher uiDispatcher)
+        public GitNetworkTask(IEnvironment environment,
+            ICredentialManager credentialManager)
             : base(environment, processManager, resultDispatcher)
         {
             Guard.ArgumentNotNull(credentialManager, nameof(credentialManager));

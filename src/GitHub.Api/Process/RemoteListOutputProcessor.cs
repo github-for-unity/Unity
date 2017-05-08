@@ -1,17 +1,13 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace GitHub.Unity
 {
-    class RemoteListOutputProcessor : BaseOutputProcessor
+    class RemoteListOutputProcessor : BaseOutputListProcessor<GitRemote>
     {
         private string currentName;
         private string currentUrl;
         private List<string> currentModes;
-
-        public event Action<GitRemote> OnRemote;
 
         public RemoteListOutputProcessor()
         {
@@ -20,11 +16,6 @@ namespace GitHub.Unity
 
         public override void LineReceived(string line)
         {
-            base.LineReceived(line);
-
-            if (OnRemote == null)
-                return;
-
             //origin https://github.com/github/VisualStudio.git (fetch)
 
             if (line == null)
@@ -65,8 +56,6 @@ namespace GitHub.Unity
 
         private void ReturnRemote()
         {
-            Debug.Assert(OnRemote != null, "OnRemote != null");
-
             var modes = currentModes.Select(s => s.ToLowerInvariant()).ToArray();
 
             var isFetch = modes.Contains("fetch");
@@ -110,7 +99,7 @@ namespace GitHub.Unity
                 currentUrl = currentUrl.Substring(user.Length + 1);
             }
 
-            OnRemote(new GitRemote
+            RaiseOnEntry(new GitRemote
             {
                 Name = currentName,
                 Host = host,

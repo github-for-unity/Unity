@@ -30,18 +30,16 @@ namespace GitHub.Unity
         [SerializeField] private HistoryView historyTab = new HistoryView();
         [SerializeField] private SettingsView settingsTab = new SettingsView();
 
-        private static bool initialized;
-
         [MenuItem(LaunchMenu)]
         public static void Window_GitHub()
         {
-            ShowWindow();
+            ShowWindow(EntryPoint.AppManager);
         }
 
         [MenuItem("GitHub/Show Window")]
         public static void GitHub_ShowWindow()
         {
-            ShowWindow();
+            ShowWindow(EntryPoint.AppManager);
         }
 
         [MenuItem("GitHub/Command Line")]
@@ -50,25 +48,18 @@ namespace GitHub.Unity
             EntryPoint.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
         }
 
-        public static void ShowWindow()
+        public static void ShowWindow(IApplicationManager applicationManager)
         {
             var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.InspectorWindow");
             var window = GetWindow<Window>(type);
-            window.Setup(EntryPoint.Environment.Repository);
+            window.Initialize(applicationManager);
             window.Show();
         }
 
-        public static void Initialize(IRepository repository)
+        public static IView GetView()
         {
-            initialized = true;
-            //RefreshRunner.Initialize();
-            foreach (Window window in Resources.FindObjectsOfTypeAll(typeof(Window)))
-            {
-                window.Setup(repository);
-                window.ShowActiveView();
-            }
+            return Resources.FindObjectsOfTypeAll(typeof(Window)).FirstOrDefault() as IView;
         }
-
 
         public override void OnEnable()
         {
@@ -80,21 +71,17 @@ namespace GitHub.Unity
 
             // Set window title
             titleContent = new GUIContent(Title, Styles.SmallLogo);
+
+            historyTab.Initialize(this);
+            changesTab.Initialize(this);
+            branchesTab.Initialize(this);
+            settingsTab.Initialize(this);
         }
 
         public override void Refresh()
         {
             if (ActiveTab != null)
                 ActiveTab.Refresh();
-        }
-
-        private void Setup(IRepository repository)
-        {
-            Repository = repository;
-            historyTab.Initialize(this);
-            changesTab.Initialize(this);
-            branchesTab.Initialize(this);
-            settingsTab.Initialize(this);
         }
 
         private void ShowActiveView()
@@ -128,13 +115,12 @@ namespace GitHub.Unity
         {
             base.OnGUI();
 
-            if (!initialized)
+            if (Repository == null)
             {
                 DoNotInitializedGUI();
                 return;
             }
-
-            if (Repository != null)
+            else
             {
                 DoHeaderGUI();
             }
@@ -256,12 +242,11 @@ namespace GitHub.Unity
         }
         private void SignOut(object obj)
         {
-            var task = new SimpleTask(() =>
+            var task = new SimpleTask(() => EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedCredentials.Host));
             {
                 EntryPoint.Keychain.Clear(Repository.CloneUrl.ToRepositoryUrl());
                 EntryPoint.Keychain.Flush(Repository.CloneUrl.ToRepositoryUrl());
             });
-            TaskRunner.Add(task);
         }
 
         private bool ValidateSettings()

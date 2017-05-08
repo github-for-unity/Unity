@@ -13,94 +13,64 @@ namespace GitHub.Unity
 
     class RepositoryInitializerBase
     {
-        private readonly IEnvironment environment;
-        private readonly IProcessManager processManager;
-        private readonly ITaskQueueScheduler scheduler;
-        private readonly IApplicationManager applicationManager;
+        protected IApplicationManager ApplicationManager { get; }
+        private IEnvironment Environment { get { return ApplicationManager.Environment; } }
+        protected ITaskManager TaskManager { get { return ApplicationManager.TaskManager; } }
 
-        public RepositoryInitializerBase(IEnvironment environment, IProcessManager processManager,
-            ITaskQueueScheduler scheduler, IApplicationManager applicationManager)
+        public RepositoryInitializerBase(IApplicationManager applicationManager)
         {
             Logger = Logging.GetLogger(GetType());
 
-            this.environment = environment;
-            this.processManager = processManager;
-            this.scheduler = scheduler;
-            this.applicationManager = applicationManager;
+            this.ApplicationManager = applicationManager;
         }
 
         public void Run()
         {
             var targetPath = NPath.CurrentDirectory;
+            var token = ApplicationManager.CancellationToken;
 
-            var token = CancellationToken.None;
-            var task = new BaseTask(() =>
+            var initTask = new GitInitTask(token);
+
+            var unityYamlMergeExec = Environment.UnityApplication.ToNPath().Parent.Combine("Tools", "UnityYAMLMerge");
+            var yamlMergeCommand = string.Format(@"'{0}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED""", unityYamlMergeExec);
+            var yaml1 = new GitConfigSetTask("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local, token);
+            var yaml2 = new GitConfigSetTask("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local, token);
+
+            var lfsTask = new GitLfsInstallTask(token);
+
+            var gitignore = targetPath.Combine(".gitignore");
+            var gitAttrs = targetPath.Combine(".gitattributes");
+            var assetsGitignore = targetPath.Combine("Assets", ".gitignore");
+
+            var ignoresTask = new ActionTask(token, () =>
             {
-                Logger.Trace("Git Init");
+                SetProjectToTextSerialization();
 
-                var initTask = new GitInitTask(environment, processManager, null);
-                return initTask.RunAsync(token)
-                    .ContinueWith(_ => {
-                        var unityYamlMergeExec = environment.UnityApplication.ToNPath().Parent.Combine("Tools", "UnityYAMLMerge");
-                        var yamlMergeCommand = string.Format(@"'{0}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED""", unityYamlMergeExec);
-                        var t = new GitConfigSetTask(environment, processManager, null, "merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local);
-                        return t.RunAsync(token);
-                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler)
-                    .ContinueWith(_ =>
-                    {
-                        var t = new GitConfigSetTask(environment, processManager, null, "merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local);
-                        return t.RunAsync(token);
-                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler)
-                    .ContinueWith(_ =>
-                    {
-                        Logger.Trace("LFS install");
 
-                        var t = new GitLfsInstallTask(environment, processManager, null);
-                        return t.RunAsync(token);
-                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler)
-                    .ContinueWith(_ =>
-                    {
-                        Logger.Trace("Adding files");
+                AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath);
+                AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath);
 
-                        SetProjectToTextSerialization();
-
-                        var gitignore = targetPath.Combine(".gitignore");
-                        var gitAttrs = targetPath.Combine(".gitattributes");
-
-                        AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath);
-                        AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath);
-
-                        var assetsGitignore = targetPath.Combine("Assets", ".gitignore");
-                        assetsGitignore.CreateFile();
-
-                        var filesForInitialCommit = new List<string> { gitignore, gitAttrs, assetsGitignore };
-
-                        var addTask = new GitAddTask(environment, processManager, null, filesForInitialCommit);
-                        return addTask.RunAsync(token);
-                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler)
-                    .ContinueWith(_ =>
-                    {
-                        Logger.Trace("Commiting");
-
-                        var commitTask = new GitCommitTask(environment, processManager, null, "Initial commit", null);
-                        return commitTask.RunAsync(token);
-                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler)
-                    .ContinueWith(_ =>
-                    {
-                        Logger.Trace("Restarting");
-
-                        applicationManager.RestartRepository();
-                        return true;
-                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler);
-
+                assetsGitignore.CreateFile();
             });
 
-            task.Critical = false;
-            task.Queued = TaskQueueSetting.QueueSingle;
-            task.Blocking = false;
-            task.Label = "Initializing repository";
+            var filesForInitialCommit = new List<string> { gitignore, gitAttrs, assetsGitignore };
 
-            scheduler.Queue(task);
+            var addTask = new GitAddTask(filesForInitialCommit, token);
+            var commitTask = new GitCommitTask("Initial commit", null, token);
+
+            initTask
+                .Then(yaml1)
+                .Then(yaml2)
+                .Then(lfsTask)
+                .Then(ignoresTask)
+                .Then(addTask)
+                .Then(commitTask)
+                .ContinueWith(_ => ApplicationManager.RestartRepository().Start(TaskManager.ConcurrentScheduler));
+            initTask.Schedule(TaskManager);
+
+            //task.Critical = false;
+            //task.Queued = TaskQueueSetting.QueueSingle;
+            //task.Blocking = false;
         }
 
         protected virtual void SetProjectToTextSerialization()

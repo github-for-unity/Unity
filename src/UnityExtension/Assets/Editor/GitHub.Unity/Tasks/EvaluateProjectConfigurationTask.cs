@@ -167,7 +167,7 @@ namespace GitHub.Unity
         public string TriggerText { get; private set; }
     }
 
-    class EvaluateProjectConfigurationTask : BaseTask
+    class EvaluateProjectConfigurationTask : ListTaskBase<List<ProjectConfigurationIssue>, ProjectConfigurationIssue>
     {
         private const string GitIgnoreFilePattern = ".gitignore";
         private const string VCSPropertyName = "m_ExternalVersionControlSupport";
@@ -179,9 +179,7 @@ namespace GitHub.Unity
 
         public static string EditorSettingsPath = "ProjectSettings/EditorSettings.asset";
 
-        private static Action<IEnumerable<ProjectConfigurationIssue>> onEvaluationResult;
-
-        private readonly List<ProjectConfigurationIssue> issues = new List<ProjectConfigurationIssue>();
+        private static event Action<IEnumerable<ProjectConfigurationIssue>> onEvaluationResult;
 
         public static void RegisterCallback(Action<IEnumerable<ProjectConfigurationIssue>> callback)
         {
@@ -193,50 +191,33 @@ namespace GitHub.Unity
             onEvaluationResult -= callback;
         }
 
-        public static void Schedule()
-        {
-            TaskRunner.Add(new EvaluateProjectConfigurationTask());
-        }
-
         public static Object LoadEditorSettings()
         {
             return InternalEditorUtility.LoadSerializedFileAndForget(EditorSettingsPath).FirstOrDefault();
         }
 
-        public override void Run(CancellationToken cancellationToken)
+        public EvaluateProjectConfigurationTask(CancellationToken token)
+            : base(token)
         {
-            Done = false;
-            Progress = 0f;
+        }
 
-            issues.Clear();
+        protected override List<ProjectConfigurationIssue> RunWithReturn()
+        {
+            RaiseOnStart();
 
-            RaiseOnBegin();
-
-            // Unity project config
-            TaskRunner.ScheduleMainThread(EvaluateLocalConfiguration);
+            foreach (var issue in EvaluateLocalConfiguration())
+                RaiseOnData(issue);
 
             // Git config
-            EvaluateGitIgnore();
-
-            // Wait for main thread work to complete
-            while (!Done)
-            {
-                Thread.Sleep(ThreadSyncDelay);
-            }
-
-            Progress = 1f;
-            Done = true;
+            foreach (var issue in EvaluateGitIgnore())
+                RaiseOnData(issue);
 
             RaiseOnEnd();
-            onEvaluationResult.SafeInvoke(issues);
+
+            return Result;
         }
 
-        public override void Abort()
-        {
-            Done = true;
-        }
-
-        private void EvaluateLocalConfiguration()
+        private IEnumerable<ProjectConfigurationIssue> EvaluateLocalConfiguration()
         {
             var result = ProjectSettingsEvaluation.None;
 
@@ -244,7 +225,7 @@ namespace GitHub.Unity
             if (settingsAsset == null)
             {
                 result |= ProjectSettingsEvaluation.EditorSettingsMissing;
-                return;
+                yield break;
             }
 
             var settingsObject = new SerializedObject(settingsAsset);
@@ -267,13 +248,11 @@ namespace GitHub.Unity
 
             if (result != ProjectSettingsEvaluation.None)
             {
-                issues.Add(new ProjectSettingsIssue(result));
+                yield return new ProjectSettingsIssue(result);
             }
-
-            Done = true;
         }
 
-        private void EvaluateGitIgnore()
+        private IEnumerable<ProjectConfigurationIssue> EvaluateGitIgnore()
         {
             // Read rules
             var rules = new List<GitIgnoreRule>(GitIgnoreRule.Count);
@@ -288,28 +267,19 @@ namespace GitHub.Unity
 
             if (!rules.Any())
             {
-                return;
+                yield break;
             }
 
             // Read gitignore files
             GitIgnoreFile[] files;
-            try
-            {
-                files =
-                    Directory.GetFiles(Utility.GitRoot, GitIgnoreFilePattern, SearchOption.AllDirectories)
-                             .Select(p => new GitIgnoreFile(p))
-                             .ToArray();
+            files =
+                Directory.GetFiles(Utility.GitRoot, GitIgnoreFilePattern, SearchOption.AllDirectories)
+                            .Select(p => new GitIgnoreFile(p))
+                            .ToArray();
 
-                if (files.Length < 1)
-                {
-                    return;
-                }
-            }
-            catch (Exception e)
+            if (files.Length < 1)
             {
-                issues.Add(new GitIgnoreException(e));
-
-                return;
+                yield break;
             }
 
             // Evaluate each rule
@@ -334,7 +304,7 @@ namespace GitHub.Unity
                         if (rule.Effect == GitIgnoreRuleEffect.Disallow && match)
                             // This line is not allowed
                         {
-                            issues.Add(new GitIgnoreIssue(file.Path, line, rule.TriggerText));
+                            yield return new GitIgnoreIssue(file.Path, line, rule.TriggerText);
                         }
                         else if (rule.Effect == GitIgnoreRuleEffect.Require)
                             // If the line is required, see if we're there
@@ -347,7 +317,7 @@ namespace GitHub.Unity
                             else if (lineIndex == file.Contents.Length - 1)
                                 // We reached the last line without finding it
                             {
-                                issues.Add(new GitIgnoreIssue(file.Path, string.Empty, rule.TriggerText));
+                                yield return new GitIgnoreIssue(file.Path, string.Empty, rule.TriggerText);
                             }
                         }
                     }
@@ -355,11 +325,7 @@ namespace GitHub.Unity
             }
         }
 
-        public override bool Blocking { get { return false; } }
-        public override TaskQueueSetting Queued { get { return TaskQueueSetting.QueueSingle; }}
-        public override bool Critical { get { return false; } }
-        public override bool Cached { get { return false; } }
-        public override string Label { get { return "Project Evaluation"; } }
+        public override string Name { get { return "Project Evaluation"; } }
 
         private enum SerializationSetting
         {

@@ -439,11 +439,7 @@ namespace IntegrationTests
             var autoResetEvent = new AutoResetEvent(false);
             var completed = false;
 
-            var gitRemoteAddTask = new GitRemoteAddTask(Environment, ProcessManager,
-                new TaskResultDispatcher<string>(s => {
-                    completed = true;
-                    autoResetEvent.Set();
-                }), remote, url);
+            var gitRemoteAddTask = new GitRemoteAddTask(TODO, url, remote);
 
             gitRemoteAddTask.RunAsync(CancellationToken.None).Wait();
             autoResetEvent.WaitOne(100);

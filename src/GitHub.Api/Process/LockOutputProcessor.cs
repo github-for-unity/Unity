@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
 {
-    class LockOutputProcessor : BaseOutputProcessor
+    class LockOutputProcessor : BaseOutputListProcessor<GitLock>
     {
         private static readonly Regex locksSummaryLineRegex = new Regex(@".*?lock\s?\(s\) matched query.",
             RegexOptions.Compiled);
@@ -12,18 +12,12 @@ namespace GitHub.Unity
 
         public LockOutputProcessor(IGitObjectFactory gitObjectFactory)
         {
+            Guard.ArgumentNotNull(gitObjectFactory, "gitObjectFactory");
             this.gitObjectFactory = gitObjectFactory;
         }
 
         public override void LineReceived(string line)
         {
-            base.LineReceived(line);
-
-            if (OnGitLock == null)
-            {
-                return;
-            }
-
             if (string.IsNullOrEmpty(line))
             {
                 //Do Nothing
@@ -41,9 +35,7 @@ namespace GitHub.Unity
             proc.MoveToAfter("ID:");
             var id = int.Parse(proc.ReadToEnd().Trim());
 
-            OnGitLock(gitObjectFactory.CreateGitLock(path, user, id));
+            RaiseOnEntry(gitObjectFactory.CreateGitLock(path, user, id));
         }
-
-        public event Action<GitLock> OnGitLock;
     }
 }

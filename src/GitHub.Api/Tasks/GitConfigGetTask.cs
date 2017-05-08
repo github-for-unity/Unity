@@ -1,19 +1,16 @@
 using System;
+using System.Threading;
 
 namespace GitHub.Unity
 {
-    class GitConfigGetTask : GitTask
+    class GitConfigGetAllTask : ProcessTaskWithListOutput<string>
     {
-        private readonly ITaskResultDispatcher<string> resultDispatcher;
         private readonly string arguments;
-        private string result;
 
-        public GitConfigGetTask(IEnvironment environment, IProcessManager processManager,
-            ITaskResultDispatcher<string> resultDispatcher,
-            string key, GitConfigSource configSource)
-            : base(environment, processManager)
+        public GitConfigGetAllTask(string key, GitConfigSource configSource,
+            CancellationToken token, BaseOutputListProcessor<string> processor = null, ITask dependsOn = null)
+            : base(token, processor ?? new SimpleListOutputProcessor(), dependsOn)
         {
-            this.resultDispatcher = resultDispatcher;
             var source = "";
             source +=
                 configSource == GitConfigSource.NonSpecified ? "--get-all" :
@@ -23,46 +20,30 @@ namespace GitHub.Unity
             arguments = String.Format("config {0} {1}", source, key);
         }
 
-        protected override ProcessOutputManager HookupOutput(IProcess process)
+        public override string Name { get { return "git config get"; } }
+        public override string ProcessArguments { get { return arguments; } }
+        public override TaskAffinity Affinity { get { return TaskAffinity.Concurrent; } }
+    }
+
+    class GitConfigGetTask : ProcessTask<string>
+    {
+        private readonly string arguments;
+
+        public GitConfigGetTask(string key, GitConfigSource configSource,
+            CancellationToken token, IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            : base(token, processor ?? new FirstNonNullLineOutputProcessor(), dependsOn)
         {
-            var processor = new BaseOutputProcessor();
-            processor.OnData += s =>
-            {
-                if (String.IsNullOrEmpty(result))
-                {
-                    result = s;
-                }
-            };
-            return new ProcessOutputManager(process, processor);
+            var source = "";
+            source +=
+                configSource == GitConfigSource.NonSpecified ? "--get-all" :
+                configSource == GitConfigSource.Local ? "--get --local" :
+                configSource == GitConfigSource.User ? "--get --global" :
+                "--get --system";
+            arguments = String.Format("config {0} {1}", source, key);
         }
 
-        protected override void OnCompleted()
-        {
-            if (String.IsNullOrEmpty(result))
-            {
-                RaiseOnFailure();
-            }
-            else
-            {
-                RaiseOnSuccess();
-            }
-        }
-
-        protected override void RaiseOnFailure()
-        {
-            resultDispatcher.ReportFailure();
-        }
-
-        protected override void RaiseOnSuccess()
-        {
-            resultDispatcher.ReportSuccess(result);
-        }
-
-
-        public override bool Blocking { get { return false; } }
-        public override bool Critical { get { return false; } }
-        public override bool Cached { get { return false; } }
-        public override string Label { get { return "git config get"; } }
-        protected override string ProcessArguments { get { return arguments; } }
+        public override string Name { get { return "git config get"; } }
+        public override string ProcessArguments { get { return arguments; } }
+        public override TaskAffinity Affinity { get { return TaskAffinity.Concurrent; } }
     }
 }

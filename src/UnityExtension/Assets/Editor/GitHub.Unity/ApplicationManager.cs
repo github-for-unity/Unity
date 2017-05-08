@@ -15,11 +15,10 @@ namespace GitHub.Unity
 
         private IEnvironment environment;
         private FieldInfo quitActionField;
-        private TaskRunner taskRunner;
 
         // for unit testing (TODO)
         public ApplicationManager(IEnvironment environment, IFileSystem fileSystem, IPlatform platform,
-            IProcessManager processManager, ITaskResultDispatcher taskResultDispatcher)
+            IProcessManager processManager)
             : base(null)
         {
             Environment = environment;
@@ -27,7 +26,6 @@ namespace GitHub.Unity
             NPathFileSystemProvider.Current = FileSystem;
             Platform = platform;
             ProcessManager = processManager;
-            MainThreadResultDispatcher = taskResultDispatcher;
         }
 
         public ApplicationManager(IMainThreadSynchronizationContext synchronizationContext)
@@ -36,29 +34,24 @@ namespace GitHub.Unity
             ListenToUnityExit();
             DetermineInstallationPath();
 
-            MainThreadResultDispatcher = new MainThreadTaskResultDispatcher();
             var uiDispatcher = new AuthenticationUIDispatcher();
-            Initialize(uiDispatcher);
+            Initialize();
         }
 
         public override Task Run()
         {
             Utility.Initialize();
 
-            taskRunner = new TaskRunner((IMainThreadSynchronizationContext)SynchronizationContext,
-                CancellationTokenSource.Token);
-
-            TaskRunner = taskRunner;
             return base.Run()
                 .ContinueWith(_ =>
                 {
-                    taskRunner.Run();
-
                     Utility.Run();
 
                     ProjectWindowInterface.Initialize(Environment.Repository);
 
-                    Window.Initialize(Environment.Repository);
+                    var view = Window.GetView();
+                    if (view != null)
+                        view.Initialize(this);
 
                     //logger.Debug("Application Restarted");
                 }, UIScheduler);
@@ -95,7 +88,9 @@ namespace GitHub.Unity
                 {
                     logger.Trace("Restarted");
                     ProjectWindowInterface.Initialize(Environment.Repository);
-                    Window.Initialize(Environment.Repository);
+                    var view = Window.GetView();
+                    if (view != null)
+                        view.Initialize(this);
                 }, UIScheduler);
         }
 
@@ -162,8 +157,6 @@ namespace GitHub.Unity
                 if (!disposed)
                 {
                     disposed = true;
-                    if (taskRunner != null)
-                        taskRunner.Shutdown();
                 }
             }
         }

@@ -1,5 +1,4 @@
-﻿using GitHub.Unity;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -28,14 +27,20 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
         }
 
-        public IProcess Configure(string executableFileName, string arguments, string workingDirectory)
+        public T ConfigureGitProcess<T>(T processTask, bool withInput = false) where T : IProcess
+        {
+            return Configure(processTask, environment.GitExecutablePath, processTask.ProcessArguments, environment.RepositoryPath, withInput);
+        }
+
+        public T Configure<T>(T processTask, string executableFileName, string arguments, string workingDirectory = null, bool withInput = false)
+             where T : IProcess
         {
             Guard.ArgumentNotNull(executableFileName, nameof(executableFileName));
 
             //logger.Trace("Configuring process - \"" + executableFileName + " " + arguments + "\" cwd:" + workingDirectory);
             var startInfo = new ProcessStartInfo
             {
-                RedirectStandardInput = true,
+                RedirectStandardInput = withInput,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -44,15 +49,16 @@ namespace GitHub.Unity
                 StandardErrorEncoding = Encoding.UTF8
             };
 
-            gitEnvironment.Configure(startInfo, workingDirectory);
+            gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath);
             if (executableFileName.ToNPath().IsRelative)
                 executableFileName = FindExecutableInPath(executableFileName, startInfo.EnvironmentVariables["PATH"]) ?? executableFileName;
             startInfo.FileName = executableFileName;
             startInfo.Arguments = arguments;
-            return new ProcessWrapper(startInfo);
+            processTask.Configure(startInfo);
+            return processTask;
         }
 
-        public void RunCommandLineWindow(string workingDirectory)
+        public IProcess RunCommandLineWindow(string workingDirectory)
         {
             var shell = environment.IsWindows ? "cmd" : environment.IsMac ? "xterm" : "sh";
             var startInfo = new ProcessStartInfo(shell)
@@ -65,18 +71,20 @@ namespace GitHub.Unity
             };
 
             gitEnvironment.Configure(startInfo, workingDirectory);
-            var p = new ProcessWrapper(startInfo);
-            p.Run();
+            var p = new ProcessTask<string>(cancellationToken);
+            p.Configure(startInfo);
+            return p;
         }
 
-        public IProcess Reconnect(int pid)
+        public IProcess Reconnect(IProcess processTask, int pid)
         {
             logger.Trace("Reconnecting process " + pid);
             var p = Process.GetProcessById(pid);
             p.StartInfo.RedirectStandardInput = true;
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.RedirectStandardError = true;
-            return new ProcessWrapper(p.StartInfo);
+            processTask.Configure(p);
+            return processTask;
         }
 
         private string FindExecutableInPath(string executable, string path = null)

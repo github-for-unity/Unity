@@ -13,11 +13,16 @@ namespace GitHub.Unity
 
         private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
+        private readonly ITaskManager taskManager;
+        private readonly CancellationToken token;
 
-        public GitCredentialManager(IEnvironment environment, IProcessManager processManager)
+        public GitCredentialManager(IEnvironment environment, IProcessManager processManager,
+            ITaskManager taskManager, CancellationToken token)
         {
             this.environment = environment;
             this.processManager = processManager;
+            this.taskManager = taskManager;
+            this.token = token;
         }
 
         public bool HasCredentials()
@@ -34,13 +39,12 @@ namespace GitHub.Unity
             if (!await LoadCredentialHelper())
                 return;
 
-            var ret = await RunCredentialHelper(
+            await RunCredentialHelper(
                 "erase",
                 new string[] {
                         String.Format("protocol={0}", host.Protocol),
                         String.Format("host={0}", host.Host)
-                });
-
+                }).Task;
             credential = null;
         }
 
@@ -55,22 +59,12 @@ namespace GitHub.Unity
 
                 string kvpCreds = null;
 
-                var ret = await RunCredentialHelper(
+                kvpCreds = await RunCredentialHelper(
                     "get",
                     new string[] {
                         String.Format("protocol={0}", host.Protocol),
                         String.Format("host={0}", host.Host)
-                    },
-                    x => {
-                        kvpCreds = x;
-                    });
-
-
-                if (!ret || kvpCreds == null)
-                {
-                    logger.Error("Failed to get the credential helper");
-                    return null;
-                }
+                    }).Task;
 
                 if (String.IsNullOrEmpty(kvpCreds))
                 {
@@ -109,7 +103,6 @@ namespace GitHub.Unity
             if (!await LoadCredentialHelper())
                 return;
 
-            string result = null;
             var data = new List<string>
             {
                 String.Format("protocol={0}", credential.Host.Protocol),
@@ -118,14 +111,9 @@ namespace GitHub.Unity
                 String.Format("password={0}", credential.Token)
             };
 
-            var ret = await RunCredentialHelper(
-                "store",
-                data.ToArray(),
-                x => {
-                    result = x;
-                });
-
-            if (!ret)
+            var task = RunCredentialHelper("store", data.ToArray());
+            await task.Task;
+            if (!task.Successful)
             {
                 logger.Error("Failed to save credentials");
             }
@@ -138,15 +126,9 @@ namespace GitHub.Unity
 
             logger.Trace("Loading Credential Helper");
 
-            var task = new GitConfigGetTask(environment, processManager,
-                TaskResultDispatcher.Default.GetDispatcher<string>(x =>
-                {
-                    logger.Trace("Loaded Credential Helper: {0}", x);
-                    credHelper = x;
-                }),
-                "credential.helper", GitConfigSource.NonSpecified);
+            credHelper = await new GitConfigGetTask("credential.helper", GitConfigSource.NonSpecified, token).Schedule(taskManager).Task;
 
-            if (await task.RunAsync(processManager.CancellationToken) && credHelper != null)
+            if (credHelper != null)
             {
                 return true;
             }
@@ -154,35 +136,36 @@ namespace GitHub.Unity
             logger.Error("Failed to get the credential helper");
             return false;
         }
-        private Task<bool> RunCredentialHelper(string action, string[] lines, Action<string> resultCallback = null)
+
+        private ITask<string> RunCredentialHelper(string action, string[] lines)
         {
-            ProcessTask task = null;
+            ITask<string> task = null;
             string app = "";
             if (credHelper.StartsWith('!'))
             {
+
                 // it's a separate app, run it as such
-                task = new ProcessTask(environment, processManager, TaskResultDispatcher.Default.GetDispatcher(resultCallback), credHelper.Substring(1));
+                task = new ProcessTask<string>(token, new SimpleOutputProcessor())
+                    .Configure(processManager, credHelper.Substring(1), action, null, true);
             }
             else
             {
-                task = new GitTask(environment, processManager, TaskResultDispatcher.Default.GetDispatcher(resultCallback));
                 app = String.Format("credential-{0} ", credHelper);
+                task = new ProcessTask<string>(token, app, new SimpleOutputProcessor())
+                    .ConfigureGitProcess(processManager, true);
             }
 
-            task.SetArguments(app + action);
-            task.OnCreateProcess += p =>
+            task.OnStart += t =>
             {
-                p.OnStart += proc =>
+                var proc = ((IProcess)t).Process;
+                foreach (var line in lines)
                 {
-                    foreach (var line in lines)
-                    {
-                        proc.StandardInput.WriteLine(line);
-                    }
-                    proc.StandardInput.Close();
-                };
+                    proc.StandardInput.WriteLine(line);
+                }
+                proc.StandardInput.Close();
             };
-            return task.RunAsync(processManager.CancellationToken);
-        }
 
+            return task.Schedule(taskManager);
+        }
     }
 }

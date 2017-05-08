@@ -83,16 +83,16 @@ namespace UnitTests
 
         protected SubstituteFactory SubstituteFactory { get; private set; }
 
-        private RepositoryManager CreateRepositoryManager(IRepositoryProcessRunner repositoryProcessRunner)
+        private RepositoryManager CreateRepositoryManager(IGitClient gitClient)
         {
             var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
             taskRunner.Run();
 
             return new RepositoryManager(platform, taskRunner, gitConfig, repositoryWatcher,
-                repositoryProcessRunner, repositoryPathConfiguration, cancellationToken);
+                gitClient, repositoryPathConfiguration, cancellationToken);
         }
 
-        private IRepositoryProcessRunner CreateRepositoryProcessRunner(IList<GitStatus> gitStatusResults = null,
+        private IGitClient CreateRepositoryProcessRunner(IList<GitStatus> gitStatusResults = null,
             IList<IEnumerable<GitLock>> gitListLocksResults = null)
         {
             return

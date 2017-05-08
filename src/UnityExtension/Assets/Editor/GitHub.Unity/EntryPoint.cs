@@ -98,7 +98,6 @@ namespace GitHub.Unity
         public static ISettings LocalSettings { get { return ApplicationManager.LocalSettings; } }
         public static ISettings UserSettings { get { return ApplicationManager.UserSettings; } }
         public static ISettings SystemSettings { get { return ApplicationManager.SystemSettings; } }
-        public static ITaskResultDispatcher TaskResultDispatcher { get { return ApplicationManager.MainThreadResultDispatcher; } }
 
         public static bool Initialized { get; private set; }
     }

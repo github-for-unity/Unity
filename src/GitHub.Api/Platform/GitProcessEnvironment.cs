@@ -1,8 +1,6 @@
-using GitHub.Unity;
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -149,13 +147,9 @@ namespace GitHub.Unity
 
         protected async Task<string> LookForGitInPath(IProcessManager processManager)
         {
-            string gitPath = null;
-            var task = new ProcessTask(Environment, processManager,
-                new TaskResultDispatcher<string>(x => gitPath = x, null),
-                Environment.IsWindows ? "where" : "which",
-                "git");
-            await task.RunAsync(CancellationToken.None);
-            return gitPath;
+            return await new ProcessTask<string>(CancellationToken.None, Environment.IsWindows ? "where" : "which")
+                .ConfigureGitProcess(processManager)
+                .Task;
         }
 
     }

@@ -76,7 +76,7 @@ namespace GitHub.Unity
                     return;
                 }
 
-                Logger.Trace("Adding Task: \"{0}\" Label: \"{1}\" ActiveTask: \"{2}\"", task.GetType().Name, task.Label, activeTask);
+                Logger.Trace("Adding Task: \"{0}\" Label: \"{1}\" ActiveTask: \"{2}\"", task.GetType().Name, task.Name, activeTask);
                 Tasks.Enqueue(task);
             }
 
@@ -178,12 +178,12 @@ namespace GitHub.Unity
                             {
                                 Logger.Error("Could not dequeue task");
                             }
-                            Logger.Trace("Dequeued new task {0}", activeTask.Label);
+                            Logger.Trace("Dequeued new task {0}", activeTask.Name);
                             //activeTask.OnBegin = task => ScheduleMainThread(WriteCache);
                             if (activeTask.Blocking)
                             {
                                 activeTask.OnEnd += t => {
-                                    Logger.Trace("Task {0} ended", activeTask.Label);
+                                    Logger.Trace("Task {0} ended", activeTask.Name);
                                     activeTask = null;
                                     OnWaitingModalTaskEnd(t);
                                 };
@@ -191,7 +191,7 @@ namespace GitHub.Unity
                             else
                             {
                                 activeTask.OnEnd += t => {
-                                    Logger.Trace("Task {0} ended", activeTask.Label);
+                                    Logger.Trace("Task {0} ended", activeTask.Name);
                                     activeTask = null;
                                     OnWaitingBackgroundTaskEnd(t);
                                 };
