@@ -1,7 +1,5 @@
-using GitHub.Unity;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
@@ -31,6 +29,11 @@ namespace GitHub.Unity
 
         public async Task Delete(UriString host)
         {
+            logger.Trace("Delete: {0}", host);
+
+            if (!await LoadCredentialHelper())
+                return;
+
             var ret = await RunCredentialHelper(
                 "erase",
                 new string[] {
@@ -43,6 +46,8 @@ namespace GitHub.Unity
 
         public async Task<ICredential> Load(UriString host)
         {
+            logger.Trace("Load: {0}", host);
+
             if (credential == null)
             {
                 if (!await LoadCredentialHelper())
@@ -97,12 +102,12 @@ namespace GitHub.Unity
 
         public async Task Save(ICredential credential)
         {
+            logger.Trace("Save: {0}", credential.Host);
+
             this.credential = credential;
 
             if (!await LoadCredentialHelper())
                 return;
-
-            var host = credential.Host;
 
             string result = null;
             var data = new List<string>
@@ -131,9 +136,12 @@ namespace GitHub.Unity
             if (credHelper != null)
                 return true;
 
+            logger.Trace("Loading Credential Helper");
+
             var task = new GitConfigGetTask(environment, processManager,
                 TaskResultDispatcher.Default.GetDispatcher<string>(x =>
                 {
+                    logger.Trace("Loaded Credential Helper: {0}", x);
                     credHelper = x;
                 }),
                 "credential.helper", GitConfigSource.NonSpecified);

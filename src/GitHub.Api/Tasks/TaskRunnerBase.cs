@@ -143,7 +143,7 @@ namespace GitHub.Unity
 
                     if (!repeat)
                     {
-                        Logger.Error(TaskThreadExceptionRestartError, e);
+                        Logger.Error(TaskThreadExceptionRestartError, e.InnerException ?? e);
                         Thread.Sleep(FailureDelayDefault);
                     }
                     else
@@ -219,7 +219,7 @@ namespace GitHub.Unity
                         }
                         catch (Exception ex)
                         {
-                            Logger.Error(ex);
+                            Logger.Error(ex.InnerException ?? ex);
                             activeTask.RaiseOnEnd();
                             activeTask = null;
                         }

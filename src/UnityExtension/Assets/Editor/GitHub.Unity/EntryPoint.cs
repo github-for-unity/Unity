@@ -102,6 +102,7 @@ namespace GitHub.Unity
 
         public static IPlatform Platform { get { return ApplicationManager.Platform; } }
         public static ICredentialManager CredentialManager { get { return Platform.CredentialManager; } }
+        public static IKeychain Keychain { get { return Platform.Keychain; } }
 
         public static IProcessManager ProcessManager { get { return ApplicationManager.ProcessManager; } }
         public static GitObjectFactory GitObjectFactory { get { return new GitObjectFactory(Environment); } }
