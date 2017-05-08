@@ -256,7 +256,11 @@ namespace GitHub.Unity
         }
         private void SignOut(object obj)
         {
-            var task = new SimpleTask(() => EntryPoint.Keychain.ClearAll());
+            var task = new SimpleTask(() =>
+            {
+                EntryPoint.Keychain.Clear(Repository.CloneUrl.ToRepositoryUrl());
+                EntryPoint.Keychain.Flush(Repository.CloneUrl.ToRepositoryUrl());
+            });
             TaskRunner.Add(task);
         }
 
