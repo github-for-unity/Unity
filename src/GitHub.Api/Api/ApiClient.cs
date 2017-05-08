@@ -12,7 +12,7 @@ namespace GitHub.Unity
             var credentialStore = keychain.Connect(repositoryUrl);
             var hostAddress = HostAddress.Create(repositoryUrl);
 
-            return new ApiClient(repositoryUrl, keychain, credentialStore,
+            return new ApiClient(repositoryUrl, keychain,
                 new GitHubClient(appConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri));
         }
 
@@ -21,7 +21,6 @@ namespace GitHub.Unity
         public UriString OriginalUrl { get; }
 
         private readonly IKeychain keychain;
-        private readonly ICredentialStore credentialStore;
         private readonly IGitHubClient githubClient;
         private readonly ILoginManager loginManager;
         private static readonly SemaphoreSlim sem = new SemaphoreSlim(1);
@@ -30,7 +29,7 @@ namespace GitHub.Unity
         string owner;
         bool? isEnterprise;
 
-        public ApiClient(UriString hostUrl, IKeychain keychain, ICredentialStore credentialStore, IGitHubClient githubClient)
+        public ApiClient(UriString hostUrl, IKeychain keychain, IGitHubClient githubClient)
         {
             Guard.ArgumentNotNull(hostUrl, nameof(hostUrl));
             Guard.ArgumentNotNull(keychain, nameof(keychain));
@@ -39,7 +38,6 @@ namespace GitHub.Unity
             HostAddress = HostAddress.Create(hostUrl);
             OriginalUrl = hostUrl;
             this.keychain = keychain;
-            this.credentialStore = credentialStore;
             this.githubClient = githubClient;
             loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
         }
