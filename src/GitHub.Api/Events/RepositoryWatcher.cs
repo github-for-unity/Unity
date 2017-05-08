@@ -331,8 +331,11 @@ namespace GitHub.Unity
                 {
                     disposed = true;
                     Stop();
-                    nativeInterface.Dispose();
-                    nativeInterface = null;
+                    if (nativeInterface != null)
+                    {
+                        nativeInterface.Dispose();
+                        nativeInterface = null;
+                    }
                 }
             }
         }
