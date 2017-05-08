@@ -131,7 +131,7 @@ namespace GitHub.Unity
 
                 await gitConfigGetTask.RunAsync(CancellationToken.None);
 
-                if (credentialHelper != "wincred")
+                if (string.IsNullOrEmpty(credentialHelper))
                 {
                     var gitConfigSetTask = new GitConfigSetTask(Environment, ProcessManager,
                         new TaskResultDispatcher<string>(s => { }), "credential.helper", "wincred",
