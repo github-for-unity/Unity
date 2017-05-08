@@ -9,7 +9,6 @@ namespace GitHub.Unity
         string GetSpecialFolder(Environment.SpecialFolder folder);
 
         string Path { get; }
-        string UserProfilePath { get; }
         string NewLine { get; }
         string GitExecutablePath { get; set; }
         bool IsWindows { get; }

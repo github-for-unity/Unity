@@ -25,19 +25,19 @@ namespace GitHub.Unity
         protected void Initialize(IUIDispatcher uiDispatcher)
         {
             // accessing Environment triggers environment initialization if it hasn't happened yet
-            LocalSettings = new LocalSettings(Environment);
+            Platform = new Platform(Environment, FileSystem, uiDispatcher);
+
             UserSettings = new UserSettings(Environment);
-            SystemSettings = new SystemSettings(Environment);
-
-            LocalSettings.Initialize();
-
             UserSettings.Initialize();
-
             Logging.TracingEnabled = UserSettings.Get("EnableTraceLogging", false);
 
+            LocalSettings = new LocalSettings(Environment);
+            LocalSettings.Initialize();
+
+            SystemSettings = new SystemSettings(Environment);
             SystemSettings.Initialize();
 
-            Platform = new Platform(Environment, FileSystem, uiDispatcher);
+
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(Environment, ProcessManager);
         }
