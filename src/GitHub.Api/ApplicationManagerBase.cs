@@ -176,8 +176,8 @@ namespace GitHub.Unity
             {
                 if (disposed) return;
                 disposed = true;
-                CancellationTokenSource.Cancel();
-                repositoryManager.Dispose();
+                if (CancellationTokenSource != null) CancellationTokenSource.Cancel();
+                if (repositoryManager != null) repositoryManager.Dispose();
             }
         }
 
