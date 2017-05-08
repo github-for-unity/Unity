@@ -18,6 +18,7 @@ namespace GitHub.Unity
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
         {
+            Logging.LoggerFactory = s => new UnityLogAdapter(s);
             if (System.Environment.GetEnvironmentVariable("GITHUB_UNITY_DISABLE") == "1")
             {
                 Debug.Log("GitHub for Unity " + ApplicationInfo.Version + " is disabled");
@@ -29,7 +30,6 @@ namespace GitHub.Unity
                 return;
             }
             cctorCalled = true;
-            Logging.LoggerFactory = s => new UnityLogAdapter(s);
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
