@@ -213,6 +213,11 @@ namespace GitHub.Unity
 
                 if (fileEvent.Type == EventType.DELETED)
                 {
+                    if (fileA.ExtensionWithDot == ".lock")
+                    {
+                        return;
+                    }
+
                     var branch = string.Join(@"/", relativePathElements.Skip(1).ToArray());
 
                     Logger.Trace("RemoteBranchDeleted: {0}/{1}", origin, branch);
@@ -326,8 +331,11 @@ namespace GitHub.Unity
                 {
                     disposed = true;
                     Stop();
-                    nativeInterface.Dispose();
-                    nativeInterface = null;
+                    if (nativeInterface != null)
+                    {
+                        nativeInterface.Dispose();
+                        nativeInterface = null;
+                    }
                 }
             }
         }

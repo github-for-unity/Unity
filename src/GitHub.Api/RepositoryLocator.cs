@@ -60,13 +60,6 @@ namespace GitHub.Unity
                     }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler)
                     .ContinueWith(_ =>
                     {
-                        Logger.Trace("LFS install");
-
-                        var t = new GitLfsInstallTask(environment, processManager, null);
-                        return t.RunAsync(token);
-                    }, token, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.NotOnFaulted, ThreadingHelper.TaskScheduler)
-                    .ContinueWith(_ =>
-                    {
                         Logger.Trace("Adding files");
 
                         SetProjectToTextSerialization();

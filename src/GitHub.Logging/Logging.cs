@@ -4,13 +4,6 @@ namespace GitHub.Unity
 {
     public static class Logging
     {
-        static Logging()
-        {
-#if DEVELOPER_BUILD
-            tracingEnabled = true;
-#endif
-        }
-
         private static bool tracingEnabled;
 
         public static bool TracingEnabled

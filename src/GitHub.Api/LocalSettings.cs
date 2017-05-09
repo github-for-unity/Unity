@@ -16,15 +16,11 @@ namespace GitHub.Unity
         public abstract void Unset(string key);
 
         protected virtual string SettingsFileName { get; set; }
-        protected virtual string SettingsPath { get; set; }
+        protected virtual NPath SettingsPath { get; set; }
     }
 
     class JsonBackedSettings : BaseSettings
     {
-        private static readonly ILogging logger = Logging.GetLogger<JsonBackedSettings>();
-
-        private const string SettingsParseError = "Failed to parse settings file at '{0}'";
-
         private string cachePath;
         private CacheData cacheData = new CacheData();
         private Action<string> dirCreate;
@@ -33,9 +29,11 @@ namespace GitHub.Unity
         private Func<string, bool> fileExists;
         private Func<string, Encoding, string> readAllText;
         private Action<string, string> writeAllText;
+        private readonly ILogging logger;
 
         public JsonBackedSettings()
         {
+            logger = Logging.GetLogger(GetType());
             fileExists = (path) => File.Exists(path);
             readAllText = (path, encoding) => File.ReadAllText(path, encoding);
             writeAllText = (path, content) => File.WriteAllText(path, content);
@@ -46,7 +44,8 @@ namespace GitHub.Unity
 
         public override void Initialize()
         {
-            cachePath = Path.Combine(SettingsPath, SettingsFileName);
+            cachePath = SettingsPath.Combine(SettingsFileName);
+            logger.Trace("Initializing settings file at {0}", cachePath);
             LoadFromCache(cachePath);
         }
 
@@ -100,6 +99,8 @@ namespace GitHub.Unity
 
         private void LoadFromCache(string cachePath)
         {
+            logger.Trace("LoadFromCache: {0}", cachePath);
+
             EnsureCachePath(cachePath);
 
             if (!fileExists(cachePath))
@@ -111,8 +112,9 @@ namespace GitHub.Unity
             {
                 cacheData = SimpleJson.DeserializeObject<CacheData>(data);
             }
-            catch
+            catch(Exception ex)
             {
+                logger.Error(ex, "LoadFromCache Error");
                 cacheData = null;
             }
 
@@ -126,6 +128,8 @@ namespace GitHub.Unity
 
         private bool SaveToCache(string cachePath)
         {
+            logger.Trace("SaveToCache: {0}", cachePath);
+
             EnsureCachePath(cachePath);
 
             try
@@ -135,8 +139,7 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                logger.Error(SettingsParseError, cachePath);
-                logger.Error(ex);
+                logger.Error(ex, "SaveToCache Error");
                 return false;
             }
 
@@ -155,7 +158,7 @@ namespace GitHub.Unity
 
         private class CacheData
         {
-            public Dictionary<string, object> GitHubUnity = new Dictionary<string, object>();
+            public Dictionary<string, object> GitHubUnity { get; set; } = new Dictionary<string, object>();
         }
 
     }
@@ -177,9 +180,9 @@ namespace GitHub.Unity
     {
         private const string settingsFileName = "settings.json";
 
-        public UserSettings(IEnvironment environment, string path)
+        public UserSettings(IEnvironment environment)
         {
-            SettingsPath = environment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData).ToNPath().Combine(path);
+            SettingsPath = environment.UserCachePath;
         }
 
         protected override string SettingsFileName { get { return settingsFileName; } }
@@ -189,9 +192,9 @@ namespace GitHub.Unity
     {
         private const string settingsFileName = "settings.json";
 
-        public SystemSettings(IEnvironment environment, string path)
+        public SystemSettings(IEnvironment environment)
         {
-            SettingsPath = environment.GetSpecialFolder(Environment.SpecialFolder.ApplicationData).ToNPath().Combine(path);
+            SettingsPath = environment.SystemCachePath;
         }
 
         protected override string SettingsFileName { get { return settingsFileName; } }
