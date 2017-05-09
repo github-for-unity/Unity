@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System;
+using System.IO;
+using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using UnityEditor;
@@ -32,12 +34,35 @@ namespace GitHub.Unity
         {
             EditorApplication.update -= Initialize;
 
-            var logPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
-                                .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity.log");
+            var applicationName = System.Environment
+                                        .GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
+                                        .ToNPath().Combine(ApplicationInfo.ApplicationName);
+
+
+            var logPath = applicationName.Combine("github-unity.log").ToString();
+
 
             if (ApplicationCache.Instance.FirstRun)
             {
                 Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
+
+                var oldLogPath = applicationName.Combine("github-unity-old.log").ToString();
+                try
+                {
+                    if (File.Exists(oldLogPath))
+                    {
+                        File.Delete(oldLogPath);
+                    }
+
+                    if (File.Exists(logPath))
+                    {
+                        File.Move(logPath, oldLogPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logging.Error(ex, "Error rotating log files");
+                }
             }
 
             Logging.LoggerFactory = s => new FileLogAdapter(logPath, s);

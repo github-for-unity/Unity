@@ -112,5 +112,30 @@ namespace GitHub.Unity
         {
             Instance.Error(format, objects);
         }
+
+        public static void Info(Exception ex, string s)
+        {
+            Instance.Info(ex, s);
+        }
+
+        public static void Debug(Exception ex, string s)
+        {
+            Instance.Debug(ex, s);
+        }
+
+        public static void Trace(Exception ex, string s)
+        {
+            Instance.Trace(ex, s);
+        }
+
+        public static void Warning(Exception ex, string s)
+        {
+            Instance.Warning(ex, s);
+        }
+
+        public static void Error(Exception ex, string s)
+        {
+            Instance.Error(ex, s);
+        }
     }
 }
