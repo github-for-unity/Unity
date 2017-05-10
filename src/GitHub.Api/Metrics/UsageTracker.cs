@@ -9,12 +9,10 @@ namespace GitHub.Unity
 {
     class UsageTracker : IUsageTracker
     {
-        private static readonly Calendar cal = CultureInfo.InvariantCulture.Calendar;
-        private static readonly ILogging logger = Logging.GetLogger<UsageTracker>();
-
+        private readonly ILogging logger = Logging.GetLogger<UsageTracker>();
         private readonly NPath storePath;
 
-        private IMetricsService client = null;
+        private IMetricsService client;
         private bool firstRun = true;
         private Timer timer;
 
@@ -27,46 +25,9 @@ namespace GitHub.Unity
             RunTimer();
         }
 
-        public async Task IncrementLaunchCount()
+        private static void ClearCounters(UsageModel model)
         {
-            logger.Trace("IncrementLaunchCount");
-            
-            var usage = await LoadUsage();
-            ++usage.Model.NumberOfStartups;
-            ++usage.Model.NumberOfStartupsWeek;
-            ++usage.Model.NumberOfStartupsMonth;
-            SaveUsage(usage);
-        }
-
-        // http://blogs.msdn.com/b/shawnste/archive/2006/01/24/iso-8601-week-of-year-format-in-microsoft-net.aspx
-        private static int GetIso8601WeekOfYear(DateTimeOffset time)
-        {
-            // Seriously cheat.  If its Monday, Tuesday or Wednesday, then it'll
-            // be the same week# as whatever Thursday, Friday or Saturday are,
-            // and we always get those right
-            var day = cal.GetDayOfWeek(time.UtcDateTime);
-            if (day >= DayOfWeek.Monday && day <= DayOfWeek.Wednesday)
-            {
-                time = time.AddDays(3);
-            }
-
-            // Return the week of our adjusted day
-            return cal.GetWeekOfYear(time.UtcDateTime, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
-        }
-
-        private static void ClearCounters(UsageModel usage, bool weekly, bool monthly)
-        {
-            usage.NumberOfStartups = 0;
-
-            if (weekly)
-            {
-                usage.NumberOfStartupsWeek = 0;
-            }
-
-            if (monthly)
-            {
-                usage.NumberOfStartupsMonth = 0;
-            }
+            model.Clear();
         }
 
         private async Task Initialize()
@@ -74,8 +35,12 @@ namespace GitHub.Unity
             // The services needed by the usage tracker are loaded when they are first needed to
             // improve the startup time of the extension.
             await ThreadingHelper.SwitchToMainThreadAsync();
+            
 #if HAS_METRICS_SERVICE
-            client = new MetricsService($"GitHub4Unity{AssemblyVersionInformation.Version}");
+            if (client == null)
+            {
+                client = new MetricsService($"GitHub4Unity{AssemblyVersionInformation.Version}");
+            }
 #endif
         }
 
@@ -86,7 +51,7 @@ namespace GitHub.Unity
             string json = null;
             if (storePath.FileExists())
             {
-                logger.Trace("ReadAllText: \"{0}\"", storePath);
+                logger.Trace("LoadUsage: \"{0}\"", storePath);
 
                 try
                 {
@@ -94,24 +59,47 @@ namespace GitHub.Unity
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(ex, "Error {0}", ex.Message);
+                    logger.Error(ex, "LoadUsage Error {0}", ex.Message);
                 }
             }
 
-            UsageStore result = null;
+            UsageStore result;
             try
             {
-                result = json != null
-                    ? SimpleJson.DeserializeObject<UsageStore>(json)
-                    : new UsageStore { Model = new UsageModel() };
+                if (json != null)
+                {
+                    result = SimpleJson.DeserializeObject<UsageStore>(json);
+                    if (result.Model == null)
+                    {
+                        logger.Warning("Model is Null");
+                    }
+
+                    if (result.Model.Reports == null)
+                    {
+                        logger.Warning("Reports is Null");
+                    }
+                }
+                else
+                {
+                    result = new UsageStore();
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                result = new UsageStore { Model = new UsageModel() };
+                result = new UsageStore();
+
+                logger.Warning(ex, "Error Loading Usage: {0}; Deleting File", storePath);
+
+                try
+                {
+                    //storePath.DeleteIfExists();
+                }
+                catch{}
             }
 
-            result.Model.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
-            result.Model.AppVersion = AssemblyVersionInformation.Version;
+            //TODO: Figure out these values
+            //result.Model.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
+            //result.Model.AppVersion = AssemblyVersionInformation.Version;
 
             //TODO: Get Unity Version
             //result.Model.UnityVersion
@@ -122,18 +110,19 @@ namespace GitHub.Unity
 
         private void SaveUsage(UsageStore store)
         {
-            var json = SimpleJson.SerializeObject(store);
+            //TODO: Check User Settings
 
             var pathString = storePath.ToString();
-            logger.Trace("WriteAllText: \"{0}\"", pathString);
+            logger.Trace("SaveUsage: \"{0}\"", pathString);
 
             try
             {
+                var json = SimpleJson.SerializeObject(store);
                 storePath.WriteAllText(json, Encoding.UTF8);
             }
             catch (Exception ex)
             {
-                logger.Error("Error writing to \"{0}\"", pathString);
+                logger.Error(ex, "SaveUsage Error: \"{0}\"", pathString);
             }
         }
 
@@ -157,18 +146,22 @@ namespace GitHub.Unity
         {
             logger.Trace("TimerTick");
 
+            //TODO: Check User Settings
+
             await Initialize();
+            var usage = await LoadUsage();
 
             if (firstRun)
             {
-                await IncrementLaunchCount();
-
                 timer.Interval = TimeSpan.FromHours(8).TotalMilliseconds;
                 firstRun = false;
+
+                logger.Trace("IncrementLaunchCount");
+                ++usage.Model.GetCurrentUsage().NumberOfStartups;
+                SaveUsage(usage);
             }
 
-            //TODO: Check User Settings
-            //if (client == null || !userSettings.CollectMetrics)
+
             if (client == null)
             {
                 logger.Warning("MetricsClient is null; stopping timer");
@@ -180,48 +173,23 @@ namespace GitHub.Unity
                 return;
             }
 
-            // Every time we increment the launch count we increment both daily and weekly
-            // launch count but we only submit (and clear) the weekly launch count when we've
-            // transitioned into a new week. We've defined a week by the ISO8601 definition,
-            // i.e. week starting on Monday and ending on Sunday.
-            var usage = await LoadUsage();
-            var lastDate = usage.LastUpdated;
-            var currentDate = DateTimeOffset.Now;
-            var includeWeekly = GetIso8601WeekOfYear(lastDate) != GetIso8601WeekOfYear(currentDate);
-            var includeMonthly = lastDate.Month != currentDate.Month;
+            var currentTimeOffset = DateTimeOffset.UtcNow;
 
-            // Only send stats once a day.
-            if (lastDate.Date != currentDate.Date)
+            if (usage.LastUpdated.Date != currentTimeOffset.Date)
             {
-                await SendUsage(usage.Model, includeWeekly, includeMonthly);
-                ClearCounters(usage.Model, includeWeekly, includeMonthly);
-                usage.LastUpdated = DateTimeOffset.Now.UtcDateTime;
+                await SendUsage(usage.Model);
+                ClearCounters(usage.Model);
+                usage.LastUpdated = currentTimeOffset;
                 SaveUsage(usage);
             }
         }
 
-        private async Task SendUsage(UsageModel usage, bool weekly, bool monthly)
+        private async Task SendUsage(UsageModel usage)
         {
-            //Debug.Assert(client != null, "SendUsage should not be called when there is no IMetricsService");
+            //TODO: Be sure there shouldn't be a race condition here
+            //var model = usage.Clone();
 
-            //            if (connectionManager.Connections.Any(x => x.HostAddress.IsGitHubDotCom()))
-            //            {
-            //                usage.IsGitHubUser = true;
-            //            }
-            //
-            //            if (connectionManager.Connections.Any(x => !x.HostAddress.IsGitHubDotCom()))
-            //            {
-            //                usage.IsEnterpriseUser = true;
-            //            }
-
-            var model = usage.Clone(weekly, monthly);
-            await client.PostUsage(model);
-        }
-
-        private class UsageStore
-        {
-            public DateTimeOffset LastUpdated { get; set; }
-            public UsageModel Model { get; set; }
+            await client.PostUsage(usage);
         }
     }
 }

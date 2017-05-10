@@ -26,8 +26,8 @@ namespace UnitTests
         [Test]
         public void Blah()
         {
-            var usageTracker = new UsageTracker(@"c:\Setting.txt");
-            usageTracker.IncrementLaunchCount().Wait();
+            IUsageTracker usageTracker = new UsageTracker(@"c:\Setting.txt");
+            //usageTracker.IncrementLaunchCount().Wait();
         }
     }
 }

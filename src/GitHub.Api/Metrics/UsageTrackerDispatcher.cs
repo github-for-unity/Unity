@@ -10,7 +10,5 @@ namespace GitHub.Unity
         {
             this.usageTracker = usageTracker;
         }
-
-        public Task IncrementLaunchCount() => usageTracker.IncrementLaunchCount();
     }
 }
