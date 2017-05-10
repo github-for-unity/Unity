@@ -202,7 +202,6 @@ namespace GitHub.Unity
             var task = ProcessRunner.PrepareGitAdd(resultDispatcher, files);
             PrepareTask(task);
             var taskCommit = ProcessRunner.PrepareGitCommit(resultDispatcher, message, body);
-            taskCommit.OnEnd += t => { };
             PrepareTask(taskCommit);
             taskRunner.AddTask(task);
             taskRunner.AddTask(taskCommit);
@@ -211,7 +210,6 @@ namespace GitHub.Unity
         public void Fetch(ITaskResultDispatcher<string> resultDispatcher, string remote)
         {
             var task = ProcessRunner.PrepareGitFetch(resultDispatcher, remote);
-            task.OnEnd += t => { };
             PrepareTask(task);
             taskRunner.AddTask(task);
         }
@@ -219,7 +217,6 @@ namespace GitHub.Unity
         public void Pull(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch)
         {
             var task = ProcessRunner.PrepareGitPull(resultDispatcher, remote, branch);
-            task.OnEnd += t => { };
             PrepareTask(task, true);
             taskRunner.AddTask(task);
         }
@@ -227,7 +224,6 @@ namespace GitHub.Unity
         public void Push(ITaskResultDispatcher<string> resultDispatcher, string remote, string branch)
         {
             var task = ProcessRunner.PrepareGitPush(resultDispatcher, remote, branch);
-            task.OnEnd += t => { };
             PrepareTask(task);
             taskRunner.AddTask(task);
         }
@@ -305,7 +301,6 @@ namespace GitHub.Unity
         public void LockFile(ITaskResultDispatcher<string> resultDispatcher, string file)
         {
             var task = ProcessRunner.PrepareGitLockFile(resultDispatcher, file);
-            task.OnEnd += t => { };
             PrepareTask(task);
             taskRunner.AddTask(task);
             ListLocks(false);
@@ -314,7 +309,6 @@ namespace GitHub.Unity
         public void UnlockFile(ITaskResultDispatcher<string> resultDispatcher, string file, bool force)
         {
             var task = ProcessRunner.PrepareGitUnlockFile(resultDispatcher, file, force);
-            task.OnEnd += t => { };
             PrepareTask(task);
             taskRunner.AddTask(task);
             ListLocks(false);

@@ -11,11 +11,11 @@ namespace GitHub.Unity
     {
         private readonly ILogging logger = Logging.GetLogger<UsageTracker>();
         private readonly NPath storePath;
+        private readonly string userTrackingId;
 
         private IMetricsService client;
         private bool firstRun = true;
         private Timer timer;
-        private string userTrackingId;
 
         public UsageTracker(NPath storePath, string userTrackingId)
         {
