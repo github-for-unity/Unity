@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
@@ -24,11 +25,6 @@ namespace GitHub.Unity
             this.storePath = storePath;
 
             RunTimer();
-        }
-
-        private static void ClearCounters(UsageModel model)
-        {
-            model.Clear();
         }
 
         private async Task Initialize()
@@ -111,7 +107,10 @@ namespace GitHub.Unity
 
         private void SaveUsage(UsageStore store)
         {
-            if(!Enabled) return;
+            if (!Enabled)
+            {
+                return;
+            }
 
             var pathString = storePath.ToString();
             logger.Trace("SaveUsage: \"{0}\"", pathString);
@@ -135,7 +134,7 @@ namespace GitHub.Unity
             timer.Elapsed += TimerTick;
             timer.Start();
         }
-
+            
         private void TimerTick(object sender, ElapsedEventArgs e)
         {
             TimerTick().Catch((Action<Task, Exception>)((task, exception) => {
@@ -148,16 +147,25 @@ namespace GitHub.Unity
             logger.Trace("TimerTick");
 
             await Initialize();
-            var usage = await LoadUsage();
+            var usageStore = await LoadUsage();
 
             if (firstRun)
             {
                 timer.Interval = TimeSpan.FromHours(8).TotalMilliseconds;
                 firstRun = false;
 
-                logger.Trace("IncrementLaunchCount");
-                ++usage.Model.GetCurrentUsage().NumberOfStartups;
-                SaveUsage(usage);
+                if (!Enabled)
+                {
+                    logger.Warning("Tracking Disabled");
+                    return;
+                }
+
+                var usage = usageStore.Model.GetCurrentUsage();
+
+                logger.Trace("IncrementLaunchCount: {0}", usage.Date);
+
+                usage.NumberOfStartups++;
+                SaveUsage(usageStore);
             }
 
             if (client == null)
@@ -171,28 +179,51 @@ namespace GitHub.Unity
                 return;
             }
 
-            var currentTimeOffset = DateTimeOffset.UtcNow;
-
-            if (usage.LastUpdated.Date != currentTimeOffset.Date)
-            {
-                await SendUsage(usage.Model);
-                ClearCounters(usage.Model);
-                usage.LastUpdated = currentTimeOffset;
-                SaveUsage(usage);
-            }
-        }
-
-        private async Task SendUsage(UsageModel usage)
-        {
             if (!Enabled)
             {
+                logger.Warning("Tracking Disabled");
                 return;
             }
 
-            //TODO: Be sure there shouldn't be a race condition here
-            //var model = usage.Clone();
+            if (usageStore.LastUpdated.Date != DateTimeOffset.UtcNow.Date)
+            {
+                await SendUsage(usageStore);
+            }
+        }
 
-            await client.PostUsage(userTrackingId, usage);
+        private async Task SendUsage(UsageStore usage)
+        {
+            logger.Trace("Sending Usage");
+
+            var currentTimeOffset = DateTimeOffset.UtcNow;
+            var currentDate = currentTimeOffset.Date;
+
+            var extractReports = usage.Model.SelectReports(currentDate);
+            if (!extractReports.Any())
+            {
+                logger.Trace("No items to send");
+            }
+            else
+            {
+                var success = false;
+                try
+                {
+                    await client.PostUsage(userTrackingId, extractReports);
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    logger.Warning(ex, "Error Sending Usage");
+                }
+
+                if (success)
+                {
+                    usage.Model.RemoveReports(currentDate);
+                }
+            }
+
+            usage.LastUpdated = currentTimeOffset;
+            SaveUsage(usage);
         }
 
         public bool Enabled { get; set; }

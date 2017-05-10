@@ -17,40 +17,62 @@ namespace GitHub.Unity
 
     public class UsageModel
     {
-        private readonly Dictionary<DateTime, Usage> reports = new Dictionary<DateTime, Usage>();
+        private List<Usage> reports;
 
         public IList<Usage> Reports
         {
-            get { return reports.Values.ToList(); }
-            set
-            {
-                reports.Clear();
-                foreach (var usage in value)
-                {
-                    reports.Add(usage.Date.Date, usage);
-                }
-            }
+            get { return reports; }
+            set { reports = value.ToList(); }
         }
+
+        private Usage currentUsage;
 
         public Usage GetCurrentUsage()
         {
             var date = DateTime.UtcNow.Date;
-
-            Usage usage;
-            if (!reports.TryGetValue(date, out usage))
+            if (currentUsage != null)
             {
-                usage= new Usage {
-                   Date = date
-                };
-                reports[date] = usage;
+                if (currentUsage.Date == date)
+                {
+                    return currentUsage;
+                }
+
+                currentUsage = null;
             }
 
-            return usage;
+            currentUsage = reports.FirstOrDefault(usage => usage.Date == date);
+
+            if (currentUsage == null)
+            {
+                currentUsage = new Usage { Date = date };
+                reports.Add(currentUsage);
+            }
+
+            return currentUsage;
         }
 
-        public void Clear()
+        public List<Usage> SelectReports(DateTime beforeDate)
         {
-            reports.Clear();
+            return reports.Where(usage => usage.Date.Date != beforeDate.Date).ToList();
+        }
+
+        public void RemoveReports(DateTime beforeDate)
+        {
+            var reportsCopy = reports;
+
+            var excludeUsage = reportsCopy.FirstOrDefault(usage => usage.Date.Date != beforeDate.Date);
+            if (excludeUsage != null)
+            {
+                reports = new List<Usage> {
+                    excludeUsage
+                };
+
+                reportsCopy.Remove(excludeUsage);
+            }
+            else
+            {
+                reports = new List<Usage>();
+            }
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
@@ -7,6 +8,6 @@ namespace GitHub.Unity
         /// <summary>
         /// Posts the provided usage model.
         /// </summary>
-        Task PostUsage(string userTrackingId, UsageModel model);
+        Task PostUsage(string userTrackingId, List<Usage> model);
     }
 }
