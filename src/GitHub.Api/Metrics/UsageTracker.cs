@@ -15,10 +15,12 @@ namespace GitHub.Unity
         private IMetricsService client;
         private bool firstRun = true;
         private Timer timer;
+        private string userTrackingId;
 
-        public UsageTracker(NPath storePath)
+        public UsageTracker(NPath storePath, string userTrackingId)
         {
-            logger.Trace("Created");
+            this.userTrackingId = userTrackingId;
+            logger.Trace("Created TrackingId: {0}", userTrackingId);
 
             this.storePath = storePath;
 
@@ -189,7 +191,7 @@ namespace GitHub.Unity
             //TODO: Be sure there shouldn't be a race condition here
             //var model = usage.Clone();
 
-            await client.PostUsage(usage);
+            await client.PostUsage(userTrackingId, usage);
         }
     }
 }

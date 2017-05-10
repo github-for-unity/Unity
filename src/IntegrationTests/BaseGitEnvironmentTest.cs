@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using GitHub.Unity;
@@ -33,8 +34,9 @@ namespace IntegrationTests
             var taskRunner = new TaskRunnerBase(new TestSynchronizationContext(), CancellationToken.None);
             taskRunner.Run();
 
+            var userTrackingId = Guid.NewGuid().ToString();
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, new UsageTracker(UsageFile), repoPath, CancellationToken.None);
+            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, taskRunner, new UsageTracker(UsageFile, userTrackingId), repoPath, CancellationToken.None);
             RepositoryManager.Initialize();
             RepositoryManager.Start();
 

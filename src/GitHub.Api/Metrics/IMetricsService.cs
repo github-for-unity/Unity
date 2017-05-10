@@ -7,6 +7,6 @@ namespace GitHub.Unity
         /// <summary>
         /// Posts the provided usage model.
         /// </summary>
-        Task PostUsage(UsageModel model);
+        Task PostUsage(string userTrackingId, UsageModel model);
     }
 }
