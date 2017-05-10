@@ -4,6 +4,7 @@ namespace GitHub.Unity
 {
     public interface IUsageTracker
     {
+        bool Enabled { get; set; }
     }
 
     class NullUsageTracker : IUsageTracker
@@ -14,5 +15,7 @@ namespace GitHub.Unity
         {
             return TaskEx.FromResult(0).ContinueWith(task => task.Wait());
         }
+
+        public bool Enabled { get; set; }
     }
 }

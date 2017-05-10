@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
@@ -20,7 +19,7 @@ namespace GitHub.Unity
         public UsageTracker(NPath storePath, string userTrackingId)
         {
             this.userTrackingId = userTrackingId;
-            logger.Trace("Created TrackingId: {0}", userTrackingId);
+            logger.Trace("Tracking Id: {0}", userTrackingId);
 
             this.storePath = storePath;
 
@@ -37,7 +36,7 @@ namespace GitHub.Unity
             // The services needed by the usage tracker are loaded when they are first needed to
             // improve the startup time of the extension.
             await ThreadingHelper.SwitchToMainThreadAsync();
-            
+
 #if HAS_METRICS_SERVICE
             if (client == null)
             {
@@ -112,7 +111,7 @@ namespace GitHub.Unity
 
         private void SaveUsage(UsageStore store)
         {
-            //TODO: Check User Settings
+            if(!Enabled) return;
 
             var pathString = storePath.ToString();
             logger.Trace("SaveUsage: \"{0}\"", pathString);
@@ -148,8 +147,6 @@ namespace GitHub.Unity
         {
             logger.Trace("TimerTick");
 
-            //TODO: Check User Settings
-
             await Initialize();
             var usage = await LoadUsage();
 
@@ -162,7 +159,6 @@ namespace GitHub.Unity
                 ++usage.Model.GetCurrentUsage().NumberOfStartups;
                 SaveUsage(usage);
             }
-
 
             if (client == null)
             {
@@ -188,10 +184,17 @@ namespace GitHub.Unity
 
         private async Task SendUsage(UsageModel usage)
         {
+            if (!Enabled)
+            {
+                return;
+            }
+
             //TODO: Be sure there shouldn't be a race condition here
             //var model = usage.Clone();
 
             await client.PostUsage(userTrackingId, usage);
         }
+
+        public bool Enabled { get; set; }
     }
 }

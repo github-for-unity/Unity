@@ -122,7 +122,9 @@ namespace GitHub.Unity
             {
                 userTrackingId = UserSettings.Get("UserTrackingId");
             }
+
             UsageTracker = new UsageTracker(usagePath, userTrackingId);
+            UsageTracker.Enabled = UserSettings.Get("UserTrackingEnabled", true);
 
             await ThreadingHelper.SwitchToThreadAsync();
 

@@ -10,5 +10,11 @@ namespace GitHub.Unity
         {
             this.usageTracker = usageTracker;
         }
+
+        public bool Enabled
+        {
+            get { return usageTracker.Enabled; }
+            set { usageTracker.Enabled = value; }
+        }
     }
 }

@@ -61,7 +61,9 @@ namespace GitHub.Unity
         private const string GitRepositoryRemoteLabel = "Remote";
         private const string GitRepositorySave = "Save Repository";
         private const string DebugSettingsTitle = "Debug";
+        private const string UserTrackingSettingsTitle = "User Tracking";
         private const string EnableTraceLoggingLabel = "Enable Trace Logging";
+        private const string EnableUserTrackingLabel = "Enable User Tracking";
 
         private Vector2 lockScrollPos;
 
@@ -194,6 +196,7 @@ namespace GitHub.Unity
                 }
 
                 OnInstallPathGUI();
+                OnTrackingSettingsGui();
                 OnLoggingSettingsGui();
             }
 
@@ -657,6 +660,28 @@ namespace GitHub.Unity
                 }
             }
             GUILayout.EndHorizontal();
+
+            GUI.enabled = true;
+        }
+
+        private void OnTrackingSettingsGui()
+        {
+            GUILayout.Label(UserTrackingSettingsTitle, EditorStyles.boldLabel);
+
+            GUI.enabled = !busy;
+
+            var trackingEnabled = EntryPoint.UsageTracker.Enabled;
+            EditorGUI.BeginChangeCheck();
+            {
+                trackingEnabled = EditorGUILayout.Toggle(EnableUserTrackingLabel, trackingEnabled);
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                EntryPoint.UsageTracker.Enabled = trackingEnabled;
+                EntryPoint.AppManager.UserSettings.Set("UserTrackingEnabled", trackingEnabled);
+
+                GUI.FocusControl(null);
+            }
 
             GUI.enabled = true;
         }
