@@ -55,13 +55,6 @@ namespace GitHub.Unity
         [SerializeField] public bool Initialized;
 
         [SerializeField] public string CreatedDate;
-        [SerializeField] public Texture2D LockedModifiedStatusIcon;
-        [SerializeField] public Texture2D LockedStatusIcon;
-        [SerializeField] public Texture2D ModifiedStatusIcon;
-        [SerializeField] public Texture2D AddedStatusIcon;
-        [SerializeField] public Texture2D DeletedStatusIcon;
-        [SerializeField] public Texture2D RenamedStatusIcon;
-        [SerializeField] public Texture2D UntrackedStatusIcon;
 
         public void Initialize()
         {
