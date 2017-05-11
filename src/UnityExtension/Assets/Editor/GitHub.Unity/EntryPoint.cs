@@ -1,80 +1,11 @@
-﻿using System;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
-    internal sealed class ApplicationCache : ScriptableObject, ISerializationCallbackReceiver
-    {
-        private static ApplicationCache instance;
-        private static string cachePath;
-
-        [SerializeField] private bool firstRun = true;
-        public bool FirstRun { get { return firstRun; } private set { firstRun = value; Flush(); } }
-        [SerializeField] private string createdDate;
-        public string CreatedDate { get { return createdDate; } }
-
-        public static ApplicationCache Instance {
-            get {
-                return instance ?? CreateApplicationCache(EntryPoint.Environment);
-            }
-        }
-
-        private static ApplicationCache CreateApplicationCache(IEnvironment environment)
-        {
-            cachePath = environment.UnityProjectPath + "/Temp/github_cache.yaml";
-
-            if (System.IO.File.Exists(cachePath))
-            {
-                Debug.Log("Loading from cache");
-
-                var objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(cachePath);
-                if (objects.Any())
-                {
-                    instance = objects[0] as ApplicationCache;
-                    if (instance != null)
-                    {
-                        Debug.LogFormat("Loading from cache successful {0}", instance);
-                        if (instance.FirstRun)
-                            instance.FirstRun = false;
-                        return instance;
-                    }
-                }
-            }
-
-            Debug.Log("Creating instance");
-            instance = CreateInstance<ApplicationCache>();
-            return instance.Initialize();
-        }
-
-        private ApplicationCache Initialize()
-        {
-            createdDate = DateTime.Now.ToLongTimeString();
-            Flush();
-            return this;
-        }
-
-        private void Flush()
-        {
-            UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget(new Object[] { this }, cachePath, true);
-        }
-
-        void ISerializationCallbackReceiver.OnBeforeSerialize()
-        {
-            Debug.LogFormat("ApplicationCache OnBeforeSerialize {0} {1}", firstRun, GetInstanceID());
-        }
-
-        void ISerializationCallbackReceiver.OnAfterDeserialize()
-        {
-            Debug.LogFormat("ApplicationCache OnAfterDeserialize {0} {1}", firstRun, GetInstanceID());
-        }
-    }
-
     [InitializeOnLoad]
     class EntryPoint : ScriptableObject
     {
@@ -107,19 +38,7 @@ namespace GitHub.Unity
             if (ApplicationCache.Instance.FirstRun)
             {
                 Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
-                //Logging.Info("ApplicationCache: " + ApplicationCache.Instance.CreatedDate);
-                Logging.Info("Initializing GitHub for Unity log file: " + logPath);
             }
-
-            //try
-            //{
-            //    if (logPath.FileExists())
-            //    {
-            //        logPath.Move(logPath.Parent.Combine(string.Format("github-unity-{0}.log"), System.DateTime.Now.ToString("s")));
-            //    }
-            //}
-            //catch
-            //{}
 
             Logging.LoggerFactory = s => new FileLogAdapter(logPath, s);
             logger = Logging.GetLogger<EntryPoint>();
@@ -127,8 +46,6 @@ namespace GitHub.Unity
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
             ApplicationManager.Run();
-
-            //Logging.Trace("ApplicationCache: " + ApplicationCache.Instance.CreatedDate);
         }
 
         private static bool ServerCertificateValidationCallback(object sender, X509Certificate certificate,
