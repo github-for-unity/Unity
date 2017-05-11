@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
-    sealed class ApplicationCache : ScriptableObject, ISerializationCallbackReceiver
+    sealed class ApplicationCache : ScriptableObject, ISerializationCallbackReceiver, IApplicationCache
     {
         private static ApplicationCache instance;
         private static string cachePath;
@@ -27,6 +27,17 @@ namespace GitHub.Unity
         public string CreatedDate
         {
             get { return createdDate; }
+        }
+
+        [SerializeField] private bool usageIncremented;
+        public bool UsageIncremented
+        {
+            get { return usageIncremented; }
+            set
+            {
+                usageIncremented = value;
+                Flush();
+            }
         }
 
         public static ApplicationCache Instance

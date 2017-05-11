@@ -14,16 +14,17 @@ namespace GitHub.Unity
         private readonly string userTrackingId;
 
         private IMetricsService client;
-        private bool firstRun;
+        private IApplicationCache applicationCache;
+        private bool firstRun = true;
         private Timer timer;
 
-        public UsageTracker(NPath storePath, string userTrackingId, bool firstRun)
+        public UsageTracker(NPath storePath, string userTrackingId, IApplicationCache applicationCache)
         {
             this.userTrackingId = userTrackingId;
-            logger.Trace("Tracking Id:{0} FirstRun:{1}", userTrackingId, firstRun);
+            logger.Trace("Tracking Id:{0} FirstRun:{1}", userTrackingId, applicationCache);
 
             this.storePath = storePath;
-            this.firstRun=firstRun;
+            this.applicationCache = applicationCache;
 
             RunTimer();
         }
@@ -161,12 +162,18 @@ namespace GitHub.Unity
                     return;
                 }
 
-                var usage = usageStore.Model.GetCurrentUsage();
+                if (!applicationCache.UsageIncremented)
+                {
+                    var usage = usageStore.Model.GetCurrentUsage();
 
-                logger.Trace("IncrementLaunchCount: {0}", usage.Date);
+                    usage.NumberOfStartups++;
 
-                usage.NumberOfStartups++;
-                SaveUsage(usageStore);
+                    logger.Trace("IncrementLaunchCount Date:{0} NumberOfStartups:{1}", usage.Date, usage.NumberOfStartups);
+
+                    SaveUsage(usageStore);
+
+                    applicationCache.UsageIncremented = true;
+                }
             }
 
             if (client == null)

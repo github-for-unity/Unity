@@ -95,7 +95,6 @@
     <Compile Include="IO\StatusOutputProcessorTests.cs" />
     <Compile Include="IO\MacBasedGitEnvironmentTests.cs" />
     <Compile Include="IO\LinuxBasedGitEnvironmentTests.cs" />
-    <Compile Include="Metrics\UsageTrackerTests.cs" />
     <Compile Include="IO\WindowsGitEnvironmentTests.cs" />
     <Compile Include="IO\FileSystemHelperTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
