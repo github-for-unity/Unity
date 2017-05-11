@@ -9,92 +9,76 @@ using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
-    internal sealed class ApplicationCache : ScriptableObject
-        //, ISerializationCallbackReceiver
+    internal sealed class ApplicationCache : ScriptableObject, ISerializationCallbackReceiver
     {
         private static ApplicationCache instance;
+        private static string cachePath;
+
+        [SerializeField] private bool firstRun = true;
+        public bool FirstRun { get { return firstRun; } private set { firstRun = value; Flush(); } }
+        [SerializeField] private string createdDate;
+        public string CreatedDate { get { return createdDate; } }
 
         public static ApplicationCache Instance {
             get {
-                return instance ?? (instance = CreateInstance());
+                return instance ?? CreateApplicationCache(EntryPoint.Environment);
             }
         }
 
-        private static ApplicationCache CreateInstance()
+        private static ApplicationCache CreateApplicationCache(IEnvironment environment)
         {
-            var foundInstance = FindObjectOfType<ApplicationCache>();
-            if (foundInstance != null)
-            {
-                Debug.Log("Instance Found");
-                return foundInstance;
-            }
+            cachePath = environment.UnityProjectPath + "/Temp/github_cache.yaml";
 
-            if (System.IO.File.Exists(GetCachePath()))
+            if (System.IO.File.Exists(cachePath))
             {
                 Debug.Log("Loading from cache");
 
-                var objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(GetCachePath());
+                var objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(cachePath);
                 if (objects.Any())
                 {
-                    var applicationCache = objects[0] as ApplicationCache;
-                    if (applicationCache != null)
+                    instance = objects[0] as ApplicationCache;
+                    if (instance != null)
                     {
-                        Debug.Log("Loading from cache successful");
-                        return applicationCache;
+                        Debug.LogFormat("Loading from cache successful {0}", instance);
+                        if (instance.FirstRun)
+                            instance.FirstRun = false;
+                        return instance;
                     }
                 }
             }
 
             Debug.Log("Creating instance");
-            var createdInstance = CreateInstance<ApplicationCache>();
-            createdInstance.Initialize();
-
-            return createdInstance;
+            instance = CreateInstance<ApplicationCache>();
+            return instance.Initialize();
         }
 
-        [SerializeField] public bool Initialized;
-
-        [SerializeField] public string CreatedDate;
-
-        public void Initialize()
+        private ApplicationCache Initialize()
         {
-            if (!Initialized)
-            {
-                Debug.Log("Initializing");
-                Initialized = true;
-                CreatedDate = DateTime.Now.ToLongTimeString();
-            }
+            createdDate = DateTime.Now.ToLongTimeString();
+            Flush();
+            return this;
         }
 
-        private static string GetCachePath()
+        private void Flush()
         {
-            return Application.dataPath + "/../Temp/github_cache.yaml";
+            UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget(new Object[] { this }, cachePath, true);
         }
 
-        private void OnDisable()
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
-            Debug.Log("ApplicationCache OnDisable");
-            if (instance != null)
-            {
-                UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget(new Object[] { instance }, GetCachePath(), true);
-            }
+            Debug.LogFormat("ApplicationCache OnBeforeSerialize {0} {1}", firstRun, GetInstanceID());
         }
 
-//        public void OnBeforeSerialize()
-//        {
-//            Debug.Log("ApplicationCache OnBeforeSerialize");
-//        }
-//
-//        public void OnAfterDeserialize()
-//        {
-//        }
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            Debug.LogFormat("ApplicationCache OnAfterDeserialize {0} {1}", firstRun, GetInstanceID());
+        }
     }
 
     [InitializeOnLoad]
     class EntryPoint : ScriptableObject
     {
         private static ILogging logger;
-        private static bool cctorCalled = false;
 
         private static ApplicationManager appManager;
 
@@ -108,15 +92,6 @@ namespace GitHub.Unity
                 return;
             }
 
-            if (cctorCalled)
-            {
-                return;
-            }
-            cctorCalled = true;
-            Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
-
-            Logging.Trace("ApplicationCache: " + ApplicationCache.Instance.CreatedDate);
-
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
         }
@@ -127,8 +102,15 @@ namespace GitHub.Unity
             EditorApplication.update -= Initialize;
 
             var logPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
-                .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity.log");
-            Logging.Info("Initializing GitHub for Unity log file: " + logPath);
+                                .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity.log");
+
+            if (ApplicationCache.Instance.FirstRun)
+            {
+                Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
+                //Logging.Info("ApplicationCache: " + ApplicationCache.Instance.CreatedDate);
+                Logging.Info("Initializing GitHub for Unity log file: " + logPath);
+            }
+
             //try
             //{
             //    if (logPath.FileExists())
@@ -138,11 +120,15 @@ namespace GitHub.Unity
             //}
             //catch
             //{}
+
             Logging.LoggerFactory = s => new FileLogAdapter(logPath, s);
             logger = Logging.GetLogger<EntryPoint>();
+
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
             ApplicationManager.Run();
+
+            //Logging.Trace("ApplicationCache: " + ApplicationCache.Instance.CreatedDate);
         }
 
         private static bool ServerCertificateValidationCallback(object sender, X509Certificate certificate,
