@@ -26,14 +26,34 @@ namespace GitHub.Unity
         [NonSerialized] private bool need2fa;
         [NonSerialized] private bool busy;
         [NonSerialized] private string message;
+
         [NonSerialized] private AuthenticationService authenticationService;
+        private AuthenticationService AuthenticationService
+        {
+            get
+            {
+                if (authenticationService == null)
+                    Initialize();
+                return authenticationService;
+            }
+            set
+            {
+                authenticationService = value;
+            }
+        }
 
         public override void Initialize(IView parent)
         {
             base.Initialize(parent);
-
             need2fa = busy = false;
-            authenticationService = new AuthenticationService(new AppConfiguration(), EntryPoint.CredentialManager);
+        }
+
+        private void Initialize()
+        {
+            var repository = EntryPoint.Environment.Repository;
+            var host = repository != null ? repository.CloneUrl.ToRepositoryUrl() : UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
+            host = !String.IsNullOrEmpty(host) ? host : UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
+            AuthenticationService = new AuthenticationService(host, EntryPoint.AppManager.AppConfiguration, EntryPoint.Keychain);
         }
 
         public override void OnShow()
@@ -120,7 +140,7 @@ namespace GitHub.Unity
             if (GUILayout.Button(loginButton))
             {
                 busy = true;
-                authenticationService.Login(username, password, DoRequire2fa, DoResult);
+                AuthenticationService.Login(username, password, DoRequire2fa, DoResult);
             }
             GUILayout.EndHorizontal();
             GUI.enabled = true;
@@ -161,7 +181,7 @@ namespace GitHub.Unity
             if (GUILayout.Button(twofaButton))
             {
                 busy = true;
-                authenticationService.LoginWith2fa(two2fa);
+                AuthenticationService.LoginWith2fa(two2fa);
             }
             GUILayout.EndHorizontal();
 

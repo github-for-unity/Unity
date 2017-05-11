@@ -97,7 +97,8 @@
     <Compile Include="Api\LoginResult.cs" />
     <Compile Include="AppConfiguration.cs" />
     <Compile Include="AssemblyResources.cs" />
-    <Compile Include="Authentication\AppCredentialStore.cs" />
+    <Compile Include="Authentication\IKeychain.cs" />
+    <Compile Include="Authentication\Keychain.cs" />
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="ApplicationManagerBase.cs" />
@@ -212,7 +213,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\IApiClient.cs" />
-    <Compile Include="Api\IApiClientFactory.cs" />
     <Compile Include="Authentication\AuthenticationResult.cs" />
     <Compile Include="Authentication\AuthenticationResultExtensions.cs" />
     <Compile Include="Authentication\Credential.cs" />
@@ -225,7 +225,7 @@
     <Compile Include="Primitives\HostAddress.cs" />
     <Compile Include="Primitives\StringEquivalent.cs" />
     <Compile Include="Primitives\UriString.cs" />
-    <Compile Include="Authentication\CredentialStore.cs" />
+    <Compile Include="Authentication\KeychainAdapter.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="Platform\Platform.cs" />
@@ -233,7 +233,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\ApiClient.cs" />
-    <Compile Include="Api\ApiClientFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">

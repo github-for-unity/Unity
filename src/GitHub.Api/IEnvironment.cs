@@ -9,7 +9,6 @@ namespace GitHub.Unity
         string GetSpecialFolder(Environment.SpecialFolder folder);
 
         string Path { get; }
-        string UserProfilePath { get; }
         string NewLine { get; }
         string GitExecutablePath { get; set; }
         bool IsWindows { get; }
@@ -19,8 +18,10 @@ namespace GitHub.Unity
         string UnityAssetsPath { get; set; }
         string UnityProjectPath { get; set; }
         string ExtensionInstallPath { get; set; }
+        NPath UserCachePath { get; set; }
         string RepositoryPath { get; }
         string GitInstallPath { get; }
         IRepository Repository { get; set; }
+        NPath SystemCachePath { get; set; }
     }
 }

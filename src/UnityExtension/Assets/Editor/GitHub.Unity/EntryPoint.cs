@@ -108,6 +108,7 @@ namespace GitHub.Unity
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
         {
+            Logging.LoggerFactory = s => new UnityLogAdapter(s);
             if (System.Environment.GetEnvironmentVariable("GITHUB_UNITY_DISABLE") == "1")
             {
                 Debug.Log("GitHub for Unity " + ApplicationInfo.Version + " is disabled");
@@ -119,7 +120,6 @@ namespace GitHub.Unity
                 return;
             }
             cctorCalled = true;
-            Logging.LoggerFactory = s => new UnityLogAdapter(s);
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
             Logging.Trace("ApplicationCache: " + ApplicationCache.Instance.CreatedDate);
@@ -194,6 +194,7 @@ namespace GitHub.Unity
 
         public static IPlatform Platform { get { return ApplicationManager.Platform; } }
         public static ICredentialManager CredentialManager { get { return Platform.CredentialManager; } }
+        public static IKeychain Keychain { get { return Platform.Keychain; } }
 
         public static IProcessManager ProcessManager { get { return ApplicationManager.ProcessManager; } }
         public static GitObjectFactory GitObjectFactory { get { return new GitObjectFactory(Environment); } }

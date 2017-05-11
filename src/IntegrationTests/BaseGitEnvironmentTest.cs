@@ -1,15 +1,16 @@
 using System.Linq;
 using System.Threading;
 using GitHub.Unity;
+using NSubstitute;
 using TestUtils;
 
 namespace IntegrationTests
 {
     class BaseGitEnvironmentTest : BaseGitRepoTest
     {
-        protected void InitializeEnvironment(NPath repoPath)
+        protected void InitializeEnvironment(NPath repoPath, bool enableEnvironmentTrace = false)
         {
-            Environment = new IntegrationTestEnvironment(SolutionDirectory) {
+            Environment = new IntegrationTestEnvironment(SolutionDirectory, enableTrace: enableEnvironmentTrace) {
                 RepositoryPath = repoPath,
                 UnityProjectPath = repoPath
             };
@@ -24,7 +25,7 @@ namespace IntegrationTests
             Platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
             GitEnvironment = Platform.GitEnvironment;
             ProcessManager = new ProcessManager(Environment, GitEnvironment);
-            Platform.Initialize(ProcessManager);
+            Platform.Initialize(Environment, ProcessManager);
 
             Environment.UnityProjectPath = repoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;

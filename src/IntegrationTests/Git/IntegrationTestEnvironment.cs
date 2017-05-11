@@ -105,8 +105,11 @@ namespace IntegrationTests
         public string ExtensionInstallPath
         {
             get { return extensionInstallPath; }
-            set { throw new NotImplementedException(); }
+            set {}
         }
+
+        public NPath UserCachePath { get; set; }
+        public NPath SystemCachePath { get; set; }
 
         public string RepositoryPath { get; set; }
 
