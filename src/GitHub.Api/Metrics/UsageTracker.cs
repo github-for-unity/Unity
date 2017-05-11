@@ -21,7 +21,7 @@ namespace GitHub.Unity
         public UsageTracker(NPath storePath, string userTrackingId, IApplicationCache applicationCache)
         {
             this.userTrackingId = userTrackingId;
-            logger.Trace("Tracking Id:{0} FirstRun:{1}", userTrackingId, applicationCache);
+            logger.Trace("Tracking Id:{0}", userTrackingId);
 
             this.storePath = storePath;
             this.applicationCache = applicationCache;
