@@ -70,12 +70,10 @@ namespace GitHub.Unity
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
-            Debug.LogFormat("ApplicationCache OnBeforeSerialize {0} {1}", firstRun, GetInstanceID());
         }
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            Debug.LogFormat("ApplicationCache OnAfterDeserialize {0} {1}", firstRun, GetInstanceID());
         }
     }
 }
