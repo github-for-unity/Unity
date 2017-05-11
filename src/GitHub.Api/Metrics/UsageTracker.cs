@@ -14,15 +14,16 @@ namespace GitHub.Unity
         private readonly string userTrackingId;
 
         private IMetricsService client;
-        private bool firstRun = true;
+        private bool firstRun;
         private Timer timer;
 
-        public UsageTracker(NPath storePath, string userTrackingId)
+        public UsageTracker(NPath storePath, string userTrackingId, bool firstRun)
         {
             this.userTrackingId = userTrackingId;
-            logger.Trace("Tracking Id: {0}", userTrackingId);
+            logger.Trace("Tracking Id:{0} FirstRun:{1}", userTrackingId, firstRun);
 
             this.storePath = storePath;
+            this.firstRun=firstRun;
 
             RunTimer();
         }
@@ -130,7 +131,7 @@ namespace GitHub.Unity
         {
             // The timer first ticks after 3 minutes to allow things to settle down after startup.
             // This will be changed to 8 hours after the first tick by the TimerTick method.
-            timer = new Timer(TimeSpan.FromMinutes(3).TotalMilliseconds);
+            timer = new Timer(TimeSpan.FromSeconds(30).TotalMilliseconds);
             timer.Elapsed += TimerTick;
             timer.Start();
         }

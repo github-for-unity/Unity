@@ -109,23 +109,6 @@ namespace GitHub.Unity
 
         private async Task RunInternal()
         {
-            var usagePath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
-                .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity-usage.json");
-
-            string userTrackingId;
-            if (!UserSettings.Exists("UserTrackingId"))
-            {
-                userTrackingId = Guid.NewGuid().ToString();
-                UserSettings.Set("UserTrackingId", userTrackingId.ToString());
-            }
-            else
-            {
-                userTrackingId = UserSettings.Get("UserTrackingId");
-            }
-
-            UsageTracker = new UsageTracker(usagePath, userTrackingId);
-            UsageTracker.Enabled = UserSettings.Get("UserTrackingEnabled", true);
-
             await ThreadingHelper.SwitchToThreadAsync();
 
             var gitSetup = new GitSetup(Environment, FileSystem, CancellationToken);

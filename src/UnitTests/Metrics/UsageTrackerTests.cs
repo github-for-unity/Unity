@@ -27,7 +27,7 @@ namespace UnitTests
         public void Blah()
         {
             var userTrackingId = System.Guid.NewGuid().ToString();
-            IUsageTracker usageTracker = new UsageTracker(@"c:\Setting.txt", userTrackingId);
+            IUsageTracker usageTracker = new UsageTracker(@"c:\Setting.txt", userTrackingId, true);
             //usageTracker.IncrementLaunchCount().Wait();
         }
     }

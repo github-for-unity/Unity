@@ -52,6 +52,8 @@ namespace GitHub.Unity
             return base.Run()
                 .ContinueWith(_ =>
                 {
+                    SetupUserTracking();
+
                     taskRunner.Run();
 
                     Utility.Run();
@@ -63,7 +65,6 @@ namespace GitHub.Unity
                     //logger.Debug("Application Restarted");
                 }, UIScheduler);
         }
-
 
         protected override void InitializeEnvironment()
         {
@@ -166,6 +167,26 @@ namespace GitHub.Unity
                         taskRunner.Shutdown();
                 }
             }
+        }
+
+        private void SetupUserTracking()
+        {
+            var usagePath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
+                                  .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity-usage.json");
+
+            string userTrackingId;
+            if (!UserSettings.Exists("UserTrackingId"))
+            {
+                userTrackingId = Guid.NewGuid().ToString();
+                UserSettings.Set("UserTrackingId", userTrackingId.ToString());
+            }
+            else
+            {
+                userTrackingId = UserSettings.Get("UserTrackingId");
+            }
+
+            UsageTracker = new UsageTracker(usagePath, userTrackingId, ApplicationCache.Instance.FirstRun);
+            UsageTracker.Enabled = UserSettings.Get("UserTrackingEnabled", true);
         }
 
         public override IEnvironment Environment
