@@ -89,7 +89,7 @@ namespace GitHub.Unity
 
                 try
                 {
-                    //storePath.DeleteIfExists();
+                    storePath.DeleteIfExists();
                 }
                 catch{}
             }
@@ -130,8 +130,7 @@ namespace GitHub.Unity
         {
             // The timer first ticks after 3 minutes to allow things to settle down after startup.
             // This will be changed to 8 hours after the first tick by the TimerTick method.
-            timer = new Timer(TimeSpan.FromSeconds(30).TotalMilliseconds);
-            //timer = new Timer(TimeSpan.FromMinutes(3).TotalMilliseconds);
+            timer = new Timer(TimeSpan.FromMinutes(3).TotalMilliseconds);
             timer.Elapsed += TimerTick;
             timer.Start();
         }
