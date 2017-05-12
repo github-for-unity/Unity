@@ -25,8 +25,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            var logPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
-                                .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity.log");
+            var logPath = GetLogPath();
 
             Logging.LoggerFactory = s => new FileLogAdapter(logPath, s);
             logger = Logging.GetLogger<EntryPoint>();
@@ -40,19 +39,13 @@ namespace GitHub.Unity
         {
             EditorApplication.update -= Initialize;
 
-            var applicationName = System.Environment
-                                        .GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
-                                        .ToNPath().Combine(ApplicationInfo.ApplicationName);
-
-
-            var logPath = applicationName.Combine("github-unity.log").ToString();
-
-
             if (ApplicationCache.Instance.FirstRun)
             {
                 Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
-                var oldLogPath = applicationName.Combine("github-unity-old.log").ToString();
+                var logPath = GetLogPath();
+                var oldLogPath = logPath.Parent.Combine("github-unity-old.log").ToString();
+
                 try
                 {
                     if (File.Exists(oldLogPath))
@@ -74,6 +67,12 @@ namespace GitHub.Unity
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
             ApplicationManager.Run();
+        }
+
+        private static NPath GetLogPath()
+        {
+            return System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData).ToNPath()
+                         .Combine(ApplicationInfo.ApplicationName, "github-unity.log");
         }
 
         private static bool ServerCertificateValidationCallback(object sender, X509Certificate certificate,
