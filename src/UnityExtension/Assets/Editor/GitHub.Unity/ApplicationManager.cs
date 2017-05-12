@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Rackspace.Threading;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -50,10 +51,9 @@ namespace GitHub.Unity
 
             TaskRunner = taskRunner;
             return base.Run()
+                .ContinueWith(_ => SetupUserTracking(), UIScheduler)
                 .ContinueWith(_ =>
                 {
-                    SetupUserTracking();
-
                     taskRunner.Run();
 
                     Utility.Run();
@@ -169,7 +169,7 @@ namespace GitHub.Unity
             }
         }
 
-        private void SetupUserTracking()
+        private Task SetupUserTracking()
         {
             var usagePath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
                                   .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity-usage.json");
@@ -178,15 +178,22 @@ namespace GitHub.Unity
             if (!UserSettings.Exists("UserTrackingId"))
             {
                 userTrackingId = Guid.NewGuid().ToString();
-                UserSettings.Set("UserTrackingId", userTrackingId.ToString());
+                UserSettings.Set("UserTrackingId", userTrackingId);
             }
             else
             {
                 userTrackingId = UserSettings.Get("UserTrackingId");
             }
 
-            UsageTracker = new UsageTracker(usagePath, userTrackingId, ApplicationCache.Instance);
+            UsageTracker = new UsageTracker(usagePath, userTrackingId);
             UsageTracker.Enabled = UserSettings.Get("UserTrackingEnabled", true);
+
+            if (ApplicationCache.Instance.FirstRun)
+            {
+                return UsageTracker.IncrementLaunchCount();
+            }
+
+            return CompletedTask.Default;
         }
 
         public override IEnvironment Environment

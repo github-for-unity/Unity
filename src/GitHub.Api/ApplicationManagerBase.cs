@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,7 +37,6 @@ namespace GitHub.Unity
 
             SystemSettings = new SystemSettings(Environment);
             SystemSettings.Initialize();
-
 
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(Environment, ProcessManager);

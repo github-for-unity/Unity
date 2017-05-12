@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEditorInternal;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -40,7 +41,7 @@ namespace GitHub.Unity
             }
         }
 
-        public static ApplicationCache Instance
+        public static IApplicationCache Instance
         {
             get { return instance ?? CreateApplicationCache(EntryPoint.Environment); }
         }

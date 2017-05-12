@@ -14,17 +14,15 @@ namespace GitHub.Unity
         private readonly string userTrackingId;
 
         private IMetricsService client;
-        private IApplicationCache applicationCache;
         private bool firstRun = true;
         private Timer timer;
 
-        public UsageTracker(NPath storePath, string userTrackingId, IApplicationCache applicationCache)
+        public UsageTracker(NPath storePath, string userTrackingId)
         {
             this.userTrackingId = userTrackingId;
             logger.Trace("Tracking Id:{0}", userTrackingId);
 
             this.storePath = storePath;
-            this.applicationCache = applicationCache;
 
             RunTimer();
         }
@@ -133,6 +131,7 @@ namespace GitHub.Unity
             // The timer first ticks after 3 minutes to allow things to settle down after startup.
             // This will be changed to 8 hours after the first tick by the TimerTick method.
             timer = new Timer(TimeSpan.FromSeconds(30).TotalMilliseconds);
+            //timer = new Timer(TimeSpan.FromMinutes(3).TotalMilliseconds);
             timer.Elapsed += TimerTick;
             timer.Start();
         }
@@ -160,19 +159,6 @@ namespace GitHub.Unity
                 {
                     logger.Warning("Tracking Disabled");
                     return;
-                }
-
-                if (!applicationCache.UsageIncremented)
-                {
-                    var usage = usageStore.Model.GetCurrentUsage();
-
-                    usage.NumberOfStartups++;
-
-                    logger.Trace("IncrementLaunchCount Date:{0} NumberOfStartups:{1}", usage.Date, usage.NumberOfStartups);
-
-                    SaveUsage(usageStore);
-
-                    applicationCache.UsageIncremented = true;
                 }
             }
 
@@ -232,6 +218,18 @@ namespace GitHub.Unity
 
             usage.LastUpdated = currentTimeOffset;
             SaveUsage(usage);
+        }
+
+        public async Task IncrementLaunchCount()
+        {
+            var usageStore = await LoadUsage();
+
+            var usage = usageStore.Model.GetCurrentUsage();
+            usage.NumberOfStartups++;
+
+            logger.Trace("IncrementLaunchCount Date:{0} NumberOfStartups:{1}", usage.Date, usage.NumberOfStartups);
+
+            SaveUsage(usageStore);
         }
 
         public bool Enabled { get; set; }
