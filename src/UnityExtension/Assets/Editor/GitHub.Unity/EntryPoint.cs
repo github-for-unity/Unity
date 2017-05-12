@@ -25,6 +25,12 @@ namespace GitHub.Unity
                 return;
             }
 
+            var logPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
+                                .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity.log");
+
+            Logging.LoggerFactory = s => new FileLogAdapter(logPath, s);
+            logger = Logging.GetLogger<EntryPoint>();
+
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
         }
@@ -64,9 +70,6 @@ namespace GitHub.Unity
                     Logging.Error(ex, "Error rotating log files");
                 }
             }
-
-            Logging.LoggerFactory = s => new FileLogAdapter(logPath, s);
-            logger = Logging.GetLogger<EntryPoint>();
 
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
