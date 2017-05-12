@@ -7,13 +7,13 @@ namespace TestUtils
     {
         public Dictionary<GitConfigGetKey, string> GitConfigGetResults { get; set; }
 
-        public IList<GitStatus> GitStatusResults { get; set; }
+        public GitStatus? GitStatusResults { get; set; }
 
-        public IList<IEnumerable<GitLock>> GitListLocksResults { get; set; }
+        public List<GitLock> GitListLocksResults { get; set; }
 
         public CreateRepositoryProcessRunnerOptions(Dictionary<GitConfigGetKey, string> getConfigResults = null,
-            IList<GitStatus> gitStatusResults = null,
-            IList<IEnumerable<GitLock>> gitListLocksResults = null)
+            GitStatus? gitStatusResults = null,
+            List<GitLock> gitListLocksResults = null)
         {
             GitListLocksResults = gitListLocksResults;
             GitStatusResults = gitStatusResults;

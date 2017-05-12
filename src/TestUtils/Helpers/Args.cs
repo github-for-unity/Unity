@@ -21,22 +21,16 @@ namespace TestUtils
             get
             {
                 var task = Substitute.For<ITask<GitStatus?>>();
-                task.Done.Returns(true);
-                task.Queued.Returns(TaskQueueSetting.Queue);
-                task.Run(Arg.Any<CancellationToken>());
-                task.RunAsync(Arg.Any<CancellationToken>());
+                task.Affinity.Returns(TaskAffinity.Exclusive);
                 return task;
             }
         }
-        public static ITask<IEnumerable<GitLock>> GitListLocksTask
+        public static ITask<List<GitLock>> GitListLocksTask
         {
             get
             {
-                var task = Substitute.For<ITask<IEnumerable<GitLock>>>();
-                task.Done.Returns(true);
-                task.Queued.Returns(TaskQueueSetting.Queue);
-                task.Run(Arg.Any<CancellationToken>());
-                task.RunAsync(Arg.Any<CancellationToken>());
+                var task = Substitute.For<ITask<List<GitLock>>>();
+                task.Affinity.Returns(TaskAffinity.Concurrent);
                 return task;
             }
         }

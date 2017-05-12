@@ -35,8 +35,10 @@ namespace IntegrationTests
             Environment.UnityProjectPath = repoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
 
+            GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager, CancellationToken.None);
+
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, repoPath, CancellationToken.None);
+            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, GitClient, repoPath, CancellationToken.None);
             RepositoryManager.Initialize();
             RepositoryManager.Start();
 
@@ -76,6 +78,7 @@ namespace IntegrationTests
         protected ITaskManager TaskManager { get; private set; }
 
         protected IProcessEnvironment GitEnvironment { get; private set; }
+        protected IGitClient GitClient { get; private set; }
 
         protected NPath DotGitConfig { get; private set; }
 

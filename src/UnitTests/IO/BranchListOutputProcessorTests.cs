@@ -43,7 +43,7 @@ namespace UnitTests
             var results = new List<GitBranch>();
 
             var outputProcessor = new BranchListOutputProcessor();
-            outputProcessor.OnBranch += branch =>
+            outputProcessor.OnEntry += branch =>
             {
                 results.Add(branch);
             };

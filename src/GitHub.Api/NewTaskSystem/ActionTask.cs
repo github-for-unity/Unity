@@ -111,7 +111,8 @@ namespace GitHub.Unity
         protected Func<T> Callback { get; }
         protected Func<T> CallbackIfDependentFailed { get; }
 
-        public FuncTask(CancellationToken token, Func<T> action) : base(token)
+        public FuncTask(CancellationToken token, Func<T> action)
+            : base(token)
         {
             Guard.ArgumentNotNull(token, "token");
             Guard.ArgumentNotNull(action, "action");

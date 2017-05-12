@@ -14,15 +14,13 @@ namespace GitHub.Unity
         private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
-        private readonly CancellationToken token;
 
         public GitCredentialManager(IEnvironment environment, IProcessManager processManager,
-            ITaskManager taskManager, CancellationToken token)
+            ITaskManager taskManager)
         {
             this.environment = environment;
             this.processManager = processManager;
             this.taskManager = taskManager;
-            this.token = token;
         }
 
         public bool HasCredentials()
@@ -145,13 +143,13 @@ namespace GitHub.Unity
             {
 
                 // it's a separate app, run it as such
-                task = new ProcessTask<string>(token, new SimpleOutputProcessor())
+                task = new ProcessTask<string>(taskManager.Token, new SimpleOutputProcessor())
                     .Configure(processManager, credHelper.Substring(1), action, null, true);
             }
             else
             {
                 app = String.Format("credential-{0} ", credHelper);
-                task = new ProcessTask<string>(token, app, new SimpleOutputProcessor())
+                task = new ProcessTask<string>(taskManager.Token, app, new SimpleOutputProcessor())
                     .ConfigureGitProcess(processManager, true);
             }
 

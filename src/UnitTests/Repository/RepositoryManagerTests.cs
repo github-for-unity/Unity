@@ -51,7 +51,8 @@ namespace UnitTests
                 });
 
             platform = SubstituteFactory.CreatePlatform();
-
+            SynchronizationContext.SetSynchronizationContext(new TestSynchronizationContext());
+            taskManager = new TaskManager(TaskScheduler.FromCurrentSynchronizationContext(), new CancellationTokenSource());
             repositoryPathConfiguration = new RepositoryPathConfiguration(@"c:\Temp");
             gitConfig = SubstituteFactory.CreateGitConfig();
 
@@ -77,6 +78,7 @@ namespace UnitTests
         private readonly CancellationToken cancellationToken = CancellationToken.None;
         private IRepositoryWatcher repositoryWatcher;
         private IPlatform platform;
+        private ITaskManager taskManager;
         private RepositoryPathConfiguration repositoryPathConfiguration;
         private IGitConfig gitConfig;
         private Dictionary<CreateRepositoryProcessRunnerOptions.GitConfigGetKey, string> gitConfigGetResults;
@@ -85,15 +87,12 @@ namespace UnitTests
 
         private RepositoryManager CreateRepositoryManager(IGitClient gitClient)
         {
-            var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
-            taskRunner.Run();
-
-            return new RepositoryManager(platform, taskRunner, gitConfig, repositoryWatcher,
+            return new RepositoryManager(platform, taskManager, gitConfig, repositoryWatcher,
                 gitClient, repositoryPathConfiguration, cancellationToken);
         }
 
-        private IGitClient CreateRepositoryProcessRunner(IList<GitStatus> gitStatusResults = null,
-            IList<IEnumerable<GitLock>> gitListLocksResults = null)
+        private IGitClient CreateRepositoryProcessRunner(GitStatus? gitStatusResults = null,
+            List<GitLock> gitListLocksResults = null)
         {
             return
                 SubstituteFactory.CreateRepositoryProcessRunner(new CreateRepositoryProcessRunnerOptions {
@@ -114,7 +113,7 @@ namespace UnitTests
         [Test]
         public void ShouldNotRefreshIfNoGitStatusIsReturned()
         {
-            var repositoryProcessRunner = CreateRepositoryProcessRunner(new GitStatus[0], new IList<GitLock>[0]);
+            var repositoryProcessRunner = CreateRepositoryProcessRunner(null, new List<GitLock>());
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
             repositoryManager.Initialize();
             repositoryManager.Start();
@@ -142,7 +141,7 @@ namespace UnitTests
                     }
             };
 
-            var responseGitLocks = new GitLock[] {
+            var responseGitLocks = new List<GitLock> {
                 new GitLock("SomeLockedBinary.psd", "SomeLockedBinary.psd", "Someone", 1),
                 new GitLock("SomeoneElsesBinary.psd", "SomeoneElsesBinary.psd", "SomeoneElse", 2),
                 new GitLock("subFolder/AnotherLockedBinary.psd", "subFolder/AnotherLockedBinary.psd", "Someone", 3),
@@ -160,8 +159,7 @@ namespace UnitTests
                     }
             };
 
-            var repositoryProcessRunner = CreateRepositoryProcessRunner(new[] { responseGitStatus },
-                new IEnumerable<GitLock>[] { responseGitLocks });
+            var repositoryProcessRunner = CreateRepositoryProcessRunner(responseGitStatus, responseGitLocks);
 
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
             repositoryManager.Initialize();
@@ -203,7 +201,7 @@ namespace UnitTests
                     }
             };
 
-            var responseGitLocks = new GitLock[] {
+            var responseGitLocks = new List<GitLock> {
                 new GitLock("SomeLockedBinary.psd", "SomeLockedBinary.psd", "Someone", 1),
                 new GitLock("SomeoneElsesBinary.psd", "SomeoneElsesBinary.psd", "SomeoneElse", 2),
                 new GitLock("subFolder/AnotherLockedBinary.psd", "subFolder/AnotherLockedBinary.psd", "Someone", 3),
@@ -224,8 +222,7 @@ namespace UnitTests
                     }
             };
 
-            var repositoryProcessRunner = CreateRepositoryProcessRunner(new[] { responseGitStatus },
-                new IList<GitLock>[] { responseGitLocks });
+            var repositoryProcessRunner = CreateRepositoryProcessRunner(responseGitStatus, responseGitLocks);
 
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
             repositoryManager.Initialize();
@@ -265,8 +262,7 @@ namespace UnitTests
                     }
             };
 
-            var repositoryProcessRunner = CreateRepositoryProcessRunner(new[] { responseGitStatus },
-                new IList<GitLock>[] { new GitLock[0] });
+            var repositoryProcessRunner = CreateRepositoryProcessRunner(responseGitStatus, new List<GitLock>());
 
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
             repositoryManager.Initialize();
@@ -306,8 +302,7 @@ namespace UnitTests
                     }
             };
 
-            var repositoryProcessRunner = CreateRepositoryProcessRunner(new[] { responseGitStatus },
-                new IList<GitLock>[0]);
+            var repositoryProcessRunner = CreateRepositoryProcessRunner(responseGitStatus, new List<GitLock>());
 
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
             repositoryManager.Initialize();

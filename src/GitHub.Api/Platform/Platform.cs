@@ -35,13 +35,13 @@ namespace GitHub.Unity
             Environment.SystemCachePath = commonAppData.Combine(ApplicationInfo.ApplicationName);
         }
 
-        public Task<IPlatform> Initialize(IProcessManager processManager, ITaskManager taskManager, CancellationToken token)
+        public Task<IPlatform> Initialize(IProcessManager processManager, ITaskManager taskManager)
         {
             ProcessManager = processManager;
 
             if (CredentialManager == null)
             {
-                CredentialManager = new GitCredentialManager(Environment, processManager, taskManager, token);
+                CredentialManager = new GitCredentialManager(Environment, processManager, taskManager);
                 Keychain = new Keychain(environment, CredentialManager);
                 Keychain.Initialize();
             }

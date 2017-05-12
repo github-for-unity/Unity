@@ -365,119 +365,64 @@ namespace IntegrationTests
 
         protected void SwitchBranch(string branch)
         {
-            var autoResetEvent = new AutoResetEvent(false);
-            var completed = false;
-            var gitSwitchBranchesTask = new GitSwitchBranchesTask(Environment, ProcessManager,
-                new TaskResultDispatcher<string>(s => {
-                    completed = true;
-                    autoResetEvent.Set();
-                }), branch);
-
-            gitSwitchBranchesTask.RunAsync(CancellationToken.None).Wait();
-            autoResetEvent.WaitOne(100);
-
+            var evt = new ManualResetEventSlim(false);
+            GitClient.SwitchBranch(branch)
+                .Finally(_ => evt.Set());
+            var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }
 
         protected void GitPull(string remote, string branch)
         {
-            var autoResetEvent = new AutoResetEvent(false);
-            var completed = false;
-
-            var credentialManager = new GitCredentialManager(Environment, ProcessManager);
-            var gitPullTask = new GitPullTask(Environment, ProcessManager,
-                new TaskResultDispatcher<string>(s => {
-                    completed = true;
-                    autoResetEvent.Set();
-                }), credentialManager, new TestUIDispatcher(),
-                remote, branch);
-
-            gitPullTask.RunAsync(CancellationToken.None).Wait();
-            autoResetEvent.WaitOne(100);
-
+            var evt = new ManualResetEventSlim(false);
+            GitClient.Pull(remote, branch)
+                .Finally(_ => evt.Set());
+            var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }
 
         protected void GitFetch(string remote)
         {
-            var autoResetEvent = new AutoResetEvent(false);
-            var completed = false;
-
-            var credentialManager = new GitCredentialManager(Environment, ProcessManager);
-            var gitPullTask = new GitFetchTask(Environment, ProcessManager,
-                new TaskResultDispatcher<string>(s => {
-                    completed = true;
-                    autoResetEvent.Set();
-                }), credentialManager, new TestUIDispatcher(),
-                remote);
-
-            gitPullTask.RunAsync(CancellationToken.None).Wait();
-            autoResetEvent.WaitOne(100);
-
+            var evt = new ManualResetEventSlim(false);
+            GitClient.Fetch(remote)
+                .Finally(_ => evt.Set());
+            var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }
 
         protected void DeleteBranch(string branch)
         {
-            var autoResetEvent = new AutoResetEvent(false);
-            var completed = false;
-
-            var gitBranchDeleteTask = new GitBranchDeleteTask(Environment, ProcessManager,
-                new TaskResultDispatcher<string>(s => {
-                    completed = true;
-                    autoResetEvent.Set();
-                }), branch, true);
-
-            gitBranchDeleteTask.RunAsync(CancellationToken.None).Wait();
-            autoResetEvent.WaitOne(200);
-
+            var evt = new ManualResetEventSlim(false);
+            GitClient.DeleteBranch(branch)
+                .Finally(_ => evt.Set());
+            var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }
 
         protected void GitRemoteAdd(string remote, string url)
         {
-            var autoResetEvent = new AutoResetEvent(false);
-            var completed = false;
-
-            var gitRemoteAddTask = new GitRemoteAddTask(TODO, url, remote);
-
-            gitRemoteAddTask.RunAsync(CancellationToken.None).Wait();
-            autoResetEvent.WaitOne(100);
-
+            var evt = new ManualResetEventSlim(false);
+            GitClient.RemoteAdd(remote, url)
+                .Finally(_ => evt.Set());
+            var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }
 
         protected void GitRemoteRemove(string remote)
         {
-            var autoResetEvent = new AutoResetEvent(false);
-            var completed = false;
-
-            var gitRemoteRemoveTask = new GitRemoteRemoveTask(Environment, ProcessManager,
-                new TaskResultDispatcher<string>(s => {
-                    completed = true;
-                    autoResetEvent.Set();
-                }), remote);
-
-            gitRemoteRemoveTask.RunAsync(CancellationToken.None).Wait();
-            autoResetEvent.WaitOne(100);
-
+            var evt = new ManualResetEventSlim(false);
+            GitClient.RemoteRemove(remote)
+                .Finally(_ => evt.Set());
+            var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }
 
         protected void CreateBranch(string branch, string baseBranch)
         {
-            var autoResetEvent = new AutoResetEvent(false);
-            var completed = false;
-
-            var gitBranchCreateTask = new GitBranchCreateTask(Environment, ProcessManager,
-                new TaskResultDispatcher<string>(s => {
-                    completed = true;
-                    autoResetEvent.Set();
-                }), branch, baseBranch);
-
-            gitBranchCreateTask.RunAsync(CancellationToken.None).Wait();
-            autoResetEvent.WaitOne(200);
-
+            var evt = new ManualResetEventSlim(false);
+            GitClient.CreateBranch(branch, baseBranch)
+                .Finally(_ => evt.Set());
+            var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }
 

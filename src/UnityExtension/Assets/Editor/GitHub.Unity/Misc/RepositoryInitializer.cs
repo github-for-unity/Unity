@@ -13,7 +13,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("SetProjectToTextSerialization");
 
-            new ActionTask(this.ApplicationManager.CancellationToken, () => { EditorSettings.serializationMode = SerializationMode.ForceText; })
+            new ActionTask(TaskManager.Token, () => { EditorSettings.serializationMode = SerializationMode.ForceText; })
                 .ScheduleUI(TaskManager);
         }
     }

@@ -347,134 +347,89 @@ namespace TestUtils
 
             options = options ?? new CreateRepositoryProcessRunnerOptions();
 
-            var repositoryProcessRunner = Substitute.For<IGitClient>();
+            var gitClient = Substitute.For<IGitClient>();
 
-            repositoryProcessRunner.Pull(Arg.Any<ITaskResultDispatcher<string>>(), Args.String, Args.String)
-                                   .Returns(info => {
-                                       var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
-                                       var remote = (string)info[1];
-                                       var branch = (string)info[2];
-
-                                       object result = null;
-
-                                       logger.Trace(@"PrepareGitPull({0}, ""{1}"", ""{2}"") -> {3}",
-                                           resultDispatcher != null ? "[instance]" : "[null]", remote, branch,
-                                           result != null ? result : "[null]");
-
-                                       throw new NotImplementedException();
-                                   });
-
-            repositoryProcessRunner.Push(Arg.Any<ITaskResultDispatcher<string>>(), Args.String, Args.String)
-                                   .Returns(info => {
-                                       var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
-                                       var remote = (string)info[1];
-                                       var branch = (string)info[2];
-
-                                       object result = null;
-
-                                       logger.Trace(@"PrepareGitPush({0}, ""{1}"", ""{2}"") -> {3}",
-                                           resultDispatcher != null ? "[instance]" : "[null]", remote, branch,
-                                           result != null ? result : "[null]");
-
-                                       throw new NotImplementedException();
-                                   });
-
-            repositoryProcessRunner.GetConfig(Arg.Any<ITaskResultDispatcher<string>>(), Args.String,
-                Args.GitConfigSource).Returns(info => {
-                var resultDispatcher = (ITaskResultDispatcher<string>)info[0];
-                var key = (string)info[1];
-                var gitConfigSource = (GitConfigSource)info[2];
-
-                string result;
-                var containsKey =
-                    options.GitConfigGetResults.TryGetValue(
-                        new CreateRepositoryProcessRunnerOptions.GitConfigGetKey {
-                            Key = key,
-                            GitConfigSource = gitConfigSource
-                        }, out result);
-
-                if (containsKey)
-                {
-                    resultDispatcher.ReportSuccess(result);
-                }
-                else
-                {
-                    resultDispatcher.ReportFailure();
-                }
-
-                logger.Trace(@"RunGitConfigGet({0}, ""{1}"", GitConfigSource.{2}) -> {3}",
-                    resultDispatcher != null ? "[instance]" : "[null]", key,
-                    gitConfigSource.ToString(), containsKey ? $@"Success" : "Failure");
-
-                return Task.Factory.StartNew(() => true);
-            });
-
-            var gitStatsResultsEnumerator = options.GitStatusResults?.GetEnumerator();
-            repositoryProcessRunner.Status(Arg.Any<ITaskResultDispatcher<GitStatus>>()).Returns(info => {
-                var resultDispatcher = (ITaskResultDispatcher<GitStatus>)info[0];
-
-                GitStatus? result = null;
-                if (gitStatsResultsEnumerator != null)
-                {
-                    if (gitStatsResultsEnumerator.MoveNext())
-                    {
-                        result = gitStatsResultsEnumerator.Current;
-                    }
-                }
-
-                if (result != null)
-                {
-                    resultDispatcher.ReportSuccess(result.Value);
-                }
-                else
-                {
-                    resultDispatcher.ReportFailure();
-                }
-
-                logger.Trace(@"RunGitStatus({0}) -> {1}", resultDispatcher != null ? "[instance]" : "[null]",
-                    result != null ? $"Success: \"{result.Value}\"" : "Failure");
-                var task = Args.GitStatusTask;
-                task.TaskResult.Returns(result);
-                return task;
-            });
-
-            var gitListLocksEnumerator = options.GitListLocksResults?.GetEnumerator();
-            repositoryProcessRunner.ListLocks(Arg.Any<ITaskResultDispatcher<IEnumerable<GitLock>>>(), Args.Bool)
+            gitClient.Pull(Args.String, Args.String)
                 .Returns(info => {
-                    var resultDispatcher = (ITaskResultDispatcher<IEnumerable<GitLock>>)info[0];
+                    var remote = (string)info[0];
+                    var branch = (string)info[1];
 
-                    IEnumerable<GitLock> result = null;
-                    if (gitListLocksEnumerator != null)
-                    {
-                        if (gitListLocksEnumerator.MoveNext())
-                        {
-                            result = gitListLocksEnumerator.Current;
-                        }
-                        else
-                        {
-                            result = new List<GitLock>();
-                        }
-                    }
+                    string result = null;
 
-                    if (result.Any())
+                    logger.Trace(@"PrepareGitPull(""{0}"", ""{1}"") -> {2}",
+                        remote, branch,
+                        result != null ? result : "[null]");
+
+                    return new FuncTask<string>(CancellationToken.None, () => result);
+                });
+
+            gitClient.Push(Args.String, Args.String)
+                .Returns(info => {
+                    var remote = (string)info[0];
+                    var branch = (string)info[1];
+
+                    string result = null;
+
+                    logger.Trace(@"PrepareGitPush(""{0}"", ""{1}"") -> {2}",
+                        remote, branch,
+                        result != null ? result : "[null]");
+
+                    return new FuncTask<string>(CancellationToken.None, () => result);
+                });
+
+            gitClient.GetConfig(Args.String, Args.GitConfigSource)
+                .Returns(info => {
+                    var key = (string)info[0];
+                    var gitConfigSource = (GitConfigSource)info[1];
+
+                    string result;
+                    var containsKey =
+                        options.GitConfigGetResults.TryGetValue(
+                            new CreateRepositoryProcessRunnerOptions.GitConfigGetKey {
+                                Key = key,
+                                GitConfigSource = gitConfigSource
+                            }, out result);
+
+                    FuncTask<string> ret = null;
+                    if (containsKey)
                     {
-                        resultDispatcher.ReportSuccess(result);
+                        ret = new FuncTask<string>(CancellationToken.None, () => result);
                     }
                     else
                     {
-                        resultDispatcher.ReportFailure();
+                        ret = new FuncTask<string>(CancellationToken.None, () => null);
                     }
 
-                    logger.Trace(@"RunGitListLocks({0}) -> {1}",
-                        resultDispatcher != null ? "[instance]" : "[null]",
-                        result != null ? $"Success" : "Failure");
+                    logger.Trace(@"RunGitConfigGet(""{0}"", GitConfigSource.{1}) -> {2}",
+                        key,
+                        gitConfigSource.ToString(), containsKey ? $@"Success" : "Failure");
 
-                    var task = Args.GitListLocksTask;
-                    task.TaskResult.Returns(result);
-                    return task;
+                    return ret;
                 });
 
-            return repositoryProcessRunner;
+            gitClient.Status().Returns(info => {
+                GitStatus? result = options.GitStatusResults;
+
+                var ret = new FuncTask<GitStatus?>(CancellationToken.None, () => result);
+
+                logger.Trace(@"RunGitStatus() -> {0}",
+                    result != null ? $"Success: \"{result.Value}\"" : "Failure");
+                var task = Args.GitStatusTask;
+                return ret;
+            });
+
+            gitClient.ListLocks(Args.Bool)
+                .Returns(info => {
+                    List<GitLock> result = options.GitListLocksResults;
+
+                    var ret = new FuncListTask<GitLock>(CancellationToken.None, () => result);
+
+                    logger.Trace(@"RunGitListLocks() -> {0}", result != null ? $"Success" : "Failure");
+
+                    return ret;
+                });
+
+            return gitClient;
         }
 
         public IRepositoryWatcher CreateRepositoryWatcher()

@@ -141,7 +141,7 @@ namespace UnitTests
             var results = new List<GitRemote>();
 
             var outputProcessor = new RemoteListOutputProcessor();
-            outputProcessor.OnRemote += branch =>
+            outputProcessor.OnEntry += branch =>
             {
                 results.Add(branch);
             };

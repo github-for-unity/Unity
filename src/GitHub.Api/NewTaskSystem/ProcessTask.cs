@@ -34,6 +34,8 @@ namespace GitHub.Unity
         string ProcessName { get; }
         string ProcessArguments { get; }
         Process Process { get; set; }
+        event Action<IProcess> OnStartProcess;
+        event Action<IProcess> OnEndProcess;
     }
 
     interface IProcessTask<T> : ITask<T>, IProcess
@@ -188,6 +190,9 @@ namespace GitHub.Unity
         private StreamWriter input;
 
         public event Action<string> OnErrorData;
+        public event Action<IProcess> OnStartProcess;
+        public event Action<IProcess> OnEndProcess;
+
         private string errors = null;
         private Exception thrownException = null;
 
@@ -238,6 +243,18 @@ namespace GitHub.Unity
             ConfigureOutputProcessor();
             Process = existingProcess;
             ProcessName = existingProcess.StartInfo.FileName;
+        }
+
+        protected override void RaiseOnStart()
+        {
+            base.RaiseOnStart();
+            OnStartProcess?.Invoke(this);
+        }
+
+        protected override void RaiseOnEnd()
+        {
+            base.RaiseOnEnd();
+            OnEndProcess?.Invoke(this);
         }
 
         protected virtual void ConfigureOutputProcessor()
@@ -292,6 +309,8 @@ namespace GitHub.Unity
         private Exception thrownException = null;
 
         public event Action<string> OnErrorData;
+        public event Action<IProcess> OnStartProcess;
+        public event Action<IProcess> OnEndProcess;
 
         public ProcessTaskWithListOutput(CancellationToken token, IOutputProcessor<List<T>, T> outputProcessor = null, ITask dependsOn = null)
             : base(token, null)
@@ -327,6 +346,18 @@ namespace GitHub.Unity
             ConfigureOutputProcessor();
             Process = new Process { StartInfo = psi, EnableRaisingEvents = true };
             ProcessName = psi.FileName;
+        }
+
+        protected override void RaiseOnStart()
+        {
+            base.RaiseOnStart();
+            OnStartProcess?.Invoke(this);
+        }
+
+        protected override void RaiseOnEnd()
+        {
+            base.RaiseOnEnd();
+            OnEndProcess?.Invoke(this);
         }
 
         protected virtual void ConfigureOutputProcessor()

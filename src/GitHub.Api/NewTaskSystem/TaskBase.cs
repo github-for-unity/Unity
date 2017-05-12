@@ -217,6 +217,12 @@ namespace GitHub.Unity
             return this;
         }
 
+        public new ITask<T> Start()
+        {
+            Task.Start(TaskManager.GetScheduler(Affinity));
+            return this;
+        }
+
         public new ITask<T> Start(TaskScheduler scheduler)
         {
             Task.Start(scheduler);

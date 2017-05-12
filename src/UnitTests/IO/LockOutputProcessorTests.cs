@@ -14,7 +14,7 @@ namespace UnitTests
 
             var results = new List<GitLock>();
             var outputProcessor = new LockOutputProcessor(gitObjectFactory);
-            outputProcessor.OnGitLock += gitLock => { results.Add(gitLock); };
+            outputProcessor.OnEntry += gitLock => { results.Add(gitLock); };
 
             foreach (var line in lines)
             {

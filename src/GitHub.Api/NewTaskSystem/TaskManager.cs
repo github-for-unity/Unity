@@ -14,15 +14,16 @@ namespace GitHub.Unity
         public TaskScheduler UIScheduler { get { return uiScheduler; } }
         public TaskScheduler ConcurrentScheduler { get { return manager.ConcurrentTaskScheduler; } }
         public TaskScheduler ExclusiveScheduler { get { return manager.ExclusiveTaskScheduler; } }
+        public CancellationToken Token { get { return cts.Token; } }
 
         private static ITaskManager instance;
         public static ITaskManager Instance => instance;
 
-        public TaskManager(TaskScheduler uiScheduler, CancellationTokenSource cts)
+        public TaskManager(TaskScheduler uiScheduler)
         {
+            cts = new CancellationTokenSource();
             this.manager = new ConcurrentExclusiveInterleave(cts.Token);
             this.uiScheduler = uiScheduler;
-            this.cts = cts;
             instance = this;
         }
 

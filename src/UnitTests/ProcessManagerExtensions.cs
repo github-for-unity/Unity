@@ -1,42 +1,40 @@
 using GitHub.Unity;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace UnitTests
 {
     static class ProcessManagerExtensions
     {
-        public static IEnumerable<GitBranch> GetGitBranches(this ProcessManager processManager, string workingDirectory,
+        public static async Task<IEnumerable<GitBranch>> GetGitBranches(this ProcessManager processManager,
+            string workingDirectory,
             string gitPath = null)
         {
-            var results = new List<GitBranch>();
-
             var processor = new BranchListOutputProcessor();
-            processor.OnBranch += data => results.Add(data);
             NPath path = null;
             if (gitPath == null)
                 path = "git";
             else
                 path = gitPath;
-            var process = processManager.Configure(path, "branch -vv", workingDirectory);
-            var outputManager = new ProcessOutputManager(process, processor);
 
-            process.Run();
-            process.WaitForExit();
+            var results = await new ProcessTaskWithListOutput<GitBranch>(CancellationToken.None, processor)
+                .Configure(processManager, path, "branch -vv", workingDirectory, false)
+                .Start()
+                .Task;
 
             return results;
         }
 
-        public static IEnumerable<GitLogEntry> GetGitLogEntries(this ProcessManager processManager, string workingDirectory,
+        public static async Task<List<GitLogEntry>> GetGitLogEntries(this ProcessManager processManager,
+            string workingDirectory,
             IEnvironment environment, IFileSystem filesystem, IProcessEnvironment gitEnvironment,
             int? logCount = null, string gitPath = null)
         {
-            var results = new List<GitLogEntry>();
-
             var gitStatusEntryFactory = new GitObjectFactory(environment);
 
             var processor = new LogEntryOutputProcessor(gitStatusEntryFactory);
-            processor.OnLogEntry += data => results.Add(data);
 
             var logNameStatus = @"log --pretty=format:""%H%n%P%n%aN%n%aE%n%aI%n%cN%n%cE%n%cI%n%B---GHUBODYEND---"" --name-status";
 
@@ -51,25 +49,21 @@ namespace UnitTests
             else
                 path = gitPath;
 
-            var process = processManager.Configure(path, logNameStatus, workingDirectory);
-            var outputManager = new ProcessOutputManager(process, processor);
-
-            process.Run();
-            process.WaitForExit();
+            var results = await new ProcessTaskWithListOutput<GitLogEntry>(CancellationToken.None, processor)
+                .Configure(processManager, path, logNameStatus, workingDirectory, false)
+                .Start()
+                .Task;
 
             return results;
         }
 
-        public static GitStatus GetGitStatus(this ProcessManager processManager, string workingDirectory,
+        public static async Task<GitStatus> GetGitStatus(this ProcessManager processManager,
+            string workingDirectory,
             IEnvironment environment, IFileSystem filesystem, IProcessEnvironment gitEnvironment,
             string gitPath = null)
         {
-            var result = new GitStatus();
-
             var gitStatusEntryFactory = new GitObjectFactory(environment);
-
             var processor = new StatusOutputProcessor(gitStatusEntryFactory);
-            processor.OnStatus += data => result = data;
 
             NPath path = null;
             if (gitPath == null)
@@ -77,22 +71,19 @@ namespace UnitTests
             else
                 path = gitPath;
 
-            var process = processManager.Configure(path, "status -b -u --porcelain", workingDirectory);
-            var outputManager = new ProcessOutputManager(process, processor);
+            var results = await new ProcessTask<GitStatus?>(CancellationToken.None, processor)
+                .Configure(processManager, path, "status -b -u --porcelain", workingDirectory, false)
+                .Start()
+                .Task;
 
-            process.Run();
-            process.WaitForExit();
-
-            return result;
+            return results.Value;
         }
  
-        public static IEnumerable<GitRemote> GetGitRemoteEntries(this ProcessManager processManager, string workingDirectory,
+        public static async Task<List<GitRemote>> GetGitRemoteEntries(this ProcessManager processManager,
+            string workingDirectory,
             string gitPath = null)
         {
-            var results = new List<GitRemote>();
-
             var processor = new RemoteListOutputProcessor();
-            processor.OnRemote += data => results.Add(data);
 
             NPath path = null;
             if (gitPath == null)
@@ -100,22 +91,19 @@ namespace UnitTests
             else
                 path = gitPath;
 
-            var process = processManager.Configure(path, "remote -v", workingDirectory);
-            var outputManager = new ProcessOutputManager(process, processor);
-
-            process.Run();
-            process.WaitForExit();
-
+            var results = await new ProcessTaskWithListOutput<GitRemote>(CancellationToken.None, processor)
+                .Configure(processManager, path, "remote -v", workingDirectory, false)
+                .Start()
+                .Task;
             return results;
         }
 
-        public static string GetGitCreds(this ProcessManager processManager, string workingDirectory,
+        public static async Task<string> GetGitCreds(this ProcessManager processManager,
+            string workingDirectory,
             IEnvironment environment, IFileSystem filesystem, IProcessEnvironment gitEnvironment,
             string gitPath = null)
         {
-            StringBuilder sb = new StringBuilder();
-            var processor = new BaseOutputProcessor();
-            processor.OnData += data => sb.AppendLine();
+            var processor = new FirstNonNullLineOutputProcessor();
 
             NPath path = null;
             if (gitPath == null)
@@ -123,18 +111,16 @@ namespace UnitTests
             else
                 path = gitPath;
 
-            var process = processManager.Configure(path, "credential-wincred get", workingDirectory);
-            var outputManager = new ProcessOutputManager(process, processor);
-            process.OnStart += p =>
+            var task = new ProcessTask<string>(CancellationToken.None, processor)
+                .Configure(processManager, path, "credential-wincred get", workingDirectory, true);
+
+            task.OnStartProcess += p =>
             {
                 p.StandardInput.WriteLine("protocol=https");
                 p.StandardInput.WriteLine("host=github.com");
                 p.StandardInput.Close();
             };
-            process.Run();
-            process.WaitForExit();
-
-            return sb.ToString();
+            return await task.Start().Task;
         }
     }
 }

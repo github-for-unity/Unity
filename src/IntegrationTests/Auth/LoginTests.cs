@@ -58,11 +58,12 @@ namespace IntegrationTests
             var filesystem = new FileSystem();
             NPathFileSystemProvider.Current = filesystem;
             IPlatform platform = null;
-            platform = new Platform(Environment, filesystem, new TestUIDispatcher(() => {
-                Logger.Debug("Called");
-                platform.CredentialManager.Save(new Credential("https://github.com", "username", "token")).Wait();
-                return true;
-            }));
+            platform = new Platform(Environment, filesystem);
+            //    new TestUIDispatcher(() => {
+            //    Logger.Debug("Called");
+            //    platform.CredentialManager.Save(new Credential("https://github.com", "username", "token")).Wait();
+            //    return true;
+            //}));
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(Environment, gitEnvironment);
 

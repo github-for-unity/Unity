@@ -249,16 +249,17 @@ namespace UnitTests
         {
             var gitObjectFactory = SubstituteFactory.CreateGitObjectFactory(TestRootPath);
 
-            var result = new GitStatus();
+            GitStatus? result = null;
             var outputProcessor = new StatusOutputProcessor(gitObjectFactory);
-            outputProcessor.OnStatus += status => { result = status; };
+            outputProcessor.OnEntry += status => { result = status; };
 
             foreach (var line in lines)
             {
                 outputProcessor.LineReceived(line);
             }
 
-            result.AssertEqual(expected);
+            Assert.IsTrue(result.HasValue);
+            result.Value.AssertEqual(expected);
         }
     }
 }

@@ -70,7 +70,7 @@ namespace UnitTests
 
             var results = new List<GitLogEntry>();
             var outputProcessor = new LogEntryOutputProcessor(gitObjectFactory);
-            outputProcessor.OnLogEntry += logEntry => { results.Add(logEntry); };
+            outputProcessor.OnEntry += logEntry => { results.Add(logEntry); };
 
             foreach (var line in lines)
             {

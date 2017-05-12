@@ -19,8 +19,7 @@ namespace GitHub.Unity
             ThreadingHelper.SetMainThread();
             UIScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             ThreadingHelper.MainThreadScheduler = UIScheduler;
-            CancellationTokenSource = new CancellationTokenSource();
-            TaskManager = new TaskManager(UIScheduler, CancellationTokenSource);
+            TaskManager = new TaskManager(UIScheduler);
         }
 
         protected void Initialize()
@@ -197,12 +196,11 @@ namespace GitHub.Unity
         public IPlatform Platform { get; protected set; }
         public virtual IProcessEnvironment GitEnvironment { get; set; }
         public IProcessManager ProcessManager { get; protected set; }
-        public CancellationToken CancellationToken { get; protected set; }
+        public CancellationToken CancellationToken { get { return TaskManager.Token; } }
         public ITaskManager TaskManager { get; protected set; }
         public IGitClient GitClient { get; protected set; }
 
 
-        protected CancellationTokenSource CancellationTokenSource { get; private set; }
         protected TaskScheduler UIScheduler { get; private set; }
         protected SynchronizationContext SynchronizationContext { get; private set; }
         protected IRepositoryManager RepositoryManager { get { return repositoryManager; } }
