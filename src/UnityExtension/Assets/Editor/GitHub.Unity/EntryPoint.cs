@@ -23,12 +23,6 @@ namespace GitHub.Unity
                 return;
             }
 
-            var logPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
-                                .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity.log");
-
-            Logging.LoggerFactory = s => new FileLogAdapter(logPath, s);
-            logger = Logging.GetLogger<EntryPoint>();
-
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
         }
@@ -38,10 +32,16 @@ namespace GitHub.Unity
         {
             EditorApplication.update -= Initialize;
 
+            var logPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
+                                .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity.log");
+
             if (ApplicationCache.Instance.FirstRun)
             {
-                Debug.Log("Initializing GitHub for Unity version " + ApplicationInfo.Version);
+                Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
             }
+
+            Logging.LoggerFactory = s => new FileLogAdapter(logPath, s);
+            logger = Logging.GetLogger<EntryPoint>();
 
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
