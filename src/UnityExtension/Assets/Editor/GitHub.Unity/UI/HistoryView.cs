@@ -341,11 +341,6 @@ namespace GitHub.Unity
                 {
                     Push();
                 }
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    OnSelectionChange();
-                }
             }
             GUILayout.EndHorizontal();
 
