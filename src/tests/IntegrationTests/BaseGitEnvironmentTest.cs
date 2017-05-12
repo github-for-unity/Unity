@@ -61,8 +61,10 @@ namespace IntegrationTests
 
         protected override void OnTearDown()
         {
-            base.OnTearDown();
             RepositoryManager?.Stop();
+            RepositoryManager?.Dispose();
+            RepositoryManager = null;
+            base.OnTearDown();
         }
 
         public IRepositoryManager RepositoryManager { get; private set; }
