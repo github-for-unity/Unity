@@ -519,7 +519,13 @@ namespace GitHub.Unity
                 return remote;
             }
 
-            return config.GetRemotes().FirstOrDefault();
+            var configRemotes = config.GetRemotes().ToArray();
+            if (configRemotes.Any())
+            {
+                return configRemotes.First();
+            }
+
+            return null;
         }
 
         private ConfigBranch? GetActiveBranch()
