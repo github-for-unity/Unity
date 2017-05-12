@@ -203,9 +203,11 @@ namespace GitHub.Unity
 
             try
             {
-                logger.Trace("Copying \"{0}\" to \"{1}\"", unzipPath, PackageDestinationDirectory);
+                PackageDestinationDirectory.DeleteIfExists();
 
-                unzipPath.Copy(PackageDestinationDirectory);
+                logger.Trace("Moving \"{0}\" to \"{1}\"", unzipPath, PackageDestinationDirectory);
+
+                unzipPath.Move(PackageDestinationDirectory);
             }
             catch (Exception ex)
             {
