@@ -72,6 +72,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApplicationCache.cs" />
     <Compile Include="ApplicationManager.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="Misc\RepositoryInitializer.cs" />

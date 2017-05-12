@@ -51,7 +51,6 @@ namespace GitHub.Unity
         [SerializeField] private bool broadMode;
 #endif
         [SerializeField] private Vector2 detailsScroll;
-        [SerializeField] private bool historyLocked = true;
         [SerializeField] private Object historyTarget;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string selectionID;
@@ -150,7 +149,7 @@ namespace GitHub.Unity
 
         public override void OnSelectionChange()
         {
-            if (!historyLocked && !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(Selection.activeObject)))
+            if (!string.IsNullOrEmpty(AssetDatabase.GetAssetPath(Selection.activeObject)))
             {
                 historyTarget = Selection.activeObject;
                 Refresh();
@@ -343,11 +342,6 @@ namespace GitHub.Unity
                     Push();
                 }
 
-                // Target lock button
-                EditorGUI.BeginChangeCheck();
-                {
-                    historyLocked = GUILayout.Toggle(historyLocked, GUIContent.none, Styles.HistoryLockStyle);
-                }
                 if (EditorGUI.EndChangeCheck())
                 {
                     OnSelectionChange();
