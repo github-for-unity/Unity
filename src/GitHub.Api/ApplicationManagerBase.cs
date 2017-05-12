@@ -24,9 +24,10 @@ namespace GitHub.Unity
 
         protected void Initialize()
         {
+            Logging.TracingEnabled = UserSettings.Get("EnableTraceLogging", false);
+
             UserSettings = new UserSettings(Environment);
             UserSettings.Initialize();
-            Logging.TracingEnabled = UserSettings.Get("EnableTraceLogging", false);
             LocalSettings = new LocalSettings(Environment);
             LocalSettings.Initialize();
 
@@ -35,8 +36,9 @@ namespace GitHub.Unity
 
             Platform = new Platform(Environment, FileSystem);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
-            Platform.Initialize(ProcessManager);
+            Platform.Initialize(ProcessManager, TaskManager, CancellationToken);
             GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager, CancellationToken);
+            ApiClientFactory.Instance = new ApiClientFactory(new AppConfiguration(), Platform.CredentialManager);
         }
 
         public virtual Task Run()
@@ -173,7 +175,7 @@ namespace GitHub.Unity
             {
                 if (disposed) return;
                 disposed = true;
-                if (CancellationTokenSource != null) CancellationTokenSource.Cancel();
+                if (TaskManager != null) TaskManager.Stop();
                 if (repositoryManager != null) repositoryManager.Dispose();
             }
         }
