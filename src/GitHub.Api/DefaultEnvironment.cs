@@ -7,6 +7,17 @@ namespace GitHub.Unity
     {
         private static readonly ILogging logger = Logging.GetLogger<DefaultEnvironment>();
 
+        private const string logFile = "github-unity.log";
+        public static NPath LogPath
+        {
+            get
+            {
+                return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
+                    .ToNPath()
+                    .Combine(ApplicationInfo.ApplicationName, logFile);
+            }
+        }
+
         public string GetSpecialFolder(Environment.SpecialFolder folder)
         {
             return Environment.GetFolderPath(folder);

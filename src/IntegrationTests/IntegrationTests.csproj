@@ -109,7 +109,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="IOTestsRepo.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>

@@ -25,7 +25,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            var logPath = GetLogPath();
+            var logPath = DefaultEnvironment.LogPath;
 
             Logging.LoggerFactory = s => new FileLogAdapter(logPath, s);
             logger = Logging.GetLogger<EntryPoint>();
@@ -41,27 +41,21 @@ namespace GitHub.Unity
 
             if (ApplicationCache.Instance.FirstRun)
             {
-                Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
+                Debug.Log("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
-                var logPath = GetLogPath();
-                var oldLogPath = logPath.Parent.Combine("github-unity-old.log").ToString();
+                var logPath = DefaultEnvironment.LogPath;
+                var oldLogPath = logPath.FileNameWithoutExtension + "-old" + logPath.ExtensionWithDot;
 
                 try
                 {
-                    if (File.Exists(oldLogPath))
-                    {
-                        File.Delete(oldLogPath);
-                    }
-
-                    if (File.Exists(logPath))
-                    {
-                        File.Move(logPath, oldLogPath);
-                    }
+                    logPath.Move(oldLogPath);
                 }
                 catch (Exception ex)
                 {
                     Logging.Error(ex, "Error rotating log files");
                 }
+                Debug.Log("Initializing GitHub for Unity log file: " + logPath);
+                Logging.Info("Initializing GitHub for Unity log file: " + logPath);
             }
 
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
