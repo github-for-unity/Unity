@@ -73,7 +73,7 @@ namespace GitHub.Unity
             NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
 
             repository.RequestLock(repositoryPath)
-                .Then(new ActionTask(EntryPoint.AppManager.CancellationToken, () =>
+                .ContinueWith(new ActionTask(EntryPoint.AppManager.CancellationToken, _ =>
                 {
                     isBusy = false;
                     Selection.activeGameObject = null;
@@ -112,7 +112,7 @@ namespace GitHub.Unity
             NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
 
             repository.ReleaseLock(repositoryPath, false)
-                .Then(new ActionTask(EntryPoint.AppManager.CancellationToken, () =>
+                .ContinueWith(new ActionTask(EntryPoint.AppManager.CancellationToken, _ =>
                 {
                     isBusy = false;
                     Selection.activeGameObject = null;
@@ -144,7 +144,8 @@ namespace GitHub.Unity
 
         private static void RunLocksUpdateOnMainThread(IEnumerable<GitLock> update)
         {
-            EntryPoint.AppManager.TaskManager.ScheduleUI(() => OnLocksUpdate(update));
+            new ActionTask(EntryPoint.AppManager.TaskManager.Token, _ => OnLocksUpdate(update))
+                .ScheduleUI(EntryPoint.AppManager.TaskManager);
         }
 
         private static void OnLocksUpdate(IEnumerable<GitLock> update)
@@ -168,7 +169,7 @@ namespace GitHub.Unity
 
         private static void RunStatusUpdateOnMainThread(GitStatus update)
         {
-            EntryPoint.AppManager.TaskManager.ScheduleUI(() => OnStatusUpdate(update));
+            EntryPoint.AppManager.TaskManager.ScheduleUI(new ActionTask(EntryPoint.AppManager.TaskManager.Token, _ => OnStatusUpdate(update)));
         }
 
         private static void OnStatusUpdate(GitStatus update)

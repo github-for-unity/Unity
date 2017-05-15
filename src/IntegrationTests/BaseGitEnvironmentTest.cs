@@ -10,8 +10,9 @@ namespace IntegrationTests
     {
         protected void InitializeEnvironment(NPath repoPath, bool enableEnvironmentTrace = false)
         {
-            var cts = new CancellationTokenSource();
-            var syncContext = new ThreadSynchronizationContext(cts.Token);
+            TaskManager = new TaskManager();
+            var sc = new ThreadSynchronizationContext(TaskManager.Token);
+            TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(sc);
 
             Environment = new IntegrationTestEnvironment(SolutionDirectory, enableTrace: enableEnvironmentTrace) {
                 RepositoryPath = repoPath,
@@ -25,20 +26,19 @@ namespace IntegrationTests
 
             FileSystem.SetCurrentDirectory(repoPath);
 
-            TaskManager = new TaskManager(new SynchronizationContextTaskScheduler(syncContext), cts);
             Platform = new Platform(Environment, FileSystem);
             GitEnvironment = Platform.GitEnvironment;
             ProcessManager = new ProcessManager(Environment, GitEnvironment);
 
-            Platform.Initialize(ProcessManager, TaskManager, cts.Token);
+            Platform.Initialize(ProcessManager, TaskManager);
 
             Environment.UnityProjectPath = repoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
 
-            GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager, CancellationToken.None);
+            GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
 
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, GitClient, repoPath, CancellationToken.None);
+            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, GitClient, repoPath);
             RepositoryManager.Initialize();
             RepositoryManager.Start();
 
@@ -78,7 +78,7 @@ namespace IntegrationTests
         protected ITaskManager TaskManager { get; private set; }
 
         protected IProcessEnvironment GitEnvironment { get; private set; }
-        protected IGitClient GitClient { get; private set; }
+        protected IGitClient GitClient { get; set; }
 
         protected NPath DotGitConfig { get; private set; }
 

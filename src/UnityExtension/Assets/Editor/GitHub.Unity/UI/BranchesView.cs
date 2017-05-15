@@ -68,7 +68,8 @@ namespace GitHub.Unity
 
         private void RunRefreshEmbeddedOnMainThread()
         {
-            EntryPoint.AppManager.TaskManager.ScheduleUI(RefreshEmbedded);
+            new ActionTask(EntryPoint.AppManager.TaskManager.Token, _ => RefreshEmbedded())
+                .ScheduleUI(EntryPoint.AppManager.TaskManager);
         }
 
         private void HandleRepositoryBranchChangeEvent(string obj)
@@ -511,7 +512,7 @@ namespace GitHub.Unity
                     if (createBranch)
                     {
                         GitClient.CreateBranch(newBranchName, selectedNode.Name)
-                            .Finally(success => { if (success) Refresh(); });
+                            .ContinueWithUI(success => { if (success) Refresh(); });
                     }
 
                     // Cleanup
@@ -616,7 +617,7 @@ namespace GitHub.Unity
                             ConfirmSwitchCancel))
                     {
                         GitClient.SwitchBranch(node.Name)
-                            .Finally(success =>
+                            .ContinueWithUI(success =>
                             {
                                 if (success)
                                     Refresh();
@@ -631,7 +632,7 @@ namespace GitHub.Unity
                     else if (node.Type == NodeType.RemoteBranch)
                     {
                         GitClient.CreateBranch(selectedNode.Name.Substring(selectedNode.Name.IndexOf('/') + 1), selectedNode.Name)
-                            .Finally(success =>
+                            .ContinueWithUI(success =>
                             {
                                 if (success)
                                     Refresh();

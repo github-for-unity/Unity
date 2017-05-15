@@ -242,11 +242,15 @@ namespace GitHub.Unity
         }
         private void SignOut(object obj)
         {
-            var task = new SimpleTask(() => EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedCredentials.Host));
-            {
-                EntryPoint.Keychain.Clear(Repository.CloneUrl.ToRepositoryUrl());
-                EntryPoint.Keychain.Flush(Repository.CloneUrl.ToRepositoryUrl());
-            });
+            var task = new ActionTask(EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedCredentials.Host))
+                .ContinueWith(s =>
+                {
+                    if (s)
+                    {
+                        EntryPoint.Keychain.Clear(Repository.CloneUrl.ToRepositoryUrl());
+                        EntryPoint.Keychain.Flush(Repository.CloneUrl.ToRepositoryUrl());
+                    }
+                });
         }
 
         private bool ValidateSettings()

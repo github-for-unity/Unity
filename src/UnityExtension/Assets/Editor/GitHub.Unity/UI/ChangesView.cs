@@ -54,7 +54,8 @@ namespace GitHub.Unity
 
         private void RunStatusUpdateOnMainThread(GitStatus status)
         {
-            EntryPoint.AppManager.TaskManager.ScheduleUI(() => OnStatusUpdate(status));
+            new ActionTask(EntryPoint.AppManager.TaskManager.Token, _ => OnStatusUpdate(status))
+                .ScheduleUI(EntryPoint.AppManager.TaskManager);
         }
 
         private void OnStatusUpdate(GitStatus update)
@@ -189,8 +190,8 @@ namespace GitHub.Unity
             busy = true;
 
             GitClient.Commit(commitMessage, commitBody)
-                .Then(GitClient.Status())
-                .Finally(_ => busy = false);
+                .ContinueWith(GitClient.Status())
+                .ContinueWithUI(_ => busy = false);
         }
     }
 }

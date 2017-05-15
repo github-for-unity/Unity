@@ -140,7 +140,8 @@ namespace GitHub.Unity
 
         private void RunLocksUpdateOnMainThread(IEnumerable<GitLock> locks)
         {
-            EntryPoint.AppManager.TaskManager.ScheduleUI(() => OnLocksUpdate(locks));
+            new ActionTask(EntryPoint.AppManager.TaskManager.Token, _ => OnLocksUpdate(locks))
+                .ScheduleUI(EntryPoint.AppManager.TaskManager);
         }
 
         private void OnLocksUpdate(IEnumerable<GitLock> update)
@@ -227,10 +228,10 @@ namespace GitHub.Unity
                 {
                     GitClient.SetConfig("user.name", gitName, GitConfigSource.User)
                         .ContinueWith((success, value) => { if (success) Repository.User.Name = value; })
-                        .Then(
+                        .ContinueWith(
                     GitClient.SetConfig("user.email", gitEmail, GitConfigSource.User)
                         .ContinueWith((success, value) => { if (success) Repository.User.Email = value; }))
-                    .Finally(_ => busy = false);
+                    .ContinueWithUI(_ => busy = false);
                     busy = true;
                 }
             }
@@ -627,7 +628,7 @@ namespace GitHub.Unity
                 if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
                 {
                     var task = new FindGitTask(EntryPoint.Environment, Manager.CancellationToken)
-                        .Finally((success, path) =>
+                        .ContinueWithUI((success, path) =>
                         {
                             if (success && !string.IsNullOrEmpty(path))
                             {

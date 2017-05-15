@@ -91,15 +91,15 @@ namespace GitHub.Unity
     class RepositoryManagerFactory
     {
         public RepositoryManager CreateRepositoryManager(IPlatform platform, ITaskManager taskManager,
-            IGitClient gitClient, NPath repositoryRoot, CancellationToken cancellationToken)
+            IGitClient gitClient, NPath repositoryRoot)
         {
             var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
             var gitConfig = new GitConfig(repositoryPathConfiguration.DotGitConfig);
 
-            var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, cancellationToken);
+            var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
 
             return new RepositoryManager(platform, taskManager, gitConfig, repositoryWatcher,
-                gitClient, repositoryPathConfiguration, cancellationToken);
+                gitClient, repositoryPathConfiguration, taskManager.Token);
         }
     }
 
@@ -501,7 +501,10 @@ namespace GitHub.Unity
                 return remote;
             }
 
-            return config.GetRemotes().FirstOrDefault();
+            var remotes = config.GetRemotes();
+            if (remotes.Any())
+                return remotes.First();
+            return null;
         }
 
         private ConfigBranch? GetActiveBranch()

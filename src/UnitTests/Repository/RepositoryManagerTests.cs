@@ -52,7 +52,7 @@ namespace UnitTests
 
             platform = SubstituteFactory.CreatePlatform();
             SynchronizationContext.SetSynchronizationContext(new TestSynchronizationContext());
-            taskManager = new TaskManager(TaskScheduler.FromCurrentSynchronizationContext(), new CancellationTokenSource());
+            taskManager = new TaskManager(TaskScheduler.FromCurrentSynchronizationContext());
             repositoryPathConfiguration = new RepositoryPathConfiguration(@"c:\Temp");
             gitConfig = SubstituteFactory.CreateGitConfig();
 

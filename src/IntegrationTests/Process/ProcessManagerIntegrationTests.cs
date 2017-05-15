@@ -16,7 +16,7 @@ namespace IntegrationTests
         {
             InitializeEnvironment(TestRepoMasterCleanUnsynchronized);
 
-            var gitBranches = ProcessManager.GetGitBranches(TestRepoMasterCleanUnsynchronized);
+            var gitBranches = ProcessManager.GetGitBranches(TestRepoMasterCleanUnsynchronized).Result;
 
             gitBranches.Should().BeEquivalentTo(
                 new GitBranch("master", "origin/master: behind 1", true),
@@ -29,7 +29,9 @@ namespace IntegrationTests
             InitializeEnvironment(TestRepoMasterCleanUnsynchronized);
 
             var logEntries =
-                ProcessManager.GetGitLogEntries(TestRepoMasterCleanUnsynchronized, Environment, FileSystem, GitEnvironment, 2)
+                ProcessManager
+                    .GetGitLogEntries(TestRepoMasterCleanUnsynchronized, Environment, FileSystem, GitEnvironment, 2)
+                    .Result
                     .ToArray();
 
             logEntries.AssertEqual(new[]
@@ -79,7 +81,9 @@ namespace IntegrationTests
             InitializeEnvironment(TestRepoMasterCleanUnsynchronizedRussianLanguage);
 
             var logEntries =
-                ProcessManager.GetGitLogEntries(TestRepoMasterCleanUnsynchronizedRussianLanguage, Environment, FileSystem, GitEnvironment, 1)
+                ProcessManager
+                    .GetGitLogEntries(TestRepoMasterCleanUnsynchronizedRussianLanguage, Environment, FileSystem, GitEnvironment, 1)
+                    .Result
                     .ToArray();
 
             logEntries.AssertEqual(new[]
@@ -110,7 +114,7 @@ namespace IntegrationTests
         {
             InitializeEnvironment(TestRepoMasterCleanSynchronized);
 
-            var gitRemotes = ProcessManager.GetGitRemoteEntries(TestRepoMasterCleanSynchronized);
+            var gitRemotes = ProcessManager.GetGitRemoteEntries(TestRepoMasterCleanSynchronized).Result;
 
             gitRemotes.Should().BeEquivalentTo(new GitRemote()
             {
@@ -126,7 +130,9 @@ namespace IntegrationTests
         {
             InitializeEnvironment(TestRepoMasterDirtyUnsynchronized);
 
-            var gitStatus = ProcessManager.GetGitStatus(TestRepoMasterDirtyUnsynchronized, Environment, FileSystem, GitEnvironment);
+            var gitStatus = ProcessManager
+                .GetGitStatus(TestRepoMasterDirtyUnsynchronized, Environment, FileSystem, GitEnvironment)
+                .Result;
 
             gitStatus.AssertEqual(new GitStatus()
             {

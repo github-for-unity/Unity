@@ -53,7 +53,7 @@ namespace GitHub.Unity
             var repository = EntryPoint.Environment.Repository;
             var host = repository != null ? repository.CloneUrl.ToRepositoryUrl() : UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
             host = !String.IsNullOrEmpty(host) ? host : UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
-            AuthenticationService = new AuthenticationService(host, EntryPoint.AppManager.AppConfiguration, EntryPoint.Keychain);
+            AuthenticationService = new AuthenticationService(host, new AppConfiguration(), EntryPoint.Keychain);
         }
 
         public override void OnShow()

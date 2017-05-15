@@ -123,8 +123,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            RepositoryManager.CommitFiles(new TaskResultDispatcher<string>(s => { }),
-                new List<string>() { "Assets\\TestDocument.txt", "foobar.txt" }, "IntegrationTest Commit", string.Empty);
+            RepositoryManager.CommitFiles(new List<string>() { "Assets\\TestDocument.txt", "foobar.txt" }, "IntegrationTest Commit", string.Empty);
 
             managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(5)).Should().BeTrue();
 
@@ -160,7 +159,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            RepositoryManager.SwitchBranch(new TaskResultDispatcher<string>(s => { }), "feature/document");
+            RepositoryManager.SwitchBranch("feature/document");
 
             managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();
             managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();
@@ -192,7 +191,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            RepositoryManager.DeleteBranch(new TaskResultDispatcher<string>(s => { }), "feature/document", true);
+            RepositoryManager.DeleteBranch("feature/document", true);
 
             managerAutoResetEvent.OnLocalBranchListChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
             managerAutoResetEvent.OnRemoteOrTrackingChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -222,8 +221,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            RepositoryManager.CreateBranch(new TaskResultDispatcher<string>(s => { }), "feature/document2",
-                "feature/document");
+            RepositoryManager.CreateBranch("feature/document2", "feature/document");
 
             managerAutoResetEvent.OnLocalBranchListChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
@@ -243,8 +241,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            RepositoryManager.CreateBranch(new TaskResultDispatcher<string>(s => { }), "feature2/document2",
-                "feature/document");
+            RepositoryManager.CreateBranch("feature2/document2", "feature/document");
 
             managerAutoResetEvent.OnLocalBranchListChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
@@ -274,7 +271,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            RepositoryManager.RemoteRemove(new TaskResultDispatcher<string>(s => { }), "origin");
+            RepositoryManager.RemoteRemove("origin").Wait();
 
             managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
             managerAutoResetEvent.OnActiveRemoteChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -296,8 +293,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            RepositoryManager.RemoteAdd(new TaskResultDispatcher<string>(s => { }), "origin",
-                "https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            RepositoryManager.RemoteAdd("origin", "https://github.com/EvilStanleyGoldman/IOTestsRepo.git").Wait();
 
             managerAutoResetEvent.OnActiveRemoteChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
             managerAutoResetEvent.OnRemoteOrTrackingChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -336,7 +332,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            RepositoryManager.Pull(new TaskResultDispatcher<string>(s => { }), "origin", "master");
+            RepositoryManager.Pull("origin", "master").Wait();
 
             managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(7)).Should().BeTrue();
             managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(7)).Should().BeTrue();
@@ -373,7 +369,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            RepositoryManager.Fetch(new TaskResultDispatcher<string>(s => { }), "origin");
+            RepositoryManager.Fetch("origin").Wait();
 
             managerAutoResetEvent.OnRemoteBranchListChanged.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();
             managerAutoResetEvent.OnRemoteBranchListChanged.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();

@@ -64,11 +64,10 @@ namespace GitHub.Unity
         protected ILogging Logger { get { return logger = logger ?? Logging.GetLogger(GetType()); } }
 
         public ProcessWrapper(Process process, IOutputProcessor outputProcessor,
-            StreamWriter input, Action onStart, Action onEnd, Action<Exception, string> onError,
+            Action onStart, Action onEnd, Action<Exception, string> onError,
             CancellationToken token)
         {
             this.outputProcessor = outputProcessor;
-            this.Input = input;
             this.onStart = onStart;
             this.onEnd = onEnd;
             this.onError = onError;
@@ -76,7 +75,7 @@ namespace GitHub.Unity
             this.Process = process;
         }
 
-        protected void RunProcess()
+        public void Run()
         {
             if (Process.StartInfo.RedirectStandardOutput)
             {
@@ -184,10 +183,10 @@ namespace GitHub.Unity
     /// </summary>
     /// <typeparam name="T">The type of the results. If it's a List<> or similar, then specify the full List<> type here and the inner type of the List in <typeparam name="TData"/>
     /// <typeparam name="TData">If <typeparam name="TData"/> is a list or similar, then specify its inner type here</typeparam>
-    class ProcessTask<T> : FuncTask<T>, IProcessTask<T>
+    class ProcessTask<T> : TaskBase<T>, IProcessTask<T>
     {
         private IOutputProcessor<T> outputProcessor;
-        private StreamWriter input;
+        private ProcessWrapper wrapper;
 
         public event Action<string> OnErrorData;
         public event Action<IProcess> OnStartProcess;
@@ -196,11 +195,25 @@ namespace GitHub.Unity
         private string errors = null;
         private Exception thrownException = null;
 
-        public ProcessTask(CancellationToken token, IOutputProcessor<T> outputProcessor = null, ITask dependsOn = null)
-            : base(token, null)
+        public ProcessTask(CancellationToken token)
+            : base(token)
         {
-            Guard.ArgumentNotNull(token, "token");
+        }
 
+        public ProcessTask(CancellationToken token, ITask dependsOn)
+            : base(token, dependsOn)
+        {
+        }
+
+        public ProcessTask(CancellationToken token, IOutputProcessor<T> outputProcessor)
+            : base(token)
+        {
+            this.outputProcessor = outputProcessor;
+        }
+
+        public ProcessTask(CancellationToken token, IOutputProcessor<T> outputProcessor, ITask dependsOn)
+            : base(token, dependsOn)
+        {
             this.outputProcessor = outputProcessor;
         }
 
@@ -211,7 +224,7 @@ namespace GitHub.Unity
         /// <param name="arguments"></param>
         /// <param name="outputProcessor"></param>
         public ProcessTask(CancellationToken token, string arguments, IOutputProcessor<T> outputProcessor = null, ITask dependsOn = null)
-            : base(token, null, dependsOn)
+            : base(token, dependsOn)
         {
             Guard.ArgumentNotNull(token, "token");
 
@@ -261,9 +274,21 @@ namespace GitHub.Unity
         {
         }
 
-        protected override T RunWithReturn()
+        protected override void Run(bool success)
         {
-            var wrapper = new ProcessWrapper(Process, outputProcessor, StandardInput,
+            throw new NotImplementedException();
+        }
+
+        protected override T RunWithReturn(bool success)
+        {
+            if (!success)
+            {
+                throw DependsOn.Task.Exception.InnerException;
+            }
+
+            Logger.Debug(String.Format("Executing id:{0}", Task.Id));
+
+            wrapper = new ProcessWrapper(Process, outputProcessor,
                 RaiseOnStart,
                 () =>
                 {
@@ -283,39 +308,54 @@ namespace GitHub.Unity
                     errors = error;
                 },
                 Token);
-            return GetResult();
-        }
 
-        protected virtual T GetResult()
-        {
+            wrapper.Run();
+
             if (outputProcessor != null)
                 return outputProcessor.Result;
-            return (T)(object)(Process.StartInfo.CreateNoWindow ? "Process finished" : "Process running");
+            if (typeof(T) == typeof(string))
+                return (T)(object)(Process.StartInfo.CreateNoWindow ? "Process finished" : "Process running");
+            return default(T);
         }
 
         public Process Process { get; set; }
         public int ProcessId { get { return Process.Id; } }
         public override bool Successful { get { return Task.Status == TaskStatus.RanToCompletion && Process.ExitCode == 0; } }
-        public StreamWriter StandardInput { get { return input; } }
+        public StreamWriter StandardInput { get { return wrapper?.Input; } }
         public virtual string ProcessName { get; protected set; }
         public virtual string ProcessArguments { get; }
     }
 
-    class ProcessTaskWithListOutput<T> : FuncListTask<T>, ITask<List<T>, T>, IProcessTask<List<T>, T>
+    class ProcessTaskWithListOutput<T> : ListTaskBase<List<T>, T>, ITask<List<T>, T>, IProcessTask<List<T>, T>
     {
-        private StreamWriter input;
         private IOutputProcessor<List<T>, T> outputProcessor;
         private string errors = null;
         private Exception thrownException = null;
+        private ProcessWrapper wrapper;
 
         public event Action<string> OnErrorData;
         public event Action<IProcess> OnStartProcess;
         public event Action<IProcess> OnEndProcess;
 
-        public ProcessTaskWithListOutput(CancellationToken token, IOutputProcessor<List<T>, T> outputProcessor = null, ITask dependsOn = null)
-            : base(token, null)
+        public ProcessTaskWithListOutput(CancellationToken token)
+            : base(token)
         {
-            Guard.ArgumentNotNull(token, "token");
+        }
+
+        public ProcessTaskWithListOutput(CancellationToken token, IOutputProcessor<List<T>, T> outputProcessor)
+            : this(token)
+        {
+            this.outputProcessor = outputProcessor;
+        }
+
+        public ProcessTaskWithListOutput(CancellationToken token, ITask dependsOn)
+            : base(token, dependsOn)
+        {
+        }
+
+        public ProcessTaskWithListOutput(CancellationToken token, IOutputProcessor<List<T>, T> outputProcessor, ITask dependsOn)
+            : base(token, dependsOn)
+        {
             this.outputProcessor = outputProcessor;
         }
 
@@ -369,33 +409,37 @@ namespace GitHub.Unity
             outputProcessor.OnEntry += x => RaiseOnData(x);
         }
 
-        protected override List<T> RunWithReturn()
+        protected override List<T> RunWithReturn(bool success)
         {
-            var wrapper = new ProcessWrapper(Process, outputProcessor, StandardInput,
+            if (!success)
+            {
+                throw DependsOn.Task.Exception.InnerException;
+            }
+
+            Logger.Debug(String.Format("Executing id:{0}", Task.Id));
+
+            wrapper = new ProcessWrapper(Process, outputProcessor,
                 RaiseOnStart,
                 () =>
+                {
+                    RaiseOnEnd();
+                    if (errors != null)
                     {
-                        RaiseOnEnd();
-                        if (errors != null)
-                        {
-                            OnErrorData?.Invoke(errors);
-                            if (thrownException == null)
-                                throw new ProcessException(this);
-                            else
-                                throw thrownException;
-                        }
-                    },
+                        OnErrorData?.Invoke(errors);
+                        if (thrownException == null)
+                            throw new ProcessException(this);
+                        else
+                            throw thrownException;
+                    }
+                },
                 (ex, error) =>
-                    {
-                        thrownException = ex;
-                        errors = error;
-                    },
+                {
+                    thrownException = ex;
+                    errors = error;
+                },
                 Token);
-            return GetResult();
-        }
+            wrapper.Run();
 
-        protected virtual List<T> GetResult()
-        {
             if (outputProcessor != null)
                 return outputProcessor.Result;
             return new List<T>();
@@ -404,7 +448,7 @@ namespace GitHub.Unity
         public Process Process { get; set; }
         public int ProcessId { get { return Process.Id; } }
         public override bool Successful { get { return Task.Status == TaskStatus.RanToCompletion && Process.ExitCode == 0; } }
-        public StreamWriter StandardInput { get { return input; } }
+        public StreamWriter StandardInput { get { return wrapper?.Input; } }
         public virtual string ProcessName { get; protected set; }
         public virtual string ProcessArguments { get; }
     }

@@ -7,311 +7,193 @@ namespace GitHub.Unity
 {
     class ActionTask : TaskBase
     {
-        protected Action Callback { get; }
-        protected Action CallbackIfDependentFailed { get; }
+        protected Action<bool> Callback { get; }
 
-        public ActionTask(CancellationToken token, Action action)
+        public ActionTask(CancellationToken token, Action<bool> action)
             : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
-
             this.Callback = action;
         }
 
-        public ActionTask(CancellationToken token, Action action, ITask dependsOn)
-            : this(token, action)
+        public ActionTask(CancellationToken token, Action<bool> action, ITask dependsOn)
+            : base(token, dependsOn)
         {
+            Guard.ArgumentNotNull(action, "action");
+            this.Callback = action;
         }
 
-        public ActionTask(CancellationToken token, Action action, Action actionIfDependentFailed, ITask dependsOn)
-            : this(token, action, dependsOn)
+        public ActionTask(Task task)
+            : base(task)
         {
-            Guard.ArgumentNotNull(actionIfDependentFailed, "actionIfDependentFailed");
 
-            this.CallbackIfDependentFailed = actionIfDependentFailed;
         }
 
-        protected override void Run()
+        protected override void Run(bool success)
         {
             Logger.Debug(String.Format("Executing id:{0}", Task.Id));
 
             RaiseOnStart();
-
-            if (DependsOn != null && !DependsOn.Successful)
-            {
-                CallbackIfDependentFailed?.Invoke();
-            }
-            else
-            {
-                Callback?.Invoke();
-            }
+            Callback?.Invoke(success);
             RaiseOnEnd();
+
+            if (!success)
+                throw DependsOn.Task.Exception.InnerException;
         }
     }
 
     class ActionTask<T> : TaskBase
     {
-        protected Action<T> Callback { get; }
-        protected Action CallbackIfDependentFailed { get; }
+        protected Action<bool, T> Callback { get; }
 
-        public ActionTask(CancellationToken token, Action<T> action)
-            : base(token)
-        {
-            Guard.ArgumentNotNull(token, "token");
-            Guard.ArgumentNotNull(action, "action");
-
-            this.Callback = action;
-            Task = new Task(o => RunWithData(((Lazy<T>)o).Value), new Lazy<T>(() => ((ITask<T>)DependsOn).Result), Token, TaskCreationOptions.None);
-        }
-
-        public ActionTask(CancellationToken token, Action<T> action, ITask<T> dependsOn)
+        public ActionTask(CancellationToken token, Action<bool, T> action, ITask<T> dependsOn)
             : base(token, dependsOn)
         {
-            Guard.ArgumentNotNull(token, "token");
             Guard.ArgumentNotNull(action, "action");
-            Guard.ArgumentNotNull(dependsOn, "dependsOn");
-
             this.Callback = action;
-            Task = new Task(o => RunWithData(((Lazy<T>)o).Value), new Lazy<T>(() => ((ITask<T>)DependsOn).Result), Token, TaskCreationOptions.None);
+            Task = new Task(() => Run(DependsOn.Successful, DependsOn.Successful ? ((ITask<T>)DependsOn).Result : default(T)),
+                Token, TaskCreationOptions.None);
         }
 
-        public ActionTask(CancellationToken token, Action<T> action, Action actionIfDependentFailed, ITask<T> dependsOn)
-            : base(token, dependsOn)
+        protected override void Run(bool success)
         {
-            Guard.ArgumentNotNull(token, "token");
-            Guard.ArgumentNotNull(action, "action");
-            Guard.ArgumentNotNull(actionIfDependentFailed, "actionIfDependentFailed");
-            Guard.ArgumentNotNull(dependsOn, "dependsOn");
-
-            this.Callback = action;
-            this.CallbackIfDependentFailed = actionIfDependentFailed;
-            Task = new Task(o => RunWithData(((Lazy<T>)o).Value), new Lazy<T>(() => ((ITask<T>)DependsOn).Result), Token, TaskCreationOptions.None);
+            throw new NotImplementedException();
         }
 
-        protected virtual void RunWithData(T previousResult)
+        protected virtual void Run(bool success, T previousResult)
         {
             Logger.Debug(String.Format("Executing id:{0}", Task.Id));
 
             RaiseOnStart();
-
-            if (DependsOn != null && !DependsOn.Successful)
-            {
-                CallbackIfDependentFailed?.Invoke();
-            }
-            else
-            {
-                Callback?.Invoke(previousResult);
-            }
+            Callback?.Invoke(success, previousResult);
             RaiseOnEnd();
+
+            if (!success)
+                throw DependsOn.Task.Exception.InnerException;
         }
     }
 
     class FuncTask<T> : TaskBase<T>
     {
-        protected Func<T> Callback { get; }
-        protected Func<T> CallbackIfDependentFailed { get; }
+        protected Func<bool, T> Callback { get; }
 
-        public FuncTask(CancellationToken token, Func<T> action)
+        public FuncTask(CancellationToken token, Func<bool, T> action)
             : base(token)
         {
-            Guard.ArgumentNotNull(token, "token");
             Guard.ArgumentNotNull(action, "action");
-
             this.Callback = action;
         }
 
-        public FuncTask(CancellationToken token, Func<T> action, ITask dependsOn)
+        public FuncTask(CancellationToken token, Func<bool, T> action, ITask dependsOn)
             : base(token, dependsOn)
         {
-            Guard.ArgumentNotNull(token, "token");
             Guard.ArgumentNotNull(action, "action");
-            Guard.ArgumentNotNull(dependsOn, "dependsOn");
-
             this.Callback = action;
         }
 
-        public FuncTask(CancellationToken token, Func<T> action, Func<T> actionIfDependentFailed, ITask dependsOn)
-            : base(token, dependsOn)
-        {
-            Guard.ArgumentNotNull(token, "token");
-            Guard.ArgumentNotNull(action, "action");
-            Guard.ArgumentNotNull(actionIfDependentFailed, "actionIfDependentFailed");
-            Guard.ArgumentNotNull(dependsOn, "dependsOn");
-
-            this.Callback = action;
-            this.CallbackIfDependentFailed = actionIfDependentFailed;
-        }
-
-        protected override T RunWithReturn()
+        protected override T RunWithReturn(bool success)
         {
             Logger.Debug(String.Format("Executing id:{0}", Task.Id));
 
             RaiseOnStart();
 
             T result = default(T);
-            if (DependsOn != null && !DependsOn.Successful)
-            {
-                result = CallbackIfDependentFailed();
-            }
-            else
-            {
-                result = Callback();
-            }
+            result = Callback(success);
             RaiseOnEnd();
+
+            if (!success)
+                throw DependsOn.Task.Exception.InnerException;
+
             return result;
         }
     }
 
-    class FuncTask<TDependentResult, T> : TaskBase<TDependentResult, T>
+    class FuncTask<T, TResult> : TaskBase<T, TResult>
     {
-        protected Func<TDependentResult, T> Callback { get; }
-        protected Func<T> CallbackIfDependentFailed { get; }
+        protected Func<bool, T, TResult> Callback { get; }
 
-        public FuncTask(CancellationToken token, Func<TDependentResult, T> action, ITask<TDependentResult> dependsOn)
+        public FuncTask(CancellationToken token, Func<bool, T, TResult> action, ITask<T> dependsOn)
             : base(token, dependsOn)
         {
-            Guard.ArgumentNotNull(token, "token");
             Guard.ArgumentNotNull(action, "action");
-            Guard.ArgumentNotNull(dependsOn, "dependsOn");
-
             this.Callback = action;
         }
 
-        public FuncTask(CancellationToken token, Func<TDependentResult, T> action, Func<T> actionIfDependentFailed, ITask<TDependentResult> dependsOn)
-            : base(token, dependsOn)
-        {
-            Guard.ArgumentNotNull(token, "token");
-            Guard.ArgumentNotNull(action, "action");
-            Guard.ArgumentNotNull(actionIfDependentFailed, "actionIfDependentFailed");
-            Guard.ArgumentNotNull(dependsOn, "dependsOn");
-
-            this.Callback = action;
-            this.CallbackIfDependentFailed = actionIfDependentFailed;
-        }
-
-        protected override T RunWithData(TDependentResult previousResult)
+        protected override TResult RunWithData(bool success, T previousResult)
         {
             Logger.Debug(String.Format("Executing id:{0}", Task.Id));
 
             RaiseOnStart();
-
-            T result = default(T);
-            if (DependsOn != null && !DependsOn.Successful)
-            {
-                if (CallbackIfDependentFailed != null)
-                    result = CallbackIfDependentFailed();
-            }
-            else
-            {
-                result = Callback(previousResult);
-            }
+            var result = Callback(success, previousResult);
             RaiseOnEnd();
+
+            if (!success)
+                throw DependsOn.Task.Exception.InnerException;
+
             return result;
         }
     }
 
     class FuncListTask<T> : ListTaskBase<List<T>, T>
     {
-        protected Func<List<T>> Callback { get; }
-        protected Func<List<T>> CallbackIfDependentFailed { get; }
+        protected Func<bool, List<T>> Callback { get; }
 
-        public FuncListTask(CancellationToken token, Func<List<T>> action)
+        public FuncListTask(CancellationToken token, Func<bool, List<T>> action)
             : base(token)
         {
-            Guard.ArgumentNotNull(token, "token");
             Guard.ArgumentNotNull(action, "action");
-
             this.Callback = action;
         }
 
-        public FuncListTask(CancellationToken token, Func<List<T>> action, ITask dependsOn)
+        public FuncListTask(CancellationToken token, Func<bool, List<T>> action, ITask dependsOn)
             : base(token, dependsOn)
         {
-            Guard.ArgumentNotNull(token, "token");
             Guard.ArgumentNotNull(action, "action");
-            Guard.ArgumentNotNull(dependsOn, "dependsOn");
-
             this.Callback = action;
         }
 
-        public FuncListTask(CancellationToken token, Func<List<T>> action, Func<List<T>> actionIfDependentFailed, ITask dependsOn)
-            : base(token, dependsOn)
-        {
-            Guard.ArgumentNotNull(token, "token");
-            Guard.ArgumentNotNull(action, "action");
-            Guard.ArgumentNotNull(actionIfDependentFailed, "actionIfDependentFailed");
-            Guard.ArgumentNotNull(dependsOn, "dependsOn");
-
-            this.Callback = action;
-            this.CallbackIfDependentFailed = actionIfDependentFailed;
-        }
-
-        protected override List<T> RunWithReturn()
+        protected override List<T> RunWithReturn(bool success)
         {
             Logger.Debug(String.Format("Executing id:{0}", Task.Id));
 
             RaiseOnStart();
 
             List<T> result = null;
-            if (DependsOn != null && !DependsOn.Successful)
-            {
-                result = CallbackIfDependentFailed();
-            }
-            else
-            {
-                result = Callback();
-            }
+            result = Callback(success);
             RaiseOnEnd();
             if (result == null)
                 result = new List<T>();
+
+            if (!success)
+                throw DependsOn.Task.Exception.InnerException;
+
             return result;
         }
     }
 
-    class FuncListTask<TDependentResult, T, TData> : ListTaskBase<TDependentResult, T, TData>
+    class FuncListTask<TDependentResult, TResult, TData> : ListTaskBase<TDependentResult, TResult, TData>
     {
-        protected Func<TDependentResult, T> Callback { get; }
-        protected Func<TDependentResult, T> CallbackIfDependentFailed { get; }
+        protected Func<bool, TDependentResult, TResult> Callback { get; }
 
-        public FuncListTask(CancellationToken token, Func<TDependentResult, T> action, ITask<TDependentResult> dependsOn)
+        public FuncListTask(CancellationToken token, Func<bool, TDependentResult, TResult> action, ITask<TDependentResult> dependsOn)
             : base(token, dependsOn)
         {
-            Guard.ArgumentNotNull(token, "token");
             Guard.ArgumentNotNull(action, "action");
-            Guard.ArgumentNotNull(dependsOn, "dependsOn");
-
             this.Callback = action;
         }
 
-        public FuncListTask(CancellationToken token, Func<TDependentResult, T> action, Func<TDependentResult, T> actionIfDependentFailed, ITask<TDependentResult> dependsOn)
-            : base(token, dependsOn)
-        {
-            Guard.ArgumentNotNull(token, "token");
-            Guard.ArgumentNotNull(action, "action");
-            Guard.ArgumentNotNull(actionIfDependentFailed, "actionIfDependentFailed");
-            Guard.ArgumentNotNull(dependsOn, "dependsOn");
-
-            this.Callback = action;
-            this.CallbackIfDependentFailed = actionIfDependentFailed;
-        }
-
-        protected override T RunWithData(TDependentResult previousResult)
+        protected override TResult RunWithData(bool success, TDependentResult previousResult)
         {
             Logger.Debug(String.Format("Executing id:{0}", Task.Id));
 
             RaiseOnStart();
-
-            T result = default(T);
-            if (DependsOn != null && !DependsOn.Successful)
-            {
-                if (CallbackIfDependentFailed != null)
-                    result = CallbackIfDependentFailed(previousResult);
-            }
-            else
-            {
-                result = Callback(previousResult);
-            }
+            TResult result = default(TResult);
+            result = Callback(success, previousResult);
             RaiseOnEnd();
+
+            if (!success)
+                throw DependsOn.Task.Exception.InnerException;
+
             return result;
         }
     }

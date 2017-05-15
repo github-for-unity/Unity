@@ -98,7 +98,8 @@ namespace GitHub.Unity
 
         private void UpdateStatusOnMainThread(GitStatus status)
         {
-            Manager.TaskManager.ScheduleUI(() => UpdateStatus(status));
+            new ActionTask(Manager.TaskManager.Token, _ => UpdateStatus(status))
+                .ScheduleUI(Manager.TaskManager);
         }
 
         private void UpdateStatus(GitStatus status)
@@ -110,7 +111,8 @@ namespace GitHub.Unity
 
         private void UpdateLogOnMainThread()
         {
-            Manager.TaskManager.ScheduleUI(UpdateLog);
+            new ActionTask(Manager.TaskManager.Token, _ => UpdateLog())
+                .ScheduleUI(Manager.TaskManager);
         }
 
         private void UpdateLog()
@@ -125,7 +127,7 @@ namespace GitHub.Unity
         private void RefreshLog()
         {
             GitClient.Log()
-                .Finally((success, log) => { if (success) OnLogUpdate(log); });
+                .ContinueWithUI((success, log) => { if (success) OnLogUpdate(log); });
         }
 
         public override void Refresh()
@@ -654,9 +656,8 @@ namespace GitHub.Unity
                             // whether pull triggered a merge or a rebase, and abort the operation accordingly
                             // (either git rebase --abort or git merge --abort)
                         }
-                        return success;
                     })
-                    .Finally(success => {
+                    .ContinueWithUI(success => {
                         if (success)
                         {
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
@@ -677,7 +678,7 @@ namespace GitHub.Unity
         {
             var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
             Repository.Push()
-                .Finally(success => {
+                .ContinueWithUI(success => {
                     if (success)
                     {
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,

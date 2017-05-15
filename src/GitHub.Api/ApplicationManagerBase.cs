@@ -36,9 +36,8 @@ namespace GitHub.Unity
 
             Platform = new Platform(Environment, FileSystem);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
-            Platform.Initialize(ProcessManager, TaskManager, CancellationToken);
-            GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager, CancellationToken);
-            ApiClientFactory.Instance = new ApiClientFactory(new AppConfiguration(), Platform.CredentialManager);
+            Platform.Initialize(ProcessManager, TaskManager);
+            GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
         }
 
         public virtual Task Run()
@@ -94,7 +93,7 @@ namespace GitHub.Unity
                 try
                 {
                     var repositoryManagerFactory = new RepositoryManagerFactory();
-                    repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, GitClient, repositoryRoot, CancellationToken);
+                    repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, GitClient, repositoryRoot);
                 }
                 catch (Exception ex)
                 {
@@ -130,21 +129,16 @@ namespace GitHub.Unity
             if (Environment.IsWindows)
             {
                 string credentialHelper = null;
-                var gitConfigGetTask = new GitConfigGetTask(Environment, ProcessManager,
-                    new TaskResultDispatcher<string>(s => {
-                        credentialHelper = s;
-                    }), "credential.helper", GitConfigSource.Global);
+                var gitConfigGetTask = new GitConfigGetTask("credential.helper", GitConfigSource.Global, CancellationToken);
 
 
-                await gitConfigGetTask.RunAsync(CancellationToken.None);
+                await gitConfigGetTask.Task;
 
                 if (string.IsNullOrEmpty(credentialHelper))
                 {
-                    var gitConfigSetTask = new GitConfigSetTask(Environment, ProcessManager,
-                        new TaskResultDispatcher<string>(s => { }), "credential.helper", "wincred",
-                        GitConfigSource.Global);
+                    var gitConfigSetTask = new GitConfigSetTask("credential.helper", "wincred", GitConfigSource.Global, CancellationToken);
 
-                    await gitConfigSetTask.RunAsync(CancellationToken.None);
+                    await gitConfigSetTask.Task;
                 }
             }
         }

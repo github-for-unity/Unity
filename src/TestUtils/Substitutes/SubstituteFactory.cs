@@ -360,7 +360,7 @@ namespace TestUtils
                         remote, branch,
                         result != null ? result : "[null]");
 
-                    return new FuncTask<string>(CancellationToken.None, () => result);
+                    return new FuncTask<string>(CancellationToken.None, _ => result);
                 });
 
             gitClient.Push(Args.String, Args.String)
@@ -374,7 +374,7 @@ namespace TestUtils
                         remote, branch,
                         result != null ? result : "[null]");
 
-                    return new FuncTask<string>(CancellationToken.None, () => result);
+                    return new FuncTask<string>(CancellationToken.None, _ => result);
                 });
 
             gitClient.GetConfig(Args.String, Args.GitConfigSource)
@@ -393,11 +393,11 @@ namespace TestUtils
                     FuncTask<string> ret = null;
                     if (containsKey)
                     {
-                        ret = new FuncTask<string>(CancellationToken.None, () => result);
+                        ret = new FuncTask<string>(CancellationToken.None, _ => result);
                     }
                     else
                     {
-                        ret = new FuncTask<string>(CancellationToken.None, () => null);
+                        ret = new FuncTask<string>(CancellationToken.None, _ => null);
                     }
 
                     logger.Trace(@"RunGitConfigGet(""{0}"", GitConfigSource.{1}) -> {2}",
@@ -410,7 +410,7 @@ namespace TestUtils
             gitClient.Status().Returns(info => {
                 GitStatus? result = options.GitStatusResults;
 
-                var ret = new FuncTask<GitStatus?>(CancellationToken.None, () => result);
+                var ret = new FuncTask<GitStatus?>(CancellationToken.None, _ => result);
 
                 logger.Trace(@"RunGitStatus() -> {0}",
                     result != null ? $"Success: \"{result.Value}\"" : "Failure");
@@ -422,7 +422,7 @@ namespace TestUtils
                 .Returns(info => {
                     List<GitLock> result = options.GitListLocksResults;
 
-                    var ret = new FuncListTask<GitLock>(CancellationToken.None, () => result);
+                    var ret = new FuncListTask<GitLock>(CancellationToken.None, _ => result);
 
                     logger.Trace(@"RunGitListLocks() -> {0}", result != null ? $"Success" : "Failure");
 

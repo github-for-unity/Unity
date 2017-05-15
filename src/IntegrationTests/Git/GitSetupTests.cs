@@ -51,11 +51,11 @@ namespace IntegrationTests
                 setupDone.Should().BeFalse ();
             }
 
-            var platform = new Platform(environment, FileSystem, new TestUIDispatcher());
+            var platform = new Platform(environment, FileSystem);
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
 
-            var gitBranches = processManager.GetGitBranches(TestRepoMasterDirtyUnsynchronized, environment.GitExecutablePath);
+            var gitBranches = processManager.GetGitBranches(TestRepoMasterDirtyUnsynchronized, environment.GitExecutablePath).Result;
 
             gitBranches.Should().BeEquivalentTo(
                 new GitBranch("master", "origin/master: behind 1", true),

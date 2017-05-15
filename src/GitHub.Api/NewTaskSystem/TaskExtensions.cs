@@ -7,57 +7,6 @@ namespace GitHub.Unity
 {
     static class TaskExtensions
     {
-        /// <summary>
-        /// Runs the <paramref name="next"/> task when the previous one (<paramref name="task"/>) is done, on whatever
-        /// scheduler the <paramref name="next"/> task is configured to run on.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="task"></param>
-        /// <param name="next"></param>
-        /// <returns></returns>
-        public static T Then<T>(this ITask task, T next)
-            where T : ITask
-        {
-            next.ContinueWith(task);
-            return next;
-        }
-
-        /// <summary>
-        /// Fires off an action taking as input a bool for whether the previous task was successful
-        /// and the data returned by that task. The action runs on the UI thread.
-        /// </summary>
-        /// <param name="task"></param>
-        /// <param name="next"></param>
-        /// <returns><paramref name="task"/></returns>
-        public static ITask<T> Finally<T>(this FuncTask<T> task, Action<bool, T> next)
-        {
-            return task.ContinueWithUI(next);
-        }
-
-        /// <summary>
-        /// Fires off an action taking as input a bool for whether the previous task was successful
-        /// and the data returned by that task. The action runs on the UI thread.
-        /// </summary>
-        /// <param name="task"></param>
-        /// <param name="next"></param>
-        /// <returns><paramref name="task"/></returns>
-        public static ITask<List<T>> Finally<T>(this FuncListTask<T> task, Action<bool, List<T>> next)
-        {
-            return task.ContinueWithUI(next);
-        }
-
-        /// <summary>
-        /// Fires off an action taking as input a bool for whether the previous task was successful.
-        /// The action runs on the UI thread.
-        /// </summary>
-        /// <param name="task"></param>
-        /// <param name="next"></param>
-        /// <returns><paramref name="task"/></returns>
-        public static ITask Finally(this ITask task, Action<bool> next)
-        {
-            return task.ContinueWithUI(next);
-        }
-
         public static async Task<T> Catch<T>(this Task<T> source, Func<Exception, T> handler = null)
         {
             try

@@ -42,7 +42,7 @@ namespace GitHub.Unity
             if (CredentialManager == null)
             {
                 CredentialManager = new GitCredentialManager(Environment, processManager, taskManager);
-                Keychain = new Keychain(environment, CredentialManager);
+                Keychain = new Keychain(Environment, CredentialManager);
                 Keychain.Initialize();
             }
 

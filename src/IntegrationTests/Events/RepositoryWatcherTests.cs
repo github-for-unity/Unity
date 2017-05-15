@@ -367,7 +367,7 @@ namespace IntegrationTests
         {
             var evt = new ManualResetEventSlim(false);
             GitClient.SwitchBranch(branch)
-                .Finally(_ => evt.Set());
+                .ContinueWithUI(_ => evt.Set());
             var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }
@@ -376,7 +376,7 @@ namespace IntegrationTests
         {
             var evt = new ManualResetEventSlim(false);
             GitClient.Pull(remote, branch)
-                .Finally(_ => evt.Set());
+                .ContinueWithUI(_ => evt.Set());
             var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }
@@ -385,7 +385,7 @@ namespace IntegrationTests
         {
             var evt = new ManualResetEventSlim(false);
             GitClient.Fetch(remote)
-                .Finally(_ => evt.Set());
+                .ContinueWithUI(_ => evt.Set());
             var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }
@@ -394,7 +394,7 @@ namespace IntegrationTests
         {
             var evt = new ManualResetEventSlim(false);
             GitClient.DeleteBranch(branch)
-                .Finally(_ => evt.Set());
+                .ContinueWithUI(_ => evt.Set());
             var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }
@@ -403,7 +403,7 @@ namespace IntegrationTests
         {
             var evt = new ManualResetEventSlim(false);
             GitClient.RemoteAdd(remote, url)
-                .Finally(_ => evt.Set());
+                .ContinueWithUI(_ => evt.Set());
             var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }
@@ -412,7 +412,7 @@ namespace IntegrationTests
         {
             var evt = new ManualResetEventSlim(false);
             GitClient.RemoteRemove(remote)
-                .Finally(_ => evt.Set());
+                .ContinueWithUI(_ => evt.Set());
             var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }
@@ -421,7 +421,7 @@ namespace IntegrationTests
         {
             var evt = new ManualResetEventSlim(false);
             GitClient.CreateBranch(branch, baseBranch)
-                .Finally(_ => evt.Set());
+                .ContinueWithUI(_ => evt.Set());
             var completed = evt.Wait(100);
             completed.Should().BeTrue();
         }

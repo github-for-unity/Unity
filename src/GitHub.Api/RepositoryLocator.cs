@@ -42,7 +42,7 @@ namespace GitHub.Unity
             var gitAttrs = targetPath.Combine(".gitattributes");
             var assetsGitignore = targetPath.Combine("Assets", ".gitignore");
 
-            var ignoresTask = new ActionTask(token, () =>
+            var ignoresTask = new ActionTask(token, _ =>
             {
                 SetProjectToTextSerialization();
 
@@ -59,12 +59,12 @@ namespace GitHub.Unity
             var commitTask = new GitCommitTask("Initial commit", null, token);
 
             initTask
-                .Then(yaml1)
-                .Then(yaml2)
-                .Then(lfsTask)
-                .Then(ignoresTask)
-                .Then(addTask)
-                .Then(commitTask)
+                .ContinueWith(yaml1)
+                .ContinueWith(yaml2)
+                .ContinueWith(lfsTask)
+                .ContinueWith(ignoresTask)
+                .ContinueWith(addTask)
+                .ContinueWith(commitTask)
                 .ContinueWith(_ => ApplicationManager.RestartRepository().Start(TaskManager.ConcurrentScheduler));
             initTask.Schedule(TaskManager);
 

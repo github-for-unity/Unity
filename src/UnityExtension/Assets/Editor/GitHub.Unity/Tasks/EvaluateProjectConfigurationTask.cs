@@ -201,7 +201,7 @@ namespace GitHub.Unity
         {
         }
 
-        protected override List<ProjectConfigurationIssue> RunWithReturn()
+        protected override List<ProjectConfigurationIssue> RunWithReturn(bool success)
         {
             RaiseOnStart();
 

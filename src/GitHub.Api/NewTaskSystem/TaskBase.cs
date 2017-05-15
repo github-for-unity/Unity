@@ -6,11 +6,11 @@ namespace GitHub.Unity
 {
     interface ITask : IAsyncResult
     {
-        ITask ContinueWith(ITask dependsOn);
-        ITask ContinueWith(Action<bool> continuation, bool always = false);
-        ITask ContinueWithUI(Action<bool> continuation, bool always = false);
-        ITask ContinueWith<TResult>(Func<bool, TResult> continuation, bool always = false);
-        ITask ContinueWithUI<TResult>(Func<bool, TResult> continuation, bool always = false);
+        T ContinueWith<T>(T continuation, bool always = true) where T : ITask;
+        // Continues and also sends a flag indicating whether the current task was successful or not
+        ITask ContinueWith(Action<bool> continuation, bool always = true);
+        // Continues and also sends a flag indicating whether the current task was successful or not
+        ITask ContinueWithUI(Action<bool> continuation, bool always = true);
         ITask Start();
         ITask Start(TaskScheduler scheduler);
         void Wait();
@@ -22,19 +22,20 @@ namespace GitHub.Unity
         TaskAffinity Affinity { get; }
         event Action<ITask> OnStart;
         event Action<ITask> OnEnd;
+        ITask SetDependsOn(ITask dependsOn);
     }
 
-    interface ITask<T> : ITask
+    interface ITask<TResult> : ITask
     {
-        ITask<T> ContinueWith(Action<bool, T> continuation, bool always = false);
-        ITask<T> ContinueWithUI(Action<bool, T> continuation, bool always = false);
-        ITask<T> ContinueWith<TResult>(Func<bool, T, TResult> continuation, bool always = false);
-        ITask<T> ContinueWithUI<TResult>(Func<bool, T, TResult> continuation, bool always = false);
-        new ITask<T> Start(TaskScheduler scheduler);
-        T Result { get; }
-        new Task<T> Task { get; }
-        new event Action<ITask<T>> OnStart;
-        new event Action<ITask<T>> OnEnd;
+        ActionTask<TResult> ContinueWith(Action<bool, TResult> continuation, bool always = true);
+        FuncTask<TResult, T> ContinueWith<T>(Func<bool, TResult, T> continuation, bool always = true);
+        ActionTask<TResult> ContinueWithUI(Action<bool, TResult> continuation, bool always = true);
+        FuncTask<TResult, T> ContinueWithUI<T>(Func<bool, TResult, T> continuation, bool always = true);
+        new ITask<TResult> Start(TaskScheduler scheduler);
+        TResult Result { get; }
+        new Task<TResult> Task { get; }
+        new event Action<ITask<TResult>> OnStart;
+        new event Action<ITask<TResult>> OnEnd;
     }
 
     interface ITask<T, TData> : ITask<T>
@@ -52,67 +53,61 @@ namespace GitHub.Unity
         public event Action<ITask> OnEnd;
 
         public TaskBase(CancellationToken token)
+            : this(token, null)
         {
-            Guard.ArgumentNotNull(token, "token");
-
-            Task = new Task(Run, Token, TaskCreationOptions.None);
-            Token = token;
-            ConfigureTask();
         }
 
         public TaskBase(CancellationToken token, ITask dependsOn)
-            : this(token)
         {
-            Guard.ArgumentNotNull(dependsOn, "dependsOn");
+            Guard.ArgumentNotNull(token, "token");
 
+            Token = token;
             DependsOn = dependsOn;
-            ConfigureTask();
+            Task = new Task(() => Run(DependsOn?.Successful ?? true), Token, TaskCreationOptions.None);
         }
 
-        public ITask ContinueWith(ITask previousTask)
+        public TaskBase(Task task)
         {
-            Guard.ArgumentNotNull(previousTask, "previousTask");
+            Task = task;
+        }
 
-            DependsOn = previousTask;
-            ConfigureTask();
+        public ITask SetDependsOn(ITask dependsOn)
+        {
+            DependsOn = dependsOn;
             return this;
         }
 
-        public ITask ContinueWith(Action<bool> continuation, bool always = false)
+        public T ContinueWith<T>(T continuation, bool always = true)
+            where T : ITask
         {
-            Task.ContinueWith(_ => continuation(Successful), Token,
+            Guard.ArgumentNotNull(continuation, "continuation");
+
+            continuation.SetDependsOn(this);
+            Task.ContinueWith(_ => continuation.Start(), Token,
                 always ? runAlwaysOptions : runOnSuccessOptions,
-                TaskManager.Instance.ConcurrentScheduler);
-            return this;
+                TaskManager.GetScheduler(continuation.Affinity));
+            return continuation;
         }
 
-        public ITask ContinueWithUI(Action<bool> continuation, bool always = false)
+        public ITask ContinueWith(Action<bool> continuation, bool always = true)
         {
-            Task.ContinueWith(_ => continuation(Successful), Token,
-                always ? runAlwaysOptions : runOnSuccessOptions,
-                TaskManager.Instance.UIScheduler);
-            return this;
+            Guard.ArgumentNotNull(continuation, "continuation");
+
+            var ret = new ActionTask(Token, continuation, this);
+            return ContinueWith(ret, always);
         }
 
-        public ITask ContinueWith<T>(Func<bool, T> continuation, bool always = false)
+        public ITask ContinueWithUI(Action<bool> continuation, bool always = true)
         {
-            Task.ContinueWith(_ => continuation(Successful), Token,
-                always ? runAlwaysOptions : runOnSuccessOptions,
-                TaskManager.Instance.ConcurrentScheduler);
-            return this;
-        }
-
-        public ITask ContinueWithUI<T>(Func<bool, T> continuation, bool always = false)
-        {
-            Task.ContinueWith(_ => continuation(Successful), Token,
-                always ? runAlwaysOptions : runOnSuccessOptions,
-                TaskManager.Instance.UIScheduler);
-            return this;
+            Guard.ArgumentNotNull(continuation, "continuation");
+            var ret = new ActionTask(Token, continuation, this) { Affinity = TaskAffinity.UI };
+            return ContinueWith(ret, always);
         }
 
         public virtual ITask Start()
         {
-            Task.Start(TaskManager.GetScheduler(Affinity));
+            TaskManager.Instance.Schedule(this);
+            //Task.Start(TaskManager.GetScheduler(Affinity));
             return this;
         }
 
@@ -132,13 +127,7 @@ namespace GitHub.Unity
             return Task.Wait(milliseconds, Token);
         }
 
-        protected virtual void ConfigureTask()
-        {
-            if (DependsOn != null)
-                DependsOn.Task.ContinueWith(_ => Start(), Token, runOnSuccessOptions, TaskManager.GetScheduler(TaskAffinity.Concurrent));
-        }
-
-        protected virtual void Run()
+        protected virtual void Run(bool success)
         { }
 
         protected virtual void RaiseOnStart()
@@ -171,100 +160,90 @@ namespace GitHub.Unity
         protected CancellationToken Token { get; }
     }
 
-    abstract class TaskBase<T> : TaskBase, ITask<T>
+    abstract class TaskBase<TResult> : TaskBase, ITask<TResult>
     {
-        public TaskBase(CancellationToken token)
-            : base(token)
-        {
-            Task = new Task<T>(RunWithReturn, Token, TaskCreationOptions.None);
-        }
-
-        public TaskBase(CancellationToken token, ITask dependsOn)
+        public TaskBase(CancellationToken token, ITask dependsOn = null)
             : base(token, dependsOn)
         {
-            Task = new Task<T>(RunWithReturn, Token, TaskCreationOptions.None);
+            Task = new Task<TResult>(() => RunWithReturn(DependsOn?.Successful ?? true), Token, TaskCreationOptions.None);
         }
 
-        public ITask<T> ContinueWith(Action<bool, T> continuation, bool always = false)
+        public ActionTask<TResult> ContinueWith(Action<bool, TResult> continuation, bool always = true)
         {
-            Task.ContinueWith(_ => continuation(Successful, Successful ? Result : default(T)), Token,
-                always ? runAlwaysOptions : runOnSuccessOptions,
-                TaskManager.Instance.ConcurrentScheduler);
-            return this;
+            Guard.ArgumentNotNull(continuation, "continuation");
+            var ret = new ActionTask<TResult>(Token, continuation, this);
+            return ContinueWith(ret, always);
         }
 
-        public ITask<T> ContinueWithUI(Action<bool, T> continuation, bool always = false)
+        public FuncTask<TResult, T> ContinueWith<T>(Func<bool, TResult, T> continuation, bool always = true)
         {
-            Task.ContinueWith(_ => continuation(Successful, Successful ? Result : default(T)), Token,
-                always ? runAlwaysOptions : runOnSuccessOptions,
-                TaskManager.Instance.UIScheduler);
-            return this;
+            Guard.ArgumentNotNull(continuation, "continuation");
+            var ret = new FuncTask<TResult, T>(Token, continuation, this);
+            return ContinueWith(ret, always);
         }
 
-        public ITask<T> ContinueWith<TResult>(Func<bool, T, TResult> continuation, bool always = false)
+        public ActionTask<TResult> ContinueWithUI(Action<bool, TResult> continuation, bool always = true)
         {
-            Task.ContinueWith(_ => continuation(Successful, Successful ? Result : default(T)), Token,
-                always ? runAlwaysOptions : runOnSuccessOptions,
-                TaskManager.Instance.ConcurrentScheduler);
-            return this;
+            Guard.ArgumentNotNull(continuation, "continuation");
+            var ret = new ActionTask<TResult>(Token, continuation, this) { Affinity = TaskAffinity.UI };
+            return ContinueWith(ret, always);
         }
 
-        public ITask<T> ContinueWithUI<TResult>(Func<bool, T, TResult> continuation, bool always = false)
+        public FuncTask<TResult, T> ContinueWithUI<T>(Func<bool, TResult, T> continuation, bool always = true)
         {
-            Task.ContinueWith(_ => continuation(Successful, Successful ? Result : default(T)), Token,
-                always ? runAlwaysOptions : runOnSuccessOptions,
-                TaskManager.Instance.UIScheduler);
-            return this;
+            Guard.ArgumentNotNull(continuation, "continuation");
+            var ret = new FuncTask<TResult, T>(Token, continuation, this) { Affinity = TaskAffinity.UI };
+            return ContinueWith(ret, always);
         }
 
-        public new ITask<T> Start()
+        public new ITask<TResult> Start()
         {
             Task.Start(TaskManager.GetScheduler(Affinity));
             return this;
         }
 
-        public new ITask<T> Start(TaskScheduler scheduler)
+        public new ITask<TResult> Start(TaskScheduler scheduler)
         {
             Task.Start(scheduler);
             return this;
         }
 
-        protected virtual T RunWithReturn()
+        protected virtual TResult RunWithReturn(bool success)
         {
-            return default(T);
+            return default(TResult);
         }
 
-        public new event Action<ITask<T>> OnStart;
-        public new event Action<ITask<T>> OnEnd;
-        public new Task<T> Task
+        public new event Action<ITask<TResult>> OnStart;
+        public new event Action<ITask<TResult>> OnEnd;
+        public new Task<TResult> Task
         {
-            get { return base.Task as Task<T>; }
+            get { return base.Task as Task<TResult>; }
             set { base.Task = value; }
         }
-        public T Result { get { return Task.Result; } }
+        public TResult Result { get { return Task.Result; } }
     }
 
-    abstract class TaskBase<TDependentResult, T> : TaskBase<T>
+    abstract class TaskBase<T, TResult> : TaskBase<TResult>
     {
-        public TaskBase(CancellationToken token, ITask<TDependentResult> dependsOn)
+        public TaskBase(CancellationToken token, ITask<T> dependsOn)
             : base(token, dependsOn)
         {
-            Task = new Task<T>(o => RunWithData(((Lazy<TDependentResult>)o).Value), new Lazy<TDependentResult>(() => dependsOn.Result), Token, TaskCreationOptions.None);
+            Task = new Task<TResult>(() => RunWithData(dependsOn.Successful, dependsOn.Result), Token, TaskCreationOptions.None);
         }
 
-        protected virtual T RunWithData(TDependentResult previousResult)
+        protected virtual TResult RunWithData(bool success, T previousResult)
         {
-            return default(T);
+            return default(TResult);
         }
     }
 
-    abstract class ListTaskBase<T, TData> : TaskBase<T>, ITask<T, TData>
+    abstract class ListTaskBase<TResult, TData> : TaskBase<TResult>, ITask<TResult, TData>
     {
-        public ListTaskBase(CancellationToken token) : base(token)
-        { }
+        public ListTaskBase(CancellationToken token)
+            : base(token) { }
 
-        public ListTaskBase(CancellationToken token, ITask dependsOn) : base(token, dependsOn)
-        { }
+        public ListTaskBase(CancellationToken token, ITask dependsOn)
+            : base(token, dependsOn) { }
 
         public event Action<TData> OnData;
         protected void RaiseOnData(TData data)
@@ -273,11 +252,10 @@ namespace GitHub.Unity
         }
     }
 
-    abstract class ListTaskBase<TDependentResult, T, TData> : TaskBase<TDependentResult, T>, ITask<T, TData>
+    abstract class ListTaskBase<T, TResult, TData> : TaskBase<T, TResult>, ITask<TResult, TData>
     {
-        public ListTaskBase(CancellationToken token, ITask<TDependentResult> dependsOn)
-            : base(token, dependsOn)
-        { }
+        public ListTaskBase(CancellationToken token, ITask<T> dependsOn)
+            : base(token, dependsOn) { }
 
         public event Action<TData> OnData;
         protected void RaiseOnData(TData data)

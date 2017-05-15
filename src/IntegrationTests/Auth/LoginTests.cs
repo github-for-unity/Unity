@@ -51,49 +51,5 @@ namespace IntegrationTests
 
             Assert.AreEqual("Assets", ret);
         }
-
-        [Test, Ignore]
-        public async void NetworkTaskTest()
-        {
-            var filesystem = new FileSystem();
-            NPathFileSystemProvider.Current = filesystem;
-            IPlatform platform = null;
-            platform = new Platform(Environment, filesystem);
-            //    new TestUIDispatcher(() => {
-            //    Logger.Debug("Called");
-            //    platform.CredentialManager.Save(new Credential("https://github.com", "username", "token")).Wait();
-            //    return true;
-            //}));
-            var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(Environment, gitEnvironment);
-
-            await platform.Initialize(Environment, processManager);
-
-            var taskRunner = new TaskRunner(new TestSynchronizationContext(), CancellationToken.None);
-            var repositoryManagerFactory = new RepositoryManagerFactory();
-            using (var repoManager = repositoryManagerFactory.CreateRepositoryManager(platform, taskRunner, TestRepoMasterDirtyUnsynchronized, CancellationToken.None))
-            {
-                var repository = repoManager.Repository;
-                Environment.Repository = repoManager.Repository;
-
-                repository.Pull(new TaskResultDispatcher<string>(x => { Logger.Debug("Pull result: {0}", x); }));
-
-                //string credHelper = null;
-                //var task = new GitConfigGetTask(environment, processManager,
-                //    new TaskResultDispatcher<string>(x =>
-                //    {
-                //        Logger.Debug("CredHelper set to {0}", x);
-                //        credHelper = x;
-                //    }),
-                //    "credential.helper", GitConfigSource.NonSpecified);
-
-                //await task.RunAsync(CancellationToken.None);
-                //Assert.NotNull(credHelper);
-            }
-
-            //string remoteUrl = null;
-            //var ret = await GitTask.Run(environment, processManager, "remote get-url origin-http", x => remoteUrl = x);
-            //Assert.True(ret);
-        }
     }
 }
