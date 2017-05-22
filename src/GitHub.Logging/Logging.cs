@@ -4,33 +4,30 @@ namespace GitHub.Unity
 {
     class NullLogAdapter : LogAdapterBase
     {
-        public NullLogAdapter() : base(null)
-        {}
-
-        protected override void OnInfo(string message)
+        public override void Info(string context, string message)
         {
         }
 
-        protected override void OnDebug(string message)
+        public override void Debug(string context, string message)
         {
         }
 
-        protected override void OnTrace(string message)
+        public override void Trace(string context, string message)
         {
         }
 
-        protected override void OnWarning(string message)
+        public override void Warning(string context, string message)
         {
         }
 
-        protected override void OnError(string message)
+        public override void Error(string context, string message)
         {
         }
     }
 
-    public static class Logging
+    static class Logging
     {
-        private static ILogging nullLogger = new NullLogAdapter();
+        private static readonly LogAdapterBase nullLogAdapter = new NullLogAdapter();
 
         private static bool tracingEnabled;
         public static bool TracingEnabled
@@ -49,20 +46,22 @@ namespace GitHub.Unity
             }
         }
 
-        private static Func<string, ILogging> loggerFactory;
-        public static Func<string, ILogging> LoggerFactory
+        private static LogAdapterBase logAdapter = nullLogAdapter;
+
+        public static LogAdapterBase LogAdapter
         {
-            get { return loggerFactory; }
-            set { loggerFactory = value; }
+            get { return logAdapter; }
+            set { logAdapter = value ?? nullLogAdapter; }
         }
 
         private static ILogging instance;
+
         private static ILogging Instance
         {
             get {
                 if (instance == null)
                 {
-                    instance = loggerFactory?.Invoke(null);
+                    instance = GetLogger();
                 }
                 return instance;
             }
@@ -81,7 +80,7 @@ namespace GitHub.Unity
 
         public static ILogging GetLogger(string context = null)
         {
-            return loggerFactory?.Invoke(context) ?? nullLogger;
+            return new LogFacade($"<{context ?? "Global"}>");
         }
 
         public static void Info(string s)

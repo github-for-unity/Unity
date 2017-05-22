@@ -16,7 +16,7 @@ namespace GitHub.Unity
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
         {
-            Logging.LoggerFactory = s => new UnityLogAdapter(s);
+            Logging.LogAdapter = new UnityLogAdapter();
             if (System.Environment.GetEnvironmentVariable("GITHUB_UNITY_DISABLE") == "1")
             {
                 Debug.Log("GitHub for Unity " + ApplicationInfo.Version + " is disabled");
@@ -25,7 +25,7 @@ namespace GitHub.Unity
 
             var startupLogPath = DefaultEnvironment.StartupLogPath;
 
-            Logging.LoggerFactory = s => new FileLogAdapter(startupLogPath, s);
+            Logging.LogAdapter = new FileLogAdapter(startupLogPath);
 
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
@@ -41,22 +41,29 @@ namespace GitHub.Unity
             {
                 Debug.Log("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
-                var oldLogPath = logPath.FileNameWithoutExtension + "-old" + logPath.ExtensionWithDot;
+                var oldLogPath = logPath.Parent.Combine("github-unity-old.log").ToString();
 
                 try
                 {
-                    logPath.Move(oldLogPath);
+                    if (File.Exists(oldLogPath))
+                    {
+                        File.Delete(oldLogPath);
+                    }
+
+                    if (File.Exists(logPath))
+                    {
+                        File.Move(logPath, oldLogPath);
+                    }
                 }
                 catch (Exception ex)
                 {
                     Logging.Error(ex, "Error rotating log files");
                 }
 
-                Logging.LoggerFactory = s => new FileLogAdapter(logPath, s);
                 Debug.Log("Initializing GitHub for Unity log file: " + logPath);
-                Logging.Info("Initializing GitHub for Unity log file: " + logPath);
             }
 
+            Logging.LogAdapter = new FileLogAdapter(logPath);
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
             ApplicationManager.Run();
