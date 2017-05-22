@@ -11,8 +11,6 @@ namespace GitHub.Unity
     [InitializeOnLoad]
     class EntryPoint : ScriptableObject
     {
-        private static ILogging logger;
-
         private static ApplicationManager appManager;
 
         // this may run on the loader thread if it's an appdomain restart
@@ -27,8 +25,7 @@ namespace GitHub.Unity
 
             var logPath = DefaultEnvironment.LogPath;
 
-            Logging.LoggerFactory = s => new FileLogAdapter(logPath, s);
-            logger = Logging.GetLogger<EntryPoint>();
+            Logging.LoggerFactory = s => new FileLogAdapter(logPath.FileNameWithoutExtension + "-startup" + logPath.ExtensionWithDot, s);
 
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
@@ -38,12 +35,12 @@ namespace GitHub.Unity
         private static void Initialize()
         {
             EditorApplication.update -= Initialize;
+            var logPath = DefaultEnvironment.LogPath;
 
             if (ApplicationCache.Instance.FirstRun)
             {
                 Debug.Log("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
-                var logPath = DefaultEnvironment.LogPath;
                 var oldLogPath = logPath.FileNameWithoutExtension + "-old" + logPath.ExtensionWithDot;
 
                 try
@@ -54,6 +51,8 @@ namespace GitHub.Unity
                 {
                     Logging.Error(ex, "Error rotating log files");
                 }
+
+                Logging.LoggerFactory = s => new FileLogAdapter(logPath, s);
                 Debug.Log("Initializing GitHub for Unity log file: " + logPath);
                 Logging.Info("Initializing GitHub for Unity log file: " + logPath);
             }
