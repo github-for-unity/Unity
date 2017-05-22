@@ -85,77 +85,77 @@ namespace GitHub.Unity
 
         public static void Info(string s)
         {
-            Instance?.Info(s);
+            Instance.Info(s);
         }
 
         public static void Debug(string s)
         {
-            Instance?.Debug(s);
+            Instance.Debug(s);
         }
 
         public static void Trace(string s)
         {
-            Instance?.Trace(s);
+            Instance.Trace(s);
         }
 
         public static void Warning(string s)
         {
-            Instance?.Warning(s);
+            Instance.Warning(s);
         }
 
         public static void Error(string s)
         {
-            Instance?.Error(s);
+            Instance.Error(s);
         }
 
         public static void Info(string format, params object[] objects)
         {
-            Instance?.Info(format, objects);
+            Instance.Info(format, objects);
         }
 
         public static void Debug(string format, params object[] objects)
         {
-            Instance?.Debug(format, objects);
+            Instance.Debug(format, objects);
         }
 
         public static void Trace(string format, params object[] objects)
         {
-            Instance?.Trace(format, objects);
+            Instance.Trace(format, objects);
         }
 
         public static void Warning(string format, params object[] objects)
         {
-            Instance?.Warning(format, objects);
+            Instance.Warning(format, objects);
         }
 
         public static void Error(string format, params object[] objects)
         {
-            Instance?.Error(format, objects);
+            Instance.Error(format, objects);
         }
 
         public static void Info(Exception ex, string s)
         {
-            Instance?.Info(ex, s);
+            Instance.Info(ex, s);
         }
 
         public static void Debug(Exception ex, string s)
         {
-            Instance?.Debug(ex, s);
+            Instance.Debug(ex, s);
         }
 
         public static void Trace(Exception ex, string s)
         {
-            Instance?.Trace(ex, s);
+            Instance.Trace(ex, s);
         }
 
         public static void Warning(Exception ex, string s)
         {
-            Instance?.Warning(ex, s);
+            Instance.Warning(ex, s);
         }
 
         public static void Error(Exception ex, string s)
         {
-            Instance?.Error(ex, s);
+            Instance.Error(ex, s);
         }
     }
 }
