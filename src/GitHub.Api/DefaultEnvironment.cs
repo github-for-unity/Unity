@@ -18,6 +18,17 @@ namespace GitHub.Unity
             }
         }
 
+        private const string startupLogFile = "github-unity-startup.log";
+        public static NPath StartupLogPath
+        {
+            get
+            {
+                return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
+                    .ToNPath()
+                    .Combine(ApplicationInfo.ApplicationName, startupLogFile);
+            }
+        }
+
         public string GetSpecialFolder(Environment.SpecialFolder folder)
         {
             return Environment.GetFolderPath(folder);

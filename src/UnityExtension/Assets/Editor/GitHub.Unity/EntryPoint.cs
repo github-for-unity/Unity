@@ -23,9 +23,9 @@ namespace GitHub.Unity
                 return;
             }
 
-            var logPath = DefaultEnvironment.LogPath;
+            var startupLogPath = DefaultEnvironment.StartupLogPath;
 
-            Logging.LoggerFactory = s => new FileLogAdapter(logPath.FileNameWithoutExtension + "-startup" + logPath.ExtensionWithDot, s);
+            Logging.LoggerFactory = s => new FileLogAdapter(startupLogPath, s);
 
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
