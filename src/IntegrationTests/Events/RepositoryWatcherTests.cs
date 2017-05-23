@@ -319,7 +319,7 @@ namespace IntegrationTests
             }
         }
 
-        [Test, Ignore("Failing on CI, needs fixing")]
+        [Test]
         public void ShouldDetectGitFetch()
         {
             InitializeEnvironment(TestRepoMasterCleanUnsynchronized);
