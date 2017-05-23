@@ -18,7 +18,7 @@ namespace TestUtils
         {
             createEnvironmentOptions = createEnvironmentOptions ?? new CreateEnvironmentOptions();
 
-            var userPath = createEnvironmentOptions.UserProfilePath.ToNPath();
+            var userPath = createEnvironmentOptions.UserProfilePath;
             var localAppData = userPath.Parent.Combine("LocalAppData").ToString();
             var appData = userPath.Parent.Combine("AppData").ToString();
 

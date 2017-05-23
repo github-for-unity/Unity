@@ -41,7 +41,7 @@ namespace GitHub.Unity
                 var initTask = new GitInitTask(environment, processManager, null);
                 return initTask.RunAsync(token)
                     .ContinueWith(_ => {
-                        var unityYamlMergeExec = environment.UnityApplication.ToNPath().Parent.Combine("Tools", "UnityYAMLMerge");
+                        var unityYamlMergeExec = environment.UnityApplication.Parent.Combine("Tools", "UnityYAMLMerge");
                         var yamlMergeCommand = string.Format(@"'{0}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED""", unityYamlMergeExec);
                         var t = new GitConfigSetTask(environment, processManager, null, "merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local);
                         return t.RunAsync(token);

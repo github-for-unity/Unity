@@ -1,3 +1,4 @@
+using GitHub.Unity;
 using NSubstitute.Core;
 
 namespace TestUtils
@@ -8,9 +9,9 @@ namespace TestUtils
         public const string DefaultUserProfilePath = @"c:\GitHubUnity\UserProfile";
         public const string DefaultUnityProjectPathAndRepositoryPath = @"c:\GitHubUnity\UnityProject";
 
-        public string Extensionfolder { get; set; } = DefaultExtensionFolder;
-        public string UserProfilePath { get; set; } = DefaultUserProfilePath;
-        public string UnityProjectPath { get; set; } = DefaultUnityProjectPathAndRepositoryPath;
+        public NPath Extensionfolder { get; set; } = DefaultExtensionFolder;
+        public NPath UserProfilePath { get; set; } = DefaultUserProfilePath;
+        public NPath UnityProjectPath { get; set; } = DefaultUnityProjectPathAndRepositoryPath;
         public string RepositoryPath { get; set; } = DefaultUnityProjectPathAndRepositoryPath;
     }
 }

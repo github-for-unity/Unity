@@ -16,16 +16,14 @@ namespace GitHub.Unity
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
         {
-            Logging.LogAdapter = new UnityLogAdapter();
-            if (System.Environment.GetEnvironmentVariable("GITHUB_UNITY_DISABLE") == "1")
+            var tempEnv = new DefaultEnvironment();
+            if (tempEnv.GetEnvironmentVariable("GITHUB_UNITY_DISABLE") == "1")
             {
                 Debug.Log("GitHub for Unity " + ApplicationInfo.Version + " is disabled");
                 return;
             }
 
-            var startupLogPath = DefaultEnvironment.StartupLogPath;
-
-            Logging.LogAdapter = new FileLogAdapter(startupLogPath);
+            Logging.LogAdapter = new FileLogAdapter(tempEnv.LogPath);
 
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
@@ -35,24 +33,21 @@ namespace GitHub.Unity
         private static void Initialize()
         {
             EditorApplication.update -= Initialize;
-            var logPath = DefaultEnvironment.LogPath;
+
+            // this will initialize ApplicationManager and Environment if they haven't yet
+            var logPath = Environment.LogPath;
 
             if (ApplicationCache.Instance.FirstRun)
             {
                 Debug.Log("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
-                var oldLogPath = logPath.Parent.Combine("github-unity-old.log").ToString();
-
+                var oldLogPath = logPath.Parent.Combine(logPath.FileNameWithoutExtension + "-old" + logPath.ExtensionWithDot);
                 try
                 {
-                    if (File.Exists(oldLogPath))
+                    oldLogPath.DeleteIfExists();
+                    if (logPath.FileExists())
                     {
-                        File.Delete(oldLogPath);
-                    }
-
-                    if (File.Exists(logPath))
-                    {
-                        File.Move(logPath, oldLogPath);
+                        logPath.Move(oldLogPath);
                     }
                 }
                 catch (Exception ex)
@@ -62,17 +57,10 @@ namespace GitHub.Unity
 
                 Debug.Log("Initializing GitHub for Unity log file: " + logPath);
             }
-
             Logging.LogAdapter = new FileLogAdapter(logPath);
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
             ApplicationManager.Run();
-        }
-
-        private static NPath GetLogPath()
-        {
-            return System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData).ToNPath()
-                         .Combine(ApplicationInfo.ApplicationName, "github-unity.log");
         }
 
         private static bool ServerCertificateValidationCallback(object sender, X509Certificate certificate,
@@ -110,10 +98,9 @@ namespace GitHub.Unity
         public static IApplicationManager AppManager { get { return ApplicationManager; } }
 
         public static IEnvironment Environment { get { return ApplicationManager.Environment; } }
+        public static IFileSystem FileSystem { get { return Environment.FileSystem; } }
 
         public static IProcessEnvironment GitEnvironment { get { return ApplicationManager.GitEnvironment; } }
-
-        public static IFileSystem FileSystem { get { return ApplicationManager.FileSystem; } }
 
         public static IPlatform Platform { get { return ApplicationManager.Platform; } }
         public static ICredentialManager CredentialManager { get { return Platform.CredentialManager; } }

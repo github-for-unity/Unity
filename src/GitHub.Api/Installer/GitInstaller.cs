@@ -174,7 +174,7 @@ namespace GitHub.Unity
             {
                 logger.Warning("Archive \"{0}\" missing", archiveFilePath.ToString());
 
-                archiveFilePath = environment.ExtensionInstallPath.ToNPath().Combine(archiveFilePath);
+                archiveFilePath = environment.ExtensionInstallPath.Combine(archiveFilePath);
                 if (!archiveFilePath.FileExists())
                 {
                     logger.Warning("Archive \"{0}\" missing, returning", archiveFilePath.ToString());
@@ -236,7 +236,7 @@ namespace GitHub.Unity
             {
                 logger.Warning("Archive \"{0}\" missing", archiveFilePath.ToString());
 
-                archiveFilePath = environment.ExtensionInstallPath.ToNPath().Combine(archiveFilePath);
+                archiveFilePath = environment.ExtensionInstallPath.Combine(archiveFilePath);
                 if (!archiveFilePath.FileExists())
                 {
                     logger.Warning("Archive \"{0}\" missing, returning", archiveFilePath.ToString());

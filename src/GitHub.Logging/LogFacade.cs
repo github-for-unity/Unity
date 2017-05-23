@@ -16,6 +16,20 @@ namespace GitHub.Unity
             Logging.LogAdapter.Info(context, message);
         }
 
+        public void Debug(string message)
+        {
+#if DEBUG
+            Logging.LogAdapter.Debug(context, message);
+#endif
+        }
+
+        public void Trace(string message)
+        {
+            if (!Logging.TracingEnabled) return;
+
+            Logging.LogAdapter.Trace(context, message);
+        }
+
         public void Info(string format, params object[] objects)
         {
             Info(String.Format(format, objects));
@@ -34,13 +48,6 @@ namespace GitHub.Unity
         public void Info(Exception ex, string format, params object[] objects)
         {
             Info(ex, String.Format(format, objects));
-        }
-
-        public void Debug(string message)
-        {
-#if DEBUG
-            Logging.LogAdapter.Debug(context, message);
-#endif
         }
 
         public void Debug(string format, params object[] objects)
@@ -69,13 +76,6 @@ namespace GitHub.Unity
 #if DEBUG
             Debug(ex, String.Format(format, objects));
 #endif
-        }
-
-        public void Trace(string message)
-        {
-            if (!Logging.TracingEnabled) return;
-
-            Logging.LogAdapter.Trace(context, message);
         }
 
         public void Trace(string format, params object[] objects)

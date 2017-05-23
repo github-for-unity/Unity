@@ -16,7 +16,7 @@ namespace GitHub.Unity
 
         private string GetMessage(string level, string context, string message)
         {
-            var time = DateTime.Now.ToString("HH:mm:ss tt");
+            var time = DateTime.Now.ToString("yyMMdd-HH:mm:ss");
             var threadId = Thread.CurrentThread.ManagedThreadId;
             return string.Format("{0} {1,5} [{2,2}] {3,-35} {4}{5}", time, level, threadId, context, message, Environment.NewLine);
         }
