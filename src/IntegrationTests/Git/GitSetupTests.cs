@@ -1,6 +1,7 @@
 using System.Threading;
 using FluentAssertions;
 using GitHub.Unity;
+using ICSharpCode.SharpZipLib.Zip;
 using NUnit.Framework;
 using Rackspace.Threading;
 using TestUtils;
@@ -27,28 +28,28 @@ namespace IntegrationTests
             {
                 environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
-                setupDone.Should().BeTrue ();
-                percent.Should().Be (1);
+                setupDone.Should().BeTrue();
+                percent.Should().Be(1);
 
-                Logger.Trace ("Expected GitExecutablePath: {0}", gitSetup.GitExecutablePath);
-                gitSetup.GitExecutablePath.FileExists ().Should ().BeTrue ();
+                Logger.Trace("Expected GitExecutablePath: {0}", gitSetup.GitExecutablePath);
+                gitSetup.GitExecutablePath.FileExists().Should().BeTrue();
 
-            var gitLfsDestinationPath = gitSetup.GitInstallationPath;
+                var gitLfsDestinationPath = gitSetup.GitInstallationPath;
                 gitLfsDestinationPath = gitLfsDestinationPath.Combine("mingw32");
 
-            gitLfsDestinationPath = gitLfsDestinationPath.Combine("libexec", "git-core", "git-lfs.exe");
-            gitLfsDestinationPath.FileExists().Should().BeTrue();
+                gitLfsDestinationPath = gitLfsDestinationPath.Combine("libexec", "git-core", "git-lfs.exe");
+                gitLfsDestinationPath.FileExists().Should().BeTrue();
 
-            var calculateMd5 = NPathFileSystemProvider.Current.CalculateMD5(gitLfsDestinationPath);
-                GitInstaller.GitLfsExecutableMD5.Should ().Be (calculateMd5);
+                var calculateMd5 = NPathFileSystemProvider.Current.CalculateMD5(gitLfsDestinationPath);
+                GitInstaller.GitLfsExecutableMD5.Should().Be(calculateMd5);
 
-                setupDone = gitSetup.SetupIfNeeded (percentage: new Progress<float> (x => percent = x)).Result;
-                setupDone.Should ().BeFalse ();
+                setupDone = gitSetup.SetupIfNeeded(percentage: new Progress<float>(x => percent = x)).Result;
+                setupDone.Should().BeFalse();
             }
             else
             {
                 environment.GitExecutablePath = "/usr/local/bin/git";
-                setupDone.Should().BeFalse ();
+                setupDone.Should().BeFalse();
             }
 
             var platform = new Platform(environment, FileSystem, new TestUIDispatcher());
@@ -60,6 +61,26 @@ namespace IntegrationTests
             gitBranches.Should().BeEquivalentTo(
                 new GitBranch("master", "origin/master: behind 1", true),
                 new GitBranch("feature/document", "origin/feature/document", false));
+        }
+
+
+        [Test]
+        public void VerifyGitLfsBundle()
+        {
+            var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
+
+            var gitLfsPath = environmentPath.Combine("git-lfs.exe");
+            gitLfsPath.Exists().Should().BeFalse();
+
+            var inputZipFile = SolutionDirectory.ToNPath().Combine("PlatformResources", "windows", "git-lfs.zip");
+
+            var fastZip = new FastZip();
+            fastZip.ExtractZip(inputZipFile, environmentPath, null);
+
+            gitLfsPath.Exists().Should().BeTrue();
+
+            var calculateMd5 = NPathFileSystemProvider.Current.CalculateMD5(gitLfsPath);
+            GitInstaller.GitLfsExecutableMD5.Should().Be(calculateMd5);
         }
     }
 }
