@@ -16,18 +16,6 @@ namespace GitHub.Unity
         private FieldInfo quitActionField;
         private TaskRunner taskRunner;
 
-        // for unit testing (TODO)
-        public ApplicationManager(IEnvironment environment, IFileSystem fileSystem, IPlatform platform,
-            IProcessManager processManager, ITaskResultDispatcher taskResultDispatcher)
-            : base(null)
-        {
-            Environment = environment;
-            Environment.FileSystem = fileSystem;
-            Platform = platform;
-            ProcessManager = processManager;
-            MainThreadResultDispatcher = taskResultDispatcher;
-        }
-
         public ApplicationManager(IMainThreadSynchronizationContext synchronizationContext)
             : base(synchronizationContext as SynchronizationContext)
         {
