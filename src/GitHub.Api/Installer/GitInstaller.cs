@@ -203,13 +203,16 @@ namespace GitHub.Unity
 
             try
             {
-                logger.Trace("Copying \"{0}\" to \"{1}\"", unzipPath, PackageDestinationDirectory);
+                PackageDestinationDirectory.DeleteIfExists();
+                PackageDestinationDirectory.EnsureParentDirectoryExists();
 
-                unzipPath.Copy(PackageDestinationDirectory);
+                logger.Trace("Moving \"{0}\" to \"{1}\"", unzipPath, PackageDestinationDirectory);
+
+                unzipPath.Move(PackageDestinationDirectory);
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Error CopyingArchive Source:\"{0}\" OutDir:\"{1}\"", tempPath, PackageDestinationDirectory);
+                logger.Error(ex, "Error Moving \"{0}\" to \"{1}\"", tempPath, PackageDestinationDirectory);
                 return TaskEx.FromResult(false);
             }
             unzipPath.DeleteIfExists();
