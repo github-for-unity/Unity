@@ -5,44 +5,41 @@ namespace GitHub.Unity
 {
     class ConsoleLogAdapter : LogAdapterBase
     {
-        public ConsoleLogAdapter(string context) : base(context)
-        {}
-
-        private string GetMessage(string level, string message)
+        private string GetMessage(string level, string context, string message)
         {
             var time = DateTime.Now.ToString("HH:mm:ss.fff tt");
             var threadId = Thread.CurrentThread.ManagedThreadId;
-            return string.Format("{0} {1} [{2,2}] {3} {4}", time, level, threadId, ContextPrefix, message);
+            return string.Format("{0} {1} [{2,2}] {3} {4}", time, level, threadId, context, message);
         }
 
-        protected override void OnInfo(string message)
+        public override void Info(string context, string message)
         {
-            WriteLine("INFO", message);
+            WriteLine("INFO", context, message);
         }
 
-        protected override void OnDebug(string message)
+        public override void Debug(string context, string message)
         {
-            WriteLine("DEBUG", message);
+            WriteLine("DEBUG", context, message);
         }
 
-        protected override void OnTrace(string message)
+        public override void Trace(string context, string message)
         {
-            WriteLine("TRACE", message);
+            WriteLine("TRACE", context, message);
         }
 
-        protected override void OnWarning(string message)
+        public override void Warning(string context, string message)
         {
-            WriteLine("WARN", message);
+            WriteLine("WARN", context, message);
         }
 
-        protected override void OnError(string message)
+        public override void Error(string context, string message)
         {
-            WriteLine("ERROR", message);
+            WriteLine("ERROR", context, message);
         }
 
-        private void WriteLine(string level, string message)
+        private void WriteLine(string level, string context, string message)
         {
-            Console.WriteLine(GetMessage(level, message));
+            Console.WriteLine(GetMessage(level, context, message));
         }
     }
 }

@@ -9,46 +9,46 @@ namespace GitHub.Unity
         private static readonly object lk = new object();
         private readonly string filePath;
 
-        public FileLogAdapter(string path, string context) : base(context)
+        public FileLogAdapter(string path)
         {
             filePath = path;
         }
 
-        private string GetMessage(string level, string message)
+        private string GetMessage(string level, string context, string message)
         {
-            var time = DateTime.Now.ToString("HH:mm:ss tt");
+            var time = DateTime.Now.ToString("yyMMdd-HH:mm:ss");
             var threadId = Thread.CurrentThread.ManagedThreadId;
-            return string.Format("{0} {1} [{2,2}] {3,-35} {4}{5}", time, level, threadId, ContextPrefix, message, Environment.NewLine);
+            return string.Format("{0} {1,5} [{2,2}] {3,-35} {4}{5}", time, level, threadId, context, message, Environment.NewLine);
         }
 
-        protected override void OnInfo(string message)
+        public override void Info(string context, string message)
         {
-            WriteLine("INFO", message);
+            WriteLine("INFO", context, message);
         }
 
-        protected override void OnDebug(string message)
+        public override void Debug(string context, string message)
         {
-            WriteLine("DEBUG", message);
+            WriteLine("DEBUG", context, message);
         }
 
-        protected override void OnTrace(string message)
+        public override void Trace(string context, string message)
         {
-            WriteLine("TRACE", message);
+            WriteLine("TRACE", context, message);
         }
 
-        protected override void OnWarning(string message)
+        public override void Warning(string context, string message)
         {
-            WriteLine("WARN", message);
+            WriteLine("WARN", context, message);
         }
 
-        protected override void OnError(string message)
+        public override void Error(string context, string message)
         {
-            WriteLine("ERROR", message);
+            WriteLine("ERROR", context, message);
         }
 
-        private void WriteLine(string level, string message)
+        private void WriteLine(string level, string context, string message)
         {
-            Write(GetMessage(level, message));
+            Write(GetMessage(level, context, message));
         }
 
         private void Write(string message)

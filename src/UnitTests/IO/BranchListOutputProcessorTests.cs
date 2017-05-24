@@ -11,10 +11,12 @@ namespace UnitTests
         //[Test]
         public void IntegrationTest_MonoRepo()
         {
-            var filesystem = new FileSystem();
             var environment = new DefaultEnvironment();
-            environment.UnityProjectPath = @"D:\code\github\UnityInternal\src\UnityExtension";
-            var gitEnvironment = new WindowsGitEnvironment(environment, filesystem);
+            var path = new NPath(@"D:\code\github\UnityInternal\src\UnityExtension");
+            var assetsPath = path.Combine("Assets");
+            var installPath = assetsPath.Combine("Editor", "GitHub.Unity");
+            environment.Initialize(installPath, path, assetsPath);
+            var gitEnvironment = new WindowsGitEnvironment(environment, environment.FileSystem);
             var fact = new GitObjectFactory(environment);
             var pm = new ProcessManager(environment, gitEnvironment);
             var results = pm.GetGitBranches(@"D:\code\github\UnityInternal");

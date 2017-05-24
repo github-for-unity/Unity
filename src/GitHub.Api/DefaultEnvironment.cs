@@ -5,7 +5,55 @@ namespace GitHub.Unity
 {
     class DefaultEnvironment : IEnvironment
     {
-        private static readonly ILogging logger = Logging.GetLogger<DefaultEnvironment>();
+        private const string logFile = "github-unity.log";
+        private IFileSystem filesystem;
+
+        public NPath LogPath { get; }
+        public DefaultEnvironment()
+        {
+            NPath localAppData;
+            NPath commonAppData;
+            if (IsWindows)
+            {
+                localAppData = GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData).ToNPath();
+                commonAppData = GetSpecialFolder(Environment.SpecialFolder.CommonApplicationData).ToNPath();
+            }
+            else if (IsMac)
+            {
+                localAppData = NPath.HomeDirectory.Combine("Library", "Application Support");
+                // there is no such thing on the mac that is guaranteed to be user accessible (/usr/local might not be)
+                commonAppData = GetSpecialFolder(Environment.SpecialFolder.ApplicationData).ToNPath();
+            }
+            else
+            {
+                localAppData = GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData).ToNPath();
+                commonAppData = "/usr/local/share/";
+            }
+
+            UserCachePath = localAppData.Combine(ApplicationInfo.ApplicationName);
+            SystemCachePath = commonAppData.Combine(ApplicationInfo.ApplicationName);
+            LogPath = UserCachePath.Combine(logFile);
+        }
+
+        public void Initialize(NPath extensionInstallPath, NPath unityPath, NPath assetsPath)
+        {
+            ExtensionInstallPath = extensionInstallPath;
+            UnityApplication = unityPath;
+            UnityAssetsPath = assetsPath;
+            UnityProjectPath = assetsPath.Parent;
+            Initialize();
+        }
+
+        public void Initialize()
+        {
+            Guard.NotNull(this, UnityProjectPath, nameof(UnityProjectPath));
+            Guard.NotNull(this, FileSystem, nameof(FileSystem));
+            RepositoryPath = new RepositoryLocator(UnityProjectPath).FindRepositoryRoot();
+            if (RepositoryPath == null)
+                FileSystem.SetCurrentDirectory(UnityProjectPath);
+            else
+                FileSystem.SetCurrentDirectory(RepositoryPath);
+        }
 
         public string GetSpecialFolder(Environment.SpecialFolder folder)
         {
@@ -22,10 +70,28 @@ namespace GitHub.Unity
             return Environment.GetEnvironmentVariable(variable);
         }
 
-        public string UnityApplication { get; set; }
-        public string UnityAssetsPath { get; set; }
-        public string UnityProjectPath { get; set; }
-        public string ExtensionInstallPath { get; set; }
+        public IFileSystem FileSystem
+        {
+            get
+            {
+                if (filesystem == null)
+                {
+                    filesystem = new FileSystem();
+                    NPathFileSystemProvider.Current = filesystem;
+                }
+                return filesystem;
+            }
+            set
+            {
+                filesystem = value;
+                NPathFileSystemProvider.Current = filesystem;
+            }
+        }
+
+        public NPath UnityApplication { get; private set; }
+        public NPath UnityAssetsPath { get; private set; }
+        public NPath UnityProjectPath { get; private set; }
+        public NPath ExtensionInstallPath { get; set; }
         public NPath UserCachePath { get; set; }
         public NPath SystemCachePath { get; set; }
         public string Path { get { return Environment.GetEnvironmentVariable("PATH"); } }
@@ -37,7 +103,6 @@ namespace GitHub.Unity
             get { return gitExecutablePath; }
             set
             {
-                logger.Trace("Setting GitExecutablePath to " + value);
                 gitExecutablePath = value;
                 gitInstallPath = null;
             }
@@ -61,7 +126,6 @@ namespace GitHub.Unity
                         {
                             gitInstallPath = GitExecutablePath.ToNPath().Parent;
                         }
-                        logger.Trace("Setting GitInstallPath to " + gitInstallPath);
                     }
                     else
                         gitInstallPath = GitExecutablePath;
@@ -70,7 +134,7 @@ namespace GitHub.Unity
             }
         }
 
-        public string RepositoryPath { get { return Repository.LocalPath; } }
+        public string RepositoryPath { get; private set; }
         public IRepository Repository { get; set; }
 
         public bool IsWindows { get { return OnWindows; } }

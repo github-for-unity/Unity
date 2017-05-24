@@ -1,54 +1,51 @@
-using System;
-using System.Linq;
-
 namespace GitHub.Unity
 {
     class MultipleLogAdapter : LogAdapterBase
     {
-        private ILogging[] loggers;
+        private readonly LogAdapterBase[] logAdapters;
 
-        public MultipleLogAdapter(params Func<ILogging>[] logFunctions) : base(string.Empty)
+        public MultipleLogAdapter(params LogAdapterBase[] logAdapters)
         {
-            loggers = logFunctions.Select(func => func.Invoke()).ToArray();
+            this.logAdapters = logAdapters ?? new LogAdapterBase[0];
         }
 
-        protected override void OnInfo(string message)
+        public override void Info(string context, string message)
         {
-            foreach (var logger in loggers)
+            foreach (var logger in logAdapters)
             {
-                logger.Info(message);
+                logger.Info(context, message);
             }
         }
 
-        protected override void OnDebug(string message)
+        public override void Debug(string context, string message)
         {
-            foreach (var logger in loggers)
+            foreach (var logger in logAdapters)
             {
-                logger.Info(message);
+                logger.Debug(context, message);
             }
         }
 
-        protected override void OnTrace(string message)
+        public override void Trace(string context, string message)
         {
-            foreach (var logger in loggers)
+            foreach (var logger in logAdapters)
             {
-                logger.Info(message);
+                logger.Trace(context, message);
             }
         }
 
-        protected override void OnWarning(string message)
+        public override void Warning(string context, string message)
         {
-            foreach (var logger in loggers)
+            foreach (var logger in logAdapters)
             {
-                logger.Info(message);
+                logger.Warning(context, message);
             }
         }
 
-        protected override void OnError(string message)
+        public override void Error(string context, string message)
         {
-            foreach (var logger in loggers)
+            foreach (var logger in logAdapters)
             {
-                logger.Info(message);
+                logger.Error(context, message);
             }
         }
     }
