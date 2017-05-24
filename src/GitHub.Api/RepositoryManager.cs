@@ -519,10 +519,12 @@ namespace GitHub.Unity
                 return remote;
             }
 
-            var configRemotes = config.GetRemotes().ToArray();
-            if (configRemotes.Any())
+            using (var remoteEnumerator = config.GetRemotes().GetEnumerator())
             {
-                return configRemotes.First();
+                if (remoteEnumerator.MoveNext())
+                {
+                    return remoteEnumerator.Current;
+                }
             }
 
             return null;
