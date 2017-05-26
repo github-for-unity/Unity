@@ -258,6 +258,7 @@ namespace GitHub.Unity
 
         class SectionParser
         {
+            private static readonly Regex CommentPattern = new Regex(@"^[;#].*", RegexOptions.Compiled);
             private static readonly Regex SectionPattern = new Regex(@"^\[(.*)\]$", RegexOptions.Compiled);
             private static readonly Regex PairPattern = new Regex(@"([\S][^=]+)[\s]*=[\s]*(.*)", RegexOptions.Compiled);
             private static readonly Regex GroupSectionPattern = new Regex(@"(.*?(?=""))", RegexOptions.Compiled);
@@ -326,8 +327,9 @@ namespace GitHub.Unity
 
             private void EnsureFileBeginsWithSection()
             {
-                if (!SectionPattern.IsMatch(manager.Lines[0]))
-                    throw new ArgumentException(string.Format("{0} - Beginning line is not a valid section heading", manager.Lines[0]));
+                var first = manager.Lines.SkipWhile(l => String.IsNullOrEmpty(l) || CommentPattern.IsMatch(l)).FirstOrDefault();
+                if (first == null || !SectionPattern.IsMatch(first))
+                    throw new ArgumentException(string.Format("{0} - Beginning line is not a valid section heading", first));
             }
 
             public Dictionary<string, Section> Sections { get; private set; }

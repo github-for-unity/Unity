@@ -198,10 +198,10 @@ namespace GitHub.Unity
         {
             var add = GitClient.Add(files);
             add.OnStart += t => IsBusy = true;
-            var commit = GitClient.Commit(message, body, null, add);
-            commit.Task.ContinueWith(_ => IsBusy = false);
-            taskManager.Schedule(add, commit);
-            return commit;
+            var task = add.ContinueWith(GitClient.Commit(message, body))
+               .ContinueWith(_ => IsBusy = false);
+            add.Schedule(taskManager);
+            return task;
         }
 
         public ITask Fetch(string remote)
@@ -355,9 +355,12 @@ namespace GitHub.Unity
             Logger.Trace("Starting OnRepositoryUpdatedHandler");
 
             var task = GitClient.Status()
-                .ContinueWith((s, t) =>
+                .ContinueWith((success, data) =>
                 {
-                    OnRepositoryChanged?.Invoke(t.Value);
+                    if (success)
+                    {
+                        OnRepositoryChanged?.Invoke(data.Value);
+                    }
                     Logger.Trace("Ending OnRepositoryUpdatedHandler");
                 });
             HookupHandlers(task).Schedule(taskManager);

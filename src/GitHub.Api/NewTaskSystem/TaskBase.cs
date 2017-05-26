@@ -113,7 +113,10 @@ namespace GitHub.Unity
 
         public virtual ITask Start(TaskScheduler scheduler)
         {
-            Task.Start(scheduler);
+            if (DependsOn != null && DependsOn.Task.Status == TaskStatus.Created)
+                DependsOn.Start();
+            else
+                Task.Start(scheduler);
             return this;
         }
 

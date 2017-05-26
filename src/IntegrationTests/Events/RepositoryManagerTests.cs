@@ -103,7 +103,7 @@ namespace IntegrationTests
             var testDocumentTxt = TestRepoMasterCleanSynchronized.Combine("Assets", "TestDocument.txt");
             testDocumentTxt.WriteAllText("foobar");
 
-            managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(5)).Should().BeTrue();
+            managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(5000)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 

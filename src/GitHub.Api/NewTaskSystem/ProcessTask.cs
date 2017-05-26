@@ -286,7 +286,7 @@ namespace GitHub.Unity
                 throw DependsOn.Task.Exception.InnerException;
             }
 
-            Logger.Debug(String.Format("Executing id:{0}", Task.Id));
+            Logger.Debug(String.Format("Executing id:{0} success?:{1}", Task.Id, success));
 
             wrapper = new ProcessWrapper(Process, outputProcessor,
                 RaiseOnStart,
@@ -416,7 +416,7 @@ namespace GitHub.Unity
                 throw DependsOn.Task.Exception.InnerException;
             }
 
-            Logger.Debug(String.Format("Executing id:{0}", Task.Id));
+            Logger.Debug(String.Format("Executing id:{0} success?:{1}", Task.Id, success));
 
             wrapper = new ProcessWrapper(Process, outputProcessor,
                 RaiseOnStart,

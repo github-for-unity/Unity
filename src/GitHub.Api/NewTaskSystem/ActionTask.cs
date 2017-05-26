@@ -31,7 +31,7 @@ namespace GitHub.Unity
 
         protected override void Run(bool success)
         {
-            Logger.Debug(String.Format("Executing id:{0}", Task.Id));
+            Logger.Debug(String.Format("Executing id:{0} success?:{1}", Task.Id, success));
 
             RaiseOnStart();
             Callback?.Invoke(success);
@@ -62,7 +62,7 @@ namespace GitHub.Unity
 
         protected virtual void Run(bool success, T previousResult)
         {
-            Logger.Debug(String.Format("Executing id:{0}", Task.Id));
+            Logger.Debug(String.Format("Executing id:{0} success?:{1}", Task.Id, success));
 
             RaiseOnStart();
             Callback?.Invoke(success, previousResult);
@@ -93,7 +93,7 @@ namespace GitHub.Unity
 
         protected override T RunWithReturn(bool success)
         {
-            Logger.Debug(String.Format("Executing id:{0}", Task.Id));
+            Logger.Debug(String.Format("Executing id:{0} success?:{1}", Task.Id, success));
 
             RaiseOnStart();
 
@@ -121,7 +121,7 @@ namespace GitHub.Unity
 
         protected override TResult RunWithData(bool success, T previousResult)
         {
-            Logger.Debug(String.Format("Executing id:{0}", Task.Id));
+            Logger.Debug(String.Format("Executing id:{0} success?:{1}", Task.Id, success));
 
             RaiseOnStart();
             var result = Callback(success, previousResult);
@@ -154,7 +154,7 @@ namespace GitHub.Unity
 
         protected override List<T> RunWithReturn(bool success)
         {
-            Logger.Debug(String.Format("Executing id:{0}", Task.Id));
+            Logger.Debug(String.Format("Executing id:{0} success?:{1}", Task.Id, success));
 
             RaiseOnStart();
 
@@ -184,7 +184,7 @@ namespace GitHub.Unity
 
         protected override TResult RunWithData(bool success, TDependentResult previousResult)
         {
-            Logger.Debug(String.Format("Executing id:{0}", Task.Id));
+            Logger.Debug(String.Format("Executing id:{0} success?:{1}", Task.Id, success));
 
             RaiseOnStart();
             TResult result = default(TResult);
