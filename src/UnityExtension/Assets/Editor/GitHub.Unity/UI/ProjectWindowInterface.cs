@@ -74,12 +74,12 @@ namespace GitHub.Unity
 
             repository
                 .RequestLock(repositoryPath)
-                .ThenInUI(new ActionTask(EntryPoint.AppManager.CancellationToken, _ =>
+                .ThenInUI(_ =>
                 {
                     isBusy = false;
                     Selection.activeGameObject = null;
                     EditorApplication.RepaintProjectWindow();
-                }))
+                })
                 .Start();
         }
 
@@ -115,12 +115,12 @@ namespace GitHub.Unity
 
             repository
                 .ReleaseLock(repositoryPath, false)
-                .ThenInUI(new ActionTask(EntryPoint.AppManager.CancellationToken, _ =>
+                .ThenInUI(_ =>
                 {
                     isBusy = false;
                     Selection.activeGameObject = null;
                     EditorApplication.RepaintProjectWindow();
-                }))
+                })
                 .Start();
         }
         public static void Run()

@@ -155,7 +155,9 @@ namespace GitHub.Unity
     {
         public static string Join<T>(this IEnumerable<T> list, string separator)
         {
-            return String.Join(separator, list.Cast<string>().ToArray());
+            if (list == null)
+                return null;
+            return String.Join(separator, list.Select(x => x?.ToString()).ToArray());
         }
     }
 

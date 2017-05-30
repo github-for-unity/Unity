@@ -35,6 +35,7 @@ namespace GitHub.Unity
         new Task<TResult> Task { get; }
         new event Action<ITask<TResult>> OnStart;
         new event Action<ITask<TResult>> OnEnd;
+        ITask<T> Defer<T>(Func<TResult, Task<T>> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false);
     }
 
     interface ITask<TData, T> : ITask<T>
@@ -73,7 +74,7 @@ namespace GitHub.Unity
         }
 
         protected TaskBase()
-        { }
+        {}
 
         public ITask SetDependsOn(ITask dependsOn)
         {
@@ -81,14 +82,14 @@ namespace GitHub.Unity
             return this;
         }
 
-        public virtual T Then<T>(T continuation, bool always = false)
+        public virtual T Then<T>(T cont, bool always = false)
             where T : ITask
         {
-            Guard.ArgumentNotNull(continuation, "continuation");
-            continuation.SetDependsOn(this);
-            this.continuation = (TaskBase)(object)continuation;
+            Guard.ArgumentNotNull(cont, nameof(cont));
+            cont.SetDependsOn(this);
+            this.continuation = (TaskBase)(object)cont;
             this.continuationAlways = always;
-            return continuation;
+            return cont;
         }
 
         public ITask Finally(Action<bool, Exception> continuation, TaskAffinity affinity = TaskAffinity.Concurrent)
@@ -156,10 +157,9 @@ namespace GitHub.Unity
         {
             if (Task.Status == TaskStatus.Created)
             {
-                Logger.Trace(String.Format($"Starting {Affinity} {Task.Id} {Name}"));
+                Logger.Trace($"Starting {Affinity} {ToString()}");
                 Task.Start(scheduler);
             }
-
             RunContinuation();
             return this;
         }
@@ -168,6 +168,7 @@ namespace GitHub.Unity
         {
             if (continuation != null)
             {
+                Logger.Trace($"Setting ContinueWith {Affinity} {continuation}");
                 Task.ContinueWith(_ => ((TaskBase)(object)continuation).Run(), Token, continuationAlways ? runAlwaysOptions : runOnSuccessOptions,
                     TaskManager.GetScheduler(continuation.Affinity));
             }
@@ -202,7 +203,7 @@ namespace GitHub.Unity
 
         protected virtual void Run(bool success)
         {
-            Logger.Trace(String.Format("Executing {0}({1}) success?:{2}", Name, Task.Id, success));
+            Logger.Trace($"Executing {ToString()} success?:{success}");
         }
 
         protected virtual void RaiseOnStart()
@@ -227,6 +228,33 @@ namespace GitHub.Unity
             return DependsOn.GetThrownException();
         }
 
+        protected class DeferredContinuation
+        {
+            public bool Always;
+            public Func<object, ITask> GetContinueWith;
+        }
+
+        private DeferredContinuation deferred;
+        internal object GetDeferred()
+        {
+            return deferred;
+        }
+
+        internal void SetDeferred(object def)
+        {
+            deferred = (DeferredContinuation)def;
+        }
+
+        internal void ClearDeferred()
+        {
+            deferred = null;
+        }
+
+        public override string ToString()
+        {
+            return $"{Task?.Id ?? -1} {Name} {GetType()}";
+        }
+
         public virtual bool Successful { get { return Task.Status == TaskStatus.RanToCompletion && Task.Status != TaskStatus.Faulted; } }
         public string Errors { get; protected set; }
         public Task Task { get; protected set; }
@@ -247,17 +275,7 @@ namespace GitHub.Unity
 
     abstract class TaskBase<TResult> : TaskBase, ITask<TResult>
     {
-        private DeferredContinuation deferred;
-        protected class DeferredContinuation
-        {
-            public bool Always;
-            public Func<TResult, ITask> GetContinueWith;
-        }
-
-        protected DeferredContinuation GetDeferred()
-        {
-            return deferred;
-        }
+        protected TaskCompletionSource<TResult> tcs = new TaskCompletionSource<TResult>();
 
         public TaskBase(CancellationToken token, ITask dependsOn = null, bool always = false)
             : base(token, dependsOn, always)
@@ -265,6 +283,7 @@ namespace GitHub.Unity
             Task = new Task<TResult>(() =>
             {
                 var ret = RunWithReturn(DependsOn?.Successful ?? previousSuccess);
+                tcs.SetResult(ret);
                 AdjustNextTask(ret);
                 return ret;
             }, Token, TaskCreationOptions.None);
@@ -275,8 +294,15 @@ namespace GitHub.Unity
             var def = GetDeferred();
             if (def != null)
             {
-                var next = def.GetContinueWith(ret);
+                var next = (def as DeferredContinuation)?.GetContinueWith(ret);
                 var cont = continuation.Continuation;
+                var nextDefer = continuation.GetDeferred();
+                if (continuation is IStubTask)
+                {
+                    ((TaskBase)next).SetDeferred(nextDefer);
+                    ((TaskBase)continuation).ClearDeferred();
+                }
+
                 if (cont != null)
                 {
                     if (cont.ContinuationIsFinally)
@@ -289,6 +315,7 @@ namespace GitHub.Unity
                     }
                 }
                 continuation.Then(next, continuationAlways);
+                ClearDeferred();
             }
         }
 
@@ -299,16 +326,33 @@ namespace GitHub.Unity
 
         public override T Then<T>(T continuation, bool always = false)
         {
-            deferred = null;
             return base.Then<T>(continuation, always);
         }
 
         public ITask<T> ThenIf<T>(Func<TResult, ITask<T>> continueWith, bool always = false)
         {
             Guard.ArgumentNotNull(continueWith, "continueWith");
-            var ret = new FuncTask<TResult, T>(Token, (s, d) => default(T), this, always);
-            deferred = new DeferredContinuation { Always = always, GetContinueWith = d => continueWith(d) };
+            var ret = new StubTask<T>(Token, (s, d) => default(T), this, always);
+            SetDeferred(new DeferredContinuation { Always = always, GetContinueWith = d => continueWith((TResult)d) });
             return ret;
+        }
+
+        public ITask<T> Defer<T>(Func<TResult, Task<T>> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
+        {
+            Guard.ArgumentNotNull(continueWith, "continueWith");
+            var ret = new StubTask<T>(Token, (s, d) => default(T), this, always) { Affinity = affinity };
+            SetDeferred(new DeferredContinuation { Always = always, GetContinueWith = d => new FuncTask<T>(continueWith((TResult)d)) { Affinity = affinity, Name = "Deferred" } });
+            return ret;
+        }
+
+        interface IStubTask {}
+        class StubTask<T> : FuncTask<TResult, T>, IStubTask
+        {
+            public StubTask(CancellationToken token, Func<bool, TResult, T> func, ITask<TResult> dependsOn, bool always)
+                : base(token, func, dependsOn, always)
+            {
+                Name = "Stub";
+            }
         }
 
         public ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent)
@@ -341,14 +385,6 @@ namespace GitHub.Unity
             return this;
         }
 
-        protected override void RunContinuation()
-        {
-            //if (deferred == null)
-            //{
-            base.RunContinuation();
-            //}
-        }
-
         protected virtual TResult RunWithReturn(bool success)
         {
             base.Run(success);
@@ -373,6 +409,7 @@ namespace GitHub.Unity
             Task = new Task<TResult>(() =>
             {
                 var ret = RunWithData(DependsOn?.Successful ?? previousSuccess, DependsOn.Successful ? ((ITask<T>)DependsOn).Result : default(T));
+                tcs.SetResult(ret);
                 AdjustNextTask(ret);
                 return ret;
             },

@@ -123,12 +123,10 @@ namespace GitHub.Unity
 
                 await RestartRepository();
 
-
                 if (Environment.IsWindows)
                 {
                     string credentialHelper = null;
                     var gitConfigGetTask = new GitConfigGetTask("credential.helper", GitConfigSource.Global, CancellationToken);
-
 
                     await gitConfigGetTask.Task;
 

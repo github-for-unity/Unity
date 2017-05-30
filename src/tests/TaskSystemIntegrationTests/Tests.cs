@@ -24,7 +24,7 @@ namespace IntegrationTests
         public void OneTimeSetup()
         {
             Logging.LoggerFactory = context => new ConsoleLogAdapter(context);
-
+            //Logging.TracingEnabled = true;
             TaskManager = new TaskManager();
             var syncContext = new ThreadSynchronizationContext(Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(syncContext);
@@ -432,6 +432,14 @@ namespace IntegrationTests
                         runOrder.Add("finally");
                     }
                     return d;
+                })
+                .ThenInUI((s, d) =>
+                {
+                    lock (runOrder)
+                    {
+                        runOrder.Add("boo");
+                    }
+                    return d;
                 });
 
             var ret = await task.StartAwait();
@@ -440,7 +448,7 @@ namespace IntegrationTests
             CollectionAssert.AreEqual(expectedOutput, output);
             Assert.IsNull(exception);
             Assert.IsNull(finallyException);
-            CollectionAssert.AreEqual(new List<string> { "finally" }, runOrder);
+            CollectionAssert.AreEqual(new List<string> { "finally", "boo" }, runOrder);
         }
 
         [Test]
@@ -583,29 +591,115 @@ namespace IntegrationTests
             CollectionAssert.AreEqual(new string[] { $"ran {uiThread}" }, runOrder);
         }
 
+        /// <summary>
+        /// Always call Then or another non-Defer variant after calling Defer
+        /// </summary>
         [Test]
-        public async Task AsyncBodies()
+        public async Task AlwaysChainAsyncBodiesWithNonAsync()
         {
-            var uiThread = 0;
-            await new ActionTask(Token, _ => uiThread = Thread.CurrentThread.ManagedThreadId) { Affinity = TaskAffinity.UI }.StartAwait();
-
-            var runOrder = new List<string>();
-            var act = new ActionTask(Token, _ => runOrder.Add($"ran 1"))
-                .ThenAsync(new Task<int>(() =>
+            var runOrder = new List<int>();
+            var act = new FuncTask<List<int>>(Token, _ => runOrder) { Name = "First" }
+                .Defer(GetData)
+                .Then((_, v) =>
                 {
-                    runOrder.Add($"ran 2");
-                    return 10;
-                }))
-
-                .ThenAsync(new FuncTask<int, int>(Token, (s, n) =>
+                    v.Add(2);
+                    return v;
+                })
+                .Defer(GetData2)
+                .Then((_, v) =>
                 {
-                    runOrder.Add($"ran 3");
-                    return n * 2;
-                }))
+                    v.Add(4);
+                    return v;
+                })
+                .Defer(async v =>
+                {
+                    await TaskEx.Delay(10);
+                    v.Add(5);
+                    return v;
+                })
+                .Then((_, v) =>
+                {
+                    v.Add(6);
+                    return v;
+                })
+                .Defer(v => new Task<List<int>>(() =>
+                {
+                    v.Add(7);
+                    return v;
+                }), TaskAffinity.Concurrent)
+                .Finally((_, e, v) => v);
             ;
             var ret = await act.StartAwait();
-            CollectionAssert.AreEqual(new string[] { "ran 1", "ran 2", "ran 3" }, runOrder);
-            Assert.AreEqual(20, ret);
+            CollectionAssert.AreEqual(Enumerable.Range(1, 7), runOrder);
+        }
+
+        /// <summary>
+        /// Always call Then or another non-Defer variant after calling Defer
+        /// </summary>
+        [Test]
+        public async Task TwoDefersInARowWillNotWork()
+        {
+            var runOrder = new List<int>();
+            var act = new FuncTask<List<int>>(Token, _ => runOrder) { Name = "First" }
+                .Defer(GetData)
+                .Defer(GetData2)
+                .Finally((_, e, v) => v);
+            ;
+            var ret = await act.StartAwait();
+            Assert.IsNull(ret);
+        }
+
+        [Test]
+        public async Task DoNotEndChainsWithDefer()
+        {
+            var runOrder = new List<int>();
+            var act = new FuncTask<List<int>>(Token, _ => runOrder) { Name = "First" }
+                .Defer(GetData)
+                .Then((_, v) =>
+                {
+                    v.Add(2);
+                    return v;
+                })
+                .Defer(GetData2)
+                .Then((_, v) =>
+                {
+                    v.Add(4);
+                    return v;
+                })
+                .Defer(async v =>
+                {
+                    await TaskEx.Delay(10);
+                    v.Add(5);
+                    return v;
+                })
+                .Then((_, v) =>
+                {
+                    v.Add(6);
+                    return v;
+                })
+                .Defer(v => new Task<List<int>>(() =>
+                {
+                    v.Add(7);
+                    return v;
+                }), TaskAffinity.Concurrent);
+            ;
+            var ret = await act.StartAwait();
+            // the last one hasn't finished before await is done
+            CollectionAssert.AreEqual(Enumerable.Range(1, 6), runOrder);
+        }
+
+        private async Task<List<int>> GetData(List<int> v)
+        {
+            await TaskEx.Delay(10);
+            v.Add(1);
+            return v;
+        }
+
+        private async Task<List<int>> GetData2(List<int> v)
+        {
+            await TaskEx.Delay(10);
+            v.Add(3);
+            return v;
         }
 
         [Test]
@@ -613,10 +707,10 @@ namespace IntegrationTests
         {
             var runOrder = new List<string>();
             var act = new ActionTask(Token, _ => runOrder.Add($"started"))
-                .ThenAsync(TaskEx.FromResult(1), TaskAffinity.Exclusive)
+                .Then(TaskEx.FromResult(1), TaskAffinity.Exclusive)
                 .Then((_, n) => n + 1)
                 .Then((_, n) => runOrder.Add(n.ToString()))
-                .ThenAsync(TaskEx.FromResult(20f), TaskAffinity.Exclusive)
+                .Then(TaskEx.FromResult(20f), TaskAffinity.Exclusive)
                 .Then((_, n) => n + 1)
                 .Then((_, n) => runOrder.Add(n.ToString()))
                 .Finally((_, t) => runOrder.Add("done"))
