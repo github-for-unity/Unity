@@ -8,6 +8,7 @@ namespace GitHub.Unity
     {
         T Then<T>(T continuation, bool always = false) where T : ITask;
         ITask Finally(Action<bool, Exception> continuation, TaskAffinity affinity = TaskAffinity.Concurrent);
+        ITask Defer<T>(Func<T, Task> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false);
         ITask SetDependsOn(ITask dependsOn);
         ITask Start();
         ITask Start(TaskScheduler scheduler);
@@ -42,6 +43,8 @@ namespace GitHub.Unity
     {
         event Action<TData> OnData;
     }
+
+    interface IStubTask { }
 
     abstract class TaskBase : ITask
     {
@@ -110,6 +113,14 @@ namespace GitHub.Unity
             this.continuationAlways = true;
             DependsOn?.SetFaultHandler((TaskBase)(object)continuation);
             return continuation;
+        }
+
+        public ITask Defer<T>(Func<T, Task> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
+        {
+            Guard.ArgumentNotNull(continueWith, "continueWith");
+            var ret = new StubTask<T>(Token, (s, d) => {}, (ITask<T>)this, always) { Affinity = affinity };
+            SetDeferred(new DeferredContinuation { Always = always, GetContinueWith = d => new ActionTask<T>(continueWith((T)d)) { Affinity = affinity, Name = "Deferred" } });
+            return ret;
         }
 
         internal void SetFaultHandler(TaskBase handler)
@@ -271,6 +282,15 @@ namespace GitHub.Unity
         internal TaskBase Continuation => continuation;
         internal bool ContinuationAlways => continuationAlways;
         internal bool ContinuationIsFinally { get; set; }
+
+        class StubTask<T> : ActionTask<T>, IStubTask
+        {
+            public StubTask(CancellationToken token, Action<bool, T> func, ITask<T> dependsOn, bool always)
+                : base(token, func, dependsOn, always)
+            {
+                Name = "Stub";
+            }
+        }
     }
 
     abstract class TaskBase<TResult> : TaskBase, ITask<TResult>
@@ -345,7 +365,6 @@ namespace GitHub.Unity
             return ret;
         }
 
-        interface IStubTask {}
         class StubTask<T> : FuncTask<TResult, T>, IStubTask
         {
             public StubTask(CancellationToken token, Func<bool, TResult, T> func, ITask<TResult> dependsOn, bool always)

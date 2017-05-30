@@ -80,18 +80,18 @@ namespace GitHub.Unity
             base.InitializeEnvironment();
         }
 
-        public override Task RestartRepository()
+        public override ITask RestartRepository()
         {
             logger.Trace("Restarting");
             return base.RestartRepository()
-                .ContinueWith(_ =>
+                .ThenInUI(_ =>
                 {
                     logger.Trace("Restarted");
                     ProjectWindowInterface.Initialize(Environment.Repository);
                     var view = Window.GetView();
                     if (view != null)
                         view.Initialize(this);
-                }, UIScheduler);
+                });
         }
 
         private void ListenToUnityExit()
