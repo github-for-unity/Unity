@@ -81,7 +81,7 @@ namespace GitHub.Unity
             {
                 Process.OutputDataReceived += (s, e) =>
                 {
-                    Logger.Trace("OutputData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
+                    //Logger.Trace("OutputData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
 
                     string encodedData = null;
                     if (e.Data != null)
@@ -96,10 +96,10 @@ namespace GitHub.Unity
             {
                 Process.ErrorDataReceived += (s, e) =>
                 {
-                    if (e.Data != null)
-                    {
-                        Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
-                    }
+                    //if (e.Data != null)
+                    //{
+                    //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
+                    //}
 
                     string encodedData = null;
                     if (e.Data != null)
