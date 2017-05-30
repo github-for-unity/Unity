@@ -8,31 +8,45 @@ namespace IntegrationTests
         private static readonly ILogging logger = Logging.GetLogger<IntegrationTestEnvironment>();
         private readonly bool enableTrace;
 
-        private readonly NPath extensionInstallPath;
         private readonly NPath integrationTestEnvironmentPath;
 
         private DefaultEnvironment defaultEnvironment;
-        private NPath unityProjectPath;
 
-        public IntegrationTestEnvironment(NPath solutionDirectory, NPath environmentPath = null,
+        public IntegrationTestEnvironment(NPath repoPath, NPath solutionDirectory, NPath environmentPath = null,
             bool enableTrace = false)
         {
             defaultEnvironment = new DefaultEnvironment();
-
             environmentPath = environmentPath ??
                 defaultEnvironment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
                                   .ToNPath()
                                   .EnsureDirectoryExists(ApplicationInfo.ApplicationName + "-IntegrationTests");
 
-            extensionInstallPath = solutionDirectory.Parent.Parent.Parent.Combine("GitHub.Api");
             integrationTestEnvironmentPath = environmentPath;
+            UserCachePath = integrationTestEnvironmentPath.Combine("User");
+            SystemCachePath = integrationTestEnvironmentPath.Combine("System");
+
+            var installPath = solutionDirectory.Parent.Parent.Parent.Combine("GitHub.Api");
+
+            Initialize(installPath, solutionDirectory, repoPath.Combine("Assets"));
+            Initialize();
+
             this.enableTrace = enableTrace;
 
             if (enableTrace)
             {
                 logger.Trace("EnvironmentPath: \"{0}\" SolutionDirectory: \"{1}\" ExtensionInstallPath: \"{2}\"",
-                    environmentPath, solutionDirectory, extensionInstallPath);
+                    environmentPath, solutionDirectory, ExtensionInstallPath);
             }
+        }
+
+        public void Initialize(NPath extensionInstallPath, NPath unityPath, NPath assetsPath)
+        {
+            defaultEnvironment.Initialize(extensionInstallPath, unityPath, assetsPath);
+        }
+
+        public void Initialize()
+        {
+            defaultEnvironment.Initialize();
         }
 
         public string ExpandEnvironmentVariables(string name)
@@ -85,39 +99,23 @@ namespace IntegrationTests
         public bool IsLinux => defaultEnvironment.IsLinux;
         public bool IsMac => defaultEnvironment.IsMac;
 
-        public NPath UnityApplication { get; set; }
+        public NPath UnityApplication => defaultEnvironment.UnityApplication;
 
-        public NPath UnityAssetsPath { get; set; }
+        public NPath UnityAssetsPath => defaultEnvironment.UnityAssetsPath;
 
-        public NPath UnityProjectPath
-        {
-            get { return unityProjectPath; }
-            set
-            {
-                if (enableTrace)
-                {
-                    logger.Trace("Setting UnityProjectPath to " + value);
-                }
-                unityProjectPath = value;
-            }
-        }
+        public NPath UnityProjectPath => defaultEnvironment.UnityProjectPath;
 
-        public NPath ExtensionInstallPath
-        {
-            get { return extensionInstallPath; }
-            set {}
-        }
+        public NPath ExtensionInstallPath => defaultEnvironment.ExtensionInstallPath;
 
         public NPath UserCachePath { get; set; }
         public NPath SystemCachePath { get; set; }
+        public NPath LogPath { get; set; }
 
-        public NPath RepositoryPath { get; set; }
+        public NPath RepositoryPath => defaultEnvironment.RepositoryPath;
 
-        public NPath GitInstallPath
-        {
-            get { return defaultEnvironment.GitInstallPath; }
-        }
+        public NPath GitInstallPath => defaultEnvironment.GitInstallPath;
 
         public IRepository Repository { get; set; }
+        public IFileSystem FileSystem { get { return defaultEnvironment.FileSystem; } set { defaultEnvironment.FileSystem = value; } }
     }
 }

@@ -12,6 +12,6 @@ namespace TestUtils
         public NPath Extensionfolder { get; set; } = DefaultExtensionFolder.ToNPath();
         public NPath UserProfilePath { get; set; } = DefaultUserProfilePath.ToNPath();
         public NPath UnityProjectPath { get; set; } = DefaultUnityProjectPathAndRepositoryPath.ToNPath();
-        public NPath RepositoryPath { get; set; } = DefaultUnityProjectPathAndRepositoryPath.ToNPath();
+        public string RepositoryPath { get; set; } = DefaultUnityProjectPathAndRepositoryPath;
     }
 }

@@ -23,7 +23,7 @@ namespace IntegrationTests
         [TestFixtureSetUp]
         public void OneTimeSetup()
         {
-            Logging.LoggerFactory = context => new ConsoleLogAdapter(context);
+            Logging.LogAdapter = new ConsoleLogAdapter();
             //Logging.TracingEnabled = true;
             TaskManager = new TaskManager();
             var syncContext = new ThreadSynchronizationContext(Token);

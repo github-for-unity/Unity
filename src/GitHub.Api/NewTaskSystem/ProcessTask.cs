@@ -226,7 +226,7 @@ namespace GitHub.Unity
 
             ConfigureOutputProcessor();
 
-            Guard.PropertyOrFieldNotNull(outputProcessor, nameof(outputProcessor));
+            Guard.NotNull(this, outputProcessor, nameof(outputProcessor));
             Process = new Process { StartInfo = psi, EnableRaisingEvents = true };
             ProcessName = psi.FileName;
         }
@@ -236,7 +236,7 @@ namespace GitHub.Unity
             outputProcessor = processor ?? outputProcessor;
             ConfigureOutputProcessor();
 
-            Guard.PropertyOrFieldNotNull(outputProcessor, nameof(outputProcessor));
+            Guard.NotNull(this, outputProcessor, nameof(outputProcessor));
 
             Process = new Process { StartInfo = psi, EnableRaisingEvents = true };
             ProcessName = psi.FileName;
@@ -248,7 +248,7 @@ namespace GitHub.Unity
 
             ConfigureOutputProcessor();
 
-            Guard.PropertyOrFieldNotNull(outputProcessor, nameof(outputProcessor));
+            Guard.NotNull(this, outputProcessor, nameof(outputProcessor));
 
             Process = existingProcess;
             ProcessName = existingProcess.StartInfo.FileName;
@@ -346,7 +346,7 @@ namespace GitHub.Unity
 
             ConfigureOutputProcessor();
 
-            Guard.PropertyOrFieldNotNull(outputProcessor, nameof(outputProcessor));
+            Guard.NotNull(this, outputProcessor, nameof(outputProcessor));
 
             Process = new Process { StartInfo = psi, EnableRaisingEvents = true };
             ProcessName = psi.FileName;
@@ -357,7 +357,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(existingProcess, "existingProcess");
 
             ConfigureOutputProcessor();
-            Guard.PropertyOrFieldNotNull(outputProcessor, nameof(outputProcessor));
+            Guard.NotNull(this, outputProcessor, nameof(outputProcessor));
             Process = existingProcess;
             ProcessName = existingProcess.StartInfo.FileName;
         }

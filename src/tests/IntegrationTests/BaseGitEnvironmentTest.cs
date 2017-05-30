@@ -11,11 +11,7 @@ namespace IntegrationTests
             var sc = new ThreadSynchronizationContext(TaskManager.Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(sc);
 
-            Environment = new IntegrationTestEnvironment(SolutionDirectory, environmentPath, enableEnvironmentTrace) {
-                RepositoryPath = repoPath,
-                UnityProjectPath = repoPath
-            };
-
+            Environment = new IntegrationTestEnvironment(repoPath, SolutionDirectory, environmentPath, enableEnvironmentTrace);
             FileSystem.SetCurrentDirectory(repoPath);
 
             Platform = new Platform(Environment, FileSystem);
@@ -24,7 +20,6 @@ namespace IntegrationTests
 
             Platform.Initialize(ProcessManager, TaskManager);
 
-            Environment.UnityProjectPath = repoPath;
 
             GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
 
@@ -71,8 +66,6 @@ namespace IntegrationTests
         }
 
         public IRepositoryManager RepositoryManager { get; private set; }
-
-        public IEnvironment Environment { get; private set; }
 
         protected IPlatform Platform { get; private set; }
 

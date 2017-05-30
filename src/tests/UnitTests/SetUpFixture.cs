@@ -15,9 +15,7 @@ namespace UnitTests
             var tempFileName = Path.GetTempFileName();
             var fileLog = tempFileName.Substring(0, tempFileName.Length - 4) + "_integrationtest.log";
 
-            Logging.LoggerFactory = context => new MultipleLogAdapter(() => new ConsoleLogAdapter(context),
-                () => new FileLogAdapter(fileLog, context));
-
+            Logging.LogAdapter = new MultipleLogAdapter(new ConsoleLogAdapter(), new FileLogAdapter(fileLog));
             Logging.Trace("Logging to \"{0}\"", fileLog);
         }
     }

@@ -5,19 +5,19 @@ using System.Linq;
 
 namespace GitHub.Unity
 {
-    class PropertyOrFieldNullException : Exception
+    internal class InstanceNotInitializedException : InvalidOperationException
     {
-        public PropertyOrFieldNullException(string message) : base(message)
-        { }
+        public InstanceNotInitializedException(object the, string property) :
+            base(String.Format(CultureInfo.InvariantCulture, "{0} is not correctly initialized, {1} is null", the?.GetType().Name, property))
+        {}
     }
 
-    static class Guard
+    internal static class Guard
     {
-        public static void PropertyOrFieldNotNull(object value, string name)
+        public static void NotNull(object the, object value, string propertyName)
         {
             if (value != null) return;
-            string message = String.Format(CultureInfo.InvariantCulture, $"Property or Field {name} is null");
-            throw new PropertyOrFieldNullException(message);
+            throw new InstanceNotInitializedException(the, propertyName);
         }
 
         public static void ArgumentNotNull(object value, string name)

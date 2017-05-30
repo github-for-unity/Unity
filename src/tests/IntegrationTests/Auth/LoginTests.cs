@@ -36,9 +36,8 @@ namespace IntegrationTests
         [Test]
         public void CommonParentTest()
         {
-            var filesystem = new FileSystem(TestRepoMasterDirtyUnsynchronized);
-            NPath.FileSystem = filesystem;
             var environment = new DefaultEnvironment();
+            environment.FileSystem = new FileSystem(TestRepoMasterDirtyUnsynchronized);
 
             var ret = FindCommonPath(new string[]
             {

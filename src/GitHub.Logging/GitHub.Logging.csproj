@@ -57,9 +57,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\ExceptionExtensions.cs" />
     <Compile Include="FileLogAdapter.cs" />
     <Compile Include="ILogging.cs" />
     <Compile Include="LogAdapterBase.cs" />
+    <Compile Include="LogFacade.cs" />
     <Compile Include="Logging.cs" />
     <Compile Include="MultipleLogAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

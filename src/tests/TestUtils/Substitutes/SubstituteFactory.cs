@@ -23,7 +23,7 @@ namespace TestUtils
             var appData = userPath.Parent.Combine("AppData").ToString();
 
             var environment = Substitute.For<IEnvironment>();
-            environment.RepositoryPath.Returns(createEnvironmentOptions.RepositoryPath);
+            environment.RepositoryPath.Returns(createEnvironmentOptions.RepositoryPath.ToNPath());
             environment.ExtensionInstallPath.Returns(createEnvironmentOptions.Extensionfolder);
             environment.UnityProjectPath.Returns(createEnvironmentOptions.UnityProjectPath);
             environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).Returns(localAppData);
