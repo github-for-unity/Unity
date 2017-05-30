@@ -26,7 +26,7 @@ namespace GitHub.Unity
         public virtual ITask<NPath> FindGitInstallationPath(IProcessManager processManager)
         {
             return new ProcessTask<NPath>(TaskManager.Instance.Token, new FirstLineIsPathOutputProcessor())
-                .Configure(processManager, Environment.IsWindows ? "where" : "which", "git", null, false);
+                .Configure(processManager, Environment.IsWindows ? "where" : "which", "git");
         }
 
         public abstract string GetExecutableExtension();
@@ -49,6 +49,11 @@ namespace GitHub.Unity
         public void Configure(ProcessStartInfo psi, string workingDirectory)
         {
             Guard.ArgumentNotNull(psi, "psi");
+
+            // we can't configure an environment for git if we don't know where it is
+            if (Environment.GitInstallPath == null)
+                return;
+
 
             // We need to essentially fake up what git-cmd.bat does
             string homeDir = NPath.HomeDirectory;

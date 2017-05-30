@@ -29,7 +29,6 @@ namespace IntegrationTests
             var syncContext = new ThreadSynchronizationContext(Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(syncContext);
 
-
             FileSystem = new FileSystem();
             NPath.FileSystem = FileSystem;
             TestBasePath = NPath.CreateTempDirectory("integration-tests");
@@ -43,8 +42,10 @@ namespace IntegrationTests
             var platform = new Platform(env, FileSystem);
             ProcessManager = new ProcessManager(env, platform.GitEnvironment, Token);
             var processEnv = platform.GitEnvironment;
-            var path = processEnv.FindGitInstallationPath(ProcessManager).Start().Result;
-            env.GitExecutablePath = path;
+            var path = new ProcessTask<NPath>(TaskManager.Token, new FirstLineIsPathOutputProcessor())
+                .Configure(ProcessManager, env.IsWindows ? "where" : "which", "git")
+                .Start().Result;
+            env.GitExecutablePath = path ?? "git".ToNPath();
         }
 
         [TestFixtureTearDown]
