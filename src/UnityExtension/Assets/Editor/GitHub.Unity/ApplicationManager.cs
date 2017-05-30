@@ -23,7 +23,7 @@ namespace GitHub.Unity
         {
             Environment = environment;
             FileSystem = fileSystem;
-            NPathFileSystemProvider.Current = FileSystem;
+            NPath.FileSystem = FileSystem;
             Platform = platform;
             ProcessManager = processManager;
         }
@@ -38,12 +38,12 @@ namespace GitHub.Unity
             Initialize();
         }
 
-        public override Task Run()
+        public override ITask Run()
         {
             Utility.Initialize();
 
             return base.Run()
-                .ContinueWith(_ =>
+                .ThenInUI(_ =>
                 {
                     Utility.Run();
 
@@ -54,14 +54,14 @@ namespace GitHub.Unity
                         view.Initialize(this);
 
                     //logger.Debug("Application Restarted");
-                }, UIScheduler);
+                }).Start();
         }
 
 
         protected override void InitializeEnvironment()
         {
             FileSystem = new FileSystem();
-            NPathFileSystemProvider.Current = FileSystem;
+            NPath.FileSystem = FileSystem;
 
             Environment = new DefaultEnvironment();
 
@@ -72,10 +72,10 @@ namespace GitHub.Unity
             var assetsPath = Application.dataPath.ToNPath();
             var projectPath = assetsPath.Parent;
 
-            Environment.UnityApplication = EditorApplication.applicationPath;
+            Environment.UnityApplication = EditorApplication.applicationPath.ToNPath();
 
-            Environment.UnityAssetsPath = assetsPath.ToString(SlashMode.Forward);
-            Environment.UnityProjectPath = projectPath.ToString(SlashMode.Forward);
+            Environment.UnityAssetsPath = assetsPath;
+            Environment.UnityProjectPath = projectPath;
 
             base.InitializeEnvironment();
         }
@@ -132,17 +132,17 @@ namespace GitHub.Unity
             }
         }
 
-        private string DetermineInstallationPath()
+        private NPath DetermineInstallationPath()
         {
             // Juggling to find out where we got installed
             var shim = ScriptableObject.CreateInstance<RunLocationShim>();
             var script = MonoScript.FromScriptableObject(shim);
-            string ret = String.Empty;
+            NPath ret = null;
             
             if (script != null)
             {
                 var scriptPath = AssetDatabase.GetAssetPath(script).ToNPath();
-                ret = scriptPath.Parent.ToString(SlashMode.Forward);
+                ret = scriptPath.Parent;
             }
             ScriptableObject.DestroyImmediate(shim);
             return ret;

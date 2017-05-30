@@ -512,7 +512,7 @@ namespace GitHub.Unity
                     if (createBranch)
                     {
                         GitClient.CreateBranch(newBranchName, selectedNode.Name)
-                            .ContinueWithUI(success => { if (success) Refresh(); });
+                            .FinallyInUI((success, e) => { if (success) Refresh(); });
                     }
 
                     // Cleanup
@@ -617,7 +617,7 @@ namespace GitHub.Unity
                             ConfirmSwitchCancel))
                     {
                         GitClient.SwitchBranch(node.Name)
-                            .ContinueWithUI(success =>
+                            .FinallyInUI((success, e) =>
                             {
                                 if (success)
                                     Refresh();
@@ -632,7 +632,7 @@ namespace GitHub.Unity
                     else if (node.Type == NodeType.RemoteBranch)
                     {
                         GitClient.CreateBranch(selectedNode.Name.Substring(selectedNode.Name.IndexOf('/') + 1), selectedNode.Name)
-                            .ContinueWithUI(success =>
+                            .FinallyInUI((success, e) =>
                             {
                                 if (success)
                                     Refresh();

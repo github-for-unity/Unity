@@ -68,7 +68,7 @@ namespace GitHub.Unity
                 DotGitPath =
                     DotGitPath.ReadAllLines()
                               .Where(x => x.StartsWith("gitdir:"))
-                              .Select(x => x.Substring(7).Trim())
+                              .Select(x => x.Substring(7).Trim().ToNPath())
                               .First();
             }
 
@@ -198,28 +198,26 @@ namespace GitHub.Unity
         {
             var add = GitClient.Add(files);
             add.OnStart += t => IsBusy = true;
-            var task = add.ContinueWith(GitClient.Commit(message, body))
-               .ContinueWith(_ => IsBusy = false);
-            add.Schedule(taskManager);
-            return task;
+            return add.Then(GitClient.Commit(message, body))
+               .Then(_ => IsBusy = false);
         }
 
         public ITask Fetch(string remote)
         {
             var task = GitClient.Fetch(remote);
-            return HookupHandlers(task).Schedule(taskManager);
+            return HookupHandlers(task);
         }
 
         public ITask Pull(string remote, string branch)
         {
             var task = GitClient.Pull(remote, branch);
-            return HookupHandlers(task, true).Schedule(taskManager);
+            return HookupHandlers(task, true);
         }
 
         public ITask Push(string remote, string branch)
         {
             var task = GitClient.Push(remote, branch);
-            return HookupHandlers(task).Schedule(taskManager);
+            return HookupHandlers(task);
         }
 
         public ITask RemoteAdd(string remote, string url)
@@ -228,9 +226,9 @@ namespace GitHub.Unity
             HookupHandlers(task);
             if (!platform.Environment.IsWindows)
             {
-                task.ContinueWith(_ => OnConfigChanged());
+                task.Then(_ => OnConfigChanged());
             }
-            return task.Schedule(taskManager);
+            return task;
         }
 
         public ITask RemoteRemove(string remote)
@@ -239,40 +237,40 @@ namespace GitHub.Unity
             HookupHandlers(task);
             if (!platform.Environment.IsWindows)
             {
-                task.ContinueWith(_ => OnConfigChanged());
+                task.Then(_ => OnConfigChanged());
             }
-            return task.Schedule(taskManager);
+            return task;
         }
 
         public ITask RemoteChange(string remote, string url)
         {
             var task = GitClient.RemoteChange(remote, url);
-            return HookupHandlers(task).Schedule(taskManager);
+            return HookupHandlers(task);
         }
 
         public ITask SwitchBranch(string branch)
         {
             var task = GitClient.SwitchBranch(branch);
-            return HookupHandlers(task, true).Schedule(taskManager);
+            return HookupHandlers(task, true);
         }
 
         public ITask DeleteBranch(string branch, bool deleteUnmerged = false)
         {
             var task = GitClient.DeleteBranch(branch, deleteUnmerged);
-            return HookupHandlers(task).Schedule(taskManager);
+            return HookupHandlers(task);
         }
 
         public ITask CreateBranch(string branch, string baseBranch)
         {
             var task = GitClient.CreateBranch(branch, baseBranch);
-            return HookupHandlers(task).Schedule(taskManager);
+            return HookupHandlers(task);
         }
 
         public ITask ListLocks(bool local)
         {
             var task = GitClient
                 .ListLocks(local)
-                .ContinueWith((s, t) =>
+                .Then((s, t) =>
                 {
                     if (locks == null || !locks.SequenceEqual(t))
                     {
@@ -281,13 +279,13 @@ namespace GitHub.Unity
                         OnLocksUpdated(locks);
                     }
                 });
-            return HookupHandlers(task).Schedule(taskManager);
+            return HookupHandlers(task);
         }
 
         public ITask LockFile(string file)
         {
             var task = GitClient.Lock(file);
-            HookupHandlers(task).Schedule(taskManager);
+            HookupHandlers(task);
             ListLocks(false);
             return task;
         }
@@ -355,7 +353,7 @@ namespace GitHub.Unity
             Logger.Trace("Starting OnRepositoryUpdatedHandler");
 
             var task = GitClient.Status()
-                .ContinueWith((success, data) =>
+                .Finally((success, ex, data) =>
                 {
                     if (success)
                     {
@@ -363,7 +361,7 @@ namespace GitHub.Unity
                     }
                     Logger.Trace("Ending OnRepositoryUpdatedHandler");
                 });
-            HookupHandlers(task).Schedule(taskManager);
+            HookupHandlers(task).Start();
         }
 
         private void OnConfigChanged()

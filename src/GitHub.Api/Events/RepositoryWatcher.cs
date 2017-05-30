@@ -29,7 +29,7 @@ namespace GitHub.Unity
         private readonly RepositoryPathConfiguration paths;
         private readonly CancellationToken cancellationToken;
         private readonly NPath[] ignoredPaths;
-        private readonly AutoResetEvent autoResetEvent;
+        private readonly ManualResetEventSlim pauseEvent;
         private readonly bool disableNative;
         private NativeInterface nativeInterface;
         private bool running;
@@ -52,11 +52,11 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
 
             ignoredPaths = new[] {
-                platform.Environment.UnityProjectPath.ToNPath().Combine("Library"),
-                platform.Environment.UnityProjectPath.ToNPath().Combine("Temp")
+                platform.Environment.UnityProjectPath.Combine("Library"),
+                platform.Environment.UnityProjectPath.Combine("Temp")
             };
 
-            autoResetEvent = new AutoResetEvent(false);
+            pauseEvent = new ManualResetEventSlim();
             disableNative = !platform.Environment.IsWindows;
         }
 
@@ -84,6 +84,7 @@ namespace GitHub.Unity
             }
 
             running = true;
+            pauseEvent.Reset();
             task = Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, ThreadingHelper.TaskScheduler);
         }
 
@@ -98,7 +99,7 @@ namespace GitHub.Unity
             Logger.Trace("Stopping watcher");
 
             running = false;
-            autoResetEvent.Set();
+            pauseEvent.Set();
         }
 
         private void WatcherLoop()
@@ -164,11 +165,11 @@ namespace GitHub.Unity
 
                 if (repositoryChanged)
                 {
-                    Logger.Debug("RepositoryChanged");
+                    Logger.Trace("RepositoryChanged");
                     RepositoryChanged?.Invoke();
                 }
 
-                if (autoResetEvent.WaitOne(200))
+                if (pauseEvent.Wait(200))
                 {
                     break;
                 }
@@ -270,7 +271,7 @@ namespace GitHub.Unity
 
                     var branch = string.Join(@"/", relativePathElements.ToArray());
 
-                    Logger.Debug("LocalBranchChanged: {0}", branch);
+                    Logger.Trace("LocalBranchChanged: {0}", branch);
                     LocalBranchChanged?.Invoke(branch);
                 }
                 else if (fileEvent.Type == EventType.DELETED)
@@ -290,7 +291,7 @@ namespace GitHub.Unity
 
                     var branch = string.Join(@"/", relativePathElements.ToArray());
 
-                    Logger.Debug("LocalBranchDeleted: {0}", branch);
+                    Logger.Trace("LocalBranchDeleted: {0}", branch);
                     LocalBranchDeleted?.Invoke(branch);
                 }
                 else if (fileEvent.Type == EventType.RENAMED)
@@ -314,7 +315,7 @@ namespace GitHub.Unity
 
                             var branch = string.Join(@"/", relativePathElements.ToArray());
 
-                            Logger.Debug("LocalBranchCreated: {0}", branch);
+                            Logger.Trace("LocalBranchCreated: {0}", branch);
                             LocalBranchCreated?.Invoke(branch);
                         }
                     }

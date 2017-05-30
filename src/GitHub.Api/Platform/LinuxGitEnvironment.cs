@@ -10,10 +10,10 @@ namespace GitHub.Unity
         {
         }
 
-        public override Task<string> FindGitInstallationPath(IProcessManager processManager)
+        public override ITask<NPath> FindGitInstallationPath(IProcessManager processManager)
         {
             if (!String.IsNullOrEmpty(Environment.GitExecutablePath))
-                return TaskEx.FromResult(Environment.GitExecutablePath);
+                return new FuncTask<NPath>(TaskEx.FromResult(Environment.GitExecutablePath));
 
             return base.FindGitInstallationPath(processManager); ;
         }

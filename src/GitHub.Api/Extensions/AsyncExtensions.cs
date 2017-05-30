@@ -4,13 +4,6 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    static class AsyncExtensions
-    {
-        public static void Forget(this Task task)
-        {
-        }
-    }
-
     static class TaskExt
     {
         public static async Task<TEventArgs> FromEvent<TEventHandler, TEventArgs>(

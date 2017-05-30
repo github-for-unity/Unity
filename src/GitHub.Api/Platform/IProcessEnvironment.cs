@@ -6,7 +6,7 @@ namespace GitHub.Unity
 {
     interface IProcessEnvironment
     {
-        Task<string> FindGitInstallationPath(IProcessManager processManager);
+        ITask<NPath> FindGitInstallationPath(IProcessManager processManager);
 
         string GetExecutableExtension();
 

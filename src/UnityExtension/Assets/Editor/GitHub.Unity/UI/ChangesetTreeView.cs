@@ -159,7 +159,7 @@ namespace GitHub.Unity
             {
                 var entryPath = entries[index].Path.ToNPath();
                 if (entryPath.IsChildOf(tree.Path))
-                    entryPath = entryPath.RelativeTo(tree.Path);
+                    entryPath = entryPath.RelativeTo(tree.Path.ToNPath());
 
                 var node = new FileTreeNode(entryPath, stateChangeCallback) { Target = entryCommitTargets[index] };
                 if (!string.IsNullOrEmpty(entries[index].ProjectPath))

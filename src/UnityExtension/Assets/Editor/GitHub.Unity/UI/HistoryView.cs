@@ -127,7 +127,7 @@ namespace GitHub.Unity
         private void RefreshLog()
         {
             GitClient.Log()
-                .ContinueWithUI((success, log) => { if (success) OnLogUpdate(log); });
+                .ThenInUI((success, log) => { if (success) OnLogUpdate(log); });
         }
 
         public override void Refresh()
@@ -648,7 +648,7 @@ namespace GitHub.Unity
                 var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
                 Repository.Pull()
                     // we need the error propagated from the original git command to handle things appropriately
-                    .ContinueWith(success =>
+                    .Then(success =>
                     {
                         if (!success)
                         {
@@ -656,8 +656,8 @@ namespace GitHub.Unity
                             // whether pull triggered a merge or a rebase, and abort the operation accordingly
                             // (either git rebase --abort or git merge --abort)
                         }
-                    })
-                    .ContinueWithUI(success => {
+                    }, true)
+                    .FinallyInUI((success, e) => {
                         if (success)
                         {
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
@@ -670,15 +670,17 @@ namespace GitHub.Unity
                                 Localization.PullFailureDescription,
                             Localization.Cancel);
                         }
-                    });
+                    })
+                    .Start();
             }
         }
 
         private void Push()
         {
             var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
-            Repository.Push()
-                .ContinueWithUI(success => {
+            Repository
+                .Push()
+                .FinallyInUI((success, e) => {
                     if (success)
                     {
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
@@ -691,7 +693,8 @@ namespace GitHub.Unity
                             Localization.PushFailureDescription,
                         Localization.Cancel);
                     }
-                });
+                })
+                .Start();
         }
 
         void drawTimelineRectAroundIconRect(Rect parentRect, Rect iconRect)

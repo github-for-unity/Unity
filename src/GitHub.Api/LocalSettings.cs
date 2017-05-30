@@ -170,7 +170,7 @@ namespace GitHub.Unity
 
         public LocalSettings(IEnvironment environment)
         {
-            SettingsPath = environment.UnityProjectPath.ToNPath().Combine(RelativeSettingsPath);
+            SettingsPath = environment.UnityProjectPath.Combine(RelativeSettingsPath);
         }
 
         protected override string SettingsFileName { get { return settingsFileName; } }

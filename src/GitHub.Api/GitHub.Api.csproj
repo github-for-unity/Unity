@@ -126,6 +126,7 @@
     <Compile Include="NewTaskSystem\TaskCanceledExceptions.cs" />
     <Compile Include="NewTaskSystem\TaskExtensions.cs" />
     <Compile Include="NewTaskSystem\TaskManager.cs" />
+    <Compile Include="ProgressReport.cs" />
     <Compile Include="Tasks\Simple\GitLfsInstallTask.cs" />
     <Compile Include="Extensions\GitStatusExtensions.cs" />
     <Compile Include="Tasks\Simple\GitRemoteChangeTask.cs" />
@@ -151,7 +152,6 @@
     <Compile Include="Process\GitRemoteFunction.cs" />
     <Compile Include="Process\IProcessManager.cs" />
     <Compile Include="IO\NiceIO.cs" />
-    <Compile Include="IO\NPathFileSystemProvider.cs" />
     <Compile Include="Process\RemoteListOutputProcessor.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="ISettings.cs" />
@@ -176,7 +176,6 @@
     <Compile Include="SimpleJson.cs" />
     <Compile Include="Tasks\CachedTask.cs" />
     <Compile Include="Git\FailureSeverity.cs" />
-    <Compile Include="Tasks\Simple\FindGitTask.cs" />
     <Compile Include="Tasks\Simple\GitAddTask.cs" />
     <Compile Include="Git\GitBranch.cs" />
     <Compile Include="Tasks\Simple\GitBranchCreateTask.cs" />

@@ -167,7 +167,7 @@ namespace GitHub.Unity
         public string TriggerText { get; private set; }
     }
 
-    class EvaluateProjectConfigurationTask : ListTaskBase<List<ProjectConfigurationIssue>, ProjectConfigurationIssue>
+    class EvaluateProjectConfigurationTask : DataTaskBase<ProjectConfigurationIssue, List<ProjectConfigurationIssue>>
     {
         private const string GitIgnoreFilePattern = ".gitignore";
         private const string VCSPropertyName = "m_ExternalVersionControlSupport";

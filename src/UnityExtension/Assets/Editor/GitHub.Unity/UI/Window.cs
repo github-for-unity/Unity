@@ -243,7 +243,7 @@ namespace GitHub.Unity
         private void SignOut(object obj)
         {
             var task = new ActionTask(EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedCredentials.Host))
-                .ContinueWith(s =>
+                .Then(s =>
                 {
                     if (s)
                     {

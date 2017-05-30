@@ -8,7 +8,6 @@ namespace GitHub.Unity
     {
         private readonly string value;
         private readonly string arguments;
-        private bool done = false;
         private string label;
 
         public GitConfigSetTask(string key, string value, GitConfigSource configSource,

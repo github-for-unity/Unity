@@ -31,7 +31,7 @@ namespace GitHub.Unity
 
             var initTask = new GitInitTask(token);
 
-            var unityYamlMergeExec = Environment.UnityApplication.ToNPath().Parent.Combine("Tools", "UnityYAMLMerge");
+            var unityYamlMergeExec = Environment.UnityApplication.Parent.Combine("Tools", "UnityYAMLMerge");
             var yamlMergeCommand = string.Format(@"'{0}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED""", unityYamlMergeExec);
             var yaml1 = new GitConfigSetTask("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local, token);
             var yaml2 = new GitConfigSetTask("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local, token);
@@ -59,13 +59,13 @@ namespace GitHub.Unity
             var commitTask = new GitCommitTask("Initial commit", null, token);
 
             initTask
-                .ContinueWith(yaml1)
-                .ContinueWith(yaml2)
-                .ContinueWith(lfsTask)
-                .ContinueWith(ignoresTask)
-                .ContinueWith(addTask)
-                .ContinueWith(commitTask)
-                .ContinueWith(_ => ApplicationManager.RestartRepository().Start(TaskManager.ConcurrentScheduler));
+                .Then(yaml1)
+                .Then(yaml2)
+                .Then(lfsTask)
+                .Then(ignoresTask)
+                .Then(addTask)
+                .Then(commitTask)
+                .Then(_ => ApplicationManager.RestartRepository().Start(TaskManager.ConcurrentScheduler));
             initTask.Schedule(TaskManager);
 
             //task.Critical = false;

@@ -16,5 +16,6 @@ namespace GitHub.Unity
         T ScheduleExclusive<T>(T task) where T : ITask;
         T ScheduleUI<T>(T task) where T : ITask;
         void Stop();
+        Task Wait();
     }
 }

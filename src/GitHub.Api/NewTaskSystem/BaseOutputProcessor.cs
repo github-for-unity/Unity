@@ -15,7 +15,7 @@ namespace GitHub.Unity
         event Action<T> OnEntry;
     }
 
-    interface IOutputProcessor<T, TData> : IOutputProcessor<T>
+    interface IOutputProcessor<TData, T> : IOutputProcessor<T>
     {
         new event Action<TData> OnEntry;
     }
@@ -36,7 +36,7 @@ namespace GitHub.Unity
         protected ILogging Logger { get { return logger = logger ?? Logging.GetLogger(GetType()); } }
     }
 
-    abstract class BaseOutputProcessor<T, TData> : BaseOutputProcessor<T>, IOutputProcessor<T, TData>
+    abstract class BaseOutputProcessor<TData, T> : BaseOutputProcessor<T>, IOutputProcessor<TData, T>
     {
         public new event Action<TData> OnEntry;
 
@@ -46,7 +46,7 @@ namespace GitHub.Unity
         }
     }
 
-    abstract class BaseOutputListProcessor<T> : BaseOutputProcessor<List<T>, T>
+    abstract class BaseOutputListProcessor<T> : BaseOutputProcessor<T, List<T>>
     {
         protected override void RaiseOnEntry(T entry)
         {
@@ -111,6 +111,18 @@ namespace GitHub.Unity
             if (String.IsNullOrEmpty(line))
                 return false;
             result = line;
+            return true;
+        }
+    }
+
+    class FirstLineIsPathOutputProcessor : FirstResultOutputProcessor<NPath>
+    {
+        protected override bool ProcessLine(string line, out NPath result)
+        {
+            result = null;
+            if (String.IsNullOrEmpty(line))
+                return false;
+            result = line.ToNPath();
             return true;
         }
     }

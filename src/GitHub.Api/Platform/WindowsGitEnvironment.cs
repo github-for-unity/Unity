@@ -13,44 +13,45 @@ namespace GitHub.Unity
         {
         }
 
-        public override async Task<string> FindGitInstallationPath(IProcessManager processManager)
+        public override ITask<NPath> FindGitInstallationPath(IProcessManager processManager)
         {
             if (!String.IsNullOrEmpty(Environment.GitExecutablePath))
-                return Environment.GitExecutablePath;
+                return new FuncTask<NPath>(TaskEx.FromResult(Environment.GitExecutablePath));
 
-            var path = LookForPortableGit();
-
-            if (path == null)
-            {
-                path =  await base.FindGitInstallationPath(processManager);
-            }
-
-            Logger.Trace("Git Installation folder {0} discovered: '{1}'", path == null ? "not" : "", path);
-            return path;
+            return new FuncTask<NPath>(TaskManager.Instance.Token, _ =>
+                {
+                    Logger.Trace("Looking for Git Installation folder");
+                    return LookForPortableGit();
+                })
+                .ThenIf(path =>
+                {
+                    if (path == null)
+                        return base.FindGitInstallationPath(processManager);
+                    else
+                        return new FuncTask<NPath>(TaskEx.FromResult(path));
+                })
+                .Finally((s, e, path) =>
+                {
+                    Logger.Trace("Git Installation folder {0} discovered: '{1}'", path == null ? "not" : "", path);
+                    return path;
+                });
         }
 
-        private string LookForPortableGit()
+        private NPath LookForPortableGit()
         {
-            var localAppDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData);
-            var gitHubLocalAppDataPath = System.IO.Path.Combine(localAppDataPath, ApplicationInfo.ApplicationName);
-
-            var searchPath = System.IO.Path.Combine(gitHubLocalAppDataPath, "PortableGit_");
-
-            if (!FileSystem.DirectoryExists(gitHubLocalAppDataPath))
+            var gitHubLocalAppDataPath = Environment.UserCachePath;
+            if (!gitHubLocalAppDataPath.DirectoryExists())
                 return null;
 
-            var directories = FileSystem.GetDirectories(gitHubLocalAppDataPath).ToArray();
+            var searchPath = "PortableGit_";
 
-            var portableGitPath = directories.Where(s => {
-                var startsWith = s.StartsWith(searchPath, StringComparison.InvariantCultureIgnoreCase);
-                return startsWith;
-            }).Select(s => System.IO.Path.Combine(gitHubLocalAppDataPath, s)).ToArray().FirstOrDefault();
+            var portableGitPath = gitHubLocalAppDataPath.Directories()
+                .Where(s => s.FileName.StartsWith(searchPath, StringComparison.InvariantCultureIgnoreCase))
+                .FirstOrDefault();
 
             if (portableGitPath != null)
             {
-                portableGitPath = System.IO.Path.Combine(gitHubLocalAppDataPath, portableGitPath);
-                portableGitPath = System.IO.Path.Combine(portableGitPath, "cmd");
-                portableGitPath = System.IO.Path.Combine(portableGitPath, "git.exe");
+                portableGitPath = portableGitPath.Combine("cmd", $"git{GetExecutableExtension()}");
             }
 
             return portableGitPath;

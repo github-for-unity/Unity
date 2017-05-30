@@ -150,7 +150,7 @@ namespace GitHub.Unity
             {
                 app = String.Format("credential-{0} ", credHelper);
                 task = new ProcessTask<string>(taskManager.Token, app, new SimpleOutputProcessor())
-                    .ConfigureGitProcess(processManager, true);
+                    .Configure(processManager, true);
             }
 
             task.OnStart += t =>

@@ -22,17 +22,17 @@ namespace GitHub.Unity
             return Environment.GetEnvironmentVariable(variable);
         }
 
-        public string UnityApplication { get; set; }
-        public string UnityAssetsPath { get; set; }
-        public string UnityProjectPath { get; set; }
-        public string ExtensionInstallPath { get; set; }
+        public NPath UnityApplication { get; set; }
+        public NPath UnityAssetsPath { get; set; }
+        public NPath UnityProjectPath { get; set; }
+        public NPath ExtensionInstallPath { get; set; }
         public NPath UserCachePath { get; set; }
         public NPath SystemCachePath { get; set; }
-        public string Path { get { return Environment.GetEnvironmentVariable("PATH"); } }
+        public NPath Path { get { return Environment.GetEnvironmentVariable("PATH").ToNPath(); } }
         public string NewLine { get { return Environment.NewLine; } }
 
-        private string gitExecutablePath;
-        public string GitExecutablePath
+        private NPath gitExecutablePath;
+        public NPath GitExecutablePath
         {
             get { return gitExecutablePath; }
             set
@@ -43,8 +43,8 @@ namespace GitHub.Unity
             }
         }
 
-        private string gitInstallPath;
-        public string GitInstallPath
+        private NPath gitInstallPath;
+        public NPath GitInstallPath
         {
             get
             {
@@ -55,11 +55,11 @@ namespace GitHub.Unity
                     {
                         if (IsWindows)
                         {
-                            gitInstallPath = GitExecutablePath.ToNPath().Parent.Parent;
+                            gitInstallPath = GitExecutablePath.Parent.Parent;
                         }
                         else
                         {
-                            gitInstallPath = GitExecutablePath.ToNPath().Parent;
+                            gitInstallPath = GitExecutablePath.Parent;
                         }
                         logger.Trace("Setting GitInstallPath to " + gitInstallPath);
                     }
@@ -70,7 +70,7 @@ namespace GitHub.Unity
             }
         }
 
-        public string RepositoryPath { get { return Repository.LocalPath; } }
+        public NPath RepositoryPath { get { return Repository.LocalPath; } }
         public IRepository Repository { get; set; }
 
         public bool IsWindows { get { return OnWindows; } }

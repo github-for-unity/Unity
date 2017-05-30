@@ -40,9 +40,9 @@ namespace GitHub.Unity
             GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
         }
 
-        public virtual Task Run()
+        public virtual ITask Run()
         {
-            Task task = null;
+            ITask task = null;
             try
             {
                 task = RunInternal();
@@ -64,8 +64,7 @@ namespace GitHub.Unity
         {
             if (FileSystem == null)
             {
-                FileSystem = new FileSystem();
-                NPathFileSystemProvider.Current = FileSystem;
+                FileSystem = NPath.FileSystem;
             }
 
             FileSystem.SetCurrentDirectory(Environment.UnityProjectPath);
@@ -105,45 +104,45 @@ namespace GitHub.Unity
             }
         }
 
-        private async Task RunInternal()
+        private ITask RunInternal()
         {
-            await ThreadingHelper.SwitchToThreadAsync();
-
             var gitSetup = new GitSetup(Environment, FileSystem, CancellationToken);
             var expectedPath = gitSetup.GitInstallationPath;
 
-            var setupDone = await gitSetup.SetupIfNeeded(
-                //new Progress<float>(x => logger.Trace("Percentage: {0}", x)),
-                //new Progress<long>(x => logger.Trace("Remaining: {0}", x))
-            );
-
-            if (setupDone)
-                Environment.GitExecutablePath = gitSetup.GitExecutablePath;
-            else
-                Environment.GitExecutablePath = await LookForGitInstallationPath();
-
-            logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
-
-            await RestartRepository();
-
-            if (Environment.IsWindows)
+            return new FuncTask<ProgressReport>(TaskManager.Token, _ => new ProgressReport())
+            .Then(async (s, progress) =>
             {
-                string credentialHelper = null;
-                var gitConfigGetTask = new GitConfigGetTask("credential.helper", GitConfigSource.Global, CancellationToken);
+                var setupDone = await gitSetup.SetupIfNeeded(progress.Percentage, progress.Remaining);
+
+                if (setupDone)
+                    Environment.GitExecutablePath = gitSetup.GitExecutablePath;
+                else
+                    Environment.GitExecutablePath = await LookForGitInstallationPath();
+
+                logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
+
+                await RestartRepository();
 
 
-                await gitConfigGetTask.Task;
-
-                if (string.IsNullOrEmpty(credentialHelper))
+                if (Environment.IsWindows)
                 {
-                    var gitConfigSetTask = new GitConfigSetTask("credential.helper", "wincred", GitConfigSource.Global, CancellationToken);
+                    string credentialHelper = null;
+                    var gitConfigGetTask = new GitConfigGetTask("credential.helper", GitConfigSource.Global, CancellationToken);
 
-                    await gitConfigSetTask.Task;
+
+                    await gitConfigGetTask.Task;
+
+                    if (string.IsNullOrEmpty(credentialHelper))
+                    {
+                        var gitConfigSetTask = new GitConfigSetTask("credential.helper", "wincred", GitConfigSource.Global, CancellationToken);
+
+                        await gitConfigSetTask.Task;
+                    }
                 }
-            }
+            });
         }
 
-        private async Task<string> LookForGitInstallationPath()
+        private async Task<NPath> LookForGitInstallationPath()
         {
             NPath cachedGitInstallPath = null;
             var path = SystemSettings.Get("GitInstallPath");
@@ -154,11 +153,11 @@ namespace GitHub.Unity
             if (cachedGitInstallPath == null ||
                !cachedGitInstallPath.DirectoryExists())
             {
-                return await GitEnvironment.FindGitInstallationPath(ProcessManager);
+                return await GitEnvironment.FindGitInstallationPath(ProcessManager).StartAwait();
             }
             else
             {
-                return cachedGitInstallPath.ToString();
+                return cachedGitInstallPath;
             }
         }
 

@@ -127,7 +127,7 @@ namespace GitHub.Unity
                 lockedFiles = new List<GitLock>();
             OnLocksUpdate(Repository.CurrentLocks);
             Repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
-            Repository.ListLocks();
+            Repository.ListLocks().Start();
 
             gitName = Repository.User.Name;
             gitEmail = Repository.User.Email;
@@ -227,11 +227,11 @@ namespace GitHub.Unity
                 if (needsSaving)
                 {
                     GitClient.SetConfig("user.name", gitName, GitConfigSource.User)
-                        .ContinueWith((success, value) => { if (success) Repository.User.Name = value; })
-                        .ContinueWith(
+                        .Then((success, value) => { if (success) Repository.User.Name = value; })
+                        .Then(
                     GitClient.SetConfig("user.email", gitEmail, GitConfigSource.User)
-                        .ContinueWith((success, value) => { if (success) Repository.User.Email = value; }))
-                    .ContinueWithUI(_ => busy = false);
+                        .Then((success, value) => { if (success) Repository.User.Email = value; }))
+                    .FinallyInUI((_, __) => busy = false);
                     busy = true;
                 }
             }
@@ -255,7 +255,8 @@ namespace GitHub.Unity
                     if (needsSaving)
                     {
                         Repository.SetupRemote(repositoryRemoteName, repositoryRemoteUrl)
-                            .ContinueWithUI(_ => busy = false, true);
+                            .FinallyInUI((_, __) => busy = false)
+                            .Start();
                     }
                     else
                         busy = false;
@@ -583,7 +584,7 @@ namespace GitHub.Unity
                             GUILayout.FlexibleSpace();
                             if (GUILayout.Button("Unlock"))
                             {
-                                Repository.ReleaseLock(lck.Path, false);
+                                Repository.ReleaseLock(lck.Path, false).Start();
                             }
                         }
                         GUILayout.EndHorizontal();
@@ -603,7 +604,7 @@ namespace GitHub.Unity
 
             GUI.enabled = !busy;
 
-            var gitExecPath = EntryPoint.Environment.GitExecutablePath;
+            var gitExecPath = EntryPoint.Environment.GitExecutablePath.ToString();
             // Install path field
             EditorGUI.BeginChangeCheck();
             {
@@ -617,7 +618,7 @@ namespace GitHub.Unity
             }
             if (EditorGUI.EndChangeCheck())
             {
-                EntryPoint.Environment.GitExecutablePath = gitExecPath;
+                EntryPoint.Environment.GitExecutablePath = gitExecPath.ToNPath();
             }
 
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
@@ -627,8 +628,9 @@ namespace GitHub.Unity
                 // Find button - for attempting to locate a new install
                 if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
                 {
-                    var task = new FindGitTask(EntryPoint.Environment, Manager.CancellationToken)
-                        .ContinueWithUI((success, path) =>
+                    var task = new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
+                        .Configure(Manager.ProcessManager, Manager.Environment.IsWindows ? "where" : "which", "git")
+                        .FinallyInUI((success, ex, path) =>
                         {
                             if (success && !string.IsNullOrEmpty(path))
                             {

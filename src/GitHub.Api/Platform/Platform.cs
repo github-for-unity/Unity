@@ -28,7 +28,7 @@ namespace GitHub.Unity
             {
                 GitEnvironment = new LinuxGitEnvironment(environment, filesystem);
                 localAppData = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
-                commonAppData = "/usr/local/share/";
+                commonAppData = "/usr/local/share/".ToNPath();
             }
 
             Environment.UserCachePath = localAppData.Combine(ApplicationInfo.ApplicationName);

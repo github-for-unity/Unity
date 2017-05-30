@@ -34,7 +34,7 @@ namespace GitHub.Unity
         /// <param name="name">The repository name.</param>
         /// <param name="cloneUrl">The repository's clone URL.</param>
         /// <param name="localPath"></param>
-        public Repository(IGitClient gitClient, IRepositoryManager repositoryManager, string name, UriString cloneUrl, string localPath)
+        public Repository(IGitClient gitClient, IRepositoryManager repositoryManager, string name, UriString cloneUrl, NPath localPath)
         {
             Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
             Guard.ArgumentNotNullOrWhiteSpace(name, nameof(name));
@@ -157,7 +157,7 @@ namespace GitHub.Unity
         /// <returns></returns>
         public override int GetHashCode()
         {
-            return 17 * 23 + (Name?.GetHashCode() ?? 0) * 23 + (Owner?.GetHashCode() ?? 0) * 23 + (LocalPath?.TrimEnd('\\').ToUpperInvariant().GetHashCode() ?? 0);
+            return 17 * 23 + (Name?.GetHashCode() ?? 0) * 23 + (Owner?.GetHashCode() ?? 0) * 23 + (LocalPath?.GetHashCode() ?? 0);
         }
 
         public override bool Equals(object obj)
@@ -181,7 +181,7 @@ namespace GitHub.Unity
                 String.Equals(Name, other.Name) &&
                 String.Equals(Owner, other.Owner) &&
                 String.Equals(CloneUrl, other.CloneUrl) &&
-                String.Equals(LocalPath?.TrimEnd('\\'), other.LocalPath?.TrimEnd('\\'), StringComparison.CurrentCultureIgnoreCase);
+                object.Equals(LocalPath, other.LocalPath);
         }
 
         /// <summary>
@@ -208,7 +208,7 @@ namespace GitHub.Unity
 
         public string Name { get; private set; }
         public UriString CloneUrl { get; private set; }
-        public string LocalPath { get; private set; }
+        public NPath LocalPath { get; private set; }
         public string Owner => CloneUrl?.Owner ?? string.Empty;
         public bool IsGitHub { get { return CloneUrl != ""; } }
 

@@ -190,8 +190,8 @@ namespace GitHub.Unity
             busy = true;
 
             GitClient.Commit(commitMessage, commitBody)
-                .ContinueWith(GitClient.Status())
-                .ContinueWithUI(_ => busy = false);
+                .Then(GitClient.Status())
+                .FinallyInUI((_, __) => busy = false);
         }
     }
 }

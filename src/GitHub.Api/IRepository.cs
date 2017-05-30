@@ -34,7 +34,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Gets the local path of the repository.
         /// </summary>
-        string LocalPath { get; }
+        NPath LocalPath { get; }
         bool IsGitHub { get; }
         /// <summary>
         /// Gets the current remote of the repository.

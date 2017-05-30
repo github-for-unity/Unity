@@ -27,9 +27,12 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
         }
 
-        public T ConfigureGitProcess<T>(T processTask, bool withInput = false) where T : IProcess
+        public T Configure<T>(T processTask, bool withInput = false) where T : IProcess
         {
-            return Configure(processTask, environment.GitExecutablePath, processTask.ProcessArguments, environment.RepositoryPath, withInput);
+            return Configure(processTask,
+                processTask.ProcessName != null ? processTask.ProcessName : environment.GitExecutablePath,
+                processTask.ProcessArguments,
+                environment.RepositoryPath, withInput);
         }
 
         public T Configure<T>(T processTask, string executableFileName, string arguments, string workingDirectory = null, bool withInput = false)

@@ -2,8 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
@@ -25,9 +23,10 @@ namespace GitHub.Unity
             return FileSystem.FileExists(path);
         }
 
-        public virtual async Task<string> FindGitInstallationPath(IProcessManager processManager)
+        public virtual ITask<NPath> FindGitInstallationPath(IProcessManager processManager)
         {
-            return await LookForGitInPath(processManager);
+            return new ProcessTask<NPath>(TaskManager.Instance.Token, new FirstLineIsPathOutputProcessor())
+                .Configure(processManager, Environment.IsWindows ? "where" : "which", "git", null, false);
         }
 
         public abstract string GetExecutableExtension();
@@ -144,13 +143,5 @@ namespace GitHub.Unity
 
             psi.WorkingDirectory = workingDirectory;
         }
-
-        protected async Task<string> LookForGitInPath(IProcessManager processManager)
-        {
-            return await new ProcessTask<string>(CancellationToken.None, Environment.IsWindows ? "where" : "which")
-                .ConfigureGitProcess(processManager)
-                .Task;
-        }
-
     }
 }

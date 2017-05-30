@@ -15,8 +15,8 @@ namespace GitHub.Unity
         static TaskSchedulerExcludingThread()
         {
             executeEntryMethod = typeof(Task).GetMethod("ExecuteEntry", BindingFlags.NonPublic | BindingFlags.Instance);
-
         }
+
         public TaskSchedulerExcludingThread(int threadToExclude)
         {
             ThreadToExclude = threadToExclude;
@@ -29,7 +29,6 @@ namespace GitHub.Unity
 
         private static bool ExecuteEntry(Task task, bool flag)
         {
-
             return (bool)executeEntryMethod.Invoke(task, new object[] { flag });
         }
 
@@ -125,9 +124,10 @@ namespace GitHub.Unity
             exclusiveTaskScheduler = new ConcurrentExclusiveTaskScheduler(this, new Queue<Task>(), 1);
         }
 
-        public void Wait()
+        public async Task Wait()
         {
-            taskExecuting?.Wait();
+            if (taskExecuting != null)
+                await taskExecuting;
         }
 
         /// <summary>Notifies the interleave that new work has arrived to be processed.</summary>
@@ -139,7 +139,7 @@ namespace GitHub.Unity
 
             if (token.IsCancellationRequested) return;
 
-            // Otherwise, run the processor. Store the task and then start it to ensure that
+            // Otherwise, run the processor. Store the task and then start it to ensure that 
             // the assignment happens before the body of the task runs.
             taskExecuting = new Task(ConcurrentExclusiveInterleaveProcessor, CancellationToken.None, TaskCreationOptions.None);
             taskExecuting.Start(parallelOptions.TaskScheduler);
@@ -168,8 +168,8 @@ namespace GitHub.Unity
                         exclusiveTaskScheduler.ExecuteTask(task);
                         // Just because we executed the task doesn't mean it's "complete",
                         // if it has child tasks that have not yet completed
-                        // and will complete later asynchronously.  To account for this,
-                        // if a task isn't yet completed, leave the interleave processor
+                        // and will complete later asynchronously.  To account for this, 
+                        // if a task isn't yet completed, leave the interleave processor 
                         // but leave it still in a running state.  When the task completes,
                         // we'll come back in and keep going.  Note that the children
                         // must not be scheduled to this interleave, or this will deadlock.

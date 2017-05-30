@@ -6,7 +6,7 @@ namespace GitHub.Unity
 {
     class TaskManager : ITaskManager
     {
-        private static readonly ILogging logger = Logging.GetLogger<ProcessManager>();
+        private static readonly ILogging logger = Logging.GetLogger<TaskManager>();
 
         private readonly CancellationTokenSource cts;
         private readonly ConcurrentExclusiveInterleave manager;
@@ -34,7 +34,12 @@ namespace GitHub.Unity
         public void Stop()
         {
             cts.Cancel();
-            manager.Wait();
+            Wait();
+        }
+
+        public Task Wait()
+        {
+            return manager.Wait();
         }
 
         public static TaskScheduler GetScheduler(TaskAffinity affinity)
@@ -100,13 +105,12 @@ namespace GitHub.Unity
             {
                 task.Task.ContinueWith(tt =>
                 {
-                    logger.Error(tt.Exception.InnerException, String.Format("Exception on ui thread: {0} {1}", tt.Id, task.Name));
+                    logger.Trace(tt.Exception.InnerException, String.Format("Exception on ui thread: {0} {1}", tt.Id, task.Name));
                 },
                     cts.Token,
-                    TaskContinuationOptions.OnlyOnFaulted, UIScheduler
+                    TaskContinuationOptions.OnlyOnFaulted, ConcurrentScheduler
                 );
             }
-            logger.Trace(String.Format("Schedule {0} {1}", "UI", task.Task.Id));
             return (T)task.Start(UIScheduler);
         }
 
@@ -123,13 +127,12 @@ namespace GitHub.Unity
             {
                 task.Task.ContinueWith(tt =>
                 {
-                    logger.Error(tt.Exception.InnerException, String.Format("Exception on exclusive thread: {0} {1}", tt.Id, task.Name));
+                    logger.Trace(tt.Exception.InnerException, String.Format("Exception on exclusive thread: {0} {1}", tt.Id, task.Name));
                 },
                     cts.Token,
-                    TaskContinuationOptions.OnlyOnFaulted, UIScheduler
+                    TaskContinuationOptions.OnlyOnFaulted, ConcurrentScheduler
                 );
             }
-            logger.Trace(String.Format("Schedule {0} {1}", "Exclusive", task.Task.Id));
             return (T)task.Start(manager.ExclusiveTaskScheduler);
         }
 
@@ -146,13 +149,12 @@ namespace GitHub.Unity
             {
                 task.Task.ContinueWith(tt =>
                 {
-                    logger.Error(tt.Exception.InnerException, String.Format("Exception on concurrent thread: {0} {1}", tt.Id, task.Name));
+                    logger.Trace(tt.Exception.InnerException, String.Format("Exception on concurrent thread: {0} {1}", tt.Id, task.Name));
                 },
                     cts.Token,
-                    TaskContinuationOptions.OnlyOnFaulted, UIScheduler
+                    TaskContinuationOptions.OnlyOnFaulted, ConcurrentScheduler
                 );
             }
-            logger.Trace(String.Format("Schedule {0} {1}", "Concurrent", task.Task.Id));
             return (T)task.Start(manager.ConcurrentTaskScheduler);
         }
     }
