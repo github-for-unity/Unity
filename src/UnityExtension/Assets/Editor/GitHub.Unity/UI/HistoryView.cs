@@ -126,8 +126,11 @@ namespace GitHub.Unity
 
         private void RefreshLog()
         {
-            GitClient.Log()
-                .ThenInUI((success, log) => { if (success) OnLogUpdate(log); });
+            if (GitClient != null)
+            {
+                GitClient.Log()
+                    .ThenInUI((success, log) => { if (success) OnLogUpdate(log); });
+            }
         }
 
         public override void Refresh()

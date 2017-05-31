@@ -42,7 +42,7 @@ namespace GitHub.Unity
                 new string[] {
                         String.Format("protocol={0}", host.Protocol),
                         String.Format("host={0}", host.Host)
-                }).Task;
+                }).StartAwait();
             credential = null;
         }
 
@@ -62,7 +62,7 @@ namespace GitHub.Unity
                     new string[] {
                         String.Format("protocol={0}", host.Protocol),
                         String.Format("host={0}", host.Host)
-                    }).Task;
+                    }).StartAwait();
 
                 if (String.IsNullOrEmpty(kvpCreds))
                 {
@@ -110,7 +110,7 @@ namespace GitHub.Unity
             };
 
             var task = RunCredentialHelper("store", data.ToArray());
-            await task.Task;
+            await task.StartAwait();
             if (!task.Successful)
             {
                 logger.Error("Failed to save credentials");
@@ -124,7 +124,7 @@ namespace GitHub.Unity
 
             logger.Trace("Loading Credential Helper");
 
-            credHelper = await new GitConfigGetTask("credential.helper", GitConfigSource.NonSpecified, taskManager.Token).Schedule(taskManager).Task;
+            credHelper = await new GitConfigGetTask("credential.helper", GitConfigSource.NonSpecified, taskManager.Token).StartAwait();
 
             if (credHelper != null)
             {
@@ -163,7 +163,7 @@ namespace GitHub.Unity
                 proc.StandardInput.Close();
             };
 
-            return task.Schedule(taskManager);
+            return task;
         }
     }
 }

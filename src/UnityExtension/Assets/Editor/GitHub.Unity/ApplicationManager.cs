@@ -32,6 +32,7 @@ namespace GitHub.Unity
             return base.Run()
                 .ThenInUI(_ =>
                 {
+                    Logger.Debug("Run");
                     Utility.Run();
 
                     ProjectWindowInterface.Initialize(Environment.Repository);
@@ -73,11 +74,11 @@ namespace GitHub.Unity
 
         public override ITask RestartRepository()
         {
-            logger.Trace("Restarting");
+            Logger.Trace("Restarting");
             return base.RestartRepository()
                 .ThenInUI(_ =>
                 {
-                    logger.Trace("Restarted");
+                    Logger.Trace("Restarted {0}", Environment.Repository);
                     ProjectWindowInterface.Initialize(Environment.Repository);
                     var view = Window.GetView();
                     if (view != null)

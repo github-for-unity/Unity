@@ -51,7 +51,7 @@ namespace GitHub.Unity
 
             if (portableGitPath != null)
             {
-                portableGitPath = portableGitPath.Combine("cmd", $"git{GetExecutableExtension()}");
+                portableGitPath = portableGitPath.Combine("cmd", $"git.{GetExecutableExtension()}");
             }
 
             return portableGitPath;

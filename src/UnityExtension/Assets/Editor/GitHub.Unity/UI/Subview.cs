@@ -84,7 +84,7 @@ namespace GitHub.Unity
         protected IView Parent { get; private set; }
         public IRepository Repository { get { return Manager != null ? Manager.Environment.Repository : null; } }
         public IApplicationManager Manager { get; private set; }
-        protected IGitClient GitClient { get { return Manager.GitClient; } }
+        protected IGitClient GitClient { get { return Manager != null ? Manager.GitClient : null; } }
 
         void IView.Initialize(IApplicationManager applicationManager)
         {

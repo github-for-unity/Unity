@@ -6,7 +6,7 @@ namespace GitHub.Unity
 {
     abstract class ApplicationManagerBase : IApplicationManager
     {
-        protected static readonly ILogging logger = Logging.GetLogger<IApplicationManager>();
+        protected static ILogging Logger { get; } = Logging.GetLogger<IApplicationManager>();
 
         private IEnvironment environment;
         private AppConfiguration appConfiguration;
@@ -42,17 +42,8 @@ namespace GitHub.Unity
 
         public virtual ITask Run()
         {
-            ITask task = null;
-            try
-            {
-                task = RunInternal();
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex);
-                throw;
-            }
-            return task;
+            var progress = new ProgressReport();
+            return new ActionTask(SetupAndRestart(progress));
         }
 
         protected abstract string DetermineInstallationPath();
@@ -74,7 +65,7 @@ namespace GitHub.Unity
                     }
                     catch (Exception ex)
                     {
-                        logger.Error(ex);
+                        Logger.Error(ex);
                     }
                     Environment.Repository = repositoryManager.Repository;
                     repositoryManager.Initialize();
@@ -93,30 +84,19 @@ namespace GitHub.Unity
             else
                 Environment.GitExecutablePath = await LookForGitInstallationPath();
 
-            logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
+            Logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
 
-            await RestartRepository().Task;
+            await RestartRepository().StartAwait();
 
             if (Environment.IsWindows)
             {
-                string credentialHelper = null;
-                var gitConfigGetTask = new GitConfigGetTask("credential.helper", GitConfigSource.Global, CancellationToken);
-
-                await gitConfigGetTask.Task;
+                var credentialHelper = await GitClient.GetConfig("credential.helper", GitConfigSource.Global).StartAwait();
 
                 if (string.IsNullOrEmpty(credentialHelper))
                 {
-                    var gitConfigSetTask = new GitConfigSetTask("credential.helper", "wincred", GitConfigSource.Global, CancellationToken);
-
-                    await gitConfigSetTask.Task;
+                    await GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global).StartAwait();
                 }
             }
-        }
-
-        private ITask RunInternal()
-        {
-            var progress = new ProgressReport();
-            return new ActionTask(SetupAndRestart(progress));
         }
 
         private async Task<NPath> LookForGitInstallationPath()
