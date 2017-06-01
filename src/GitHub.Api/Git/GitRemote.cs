@@ -3,6 +3,14 @@ using System.Text;
 
 namespace GitHub.Unity
 {
+    enum GitRemoteFunction
+    {
+        Unknown,
+        Fetch,
+        Push,
+        Both
+    }
+
     struct GitRemote
     {
         public string Name;

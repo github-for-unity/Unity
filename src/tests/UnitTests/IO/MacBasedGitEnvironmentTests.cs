@@ -52,8 +52,8 @@ namespace UnitTests
             var filesystem = Substitute.For<IFileSystem>();
             filesystem.FileExists(Args.String).Returns(inFileSystem);
 
-            var linuxBasedGitInstallationStrategy = new MacGitEnvironment(environment, filesystem);
-            linuxBasedGitInstallationStrategy.ValidateGitInstall("asdf").Should().Be(found);
+            //var linuxBasedGitInstallationStrategy = new ProcessEnvironment(environment);
+            //linuxBasedGitInstallationStrategy.ValidateGitInstall("asdf").Should().Be(found);
         }
     }
 }

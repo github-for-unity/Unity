@@ -33,7 +33,11 @@ namespace GitHub.Unity
             get
             {
                 if (authenticationService == null)
-                    Initialize();
+                {
+                    var host = Repository != null ? Repository.CloneUrl.ToRepositoryUrl() : UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
+                    host = !String.IsNullOrEmpty(host) ? host : UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
+                    AuthenticationService = new AuthenticationService(host, new AppConfiguration(), Platform.Keychain);
+                }
                 return authenticationService;
             }
             set
@@ -46,14 +50,6 @@ namespace GitHub.Unity
         {
             base.Initialize(parent);
             need2fa = busy = false;
-        }
-
-        private void Initialize()
-        {
-            var repository = EntryPoint.Environment.Repository;
-            var host = repository != null ? repository.CloneUrl.ToRepositoryUrl() : UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
-            host = !String.IsNullOrEmpty(host) ? host : UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
-            AuthenticationService = new AuthenticationService(host, new AppConfiguration(), EntryPoint.Keychain);
         }
 
         public override void OnShow()

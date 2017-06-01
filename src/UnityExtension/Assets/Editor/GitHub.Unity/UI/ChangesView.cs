@@ -54,8 +54,8 @@ namespace GitHub.Unity
 
         private void RunStatusUpdateOnMainThread(GitStatus status)
         {
-            new ActionTask(EntryPoint.AppManager.TaskManager.Token, _ => OnStatusUpdate(status))
-                .ScheduleUI(EntryPoint.AppManager.TaskManager);
+            new ActionTask(TaskManager.Token, _ => OnStatusUpdate(status))
+                .ScheduleUI(TaskManager);
         }
 
         private void OnStatusUpdate(GitStatus update)

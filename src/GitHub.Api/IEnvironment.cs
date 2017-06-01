@@ -27,5 +27,6 @@ namespace GitHub.Unity
         NPath LogPath { get; }
         IFileSystem FileSystem { get; set; }
         IRepository Repository { get; set; }
+        string ExecutableExtension { get; }
     }
 }

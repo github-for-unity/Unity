@@ -452,12 +452,12 @@ namespace IntegrationTests
                 autoResetEvent?.LocalBranchDeleted.Set();
             };
 
-            repositoryWatcher.RemoteBranchChanged += (s, s1) =>
-            {
-                logger?.Trace("RemoteBranchChanged: {0} {1}", s, s1);
-                listener.RemoteBranchChanged(s, s1);
-                autoResetEvent?.RemoteBranchChanged.Set();
-            };
+            //repositoryWatcher.RemoteBranchChanged += (s, s1) =>
+            //{
+            //    logger?.Trace("RemoteBranchChanged: {0} {1}", s, s1);
+            //    listener.RemoteBranchChanged(s, s1);
+            //    autoResetEvent?.RemoteBranchChanged.Set();
+            //};
 
             repositoryWatcher.RemoteBranchCreated += (s, s1) =>
             {

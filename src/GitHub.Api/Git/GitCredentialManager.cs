@@ -144,7 +144,7 @@ namespace GitHub.Unity
 
                 // it's a separate app, run it as such
                 task = new ProcessTask<string>(taskManager.Token, new SimpleOutputProcessor())
-                    .Configure(processManager, credHelper.Substring(1), action, null, true);
+                    .Configure(processManager, credHelper.Substring(1).ToNPath(), action, withInput: true);
             }
             else
             {

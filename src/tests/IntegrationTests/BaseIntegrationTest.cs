@@ -10,39 +10,10 @@ namespace IntegrationTests
     [Isolated]
     class BaseIntegrationTest
     {
-        private IFileSystem fs;
-        private IEnvironment env;
-
         protected NPath TestBasePath { get; private set; }
         protected ILogging Logger { get; private set; }
-        public IEnvironment Environment
-        {
-            get
-            {
-                return env;
-            }
-            set
-            {
-                env = value;
-                if (fs != null)
-                {
-                    env.FileSystem = fs;
-                }
-            }
-        }
-        protected IFileSystem FileSystem
-        {
-            get
-            {
-                return fs;
-            }
-            set
-            {
-                fs = value;
-                if (env != null)
-                    env.FileSystem = value;
-            }
-        }
+        public IEnvironment Environment { get; set; }
+
         protected TestUtils.SubstituteFactory Factory { get; set; }
         protected static NPath SolutionDirectory => TestContext.CurrentContext.TestDirectory.ToNPath();
 
@@ -61,10 +32,9 @@ namespace IntegrationTests
 
         protected virtual void OnSetup()
         {
-            FileSystem = new FileSystem();
-            NPath.FileSystem = FileSystem;
+            Environment.FileSystem = new FileSystem();
             TestBasePath = NPath.CreateTempDirectory("integration-tests");
-            FileSystem.SetCurrentDirectory(TestBasePath);
+            Environment.FileSystem.SetCurrentDirectory(TestBasePath);
         }
 
         [TearDown]
@@ -92,8 +62,7 @@ namespace IntegrationTests
             if (TestBasePath.Exists())
                 Logger.Warning("Error deleting TestBasePath: {0}", TestBasePath.ToString());
 
-            FileSystem = null;
-            NPath.FileSystem = null;
+            Environment.FileSystem = null;
         }
     }
 }

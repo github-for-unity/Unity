@@ -328,10 +328,10 @@ namespace TestUtils
             return gitObjectFactory;
         }
 
-        public IProcessEnvironment CreateProcessEnvironment(string root)
+        public IProcessEnvironment CreateProcessEnvironment(NPath root)
         {
             var processEnvironment = Substitute.For<IProcessEnvironment>();
-            processEnvironment.FindRoot(Args.String).Returns(root);
+            processEnvironment.FindRoot(Arg.Any<NPath>()).Returns(root);
             return processEnvironment;
         }
 

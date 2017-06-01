@@ -140,8 +140,8 @@ namespace GitHub.Unity
 
         private void RunLocksUpdateOnMainThread(IEnumerable<GitLock> locks)
         {
-            new ActionTask(EntryPoint.AppManager.TaskManager.Token, _ => OnLocksUpdate(locks))
-                .ScheduleUI(EntryPoint.AppManager.TaskManager);
+            new ActionTask(TaskManager.Token, _ => OnLocksUpdate(locks))
+                .ScheduleUI(TaskManager);
         }
 
         private void OnLocksUpdate(IEnumerable<GitLock> update)
@@ -286,9 +286,11 @@ namespace GitHub.Unity
             return true;
         }
 
-        private static bool ValidateGitInstall(string path)
+        private bool ValidateGitInstall(string path)
         {
-            if (!EntryPoint.GitEnvironment.ValidateGitInstall(path))
+            if (String.IsNullOrEmpty(path))
+                return false;
+            if (!GitClient.ValidateGitInstall(path.ToNPath()))
             {
                 EditorUtility.DisplayDialog(GitInstallPickInvalidTitle, String.Format(GitInstallPickInvalidMessage, path),
                     GitInstallPickInvalidOK);
@@ -378,7 +380,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            if (settingsIssues != null && !EntryPoint.LocalSettings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
+            if (settingsIssues != null && !Manager.LocalSettings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
             {
                 var binary = settingsIssues.WasCaught(ProjectSettingsEvaluation.BinarySerialization);
                 var mixed = settingsIssues.WasCaught(ProjectSettingsEvaluation.MixedSerialization);
@@ -392,7 +394,7 @@ namespace GitHub.Unity
                     {
                         if (GUILayout.Button(IgnoreSerialisationSettingsButton))
                         {
-                            EntryPoint.LocalSettings.Set(IgnoreSerialisationIssuesSetting, "1");
+                            Manager.LocalSettings.Set(IgnoreSerialisationIssuesSetting, "1");
                         }
 
                         GUILayout.FlexibleSpace();
@@ -604,21 +606,21 @@ namespace GitHub.Unity
 
             GUI.enabled = !busy;
 
-            var gitExecPath = EntryPoint.Environment.GitExecutablePath.ToString();
+            var gitExecPath = Environment.GitExecutablePath.ToString();
             // Install path field
             EditorGUI.BeginChangeCheck();
             {
                 //TODO: Verify necessary value for a non Windows OS
-                var extension = EntryPoint.GitEnvironment.GetExecutableExtension();
+                var extension = Environment.ExecutableExtension;
 
                 Styles.PathField(ref gitExecPath,
                     () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
-                        EntryPoint.Environment.GitInstallPath,
+                        Environment.GitInstallPath,
                         extension), ValidateGitInstall);
             }
             if (EditorGUI.EndChangeCheck())
             {
-                EntryPoint.Environment.GitExecutablePath = gitExecPath.ToNPath();
+                Environment.GitExecutablePath = gitExecPath.ToNPath();
             }
 
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
@@ -629,12 +631,12 @@ namespace GitHub.Unity
                 if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
                 {
                     var task = new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
-                        .Configure(Manager.ProcessManager, Manager.Environment.IsWindows ? "where" : "which", "git")
+                        .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
                         .FinallyInUI((success, ex, path) =>
                         {
                             if (success && !string.IsNullOrEmpty(path))
                             {
-                                EntryPoint.Environment.GitExecutablePath = path;
+                                Environment.GitExecutablePath = path;
                                 GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
                             }
                         });
@@ -660,7 +662,7 @@ namespace GitHub.Unity
             if (EditorGUI.EndChangeCheck())
             {
                 Logging.TracingEnabled = traceLogging;
-                EntryPoint.AppManager.UserSettings.Set("EnableTraceLogging", traceLogging);
+                Manager.UserSettings.Set("EnableTraceLogging", traceLogging);
 
                 GUI.FocusControl(null);
             }

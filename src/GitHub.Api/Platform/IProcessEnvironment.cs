@@ -1,19 +1,11 @@
 using System.Diagnostics;
-using System.Threading.Tasks;
-using GitHub.Unity;
 
 namespace GitHub.Unity
 {
     interface IProcessEnvironment
     {
-        ITask<NPath> FindGitInstallationPath(IProcessManager processManager);
+        void Configure(ProcessStartInfo psi, NPath workingDirectory);
 
-        string GetExecutableExtension();
-
-        bool ValidateGitInstall(string path);
-
-        void Configure(ProcessStartInfo psi, string workingDirectory);
-
-        string FindRoot(string path);
+        NPath FindRoot(NPath path);
     }
 }

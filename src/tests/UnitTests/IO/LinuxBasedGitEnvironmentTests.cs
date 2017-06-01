@@ -52,8 +52,8 @@ namespace UnitTests
             var filesystem = Substitute.For<IFileSystem>();
             filesystem.FileExists(Args.String).Returns(inFileSystem);
 
-            var linuxBasedGitInstallationStrategy = new LinuxGitEnvironment(environment, filesystem);
-            linuxBasedGitInstallationStrategy.ValidateGitInstall("asdf").Should().Be(found);
+            //var linuxBasedGitInstallationStrategy = new LinuxEnvironment(environment);
+            //linuxBasedGitInstallationStrategy.ValidateGitInstall("asdf".ToNPath()).Should().Be(found);
         }
 
         [TestCase(@"c:\Source\file.txt", @"c:\Source", TestName = "should be found")]
@@ -65,8 +65,8 @@ namespace UnitTests
 
             var environment = Substitute.For<IEnvironment>();
 
-            var windowsGitEnvironment = new LinuxGitEnvironment(environment, filesystem);
-            var result = windowsGitEnvironment.FindRoot(input);
+            var windowsGitEnvironment = new ProcessEnvironment(environment);
+            var result = windowsGitEnvironment.FindRoot(input.ToNPath());
 
             if (expected == null)
             {

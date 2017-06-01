@@ -60,9 +60,13 @@ namespace GitHub.Unity
         {}
 
         public virtual Rect Position { get { return position; } }
-        public IRepository Repository { get { return Manager != null ? Manager.Environment.Repository : null; } }
         public IApplicationManager Manager { get; private set; }
-        protected IGitClient GitClient { get { return Manager.GitClient; } }
+        public IRepository Repository { get { return Manager != null ? Manager.Environment.Repository : null; } }
+        public ITaskManager TaskManager { get { return Manager != null ? Manager.TaskManager : null; } }
+        protected IGitClient GitClient { get { return Manager != null ? Manager.GitClient : null; } }
+        protected IEnvironment Environment { get { return Manager != null ? Manager.Environment : null; } }
+        protected IPlatform Platform { get { return Manager != null ? Manager.Platform : null; } }
+
 
         private ILogging logger;
         protected ILogging Logger
@@ -82,9 +86,12 @@ namespace GitHub.Unity
 
         private const string NullParentError = "Subview parent is null";
         protected IView Parent { get; private set; }
-        public IRepository Repository { get { return Manager != null ? Manager.Environment.Repository : null; } }
         public IApplicationManager Manager { get; private set; }
+        public IRepository Repository { get { return Manager != null ? Manager.Environment.Repository : null; } }
+        public ITaskManager TaskManager { get { return Manager != null ? Manager.TaskManager : null; } }
         protected IGitClient GitClient { get { return Manager != null ? Manager.GitClient : null; } }
+        protected IEnvironment Environment { get { return Manager != null ? Manager.Environment : null; } }
+        protected IPlatform Platform { get { return Manager != null ? Manager.Platform : null; } }
 
         void IView.Initialize(IApplicationManager applicationManager)
         {

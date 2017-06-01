@@ -30,12 +30,12 @@ namespace GitHub.Unity
         public T Configure<T>(T processTask, bool withInput = false) where T : IProcess
         {
             return Configure(processTask,
-                processTask.ProcessName != null ? processTask.ProcessName : environment.GitExecutablePath,
+                processTask.ProcessName?.ToNPath() ?? environment.GitExecutablePath,
                 processTask.ProcessArguments,
                 environment.RepositoryPath, withInput);
         }
 
-        public T Configure<T>(T processTask, string executableFileName, string arguments, string workingDirectory = null, bool withInput = false)
+        public T Configure<T>(T processTask, string executableFileName, string arguments, NPath workingDirectory = null, bool withInput = false)
              where T : IProcess
         {
             Guard.ArgumentNotNull(executableFileName, nameof(executableFileName));
@@ -53,15 +53,17 @@ namespace GitHub.Unity
             };
 
             gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath);
-            if (executableFileName.ToNPath().IsRelative)
-                executableFileName = FindExecutableInPath(executableFileName, startInfo.EnvironmentVariables["PATH"]) ?? executableFileName;
+
+            var execPath = executableFileName.ToNPath();
+            if (execPath.IsRelative)
+                executableFileName = FindExecutableInPath(execPath, startInfo.EnvironmentVariables["PATH"]) ?? execPath.FileName;
             startInfo.FileName = executableFileName;
             startInfo.Arguments = arguments;
             processTask.Configure(startInfo);
             return processTask;
         }
 
-        public IProcess RunCommandLineWindow(string workingDirectory)
+        public IProcess RunCommandLineWindow(NPath workingDirectory)
         {
             var shell = environment.IsWindows ? "cmd" : environment.IsMac ? "xterm" : "sh";
             var startInfo = new ProcessStartInfo(shell)
@@ -90,14 +92,15 @@ namespace GitHub.Unity
             return processTask;
         }
 
-        private string FindExecutableInPath(string executable, string path = null)
+        private NPath FindExecutableInPath(NPath executable, string searchPaths = null)
         {
             Guard.ArgumentNotNullOrWhiteSpace(executable, "executable");
 
-            if (executable.ToNPath().IsRelative) return executable;
+            if (executable.IsRelative) return executable;
 
-            path = path ?? environment.GetEnvironmentVariable("PATH");
-            var executablePath = path.Split(Path.PathSeparator)
+            searchPaths = searchPaths ?? environment.GetEnvironmentVariable("PATH");
+            var executablePath = searchPaths.Split(Path.PathSeparator)
+                .Where(x => !String.IsNullOrEmpty(x))
                 .Select(directory =>
                 {
                     try

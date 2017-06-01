@@ -1,26 +1,23 @@
-using GitHub.Unity;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
+    interface IPlatform
+    {
+        Task<IPlatform> Initialize(IProcessManager processManager, ITaskManager taskManager);
+        IProcessEnvironment GitEnvironment { get; }
+        ICredentialManager CredentialManager { get; }
+        IEnvironment Environment { get; }
+        IProcessManager ProcessManager { get; }
+        IKeychain Keychain { get; }
+    }
+
     class Platform : IPlatform
     {
-        public Platform(IEnvironment environment, IFileSystem filesystem)
+        public Platform(IEnvironment environment)
         {
             Environment = environment;
-
-            if (environment.IsWindows)
-            {
-                GitEnvironment = new WindowsGitEnvironment(environment, filesystem);
-            }
-            else if (environment.IsMac)
-            {
-                GitEnvironment = new MacGitEnvironment(environment, filesystem);
-            }
-            else
-            {
-                GitEnvironment = new LinuxGitEnvironment(environment, filesystem);
-            }
+            GitEnvironment = new ProcessEnvironment(environment);
         }
 
         public Task<IPlatform> Initialize(IProcessManager processManager, ITaskManager taskManager)

@@ -5,58 +5,46 @@ using System.Text;
 
 namespace GitHub.Unity
 {
-    abstract class GitProcessEnvironment : IProcessEnvironment
+    class ProcessEnvironment : IProcessEnvironment
     {
         protected IEnvironment Environment { get; private set; }
-        protected IFileSystem FileSystem { get; private set; }
         protected ILogging Logger { get; private set; }
 
-        protected GitProcessEnvironment(IEnvironment environment, IFileSystem filesystem)
+        public ProcessEnvironment(IEnvironment environment)
         {
-            Environment = environment;
-            FileSystem = filesystem;
             Logger = Logging.GetLogger(GetType());
+            Environment = environment;
         }
 
-        public bool ValidateGitInstall(string path)
+        public NPath FindRoot(NPath path)
         {
-            return FileSystem.FileExists(path);
-        }
-
-        public virtual ITask<NPath> FindGitInstallationPath(IProcessManager processManager)
-        {
-            return new ProcessTask<NPath>(TaskManager.Instance.Token, new FirstLineIsPathOutputProcessor())
-                .Configure(processManager, Environment.IsWindows ? "where" : "which", "git");
-        }
-
-        public abstract string GetExecutableExtension();
-
-        public string FindRoot(string path)
-        {
-            if (string.IsNullOrEmpty(FileSystem.GetDirectoryName(path)))
+            if (path == null)
             {
                 return null;
             }
 
-            if (FileSystem.DirectoryExists(FileSystem.Combine(path, ".git")))
+            if (path.Combine(".git").DirectoryExists())
             {
                 return path;
             }
 
-            return FindRoot(FileSystem.GetParentDirectory(path));
+            return FindRoot(path.Parent);
         }
 
-        public void Configure(ProcessStartInfo psi, string workingDirectory)
+        public void Configure(ProcessStartInfo psi, NPath workingDirectory)
         {
-            Guard.ArgumentNotNull(psi, "psi");
+            psi.WorkingDirectory = workingDirectory;
+            psi.EnvironmentVariables["HOME"] = NPath.HomeDirectory;
+            psi.EnvironmentVariables["TMP"] = psi.EnvironmentVariables["TEMP"] = NPath.SystemTemp;
 
-            // we can't configure an environment for git if we don't know where it is
+            // if we don't know where git is, then there's nothing else to configure
             if (Environment.GitInstallPath == null)
                 return;
 
 
+            Guard.ArgumentNotNull(psi, "psi");
+
             // We need to essentially fake up what git-cmd.bat does
-            string homeDir = NPath.HomeDirectory;
 
             var gitPathRoot = Environment.GitInstallPath;
             var gitLfsPath = Environment.GitInstallPath;
@@ -70,8 +58,8 @@ namespace GitHub.Unity
             //psi.EnvironmentVariables["GIT_TRACE"] = "1";
 
             string path;
-            NPath baseExecPath = gitPathRoot;
-            NPath binPath = baseExecPath;
+            var baseExecPath = gitPathRoot;
+            var binPath = baseExecPath;
             if (Environment.IsWindows)
             {
                 if (baseExecPath.DirectoryExists("mingw32"))
@@ -80,7 +68,7 @@ namespace GitHub.Unity
                     baseExecPath = baseExecPath.Combine("mingw64");
                 binPath = baseExecPath.Combine("bin");
             }
-            NPath execPath = baseExecPath.Combine("libexec", "git-core");
+            var execPath = baseExecPath.Combine("libexec", "git-core");
 
             if (Environment.IsWindows)
             {
@@ -107,9 +95,6 @@ namespace GitHub.Unity
             psi.EnvironmentVariables["PLINK_PROTOCOL"] = "ssh";
             psi.EnvironmentVariables["TERM"] = "msys";
 
-
-            psi.EnvironmentVariables["HOME"] = homeDir;
-            psi.EnvironmentVariables["TMP"] = psi.EnvironmentVariables["TEMP"] = FileSystem.GetTempPath();
             //psi.EnvironmentVariables["EDITOR"] = Environment.GetEnvironmentVariable("EDITOR");
 
             var httpProxy = Environment.GetEnvironmentVariable("HTTP_PROXY");
@@ -118,7 +103,6 @@ namespace GitHub.Unity
             var httpsProxy = Environment.GetEnvironmentVariable("HTTPS_PROXY");
             if (!String.IsNullOrEmpty(httpsProxy))
                 psi.EnvironmentVariables["HTTPS_PROXY"] = httpsProxy;
-
 
             //foreach (string k in psi.EnvironmentVariables.Keys)
             //{
@@ -145,8 +129,6 @@ namespace GitHub.Unity
                 psi.StandardOutputEncoding = Encoding.UTF8;
                 psi.StandardErrorEncoding = Encoding.UTF8;
             }
-
-            psi.WorkingDirectory = workingDirectory;
         }
     }
 }

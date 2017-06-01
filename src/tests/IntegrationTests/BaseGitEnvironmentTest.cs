@@ -12,9 +12,8 @@ namespace IntegrationTests
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(sc);
 
             Environment = new IntegrationTestEnvironment(repoPath, SolutionDirectory, environmentPath, enableEnvironmentTrace);
-            FileSystem.SetCurrentDirectory(repoPath);
 
-            Platform = new Platform(Environment, FileSystem);
+            Platform = new Platform(Environment);
             GitEnvironment = Platform.GitEnvironment;
             ProcessManager = new ProcessManager(Environment, GitEnvironment);
 
@@ -52,7 +51,7 @@ namespace IntegrationTests
         protected IEnvironment Initialize(NPath repoPath, NPath environmentPath = null, bool enableEnvironmentTrace = false)
         {
             InitializeEnvironment(repoPath, environmentPath, enableEnvironmentTrace);
-            var gitSetup = new GitSetup(Environment, FileSystem, TaskManager.Token);
+            var gitSetup = new GitSetup(Environment, TaskManager.Token);
             gitSetup.SetupIfNeeded().Wait();
 
             Environment.GitExecutablePath = gitSetup.GitExecutablePath;

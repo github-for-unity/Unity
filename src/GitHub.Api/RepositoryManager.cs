@@ -118,11 +118,8 @@ namespace GitHub.Unity
         private ConfigBranch? activeBranch;
         private ConfigRemote? activeRemote;
         private Action repositoryUpdateCallback;
-        private bool handlingRepositoryUpdate;
         private string head;
         private bool isBusy;
-        private DateTime lastLocksUpdate;
-        private DateTime lastStatusUpdate;
         private Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
         private Dictionary<string, ConfigRemote> remotes;
         private IEnumerable<GitLock> locks;
@@ -161,7 +158,6 @@ namespace GitHub.Unity
             watcher.LocalBranchDeleted += OnLocalBranchDeleted;
             watcher.RepositoryChanged += OnRepositoryUpdated;
             watcher.RemoteBranchCreated += OnRemoteBranchCreated;
-            watcher.RemoteBranchChanged += OnRemoteBranchChanged;
             watcher.RemoteBranchDeleted += OnRemoteBranchDeleted;
 
             const int debounceTimeout = 0;

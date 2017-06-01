@@ -170,5 +170,6 @@ namespace GitHub.Unity
             }
             set { onMac = value; }
         }
+        public string ExecutableExtension { get { return IsWindows ? ".exe" : null; } }
     }
 }

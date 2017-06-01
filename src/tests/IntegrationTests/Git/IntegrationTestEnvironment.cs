@@ -16,6 +16,7 @@ namespace IntegrationTests
             bool enableTrace = false)
         {
             defaultEnvironment = new DefaultEnvironment();
+            defaultEnvironment.FileSystem.SetCurrentDirectory(repoPath);
             environmentPath = environmentPath ??
                 defaultEnvironment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
                                   .ToNPath()
@@ -117,5 +118,6 @@ namespace IntegrationTests
 
         public IRepository Repository { get; set; }
         public IFileSystem FileSystem { get { return defaultEnvironment.FileSystem; } set { defaultEnvironment.FileSystem = value; } }
+        public string ExecutableExtension { get { return defaultEnvironment.ExecutableExtension; } }
     }
 }

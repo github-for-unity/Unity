@@ -68,8 +68,8 @@ namespace GitHub.Unity
 
         private void RunRefreshEmbeddedOnMainThread()
         {
-            new ActionTask(EntryPoint.AppManager.TaskManager.Token, _ => RefreshEmbedded())
-                .ScheduleUI(EntryPoint.AppManager.TaskManager);
+            new ActionTask(TaskManager.Token, _ => RefreshEmbedded())
+                .ScheduleUI(TaskManager);
         }
 
         private void HandleRepositoryBranchChangeEvent(string obj)
@@ -96,20 +96,6 @@ namespace GitHub.Unity
 
             OnLocalBranchesUpdate(Repository.LocalBranches);
             OnRemoteBranchesUpdate(Repository.RemoteBranches);
-
-            //ITask task = new GitListLocalBranchesTask(
-            //    EntryPoint.Environment, EntryPoint.ProcessManager,
-            //    new TaskResultDispatcher<IEnumerable<GitBranch>>(
-            //        list => Tasks.ScheduleMainThread(() => OnLocalBranchesUpdate(list)),
-            //        null));
-            //Tasks.Add(task);
-
-            //task = new GitListRemoteBranchesTask(
-            //    EntryPoint.Environment, EntryPoint.ProcessManager,
-            //    new TaskResultDispatcher<IEnumerable<GitBranch>>(
-            //        list => Tasks.ScheduleMainThread(() => OnRemoteBranchesUpdate(list)),
-            //        null));
-            //Tasks.Add(task);
         }
 
         public override void OnGUI()
@@ -249,7 +235,7 @@ namespace GitHub.Unity
             }
         }
 
-        private static int CompareBranches(GitBranch a, GitBranch b)
+        private int CompareBranches(GitBranch a, GitBranch b)
         {
             if (GetFavourite(a.Name))
             {
@@ -274,19 +260,19 @@ namespace GitHub.Unity
             return 0;
         }
 
-        private static bool GetFavourite(BranchTreeNode branch)
+        private bool GetFavourite(BranchTreeNode branch)
         {
             return GetFavourite(branch.Name);
         }
 
-        private static bool GetFavourite(string branchName)
+        private bool GetFavourite(string branchName)
         {
             if (string.IsNullOrEmpty(branchName))
             {
                 return false;
             }
 
-            return EntryPoint.LocalSettings.Get(FavoritesSetting, new List<string>()).Contains(branchName);
+            return Manager.LocalSettings.Get(FavoritesSetting, new List<string>()).Contains(branchName);
         }
 
         private void OnLocalBranchesUpdate(IEnumerable<GitBranch> list)
@@ -314,7 +300,7 @@ namespace GitHub.Unity
 
             // Prepare for updated favourites listing
             favourites.Clear();
-            var cachedFavs = EntryPoint.LocalSettings.Get<List<string>>(FavoritesSetting, new List<string>());
+            var cachedFavs = Manager.LocalSettings.Get<List<string>>(FavoritesSetting, new List<string>());
 
             // Just build directly on the local root, keep track of active branch
             localRoot = new BranchTreeNode("", NodeType.Folder, false);
@@ -435,13 +421,13 @@ namespace GitHub.Unity
             if (!favourite)
             {
                 favourites.Remove(branch);
-                EntryPoint.LocalSettings.Set(FavoritesSetting, favourites.Select(x => x.Name).ToList());
+                Manager.LocalSettings.Set(FavoritesSetting, favourites.Select(x => x.Name).ToList());
             }
             else
             {
                 favourites.Remove(branch);
                 favourites.Add(branch);
-                EntryPoint.LocalSettings.Set(FavoritesSetting, favourites.Select(x => x.Name).ToList());
+                Manager.LocalSettings.Set(FavoritesSetting, favourites.Select(x => x.Name).ToList());
             }
         }
 

@@ -17,7 +17,8 @@ namespace GitHub.Unity
             return processManager.Configure(task, withInput);
         }
 
-        public static T Configure<T>(this T task, IProcessManager processManager, string executable, string arguments, string workingDirectory = null, bool withInput = false)
+        public static T Configure<T>(this T task, IProcessManager processManager, string executable, string arguments,
+            NPath workingDirectory = null, bool withInput = false)
             where T : IProcess
         {
             return processManager.Configure(task, executable, arguments, workingDirectory, withInput);

@@ -1,10 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
     interface IGitClient
     {
+        Task<NPath> FindGitInstallation();
+        bool ValidateGitInstall(NPath path);
+
         ITask<GitStatus?> Status(IOutputProcessor<GitStatus?> processor = null, ITask dependsOn = null);
 
         ITask<string> GetConfig(string key, GitConfigSource configSource,
@@ -81,6 +87,56 @@ namespace GitHub.Unity
             this.credentialManager = credentialManager;
             this.taskManager = taskManager;
             this.cancellationToken = taskManager.Token;
+        }
+
+        public async Task<NPath> FindGitInstallation()
+        {
+            if (!String.IsNullOrEmpty(environment.GitExecutablePath))
+                return environment.GitExecutablePath;
+
+            var path = await LookForPortableGit();
+            if (path == null)
+                path = await LookForSystemGit();
+
+            Logger.Trace("Git Installation folder {0} discovered: '{1}'", path == null ? "not" : "", path);
+
+            return path;
+        }
+
+        private Task<NPath> LookForPortableGit()
+        {
+            var gitHubLocalAppDataPath = environment.UserCachePath;
+            if (!gitHubLocalAppDataPath.DirectoryExists())
+                return null;
+
+            var searchPath = "PortableGit_";
+
+            var portableGitPath = gitHubLocalAppDataPath.Directories()
+                .Where(s => s.FileName.StartsWith(searchPath, StringComparison.InvariantCultureIgnoreCase))
+                .FirstOrDefault();
+
+            if (portableGitPath != null)
+            {
+                portableGitPath = portableGitPath.Combine("cmd", $"git{environment.ExecutableExtension}");
+            }
+
+            return TaskEx.FromResult(portableGitPath);
+        }
+
+        private async Task<NPath> LookForSystemGit()
+        {
+            if (environment.IsMac)
+            {
+                var path = "/usr/local/bin/git".ToNPath();
+                if (path.FileExists())
+                    return path;
+            }
+            return await new FindExecTask("git", taskManager.Token).StartAwait();
+        }
+
+        public bool ValidateGitInstall(NPath path)
+        {
+            return path.FileExists();
         }
 
         public ITask<GitStatus?> Status(IOutputProcessor<GitStatus?> processor = null, ITask dependsOn = null)

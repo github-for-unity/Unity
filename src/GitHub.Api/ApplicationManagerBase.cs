@@ -21,7 +21,7 @@ namespace GitHub.Unity
             ThreadingHelper.MainThreadScheduler = UIScheduler;
             TaskManager = new TaskManager(UIScheduler);
             // accessing Environment triggers environment initialization if it hasn't happened yet
-            Platform = new Platform(Environment, Environment.FileSystem);
+            Platform = new Platform(Environment);
         }
 
         protected void Initialize()
@@ -76,7 +76,7 @@ namespace GitHub.Unity
 
         private async Task SetupAndRestart(ProgressReport progress)
         {
-            var gitSetup = new GitSetup(Environment, Environment.FileSystem, CancellationToken);
+            var gitSetup = new GitSetup(Environment, CancellationToken);
             var expectedPath = gitSetup.GitInstallationPath;
             var setupDone = await gitSetup.SetupIfNeeded(progress.Percentage, progress.Remaining);
             if (setupDone)
@@ -107,15 +107,11 @@ namespace GitHub.Unity
                 cachedGitInstallPath = path.ToNPath();
 
             // Root paths
-            if (cachedGitInstallPath == null ||
-               !cachedGitInstallPath.DirectoryExists())
-            {
-                return await GitEnvironment.FindGitInstallationPath(ProcessManager).StartAwait();
-            }
-            else
+            if (cachedGitInstallPath != null && cachedGitInstallPath.DirectoryExists())
             {
                 return cachedGitInstallPath;
             }
+            return await GitClient.FindGitInstallation().SafeAwait();
         }
 
         private bool disposed = false;

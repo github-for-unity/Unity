@@ -98,8 +98,8 @@ namespace GitHub.Unity
 
         private void UpdateStatusOnMainThread(GitStatus status)
         {
-            new ActionTask(Manager.TaskManager.Token, _ => UpdateStatus(status))
-                .ScheduleUI(Manager.TaskManager);
+            new ActionTask(TaskManager.Token, _ => UpdateStatus(status))
+                .ScheduleUI(TaskManager);
         }
 
         private void UpdateStatus(GitStatus status)
@@ -111,8 +111,8 @@ namespace GitHub.Unity
 
         private void UpdateLogOnMainThread()
         {
-            new ActionTask(Manager.TaskManager.Token, _ => UpdateLog())
-                .ScheduleUI(Manager.TaskManager);
+            new ActionTask(TaskManager.Token, _ => UpdateLog())
+                .ScheduleUI(TaskManager);
         }
 
         private void UpdateLog()

@@ -18,7 +18,6 @@ namespace GitHub.Unity
         event Action<string> LocalBranchCreated;
         event Action<string> LocalBranchDeleted;
         event Action RepositoryChanged;
-        event Action<string, string> RemoteBranchChanged;
         event Action<string, string> RemoteBranchCreated;
         event Action<string, string> RemoteBranchDeleted;
         void Initialize();
@@ -42,7 +41,6 @@ namespace GitHub.Unity
         public event Action<string> LocalBranchCreated;
         public event Action<string> LocalBranchDeleted;
         public event Action RepositoryChanged;
-        public event Action<string, string> RemoteBranchChanged;
         public event Action<string, string> RemoteBranchCreated;
         public event Action<string, string> RemoteBranchDeleted;
 

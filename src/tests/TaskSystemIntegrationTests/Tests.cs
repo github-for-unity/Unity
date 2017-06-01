@@ -16,7 +16,6 @@ namespace IntegrationTests
         protected ITaskManager TaskManager { get; set; }
         protected IProcessManager ProcessManager { get; set; }
         protected NPath TestBasePath { get; private set; }
-        protected IFileSystem FileSystem { get; private set; }
         protected CancellationToken Token => TaskManager.Token;
         protected NPath TestApp => System.Reflection.Assembly.GetExecutingAssembly().Location.ToNPath().Combine("TestApp.exe");
 
@@ -29,17 +28,15 @@ namespace IntegrationTests
             var syncContext = new ThreadSynchronizationContext(Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(syncContext);
 
-            FileSystem = new FileSystem();
-            NPath.FileSystem = FileSystem;
-            TestBasePath = NPath.CreateTempDirectory("integration-tests");
-            FileSystem.SetCurrentDirectory(TestBasePath);
-
             var env = new DefaultEnvironment();
+            TestBasePath = NPath.CreateTempDirectory("integration-tests");
+            env.FileSystem.SetCurrentDirectory(TestBasePath);
+
             var repo = Substitute.For<IRepository>();
             repo.LocalPath.Returns(TestBasePath);
             env.Repository = repo;
 
-            var platform = new Platform(env, FileSystem);
+            var platform = new Platform(env);
             ProcessManager = new ProcessManager(env, platform.GitEnvironment, Token);
             var processEnv = platform.GitEnvironment;
             var path = new ProcessTask<NPath>(TaskManager.Token, new FirstLineIsPathOutputProcessor())

@@ -33,19 +33,19 @@ namespace GitHub.Unity
         [MenuItem(LaunchMenu)]
         public static void Window_GitHub()
         {
-            ShowWindow(EntryPoint.AppManager);
+            ShowWindow(EntryPoint.ApplicationManager);
         }
 
         [MenuItem("GitHub/Show Window")]
         public static void GitHub_ShowWindow()
         {
-            ShowWindow(EntryPoint.AppManager);
+            ShowWindow(EntryPoint.ApplicationManager);
         }
 
         [MenuItem("GitHub/Command Line")]
         public static void GitHub_CommandLine()
         {
-            EntryPoint.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
+            EntryPoint.ApplicationManager.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
         }
 
         public static void ShowWindow(IApplicationManager applicationManager)
@@ -219,7 +219,7 @@ namespace GitHub.Unity
         {
             GenericMenu accountMenu = new GenericMenu();
 
-            if (!EntryPoint.Keychain.HasKeys)
+            if (!Platform.Keychain.HasKeys)
             {
                 accountMenu.AddItem(new GUIContent("Sign in"), false, SignIn, "sign in");
             }
@@ -240,17 +240,17 @@ namespace GitHub.Unity
         private void GoToProfile(object obj)
         {
             //Logger.Debug("{0} {1}", EntryPoint.CredentialManager.CachedCredentials.Host, EntryPoint.CredentialManager.CachedCredentials.Username);
-            Application.OpenURL(EntryPoint.CredentialManager.CachedCredentials.Host.Combine(EntryPoint.CredentialManager.CachedCredentials.Username));
+            Application.OpenURL(Platform.CredentialManager.CachedCredentials.Host.Combine(Platform.CredentialManager.CachedCredentials.Username));
         }
         private void SignOut(object obj)
         {
-            var task = new ActionTask(EntryPoint.CredentialManager.Delete(EntryPoint.CredentialManager.CachedCredentials.Host))
+            var task = new ActionTask(Platform.CredentialManager.Delete(Platform.CredentialManager.CachedCredentials.Host))
                 .Then(s =>
                 {
                     if (s)
                     {
-                        EntryPoint.Keychain.Clear(Repository.CloneUrl.ToRepositoryUrl());
-                        EntryPoint.Keychain.Flush(Repository.CloneUrl.ToRepositoryUrl());
+                        Platform.Keychain.Clear(Repository.CloneUrl.ToRepositoryUrl());
+                        Platform.Keychain.Flush(Repository.CloneUrl.ToRepositoryUrl());
                     }
                 });
         }

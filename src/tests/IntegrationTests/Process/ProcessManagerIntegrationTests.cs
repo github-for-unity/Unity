@@ -4,7 +4,6 @@ using FluentAssertions;
 using NUnit.Framework;
 using GitHub.Unity;
 using TestUtils;
-using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
@@ -16,7 +15,10 @@ namespace IntegrationTests
         {
             Initialize(TestRepoMasterCleanUnsynchronized);
 
-            var gitBranches = ProcessManager.GetGitBranches(TestRepoMasterCleanUnsynchronized).Result;
+            IEnumerable<GitBranch> gitBranches = null;
+            Assert.DoesNotThrow(async () => gitBranches = await ProcessManager
+                .GetGitBranches(TestRepoMasterCleanUnsynchronized)
+                .Start().Task);
 
             gitBranches.Should().BeEquivalentTo(
                 new GitBranch("master", "origin/master: behind 1", true),
@@ -30,7 +32,8 @@ namespace IntegrationTests
 
             List<GitLogEntry> logEntries = null;
             Assert.DoesNotThrow(async () => logEntries = await ProcessManager
-                    .GetGitLogEntries(TestRepoMasterCleanUnsynchronized, Environment, FileSystem, GitEnvironment, 2));
+                .GetGitLogEntries(TestRepoMasterCleanUnsynchronized, Environment, GitEnvironment, 2)
+                .Start().Task);
 
             logEntries.AssertEqual(new[]
             {
@@ -78,11 +81,10 @@ namespace IntegrationTests
         {
             Initialize(TestRepoMasterCleanUnsynchronizedRussianLanguage);
 
-            var logEntries =
-                ProcessManager
-                    .GetGitLogEntries(TestRepoMasterCleanUnsynchronizedRussianLanguage, Environment, FileSystem, GitEnvironment, 1)
-                    .Result
-                    .ToArray();
+            List<GitLogEntry> logEntries = null;
+            Assert.DoesNotThrow(async () => logEntries = await ProcessManager
+                .GetGitLogEntries(TestRepoMasterCleanUnsynchronizedRussianLanguage, Environment, GitEnvironment, 1)
+                .Start().Task);
 
             logEntries.AssertEqual(new[]
             {
@@ -112,7 +114,10 @@ namespace IntegrationTests
         {
             Initialize(TestRepoMasterCleanSynchronized);
 
-            var gitRemotes = ProcessManager.GetGitRemoteEntries(TestRepoMasterCleanSynchronized).Result;
+            List<GitRemote> gitRemotes = null;
+            Assert.DoesNotThrow(async () => gitRemotes = await ProcessManager
+                .GetGitRemoteEntries(TestRepoMasterCleanSynchronized)
+                .Start().Task);
 
             gitRemotes.Should().BeEquivalentTo(new GitRemote()
             {
@@ -128,11 +133,12 @@ namespace IntegrationTests
         {
             Initialize(TestRepoMasterDirtyUnsynchronized);
 
-            var gitStatus = ProcessManager
-                .GetGitStatus(TestRepoMasterDirtyUnsynchronized, Environment, FileSystem, GitEnvironment)
-                .Result;
+            GitStatus? gitStatus = null;
+            Assert.DoesNotThrow(async () => gitStatus = await ProcessManager
+                .GetGitStatus(TestRepoMasterDirtyUnsynchronized, Environment, GitEnvironment)
+                .Start().Task);
 
-            gitStatus.AssertEqual(new GitStatus()
+            gitStatus.Value.AssertEqual(new GitStatus()
             {
                 LocalBranch = "master",
                 RemoteBranch = "origin/master",
@@ -162,7 +168,10 @@ namespace IntegrationTests
         {
             Initialize(TestRepoMasterCleanSynchronized);
 
-            var s = ProcessManager.GetGitCreds(TestRepoMasterCleanSynchronized, Environment, FileSystem, GitEnvironment);
+            string s = null;
+            Assert.DoesNotThrow(async () => s = await ProcessManager
+                .GetGitCreds(TestRepoMasterCleanSynchronized, Environment, GitEnvironment)
+                .Start().Task);
             s.Should().NotBeNull();
         }
     }
