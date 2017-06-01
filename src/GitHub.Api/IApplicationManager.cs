@@ -8,7 +8,6 @@ namespace GitHub.Unity
     {
         CancellationToken CancellationToken { get; }
         IEnvironment Environment { get; }
-        IFileSystem FileSystem { get; }
         IPlatform Platform { get; }
         IProcessEnvironment GitEnvironment { get; }
         IProcessManager ProcessManager { get; }

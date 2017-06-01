@@ -35,7 +35,7 @@ namespace UnitTests
         {
             var environment = Substitute.For<IEnvironment>();
             environment.RepositoryPath.Returns(repositoryPath);
-            environment.UnityProjectPath.Returns(projectPath);
+            environment.UnityProjectPath.Returns(projectPath.ToNPath());
 
             NPath nExpected = expected;
             var repositoryFilePath = environment.GetRepositoryPath(path);
@@ -51,7 +51,7 @@ namespace UnitTests
         {
             var environment = Substitute.For<IEnvironment>();
             environment.RepositoryPath.Returns(repositoryPath);
-            environment.UnityProjectPath.Returns(projectPath);
+            environment.UnityProjectPath.Returns(projectPath.ToNPath());
 
             var repositoryFilePath = environment.GetRepositoryPath(path);
         }
@@ -65,7 +65,7 @@ namespace UnitTests
         {
             var environment = Substitute.For<IEnvironment>();
             environment.RepositoryPath.Returns(repositoryPath);
-            environment.UnityProjectPath.Returns(projectPath);
+            environment.UnityProjectPath.Returns(projectPath.ToNPath());
 
             NPath nExpected = expected;
             var repositoryFilePath = environment.GetAssetPath(path);
@@ -81,7 +81,7 @@ namespace UnitTests
         {
             var environment = Substitute.For<IEnvironment>();
             environment.RepositoryPath.Returns(repositoryPath);
-            environment.UnityProjectPath.Returns(projectPath);
+            environment.UnityProjectPath.Returns(projectPath.ToNPath());
 
             var repositoryFilePath = environment.GetAssetPath(path);
         }

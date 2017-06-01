@@ -5,7 +5,7 @@ namespace GitHub.Unity
 {
     interface IPlatform
     {
-        Task<IPlatform> Initialize(IEnvironment environment, IProcessManager processManager);
+        Task<IPlatform> Initialize(IProcessManager processManager, IUIDispatcher uiDispatcher);
         IProcessEnvironment GitEnvironment { get; }
         ICredentialManager CredentialManager { get; }
         IEnvironment Environment { get; }

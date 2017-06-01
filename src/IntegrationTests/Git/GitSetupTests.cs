@@ -52,9 +52,10 @@ namespace IntegrationTests
                 setupDone.Should().BeFalse();
             }
 
-            var platform = new Platform(environment, FileSystem, new TestUIDispatcher());
+            var platform = new Platform(environment, FileSystem);
             var gitEnvironment = platform.GitEnvironment;
             var processManager = new ProcessManager(environment, gitEnvironment);
+            platform.Initialize(processManager, new TestUIDispatcher()).Wait();
 
             var gitBranches = processManager.GetGitBranches(TestRepoMasterDirtyUnsynchronized, environment.GitExecutablePath);
 
