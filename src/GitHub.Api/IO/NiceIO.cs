@@ -184,7 +184,7 @@ GitHub.Unity
                 if (commonParent == null)
                     throw new ArgumentException("Path.RelativeTo() was unable to find a common parent between " + ToString() + " and " + path);
 
-                if (IsRelative && path.IsRelative && commonParent.IsEmpty())
+                if (IsRelative && path.IsRelative && commonParent.IsEmpty)
                     throw new ArgumentException("Path.RelativeTo() was invoked with two relative paths that do not share a common parent.  Invoked on: " + ToString() + " asked to be made relative to: " + path);
 
                 var depthDiff = path.Depth - commonParent.Depth;
@@ -209,7 +209,7 @@ GitHub.Unity
                         break;
                 }
 
-                if (IsRelative && path.IsRelative && commonParent.IsEmpty())
+                if (IsRelative && path.IsRelative && commonParent.IsEmpty)
                     return null;
                 return commonParent;
             }
@@ -262,6 +262,10 @@ GitHub.Unity
 
         public bool Exists(string append = "")
         {
+            if (String.IsNullOrEmpty(append))
+            {
+                return FileExists() || DirectoryExists();
+            }
             return Exists(new NPath(append));
         }
 
@@ -272,6 +276,8 @@ GitHub.Unity
 
         public bool DirectoryExists(string append = "")
         {
+            if (String.IsNullOrEmpty(append))
+                return FileSystem.DirectoryExists(ToString());
             return DirectoryExists(new NPath(append));
         }
 
@@ -282,6 +288,8 @@ GitHub.Unity
 
         public bool FileExists(string append = "")
         {
+            if (String.IsNullOrEmpty(append))
+                return FileSystem.FileExists(ToString());
             return FileExists(new NPath(append));
         }
 
@@ -460,9 +468,9 @@ GitHub.Unity
             return extension.StartsWith(".") ? extension : "." + extension;
         }
 
-        private bool IsEmpty()
+        public bool IsEmpty
         {
-            return _elements.Length == 0;
+            get { return _elements.Length == 0; }
         }
 
         public bool IsRoot
@@ -765,6 +773,12 @@ GitHub.Unity
 
         public NPath EnsureDirectoryExists(string append = "")
         {
+            if (String.IsNullOrEmpty(append))
+            {
+                EnsureParentDirectoryExists();
+                CreateDirectory();
+                return this;
+            }
             return EnsureDirectoryExists(new NPath(append));
         }
 
@@ -819,7 +833,7 @@ GitHub.Unity
                 return true;
             }
 
-            if (IsEmpty())
+            if (IsEmpty)
                 return false;
 
             if (Equals(potentialBasePath))
@@ -835,7 +849,7 @@ GitHub.Unity
                 var candidate = this;
                 while (true)
                 {
-                    if (candidate.IsEmpty())
+                    if (candidate.IsEmpty)
                         yield break;
 
                     candidate = candidate.Parent;

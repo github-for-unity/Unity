@@ -136,7 +136,7 @@ namespace GitHub.Unity
 
         private void DoNotInitializedGUI()
         {
-            Logger.Trace("DoNotInitializedGUI");
+            //Logger.Trace("DoNotInitializedGUI");
 
             GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
             {

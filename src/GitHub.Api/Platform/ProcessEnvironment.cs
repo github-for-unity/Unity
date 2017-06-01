@@ -22,11 +22,17 @@ namespace GitHub.Unity
             {
                 return null;
             }
+            
+            if (path.FileExists())
+                path = path.Parent;
 
             if (path.Combine(".git").DirectoryExists())
             {
                 return path;
             }
+
+            if (path.IsEmpty)
+                return null;
 
             return FindRoot(path.Parent);
         }

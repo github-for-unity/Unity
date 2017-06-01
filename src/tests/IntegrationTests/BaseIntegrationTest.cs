@@ -32,9 +32,8 @@ namespace IntegrationTests
 
         protected virtual void OnSetup()
         {
-            Environment.FileSystem = new FileSystem();
             TestBasePath = NPath.CreateTempDirectory("integration-tests");
-            Environment.FileSystem.SetCurrentDirectory(TestBasePath);
+            NPath.FileSystem.SetCurrentDirectory(TestBasePath);
         }
 
         [TearDown]
@@ -62,7 +61,7 @@ namespace IntegrationTests
             if (TestBasePath.Exists())
                 Logger.Warning("Error deleting TestBasePath: {0}", TestBasePath.ToString());
 
-            Environment.FileSystem = null;
+            NPath.FileSystem = null;
         }
     }
 }

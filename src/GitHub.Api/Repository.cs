@@ -45,7 +45,6 @@ namespace GitHub.Unity
             Name = name;
             CloneUrl = cloneUrl;
             LocalPath = localPath;
-            User = user;
 
             repositoryManager.OnRepositoryChanged += RepositoryManager_OnRepositoryChanged;
             repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
@@ -222,36 +221,7 @@ namespace GitHub.Unity
             GetHashCode());
 
         public GitStatus CurrentStatus { get; private set; }
-        private IUser user;
-        public IUser User
-        {
-            get
-            {
-                if (user == null)
-                {
-                    var user = new User();
-
-                    var res = gitClient.GetConfig("user.name", GitConfigSource.User).Task.Result;
-                    if (res == null)
-                    {
-                        throw new InvalidOperationException("No user configured");
-                    }
-                    user.Name = res;
-
-                    res = gitClient.GetConfig("user.email", GitConfigSource.User).Task.Result;
-                    if (res == null)
-                    {
-                        throw new InvalidOperationException("No user configured");
-                    }
-                    user.Email = res;
-                }
-                return user;
-            }
-            set
-            {
-                user = value;
-            }
-        }
+        public IUser User { get; set; }
         public IEnumerable<GitLock> CurrentLocks { get; private set; }
         protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
     }

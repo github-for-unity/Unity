@@ -61,9 +61,11 @@ namespace UnitTests
         [TestCase(@"c:\file.txt", null, TestName = "file outside root inside sibling should not be found")]
         public void FindRoot(string input, string expected)
         {
-            var filesystem = (IFileSystem)BuildFindRootFileSystem();
+            var fs = (IFileSystem)BuildFindRootFileSystem();
+            NPath.FileSystem = fs;
 
             var environment = Substitute.For<IEnvironment>();
+            environment.FileSystem.Returns(fs);
 
             var windowsGitEnvironment = new ProcessEnvironment(environment);
             var result = windowsGitEnvironment.FindRoot(input.ToNPath());

@@ -26,7 +26,7 @@ namespace GitHub.Unity
         ConfigRemote? ActiveRemote { get; }
         IGitClient GitClient { get; }
         bool IsBusy { get; }
-        void Initialize();
+        Task Initialize();
         void Start();
         void Stop();
         void Refresh();
@@ -110,7 +110,7 @@ namespace GitHub.Unity
         private readonly IGitConfig config;
         private readonly IPlatform platform;
         private readonly ITaskManager taskManager;
-        private readonly IRepository repository;
+        private IRepository repository;
         private readonly IRepositoryPathConfiguration repositoryPaths;
         private readonly IGitClient gitClient;
         private readonly IRepositoryWatcher watcher;
@@ -146,8 +146,6 @@ namespace GitHub.Unity
 
             config = gitConfig;
 
-            repository = InitializeRepository();
-
             watcher = repositoryWatcher;
 
             watcher.HeadChanged += HeadChanged;
@@ -168,9 +166,11 @@ namespace GitHub.Unity
             watcher.Initialize();
         }
 
-        public void Initialize()
+        public async Task Initialize()
         {
             Logger.Trace("Initialize");
+            repository = await InitializeRepository().SafeAwait();
+            Logger.Trace($"Initialize done {Repository}");
         }
 
         public void Start()
@@ -351,7 +351,7 @@ namespace GitHub.Unity
             var task = GitClient.Status()
                 .Finally((success, ex, data) =>
                 {
-                    if (success)
+                    if (success && data.HasValue)
                     {
                         OnRepositoryChanged?.Invoke(data.Value);
                     }
@@ -404,7 +404,7 @@ namespace GitHub.Unity
             }
         }
 
-        private IRepository InitializeRepository()
+        private async Task<IRepository> InitializeRepository()
         {
             head = repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
 
@@ -420,8 +420,22 @@ namespace GitHub.Unity
                 cloneUrl = new UriString(remote.Url).ToRepositoryUrl();
             }
 
-            return new Repository(gitClient, this, repositoryPaths.RepositoryPath.FileName, cloneUrl,
+            var repo = new Repository(gitClient, this, repositoryPaths.RepositoryPath.FileName, cloneUrl,
                 repositoryPaths.RepositoryPath);
+
+            var user = new User();
+
+            var res = await GitClient.GetConfig("user.name", GitConfigSource.User).StartAwait();
+            user.Name = res;
+
+            res = await gitClient.GetConfig("user.email", GitConfigSource.User).StartAwait();
+            if (res == null)
+            {
+                throw new InvalidOperationException("No user configured");
+            }
+            user.Email = res;
+            repo.User = user;
+            return repo;
         }
 
         private void RefreshConfigData()

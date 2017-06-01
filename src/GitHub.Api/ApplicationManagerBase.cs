@@ -52,26 +52,34 @@ namespace GitHub.Unity
 
         public virtual ITask RestartRepository()
         {
-            return new ActionTask(TaskManager.Token, _ =>
+            return new FuncTask<bool>(TaskManager.Token, _ =>
             {
                 Environment.Initialize();
 
-                if (Environment.RepositoryPath != null)
-                {
-                    try
-                    {
-                        var repositoryManagerFactory = new RepositoryManagerFactory();
-                        repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, GitClient,  Environment.RepositoryPath);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error(ex);
-                    }
-                    Environment.Repository = repositoryManager.Repository;
-                    repositoryManager.Initialize();
-                    repositoryManager.Start();
-                }
-            });
+                if (Environment.RepositoryPath == null)
+                    return false;
+                return true;
+
+            })
+            .Defer(async s =>
+            {
+                if (!s)
+                    return false;
+
+                var repositoryPathConfiguration = new RepositoryPathConfiguration(Environment.RepositoryPath);
+                var gitConfig = new GitConfig(repositoryPathConfiguration.DotGitConfig);
+
+                var repositoryWatcher = new RepositoryWatcher(Platform, repositoryPathConfiguration, TaskManager.Token);
+                repositoryManager = new RepositoryManager(Platform, TaskManager, gitConfig, repositoryWatcher,
+                        GitClient, repositoryPathConfiguration, TaskManager.Token);
+
+                await repositoryManager.Initialize().SafeAwait();
+                Environment.Repository = repositoryManager.Repository;
+                Logger.Trace($"Got a repository? {Environment.Repository}");
+                repositoryManager.Start();
+                return true;
+            })
+            .Finally((_, __) => { });
         }
 
         private async Task SetupAndRestart(ProgressReport progress)

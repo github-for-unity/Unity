@@ -65,12 +65,8 @@ namespace GitHub.Unity
                 .Then(ignoresTask)
                 .Then(addTask)
                 .Then(commitTask)
-                .Then(_ => ApplicationManager.RestartRepository().Start(TaskManager.ConcurrentScheduler));
-            initTask.Schedule(TaskManager);
-
-            //task.Critical = false;
-            //task.Queued = TaskQueueSetting.QueueSingle;
-            //task.Blocking = false;
+                .Then(ApplicationManager.RestartRepository())
+                .Start();
         }
 
         protected virtual void SetProjectToTextSerialization()
