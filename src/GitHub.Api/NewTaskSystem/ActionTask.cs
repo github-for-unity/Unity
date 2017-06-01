@@ -49,8 +49,8 @@ namespace GitHub.Unity
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                RaiseFaultHandlers(ex);
-                throw;
+                if (!RaiseFaultHandlers(ex))
+                    throw;
             }
             finally
             {
@@ -108,8 +108,8 @@ namespace GitHub.Unity
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                RaiseFaultHandlers(ex);
-                throw;
+                if (!RaiseFaultHandlers(ex))
+                    throw;
             }
             finally
             {
@@ -166,12 +166,12 @@ namespace GitHub.Unity
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                RaiseFaultHandlers(ex);
-                throw;
+                if (!RaiseFaultHandlers(ex))
+                    throw;
             }
             finally
             {
-                RaiseOnEnd();
+                RaiseOnEnd(result);
             }
 
             return result;
@@ -227,12 +227,12 @@ namespace GitHub.Unity
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                RaiseFaultHandlers(ex);
-                throw;
+                if (!RaiseFaultHandlers(ex))
+                    throw;
             }
             finally
             {
-                RaiseOnEnd();
+                RaiseOnEnd(result);
             }
 
             return result;
@@ -283,17 +283,16 @@ namespace GitHub.Unity
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                RaiseFaultHandlers(ex);
-                throw;
+                if (!RaiseFaultHandlers(ex))
+                    throw;
             }
             finally
             {
-                RaiseOnEnd();
+                if (result == null)
+                    result = new List<T>();
+
+                RaiseOnEnd(result);
             }
-
-            if (result == null)
-                result = new List<T>();
-
             return result;
         }
     }
@@ -342,12 +341,12 @@ namespace GitHub.Unity
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                RaiseFaultHandlers(ex);
-                throw;
+                if (!RaiseFaultHandlers(ex))
+                    throw;
             }
             finally
             {
-                RaiseOnEnd();
+                RaiseOnEnd(result);
             }
 
             return result;

@@ -194,8 +194,9 @@ namespace GitHub.Unity
         {
             var add = GitClient.Add(files);
             add.OnStart += t => IsBusy = true;
-            return add.Then(GitClient.Commit(message, body))
-               .Then(_ => IsBusy = false);
+            return add
+                .Then(GitClient.Commit(message, body))
+                .Finally(() => IsBusy = false);
         }
 
         public ITask Fetch(string remote)

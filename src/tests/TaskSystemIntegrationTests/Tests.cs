@@ -567,23 +567,69 @@ namespace IntegrationTests
         }
 
         [Test]
+        [Ignore]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public async Task DeferExceptions()
+        {
+            var runOrder = new List<string>();
+            var task = new FuncTask<int>(Token, _ => 1)
+                .Defer(async d =>
+                {
+                    throw new InvalidOperationException();
+                    return d;
+                })
+                .Then(_ => { });
+            await task.StartAsAsync();
+        }
+
+        [Test]
+        public async Task StartAsyncWorks()
+        {
+            var runOrder = new List<string>();
+            var task = new FuncTask<int>(Token, _ => 1);
+            var ret = await task.StartAsAsync();
+            Assert.AreEqual(1, ret);
+        }
+
+        [Test]
         public async Task MultipleCatchStatementsCanHappen()
         {
             var runOrder = new List<string>();
             var exceptions = new List<Exception>();
             var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
-                .Catch(e => { runOrder.Add("1"); exceptions.Add(e); return false; })
+                .Catch(e => { runOrder.Add("1"); exceptions.Add(e); })
                 .Then(_ => { throw new InvalidCastException(); })
-                .Catch(e => { runOrder.Add("2"); exceptions.Add(e); return true; })
+                .Catch(e => { runOrder.Add("2"); exceptions.Add(e); })
                 .Then(_ => { throw new ArgumentNullException(); })
                 .Catch(e => { runOrder.Add("3"); exceptions.Add(e); })
                 .Finally((s,e) => { });
             await task.StartAsAsyncWithoutThrowing();
             CollectionAssert.AreEqual(
-                new string[] { typeof(InvalidOperationException).Name, typeof(InvalidOperationException).Name },
+                new string[] { typeof(InvalidOperationException).Name, typeof(InvalidOperationException).Name, typeof(InvalidOperationException).Name },
                 exceptions.Select(x => x.GetType().Name).ToArray());
             CollectionAssert.AreEqual(
-                new string[] { "1", "2" },
+                new string[] { "1", "2", "3" },
+                runOrder);
+        }
+
+        [Test]
+        public async Task ContinueAfterException()
+        {
+            var runOrder = new List<string>();
+            var exceptions = new List<Exception>();
+            var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
+                .Catch(e => { runOrder.Add("1"); exceptions.Add(e); return true; })
+                .Then(_ => { throw new InvalidCastException(); })
+                .Catch(e => { runOrder.Add("2"); exceptions.Add(e); return true; })
+                .Then(_ => { throw new ArgumentNullException(); })
+                .Catch(e => { runOrder.Add("3"); exceptions.Add(e); return true; })
+                .Finally((s, e) => { });
+            await task.StartAsAsyncWithoutThrowing();
+            CollectionAssert.AreEqual(
+                new string[] { typeof(InvalidOperationException).Name, typeof(InvalidCastException).Name, typeof(ArgumentNullException).Name },
+                exceptions.Select(x => x.GetType().Name).ToArray());
+            CollectionAssert.AreEqual(
+                new string[] { "1", "2", "3" },
                 runOrder);
         }
 

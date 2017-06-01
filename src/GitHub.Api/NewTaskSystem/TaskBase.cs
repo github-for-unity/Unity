@@ -9,6 +9,7 @@ namespace GitHub.Unity
         T Then<T>(T continuation, bool always = false) where T : ITask;
         ITask Catch(Action<Exception> handler);
         ITask Catch(Func<Exception, bool> handler);
+        ITask Finally(Action handler);
         ITask Finally(Action<bool, Exception> continuation, TaskAffinity affinity = TaskAffinity.Concurrent);
         ITask Defer<T>(Func<T, Task> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false);
         ITask SetDependsOn(ITask dependsOn);
@@ -32,6 +33,7 @@ namespace GitHub.Unity
     {
         new ITask<TResult> Catch(Action<Exception> handler);
         new ITask<TResult> Catch(Func<Exception, bool> handler);
+        ITask<TResult> Finally(Action<TResult> handler);
         ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent);
         ITask Finally(Action<bool, Exception, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent);
         new ITask<TResult> Start();
@@ -39,7 +41,7 @@ namespace GitHub.Unity
         TResult Result { get; }
         new Task<TResult> Task { get; }
         new event Action<ITask<TResult>> OnStart;
-        new event Action<ITask<TResult>> OnEnd;
+        new event Action<ITask<TResult>, TResult> OnEnd;
         ITask<T> Defer<T>(Func<TResult, Task<T>> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false);
     }
 
@@ -67,6 +69,7 @@ namespace GitHub.Unity
         protected bool continuationAlways;
 
         protected event Func<Exception, bool> faultHandler;
+        private event Action finallyHandler;
 
         public TaskBase(CancellationToken token, ITask dependsOn = null, bool always = false)
         {
@@ -103,27 +106,36 @@ namespace GitHub.Unity
 
         /// <summary>
         /// Catch runs right when the exception happens (on the same thread)
-        /// Marks the catch as handled so other Catch statements down the chain
-        /// won't be called for this exception (but the chain will be cancelled)
+        /// Chain will be cancelled
         /// </summary>
         public ITask Catch(Action<Exception> handler)
         {
             Guard.ArgumentNotNull(handler, "handler");
-            faultHandler += e => { handler(e); return true; };
+            faultHandler += e => { handler(e); return false; };
             DependsOn?.Catch(handler);
             return this;
         }
 
         /// <summary>
         /// Catch runs right when the exception happens (on the same threaD)
-        /// Return false if you want other Catch statements on the chain to also
-        /// get called for this exception
+        /// Return true if you want the task to completely successfully
         /// </summary>
         public ITask Catch(Func<Exception, bool> handler)
         {
             Guard.ArgumentNotNull(handler, "handler");
             faultHandler += handler;
             DependsOn?.Catch(handler);
+            return this;
+        }
+
+        /// <summary>
+        /// This finally will always run on the same thread as the last task that runs
+        /// </summary>
+        public ITask Finally(Action handler)
+        {
+            Guard.ArgumentNotNull(handler, "handler");
+            finallyHandler += handler;
+            DependsOn?.Finally(handler);
             return this;
         }
 
@@ -247,23 +259,26 @@ namespace GitHub.Unity
 
         protected virtual void Run(bool success)
         {
-            Logger.Trace($"Executing {ToString()} success?:{success}");
         }
 
         protected virtual void RaiseOnStart()
         {
+            Logger.Trace($"Executing {ToString()}");
             OnStart?.Invoke(this);
         }
 
         protected virtual void RaiseOnEnd()
         {
             OnEnd?.Invoke(this);
+            if (Task.Status != TaskStatus.Faulted && continuation == null)
+                finallyHandler?.Invoke();
+            Logger.Trace($"Finished {ToString()}");
         }
 
-        protected void RaiseFaultHandlers(Exception ex)
+        protected virtual bool RaiseFaultHandlers(Exception ex)
         {
             if (faultHandler == null)
-                return;
+                return false;
             bool handled = false;
             foreach (var handler in faultHandler.GetInvocationList())
             {
@@ -271,6 +286,9 @@ namespace GitHub.Unity
                 if (handled)
                     break;
             }
+            if (!handled)
+                finallyHandler?.Invoke();
+            return handled;
         }
 
         protected Exception GetThrownException()
@@ -343,6 +361,7 @@ namespace GitHub.Unity
     abstract class TaskBase<TResult> : TaskBase, ITask<TResult>
     {
         protected TaskCompletionSource<TResult> tcs = new TaskCompletionSource<TResult>();
+        private event Action<TResult> finallyHandler;
 
         public TaskBase(CancellationToken token, ITask dependsOn = null, bool always = false)
             : base(token, dependsOn, always)
@@ -447,6 +466,17 @@ namespace GitHub.Unity
             }
         }
 
+        /// <summary>
+        /// This finally will always run on the same thread as the last task that runs
+        /// </summary>
+        public ITask<TResult> Finally(Action<TResult> handler)
+        {
+            Guard.ArgumentNotNull(handler, "handler");
+            finallyHandler += handler;
+            DependsOn?.Finally(() => handler(default(TResult)));
+            return this;
+        }
+
         public ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
@@ -483,8 +513,17 @@ namespace GitHub.Unity
             return default(TResult);
         }
 
+        protected virtual void RaiseOnEnd(TResult result)
+        {
+            OnEnd?.Invoke(this, result);
+            if (Task.Status == TaskStatus.Faulted || continuation == null)
+                finallyHandler?.Invoke(result);
+            RaiseOnEnd();
+            Logger.Trace($"Finished {ToString()} {result}");
+        }
+
         public new event Action<ITask<TResult>> OnStart;
-        public new event Action<ITask<TResult>> OnEnd;
+        public new event Action<ITask<TResult>, TResult> OnEnd;
         public new Task<TResult> Task
         {
             get { return base.Task as Task<TResult>; }

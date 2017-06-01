@@ -198,17 +198,8 @@ namespace GitHub.Unity
         public static Task<T> StartAsAsync<T>(this ITask<T> task)
         {
             var tcs = new TaskCompletionSource<T>();
-            task.Finally((s, e, d) =>
-            {
-                if (!s)
-                {
-                    if (e == null) // this should never happen
-                        e = new InvalidOperationException("Task failed but there's no exception?");
-                    tcs.SetException(e);
-                }
-                else
-                    tcs.SetResult(d);
-            });
+            task.Finally(r => tcs.TrySetResult(r));
+            task.Catch(e => tcs.TrySetException(e));
             task.Start();
             return tcs.Task;
         }
@@ -216,17 +207,8 @@ namespace GitHub.Unity
         public static Task<bool> StartAsAsync(this ITask task)
         {
             var tcs = new TaskCompletionSource<bool>();
-            task.Finally((s, e) =>
-            {
-                if (!s)
-                {
-                    if (e == null) // this should never happen
-                        e = new InvalidOperationException("Task failed but there's no exception?");
-                    tcs.SetException(e);
-                }
-                else
-                    tcs.SetResult(s);
-            });
+            task.Finally(() => tcs.TrySetResult(true));
+            task.Catch(e => tcs.TrySetException(e));
             task.Start();
             return tcs.Task;
         }

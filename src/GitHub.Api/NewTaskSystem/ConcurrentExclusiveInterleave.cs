@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
@@ -392,7 +393,16 @@ namespace GitHub.Unity
             {
                 var processingTaskOnCurrentThread = this.processingTaskOnCurrentThread.Value;
                 if (!processingTaskOnCurrentThread) this.processingTaskOnCurrentThread.Value = true;
-                TryExecuteTask(task);
+                //try
+                //{
+                    TryExecuteTask(task);
+                //}
+                //catch(Exception ex)
+                //{
+                //    Logging.Error(ex);
+                //    throw;
+                //}
+
                 if (!processingTaskOnCurrentThread) this.processingTaskOnCurrentThread.Value = false;
             }
 

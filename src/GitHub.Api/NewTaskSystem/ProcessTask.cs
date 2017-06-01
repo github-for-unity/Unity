@@ -284,13 +284,20 @@ namespace GitHub.Unity
                 RaiseOnStart,
                 () =>
                 {
-                    RaiseOnEnd();
+                    if (outputProcessor != null)
+                        result = outputProcessor.Result;
+
+                    if (result == null && typeof(T) == typeof(string))
+                        result = (T)(object)(Process.StartInfo.CreateNoWindow ? "Process finished" : "Process running");
+
+                    RaiseOnEnd(result);
+
                     if (Errors != null)
                     {
                         OnErrorData?.Invoke(Errors);
                         thrownException = thrownException ?? new ProcessException(this);
-                        RaiseFaultHandlers(thrownException);
-                        throw thrownException;
+                        if (!RaiseFaultHandlers(thrownException))
+                            throw thrownException;
                     }
                 },
                 (ex, error) =>
@@ -302,13 +309,12 @@ namespace GitHub.Unity
 
             wrapper.Run();
 
-            if (outputProcessor != null)
-                result = outputProcessor.Result;
-
-            if (result == null && typeof(T) == typeof(string))
-                result = (T)(object)(Process.StartInfo.CreateNoWindow ? "Process finished" : "Process running");
-
             return result;
+        }
+
+        public override string ToString()
+        {
+            return $"{Task?.Id ?? -1} {Name} {GetType()} {ProcessName} {ProcessArguments}";
         }
 
         public Process Process { get; set; }
@@ -402,13 +408,19 @@ namespace GitHub.Unity
                 RaiseOnStart,
                 () =>
                 {
-                    RaiseOnEnd();
+                    if (outputProcessor != null)
+                        result = outputProcessor.Result;
+                    if (result == null)
+                        result = new List<T>();
+
+                    RaiseOnEnd(result);
+
                     if (Errors != null)
                     {
                         OnErrorData?.Invoke(Errors);
                         thrownException = thrownException ?? new ProcessException(this);
-                        RaiseFaultHandlers(thrownException);
-                        throw thrownException;
+                        if (!RaiseFaultHandlers(thrownException))
+                            throw thrownException;
                     }
                 },
                 (ex, error) =>
@@ -419,11 +431,12 @@ namespace GitHub.Unity
                 Token);
             wrapper.Run();
 
-            if (outputProcessor != null)
-                result = outputProcessor.Result;
-            if (result == null)
-                result = new List<T>();
             return result;
+        }
+
+        public override string ToString()
+        {
+            return $"{Task?.Id ?? -1} {Name} {GetType()} {ProcessName} {ProcessArguments}";
         }
 
         public Process Process { get; set; }
