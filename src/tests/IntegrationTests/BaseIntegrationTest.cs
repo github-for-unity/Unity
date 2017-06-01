@@ -22,13 +22,12 @@ namespace IntegrationTests
         {
             Logger = Logging.GetLogger(GetType());
             Factory = new TestUtils.SubstituteFactory();
-            System.Environment.SetEnvironmentVariable("GHFU", "TESTING");
+            GitHub.Unity.Guard.InUnitTestRunner = true;
         }
 
         [TestFixtureTearDown]
         public void TestFixtureTearDown()
         {
-            System.Environment.SetEnvironmentVariable("GHFU", null);
         }
 
         [SetUp]

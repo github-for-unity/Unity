@@ -23,7 +23,7 @@ namespace GitHub.Unity
                     handler(ex);
                 else
                 {
-                    if (Environment.GetEnvironmentVariable("GHFU") == "TESTING")
+                    if (Guard.InUnitTestRunner)
                         throw;
                     Logging.GetLogger().Error(ex);
                 }
@@ -40,7 +40,7 @@ namespace GitHub.Unity
             {
                 if (handler != null)
                     return handler(ex);
-                if (Environment.GetEnvironmentVariable("GHFU") == "TESTING")
+                if (Guard.InUnitTestRunner)
                     throw;
                 Logging.GetLogger().Error(ex);
                 return default(T);
@@ -59,7 +59,7 @@ namespace GitHub.Unity
                     handler(ex);
                 else
                 {
-                    if (Environment.GetEnvironmentVariable("GHFU") == "TESTING")
+                    if (Guard.InUnitTestRunner)
                         throw;
                     Logging.GetLogger().Error(ex);
                 }
@@ -76,7 +76,7 @@ namespace GitHub.Unity
             {
                 if (handler != null)
                     return handler(ex);
-                if (Environment.GetEnvironmentVariable("GHFU") == "TESTING")
+                if (Guard.InUnitTestRunner)
                     throw;
                 Logging.GetLogger().Error(ex);
                 return default(T);

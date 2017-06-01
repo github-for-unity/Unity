@@ -141,7 +141,7 @@ namespace GitHub.Unity
 
             // Otherwise, run the processor. Store the task and then start it to ensure that 
             // the assignment happens before the body of the task runs.
-            taskExecuting = new Task(ConcurrentExclusiveInterleaveProcessor, CancellationToken.None, TaskCreationOptions.None);
+            taskExecuting = new Task(ConcurrentExclusiveInterleaveProcessor, token, TaskCreationOptions.None);
             taskExecuting.Start(parallelOptions.TaskScheduler);
         }
 

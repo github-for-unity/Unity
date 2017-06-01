@@ -21,7 +21,7 @@ namespace IntegrationTests
 
             Platform = new Platform(Environment);
             GitEnvironment = Platform.GitEnvironment;
-            ProcessManager = new ProcessManager(Environment, GitEnvironment);
+            ProcessManager = new ProcessManager(Environment, GitEnvironment, TaskManager.Token);
 
             Platform.Initialize(ProcessManager, TaskManager);
 

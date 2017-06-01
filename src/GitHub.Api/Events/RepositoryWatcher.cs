@@ -83,7 +83,7 @@ namespace GitHub.Unity
 
             running = true;
             pauseEvent.Reset();
-            task = Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, ThreadingHelper.TaskScheduler);
+            task = Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         public void Stop()
