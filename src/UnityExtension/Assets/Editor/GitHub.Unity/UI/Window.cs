@@ -136,6 +136,8 @@ namespace GitHub.Unity
 
         private void DoNotInitializedGUI()
         {
+            Logger.Trace("DoNotInitializedGUI");
+
             GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
             {
                 GUILayout.Space(3);
@@ -354,6 +356,17 @@ namespace GitHub.Unity
             Changes,
             Branches,
             Settings
+        }
+
+        public override void Initialize(IApplicationManager applicationManager)
+        {
+            base.Initialize(applicationManager);
+
+            HistoryTab.Initialize(this);
+            ChangesTab.Initialize(this);
+            BranchesTab.Initialize(this);
+            SettingsTab.Initialize(this);
+            ActiveTab.Initialize(this);
         }
     }
 }
