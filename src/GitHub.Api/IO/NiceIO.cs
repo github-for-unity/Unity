@@ -775,6 +775,8 @@ GitHub.Unity
         {
             if (String.IsNullOrEmpty(append))
             {
+                if (DirectoryExists())
+                    return this;
                 EnsureParentDirectoryExists();
                 CreateDirectory();
                 return this;
