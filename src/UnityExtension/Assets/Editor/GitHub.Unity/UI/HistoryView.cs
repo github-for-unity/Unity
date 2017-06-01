@@ -329,7 +329,7 @@ namespace GitHub.Unity
                 }
 
                 var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
-                GUI.enabled = statusBehind == 0;
+                GUI.enabled = currentRemote != null && statusBehind == 0;
                 var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
                 GUI.enabled = true;
                 if (pushClicked &&
