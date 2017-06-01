@@ -180,7 +180,6 @@ namespace GitHub.Unity
 
                 if (Repository != null)
                 {
-
                     OnUserSettingsGUI();
 
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
