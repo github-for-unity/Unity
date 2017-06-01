@@ -103,7 +103,7 @@ namespace UnitTests
                 p.StandardInput.WriteLine("host=github.com");
                 p.StandardInput.Close();
             };
-            return await task.Start().Task;
+            return await task.StartAsAsync();
         }
     }
 }

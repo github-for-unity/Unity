@@ -288,10 +288,9 @@ namespace GitHub.Unity
                     if (Errors != null)
                     {
                         OnErrorData?.Invoke(Errors);
-                        if (thrownException == null)
-                            throw new ProcessException(this);
-                        else
-                            throw thrownException;
+                        thrownException = thrownException ?? new ProcessException(this);
+                        RaiseFaultHandlers(thrownException);
+                        throw thrownException;
                     }
                 },
                 (ex, error) =>
@@ -407,10 +406,9 @@ namespace GitHub.Unity
                     if (Errors != null)
                     {
                         OnErrorData?.Invoke(Errors);
-                        if (thrownException == null)
-                            throw new ProcessException(this);
-                        else
-                            throw thrownException;
+                        thrownException = thrownException ?? new ProcessException(this);
+                        RaiseFaultHandlers(thrownException);
+                        throw thrownException;
                     }
                 },
                 (ex, error) =>

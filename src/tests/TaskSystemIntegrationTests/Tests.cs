@@ -86,7 +86,7 @@ namespace IntegrationTests
                 .Then((s, d) => output.Add(d))
                 .Finally((s, e) => success = s);
 
-            await task.StartAwait();
+            await task.StartAsAsyncWithoutThrowing();
 
             Assert.IsFalse(success);
             CollectionAssert.AreEqual(expectedOutput, output);
@@ -209,7 +209,8 @@ namespace IntegrationTests
             var rand = new Randomizer(seed);
 
             var uiThread = 0;
-            await new ActionTask(Token, _ => uiThread = Thread.CurrentThread.ManagedThreadId) { Affinity = TaskAffinity.UI }.StartAwait();
+            await new ActionTask(Token, _ => uiThread = Thread.CurrentThread.ManagedThreadId) { Affinity = TaskAffinity.UI }
+                .StartAsAsyncWithoutThrowing();
 
             for (int i = 1; i < 100; i++)
             {
@@ -232,7 +233,8 @@ namespace IntegrationTests
             var rand = new Randomizer(seed);
 
             var uiThread = 0;
-            await new ActionTask(Token, _ => uiThread = Thread.CurrentThread.ManagedThreadId) { Affinity = TaskAffinity.UI }.StartAwait();
+            await new ActionTask(Token, _ => uiThread = Thread.CurrentThread.ManagedThreadId) { Affinity = TaskAffinity.UI }
+                .StartAsAsyncWithoutThrowing();
 
             for (int i = 1; i < 100; i++)
             {
@@ -281,7 +283,7 @@ namespace IntegrationTests
                     finallyException = e;
                 });
 
-            await task.StartAwait();
+            await task.StartAsAsyncWithoutThrowing();
 
             Assert.IsFalse(success);
             CollectionAssert.AreEqual(expectedOutput, output);
@@ -308,7 +310,7 @@ namespace IntegrationTests
                     finallyException = e;
                 });
 
-            await task.StartAwait();
+            await task.StartAsAsyncWithoutThrowing();
 
             Assert.IsFalse(success);
             CollectionAssert.AreEqual(expectedOutput, output);
@@ -357,7 +359,7 @@ namespace IntegrationTests
                     return d;
                 });
 
-            await task.StartAwait();
+            await task.StartAsAsyncWithoutThrowing();
 
             Assert.IsFalse(success);
             CollectionAssert.AreEqual(expectedOutput, output);
@@ -369,7 +371,7 @@ namespace IntegrationTests
         }
 
         [Test]
-        public async Task DoNotUseCatchAtTheEndOfAChain()
+        public async Task YouCanUseCatchAtTheEndOfAChain()
         {
             var success = false;
             Exception exception = null;
@@ -383,13 +385,13 @@ namespace IntegrationTests
                 .Then(new FuncTask<string>(Token, _ => "another name") { Affinity = TaskAffinity.Exclusive })
                 .ThenInUI((s, d) => output.Add(d))
                 .Finally((_, __) => { })
-                .Catch(ex => { Thread.Sleep(20); exception = ex; });
+                .Catch(ex => { exception = ex; });
 
-            await task.StartAwait();
+            await task.Start().Task;
 
             Assert.IsFalse(success);
             CollectionAssert.AreEqual(expectedOutput, output);
-            Assert.IsNull(exception);
+            Assert.IsNotNull(exception);
         }
 
         [Test]
@@ -439,7 +441,7 @@ namespace IntegrationTests
                     return d;
                 });
 
-            var ret = await task.StartAwait();
+            var ret = await task.StartAsAsyncWithoutThrowing();
             Assert.AreEqual("done", ret);
             Assert.IsTrue(success);
             CollectionAssert.AreEqual(expectedOutput, output);
@@ -492,9 +494,11 @@ namespace IntegrationTests
             Task.WaitAll(tasks.Select(x => x.Task).ToArray());
 
             Assert.IsTrue(success);
-            CollectionAssert.AreEquivalent(expectedOutput, output);
             Assert.IsNull(exception);
             Assert.IsNull(finallyException);
+            expectedOutput.Sort();
+            output.Sort();
+            CollectionAssert.AreEquivalent(expectedOutput, output);
         }
 
         [Test]
@@ -527,7 +531,7 @@ namespace IntegrationTests
                     }
                 });
 
-            await task.StartAwait();
+            await task.StartAsAsyncWithoutThrowing();
 
             Assert.IsTrue(success);
             CollectionAssert.AreEqual(expectedOutput, output);
@@ -548,7 +552,7 @@ namespace IntegrationTests
                 .Finally((s, d) => { });
             task.OnStart += _ => runOrder.Add("start");
             task.OnEnd += _ => runOrder.Add("end");
-            await task.Start().Task;
+            await task.StartAsAsyncWithoutThrowing();
             CollectionAssert.AreEqual(new string[] { "start", "end" }, runOrder);
         }
 
@@ -559,7 +563,28 @@ namespace IntegrationTests
             var runOrder = new List<string>();
             var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
                 .Catch(_ => { });
-            await task.Start().Task;
+            await task.StartAsAsync();
+        }
+
+        [Test]
+        public async Task MultipleCatchStatementsCanHappen()
+        {
+            var runOrder = new List<string>();
+            var exceptions = new List<Exception>();
+            var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
+                .Catch(e => { runOrder.Add("1"); exceptions.Add(e); return false; })
+                .Then(_ => { throw new InvalidCastException(); })
+                .Catch(e => { runOrder.Add("2"); exceptions.Add(e); return true; })
+                .Then(_ => { throw new ArgumentNullException(); })
+                .Catch(e => { runOrder.Add("3"); exceptions.Add(e); })
+                .Finally((s,e) => { });
+            await task.StartAsAsyncWithoutThrowing();
+            CollectionAssert.AreEqual(
+                new string[] { typeof(InvalidOperationException).Name, typeof(InvalidOperationException).Name },
+                exceptions.Select(x => x.GetType().Name).ToArray());
+            CollectionAssert.AreEqual(
+                new string[] { "1", "2" },
+                runOrder);
         }
 
         [Test]
@@ -579,12 +604,13 @@ namespace IntegrationTests
         public async Task CanWrapATask()
         {
             var uiThread = 0;
-            await new ActionTask(Token, _ => uiThread = Thread.CurrentThread.ManagedThreadId) { Affinity = TaskAffinity.UI }.StartAwait();
+            await new ActionTask(Token, _ => uiThread = Thread.CurrentThread.ManagedThreadId) { Affinity = TaskAffinity.UI }
+                .StartAsAsyncWithoutThrowing();
 
             var runOrder = new List<string>();
             var task = new Task(() => runOrder.Add($"ran {Thread.CurrentThread.ManagedThreadId}"));
             var act = new ActionTask(task) { Affinity = TaskAffinity.UI };
-            await act.StartAwait();
+            await act.StartAsAsyncWithoutThrowing();
             CollectionAssert.AreEqual(new string[] { $"ran {uiThread}" }, runOrder);
         }
 
@@ -626,7 +652,7 @@ namespace IntegrationTests
                 }), TaskAffinity.Concurrent)
                 .Finally((_, e, v) => v);
             ;
-            var ret = await act.StartAwait();
+            var ret = await act.StartAsAsyncWithoutThrowing();
             CollectionAssert.AreEqual(Enumerable.Range(1, 7), runOrder);
         }
 
@@ -642,7 +668,7 @@ namespace IntegrationTests
                 .Defer(GetData2)
                 .Finally((_, e, v) => v);
             ;
-            var ret = await act.StartAwait();
+            var ret = await act.StartAsAsyncWithoutThrowing();
             Assert.IsNull(ret);
         }
 
@@ -680,7 +706,7 @@ namespace IntegrationTests
                     return v;
                 }), TaskAffinity.Concurrent);
             ;
-            var ret = await act.StartAwait();
+            var ret = await act.Start().Task;
             // the last one hasn't finished before await is done
             CollectionAssert.AreEqual(Enumerable.Range(1, 6), runOrder);
         }
@@ -712,7 +738,7 @@ namespace IntegrationTests
                 .Then((_, n) => runOrder.Add(n.ToString()))
                 .Finally((_, t) => runOrder.Add("done"))
             ;
-            await act.StartAwait();
+            await act.StartAsAsyncWithoutThrowing();
             CollectionAssert.AreEqual(new string[] { "started", "2", "21", "done" }, runOrder);
         }
     }
@@ -722,6 +748,28 @@ namespace IntegrationTests
         public static KeyValuePair<TKey, TValue> Create<TKey, TValue>(TKey key, TValue value)
         {
             return new KeyValuePair<TKey, TValue>(key, value);
+        }
+    }
+
+    static class AsyncExtensions
+    {
+        public static Task<T> StartAsAsyncWithoutThrowing<T>(this ITask<T> task)
+        {
+            var tcs = new TaskCompletionSource<T>();
+            task.Then((s, d) =>
+            {
+                tcs.SetResult(d);
+            });
+            task.Start();
+            return tcs.Task;
+        }
+
+        public static Task<bool> StartAsAsyncWithoutThrowing(this ITask task)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            task.Then(tcs.SetResult);
+            task.Start();
+            return tcs.Task;
         }
     }
 }

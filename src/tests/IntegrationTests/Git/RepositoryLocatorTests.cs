@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using GitHub.Unity;
 using FluentAssertions;
+using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
@@ -8,9 +9,9 @@ namespace IntegrationTests
     class RepositoryLocatorTests : BaseGitEnvironmentTest
     {
         [Test]
-        public void FindRepoRootTest()
+        public async Task FindRepoRootTest()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             var repositoryLocator = new RepositoryLocator(Environment.UnityProjectPath);
 

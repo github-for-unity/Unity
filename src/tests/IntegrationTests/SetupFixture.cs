@@ -10,7 +10,7 @@ namespace IntegrationTests
         [SetUp]
         public void Setup()
         {
-            //Logging.TracingEnabled = true;
+            Logging.TracingEnabled = true;
 
             var tempFileName = Path.GetTempFileName();
             var fileLog = tempFileName.Substring(0, tempFileName.Length - 4) + "_integrationtest.log";

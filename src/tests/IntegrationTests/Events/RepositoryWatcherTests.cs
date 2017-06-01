@@ -16,7 +16,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectFileChanges()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
             {
@@ -63,7 +63,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectBranchChange()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
             {
@@ -79,7 +79,7 @@ namespace IntegrationTests
                 {
                     Logger.Trace("Issuing Command");
 
-                    Assert.DoesNotThrow(async () => await GitClient.SwitchBranch("feature/document").Start().Task);
+                    await GitClient.SwitchBranch("feature/document").StartAsAsync();
                     await TaskManager.Wait();
 
                     watcherAutoResetEvent.HeadChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -109,7 +109,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectBranchDelete()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
             {
@@ -125,7 +125,7 @@ namespace IntegrationTests
                 {
                     Logger.Trace("Issuing Command");
 
-                    Assert.DoesNotThrow(async () => await GitClient.DeleteBranch("feature/document", true).Start().Task);
+                    await GitClient.DeleteBranch("feature/document", true).StartAsAsync();
                     await TaskManager.Wait();
 
                     watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -154,7 +154,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectBranchCreate()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
             {
@@ -170,7 +170,7 @@ namespace IntegrationTests
                 {
                     Logger.Trace("Issuing Command");
 
-                    Assert.DoesNotThrow(async () => await GitClient.CreateBranch("feature/document2", "feature/document").Start().Task);
+                    await GitClient.CreateBranch("feature/document2", "feature/document").StartAsAsync();
                     await TaskManager.Wait();
 
                     watcherAutoResetEvent.LocalBranchCreated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -192,7 +192,7 @@ namespace IntegrationTests
 
                     Logger.Trace("Issuing Command");
 
-                    Assert.DoesNotThrow(async () => await GitClient.CreateBranch("feature2/document2", "feature/document").Start().Task);
+                    await GitClient.CreateBranch("feature2/document2", "feature/document").StartAsAsync();
                     await TaskManager.Wait();
 
                     watcherAutoResetEvent.LocalBranchCreated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -222,7 +222,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectChangesToRemotes()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
             {
@@ -238,7 +238,7 @@ namespace IntegrationTests
                 {
                     Logger.Trace("Issuing Command");
 
-                    Assert.DoesNotThrow(async () => await GitClient.RemoteRemove("origin").Start().Task);
+                    await GitClient.RemoteRemove("origin").StartAsAsync();
                     await TaskManager.Wait();
 
                     watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -264,7 +264,7 @@ namespace IntegrationTests
 
                     Logger.Trace("Issuing 2nd Command");
 
-                    Assert.DoesNotThrow(async () => await GitClient.RemoteAdd("origin", "https://github.com/EvilStanleyGoldman/IOTestsRepo.git").Start().Task);
+                    await GitClient.RemoteAdd("origin", "https://github.com/EvilStanleyGoldman/IOTestsRepo.git").StartAsAsync();
                     // give the fs watcher a bit of time to catch up
                     await TaskEx.Delay(500);
                     await TaskManager.Wait();
@@ -294,7 +294,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectGitPull()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
             {
@@ -310,7 +310,7 @@ namespace IntegrationTests
                 {
                     Logger.Trace("Issuing Command");
 
-                    Assert.DoesNotThrow(async () => await GitClient.Pull("origin", "master").Start().Task);
+                    await GitClient.Pull("origin", "master").StartAsAsync();
                     await TaskManager.Wait();
 
                     watcherAutoResetEvent.IndexChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -340,7 +340,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectGitFetch()
         {
-            Initialize(TestRepoMasterCleanUnsynchronized);
+            await Initialize(TestRepoMasterCleanUnsynchronized);
 
             using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanUnsynchronized))
             {
@@ -356,7 +356,7 @@ namespace IntegrationTests
                 {
                     Logger.Trace("Issuing Command");
 
-                    Assert.DoesNotThrow(async () => await GitClient.Fetch("origin").Start().Task);
+                    await GitClient.Fetch("origin").StartAsAsync();
                     await TaskManager.Wait();
 
                     watcherAutoResetEvent.RemoteBranchCreated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();

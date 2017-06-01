@@ -15,7 +15,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectFileChanges()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
 
@@ -66,7 +66,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldAddAndCommitFiles()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
 
@@ -109,7 +109,7 @@ namespace IntegrationTests
             testDocumentTxt.WriteAllText("foobar");
             await TaskManager.Wait();
 
-            managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(5000)).Should().BeTrue();
+            managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(200)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
@@ -129,7 +129,10 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            Assert.DoesNotThrow(async () => await RepositoryManager.CommitFiles(new List<string>() { "Assets\\TestDocument.txt", "foobar.txt" }, "IntegrationTest Commit", string.Empty).Start().Task);
+            await RepositoryManager
+                .CommitFiles(new List<string>() { "Assets\\TestDocument.txt", "foobar.txt" }, "IntegrationTest Commit", string.Empty)
+                .StartAsAsync();
+
             await TaskManager.Wait();
 
             managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(5)).Should().BeTrue();
@@ -148,7 +151,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectBranchChange()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
 
@@ -166,7 +169,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            Assert.DoesNotThrow(async () => await RepositoryManager.SwitchBranch("feature/document").Start().Task);
+            await RepositoryManager.SwitchBranch("feature/document").StartAsAsync();
             await TaskManager.Wait();
 
             // give the fs watcher a bit of time to catch up
@@ -194,7 +197,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectBranchDelete()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
 
@@ -203,7 +206,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            Assert.DoesNotThrow(async () => await RepositoryManager.DeleteBranch("feature/document", true).Start().Task);
+            await RepositoryManager.DeleteBranch("feature/document", true).StartAsAsync();
             await TaskManager.Wait();
 
             managerAutoResetEvent.OnLocalBranchListChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -225,7 +228,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectBranchCreate()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
 
@@ -234,7 +237,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            Assert.DoesNotThrow(async () => await RepositoryManager.CreateBranch("feature/document2", "feature/document").Start().Task);
+            await RepositoryManager.CreateBranch("feature/document2", "feature/document").StartAsAsync();
             await TaskManager.Wait();
 
             managerAutoResetEvent.OnLocalBranchListChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -255,7 +258,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            Assert.DoesNotThrow(async () => await RepositoryManager.CreateBranch("feature2/document2", "feature/document").Start().Task);
+            await RepositoryManager.CreateBranch("feature2/document2", "feature/document").StartAsAsync();
             await TaskManager.Wait();
 
             managerAutoResetEvent.OnLocalBranchListChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -277,7 +280,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectChangesToRemotes()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
 
@@ -286,7 +289,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            Assert.DoesNotThrow(async () => await RepositoryManager.RemoteRemove("origin").Start().Task);
+            await RepositoryManager.RemoteRemove("origin").StartAsAsync();
             await TaskManager.Wait();
 
             managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -309,7 +312,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            Assert.DoesNotThrow(async () => await RepositoryManager.RemoteAdd("origin", "https://github.com/EvilStanleyGoldman/IOTestsRepo.git").Start().Task);
+            await RepositoryManager.RemoteAdd("origin", "https://github.com/EvilStanleyGoldman/IOTestsRepo.git").StartAsAsync();
             await TaskManager.Wait();
 
             managerAutoResetEvent.OnActiveRemoteChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -331,7 +334,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectGitPull()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            await Initialize(TestRepoMasterCleanSynchronized);
 
             var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
 
@@ -349,7 +352,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            Assert.DoesNotThrow(async () => await RepositoryManager.Pull("origin", "master").Start().Task);
+            await RepositoryManager.Pull("origin", "master").StartAsAsync();
             await TaskManager.Wait();
 
             managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(7)).Should().BeTrue();
@@ -378,7 +381,7 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectGitFetch()
         {
-            Initialize(TestRepoMasterCleanUnsynchronized);
+            await Initialize(TestRepoMasterCleanUnsynchronized);
 
             var managerAutoResetEvent = new RepositoryManagerAutoResetEvent();
 
@@ -387,7 +390,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            Assert.DoesNotThrow(async () => await RepositoryManager.Fetch("origin").Start().Task);
+            await RepositoryManager.Fetch("origin").StartAsAsync();
             await TaskManager.Wait();
 
             managerAutoResetEvent.OnRemoteBranchListChanged.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();

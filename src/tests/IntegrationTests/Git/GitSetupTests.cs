@@ -3,16 +3,17 @@ using FluentAssertions;
 using GitHub.Unity;
 using NUnit.Framework;
 using Rackspace.Threading;
+using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
     class GitSetupTests : BaseGitEnvironmentTest
     {
         [Test, Category("DoNotRunOnAppVeyor")]
-        public void InstallGit()
+        public async Task InstallGit()
         {
             var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
-            var environment = InitializeEnvironment(TestRepoMasterDirtyUnsynchronized, environmentPath);
+            var environment = await Initialize(TestRepoMasterDirtyUnsynchronized, environmentPath);
 
             var gitSetup = new GitSetup(environment, TaskManager.Token);
             var expectedPath = gitSetup.GitInstallationPath;
@@ -21,7 +22,7 @@ namespace IntegrationTests
             var percent = -1f;
             gitSetup.GitExecutablePath.FileExists().Should().BeFalse();
 
-            Assert.DoesNotThrow(async () => setupDone = await gitSetup.SetupIfNeeded(percentage: new Progress<float>(x => percent = x)));
+            setupDone = await gitSetup.SetupIfNeeded(percentage: new Progress<float>(x => percent = x));
 
             if (environment.IsWindows)
             {
@@ -42,7 +43,7 @@ namespace IntegrationTests
                 var calculateMd5 = NPath.FileSystem.CalculateMD5(gitLfsDestinationPath);
                 GitInstaller.GitLfsExecutableMD5.Should().Be(calculateMd5);
 
-                Assert.DoesNotThrow(async () => setupDone = await gitSetup.SetupIfNeeded(percentage: new Progress<float>(x => percent = x)));
+                setupDone = await gitSetup.SetupIfNeeded(percentage: new Progress<float>(x => percent = x));
                 setupDone.Should().BeFalse();
             }
             else
@@ -56,9 +57,9 @@ namespace IntegrationTests
             var processManager = new ProcessManager(environment, gitEnvironment);
 
             List<GitBranch> gitBranches = null;
-            Assert.DoesNotThrow(async () => gitBranches = await processManager
+            gitBranches = await processManager
                 .GetGitBranches(TestRepoMasterDirtyUnsynchronized, environment.GitExecutablePath)
-                .Start().Task);
+                .StartAsAsync();
 
             gitBranches.Should().BeEquivalentTo(
                 new GitBranch("master", "origin/master: behind 1", true),

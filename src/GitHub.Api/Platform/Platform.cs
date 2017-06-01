@@ -4,7 +4,7 @@ namespace GitHub.Unity
 {
     interface IPlatform
     {
-        Task<IPlatform> Initialize(IProcessManager processManager, ITaskManager taskManager);
+        IPlatform Initialize(IProcessManager processManager, ITaskManager taskManager);
         IProcessEnvironment GitEnvironment { get; }
         ICredentialManager CredentialManager { get; }
         IEnvironment Environment { get; }
@@ -20,7 +20,7 @@ namespace GitHub.Unity
             GitEnvironment = new ProcessEnvironment(environment);
         }
 
-        public Task<IPlatform> Initialize(IProcessManager processManager, ITaskManager taskManager)
+        public IPlatform Initialize(IProcessManager processManager, ITaskManager taskManager)
         {
             ProcessManager = processManager;
 
@@ -31,7 +31,7 @@ namespace GitHub.Unity
                 Keychain.Initialize();
             }
 
-            return TaskEx.FromResult(this as IPlatform);
+            return this;
         }
 
         public IEnvironment Environment { get; private set; }

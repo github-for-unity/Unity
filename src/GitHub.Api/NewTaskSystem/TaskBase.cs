@@ -7,6 +7,8 @@ namespace GitHub.Unity
     interface ITask : IAsyncResult
     {
         T Then<T>(T continuation, bool always = false) where T : ITask;
+        ITask Catch(Action<Exception> handler);
+        ITask Catch(Func<Exception, bool> handler);
         ITask Finally(Action<bool, Exception> continuation, TaskAffinity affinity = TaskAffinity.Concurrent);
         ITask Defer<T>(Func<T, Task> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false);
         ITask SetDependsOn(ITask dependsOn);
@@ -28,6 +30,8 @@ namespace GitHub.Unity
 
     interface ITask<TResult> : ITask
     {
+        new ITask<TResult> Catch(Action<Exception> handler);
+        new ITask<TResult> Catch(Func<Exception, bool> handler);
         ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent);
         ITask Finally(Action<bool, Exception, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent);
         new ITask<TResult> Start();
@@ -62,6 +66,8 @@ namespace GitHub.Unity
         protected TaskBase continuation;
         protected bool continuationAlways;
 
+        protected event Func<Exception, bool> faultHandler;
+
         public TaskBase(CancellationToken token, ITask dependsOn = null, bool always = false)
         {
             Guard.ArgumentNotNull(token, "token");
@@ -93,6 +99,32 @@ namespace GitHub.Unity
             this.continuation = (TaskBase)(object)cont;
             this.continuationAlways = always;
             return cont;
+        }
+
+        /// <summary>
+        /// Catch runs right when the exception happens (on the same thread)
+        /// Marks the catch as handled so other Catch statements down the chain
+        /// won't be called for this exception (but the chain will be cancelled)
+        /// </summary>
+        public ITask Catch(Action<Exception> handler)
+        {
+            Guard.ArgumentNotNull(handler, "handler");
+            faultHandler += e => { handler(e); return true; };
+            DependsOn?.Catch(handler);
+            return this;
+        }
+
+        /// <summary>
+        /// Catch runs right when the exception happens (on the same threaD)
+        /// Return false if you want other Catch statements on the chain to also
+        /// get called for this exception
+        /// </summary>
+        public ITask Catch(Func<Exception, bool> handler)
+        {
+            Guard.ArgumentNotNull(handler, "handler");
+            faultHandler += handler;
+            DependsOn?.Catch(handler);
+            return this;
         }
 
         public ITask Finally(Action<bool, Exception> continuation, TaskAffinity affinity = TaskAffinity.Concurrent)
@@ -162,6 +194,7 @@ namespace GitHub.Unity
             previousSuccess = task.Status == TaskStatus.RanToCompletion && task.Status != TaskStatus.Faulted;
             previousException = task.Exception;
             Task.Start(TaskManager.GetScheduler(Affinity));
+            RunContinuation();
         }
 
         public virtual ITask Start(TaskScheduler scheduler)
@@ -227,14 +260,28 @@ namespace GitHub.Unity
             OnEnd?.Invoke(this);
         }
 
-        protected AggregateException GetThrownException()
+        protected void RaiseFaultHandlers(Exception ex)
+        {
+            if (faultHandler == null)
+                return;
+            bool handled = false;
+            foreach (var handler in faultHandler.GetInvocationList())
+            {
+                handled |= (bool)handler.DynamicInvoke(new object[] { ex });
+                if (handled)
+                    break;
+            }
+        }
+
+        protected Exception GetThrownException()
         {
             if (DependsOn == null)
                 return null;
 
-            if (DependsOn.Task.Status != TaskStatus.Created && !DependsOn.Successful)
+            if (DependsOn.Task.Status == TaskStatus.Faulted)
             {
-                return DependsOn.Task.Exception;
+                var exception = DependsOn.Task.Exception;
+                return exception?.InnerException ?? exception;
             }
             return DependsOn.GetThrownException();
         }
@@ -355,6 +402,32 @@ namespace GitHub.Unity
             var ret = new StubTask<T>(Token, (s, d) => default(T), this, always);
             SetDeferred(new DeferredContinuation { Always = always, GetContinueWith = d => continueWith((TResult)d) });
             return ret;
+        }
+
+        /// <summary>
+        /// Catch runs right when the exception happens (on the same threaD)
+        /// Marks the catch as handled so other Catch statements down the chain
+        /// won't be called for this exception (but the chain will be cancelled)
+        /// </summary>
+        public new ITask<TResult> Catch(Action<Exception> handler)
+        {
+            Guard.ArgumentNotNull(handler, "handler");
+            faultHandler += e => { handler(e); return false; };
+            DependsOn?.Catch(handler);
+            return this;
+        }
+
+        /// <summary>
+        /// Catch runs right when the exception happens (on the same threaD)
+        /// Return false if you want other Catch statements on the chain to also
+        /// get called for this exception
+        /// </summary>
+        public new ITask<TResult> Catch(Func<Exception, bool> handler)
+        {
+            Guard.ArgumentNotNull(handler, "handler");
+            faultHandler += handler;
+            DependsOn?.Catch(handler);
+            return this;
         }
 
         public ITask<T> Defer<T>(Func<TResult, Task<T>> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)

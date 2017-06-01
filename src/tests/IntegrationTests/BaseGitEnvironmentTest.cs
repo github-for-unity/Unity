@@ -1,17 +1,23 @@
 using System.Linq;
 using GitHub.Unity;
+using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
     class BaseGitEnvironmentTest : BaseGitRepoTest
     {
-        protected IEnvironment InitializeEnvironment(NPath repoPath, NPath environmentPath = null, bool enableEnvironmentTrace = false)
+        protected async Task<IEnvironment> Initialize(NPath repoPath, NPath environmentPath = null,
+            bool enableEnvironmentTrace = false)
         {
             TaskManager = new TaskManager();
             var sc = new ThreadSynchronizationContext(TaskManager.Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(sc);
 
             Environment = new IntegrationTestEnvironment(repoPath, SolutionDirectory, environmentPath, enableEnvironmentTrace);
+
+            var gitSetup = new GitSetup(Environment, TaskManager.Token);
+            await gitSetup.SetupIfNeeded();
+            Environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
             Platform = new Platform(Environment);
             GitEnvironment = Platform.GitEnvironment;
@@ -24,7 +30,7 @@ namespace IntegrationTests
 
             var repositoryManagerFactory = new RepositoryManagerFactory();
             RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, GitClient, repoPath);
-            RepositoryManager.Initialize();
+            await RepositoryManager.Initialize();
             RepositoryManager.Start();
 
             Environment.Repository = RepositoryManager.Repository;
@@ -48,17 +54,7 @@ namespace IntegrationTests
             return Environment;
         }
 
-        protected IEnvironment Initialize(NPath repoPath, NPath environmentPath = null, bool enableEnvironmentTrace = false)
-        {
-            InitializeEnvironment(repoPath, environmentPath, enableEnvironmentTrace);
-            var gitSetup = new GitSetup(Environment, TaskManager.Token);
-            gitSetup.SetupIfNeeded().Wait();
-
-            Environment.GitExecutablePath = gitSetup.GitExecutablePath;
-            return Environment;
-        }
-
-        protected override void OnTearDown()
+        public override void OnTearDown()
         {
             RepositoryManager?.Stop();
             RepositoryManager?.Dispose();

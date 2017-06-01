@@ -37,26 +37,25 @@ namespace GitHub.Unity
             base.Run(success);
 
             RaiseOnStart();
-            Exception exception = null;
             try
             {
                 Callback?.Invoke(success);
                 if (CallbackWithException != null)
                 {
-                    Exception thrown = GetThrownException();
-                    thrown = thrown != null ? thrown.InnerException : thrown;
+                    var thrown = GetThrownException();
                     CallbackWithException?.Invoke(success, thrown);
                 }
             }
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                exception = ex;
+                RaiseFaultHandlers(ex);
+                throw;
             }
-            RaiseOnEnd();
-
-            if (exception != null)
-                throw exception;
+            finally
+            {
+                RaiseOnEnd();
+            }
         }
     }
 
@@ -96,26 +95,26 @@ namespace GitHub.Unity
             base.Run(success);
 
             RaiseOnStart();
-            Exception exception = null;
+
             try
             {
                 Callback?.Invoke(success, previousResult);
                 if (CallbackWithException != null)
                 {
-                    Exception thrown = GetThrownException();
-                    thrown = thrown != null ? thrown.InnerException : thrown;
+                    var thrown = GetThrownException();
                     CallbackWithException?.Invoke(success, thrown, previousResult);
                 }
             }
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                exception = ex;
+                RaiseFaultHandlers(ex);
+                throw;
             }
-            RaiseOnEnd();
-
-            if (exception != null)
-                throw exception;
+            finally
+            {
+                RaiseOnEnd();
+            }
         }
     }
 
@@ -151,7 +150,7 @@ namespace GitHub.Unity
             T result = base.RunWithReturn(success);
 
             RaiseOnStart();
-            Exception exception = null;
+
             try
             {
                 if (Callback != null)
@@ -160,20 +159,20 @@ namespace GitHub.Unity
                 }
                 else if (CallbackWithException != null)
                 {
-                    Exception thrown = GetThrownException();
-                    thrown = thrown != null ? thrown.InnerException : thrown;
+                    var thrown = GetThrownException();
                     result = CallbackWithException(success, thrown);
                 }
             }
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                exception = ex;
+                RaiseFaultHandlers(ex);
+                throw;
             }
-            RaiseOnEnd();
-
-            if (exception != null)
-                throw exception;
+            finally
+            {
+                RaiseOnEnd();
+            }
 
             return result;
         }
@@ -212,7 +211,7 @@ namespace GitHub.Unity
             var result = base.RunWithData(success, previousResult);
 
             RaiseOnStart();
-            Exception exception = null;
+
             try
             {
                 if (Callback != null)
@@ -221,20 +220,20 @@ namespace GitHub.Unity
                 }
                 else if (CallbackWithException != null)
                 {
-                    Exception thrown = GetThrownException();
-                    thrown = thrown != null ? thrown.InnerException : thrown;
+                    var thrown = GetThrownException();
                     result = CallbackWithException(success, thrown, previousResult);
                 }
             }
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                exception = ex;
+                RaiseFaultHandlers(ex);
+                throw;
             }
-            RaiseOnEnd();
-
-            if (exception != null)
-                throw exception;
+            finally
+            {
+                RaiseOnEnd();
+            }
 
             return result;
         }
@@ -268,7 +267,7 @@ namespace GitHub.Unity
             var result = base.RunWithReturn(success);
 
             RaiseOnStart();
-            Exception exception = null;
+
             try
             {
                 if (Callback != null)
@@ -277,20 +276,20 @@ namespace GitHub.Unity
                 }
                 else if (CallbackWithException != null)
                 {
-                    Exception thrown = GetThrownException();
-                    thrown = thrown != null ? thrown.InnerException : thrown;
+                    var thrown = GetThrownException();
                     result = CallbackWithException(success, thrown);
                 }
             }
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                exception = ex;
+                RaiseFaultHandlers(ex);
+                throw;
             }
-            RaiseOnEnd();
-
-            if (exception != null)
-                throw exception;
+            finally
+            {
+                RaiseOnEnd();
+            }
 
             if (result == null)
                 result = new List<T>();
@@ -327,7 +326,7 @@ namespace GitHub.Unity
             var result = base.RunWithData(success, previousResult);
 
             RaiseOnStart();
-            Exception exception = null;
+
             try
             {
                 if (Callback != null)
@@ -336,20 +335,20 @@ namespace GitHub.Unity
                 }
                 else if (CallbackWithException != null)
                 {
-                    Exception thrown = GetThrownException();
-                    thrown = thrown != null ? thrown.InnerException : thrown;
+                    var thrown = GetThrownException();
                     result = CallbackWithException(success, thrown, previousResult);
                 }
             }
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                exception = ex;
+                RaiseFaultHandlers(ex);
+                throw;
             }
-            RaiseOnEnd();
-
-            if (exception != null)
-                throw exception;
+            finally
+            {
+                RaiseOnEnd();
+            }
 
             return result;
         }

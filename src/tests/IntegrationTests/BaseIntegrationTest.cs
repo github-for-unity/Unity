@@ -22,27 +22,24 @@ namespace IntegrationTests
         {
             Logger = Logging.GetLogger(GetType());
             Factory = new TestUtils.SubstituteFactory();
+            System.Environment.SetEnvironmentVariable("GHFU", "TESTING");
+        }
+
+        [TestFixtureTearDown]
+        public void TestFixtureTearDown()
+        {
+            System.Environment.SetEnvironmentVariable("GHFU", null);
         }
 
         [SetUp]
-        public void SetUp()
-        {
-            OnSetup();
-        }
-
-        protected virtual void OnSetup()
+        public virtual void OnSetup()
         {
             TestBasePath = NPath.CreateTempDirectory("integration-tests");
             NPath.FileSystem.SetCurrentDirectory(TestBasePath);
         }
 
         [TearDown]
-        public void TearDown()
-        {
-            OnTearDown();
-        }
-
-        protected virtual void OnTearDown()
+        public virtual void OnTearDown()
         {
             TaskManager.Instance?.Stop();
             Logger.Debug("Deleting TestBasePath: {0}", TestBasePath.ToString());

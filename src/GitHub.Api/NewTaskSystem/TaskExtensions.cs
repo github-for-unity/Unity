@@ -21,6 +21,12 @@ namespace GitHub.Unity
             {
                 if (handler != null)
                     handler(ex);
+                else
+                {
+                    if (Environment.GetEnvironmentVariable("GHFU") == "TESTING")
+                        throw;
+                    Logging.GetLogger().Error(ex);
+                }
             }
         }
 
@@ -34,6 +40,9 @@ namespace GitHub.Unity
             {
                 if (handler != null)
                     return handler(ex);
+                if (Environment.GetEnvironmentVariable("GHFU") == "TESTING")
+                    throw;
+                Logging.GetLogger().Error(ex);
                 return default(T);
             }
         }
@@ -42,12 +51,18 @@ namespace GitHub.Unity
         {
             try
             {
-                await source.Start().Task;
+                await source.StartAsAsync();
             }
             catch (Exception ex)
             {
                 if (handler != null)
                     handler(ex);
+                else
+                {
+                    if (Environment.GetEnvironmentVariable("GHFU") == "TESTING")
+                        throw;
+                    Logging.GetLogger().Error(ex);
+                }
             }
         }
 
@@ -55,12 +70,15 @@ namespace GitHub.Unity
         {
             try
             {
-                return await source.Start().Task;
+                return await source.StartAsAsync();
             }
             catch (Exception ex)
             {
                 if (handler != null)
                     return handler(ex);
+                if (Environment.GetEnvironmentVariable("GHFU") == "TESTING")
+                    throw;
+                Logging.GetLogger().Error(ex);
                 return default(T);
             }
         }
@@ -98,27 +116,6 @@ namespace GitHub.Unity
                     task.Dispose();
                 });
             };
-        }
-
-        /// <summary>
-        /// Never end a chain with Catch, always use Finally instead
-        /// Catch sets a direct continuation on the previous task, which means await is not going to be
-        /// waiting for it to finish before returning (catch will run faster this way).
-        /// Always end a chain with Finally and use Catch statements in the middle of the chain.
-        /// </summary>
-        public static T Catch<T>(this T task, Action<Exception> handler)
-            where T : ITask
-        {
-            Guard.ArgumentNotNull(handler, "handler");
-            task.Task.ContinueWith(t =>
-            {
-                handler(t.Exception is AggregateException ? t.Exception.InnerException : t.Exception);
-            },
-                task.Token,
-                TaskContinuationOptions.OnlyOnFaulted,
-                TaskManager.GetScheduler(task.Affinity));
-            task.DependsOn?.Catch(handler);
-            return task;
         }
 
         public static ITask Then(this ITask task, Action<bool> continuation, bool always = false)
@@ -196,6 +193,42 @@ namespace GitHub.Unity
         public static ITask<T> Then<T>(this ITask task, Func<Task<T>> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
         {
             return task.Then(continuation(), affinity, always);
+        }
+
+        public static Task<T> StartAsAsync<T>(this ITask<T> task)
+        {
+            var tcs = new TaskCompletionSource<T>();
+            task.Finally((s, e, d) =>
+            {
+                if (!s)
+                {
+                    if (e == null) // this should never happen
+                        e = new InvalidOperationException("Task failed but there's no exception?");
+                    tcs.SetException(e);
+                }
+                else
+                    tcs.SetResult(d);
+            });
+            task.Start();
+            return tcs.Task;
+        }
+
+        public static Task<bool> StartAsAsync(this ITask task)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            task.Finally((s, e) =>
+            {
+                if (!s)
+                {
+                    if (e == null) // this should never happen
+                        e = new InvalidOperationException("Task failed but there's no exception?");
+                    tcs.SetException(e);
+                }
+                else
+                    tcs.SetResult(s);
+            });
+            task.Start();
+            return tcs.Task;
         }
     }
 }

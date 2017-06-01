@@ -6,7 +6,7 @@ namespace IntegrationTests
 {
     class BaseGitRepoTest : BaseIntegrationTest
     {
-        protected override void OnSetup()
+        public override void OnSetup()
         {
             base.OnSetup();
 

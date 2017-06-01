@@ -162,7 +162,7 @@ namespace UnitTests
             var repositoryProcessRunner = CreateRepositoryProcessRunner(responseGitStatus, responseGitLocks);
 
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
-            repositoryManager.Initialize();
+            await repositoryManager.Initialize();
             repositoryManager.Start();
 
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
