@@ -49,14 +49,16 @@ namespace GitHub.Unity
 
     class GitConfig : IGitConfig
     {
-        private readonly ConfigFileManager manager;
+        protected static ILogging Logger { get; } = Logging.GetLogger<GitConfig>();
+
+        private readonly IGitConfigFileManager manager;
         private SectionParser sectionParser;
         private Dictionary<string, Section> sections;
         private Dictionary<string, Dictionary<string, Section>> groups;
 
-        public GitConfig(string filePath)
+        public GitConfig(IGitConfigFileManager gitConfigFileManager)
         {
-            manager = new ConfigFileManager(filePath);
+            manager = gitConfigFileManager;
             Reset();
         }
 
@@ -258,12 +260,16 @@ namespace GitHub.Unity
 
         class SectionParser
         {
+            protected static ILogging Logger { get; } = Logging.GetLogger<SectionParser>();
+
+            private static readonly Regex CommentPattern = new Regex(@"^[;#].*", RegexOptions.Compiled);
             private static readonly Regex SectionPattern = new Regex(@"^\[(.*)\]$", RegexOptions.Compiled);
             private static readonly Regex PairPattern = new Regex(@"([\S][^=]+)[\s]*=[\s]*(.*)", RegexOptions.Compiled);
             private static readonly Regex GroupSectionPattern = new Regex(@"(.*?(?=""))", RegexOptions.Compiled);
-            private readonly ConfigFileManager manager;
 
-            public SectionParser(ConfigFileManager manager)
+            private readonly IGitConfigFileManager manager;
+
+            public SectionParser(IGitConfigFileManager manager)
             {
                 this.manager = manager;
                 EnsureFileBeginsWithSection();
@@ -333,31 +339,39 @@ namespace GitHub.Unity
             public Dictionary<string, Section> Sections { get; private set; }
             public Dictionary<string, Dictionary<string, Section>> GroupSections { get; private set; }
         }
+    }
 
-        class ConfigFileManager
+    internal interface IGitConfigFileManager
+    {
+        void Refresh();
+        bool Save(string contents);
+        string FilePath { get; }
+        string[] Lines { get; }
+    }
+
+    internal class GitConfigFileManager : IGitConfigFileManager
+    {
+        private static string[] emptyContents = new string[0];
+        private static Func<string, string[]> fileReadAllLines = s => { try { return File.ReadAllLines(s); } catch { return emptyContents; } };
+        private static Func<string, bool> fileExists = s => { try { return File.Exists(s); } catch { return false; } };
+        private static Func<string, string, bool> fileWriteAllText = (file, contents) => { try { File.WriteAllText(file, contents); } catch { return false; } return true; };
+
+        public GitConfigFileManager(string filePath)
         {
-            private static string[] emptyContents = new string[0];
-            private static Func<string, string[]> fileReadAllLines = s => { try { return File.ReadAllLines(s); } catch { return emptyContents; } };
-            private static Func<string, bool> fileExists = s => { try { return File.Exists(s); } catch { return false; } };
-            private static Func<string, string, bool> fileWriteAllText = (file, contents) => { try { File.WriteAllText(file, contents); } catch { return false; } return true; };
-
-            public ConfigFileManager(string filePath)
-            {
-                FilePath = filePath;
-            }
-
-            public void Refresh()
-            {
-                Lines = fileReadAllLines(FilePath);
-            }
-
-            public bool Save(string contents)
-            {
-                return fileWriteAllText(FilePath, contents);
-            }
-
-            public string FilePath { get; private set; }
-            public string[] Lines { get; private set; }
+            FilePath = filePath;
         }
+
+        public void Refresh()
+        {
+            Lines = fileReadAllLines(FilePath);
+        }
+
+        public bool Save(string contents)
+        {
+            return fileWriteAllText(FilePath, contents);
+        }
+
+        public string FilePath { get; private set; }
+        public string[] Lines { get; private set; }
     }
 }

@@ -93,7 +93,8 @@ namespace GitHub.Unity
             CancellationToken cancellationToken)
         {
             var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
-            var gitConfig = new GitConfig(repositoryPathConfiguration.DotGitConfig);
+            string filePath = repositoryPathConfiguration.DotGitConfig;
+            var gitConfig = new GitConfig(new GitConfigFileManager(filePath));
 
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, cancellationToken);
 

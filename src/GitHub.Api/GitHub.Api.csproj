@@ -134,7 +134,7 @@
     <Compile Include="Process\ProcessWrapper.cs" />
     <Compile Include="Process\StatusOutputProcessor.cs" />
     <Compile Include="RepositoryLocator.cs" />
-    <Compile Include="GitConfig.cs" />
+    <Compile Include="Git\GitConfig.cs" />
     <Compile Include="Helpers\LineProcessor.cs" />
     <Compile Include="Process\BaseOutputProcessor.cs" />
     <Compile Include="IO\FileSystem.cs" />
