@@ -49,14 +49,14 @@ namespace GitHub.Unity
 
     class GitConfig : IGitConfig
     {
-        private readonly GitConfigFileManager manager;
+        private readonly ConfigFileManager manager;
         private SectionParser sectionParser;
         private Dictionary<string, Section> sections;
         private Dictionary<string, Dictionary<string, Section>> groups;
 
         public GitConfig(string filePath)
         {
-            manager = new GitConfigFileManager(filePath);
+            manager = new ConfigFileManager(filePath);
             Reset();
         }
 
@@ -262,11 +262,11 @@ namespace GitHub.Unity
             private static readonly Regex PairPattern = new Regex(@"([\S][^=]+)[\s]*=[\s]*(.*)", RegexOptions.Compiled);
             private static readonly Regex GroupSectionPattern = new Regex(@"(.*?(?=""))", RegexOptions.Compiled);
 
-            private readonly GitConfigFileManager manager;
+            private readonly ConfigFileManager manager;
 
             private Section loadedSection;
 
-            public SectionParser(GitConfigFileManager manager)
+            public SectionParser(ConfigFileManager manager)
             {
                 this.manager = manager;
                 EnsureFileBeginsWithSection();
@@ -354,11 +354,11 @@ namespace GitHub.Unity
             public Dictionary<string, Dictionary<string, Section>> GroupSections { get; private set; }
         }
 
-        class GitConfigFileManager
+        class ConfigFileManager
         {
             private static readonly string[] emptyContents = new string[0];
 
-            public GitConfigFileManager(NPath filePath)
+            public ConfigFileManager(NPath filePath)
             {
                 FilePath = filePath;
             }
