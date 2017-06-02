@@ -30,29 +30,31 @@ namespace UnitTests
             return new GitConfig(configFilePath);
         }
 
-        private const string NormalConfig = @"[core]
-	intValue = 1234
-	floatValue = 1234.5
-	stringValue = refs/heads/string-value
-[branch ""working-branch-1""]
-	intValue = 5678
-	floatValue = 5678.9
-	stringValue = refs/heads/working-branch-1
-[branch ""working-branch-2""]
-	intValue = 3456
-	floatValue = 3456.7
-	stringValue = refs/heads/working-branch-2";
+        private const string NormalConfig = 
+            "[core]\r\n" 
+            + "\tintValue = 1234\r\n" 
+            + "\tfloatValue = 1234.5\r\n" 
+            + "\tstringValue = refs/heads/string-value\r\n" 
+            + "[branch \"working-branch-1\"]\r\n" 
+            + "\tintValue = 5678\r\n" 
+            + "\tfloatValue = 5678.9\r\n" 
+            + "\tstringValue = refs/heads/working-branch-1\r\n" 
+            + "[branch \"working-branch-2\"]\r\n" 
+            + "\tintValue = 3456\r\n" 
+            + "\tfloatValue = 3456.7\r\n" 
+            + "\tstringValue = refs/heads/working-branch-2";
 
-        private const string MalformedConfig = @"[branch ""troublesome-branch""]
-    someValue = refs/heads/test-parse
-[branch ""unsuspecting-branch""]
-	intValue = 1234
-	floatValue = 1234.5
-	stringValue = refs/heads/unsuspecting-branch-value
-[branch ""troublesome-branch""]
-	intValue = 5678
-	floatValue = 5678.9
-	stringValue = refs/heads/troublesome-branch-value";
+        private const string MalformedConfig = 
+            "[branch \"troublesome-branch\"]\r\n" 
+            + "\tsomeValue = refs/heads/test-parse\r\n" 
+            + "[branch \"unsuspecting-branch\"]\r\n" 
+            + "\tintValue = 1234\r\n" 
+            + "\tfloatValue = 1234.5\r\n" 
+            + "\tstringValue = refs/heads/unsuspecting-branch-value\r\n" 
+            + "[branch \"troublesome-branch\"]\r\n" 
+            + "\tintValue = 5678\r\n" 
+            + "\tfloatValue = 5678.9\r\n" 
+            + "\tstringValue = refs/heads/troublesome-branch-value";
 
         [TestCase(NormalConfig, "core", 1234, TestName = "Can Get Root Section Int Value")]
         [TestCase(NormalConfig, @"branch ""working-branch-1""", 5678, TestName = "Can Get Group Section Int Value")]
