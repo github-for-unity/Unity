@@ -25,7 +25,7 @@ namespace UnitTests
                     FileContents = new Dictionary<string, IList<string>> { { configFilePath, input } }
                 });
 
-            NPathFileSystemProvider.Current = fileSystem;
+            NPath.FileSystem = fileSystem;
 
             return new GitConfig(configFilePath);
         }

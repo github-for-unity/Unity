@@ -56,7 +56,7 @@ namespace GitHub.Unity
 
         public GitConfig(string filePath)
         {
-            manager = new ConfigFileManager(filePath);
+            manager = new ConfigFileManager(filePath.ToNPath());
             Reset();
         }
 
