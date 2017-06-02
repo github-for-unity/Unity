@@ -115,12 +115,7 @@ namespace GitHub.Unity
         {
             base.OnGUI();
 
-            if (Repository == null)
-            {
-                DoNotInitializedGUI();
-                return;
-            }
-            else
+            if (Repository != null)
             {
                 DoHeaderGUI();
             }
@@ -132,23 +127,6 @@ namespace GitHub.Unity
             {
                 ActiveTab.OnGUI();
             }
-        }
-
-        private void DoNotInitializedGUI()
-        {
-            //Logger.Trace("DoNotInitializedGUI");
-
-            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
-            {
-                GUILayout.Space(3);
-                GUILayout.BeginVertical(GUILayout.Width(16));
-                {
-                    GUILayout.Space(9);
-                    GUILayout.Label(Styles.RepoIcon, GUILayout.Height(20), GUILayout.Width(20));
-                }
-                GUILayout.EndVertical();
-            }
-            GUILayout.EndHorizontal();
         }
 
         private void DoHeaderGUI()

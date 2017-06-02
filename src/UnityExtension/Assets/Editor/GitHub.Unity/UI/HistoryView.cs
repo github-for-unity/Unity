@@ -126,7 +126,7 @@ namespace GitHub.Unity
 
         private void RefreshLog()
         {
-            if (GitClient != null)
+            if (Environment.Repository != null && GitClient != null)
             {
                 GitClient.Log()
                     .ThenInUI((success, log) => { if (success) OnLogUpdate(log); })
