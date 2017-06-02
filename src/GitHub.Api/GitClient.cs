@@ -11,6 +11,10 @@ namespace GitHub.Unity
         Task<NPath> FindGitInstallation();
         bool ValidateGitInstall(NPath path);
 
+        ITask Init(IOutputProcessor<string> processor = null, ITask dependsOn = null);
+
+        ITask LfsInstall(ITask dependsOn = null);
+
         ITask<GitStatus?> Status(IOutputProcessor<GitStatus?> processor = null, ITask dependsOn = null);
 
         ITask<string> GetConfig(string key, GitConfigSource configSource,
@@ -139,6 +143,18 @@ namespace GitHub.Unity
             return path.FileExists();
         }
 
+        public ITask Init(IOutputProcessor<string> processor = null, ITask dependsOn = null)
+        {
+            return new GitInitTask(cancellationToken, processor, dependsOn: dependsOn)
+                .Configure(processManager);
+        }
+
+        public ITask LfsInstall(ITask dependsOn = null)
+        {
+            return new GitLfsInstallTask(cancellationToken, dependsOn: dependsOn)
+                .Configure(processManager);
+        }
+
         public ITask<GitStatus?> Status(IOutputProcessor<GitStatus?> processor = null, ITask dependsOn = null)
         {
             return new GitStatusTask(new GitObjectFactory(environment), cancellationToken, processor, dependsOn)
@@ -256,7 +272,7 @@ namespace GitHub.Unity
             IOutputProcessor<string> processor = null, ITask dependsOn = null)
         {
             return Add(files)
-                .Then(new GitCommitTask(body, message, cancellationToken)
+                .Then(new GitCommitTask(message, body, cancellationToken)
                     .Configure(processManager));
         }
 
