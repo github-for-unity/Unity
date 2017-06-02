@@ -4,8 +4,9 @@ using GitHub.Unity;
 using NSubstitute;
 using NUnit.Framework;
 
-namespace UnitTests.Git
+namespace UnitTests
 {
+    [TestFixture]
     public class GitConfigTests
     {
         private static GitConfig LoadGitConfig(string s)
@@ -77,8 +78,8 @@ namespace UnitTests.Git
         [TestCase(NormalConfig, "core", 1234, TestName = "Can TryGet Root Section Int Value")]
         [TestCase(NormalConfig, @"branch ""working-branch-1""", 5678, TestName = "Can TryGet Group Section Int Value")]
         [TestCase(NormalConfig, @"branch ""working-branch-2""", 3456, TestName = "Can TryGet Other Group Section Int Value")]
-        [TestCase(MalformedConfig, @"branch ""unsuspecting-branch""", "", TestName = "Can TryGet Group Section Float Value From Malformed")]
-        [TestCase(MalformedConfig, @"branch ""troublesome-branch""", "", TestName = "Can TryGet Other Group Section Float Value From Malformed")]
+        [TestCase(MalformedConfig, @"branch ""unsuspecting-branch""", 1234, TestName = "Can TryGet Group Section Int Value From Malformed")]
+        [TestCase(MalformedConfig, @"branch ""troublesome-branch""", 5678, TestName = "Can TryGet Other Group Section Int Value From Malformed")]
         public void Can_TryGet_Int(string config, string section, int expected)
         {
             var gitConfig = LoadGitConfig(config);
