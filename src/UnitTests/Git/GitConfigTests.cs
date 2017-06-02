@@ -18,52 +18,99 @@ namespace UnitTests.Git
             return new GitConfig(gitConfigFileManager);
         }
 
-        [Test]
-        public void Unclean_Config()
-        {
-            var gitConfig = LoadGitConfig(@"[core]
-	blah = 1234
-[branch ""troublesome-branch""]
+        private const string NormalConfig = @"[core]
+	intValue = 1234
+	floatValue = 1234.5
+	stringValue = refs/heads/string-value
+[branch ""working-branch-1""]
+	intValue = 5678
+	floatValue = 5678.9
+	stringValue = refs/heads/working-branch-1
+[branch ""working-branch-2""]
+	intValue = 3456
+	floatValue = 3456.7
+	stringValue = refs/heads/working-branch-2";
+
+        private const string MalformedConfig = @"[branch ""troublesome-branch""]
 [branch ""unsuspecting-branch""]
-	remote = origin
-	merge = refs/heads/unsuspecting-branch
+	intValue = 1234
+	floatValue = 1234.5
+	stringValue = refs/heads/unsuspecting-branch-value
 [branch ""troublesome-branch""]
-	remote = origin
-	merge = refs/heads/troublesome-branch");
+	intValue = 5678
+	floatValue = 5678.9
+	stringValue = refs/heads/troublesome-branch-value";
+
+        [TestCase(NormalConfig, "core", 1234, TestName = "Can Get Root Section Int Value")]
+        [TestCase(NormalConfig, @"branch ""working-branch-1""", 5678, TestName = "Can Get Group Section Int Value")]
+        [TestCase(NormalConfig, @"branch ""working-branch-2""", 3456, TestName = "Can Get Other Group Section Int Value")]
+        [TestCase(MalformedConfig, @"branch ""unsuspecting-branch""", 1234, TestName = "Can Get Group Section Int Value From Malformed")]
+        [TestCase(MalformedConfig, @"branch ""troublesome-branch""", 5678, TestName = "Can Get Other Group Section Int Value From Malformed")]
+        public void Can_Get_Int(string config, string section, int expected)
+        {
+            var gitConfig = LoadGitConfig(config);
+            gitConfig.GetInt(section, "intValue").Should().Be(expected);
         }
 
-        [Test]
-        public void Can_Get_Values()
+        [TestCase(NormalConfig, "core", 1234.5f, TestName = "Can Get Root Section Float Value")]
+        [TestCase(NormalConfig, @"branch ""working-branch-1""", 5678.9f, TestName = "Can Get Group Section Float Value")]
+        [TestCase(NormalConfig, @"branch ""working-branch-2""", 3456.7f, TestName = "Can Get Other Group Section Float Value")]
+        [TestCase(MalformedConfig, @"branch ""unsuspecting-branch""", 1234.5f, TestName = "Can Get Group Section Float Value From Malformed")]
+        [TestCase(MalformedConfig, @"branch ""troublesome-branch""", 5678.9f, TestName = "Can Get Other Group Section Float Value From Malformed")]
+        public void Can_Get_Float(string config, string section, float expected)
         {
-            var gitConfig = LoadGitConfig(@"[core]
-	intValue = 1234
-	boolValue = true
-	stringValue = refs/heads/unsuspecting-branch");
-
-            gitConfig.GetInt("core", "intValue").Should().Be(1234);
-            gitConfig.GetString("core", "boolValue").Should().Be("true");
-            gitConfig.GetString("core", "stringValue").Should().Be("refs/heads/unsuspecting-branch");
+            var gitConfig = LoadGitConfig(config);
+            gitConfig.GetFloat(section, "floatValue").Should().Be(expected);
         }
 
-        [Test]
-        public void Can_TryGet_Values()
+        [TestCase(NormalConfig, "core", "refs/heads/string-value", TestName = "Can Get Root Section String Value")]
+        [TestCase(NormalConfig, @"branch ""working-branch-1""", "refs/heads/working-branch-1", TestName = "Can Get Group Section String Value")]
+        [TestCase(NormalConfig, @"branch ""working-branch-2""", "refs/heads/working-branch-2", TestName = "Can Get Other Group Section String Value")]
+        [TestCase(MalformedConfig, @"branch ""unsuspecting-branch""", "refs/heads/unsuspecting-branch-value", TestName = "Can Get Group Section String Value From Malformed")]
+        [TestCase(MalformedConfig, @"branch ""troublesome-branch""", "refs/heads/troublesome-branch-value", TestName = "Can Get Other Group Section String Value From Malformed")]
+        public void Can_Get_String(string config, string section, string expected)
         {
-            var gitConfig = LoadGitConfig(@"[core]
-	intValue = 1234
-	boolValue = true
-	stringValue = refs/heads/unsuspecting-branch");
+            var gitConfig = LoadGitConfig(config);
+            gitConfig.GetString(section, "stringValue").Should().Be(expected);
+        }
 
-            int intResult;
-            gitConfig.TryGet("core", "intValue", out intResult).Should().BeTrue();
-            intResult.Should().Be(1234);
+        [TestCase(NormalConfig, "core", 1234, TestName = "Can TryGet Root Section Int Value")]
+        [TestCase(NormalConfig, @"branch ""working-branch-1""", 5678, TestName = "Can TryGet Group Section Int Value")]
+        [TestCase(NormalConfig, @"branch ""working-branch-2""", 3456, TestName = "Can TryGet Other Group Section Int Value")]
+        [TestCase(MalformedConfig, @"branch ""unsuspecting-branch""", "", TestName = "Can TryGet Group Section Float Value From Malformed")]
+        [TestCase(MalformedConfig, @"branch ""troublesome-branch""", "", TestName = "Can TryGet Other Group Section Float Value From Malformed")]
+        public void Can_TryGet_Int(string config, string section, int expected)
+        {
+            var gitConfig = LoadGitConfig(config);
+            int value;
+            gitConfig.TryGet(section, "intValue", out value).Should().BeTrue();
+            value.Should().Be(expected);
+        }
 
-            string boolResult;
-            gitConfig.TryGet("core", "boolValue", out boolResult).Should().BeTrue();
-            boolResult.Should().Be("true");
+        [TestCase(NormalConfig, "core", 1234.5f, TestName = "Can TryGet Root Section Float Value")]
+        [TestCase(NormalConfig, @"branch ""working-branch-1""", 5678.9f, TestName = "Can TryGet Group Section Float Value")]
+        [TestCase(NormalConfig, @"branch ""working-branch-2""", 3456.7f, TestName = "Can TryGet Other Group Section Float Value")]
+        [TestCase(MalformedConfig, @"branch ""unsuspecting-branch""", 1234.5f, TestName = "Can TryGet Group Section Float Value From Malformed")]
+        [TestCase(MalformedConfig, @"branch ""troublesome-branch""", 5678.9f, TestName = "Can TryGet Other Group Section Float Value From Malformed")]
+        public void Can_TryGet_Float(string config, string section, float expected)
+        {
+            var gitConfig = LoadGitConfig(config);
+            float value;
+            gitConfig.TryGet(section, "floatValue", out value).Should().BeTrue();
+            value.Should().Be(expected);
+        }
 
-            string stringResult;
-            gitConfig.TryGet("core", "stringValue", out stringResult).Should().BeTrue();
-            stringResult.Should().Be("refs/heads/unsuspecting-branch");
+        [TestCase(NormalConfig, "core", "refs/heads/string-value", TestName = "Can TryGet Root Section String Value")]
+        [TestCase(NormalConfig, @"branch ""working-branch-1""", "refs/heads/working-branch-1", TestName = "Can TryGet Group Section String Value")]
+        [TestCase(NormalConfig, @"branch ""working-branch-2""", "refs/heads/working-branch-2", TestName = "Can TryGet Other Group Section String Value")]
+        [TestCase(MalformedConfig, @"branch ""unsuspecting-branch""", "refs/heads/unsuspecting-branch-value", TestName = "Can TryGet Group Section String Value From Malformed")]
+        [TestCase(MalformedConfig, @"branch ""troublesome-branch""", "refs/heads/troublesome-branch-value", TestName = "Can TryGet Other Group Section String Value From Malformed")]
+        public void Can_TryGet_String(string config, string section, string expected)
+        {
+            var gitConfig = LoadGitConfig(config);
+            string value;
+            gitConfig.TryGet(section, "stringValue", out value).Should().BeTrue();
+            value.Should().Be(expected);
         }
     }
 }
