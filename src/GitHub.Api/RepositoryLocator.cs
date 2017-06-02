@@ -21,51 +21,46 @@ namespace GitHub.Unity
         {
             Logger = Logging.GetLogger(GetType());
 
-            this.ApplicationManager = applicationManager;
+            ApplicationManager = applicationManager;
         }
 
         public void Run()
         {
+            Logger.Trace("Running Repository Initialize");
+
             var targetPath = NPath.CurrentDirectory;
             var token = ApplicationManager.CancellationToken;
 
-            var initTask = ApplicationManager.GitClient.Init();
-
             var unityYamlMergeExec = Environment.UnityApplication.Parent.Combine("Tools", "UnityYAMLMerge");
-            var yamlMergeCommand = string.Format(@"'{0}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED""", unityYamlMergeExec);
-
-            var yaml1 = ApplicationManager.GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local, dependsOn: initTask);
-            var yaml2 = ApplicationManager.GitClient.SetConfig("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local, dependsOn: yaml1);
-
-            var lfsTask = ApplicationManager.GitClient.LfsInstall(dependsOn: yaml2);
+            var yamlMergeCommand = $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED""";
 
             var gitignore = targetPath.Combine(".gitignore");
             var gitAttrs = targetPath.Combine(".gitattributes");
             var assetsGitignore = targetPath.Combine("Assets", ".gitignore");
 
-            var ignoresTask = new ActionTask(token, _ =>
-            {
-                SetProjectToTextSerialization();
-
-                AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath);
-                AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath);
-
-                assetsGitignore.CreateFile();
-            }, dependsOn: lfsTask);
-
             var filesForInitialCommit = new List<string> { gitignore, gitAttrs, assetsGitignore };
 
-            var addAndCommitTask = ApplicationManager.GitClient.AddAndCommit(filesForInitialCommit, "Initial commit", null, dependsOn: ignoresTask);
+            ApplicationManager.GitClient.Init()
+                              .Then(ApplicationManager.GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local))
+                              .Then(ApplicationManager.GitClient.SetConfig("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local))
+                              .Then(ApplicationManager.GitClient.LfsInstall()).Then(new ActionTask(token, _ => {
+                                  SetProjectToTextSerialization();
 
-            var restartRepositoryTask = ApplicationManager.RestartRepository().SetDependsOn(addAndCommitTask);
-            restartRepositoryTask.Start();
+                                  AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath);
+                                  AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath);
+
+                                  assetsGitignore.CreateFile();
+                              }))
+                              .Then(ApplicationManager.GitClient.AddAndCommit(filesForInitialCommit, "Initial commit", null))
+                              .Then(ApplicationManager.RestartRepository())
+                              .Start();
         }
 
         protected virtual void SetProjectToTextSerialization()
         {
         }
 
-        protected static ILogging Logger { get; private set; }
+        protected ILogging Logger { get; }
     }
 
     interface IRepositoryLocator

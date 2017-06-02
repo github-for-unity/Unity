@@ -13,7 +13,7 @@ namespace GitHub.Unity
 
         ITask Init(IOutputProcessor<string> processor = null, ITask dependsOn = null);
 
-        ITask LfsInstall(ITask dependsOn = null);
+        ITask LfsInstall(IOutputProcessor<string> processor = null, ITask dependsOn = null);
 
         ITask<GitStatus?> Status(IOutputProcessor<GitStatus?> processor = null, ITask dependsOn = null);
 
@@ -149,9 +149,9 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask LfsInstall(ITask dependsOn = null)
+        public ITask LfsInstall(IOutputProcessor<string> processor = null, ITask dependsOn = null)
         {
-            return new GitLfsInstallTask(cancellationToken, dependsOn: dependsOn)
+            return new GitLfsInstallTask(cancellationToken, processor, dependsOn)
                 .Configure(processManager);
         }
 
@@ -271,7 +271,7 @@ namespace GitHub.Unity
         public ITask<string> AddAndCommit(List<string> files, string message, string body,
             IOutputProcessor<string> processor = null, ITask dependsOn = null)
         {
-            return Add(files)
+            return Add(files, dependsOn: dependsOn)
                 .Then(new GitCommitTask(message, body, cancellationToken)
                     .Configure(processManager));
         }
