@@ -49,8 +49,6 @@ namespace GitHub.Unity
 
     class GitConfig : IGitConfig
     {
-        protected static ILogging Logger { get; } = Logging.GetLogger<GitConfig>();
-
         private readonly IGitConfigFileManager manager;
         private SectionParser sectionParser;
         private Dictionary<string, Section> sections;
@@ -129,12 +127,12 @@ namespace GitHub.Unity
             var ret = sections.TryGetValue(section, out sect);
             if (ret)
             {
-                if (value is string)
-                    value = (T)(object)sect.GetString(key);
-                else if (value is float)
+                if (value is float)
                     value = (T)(object)sect.GetFloat(key);
-                else
+                else if (value is int)
                     value = (T)(object)sect.GetInt(key);
+                else
+                    value = (T)(object)sect.GetString(key);
             }
             return ret;
         }
@@ -260,14 +258,13 @@ namespace GitHub.Unity
 
         class SectionParser
         {
-            protected static ILogging Logger { get; } = Logging.GetLogger<SectionParser>();
-
-            private static readonly Regex CommentPattern = new Regex(@"^[;#].*", RegexOptions.Compiled);
             private static readonly Regex SectionPattern = new Regex(@"^\[(.*)\]$", RegexOptions.Compiled);
             private static readonly Regex PairPattern = new Regex(@"([\S][^=]+)[\s]*=[\s]*(.*)", RegexOptions.Compiled);
             private static readonly Regex GroupSectionPattern = new Regex(@"(.*?(?=""))", RegexOptions.Compiled);
 
             private readonly IGitConfigFileManager manager;
+
+            private Section loadedSection;
 
             public SectionParser(IGitConfigFileManager manager)
             {
@@ -280,26 +277,32 @@ namespace GitHub.Unity
             {
                 Sections = new Dictionary<string, Section>();
                 GroupSections = new Dictionary<string, Dictionary<string, Section>>();
-                manager.Lines.All(l => {
-                    ParseLine(l);
-                    return true;
-                });
+
+                foreach (var managerLine in manager.Lines)
+                {
+                    ParseLine(managerLine);
+                }
             }
 
             private void ParseLine(string line)
             {
                 if (SectionPattern.IsMatch(line))
-                    InitNewSectionFromLine(line);
-                if (PairPattern.IsMatch(line))
-                    AddKeyValuePairToLastSectionFromLine(line);
+                {
+                    LoadOrCreateSectionFromLine(line);
+                }
+                else if (PairPattern.IsMatch(line))
+                {
+                    AddKeyValuePairToLoadedSectionFromLine(line);
+                }
             }
 
-            private void InitNewSectionFromLine(string line)
+            private void LoadOrCreateSectionFromLine(string line)
             {
                 var match = SectionPattern.Match(line);
                 var sectionKey = match.Groups[1].Value.Trim();
                 string description = null;
                 string groupKey = null;
+
                 if (GroupSectionPattern.IsMatch(sectionKey))
                 {
                     var match1 = GroupSectionPattern.Match(sectionKey);
@@ -307,27 +310,38 @@ namespace GitHub.Unity
                     match1 = match1.NextMatch().NextMatch();
                     description = match1.Value.Trim();
                 }
-                Section section = null;
-                if (!Sections.TryGetValue(sectionKey, out section))
+
+                if (!Sections.TryGetValue(sectionKey, out loadedSection))
                 {
-                    section = new Section(sectionKey, description);
-                    Sections.Add(sectionKey, section);
-                }
-                if (groupKey != null)
-                {
-                    if (!GroupSections.ContainsKey(groupKey))
-                        GroupSections.Add(groupKey, new Dictionary<string, Section>());
-                    if (!GroupSections[groupKey].ContainsKey(description))
-                        GroupSections[groupKey].Add(description, section);
+                    loadedSection = new Section(sectionKey, description);
+
+                    Sections.Add(sectionKey, loadedSection);
+
+                    if (groupKey != null)
+                    {
+                        Dictionary<string, Section> groupSection;
+                        if (!GroupSections.TryGetValue(groupKey, out groupSection))
+                        {
+                            groupSection = new Dictionary<string, Section>();
+
+                            GroupSections.Add(groupKey, groupSection);
+                        }
+
+                        if (!groupSection.ContainsKey(description))
+                        {
+                            groupSection.Add(description, loadedSection);
+                        }
+                    }
                 }
             }
 
-            private void AddKeyValuePairToLastSectionFromLine(string line)
+            private void AddKeyValuePairToLoadedSectionFromLine(string line)
             {
                 var match = PairPattern.Match(line);
                 var key = match.Groups[1].Value.Trim();
                 var value = match.Groups[2].Value;
-                Sections[Sections.Last().Key].Add(key, value);
+
+                loadedSection.Add(key, value);
             }
 
             private void EnsureFileBeginsWithSection()
