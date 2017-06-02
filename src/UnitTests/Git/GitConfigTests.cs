@@ -33,6 +33,7 @@ namespace UnitTests
 	stringValue = refs/heads/working-branch-2";
 
         private const string MalformedConfig = @"[branch ""troublesome-branch""]
+    someValue = refs/heads/test-parse
 [branch ""unsuspecting-branch""]
 	intValue = 1234
 	floatValue = 1234.5
@@ -73,6 +74,13 @@ namespace UnitTests
         {
             var gitConfig = LoadGitConfig(config);
             gitConfig.GetString(section, "stringValue").Should().Be(expected);
+        }
+
+        [TestCase(MalformedConfig, @"branch ""troublesome-branch""", "refs/heads/test-parse", TestName = "Can Get Other Group Section Other String Value From Malformed")]
+        public void Can_Get_Other_String(string config, string section, string expected)
+        {
+            var gitConfig = LoadGitConfig(config);
+            gitConfig.GetString(section, "someValue").Should().Be(expected);
         }
 
         [TestCase(NormalConfig, "core", 1234, TestName = "Can TryGet Root Section Int Value")]
