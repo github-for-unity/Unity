@@ -94,7 +94,7 @@ namespace GitHub.Unity
         {
             var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
             string filePath = repositoryPathConfiguration.DotGitConfig;
-            var gitConfig = new GitConfig(new GitConfigFileManager(filePath));
+            var gitConfig = new GitConfig(filePath);
 
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, cancellationToken);
 

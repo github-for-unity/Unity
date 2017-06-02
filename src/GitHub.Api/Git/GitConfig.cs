@@ -49,14 +49,14 @@ namespace GitHub.Unity
 
     class GitConfig : IGitConfig
     {
-        private readonly IGitConfigFileManager manager;
+        private readonly GitConfigFileManager manager;
         private SectionParser sectionParser;
         private Dictionary<string, Section> sections;
         private Dictionary<string, Dictionary<string, Section>> groups;
 
-        public GitConfig(IGitConfigFileManager gitConfigFileManager)
+        public GitConfig(string filePath)
         {
-            manager = gitConfigFileManager;
+            manager = new GitConfigFileManager(filePath);
             Reset();
         }
 
@@ -262,11 +262,11 @@ namespace GitHub.Unity
             private static readonly Regex PairPattern = new Regex(@"([\S][^=]+)[\s]*=[\s]*(.*)", RegexOptions.Compiled);
             private static readonly Regex GroupSectionPattern = new Regex(@"(.*?(?=""))", RegexOptions.Compiled);
 
-            private readonly IGitConfigFileManager manager;
+            private readonly GitConfigFileManager manager;
 
             private Section loadedSection;
 
-            public SectionParser(IGitConfigFileManager manager)
+            public SectionParser(GitConfigFileManager manager)
             {
                 this.manager = manager;
                 EnsureFileBeginsWithSection();
@@ -353,39 +353,54 @@ namespace GitHub.Unity
             public Dictionary<string, Section> Sections { get; private set; }
             public Dictionary<string, Dictionary<string, Section>> GroupSections { get; private set; }
         }
-    }
 
-    internal interface IGitConfigFileManager
-    {
-        void Refresh();
-        bool Save(string contents);
-        string FilePath { get; }
-        string[] Lines { get; }
-    }
-
-    internal class GitConfigFileManager : IGitConfigFileManager
-    {
-        private static string[] emptyContents = new string[0];
-        private static Func<string, string[]> fileReadAllLines = s => { try { return File.ReadAllLines(s); } catch { return emptyContents; } };
-        private static Func<string, bool> fileExists = s => { try { return File.Exists(s); } catch { return false; } };
-        private static Func<string, string, bool> fileWriteAllText = (file, contents) => { try { File.WriteAllText(file, contents); } catch { return false; } return true; };
-
-        public GitConfigFileManager(string filePath)
+        class GitConfigFileManager
         {
-            FilePath = filePath;
-        }
+            private static readonly string[] emptyContents = new string[0];
 
-        public void Refresh()
-        {
-            Lines = fileReadAllLines(FilePath);
-        }
+            public GitConfigFileManager(NPath filePath)
+            {
+                FilePath = filePath;
+            }
 
-        public bool Save(string contents)
-        {
-            return fileWriteAllText(FilePath, contents);
-        }
+            private bool WriteAllText(string contents)
+            {
+                try
+                {
+                    FilePath.WriteAllText(contents);
+                }
+                catch
+                {
+                    return false;
+                }
 
-        public string FilePath { get; private set; }
-        public string[] Lines { get; private set; }
+                return true;
+            }
+
+            private string[] ReadAllLines()
+            {
+                try
+                {
+                    return FilePath.ReadAllLines();
+                }
+                catch
+                {
+                    return emptyContents;
+                }
+            }
+
+            public void Refresh()
+            {
+                Lines = ReadAllLines();
+            }
+
+            public bool Save(string contents)
+            {
+                return WriteAllText(contents);
+            }
+
+            public NPath FilePath { get; private set; }
+            public string[] Lines { get; private set; }
+        }
     }
 }

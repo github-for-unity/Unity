@@ -1,22 +1,33 @@
 ﻿using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using GitHub.Unity;
-using NSubstitute;
+using NCrunch.Framework;
 using NUnit.Framework;
+using TestUtils;
 
 namespace UnitTests
 {
-    [TestFixture]
+    [TestFixture, Isolated]
     public class GitConfigTests
     {
-        private static GitConfig LoadGitConfig(string s)
+        private static readonly SubstituteFactory SubstituteFactory = new SubstituteFactory();
+
+        private static GitConfig LoadGitConfig(string configFileContents)
         {
-            var input = s.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            var input = configFileContents.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 
-            var gitConfigFileManager = Substitute.For<IGitConfigFileManager>();
-            gitConfigFileManager.Lines.Returns(input);
+            const string configFilePath = @"c:\gitconfig.txt";
 
-            return new GitConfig(gitConfigFileManager);
+            var fileSystem = SubstituteFactory.CreateFileSystem(
+                new CreateFileSystemOptions
+                {
+                    FileContents = new Dictionary<string, IList<string>> { { configFilePath, input } }
+                });
+
+            NPathFileSystemProvider.Current = fileSystem;
+
+            return new GitConfig(configFilePath);
         }
 
         private const string NormalConfig = @"[core]
