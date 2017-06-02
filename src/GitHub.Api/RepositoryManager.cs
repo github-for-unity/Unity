@@ -94,7 +94,8 @@ namespace GitHub.Unity
             IGitClient gitClient, NPath repositoryRoot)
         {
             var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
-            var gitConfig = new GitConfig(repositoryPathConfiguration.DotGitConfig);
+            string filePath = repositoryPathConfiguration.DotGitConfig;
+            var gitConfig = new GitConfig(filePath);
 
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
 
