@@ -97,31 +97,30 @@ namespace IntegrationTests
         [Test]
         public async Task SecondProcessShouldExecuteProperly()
         {
-            var beforeSecondProcess = false;
-            var secondProcessOutput = false;
-            var secondProcessFinally = false;
+            var beforeProcess = false;
+            var processOutput = false;
+            var processFinally = false;
 
-            await new FuncTask<bool>(Token, _ => {
+            await new ActionTask(Token, _ => {
                     Console.WriteLine("Before Process");
-                    beforeSecondProcess = true;
-                    return true;
+                    beforeProcess = true;
                 })
                 .Then(new SimpleProcessTask(TestApp, @"-s 1000 -d ""ok2""", Token)
                     .Configure(ProcessManager)
                     .Then((s, d) => {
                         Console.WriteLine($@"Process Output: {d}");
-                        secondProcessOutput = true;
+                        processOutput = true;
                         return true;
                     })
                     .Finally((s, e) => {
                         Console.WriteLine($@"Process Finally Clause");
-                        secondProcessFinally = true;
+                        processFinally = true;
                     }))
                 .StartAsAsync();
 
-            Assert.IsTrue(beforeSecondProcess);
-            Assert.IsTrue(secondProcessOutput);
-            Assert.IsTrue(secondProcessFinally);
+            Assert.IsTrue(beforeProcess);
+            Assert.IsTrue(processOutput);
+            Assert.IsTrue(processFinally);
         }
     }
 
