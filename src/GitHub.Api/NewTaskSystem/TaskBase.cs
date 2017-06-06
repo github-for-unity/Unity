@@ -110,7 +110,7 @@ namespace GitHub.Unity
             var firstTaskBase = taskBase.GetFirstDepends() ?? taskBase;
             firstTaskBase.SetDependsOn(this);
 
-            this.continuation = taskBase;
+            this.continuation = firstTaskBase;
             this.continuationAlways = always;
             return cont;
         }
