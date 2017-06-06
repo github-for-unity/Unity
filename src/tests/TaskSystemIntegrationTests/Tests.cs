@@ -97,30 +97,24 @@ namespace IntegrationTests
         [Test]
         public async Task SecondProcessShouldExecuteProperly()
         {
-            var beforeProcess = false;
-            var processOutput = false;
-            var processFinally = false;
+            var expected = new List<string>() { "BeforeProcess", "ProcessOutput", "ProcessFinally" };
+
+            var results = new List<string>() { };
 
             await new ActionTask(Token, _ => {
-                    Console.WriteLine("Before Process");
-                    beforeProcess = true;
-                })
-                .Then(new SimpleProcessTask(TestApp, @"-s 1000 -d ""ok2""", Token)
-                    .Configure(ProcessManager)
-                    .Then((s, d) => {
-                        Console.WriteLine($@"Process Output: {d}");
-                        processOutput = true;
-                        return true;
-                    })
-                    .Finally((s, e) => {
-                        Console.WriteLine($@"Process Finally Clause");
-                        processFinally = true;
-                    }))
-                .StartAsAsync();
+                Console.WriteLine("Before Process");
+                results.Add("BeforeProcess");
+            }).Then(new SimpleProcessTask(TestApp, @"-s 1000 -d ""ok""", Token)
+                .Configure(ProcessManager).Then(new FuncTask<int>(Token, (b, i) => {
+                    Console.WriteLine($@"Process Output");
+                    results.Add("ProcessOutput");
+                    return 1234;
+                })).Finally((b, exception) => {
+                    Console.WriteLine($@"Process Finally Clause");
+                    results.Add("ProcessFinally");
+                })).StartAsAsync();
 
-            Assert.IsTrue(beforeProcess);
-            Assert.IsTrue(processOutput);
-            Assert.IsTrue(processFinally);
+            CollectionAssert.AreEqual(expected, results);
         }
     }
 
