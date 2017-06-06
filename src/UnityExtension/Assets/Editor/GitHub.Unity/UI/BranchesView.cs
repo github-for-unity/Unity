@@ -498,7 +498,8 @@ namespace GitHub.Unity
                     if (createBranch)
                     {
                         GitClient.CreateBranch(newBranchName, selectedNode.Name)
-                            .FinallyInUI((success, e) => { if (success) Refresh(); });
+                            .FinallyInUI((success, e) => { if (success) Refresh(); })
+                            .Start();
                     }
 
                     // Cleanup
