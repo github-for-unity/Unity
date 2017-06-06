@@ -101,7 +101,7 @@ namespace IntegrationTests
             var firstProcessError = false;
             var firstProcessFinally = false;
 
-            var innerTask = new SimpleProcessTask(TestApp, @"-s 1000 -d ""ok""", Token)
+            var firstProcess = new SimpleProcessTask(TestApp, @"-s 1000 -d ""ok""", Token)
                 .Configure(ProcessManager)
                 .Then((s, d) => {
                     Console.WriteLine($@"First Process Output: {d}");
@@ -117,7 +117,7 @@ namespace IntegrationTests
                     firstProcessFinally = true;
                 });
 
-            await innerTask.StartAsAsync();
+            await firstProcess.StartAsAsync();
 
             var beforeSecondProcess = false;
             var secondProcessOutput = false;
@@ -125,7 +125,7 @@ namespace IntegrationTests
             var secondProcessFinally = false;
             var afterSecondProcess = false;
 
-            var innerTask2 = new SimpleProcessTask(TestApp, @"-s 1000 -d ""ok""", Token)
+            var secondProcess = new SimpleProcessTask(TestApp, @"-s 1000 -d ""ok""", Token)
                 .Configure(ProcessManager)
                 .Then((s, d) => {
                     Console.WriteLine($@"Second Process Output: {d}");
@@ -146,7 +146,7 @@ namespace IntegrationTests
                     beforeSecondProcess = true;
                     return true;
                 })
-                .Then(innerTask2)
+                .Then(secondProcess)
                 .Then(b => {
                     Console.WriteLine("After Second Process");
                     afterSecondProcess = true;
