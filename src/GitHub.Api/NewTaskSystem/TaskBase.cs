@@ -90,6 +90,13 @@ namespace GitHub.Unity
 
         public ITask SetDependsOn(ITask dependsOn)
         {
+            if (DependsOn != null)
+            {
+                Console.WriteLine($@"""{ToString()}"" Cleared DependsOn ""{DependsOn}""");
+            }
+
+            Console.WriteLine($@"""{ToString()}"" DependsOn ""{dependsOn?.ToString() ?? "null"}""");
+
             DependsOn = (TaskBase)dependsOn;
             return this;
         }
