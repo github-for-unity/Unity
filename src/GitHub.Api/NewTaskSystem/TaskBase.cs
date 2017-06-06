@@ -105,8 +105,12 @@ namespace GitHub.Unity
             where T : ITask
         {
             Guard.ArgumentNotNull(cont, nameof(cont));
-            cont.SetDependsOn(this);
-            this.continuation = (TaskBase)(object)cont;
+            var taskBase = ((TaskBase)(object)cont);
+
+            var firstTaskBase = taskBase.GetFirstDepends() ?? taskBase;
+            firstTaskBase.SetDependsOn(this);
+
+            this.continuation = taskBase;
             this.continuationAlways = always;
             return cont;
         }
@@ -200,6 +204,7 @@ namespace GitHub.Unity
         {
             if (Task.Status == TaskStatus.Created)
             {
+                Console.WriteLine($@"Run {this}");
                 TaskManager.Instance.Schedule(this);
             }
             else
