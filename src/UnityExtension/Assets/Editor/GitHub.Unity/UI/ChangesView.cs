@@ -189,9 +189,17 @@ namespace GitHub.Unity
             // Do not allow new commits before we have received one successful update
             busy = true;
 
-            GitClient.Commit(commitMessage, commitBody)
+            var files = Enumerable.Range(0, tree.Entries.Count).Where(i => tree.CommitTargets[i].All).Select(i => tree.Entries[i].Path).ToArray();
+
+            GitClient.Add(files)
+                .Then(GitClient.Commit(commitMessage, commitBody))
                 .Then(GitClient.Status())
-                .FinallyInUI((_, __) => busy = false);
+                .FinallyInUI((b, exception) => 
+                    {
+                        commitMessage = "";
+                        commitBody = "";
+                        busy = false;
+                    }).Start();
         }
     }
 }

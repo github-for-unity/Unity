@@ -168,10 +168,10 @@ namespace GitHub.Unity
             return task.Then(continuation, TaskAffinity.UI, always);
         }
 
-        public static T FinallyInUI<T>(this T task, Action<bool, Exception> continuation)
+        public static ITask FinallyInUI<T>(this T task, Action<bool, Exception> continuation)
             where T : ITask
         {
-            return (T)task.Finally(continuation, TaskAffinity.UI);
+            return task.Finally(continuation, TaskAffinity.UI);
         }
 
         public static ITask FinallyInUI<T>(this ITask<T> task, Action<bool, Exception, T> continuation)

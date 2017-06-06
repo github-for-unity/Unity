@@ -56,13 +56,13 @@ namespace GitHub.Unity
         ITask<string> Commit(string message, string body,
             IOutputProcessor<string> processor = null, ITask dependsOn = null);
 
-        ITask<string> Add(List<string> files,
+        ITask<string> Add(IList<string> files,
             IOutputProcessor<string> processor = null, ITask dependsOn = null);
 
-        ITask<string> Remove(List<string> files,
+        ITask<string> Remove(IList<string> files,
             IOutputProcessor<string> processor = null, ITask dependsOn = null);
 
-        ITask<string> AddAndCommit(List<string> files, string message, string body,
+        ITask<string> AddAndCommit(IList<string> files, string message, string body,
             IOutputProcessor<string> processor = null, ITask dependsOn = null);
 
         ITask<string> Lock(string file,
@@ -254,21 +254,21 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<string> Add(List<string> files,
+        public ITask<string> Add(IList<string> files,
             IOutputProcessor<string> processor = null, ITask dependsOn = null)
         {
             return new GitAddTask(files, cancellationToken, processor, dependsOn)
                 .Configure(processManager);
         }
 
-        public ITask<string> Remove(List<string> files,
+        public ITask<string> Remove(IList<string> files,
             IOutputProcessor<string> processor = null, ITask dependsOn = null)
         {
             return new GitRemoveFromIndexTask(files, cancellationToken, processor, dependsOn)
                 .Configure(processManager);
         }
 
-        public ITask<string> AddAndCommit(List<string> files, string message, string body,
+        public ITask<string> AddAndCommit(IList<string> files, string message, string body,
             IOutputProcessor<string> processor = null, ITask dependsOn = null)
         {
             return Add(files, dependsOn: dependsOn)
