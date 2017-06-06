@@ -95,7 +95,7 @@ namespace IntegrationTests
         }
 
         [Test]
-        public async Task SecondProcessShouldExecuteProperly()
+        public async Task NestedProcessShouldChainCorrectly()
         {
             var expected = new List<string>() { "BeforeProcess", "ProcessOutput", "ProcessFinally" };
 
