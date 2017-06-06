@@ -97,72 +97,31 @@ namespace IntegrationTests
         [Test]
         public async Task SecondProcessShouldExecuteProperly()
         {
-            var firstProcessOutput = false;
-            var firstProcessError = false;
-            var firstProcessFinally = false;
-
-            var firstProcess = new SimpleProcessTask(TestApp, @"-s 1000 -d ""ok""", Token)
-                .Configure(ProcessManager)
-                .Then((s, d) => {
-                    Console.WriteLine($@"First Process Output: {d}");
-                    firstProcessOutput = true;
-                    return true;
-                })
-                .Catch(ex => {
-                    Console.WriteLine($@"First Process Error {ex.ToString()}");
-                    firstProcessError = true;
-                })
-                .Finally((s, e) => {
-                    Console.WriteLine($@"First Process Finally Clause");
-                    firstProcessFinally = true;
-                });
-
-            await firstProcess.StartAsAsync();
-
             var beforeSecondProcess = false;
             var secondProcessOutput = false;
-            var secondProcessError = false;
             var secondProcessFinally = false;
-            var afterSecondProcess = false;
-
-            var secondProcess = new SimpleProcessTask(TestApp, @"-s 1000 -d ""ok""", Token)
-                .Configure(ProcessManager)
-                .Then((s, d) => {
-                    Console.WriteLine($@"Second Process Output: {d}");
-                    secondProcessOutput = true;
-                    return true;
-                })
-                .Catch(ex => {
-                    Console.WriteLine($@"Second Process Error {ex.ToString()}");
-                    secondProcessError = true;
-                })
-                .Finally((s, e) => {
-                    Console.WriteLine($@"Second Process Finally Clause");
-                    secondProcessFinally = true;
-                });
 
             await new FuncTask<bool>(Token, _ => {
-                    Console.WriteLine("Before Second Process");
+                    Console.WriteLine("Before Process");
                     beforeSecondProcess = true;
                     return true;
                 })
-                .Then(secondProcess)
-                .Then(b => {
-                    Console.WriteLine("After Second Process");
-                    afterSecondProcess = true;
-                    return b;
-                })
+                .Then(new SimpleProcessTask(TestApp, @"-s 1000 -d ""ok2""", Token)
+                    .Configure(ProcessManager)
+                    .Then((s, d) => {
+                        Console.WriteLine($@"Process Output: {d}");
+                        secondProcessOutput = true;
+                        return true;
+                    })
+                    .Finally((s, e) => {
+                        Console.WriteLine($@"Process Finally Clause");
+                        secondProcessFinally = true;
+                    }))
                 .StartAsAsync();
-
-            Assert.IsTrue(firstProcessOutput);
-            Assert.IsFalse(firstProcessError);
-            Assert.IsTrue(firstProcessFinally);
 
             Assert.IsTrue(beforeSecondProcess);
             Assert.IsTrue(secondProcessOutput);
-            Assert.IsFalse(secondProcessError);
             Assert.IsTrue(secondProcessFinally);
-            Assert.IsTrue(afterSecondProcess);
         }
     }
 
