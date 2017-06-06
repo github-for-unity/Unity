@@ -1,8 +1,8 @@
 ﻿<ProjectConfiguration>
   <Settings>
     <AdditionalFilesToIncludeForProject>
-      <Value>..\..\lib\sfw.net\win\x64\Debug\**.*</Value>
-      <Value>..\GitHub.Api\PlatformResources\**.*</Value>
+      <Value>..\..\..\lib\sfw.net\win\x64\Debug\**.*</Value>
+      <Value>..\..\GitHub.Api\PlatformResources\**.*</Value>
     </AdditionalFilesToIncludeForProject>
     <HiddenComponentWarnings>
       <Value>AbnormalReferenceResolution</Value>

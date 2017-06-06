@@ -1,7 +1,7 @@
 ﻿<ProjectConfiguration>
   <Settings>
     <AdditionalFilesToIncludeForProject>
-      <Value>..\..\lib\sfw.net\win\x64\Debug\**.*</Value>
+      <Value>..\..\..\lib\sfw.net\win\x64\Debug\**.*</Value>
     </AdditionalFilesToIncludeForProject>
     <HiddenComponentWarnings>
       <Value>PostBuildEventDisabled</Value>
