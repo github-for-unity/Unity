@@ -90,7 +90,9 @@ namespace IntegrationTests
             var expectedOutput = new List<string> { "Hello", "World" };
 
             var task = new SimpleProcessTask(TestApp, @"-s 100 -i", Token)
-                .Configure(ProcessManager, withInput: true);
+                .Configure(ProcessManager, withInput: true)
+                //.Then((s, d) => output.Add(d))
+                .Finally(() => { });
 
             task.OnStart += t =>
             {
@@ -104,9 +106,7 @@ namespace IntegrationTests
                 proc.StandardInput.Close();
             };
 
-            var completionTask = task.Then((s, d) => output.Add(d));
-
-            await completionTask.StartAsAsyncWithoutThrowing();
+            await task.StartAsAsyncWithoutThrowing();
 
             CollectionAssert.AreEqual(expectedOutput, output);
         }
