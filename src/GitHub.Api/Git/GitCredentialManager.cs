@@ -124,7 +124,9 @@ namespace GitHub.Unity
 
             logger.Trace("Loading Credential Helper");
 
-            credHelper = await new GitConfigGetTask("credential.helper", GitConfigSource.NonSpecified, taskManager.Token).StartAwait();
+            credHelper = await new GitConfigGetTask("credential.helper", GitConfigSource.NonSpecified, taskManager.Token)
+                .Configure(processManager)
+                .StartAwait();
 
             if (credHelper != null)
             {
