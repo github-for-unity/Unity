@@ -127,7 +127,7 @@ namespace GitHub.Unity
                 lockedFiles = new List<GitLock>();
             OnLocksUpdate(Repository.CurrentLocks);
             Repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
-            //Repository.ListLocks().Start();
+            Repository.ListLocks().Start();
 
             gitName = Repository.User.Name;
             gitEmail = Repository.User.Email;
