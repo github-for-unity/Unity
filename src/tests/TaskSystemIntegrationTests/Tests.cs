@@ -13,6 +13,13 @@ namespace IntegrationTests
 {
     class BaseTest
     {
+        public BaseTest()
+        {
+            Logger = Logging.GetLogger(GetType());
+        }
+
+        protected ILogging Logger { get; }
+
         protected ITaskManager TaskManager { get; set; }
         protected IProcessManager ProcessManager { get; set; }
         protected NPath TestBasePath { get; private set; }
@@ -23,7 +30,7 @@ namespace IntegrationTests
         public void OneTimeSetup()
         {
             Logging.LogAdapter = new ConsoleLogAdapter();
-            //Logging.TracingEnabled = true;
+            Logging.TracingEnabled = true;
             TaskManager = new TaskManager();
             var syncContext = new ThreadSynchronizationContext(Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(syncContext);
@@ -73,9 +80,6 @@ namespace IntegrationTests
         [Test]
         public async Task ProcessReadsFromStandardInput()
         {
-            //            var success = false;
-            //            Exception thrown = null;
-
             var output = new List<string>();
 
             var input = new List<string> {
@@ -90,6 +94,8 @@ namespace IntegrationTests
 
             task.OnStart += t =>
             {
+                Logger.Trace("Sending output");
+
                 var proc = ((IProcess)t).Process;
                 foreach (var item in input)
                 {
