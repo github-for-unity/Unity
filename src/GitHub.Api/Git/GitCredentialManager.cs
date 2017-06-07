@@ -6,7 +6,7 @@ namespace GitHub.Unity
 {
     class GitCredentialManager : ICredentialManager
     {
-        private static readonly ILogging logger = Logging.GetLogger<GitCredentialManager>();
+        private static ILogging Logger { get; } = Logging.GetLogger<GitCredentialManager>();
 
         private ICredential credential;
         private string credHelper = null;
@@ -32,7 +32,7 @@ namespace GitHub.Unity
 
         public async Task Delete(UriString host)
         {
-            logger.Trace("Delete: {0}", host);
+            Logger.Trace("Delete: {0}", host);
 
             if (!await LoadCredentialHelper())
                 return;
@@ -48,7 +48,7 @@ namespace GitHub.Unity
 
         public async Task<ICredential> Load(UriString host)
         {
-            logger.Trace("Load: {0}", host);
+            Logger.Trace("Load: {0}", host);
 
             if (credential == null)
             {
@@ -66,7 +66,7 @@ namespace GitHub.Unity
 
                 if (String.IsNullOrEmpty(kvpCreds))
                 {
-                    logger.Error("No credentials are stored");
+                    Logger.Error("No credentials are stored");
                     return null;
                 }
 
@@ -81,7 +81,7 @@ namespace GitHub.Unity
                 string password = null;
                 if (!dict.TryGetValue("password", out password))
                 {
-                    logger.Error("No password is stored");
+                    Logger.Error("No password is stored");
                     return null;
                 }
 
@@ -94,7 +94,7 @@ namespace GitHub.Unity
 
         public async Task Save(ICredential credential)
         {
-            logger.Trace("Save: {0}", credential.Host);
+            Logger.Trace("Save: {0}", credential.Host);
 
             this.credential = credential;
 
@@ -113,7 +113,7 @@ namespace GitHub.Unity
             await task.StartAwait();
             if (!task.Successful)
             {
-                logger.Error("Failed to save credentials");
+                Logger.Error("Failed to save credentials");
             }
         }
 
@@ -122,7 +122,7 @@ namespace GitHub.Unity
             if (credHelper != null)
                 return true;
 
-            logger.Trace("Loading Credential Helper");
+            Logger.Trace("Loading Credential Helper");
 
             credHelper = await new GitConfigGetTask("credential.helper", GitConfigSource.NonSpecified, taskManager.Token)
                 .Configure(processManager)
@@ -133,24 +133,24 @@ namespace GitHub.Unity
                 return true;
             }
 
-            logger.Error("Failed to get the credential helper");
+            Logger.Error("Failed to get the credential helper");
             return false;
         }
 
         private ITask<string> RunCredentialHelper(string action, string[] lines)
         {
-            ITask<string> task = null;
-            string app = "";
+            Logger.Trace("RunCredentialHelper helper:\"{0}\" action:\"{1}\"", credHelper, action);
+
+            ITask<string> task;
             if (credHelper.StartsWith('!'))
             {
-
                 // it's a separate app, run it as such
                 task = new ProcessTask<string>(taskManager.Token, new SimpleOutputProcessor())
                     .Configure(processManager, credHelper.Substring(1).ToNPath(), action, withInput: true);
             }
             else
             {
-                app = String.Format("credential-{0} ", credHelper);
+                var app = $"credential-{credHelper} ";
                 task = new ProcessTask<string>(taskManager.Token, app, new SimpleOutputProcessor())
                     .Configure(processManager, true);
             }
