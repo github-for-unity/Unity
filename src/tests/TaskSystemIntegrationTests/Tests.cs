@@ -71,6 +71,41 @@ namespace IntegrationTests
     class ProcessTaskTests : BaseTest
     {
         [Test]
+        public async Task ProcessReadsFromStandardInput()
+        {
+            //            var success = false;
+            //            Exception thrown = null;
+
+            var output = new List<string>();
+
+            var input = new List<string> {
+                "Hello",
+                "World\u001A"
+            };
+
+            var expectedOutput = new List<string> { "Hello", "World" };
+
+            var task = new SimpleProcessTask(TestApp, @"-s 100 -i", Token)
+                .Configure(ProcessManager, withInput: true);
+
+            task.OnStart += t =>
+            {
+                var proc = ((IProcess)t).Process;
+                foreach (var item in input)
+                {
+                    proc.StandardInput.WriteLine(item);
+                }
+                proc.StandardInput.Close();
+            };
+
+            var completionTask = task.Then((s, d) => output.Add(d));
+
+            await completionTask.StartAsAsyncWithoutThrowing();
+
+            CollectionAssert.AreEqual(expectedOutput, output);
+        }
+
+        [Test]
         public async Task ProcessReturningErrorThrowsException()
         {
             var success = false;
