@@ -53,6 +53,8 @@ namespace GitHub.Unity
         {
             if (authView == null)
                 authView = new AuthenticationView();
+
+            Initialize(EntryPoint.ApplicationManager);
             authView.Initialize(this);
         }
 
