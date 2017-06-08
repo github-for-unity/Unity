@@ -124,7 +124,7 @@ namespace GitHub.Unity
 
         private void RunTimer()
         {
-            Logging.Trace("Scheduling timer for 3 minutes from now");
+            logger.Trace("Scheduling timer for 3 minutes from now");
             // The timer first ticks after 3 minutes to allow things to settle down after startup.
             // This will be changed to 8 hours after the first tick by the TimerTick method.
             timer = new Timer(TimeSpan.FromMinutes(3).TotalMilliseconds);
