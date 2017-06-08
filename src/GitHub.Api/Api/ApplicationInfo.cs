@@ -1,3 +1,4 @@
+#pragma warning disable 436
 namespace GitHub.Unity
 {
     public static class ApplicationInfo

@@ -7,7 +7,7 @@ namespace GitHub.Unity
     {
         public static string FindCommonPath(IEnumerable<string> paths)
         {
-            var pathsArray = paths.Select(s => s.ToNPath().Parent).ToArray();
+            var pathsArray = paths.Where(s => s != null).Select(s => s.ToNPath().Parent).ToArray();
             var maxDepth = pathsArray.Max(path => path.Depth);
             var deepestPath = pathsArray.First(path => path.Depth == maxDepth);
 

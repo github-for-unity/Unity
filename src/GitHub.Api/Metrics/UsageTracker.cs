@@ -31,7 +31,7 @@ namespace GitHub.Unity
         {
             // The services needed by the usage tracker are loaded when they are first needed to
             // improve the startup time of the extension.
-            await ThreadingHelper.SwitchToMainThreadAsync();
+            //await ThreadingHelper.SwitchToMainThreadAsync();
 
 #if HAS_METRICS_SERVICE
             if (client == null)

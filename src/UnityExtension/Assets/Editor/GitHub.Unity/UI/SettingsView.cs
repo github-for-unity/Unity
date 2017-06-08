@@ -129,7 +129,7 @@ namespace GitHub.Unity
                 lockedFiles = new List<GitLock>();
             OnLocksUpdate(Repository.CurrentLocks);
             Repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
-            Repository.ListLocks();
+            Repository.ListLocks().Start();
 
             gitName = Repository.User.Name;
             gitEmail = Repository.User.Email;
@@ -142,7 +142,8 @@ namespace GitHub.Unity
 
         private void RunLocksUpdateOnMainThread(IEnumerable<GitLock> locks)
         {
-            TaskRunner.ScheduleMainThread(() => OnLocksUpdate(locks));
+            new ActionTask(TaskManager.Token, _ => OnLocksUpdate(locks))
+                .ScheduleUI(TaskManager);
         }
 
         private void OnLocksUpdate(IEnumerable<GitLock> update)
@@ -181,7 +182,6 @@ namespace GitHub.Unity
 
                 if (Repository != null)
                 {
-
                     OnUserSettingsGUI();
 
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
@@ -225,34 +225,16 @@ namespace GitHub.Unity
             GUI.enabled = !busy;
             if (GUILayout.Button(GitConfigUserSave, GUILayout.ExpandWidth(false)))
             {
-                try
+                var needsSaving = gitName != Repository.User.Name || gitEmail != Repository.User.Email;
+                if (needsSaving)
                 {
+                    GitClient.SetConfig("user.name", gitName, GitConfigSource.User)
+                        .Then((success, value) => { if (success) Repository.User.Name = value; })
+                        .Then(
+                    GitClient.SetConfig("user.email", gitEmail, GitConfigSource.User)
+                        .Then((success, value) => { if (success) Repository.User.Email = value; }))
+                    .FinallyInUI((_, __) => busy = false);
                     busy = true;
-                    var needsSaving = gitName != Repository.User.Name || gitEmail != Repository.User.Email;
-                    if (gitName != Repository.User.Name)
-                    {
-                        TaskRunner.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                                new TaskResultDispatcher<string>(value =>
-                                {
-                                    Repository.User.Name = value;
-                                }), "user.name", gitName, GitConfigSource.User));
-                    }
-                    if (gitEmail != Repository.User.Email)
-                    {
-                        TaskRunner.Add(new GitConfigSetTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                                new TaskResultDispatcher<string>(value =>
-                                {
-                                    Repository.User.Email = value;
-                                }), "user.email", gitEmail, GitConfigSource.User));
-                    }
-                    if (needsSaving)
-                        TaskRunner.Add(new SimpleTask(() => busy = false, ThreadingHelper.MainThreadScheduler));
-                    else
-                        busy = false;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Debug(ex);
                 }
             }
             GUI.enabled = true;
@@ -274,8 +256,9 @@ namespace GitHub.Unity
                         (!String.IsNullOrEmpty(repositoryRemoteUrl) && repositoryRemoteUrl != Repository.CurrentRemote.Value.Name);
                     if (needsSaving)
                     {
-                        Repository.SetupRemote(repositoryRemoteName, repositoryRemoteUrl);
-                        TaskRunner.Add(new SimpleTask(() => busy = false, ThreadingHelper.MainThreadScheduler));
+                        Repository.SetupRemote(repositoryRemoteName, repositoryRemoteUrl)
+                            .FinallyInUI((_, __) => busy = false)
+                            .Start();
                     }
                     else
                         busy = false;
@@ -305,9 +288,11 @@ namespace GitHub.Unity
             return true;
         }
 
-        private static bool ValidateGitInstall(string path)
+        private bool ValidateGitInstall(string path)
         {
-            if (!EntryPoint.GitEnvironment.ValidateGitInstall(path))
+            if (String.IsNullOrEmpty(path))
+                return false;
+            if (!GitClient.ValidateGitInstall(path.ToNPath()))
             {
                 EditorUtility.DisplayDialog(GitInstallPickInvalidTitle, String.Format(GitInstallPickInvalidMessage, path),
                     GitInstallPickInvalidOK);
@@ -397,7 +382,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            if (settingsIssues != null && !EntryPoint.LocalSettings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
+            if (settingsIssues != null && !Manager.LocalSettings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
             {
                 var binary = settingsIssues.WasCaught(ProjectSettingsEvaluation.BinarySerialization);
                 var mixed = settingsIssues.WasCaught(ProjectSettingsEvaluation.MixedSerialization);
@@ -411,14 +396,15 @@ namespace GitHub.Unity
                     {
                         if (GUILayout.Button(IgnoreSerialisationSettingsButton))
                         {
-                            EntryPoint.LocalSettings.Set(IgnoreSerialisationIssuesSetting, "1");
+                            Manager.LocalSettings.Set(IgnoreSerialisationIssuesSetting, "1");
                         }
 
                         GUILayout.FlexibleSpace();
 
                         if (GUILayout.Button(RefreshIssuesButton))
                         {
-                            EvaluateProjectConfigurationTask.Schedule();
+                            // TODO: Fix this
+                            //EvaluateProjectConfigurationTask.Schedule();
                         }
 
                         if (GUILayout.Button(SelectEditorSettingsButton))
@@ -540,7 +526,8 @@ namespace GitHub.Unity
                     if (EditorGUI.EndChangeCheck())
                     {
                         GitIgnoreRule.Save(gitIgnoreRulesSelection, newEffect, newFile, newLine, newDescription);
-                        EvaluateProjectConfigurationTask.Schedule();
+                        // TODO: Fix this
+                        //EvaluateProjectConfigurationTask.Schedule();
                     }
                 }
                 GUILayout.EndVertical();
@@ -601,7 +588,7 @@ namespace GitHub.Unity
                             GUILayout.FlexibleSpace();
                             if (GUILayout.Button("Unlock"))
                             {
-                                Repository.ReleaseLock(null, lck.Path, false);
+                                Repository.ReleaseLock(lck.Path, false).Start();
                             }
                         }
                         GUILayout.EndHorizontal();
@@ -621,21 +608,21 @@ namespace GitHub.Unity
 
             GUI.enabled = !busy;
 
-            var gitExecPath = EntryPoint.Environment.GitExecutablePath;
+            var gitExecPath = Environment.GitExecutablePath.ToString();
             // Install path field
             EditorGUI.BeginChangeCheck();
             {
                 //TODO: Verify necessary value for a non Windows OS
-                var extension = EntryPoint.GitEnvironment.GetExecutableExtension();
+                var extension = Environment.ExecutableExtension;
 
                 Styles.PathField(ref gitExecPath,
                     () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
-                        EntryPoint.Environment.GitInstallPath,
+                        Environment.GitInstallPath,
                         extension), ValidateGitInstall);
             }
             if (EditorGUI.EndChangeCheck())
             {
-                EntryPoint.Environment.GitExecutablePath = gitExecPath;
+                Environment.GitExecutablePath = gitExecPath.ToNPath();
             }
 
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
@@ -645,18 +632,16 @@ namespace GitHub.Unity
                 // Find button - for attempting to locate a new install
                 if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
                 {
-                    var task = new FindGitTask(
-                        EntryPoint.Environment, EntryPoint.ProcessManager,
-                        new MainThreadTaskResultDispatcher<string>(
-                            path =>
+                    var task = new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
+                        .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
+                        .FinallyInUI((success, ex, path) =>
+                        {
+                            if (success && !string.IsNullOrEmpty(path))
                             {
-                                if (!string.IsNullOrEmpty(path))
-                                {
-                                    EntryPoint.Environment.GitExecutablePath = path;
-                                    GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
-                                }
-                            })
-                        );
+                                Environment.GitExecutablePath = path;
+                                GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+                            }
+                        });
                 }
             }
             GUILayout.EndHorizontal();
@@ -678,7 +663,7 @@ namespace GitHub.Unity
             if (EditorGUI.EndChangeCheck())
             {
                 EntryPoint.UsageTracker.Enabled = trackingEnabled;
-                EntryPoint.AppManager.UserSettings.Set("UserTrackingEnabled", trackingEnabled);
+                Manager.UserSettings.Set("UserTrackingEnabled", trackingEnabled);
 
                 GUI.FocusControl(null);
             }
@@ -701,7 +686,7 @@ namespace GitHub.Unity
             if (EditorGUI.EndChangeCheck())
             {
                 Logging.TracingEnabled = traceLogging;
-                EntryPoint.AppManager.UserSettings.Set("EnableTraceLogging", traceLogging);
+                Manager.UserSettings.Set("EnableTraceLogging", traceLogging);
 
                 GUI.FocusControl(null);
             }

@@ -12,11 +12,11 @@ namespace GitHub.Unity
         public NPath GitInstallationPath { get; private set; }
         public NPath GitExecutablePath { get; private set; }
 
-        public GitSetup(IEnvironment environment, IFileSystem fileSystem, CancellationToken cancellationToken)
+        public GitSetup(IEnvironment environment, CancellationToken cancellationToken)
         {
             this.environment = environment;
             this.cancellationToken = cancellationToken;
-            gitInstaller = new GitInstaller(environment, fileSystem, cancellationToken);
+            gitInstaller = new GitInstaller(environment, cancellationToken);
             GitInstallationPath = gitInstaller.PackageDestinationDirectory;
             GitExecutablePath = gitInstaller.GitDestinationPath;
         }

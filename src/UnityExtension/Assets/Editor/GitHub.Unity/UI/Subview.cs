@@ -10,6 +10,11 @@ namespace GitHub.Unity
 
         public event Action<bool> OnClose;
 
+        public virtual void Initialize(IApplicationManager applicationManager)
+        {
+            Manager = applicationManager;
+        }
+
         public virtual void Redraw()
         {
             Repaint();
@@ -55,7 +60,13 @@ namespace GitHub.Unity
         {}
 
         public virtual Rect Position { get { return position; } }
-        public IRepository Repository { get; protected set; }
+        public IApplicationManager Manager { get; private set; }
+        public IRepository Repository { get { return Manager != null ? Manager.Environment.Repository : null; } }
+        public ITaskManager TaskManager { get { return Manager != null ? Manager.TaskManager : null; } }
+        protected IGitClient GitClient { get { return Manager != null ? Manager.GitClient : null; } }
+        protected IEnvironment Environment { get { return Manager != null ? Manager.Environment : null; } }
+        protected IPlatform Platform { get { return Manager != null ? Manager.Platform : null; } }
+
 
         private ILogging logger;
         protected ILogging Logger
@@ -75,12 +86,23 @@ namespace GitHub.Unity
 
         private const string NullParentError = "Subview parent is null";
         protected IView Parent { get; private set; }
-        public IRepository Repository { get { return Parent != null ? Parent.Repository : null; } }
+        public IApplicationManager Manager { get; private set; }
+        public IRepository Repository { get { return Manager != null ? Manager.Environment.Repository : null; } }
+        public ITaskManager TaskManager { get { return Manager != null ? Manager.TaskManager : null; } }
+        protected IGitClient GitClient { get { return Manager != null ? Manager.GitClient : null; } }
+        protected IEnvironment Environment { get { return Manager != null ? Manager.Environment : null; } }
+        protected IPlatform Platform { get { return Manager != null ? Manager.Platform : null; } }
+
+        void IView.Initialize(IApplicationManager applicationManager)
+        {
+            Manager = applicationManager;
+        }
 
         public virtual void Initialize(IView parent)
         {
             Debug.Assert(parent != null, NullParentError);
             Parent = parent;
+            ((IView)this).Initialize(parent.Manager);
         }
 
         public virtual void OnShow()

@@ -10,6 +10,7 @@ namespace GitHub.Unity
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     class Repository : IRepository, IEquatable<Repository>
     {
+        private readonly IGitClient gitClient;
         private readonly IRepositoryManager repositoryManager;
 
         public event Action<GitStatus> OnRepositoryChanged;
@@ -25,24 +26,25 @@ namespace GitHub.Unity
         public IEnumerable<GitBranch> RemoteBranches => repositoryManager.RemoteBranches.Values.SelectMany(
             x => x.Values).Select(x => new GitBranch(x.Remote.Value.Name + "/" + x.Name, "[None]", false));
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
         /// </summary>
+        /// <param name="gitClient"></param>
+        /// <param name="repositoryManager"></param>
         /// <param name="name">The repository name.</param>
         /// <param name="cloneUrl">The repository's clone URL.</param>
         /// <param name="localPath"></param>
-        public Repository(IRepositoryManager repositoryManager, string name, UriString cloneUrl, string localPath, IUser user)
+        public Repository(IGitClient gitClient, IRepositoryManager repositoryManager, string name, UriString cloneUrl, NPath localPath)
         {
             Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
             Guard.ArgumentNotNullOrWhiteSpace(name, nameof(name));
             Guard.ArgumentNotNull(cloneUrl, nameof(cloneUrl));
 
+            this.gitClient = gitClient;
             this.repositoryManager = repositoryManager;
             Name = name;
             CloneUrl = cloneUrl;
             LocalPath = localPath;
-            User = user;
 
             repositoryManager.OnRepositoryChanged += RepositoryManager_OnRepositoryChanged;
             repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
@@ -62,44 +64,43 @@ namespace GitHub.Unity
             repositoryManager.Refresh();
         }
 
-        public void SetupRemote(string remote, string remoteUrl)
+        public ITask SetupRemote(string remote, string remoteUrl)
         {
             Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
             Guard.ArgumentNotNullOrWhiteSpace(remoteUrl, "remoteUrl");
             if (!CurrentRemote.HasValue || String.IsNullOrEmpty(CurrentRemote.Value.Name)) // there's no remote at all
             {
-                repositoryManager.RemoteAdd(new TaskResultDispatcher<string>(_ => { }), remote, remoteUrl);
+                return repositoryManager.RemoteAdd(remote, remoteUrl);
             }
             else
             {
-                repositoryManager.RemoteChange(new TaskResultDispatcher<string>(_ => { }), remote, remoteUrl);
+                return repositoryManager.RemoteChange(remote, remoteUrl);
             }
         }
 
-        public void Pull(ITaskResultDispatcher<string> resultDispatcher)
+        public ITask Pull()
         {
-            repositoryManager.Pull(resultDispatcher, CurrentRemote.Value.Name, CurrentBranch);
+            return repositoryManager.Pull(CurrentRemote.Value.Name, CurrentBranch);
         }
 
-        public void Push(ITaskResultDispatcher<string> resultDispatcher)
+        public ITask Push()
         {
-            repositoryManager.Push(resultDispatcher, CurrentRemote.Value.Name, CurrentBranch);
-            repositoryManager.Refresh();
+            return repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch);
         }
 
-        public void ListLocks()
+        public ITask ListLocks()
         {
-            repositoryManager.ListLocks(false);
+            return repositoryManager.ListLocks(false);
         }
 
-        public void RequestLock(ITaskResultDispatcher<string> resultDispatcher, string file)
+        public ITask RequestLock(string file)
         {
-            repositoryManager.LockFile(resultDispatcher, file);
+            return repositoryManager.LockFile(file);
         }
 
-        public void ReleaseLock(ITaskResultDispatcher<string> resultDispatcher, string file, bool force)
+        public ITask ReleaseLock(string file, bool force)
         {
-            repositoryManager.UnlockFile(resultDispatcher, file, force);
+            return repositoryManager.UnlockFile(file, force);
         }
 
         private void RepositoryManager_OnRemoteOrTrackingChanged()
@@ -155,7 +156,7 @@ namespace GitHub.Unity
         /// <returns></returns>
         public override int GetHashCode()
         {
-            return 17 * 23 + (Name?.GetHashCode() ?? 0) * 23 + (Owner?.GetHashCode() ?? 0) * 23 + (LocalPath?.TrimEnd('\\').ToUpperInvariant().GetHashCode() ?? 0);
+            return 17 * 23 + (Name?.GetHashCode() ?? 0) * 23 + (Owner?.GetHashCode() ?? 0) * 23 + (LocalPath?.GetHashCode() ?? 0);
         }
 
         public override bool Equals(object obj)
@@ -179,7 +180,7 @@ namespace GitHub.Unity
                 String.Equals(Name, other.Name) &&
                 String.Equals(Owner, other.Owner) &&
                 String.Equals(CloneUrl, other.CloneUrl) &&
-                String.Equals(LocalPath?.TrimEnd('\\'), other.LocalPath?.TrimEnd('\\'), StringComparison.CurrentCultureIgnoreCase);
+                object.Equals(LocalPath, other.LocalPath);
         }
 
         /// <summary>
@@ -206,7 +207,7 @@ namespace GitHub.Unity
 
         public string Name { get; private set; }
         public UriString CloneUrl { get; private set; }
-        public string LocalPath { get; private set; }
+        public NPath LocalPath { get; private set; }
         public string Owner => CloneUrl?.Owner ?? string.Empty;
         public bool IsGitHub { get { return CloneUrl != ""; } }
 

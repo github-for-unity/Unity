@@ -82,7 +82,6 @@
     <Compile Include="Misc\RepositoryInitializer.cs" />
     <Compile Include="RunLocationShim.cs" />
     <Compile Include="Services\AuthenticationUIDispatcher.cs" />
-    <Compile Include="Tasks\MainThreadTaskResultDispatcher.cs" />
     <Compile Include="Threading\SingleThreadSynchronizationContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
@@ -100,7 +99,6 @@
     <Compile Include="Services\StatusService.cs" />
     <Compile Include="Tasks\EvaluateProjectConfigurationTask.cs" />
     <Compile Include="Tasks\TaskException.cs" />
-    <Compile Include="Tasks\TaskRunner.cs" />
     <Compile Include="Tools\MozRoots.cs" />
     <Compile Include="UI\AuthenticationView.cs" />
     <Compile Include="UI\AuthenticationWindow.cs" />

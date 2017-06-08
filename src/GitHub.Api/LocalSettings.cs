@@ -44,6 +44,7 @@ namespace GitHub.Unity
 
         public override void Initialize()
         {
+            logger.Debug($"Initializing settings file {SettingsPath} {GetType()}");
             cachePath = SettingsPath.Combine(SettingsFileName);
             logger.Trace("Initializing settings file at {0}", cachePath);
             LoadFromCache(cachePath);

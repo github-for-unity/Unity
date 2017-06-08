@@ -70,6 +70,15 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to cancel.
+        /// </summary>
+        public static string Cancel {
+            get {
+                return ResourceManager.GetString("Cancel", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to {0} changed files.
         /// </summary>
         public static string ChangedFilesLabel {
@@ -510,6 +519,24 @@ namespace GitHub.Unity {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to Could not switch to branch {0}.
+        /// </summary>
+        public static string SwitchBranchFailedDescription {
+            get {
+                return ResourceManager.GetString("SwitchBranchFailedDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Switch branch.
+        /// </summary>
+        public static string SwitchBranchTitle {
+            get {
+                return ResourceManager.GetString("SwitchBranchTitle", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to GitHub.
         /// </summary>

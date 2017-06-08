@@ -17,23 +17,17 @@ namespace GitHub.Unity
         private readonly CancellationToken cancellationToken;
         private readonly IEnvironment environment;
         private readonly ILogging logger;
-        private readonly IFileSystem fileSystem;
 
         private delegate void ExtractZipFile(string archive, string outFolder, CancellationToken cancellationToken,
             IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null);
         private ExtractZipFile extractCallback;
 
-        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, IFileSystem fileSystem)
-            : this(environment, sharpZipLibHelper, fileSystem, CancellationToken.None)
+        public GitInstaller(IEnvironment environment, CancellationToken cancellationToken)
+            : this(environment, null, cancellationToken)
         {
         }
 
-        public GitInstaller(IEnvironment environment, IFileSystem fileSystem, CancellationToken cancellationToken)
-            : this(environment, null, fileSystem, CancellationToken.None)
-        {
-        }
-
-        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, IFileSystem fileSystem, CancellationToken cancellationToken)
+        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, CancellationToken cancellationToken)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));
 
@@ -41,7 +35,6 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
 
             this.environment = environment;
-            this.fileSystem = fileSystem;
             this.extractCallback = sharpZipLibHelper != null
                  ? (ExtractZipFile)sharpZipLibHelper.Extract
                  : ZipHelper.ExtractZipFile;
@@ -102,7 +95,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            var calculateMd5 = fileSystem.CalculateMD5(GitLfsDestinationPath);
+            var calculateMd5 = environment.FileSystem.CalculateMD5(GitLfsDestinationPath);
             logger.Trace("GitLFS MD5: {0}", calculateMd5);
 
             if (calculateMd5 != GitLfsExecutableMD5)
