@@ -27,12 +27,8 @@ namespace GitHub.Unity
             RunTimer();
         }
 
-        private async Task Initialize()
+        private void Initialize()
         {
-            // The services needed by the usage tracker are loaded when they are first needed to
-            // improve the startup time of the extension.
-            //await ThreadingHelper.SwitchToMainThreadAsync();
-
 #if HAS_METRICS_SERVICE
             if (client == null)
             {
@@ -41,9 +37,9 @@ namespace GitHub.Unity
 #endif
         }
 
-        private async Task<UsageStore> LoadUsage()
+        private UsageStore LoadUsage()
         {
-            await Initialize();
+            Initialize();
 
             string json = null;
             if (storePath.FileExists())
@@ -128,6 +124,7 @@ namespace GitHub.Unity
 
         private void RunTimer()
         {
+            Logging.Trace("Scheduling timer for 3 minutes from now");
             // The timer first ticks after 3 minutes to allow things to settle down after startup.
             // This will be changed to 8 hours after the first tick by the TimerTick method.
             timer = new Timer(TimeSpan.FromMinutes(3).TotalMilliseconds);
@@ -146,13 +143,14 @@ namespace GitHub.Unity
         {
             logger.Trace("TimerTick");
 
-            await Initialize();
-            var usageStore = await LoadUsage();
+            Initialize();
+            var usageStore = LoadUsage();
 
             if (firstRun)
             {
                 timer.Interval = TimeSpan.FromHours(8).TotalMilliseconds;
                 firstRun = false;
+                Logging.Trace("Scheduling timer for 8 hours from now");
 
                 if (!Enabled)
                 {
@@ -189,9 +187,9 @@ namespace GitHub.Unity
             logger.Trace("Sending Usage");
 
             var currentTimeOffset = DateTimeOffset.UtcNow;
-            var currentDate = currentTimeOffset.Date;
+            var beforeDate = currentTimeOffset.Date;
 
-            var extractReports = usage.Model.SelectReports(currentDate);
+            var extractReports = usage.Model.SelectReports(beforeDate);
             if (!extractReports.Any())
             {
                 logger.Trace("No items to send");
@@ -211,7 +209,7 @@ namespace GitHub.Unity
 
                 if (success)
                 {
-                    usage.Model.RemoveReports(currentDate);
+                    usage.Model.RemoveReports(beforeDate);
                 }
             }
 
@@ -219,9 +217,9 @@ namespace GitHub.Unity
             SaveUsage(usage);
         }
 
-        public async Task IncrementLaunchCount()
+        public void IncrementLaunchCount()
         {
-            var usageStore = await LoadUsage();
+            var usageStore = LoadUsage();
 
             var usage = usageStore.Model.GetCurrentUsage();
             usage.NumberOfStartups++;

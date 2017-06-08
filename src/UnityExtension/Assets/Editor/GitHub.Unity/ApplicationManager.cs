@@ -30,10 +30,10 @@ namespace GitHub.Unity
         {
             Utility.Initialize();
 
-				//TODO: Figure this out
-                //.ContinueWith(_ => SetupUserTracking(), UIScheduler)
-				
             return base.Run()
+                .Then(_ => {
+                    SetupUserTracking();
+                })
                 .ThenInUI(_ =>
                 {
                     Logger.Debug("Run");
@@ -142,8 +142,10 @@ namespace GitHub.Unity
             }
         }
 
-        private Task SetupUserTracking()
+        private void SetupUserTracking()
         {
+            Logger.Trace("Setup User Tracking");
+
             var usagePath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
                                   .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity-usage.json");
 
@@ -163,10 +165,8 @@ namespace GitHub.Unity
 
             if (ApplicationCache.Instance.FirstRun)
             {
-                return UsageTracker.IncrementLaunchCount();
+                UsageTracker.IncrementLaunchCount();
             }
-
-            return CompletedTask.Default;
         }
 
         public override IProcessEnvironment GitEnvironment { get { return Platform.GitEnvironment; } }
