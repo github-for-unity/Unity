@@ -52,8 +52,8 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
 
             ignoredPaths = new[] {
-                platform.Environment.UnityProjectPath.ToNPath().Combine("Library"),
-                platform.Environment.UnityProjectPath.ToNPath().Combine("Temp")
+                platform.Environment.UnityProjectPath.Combine("Library"),
+                platform.Environment.UnityProjectPath.Combine("Temp")
             };
 
             autoResetEvent = new AutoResetEvent(false);

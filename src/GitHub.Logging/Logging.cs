@@ -2,10 +2,34 @@ using System;
 
 namespace GitHub.Unity
 {
-    public static class Logging
+    class NullLogAdapter : LogAdapterBase
     {
-        private static bool tracingEnabled;
+        public override void Info(string context, string message)
+        {
+        }
 
+        public override void Debug(string context, string message)
+        {
+        }
+
+        public override void Trace(string context, string message)
+        {
+        }
+
+        public override void Warning(string context, string message)
+        {
+        }
+
+        public override void Error(string context, string message)
+        {
+        }
+    }
+
+    static class Logging
+    {
+        private static readonly LogAdapterBase nullLogAdapter = new NullLogAdapter();
+
+        private static bool tracingEnabled;
         public static bool TracingEnabled
         {
             get
@@ -22,16 +46,12 @@ namespace GitHub.Unity
             }
         }
 
-        private static Func<string, ILogging> loggerFactory;
+        private static LogAdapterBase logAdapter = nullLogAdapter;
 
-        public static Func<string, ILogging> LoggerFactory
+        public static LogAdapterBase LogAdapter
         {
-            get { return loggerFactory; }
-            set
-            {
-                loggerFactory = value;
-                Instance = loggerFactory(null);
-            }
+            get { return logAdapter; }
+            set { logAdapter = value ?? nullLogAdapter; }
         }
 
         private static ILogging instance;
@@ -41,7 +61,7 @@ namespace GitHub.Unity
             get {
                 if (instance == null)
                 {
-                    instance = loggerFactory?.Invoke(null);
+                    instance = GetLogger();
                 }
                 return instance;
             }
@@ -60,7 +80,7 @@ namespace GitHub.Unity
 
         public static ILogging GetLogger(string context = null)
         {
-            return loggerFactory(context);
+            return new LogFacade($"<{context ?? "Global"}>");
         }
 
         public static void Info(string s)
@@ -111,6 +131,31 @@ namespace GitHub.Unity
         public static void Error(string format, params object[] objects)
         {
             Instance.Error(format, objects);
+        }
+
+        public static void Info(Exception ex, string s)
+        {
+            Instance.Info(ex, s);
+        }
+
+        public static void Debug(Exception ex, string s)
+        {
+            Instance.Debug(ex, s);
+        }
+
+        public static void Trace(Exception ex, string s)
+        {
+            Instance.Trace(ex, s);
+        }
+
+        public static void Warning(Exception ex, string s)
+        {
+            Instance.Warning(ex, s);
+        }
+
+        public static void Error(Exception ex, string s)
+        {
+            Instance.Error(ex, s);
         }
     }
 }

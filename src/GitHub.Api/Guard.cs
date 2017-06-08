@@ -6,8 +6,21 @@ using System.Linq;
 
 namespace GitHub.Unity
 {
-    public static class Guard
+    internal class InstanceNotInitializedException : InvalidOperationException
     {
+        public InstanceNotInitializedException(object the, string property) :
+            base(String.Format(CultureInfo.InvariantCulture, "{0} is not correctly initialized, {1} is null", the?.GetType().Name, property))
+        {}
+    }
+
+    internal static class Guard
+    {
+        public static void NotNull(object the, object value, string propertyName)
+        {
+            if (value != null) return;
+            throw new InstanceNotInitializedException(the, propertyName);
+        }
+
         public static void ArgumentNotNull(object value, string name)
         {
             if (value != null) return;

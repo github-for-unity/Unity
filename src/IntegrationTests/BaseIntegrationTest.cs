@@ -10,8 +10,38 @@ namespace IntegrationTests
     [Isolated]
     abstract class BaseIntegrationTest : BaseTest
     {
+        private IFileSystem fs;
+        private IEnvironment env;
+
         protected NPath TestBasePath { get; private set; }
-        protected IFileSystem FileSystem { get; private set; }
+        public IEnvironment Environment
+        {
+            get
+            {
+                return env;
+            }
+            set
+            {
+                env = value;
+                if (fs != null)
+                {
+                    env.FileSystem = fs;
+                }
+            }
+        }
+        protected IFileSystem FileSystem
+        {
+            get
+            {
+                return fs;
+            }
+            set
+            {
+                fs = value;
+                if (env != null)
+                    env.FileSystem = value;
+            }
+        }
         protected static string SolutionDirectory => TestContext.CurrentContext.TestDirectory;
 
         protected override void OnSetup()
@@ -20,7 +50,7 @@ namespace IntegrationTests
 
             FileSystem = new FileSystem(TestBasePath);
 
-            NPathFileSystemProvider.Current.Should().BeNull("Test should run in isolation");
+            //NPathFileSystemProvider.Current.Should().BeNull("Test should run in isolation");
             NPathFileSystemProvider.Current = FileSystem;
 
             TestBasePath = NPath.CreateTempDirectory("integration-tests");

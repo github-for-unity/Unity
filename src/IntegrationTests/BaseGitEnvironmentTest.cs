@@ -10,10 +10,7 @@ namespace IntegrationTests
     {
         protected void InitializeEnvironment(NPath repoPath, bool enableEnvironmentTrace = false)
         {
-            Environment = new IntegrationTestEnvironment(SolutionDirectory, enableTrace: enableEnvironmentTrace) {
-                RepositoryPath = repoPath,
-                UnityProjectPath = repoPath
-            };
+            Environment = new IntegrationTestEnvironment(repoPath, SolutionDirectory, enableTrace: enableEnvironmentTrace);
 
             var gitSetup = new GitSetup(Environment, FileSystem, CancellationToken.None);
             gitSetup.SetupIfNeeded().Wait();
@@ -22,12 +19,11 @@ namespace IntegrationTests
 
             FileSystem.SetCurrentDirectory(repoPath);
 
-            Platform = new Platform(Environment, FileSystem, new TestUIDispatcher());
+            Platform = new Platform(Environment, FileSystem);
             GitEnvironment = Platform.GitEnvironment;
             ProcessManager = new ProcessManager(Environment, GitEnvironment);
-            Platform.Initialize(Environment, ProcessManager);
+            Platform.Initialize(ProcessManager, new TestUIDispatcher());
 
-            Environment.UnityProjectPath = repoPath;
             Environment.GitExecutablePath = GitEnvironment.FindGitInstallationPath(ProcessManager).Result;
 
             var taskRunner = new TaskRunnerBase(new TestSynchronizationContext(), CancellationToken.None);
@@ -66,8 +62,6 @@ namespace IntegrationTests
         }
 
         public RepositoryManager RepositoryManager { get; private set; }
-
-        public IEnvironment Environment { get; private set; }
 
         protected Platform Platform { get; private set; }
 

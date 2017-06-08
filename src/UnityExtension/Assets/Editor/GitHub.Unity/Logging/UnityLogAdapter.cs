@@ -5,40 +5,36 @@ namespace GitHub.Unity
 {
     class UnityLogAdapter : LogAdapterBase
     {
-        public UnityLogAdapter(string context) : base(context)
-        {}
-
-        private string GetMessage(string message)
+        private string GetMessage(string context, string message)
         {
             var time = DateTime.Now.ToString("HH:mm:ss tt");
             var threadId = Thread.CurrentThread.ManagedThreadId;
-            return string.Format("{0} [{1,2}] {2} {3}", time, threadId, ContextPrefix, message);
+            return string.Format("{0} [{1,2}] {2} {3}", time, threadId, context, message);
         }
 
-
-        protected override void OnInfo(string message)
+        public override void Info(string context, string message)
         {
-            UnityEngine.Debug.Log(GetMessage(message));
+            UnityEngine.Debug.Log(GetMessage(context, message));
         }
 
-        protected override void OnDebug(string message)
+        public override void Debug(string context, string message)
         {
-            UnityEngine.Debug.Log(GetMessage(message));
+            UnityEngine.Debug.Log(GetMessage(context, message));
         }
 
-        protected override void OnTrace(string message)
+        public override void Trace(string context, string message)
         {
-            UnityEngine.Debug.Log(GetMessage(message));
+            UnityEngine.Debug.Log(GetMessage(context, message));
         }
 
-        protected override void OnWarning(string message)
+        public override void Warning(string context, string message)
         {
-            UnityEngine.Debug.LogWarning(GetMessage(message));
+            UnityEngine.Debug.LogWarning(GetMessage(context, message));
         }
 
-        protected override void OnError(string message)
+        public override void Error(string context, string message)
         {
-            UnityEngine.Debug.LogError(GetMessage(message));
+            UnityEngine.Debug.LogError(GetMessage(context, message));
         }
     }
 }

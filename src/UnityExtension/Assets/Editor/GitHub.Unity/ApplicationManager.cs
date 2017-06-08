@@ -14,22 +14,8 @@ namespace GitHub.Unity
         private const string QuitActionFieldName = "editorApplicationQuit";
         private const BindingFlags quitActionBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
 
-        private IEnvironment environment;
         private FieldInfo quitActionField;
         private TaskRunner taskRunner;
-
-        // for unit testing (TODO)
-        public ApplicationManager(IEnvironment environment, IFileSystem fileSystem, IPlatform platform,
-            IProcessManager processManager, ITaskResultDispatcher taskResultDispatcher)
-            : base(null)
-        {
-            Environment = environment;
-            FileSystem = fileSystem;
-            NPathFileSystemProvider.Current = FileSystem;
-            Platform = platform;
-            ProcessManager = processManager;
-            MainThreadResultDispatcher = taskResultDispatcher;
-        }
 
         public ApplicationManager(IMainThreadSynchronizationContext synchronizationContext)
             : base(synchronizationContext as SynchronizationContext)
@@ -66,26 +52,30 @@ namespace GitHub.Unity
                 }, UIScheduler);
         }
 
-        protected override void InitializeEnvironment()
+        protected override string GetAssetsPath()
         {
-            FileSystem = new FileSystem();
-            NPathFileSystemProvider.Current = FileSystem;
+            return Application.dataPath;
+        }
 
-            Environment = new DefaultEnvironment();
+        protected override string GetUnityPath()
+        {
+            return EditorApplication.applicationPath;
+        }
 
-            // figure out where we are
-            Environment.ExtensionInstallPath = DetermineInstallationPath();
+        protected override string DetermineInstallationPath()
+        {
+            // Juggling to find out where we got installed
+            var shim = ScriptableObject.CreateInstance<RunLocationShim>();
+            var script = MonoScript.FromScriptableObject(shim);
+            string ret = String.Empty;
 
-            // figure out where the project is
-            var assetsPath = Application.dataPath.ToNPath();
-            var projectPath = assetsPath.Parent;
-
-            Environment.UnityApplication = EditorApplication.applicationPath;
-
-            Environment.UnityAssetsPath = assetsPath.ToString(SlashMode.Forward);
-            Environment.UnityProjectPath = projectPath.ToString(SlashMode.Forward);
-
-            base.InitializeEnvironment();
+            if (script != null)
+            {
+                var scriptPath = AssetDatabase.GetAssetPath(script).ToNPath();
+                ret = scriptPath.Parent.ToString(SlashMode.Forward);
+            }
+            ScriptableObject.DestroyImmediate(shim);
+            return ret;
         }
 
         public override Task RestartRepository()
@@ -138,21 +128,6 @@ namespace GitHub.Unity
             }
         }
 
-        private string DetermineInstallationPath()
-        {
-            // Juggling to find out where we got installed
-            var shim = ScriptableObject.CreateInstance<RunLocationShim>();
-            var script = MonoScript.FromScriptableObject(shim);
-            string ret = String.Empty;
-            
-            if (script != null)
-            {
-                var scriptPath = AssetDatabase.GetAssetPath(script).ToNPath();
-                ret = scriptPath.Parent.ToString(SlashMode.Forward);
-            }
-            ScriptableObject.DestroyImmediate(shim);
-            return ret;
-        }
 
         private bool disposed = false;
         protected override void Dispose(bool disposing)
@@ -196,19 +171,6 @@ namespace GitHub.Unity
             return CompletedTask.Default;
         }
 
-        public override IEnvironment Environment
-        {
-            get
-            {
-                // if this is called while still null, it's because Unity wants
-                // to render something and we need to load icons, and that runs
-                // before EntryPoint. Do an early initialization
-                if (environment == null)
-                    InitializeEnvironment();
-                return environment;
-            }
-            set { environment = value; }
-        }
         public override IProcessEnvironment GitEnvironment { get { return Platform.GitEnvironment; } }
     }
 }

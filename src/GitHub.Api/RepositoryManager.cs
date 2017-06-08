@@ -521,7 +521,15 @@ namespace GitHub.Unity
                 return remote;
             }
 
-            return config.GetRemotes().FirstOrDefault();
+            using (var remoteEnumerator = config.GetRemotes().GetEnumerator())
+            {
+                if (remoteEnumerator.MoveNext())
+                {
+                    return remoteEnumerator.Current;
+                }
+            }
+
+            return null;
         }
 
         private ConfigBranch? GetActiveBranch()
