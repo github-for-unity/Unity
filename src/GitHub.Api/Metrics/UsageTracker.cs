@@ -150,7 +150,7 @@ namespace GitHub.Unity
             {
                 timer.Interval = TimeSpan.FromHours(8).TotalMilliseconds;
                 firstRun = false;
-                Logging.Trace("Scheduling timer for 8 hours from now");
+                logger.Trace("Scheduling timer for 8 hours from now");
 
                 if (!Enabled)
                 {
