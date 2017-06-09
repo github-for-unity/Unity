@@ -87,7 +87,7 @@ namespace IntegrationTests
 
             var expectedOutput = "Hello";
 
-            var procTask = new SimpleProcessTask(TestApp, @"-s 100 -i", Token)
+            var procTask = new FirstNonNullLineProcessTask(Token, TestApp, @"-s 100 -i")
                 .Configure(ProcessManager, true);
 
             procTask.OnStartProcess += proc =>
@@ -115,10 +115,10 @@ namespace IntegrationTests
             var output = new List<string>();
             var expectedOutput = new List<string> { "one name" };
 
-            var task = new SimpleProcessTask(TestApp, @"-s 100 -d ""one name""", Token).Configure(ProcessManager)
+            var task = new FirstNonNullLineProcessTask(Token, TestApp, @"-s 100 -d ""one name""").Configure(ProcessManager)
                 .Catch(ex => thrown = ex)
                 .Then((s, d) => output.Add(d))
-                .Then(new SimpleProcessTask(TestApp, @"-e kaboom -r -1", Token).Configure(ProcessManager))
+                .Then(new FirstNonNullLineProcessTask(Token, TestApp, @"-e kaboom -r -1").Configure(ProcessManager))
                 .Catch(ex => thrown = ex)
                 .Then((s, d) => output.Add(d))
                 .Finally((s, e) => success = s);
@@ -140,7 +140,7 @@ namespace IntegrationTests
 
             await new ActionTask(Token, _ => {
                 results.Add("BeforeProcess");
-            }).Then(new SimpleProcessTask(TestApp, @"-s 1000 -d ""ok""", Token)
+            }).Then(new FirstNonNullLineProcessTask(Token, TestApp, @"-s 1000 -d ""ok""")
                 .Configure(ProcessManager).Then(new FuncTask<int>(Token, (b, i) => {
                     results.Add("ProcessOutput");
                     return 1234;
