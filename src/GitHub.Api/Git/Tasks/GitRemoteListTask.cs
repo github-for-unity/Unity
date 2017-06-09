@@ -4,8 +4,8 @@ namespace GitHub.Unity
 {
     class GitRemoteListTask : ProcessTaskWithListOutput<GitRemote>
     {
-        public GitRemoteListTask(CancellationToken token, BaseOutputListProcessor<GitRemote> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new RemoteListOutputProcessor(), dependsOn)
+        public GitRemoteListTask(CancellationToken token, BaseOutputListProcessor<GitRemote> processor = null)
+            : base(token, processor ?? new RemoteListOutputProcessor())
         {
         }
 

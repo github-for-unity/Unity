@@ -4,8 +4,8 @@ namespace GitHub.Unity
 {
     class GitInitTask : ProcessTask<string>
     {
-        public GitInitTask(CancellationToken token, IOutputProcessor<string> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new SimpleOutputProcessor(), dependsOn)
+        public GitInitTask(CancellationToken token, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         { }
 
         public override string Name { get { return "git init"; } }

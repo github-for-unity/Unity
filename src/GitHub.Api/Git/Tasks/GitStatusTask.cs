@@ -5,8 +5,8 @@ namespace GitHub.Unity
     class GitStatusTask : ProcessTask<GitStatus?>
     {
         public GitStatusTask(IGitObjectFactory gitObjectFactory,
-            CancellationToken token, IOutputProcessor<GitStatus?> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new StatusOutputProcessor(gitObjectFactory), dependsOn)
+            CancellationToken token, IOutputProcessor<GitStatus?> processor = null)
+            : base(token, processor ?? new StatusOutputProcessor(gitObjectFactory))
         {
         }
 
