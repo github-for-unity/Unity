@@ -375,6 +375,9 @@ namespace GitHub.Unity
         protected TaskCompletionSource<TResult> tcs = new TaskCompletionSource<TResult>();
         private event Action<TResult> finallyHandler;
 
+        public new event Action<ITask<TResult>> OnStart;
+        public new event Action<ITask<TResult>, TResult> OnEnd;
+
         public TaskBase(CancellationToken token, ITask dependsOn = null, bool always = false)
             : base(token, dependsOn, always)
         {
@@ -524,6 +527,12 @@ namespace GitHub.Unity
             base.Run(success);
             return default(TResult);
         }
+        protected override void RaiseOnStart()
+        {
+            Logger.Trace($"Executing {ToString()}");
+            OnStart?.Invoke(this);
+            base.RaiseOnStart();
+        }
 
         protected virtual void RaiseOnEnd(TResult result)
         {
@@ -534,8 +543,6 @@ namespace GitHub.Unity
             Logger.Trace($"Finished {ToString()} {result}");
         }
 
-        public new event Action<ITask<TResult>> OnStart;
-        public new event Action<ITask<TResult>, TResult> OnEnd;
         public new Task<TResult> Task
         {
             get { return base.Task as Task<TResult>; }
