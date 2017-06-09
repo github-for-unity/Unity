@@ -12,7 +12,6 @@ namespace GitHub.Unity
         ITask Finally(Action handler);
         ITask Finally(Action<bool, Exception> continuation, TaskAffinity affinity = TaskAffinity.Concurrent);
         ITask Defer<T>(Func<T, Task> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false);
-        ITask SetDependsOn(ITask dependsOn);
         ITask Start();
         ITask Start(TaskScheduler scheduler);
 
@@ -71,35 +70,25 @@ namespace GitHub.Unity
         protected event Func<Exception, bool> faultHandler;
         private event Action finallyHandler;
 
-        public TaskBase(CancellationToken token, ITask dependsOn = null, bool always = false)
+        public TaskBase(CancellationToken token)
         {
             Guard.ArgumentNotNull(token, "token");
 
             Token = token;
             Task = new Task(() => Run(DependsOn?.Successful ?? previousSuccess), Token, TaskCreationOptions.None);
-            dependsOn?.Then(this, always);
         }
 
         public TaskBase(Task task)
         {
+            task.ContinueWith(t =>
+            {
+                RaiseOnStart();
+                RaiseOnEnd();
+            }, Token, runAlwaysOptions, TaskScheduler.Current);
             Task = task;
         }
 
-        protected TaskBase()
-        {}
-
-        public ITask SetDependsOn(ITask dependsOn)
-        {
-            if (DependsOn != null)
-            {
-                Console.WriteLine($@"""{ToString()}"" Cleared DependsOn ""{DependsOn}""");
-            }
-
-            Console.WriteLine($@"""{ToString()}"" DependsOn ""{dependsOn?.ToString() ?? "null"}""");
-
-            DependsOn = (TaskBase)dependsOn;
-            return this;
-        }
+        protected TaskBase() {}
 
         public virtual T Then<T>(T cont, bool always = false)
             where T : ITask
@@ -107,7 +96,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(cont, nameof(cont));
             var taskBase = ((TaskBase)(object)cont);
 
-            var firstTaskBase = taskBase.GetFirstDepends() ?? taskBase;
+            var firstTaskBase = taskBase.GetTopMostTask() ?? taskBase;
             firstTaskBase.SetDependsOn(this);
 
             this.continuation = firstTaskBase;
@@ -153,14 +142,14 @@ namespace GitHub.Unity
         public ITask Finally(Action<bool, Exception> continuation, TaskAffinity affinity = TaskAffinity.Concurrent)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
-            var ret = new ActionTask(Token, continuation, this, true) { Affinity = affinity, Name = "Finally" };
+            var ret = Then(new ActionTask(Token, continuation) { Affinity = affinity, Name = "Finally" }, true);
             DependsOn?.SetFaultHandler(ret);
             ret.ContinuationIsFinally = true;
             return ret;
         }
 
         internal virtual ITask Finally<T>(T continuation)
-            where T : ITask
+            where T : TaskBase
         {
             Guard.ArgumentNotNull(continuation, "continuation");
             continuation.SetDependsOn(this);
@@ -173,7 +162,7 @@ namespace GitHub.Unity
         public ITask Defer<T>(Func<T, Task> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
         {
             Guard.ArgumentNotNull(continueWith, "continueWith");
-            var ret = new StubTask<T>(Token, (s, d) => {}, (ITask<T>)this, always) { Affinity = affinity };
+            var ret = Then(new StubTask<T>(Token, (s, d) => {}) { Affinity = affinity });
             SetDeferred(new DeferredContinuation { Always = always, GetContinueWith = d => new ActionTask<T>(continueWith((T)d)) { Affinity = affinity, Name = "Deferred" } });
             return ret;
         }
@@ -188,7 +177,7 @@ namespace GitHub.Unity
 
         public virtual ITask Start()
         {
-            var depends = GetFirstDepends();
+            var depends = GetTopMostTaskInCreatedState();
             if (depends != null)
             {
                 depends.Run();
@@ -204,7 +193,6 @@ namespace GitHub.Unity
         {
             if (Task.Status == TaskStatus.Created)
             {
-                Console.WriteLine($@"Run {this}");
                 TaskManager.Instance.Schedule(this);
             }
             else
@@ -242,21 +230,35 @@ namespace GitHub.Unity
             }
         }
 
-        protected TaskBase GetFirstDepends()
+        protected ITask SetDependsOn(ITask dependsOn)
+        {
+            DependsOn = (TaskBase)dependsOn;
+            return this;
+        }
+
+        protected TaskBase GetTopMostTaskInCreatedState()
         {
             var depends = DependsOn;
             if (depends == null)
                 return null;
-            return depends.GetFirstDepends(null);
+            return depends.GetTopMostTask(null, true);
         }
 
-        protected TaskBase GetFirstDepends(TaskBase ret)
+        protected TaskBase GetTopMostTask()
         {
-            ret = (Task.Status == TaskStatus.Created ? this : ret);
+            var depends = DependsOn;
+            if (depends == null)
+                return null;
+            return depends.GetTopMostTask(null, false);
+        }
+
+        protected TaskBase GetTopMostTask(TaskBase ret, bool onlyCreatedState)
+        {
+            ret = (!onlyCreatedState || Task.Status == TaskStatus.Created ? this : ret);
             var depends = DependsOn;
             if (depends == null)
                 return ret;
-            return depends.GetFirstDepends(ret);
+            return depends.GetTopMostTask(ret, onlyCreatedState);
         }
 
         public virtual void Wait()
@@ -362,8 +364,8 @@ namespace GitHub.Unity
 
         class StubTask<T> : ActionTask<T>, IStubTask
         {
-            public StubTask(CancellationToken token, Action<bool, T> func, ITask<T> dependsOn, bool always)
-                : base(token, func, dependsOn, always)
+            public StubTask(CancellationToken token, Action<bool, T> func)
+                : base(token, func)
             {
                 Name = "Stub";
             }
@@ -375,8 +377,11 @@ namespace GitHub.Unity
         protected TaskCompletionSource<TResult> tcs = new TaskCompletionSource<TResult>();
         private event Action<TResult> finallyHandler;
 
-        public TaskBase(CancellationToken token, ITask dependsOn = null, bool always = false)
-            : base(token, dependsOn, always)
+        public new event Action<ITask<TResult>> OnStart;
+        public new event Action<ITask<TResult>, TResult> OnEnd;
+
+        public TaskBase(CancellationToken token)
+            : base(token)
         {
             Task = new Task<TResult>(() =>
             {
@@ -386,6 +391,13 @@ namespace GitHub.Unity
                 return ret;
             }, Token, TaskCreationOptions.None);
         }
+
+        public TaskBase(Task<TResult> task)
+            : base()
+        {
+            Task = task;
+        }
+
 
         protected void AdjustNextTask(TResult ret)
         {
@@ -417,22 +429,9 @@ namespace GitHub.Unity
             }
         }
 
-        public TaskBase(Task<TResult> task)
-        {
-            Task = task;
-        }
-
         public override T Then<T>(T continuation, bool always = false)
         {
             return base.Then<T>(continuation, always);
-        }
-
-        public ITask<T> ThenIf<T>(Func<TResult, ITask<T>> continueWith, bool always = false)
-        {
-            Guard.ArgumentNotNull(continueWith, "continueWith");
-            var ret = new StubTask<T>(Token, (s, d) => default(T), this, always);
-            SetDeferred(new DeferredContinuation { Always = always, GetContinueWith = d => continueWith((TResult)d) });
-            return ret;
         }
 
         /// <summary>
@@ -464,15 +463,15 @@ namespace GitHub.Unity
         public ITask<T> Defer<T>(Func<TResult, Task<T>> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
         {
             Guard.ArgumentNotNull(continueWith, "continueWith");
-            var ret = new StubTask<T>(Token, (s, d) => default(T), this, always) { Affinity = affinity };
+            var ret = Then(new StubTask<T>(Token, (s, d) => default(T)) { Affinity = affinity }, always);
             SetDeferred(new DeferredContinuation { Always = always, GetContinueWith = d => new FuncTask<T>(continueWith((TResult)d)) { Affinity = affinity, Name = "Deferred" } });
             return ret;
         }
 
         class StubTask<T> : FuncTask<TResult, T>, IStubTask
         {
-            public StubTask(CancellationToken token, Func<bool, TResult, T> func, ITask<TResult> dependsOn, bool always)
-                : base(token, func, dependsOn, always)
+            public StubTask(CancellationToken token, Func<bool, TResult, T> func)
+                : base(token, func)
             {
                 Name = "Stub";
             }
@@ -492,7 +491,7 @@ namespace GitHub.Unity
         public ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
-            var ret = new FuncTask<TResult, TResult>(Token, continuation, this, true) { Affinity = affinity, Name = "Finally" };
+            var ret = Then(new FuncTask<TResult, TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, true);
             ret.ContinuationIsFinally = true;
             DependsOn?.SetFaultHandler(ret);
             return ret;
@@ -501,7 +500,7 @@ namespace GitHub.Unity
         public ITask Finally(Action<bool, Exception, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
-            var ret = new ActionTask<TResult>(Token, continuation, this, true) { Affinity = affinity, Name = "Finally" };
+            var ret = Then(new ActionTask<TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, true);
             ret.ContinuationIsFinally = true;
             DependsOn?.SetFaultHandler(ret);
             return ret;
@@ -524,6 +523,12 @@ namespace GitHub.Unity
             base.Run(success);
             return default(TResult);
         }
+        protected override void RaiseOnStart()
+        {
+            Logger.Trace($"Executing {ToString()}");
+            OnStart?.Invoke(this);
+            base.RaiseOnStart();
+        }
 
         protected virtual void RaiseOnEnd(TResult result)
         {
@@ -534,8 +539,6 @@ namespace GitHub.Unity
             Logger.Trace($"Finished {ToString()} {result}");
         }
 
-        public new event Action<ITask<TResult>> OnStart;
-        public new event Action<ITask<TResult>, TResult> OnEnd;
         public new Task<TResult> Task
         {
             get { return base.Task as Task<TResult>; }
@@ -546,8 +549,8 @@ namespace GitHub.Unity
 
     abstract class TaskBase<T, TResult> : TaskBase<TResult>
     {
-        public TaskBase(CancellationToken token, ITask<T> dependsOn = null, bool always = false)
-            : base(token, dependsOn, always)
+        public TaskBase(CancellationToken token)
+            : base(token)
         {
             Task = new Task<TResult>(() =>
             {
@@ -572,12 +575,13 @@ namespace GitHub.Unity
 
     abstract class DataTaskBase<TData, TResult> : TaskBase<TResult>, ITask<TData, TResult>
     {
-        public DataTaskBase(CancellationToken token, ITask dependsOn = null, bool always = false)
-            : base(token, dependsOn, always) { }
+        public DataTaskBase(CancellationToken token)
+            : base(token)
+        {}
 
         public DataTaskBase(Task<TResult> task)
             : base(task)
-        { }
+        {}
 
         public event Action<TData> OnData;
         protected void RaiseOnData(TData data)
@@ -588,12 +592,13 @@ namespace GitHub.Unity
 
     abstract class DataTaskBase<T, TData, TResult> : TaskBase<T, TResult>, ITask<TData, TResult>
     {
-        public DataTaskBase(CancellationToken token, ITask<T> dependsOn = null, bool always = false)
-            : base(token, dependsOn, always) { }
+        public DataTaskBase(CancellationToken token)
+            : base(token)
+        {}
 
         public DataTaskBase(Task<TResult> task)
             : base(task)
-        { }
+        {}
 
         public event Action<TData> OnData;
         protected void RaiseOnData(TData data)

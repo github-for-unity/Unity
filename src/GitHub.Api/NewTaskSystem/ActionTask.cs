@@ -10,16 +10,16 @@ namespace GitHub.Unity
         protected Action<bool> Callback { get; }
         protected Action<bool, Exception> CallbackWithException { get; }
 
-        public ActionTask(CancellationToken token, Action<bool> action, ITask dependsOn = null, bool always = false)
-            : base(token, dependsOn, always)
+        public ActionTask(CancellationToken token, Action<bool> action)
+            : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.Callback = action;
             Name = "ActionTask";
         }
 
-        public ActionTask(CancellationToken token, Action<bool, Exception> action, ITask dependsOn = null, bool always = false)
-            : base(token, dependsOn, always)
+        public ActionTask(CancellationToken token, Action<bool, Exception> action)
+            : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.CallbackWithException = action;
@@ -64,8 +64,8 @@ namespace GitHub.Unity
         protected Action<bool, T> Callback { get; }
         protected Action<bool, Exception, T> CallbackWithException { get; }
 
-        public ActionTask(CancellationToken token, Action<bool, T> action, ITask<T> dependsOn, bool always = false)
-            : base(token, dependsOn, always)
+        public ActionTask(CancellationToken token, Action<bool, T> action)
+            : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.Callback = action;
@@ -74,8 +74,8 @@ namespace GitHub.Unity
             Name = $"ActionTask<{typeof(T)}>";
         }
 
-        public ActionTask(CancellationToken token, Action<bool, Exception, T> action, ITask<T> dependsOn, bool always = false)
-            : base(token, dependsOn, always)
+        public ActionTask(CancellationToken token, Action<bool, Exception, T> action)
+            : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.CallbackWithException = action;
@@ -123,16 +123,16 @@ namespace GitHub.Unity
         protected Func<bool, T> Callback { get; }
         protected Func<bool, Exception, T> CallbackWithException { get; }
 
-        public FuncTask(CancellationToken token, Func<bool, T> action, ITask dependsOn = null, bool always = false)
-            : base(token, dependsOn, always)
+        public FuncTask(CancellationToken token, Func<bool, T> action)
+            : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.Callback = action;
             Name = $"FuncTask<{typeof(T)}>";
         }
 
-        public FuncTask(CancellationToken token, Func<bool, Exception, T> action, ITask dependsOn = null, bool always = false)
-            : base(token, dependsOn, always)
+        public FuncTask(CancellationToken token, Func<bool, Exception, T> action)
+            : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.CallbackWithException = action;
@@ -183,16 +183,16 @@ namespace GitHub.Unity
         protected Func<bool, T, TResult> Callback { get; }
         protected Func<bool, Exception, T, TResult> CallbackWithException { get; }
 
-        public FuncTask(CancellationToken token, Func<bool, T, TResult> action, ITask<T> dependsOn = null, bool always = false)
-            : base(token, dependsOn, always)
+        public FuncTask(CancellationToken token, Func<bool, T, TResult> action)
+            : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.Callback = action;
             Name = $"FuncTask<{typeof(T)}, {typeof(TResult)}>";
         }
 
-        public FuncTask(CancellationToken token, Func<bool, Exception, T, TResult> action, ITask<T> dependsOn = null, bool always = false)
-            : base(token, dependsOn, always)
+        public FuncTask(CancellationToken token, Func<bool, Exception, T, TResult> action)
+            : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.CallbackWithException = action;
@@ -244,15 +244,15 @@ namespace GitHub.Unity
         protected Func<bool, List<T>> Callback { get; }
         protected Func<bool, Exception, List<T>> CallbackWithException { get; }
 
-        public FuncListTask(CancellationToken token, Func<bool, List<T>> action, ITask dependsOn = null, bool always = false)
-            : base(token, dependsOn, always)
+        public FuncListTask(CancellationToken token, Func<bool, List<T>> action)
+            : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.Callback = action;
         }
 
-        public FuncListTask(CancellationToken token, Func<bool, Exception, List<T>> action, ITask dependsOn = null, bool always = false)
-            : base(token, dependsOn, always)
+        public FuncListTask(CancellationToken token, Func<bool, Exception, List<T>> action)
+            : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.CallbackWithException = action;
@@ -302,15 +302,15 @@ namespace GitHub.Unity
         protected Func<bool, T, List<TResult>> Callback { get; }
         protected Func<bool, Exception, T, List<TResult>> CallbackWithException { get; }
 
-        public FuncListTask(CancellationToken token, Func<bool, T, List<TResult>> action, ITask<T> dependsOn = null, bool always = false)
-            : base(token, dependsOn, always)
+        public FuncListTask(CancellationToken token, Func<bool, T, List<TResult>> action)
+            : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.Callback = action;
         }
 
-        public FuncListTask(CancellationToken token, Func<bool, Exception, T, List<TResult>> action, ITask<T> dependsOn = null, bool always = false)
-            : base(token, dependsOn, always)
+        public FuncListTask(CancellationToken token, Func<bool, Exception, T, List<TResult>> action)
+            : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.CallbackWithException = action;

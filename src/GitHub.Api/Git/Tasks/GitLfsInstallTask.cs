@@ -4,8 +4,8 @@ namespace GitHub.Unity
 {
     class GitLfsInstallTask : ProcessTask<string>
     {
-        public GitLfsInstallTask(CancellationToken token, IOutputProcessor<string> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new SimpleOutputProcessor(), dependsOn)
+        public GitLfsInstallTask(CancellationToken token, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         { }
 
         public override string Name { get { return "git lfs install"; } }

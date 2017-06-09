@@ -650,7 +650,8 @@ namespace GitHub.Unity
             else
             {
                 var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
-                Repository.Pull()
+                Repository
+                    .Pull()
                     // we need the error propagated from the original git command to handle things appropriately
                     .Then(success =>
                     {

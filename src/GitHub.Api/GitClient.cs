@@ -11,67 +11,67 @@ namespace GitHub.Unity
         Task<NPath> FindGitInstallation();
         bool ValidateGitInstall(NPath path);
 
-        ITask Init(IOutputProcessor<string> processor = null, ITask dependsOn = null);
+        ITask Init(IOutputProcessor<string> processor = null);
 
-        ITask LfsInstall(IOutputProcessor<string> processor = null, ITask dependsOn = null);
+        ITask LfsInstall(IOutputProcessor<string> processor = null);
 
-        ITask<GitStatus?> Status(IOutputProcessor<GitStatus?> processor = null, ITask dependsOn = null);
+        ITask<GitStatus?> Status(IOutputProcessor<GitStatus?> processor = null);
 
         ITask<string> GetConfig(string key, GitConfigSource configSource,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> SetConfig(string key, string value, GitConfigSource configSource,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<List<GitLock>> ListLocks(bool local,
-            BaseOutputListProcessor<GitLock> processor = null, ITask dependsOn = null);
+            BaseOutputListProcessor<GitLock> processor = null);
 
         ITask<string> Pull(string remote, string branch,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> Push(string remote, string branch,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> Fetch(string remote,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> SwitchBranch(string branch,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> DeleteBranch(string branch, bool deleteUnmerged = false,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> CreateBranch(string branch, string baseBranch,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> RemoteAdd(string remote, string url,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> RemoteRemove(string remote,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> RemoteChange(string remote, string url,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> Commit(string message, string body,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> Add(IList<string> files,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> Remove(IList<string> files,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> AddAndCommit(IList<string> files, string message, string body,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> Lock(string file,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
         ITask<string> Unlock(string file, bool force,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null);
+            IOutputProcessor<string> processor = null);
 
-        ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null, ITask dependsOn = null);
+        ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null);
     }
 
     class GitClient : IGitClient
@@ -143,150 +143,149 @@ namespace GitHub.Unity
             return path.FileExists();
         }
 
-        public ITask Init(IOutputProcessor<string> processor = null, ITask dependsOn = null)
+        public ITask Init(IOutputProcessor<string> processor = null)
         {
-            return new GitInitTask(cancellationToken, processor, dependsOn: dependsOn)
+            return new GitInitTask(cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask LfsInstall(IOutputProcessor<string> processor = null, ITask dependsOn = null)
+        public ITask LfsInstall(IOutputProcessor<string> processor = null)
         {
-            return new GitLfsInstallTask(cancellationToken, processor, dependsOn)
+            return new GitLfsInstallTask(cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask<GitStatus?> Status(IOutputProcessor<GitStatus?> processor = null, ITask dependsOn = null)
+        public ITask<GitStatus?> Status(IOutputProcessor<GitStatus?> processor = null)
         {
-            return new GitStatusTask(new GitObjectFactory(environment), cancellationToken, processor, dependsOn)
+            return new GitStatusTask(new GitObjectFactory(environment), cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null, ITask dependsOn = null)
+        public ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null)
         {
-            return new GitLogTask(new GitObjectFactory(environment), cancellationToken, processor, dependsOn)
+            return new GitLogTask(new GitObjectFactory(environment), cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask<string> GetConfig(string key, GitConfigSource configSource, IOutputProcessor<string> processor = null, ITask dependsOn = null)
+        public ITask<string> GetConfig(string key, GitConfigSource configSource, IOutputProcessor<string> processor = null)
         {
-            return new GitConfigGetTask(key, configSource, cancellationToken, processor, dependsOn)
+            return new GitConfigGetTask(key, configSource, cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask<string> SetConfig(string key, string value, GitConfigSource configSource, IOutputProcessor<string> processor = null, ITask dependsOn = null)
+        public ITask<string> SetConfig(string key, string value, GitConfigSource configSource, IOutputProcessor<string> processor = null)
         {
-            return new GitConfigSetTask(key, value, configSource, cancellationToken, processor, dependsOn)
+            return new GitConfigSetTask(key, value, configSource, cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null, ITask dependsOn = null)
+        public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null)
         {
-            return new GitListLocksTask(new GitObjectFactory(environment), local, cancellationToken, processor, dependsOn)
+            return new GitListLocksTask(new GitObjectFactory(environment), local, cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask<string> Pull(string remote, string branch, IOutputProcessor<string> processor = null, ITask dependsOn = null)
+        public ITask<string> Pull(string remote, string branch, IOutputProcessor<string> processor = null)
         {
-            return new GitPullTask(remote, branch, cancellationToken, processor, dependsOn)
+            return new GitPullTask(remote, branch, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> Push(string remote, string branch,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            IOutputProcessor<string> processor = null)
         {
-            return new GitPushTask(remote, branch, true, cancellationToken, processor, dependsOn)
+            return new GitPushTask(remote, branch, true, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> Fetch(string remote,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            IOutputProcessor<string> processor = null)
         {
-            return new GitFetchTask(remote, cancellationToken, processor, dependsOn)
+            return new GitFetchTask(remote, cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask<string> SwitchBranch(string branch,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+        public ITask<string> SwitchBranch(string branch, IOutputProcessor<string> processor = null)
         {
-            return new GitSwitchBranchesTask(branch, cancellationToken, processor, dependsOn)
+            return new GitSwitchBranchesTask(branch, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> DeleteBranch(string branch, bool deleteUnmerged = false,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            IOutputProcessor<string> processor = null)
         {
-            return new GitBranchDeleteTask(branch, deleteUnmerged, cancellationToken, processor, dependsOn)
+            return new GitBranchDeleteTask(branch, deleteUnmerged, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> CreateBranch(string branch, string baseBranch,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            IOutputProcessor<string> processor = null)
         {
-            return new GitBranchCreateTask(branch, baseBranch, cancellationToken, processor, dependsOn)
+            return new GitBranchCreateTask(branch, baseBranch, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> RemoteAdd(string remote, string url,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            IOutputProcessor<string> processor = null)
         {
-            return new GitRemoteAddTask(remote, url, cancellationToken, processor, dependsOn)
+            return new GitRemoteAddTask(remote, url, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> RemoteRemove(string remote,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            IOutputProcessor<string> processor = null)
         {
-            return new GitRemoteRemoveTask(remote, cancellationToken, processor, dependsOn)
+            return new GitRemoteRemoveTask(remote, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> RemoteChange(string remote, string url,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            IOutputProcessor<string> processor = null)
         {
-            return new GitRemoteChangeTask(remote, url, cancellationToken, processor, dependsOn)
+            return new GitRemoteChangeTask(remote, url, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> Commit(string message, string body,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            IOutputProcessor<string> processor = null)
         {
-            return new GitCommitTask(message, body, cancellationToken, processor, dependsOn)
+            return new GitCommitTask(message, body, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> Add(IList<string> files,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            IOutputProcessor<string> processor = null)
         {
-            return new GitAddTask(files, cancellationToken, processor, dependsOn)
+            return new GitAddTask(files, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> Remove(IList<string> files,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            IOutputProcessor<string> processor = null)
         {
-            return new GitRemoveFromIndexTask(files, cancellationToken, processor, dependsOn)
+            return new GitRemoveFromIndexTask(files, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> AddAndCommit(IList<string> files, string message, string body,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            IOutputProcessor<string> processor = null)
         {
-            return Add(files, dependsOn: dependsOn)
+            return Add(files)
                 .Then(new GitCommitTask(message, body, cancellationToken)
                     .Configure(processManager));
         }
 
         public ITask<string> Lock(string file,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            IOutputProcessor<string> processor = null)
         {
-            return new GitLockTask(file, cancellationToken, processor, dependsOn)
+            return new GitLockTask(file, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> Unlock(string file, bool force,
-            IOutputProcessor<string> processor = null, ITask dependsOn = null)
+            IOutputProcessor<string> processor = null)
         {
-            return new GitUnlockTask(file, force, cancellationToken, processor, dependsOn)
+            return new GitUnlockTask(file, force, cancellationToken, processor)
                 .Configure(processManager);
         }
 

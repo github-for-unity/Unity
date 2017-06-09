@@ -11,8 +11,8 @@ namespace GitHub.Unity
         private string label;
 
         public GitConfigSetTask(string key, string value, GitConfigSource configSource,
-            CancellationToken token, IOutputProcessor<string> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new SimpleOutputProcessor(), dependsOn)
+            CancellationToken token, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         {
             this.value = value;
             var source = "";

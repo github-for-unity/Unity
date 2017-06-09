@@ -6,8 +6,8 @@ namespace GitHub.Unity
     {
         private const string Arguments = "branch -vv";
 
-        public GitListLocalBranchesTask(CancellationToken token, BaseOutputListProcessor<GitBranch> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new BranchListOutputProcessor(), dependsOn)
+        public GitListLocalBranchesTask(CancellationToken token, BaseOutputListProcessor<GitBranch> processor = null)
+            : base(token, processor ?? new BranchListOutputProcessor())
         {
         }
 

@@ -7,8 +7,8 @@ namespace GitHub.Unity
         private readonly string arguments;
 
         public GitBranchDeleteTask(string branch, bool deleteUnmerged,
-            CancellationToken token, IOutputProcessor<string> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new SimpleOutputProcessor(), dependsOn)
+            CancellationToken token, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         {
             Guard.ArgumentNotNullOrWhiteSpace(branch, "branch");
             arguments = !deleteUnmerged ? $"branch -d {branch}" : $"branch -D {branch}";

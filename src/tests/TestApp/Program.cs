@@ -16,7 +16,9 @@ namespace TestApp
 
             int sleepms = 0;
             var p = new OptionSet();
-            var reaadInputToEof = false;
+            var readInputToEof = false;
+            var lines = new List<string>();
+
             p = p
                 .Add("r=", (int v) => retCode = v)
                 .Add("d=|data=", v => ret = v)
@@ -24,27 +26,18 @@ namespace TestApp
                 .Add("f=|file=", v => ret = File.ReadAllText(v))
                 .Add("ef=|errorFile=", v => error = File.ReadAllText(v))
                 .Add("s=|sleep=", (int v) => sleepms = v)
-                .Add("i|input", v => reaadInputToEof = true)
+                .Add("i|input", v => readInputToEof = true)
                 .Add("h|help", v => p.WriteOptionDescriptions(Console.Out));
 
             p.Parse(args);
 
-            if (ret != null && reaadInputToEof)
+            if (readInputToEof)
             {
-                Console.Error.WriteLine("Cannot use -d and -i together");
-                return -1;
-            }
-
-            if (reaadInputToEof)
-            {
-                var lines = new List<string>();
                 string line;
                 while ((line = Console.ReadLine()) != null)
                 {
                     lines.Add(line);
                 }
-
-                ret = string.Join(Environment.NewLine, lines.ToArray());
             }
 
             if (sleepms > 0)
@@ -52,6 +45,8 @@ namespace TestApp
 
             if (!String.IsNullOrEmpty(ret))
                 Console.WriteLine(ret);
+            else if (readInputToEof)
+                Console.WriteLine(String.Join(Environment.NewLine, lines.ToArray()));
 
             if (!String.IsNullOrEmpty(error))
                 Console.Error.WriteLine(error);

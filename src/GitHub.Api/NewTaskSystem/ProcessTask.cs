@@ -195,13 +195,8 @@ namespace GitHub.Unity
 
         private Exception thrownException = null;
 
-        public ProcessTask(CancellationToken token, ITask dependsOn)
-            : base(token, dependsOn)
-        {
-        }
-
-        public ProcessTask(CancellationToken token, IOutputProcessor<T> outputProcessor = null, ITask dependsOn = null)
-            : base(token, dependsOn)
+        public ProcessTask(CancellationToken token, IOutputProcessor<T> outputProcessor = null)
+            : base(token)
         {
             this.outputProcessor = outputProcessor;
         }
@@ -212,8 +207,8 @@ namespace GitHub.Unity
         /// <param name="token"></param>
         /// <param name="arguments"></param>
         /// <param name="outputProcessor"></param>
-        public ProcessTask(CancellationToken token, string arguments, IOutputProcessor<T> outputProcessor = null, ITask dependsOn = null)
-            : base(token, dependsOn)
+        public ProcessTask(CancellationToken token, string arguments, IOutputProcessor<T> outputProcessor = null)
+            : base(token)
         {
             Guard.ArgumentNotNull(token, nameof(token));
 
@@ -335,13 +330,12 @@ namespace GitHub.Unity
         public event Action<IProcess> OnStartProcess;
         public event Action<IProcess> OnEndProcess;
 
-        public ProcessTaskWithListOutput(CancellationToken token, ITask dependsOn)
-            : base(token, dependsOn)
-        {
-        }
+        public ProcessTaskWithListOutput(CancellationToken token)
+            : base(token)
+        {}
 
-        public ProcessTaskWithListOutput(CancellationToken token, IOutputProcessor<T, List<T>> outputProcessor = null, ITask dependsOn = null)
-            : base(token, dependsOn)
+        public ProcessTaskWithListOutput(CancellationToken token, IOutputProcessor<T, List<T>> outputProcessor = null)
+            : base(token)
         {
             this.outputProcessor = outputProcessor;
         }
@@ -447,12 +441,12 @@ namespace GitHub.Unity
         public virtual string ProcessArguments { get; }
     }
 
-    class SimpleProcessTask : ProcessTask<string>
+    class FirstNonNullLineProcessTask : ProcessTask<string>
     {
         private readonly NPath fullPathToExecutable;
         private readonly string arguments;
 
-        public SimpleProcessTask(NPath fullPathToExecutable, string arguments, CancellationToken token)
+        public FirstNonNullLineProcessTask(CancellationToken token, NPath fullPathToExecutable, string arguments)
             : base(token, new FirstNonNullLineOutputProcessor())
         {
             this.fullPathToExecutable = fullPathToExecutable;
@@ -460,6 +454,28 @@ namespace GitHub.Unity
         }
 
         public override string ProcessName => fullPathToExecutable.FileName;
+        public override string ProcessArguments => arguments;
+    }
+
+    class SimpleProcessTask : ProcessTask<string>
+    {
+        private readonly NPath fullPathToExecutable;
+        private readonly string arguments;
+
+        public SimpleProcessTask(CancellationToken token, NPath fullPathToExecutable, string arguments)
+            : base(token, new SimpleOutputProcessor())
+        {
+            this.fullPathToExecutable = fullPathToExecutable;
+            this.arguments = arguments;
+        }
+
+        public SimpleProcessTask(CancellationToken token, string arguments)
+            : base(token, new SimpleOutputProcessor())
+        {
+            this.arguments = arguments;
+        }
+
+        public override string ProcessName => fullPathToExecutable?.FileName;
         public override string ProcessArguments => arguments;
     }
 }

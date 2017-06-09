@@ -9,8 +9,8 @@ namespace GitHub.Unity
         private readonly string arguments;
 
         public GitFetchTask(string remote,
-            CancellationToken token, IOutputProcessor<string> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new SimpleOutputProcessor(), dependsOn)
+            CancellationToken token, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         {
             var stringBuilder = new StringBuilder();
             stringBuilder.Append("fetch");

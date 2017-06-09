@@ -7,8 +7,8 @@ namespace GitHub.Unity
         private readonly string args;
 
         public GitListLocksTask(IGitObjectFactory gitObjectFactory, bool local,
-            CancellationToken token, BaseOutputListProcessor<GitLock> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new LockOutputProcessor(gitObjectFactory), dependsOn)
+            CancellationToken token, BaseOutputListProcessor<GitLock> processor = null)
+            : base(token, processor ?? new LockOutputProcessor(gitObjectFactory))
         {
             args = "lfs locks";
             if (local)

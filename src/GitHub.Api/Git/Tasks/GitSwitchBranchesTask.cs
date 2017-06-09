@@ -10,8 +10,8 @@ namespace GitHub.Unity
         private readonly string branch;
 
         public GitSwitchBranchesTask(string branch,
-            CancellationToken token, IOutputProcessor<string> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new SimpleOutputProcessor(), dependsOn)
+            CancellationToken token, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         {
             Guard.ArgumentNotNullOrWhiteSpace(branch, "branch");
             this.branch = branch;

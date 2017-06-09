@@ -8,8 +8,8 @@ namespace GitHub.Unity
         private readonly string arguments;
 
         public GitCommitTask(string message, string body,
-            CancellationToken token, IOutputProcessor<string> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new SimpleOutputProcessor(), dependsOn)
+            CancellationToken token, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         {
             Guard.ArgumentNotNullOrWhiteSpace(message, "message");
 

@@ -614,7 +614,7 @@ namespace GitHub.Unity
                                         String.Format(Localization.SwitchBranchFailedDescription, node.Name),
                                     Localization.Cancel);
                                 }
-                            });
+                            }).Start();
                     }
                     else if (node.Type == NodeType.RemoteBranch)
                     {
@@ -629,7 +629,7 @@ namespace GitHub.Unity
                                         String.Format(Localization.SwitchBranchFailedDescription, node.Name),
                                     Localization.Cancel);
                                 }
-                            });
+                            }).Start();
                     }
                 }
             }

@@ -5,8 +5,8 @@ namespace GitHub.Unity
     class GitLogTask : ProcessTaskWithListOutput<GitLogEntry>
     {
         public GitLogTask(IGitObjectFactory gitObjectFactory,
-            CancellationToken token, BaseOutputListProcessor<GitLogEntry> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new LogEntryOutputProcessor(gitObjectFactory), dependsOn)
+            CancellationToken token, BaseOutputListProcessor<GitLogEntry> processor = null)
+            : base(token, processor ?? new LogEntryOutputProcessor(gitObjectFactory))
         {
         }
 

@@ -141,23 +141,22 @@ namespace GitHub.Unity
         {
             Logger.Trace("RunCredentialHelper helper:\"{0}\" action:\"{1}\"", credHelper, action);
 
-            ITask<string> task;
+            SimpleProcessTask task;
             if (credHelper.StartsWith('!'))
             {
                 // it's a separate app, run it as such
-                task = new ProcessTask<string>(taskManager.Token, new SimpleOutputProcessor())
-                    .Configure(processManager, credHelper.Substring(1).ToNPath(), action, withInput: true);
+                task = new SimpleProcessTask(taskManager.Token, credHelper.Substring(1).ToNPath(), action);
             }
             else
             {
-                var app = $"credential-{credHelper} ";
-                task = new ProcessTask<string>(taskManager.Token, app, new SimpleOutputProcessor())
-                    .Configure(processManager, true);
+                var args = $"credential-{credHelper} {action}";
+                task = new SimpleProcessTask(taskManager.Token, args);
             }
 
-            task.OnStart += t =>
+            task.Configure(processManager, true);
+
+            task.OnStartProcess += proc =>
             {
-                var proc = ((IProcess)t).Process;
                 foreach (var line in lines)
                 {
                     proc.StandardInput.WriteLine(line);

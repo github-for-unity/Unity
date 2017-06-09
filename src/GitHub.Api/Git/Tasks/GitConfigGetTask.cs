@@ -8,8 +8,8 @@ namespace GitHub.Unity
         private readonly string arguments;
 
         public GitConfigGetAllTask(string key, GitConfigSource configSource,
-            CancellationToken token, BaseOutputListProcessor<string> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new SimpleListOutputProcessor(), dependsOn)
+            CancellationToken token, BaseOutputListProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleListOutputProcessor())
         {
             var source = "";
             source +=
@@ -30,8 +30,8 @@ namespace GitHub.Unity
         private readonly string arguments;
 
         public GitConfigGetTask(string key, GitConfigSource configSource,
-            CancellationToken token, IOutputProcessor<string> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new FirstNonNullLineOutputProcessor(), dependsOn)
+            CancellationToken token, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new FirstNonNullLineOutputProcessor())
         {
             var source = "";
             source +=

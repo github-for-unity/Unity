@@ -19,14 +19,11 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
+                Logging.GetLogger().Error(ex);
                 if (handler != null)
                     handler(ex);
                 else
-                {
-                    if (Guard.InUnitTestRunner)
-                        throw;
-                    Logging.GetLogger().Error(ex);
-                }
+                    throw;
             }
         }
 
@@ -38,12 +35,10 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
+                Logging.GetLogger().Error(ex);
                 if (handler != null)
                     return handler(ex);
-                if (Guard.InUnitTestRunner)
-                    throw;
-                Logging.GetLogger().Error(ex);
-                return default(T);
+                throw;
             }
         }
 
@@ -55,14 +50,11 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
+                Logging.GetLogger().Error(ex);
                 if (handler != null)
                     handler(ex);
                 else
-                {
-                    if (Guard.InUnitTestRunner)
-                        throw;
-                    Logging.GetLogger().Error(ex);
-                }
+                    throw;
             }
         }
 
@@ -74,12 +66,10 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
+                Logging.GetLogger().Error(ex);
                 if (handler != null)
                     return handler(ex);
-                if (Guard.InUnitTestRunner)
-                    throw;
-                Logging.GetLogger().Error(ex);
-                return default(T);
+                throw;
             }
         }
 
@@ -118,34 +108,62 @@ namespace GitHub.Unity
             };
         }
 
+        public static ITask Then(this ITask task, Action continuation, bool always = false)
+        {
+            Guard.ArgumentNotNull(continuation, "continuation");
+            return task.Then(new ActionTask(task.Token, _ => continuation()) { Name = "Then" }, always);
+        }
+
+        public static ITask Then(this ITask task, Action continuation, TaskAffinity affinity, bool always = false)
+        {
+            Guard.ArgumentNotNull(continuation, "continuation");
+            return task.Then(new ActionTask(task.Token, _ => continuation()) { Affinity = affinity, Name = "Then" }, always);
+        }
+
         public static ITask Then(this ITask task, Action<bool> continuation, bool always = false)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
-            return new ActionTask(task.Token, continuation, task, always) { Name = "Then" };
+            return task.Then(new ActionTask(task.Token, continuation) { Name = "Then" }, always);
         }
 
         public static ITask Then(this ITask task, Action<bool> continuation, TaskAffinity affinity, bool always = false)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
-            return new ActionTask(task.Token, continuation, task, always) { Affinity = affinity, Name = "Then" };
+            return task.Then(new ActionTask(task.Token, continuation) { Affinity = affinity, Name = "Then" }, always);
         }
 
         public static ITask Then<T>(this ITask<T> task, Action<bool, T> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
-            return new ActionTask<T>(task.Token, continuation, task, always) { Affinity = affinity, Name = $"Then<{typeof(T)}>" };
+            return task.Then(new ActionTask<T>(task.Token, continuation) { Affinity = affinity, Name = $"Then<{typeof(T)}>" }, always);
         }
 
         public static ITask<T> Then<T>(this ITask task, Func<bool, T> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
-            return new FuncTask<T>(task.Token, continuation, task) { Affinity = affinity, Name = $"Then<{typeof(T)}>" };
+            return task.Then(new FuncTask<T>(task.Token, continuation) { Affinity = affinity, Name = $"Then<{typeof(T)}>" }, always);
         }
 
         public static ITask<TRet> Then<T, TRet>(this ITask<T> task, Func<bool, T, TRet> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
-            return new FuncTask<T, TRet>(task.Token, continuation, task) { Affinity = affinity, Name = $"Then<{typeof(T)}, {typeof(TRet)}>" };
+            return task.Then(new FuncTask<T, TRet>(task.Token, continuation) { Affinity = affinity, Name = $"Then<{typeof(T)}, {typeof(TRet)}>" }, always);
+        }
+
+        public static ITask<T> Then<T>(this ITask task, Task<T> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
+        {
+            var cont = new FuncTask<T>(continuation) { Affinity = affinity, Name = $"ThenAsync<{typeof(T)}>" };
+            return task.Then(cont, always);
+        }
+
+        public static ITask<T> Then<T>(this ITask task, Func<Task<T>> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
+        {
+            return task.Then(continuation(), affinity, always);
+        }
+
+        public static ITask ThenInUI(this ITask task, Action continuation, bool always = false)
+        {
+            return task.Then(continuation, TaskAffinity.UI, always);
         }
 
         public static ITask ThenInUI(this ITask task, Action<bool> continuation, bool always = false)
@@ -174,9 +192,20 @@ namespace GitHub.Unity
             return task.Finally(continuation, TaskAffinity.UI);
         }
 
+        public static ITask FinallyInUI<T>(this T task, Action continuation)
+            where T : ITask
+        {
+            return task.Finally((s, e) => continuation(), TaskAffinity.UI);
+        }
+
         public static ITask FinallyInUI<T>(this ITask<T> task, Action<bool, Exception, T> continuation)
         {
             return task.Finally(continuation, TaskAffinity.UI);
+        }
+
+        public static ITask<T> FinallyInUI<T>(this ITask<T> task, Func<T> continuation)
+        {
+            return task.Finally((s, e, r) => continuation(), TaskAffinity.UI);
         }
 
         public static ITask<T> FinallyInUI<T>(this ITask<T> task, Func<bool, Exception, T, T> continuation)
@@ -184,22 +213,17 @@ namespace GitHub.Unity
             return task.Finally(continuation, TaskAffinity.UI);
         }
 
-        public static ITask<T> Then<T>(this ITask task, Task<T> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
-        {
-            var cont = new FuncTask<T>(continuation) { Affinity = affinity, Name = $"ThenAsync<{typeof(T)}>" };
-            return task.Then(cont, always);
-        }
-
-        public static ITask<T> Then<T>(this ITask task, Func<Task<T>> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
-        {
-            return task.Then(continuation(), affinity, always);
-        }
-
         public static Task<T> StartAsAsync<T>(this ITask<T> task)
         {
             var tcs = new TaskCompletionSource<T>();
-            task.Finally(r => tcs.TrySetResult(r));
-            task.Catch(e => tcs.TrySetException(e));
+            task.Finally(r =>
+            {
+                tcs.TrySetResult(r);
+            });
+            task.Catch(e =>
+            {
+                tcs.TrySetException(e);
+            });
             task.Start();
             return tcs.Task;
         }
@@ -207,8 +231,14 @@ namespace GitHub.Unity
         public static Task<bool> StartAsAsync(this ITask task)
         {
             var tcs = new TaskCompletionSource<bool>();
-            task.Finally(() => tcs.TrySetResult(true));
-            task.Catch(e => tcs.TrySetException(e));
+            task.Finally(() =>
+            {
+                tcs.TrySetResult(true);
+            });
+            task.Catch(e =>
+            {
+                tcs.TrySetException(e);
+            });
             task.Start();
             return tcs.Task;
         }

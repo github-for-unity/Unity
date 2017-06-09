@@ -8,8 +8,8 @@ namespace GitHub.Unity
         private readonly string arguments;
 
         public GitLockTask(string path,
-            CancellationToken token, IOutputProcessor<string> processor = null, ITask dependsOn = null)
-            : base(token, processor ?? new SimpleOutputProcessor(), dependsOn)
+            CancellationToken token, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         {
             Guard.ArgumentNotNullOrWhiteSpace(path, "path");
             arguments = String.Format("lfs lock \"{0}\"", path);
