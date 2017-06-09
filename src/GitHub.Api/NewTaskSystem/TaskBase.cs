@@ -86,17 +86,10 @@ namespace GitHub.Unity
         }
 
         protected TaskBase()
-        {}
+        { }
 
         public ITask SetDependsOn(ITask dependsOn)
         {
-            if (DependsOn != null)
-            {
-                Console.WriteLine($@"""{ToString()}"" Cleared DependsOn ""{DependsOn}""");
-            }
-
-            Console.WriteLine($@"""{ToString()}"" DependsOn ""{dependsOn?.ToString() ?? "null"}""");
-
             DependsOn = (TaskBase)dependsOn;
             return this;
         }
@@ -107,7 +100,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(cont, nameof(cont));
             var taskBase = ((TaskBase)(object)cont);
 
-            var firstTaskBase = taskBase.GetFirstDepends() ?? taskBase;
+            var firstTaskBase = taskBase.GetTopMostTask() ?? taskBase;
             firstTaskBase.SetDependsOn(this);
 
             this.continuation = firstTaskBase;
@@ -173,7 +166,7 @@ namespace GitHub.Unity
         public ITask Defer<T>(Func<T, Task> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
         {
             Guard.ArgumentNotNull(continueWith, "continueWith");
-            var ret = new StubTask<T>(Token, (s, d) => {}, (ITask<T>)this, always) { Affinity = affinity };
+            var ret = new StubTask<T>(Token, (s, d) => { }, (ITask<T>)this, always) { Affinity = affinity };
             SetDeferred(new DeferredContinuation { Always = always, GetContinueWith = d => new ActionTask<T>(continueWith((T)d)) { Affinity = affinity, Name = "Deferred" } });
             return ret;
         }
@@ -188,7 +181,7 @@ namespace GitHub.Unity
 
         public virtual ITask Start()
         {
-            var depends = GetFirstDepends();
+            var depends = GetTopMostTaskInCreatedState();
             if (depends != null)
             {
                 depends.Run();
@@ -204,7 +197,6 @@ namespace GitHub.Unity
         {
             if (Task.Status == TaskStatus.Created)
             {
-                Console.WriteLine($@"Run {this}");
                 TaskManager.Instance.Schedule(this);
             }
             else
@@ -242,21 +234,29 @@ namespace GitHub.Unity
             }
         }
 
-        protected TaskBase GetFirstDepends()
+        protected TaskBase GetTopMostTaskInCreatedState()
         {
             var depends = DependsOn;
             if (depends == null)
                 return null;
-            return depends.GetFirstDepends(null);
+            return depends.GetTopMostTask(null, true);
         }
 
-        protected TaskBase GetFirstDepends(TaskBase ret)
+        protected TaskBase GetTopMostTask()
         {
-            ret = (Task.Status == TaskStatus.Created ? this : ret);
+            var depends = DependsOn;
+            if (depends == null)
+                return null;
+            return depends.GetTopMostTask(null, false);
+        }
+
+        protected TaskBase GetTopMostTask(TaskBase ret, bool onlyCreatedState)
+        {
+            ret = (!onlyCreatedState || Task.Status == TaskStatus.Created ? this : ret);
             var depends = DependsOn;
             if (depends == null)
                 return ret;
-            return depends.GetFirstDepends(ret);
+            return depends.GetTopMostTask(ret, onlyCreatedState);
         }
 
         public virtual void Wait()
