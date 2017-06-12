@@ -43,9 +43,9 @@ namespace GitHub.Unity
             ApplicationManager.GitClient.Init()
                               .Then(ApplicationManager.GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local))
                               .Then(ApplicationManager.GitClient.SetConfig("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local))
-                              .Then(ApplicationManager.GitClient.LfsInstall()).Then(new ActionTask(token, _ => {
-                                  SetProjectToTextSerialization();
-
+                              .Then(ApplicationManager.GitClient.LfsInstall())
+                              .ThenInUI(SetProjectToTextSerialization)
+                              .Then(new ActionTask(token, _ => {
                                   AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath);
                                   AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath);
 
