@@ -264,6 +264,9 @@
   <data name="Ok" xml:space="preserve">
     <value>ok</value>
   </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>cancel</value>
+  </data>
   <data name="PullActionTitle" xml:space="preserve">
     <value>Pull</value>
   </data>
@@ -284,5 +287,11 @@
   </data>
   <data name="InitializeRepositoryButtonText" xml:space="preserve">
     <value>Initialize repository</value>
+  </data>
+  <data name="SwitchBranchTitle" xml:space="preserve">
+    <value>Switch branch</value>
+  </data>
+  <data name="SwitchBranchFailedDescription" xml:space="preserve">
+    <value>Could not switch to branch {0}</value>
   </data>
 </root>

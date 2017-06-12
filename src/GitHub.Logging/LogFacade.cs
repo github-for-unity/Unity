@@ -26,7 +26,6 @@ namespace GitHub.Unity
         public void Trace(string message)
         {
             if (!Logging.TracingEnabled) return;
-
             Logging.LogAdapter.Trace(context, message);
         }
 

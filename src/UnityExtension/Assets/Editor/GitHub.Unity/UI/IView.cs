@@ -5,6 +5,7 @@ namespace GitHub.Unity
 {
     interface IView
     {
+        void Initialize(IApplicationManager applicationManager);
         void Refresh();
         void Redraw();
         Rect Position { get; }
@@ -12,5 +13,6 @@ namespace GitHub.Unity
         void Finish(bool result);
         event Action<bool> OnClose;
         IRepository Repository { get; }
+        IApplicationManager Manager { get; }
     }
 }

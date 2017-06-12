@@ -14,7 +14,6 @@ namespace GitHub.Unity
         private const BindingFlags quitActionBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
 
         private FieldInfo quitActionField;
-        private TaskRunner taskRunner;
 
         public ApplicationManager(IMainThreadSynchronizationContext synchronizationContext)
             : base(synchronizationContext as SynchronizationContext)
@@ -22,32 +21,28 @@ namespace GitHub.Unity
             ListenToUnityExit();
             DetermineInstallationPath();
 
-            MainThreadResultDispatcher = new MainThreadTaskResultDispatcher();
             var uiDispatcher = new AuthenticationUIDispatcher();
-            Initialize(uiDispatcher);
+            Initialize();
         }
 
-        public override Task Run()
+        public override ITask Run()
         {
             Utility.Initialize();
 
-            taskRunner = new TaskRunner((IMainThreadSynchronizationContext)SynchronizationContext,
-                CancellationTokenSource.Token);
-
-            TaskRunner = taskRunner;
             return base.Run()
-                .ContinueWith(_ =>
+                .ThenInUI(_ =>
                 {
-                    taskRunner.Run();
-
+                    Logger.Debug("Run");
                     Utility.Run();
 
                     ProjectWindowInterface.Initialize(Environment.Repository);
 
-                    Window.Initialize(Environment.Repository);
+                    var view = Window.GetView();
+                    if (view != null)
+                        view.Initialize(this);
 
                     //logger.Debug("Application Restarted");
-                }, UIScheduler);
+                }).Start();
         }
 
 
@@ -77,16 +72,18 @@ namespace GitHub.Unity
             return ret;
         }
 
-        public override Task RestartRepository()
+        public override ITask RestartRepository()
         {
-            logger.Trace("Restarting");
+            Logger.Trace("Restarting");
             return base.RestartRepository()
-                .ContinueWith(_ =>
+                .ThenInUI(_ =>
                 {
-                    logger.Trace("Restarted");
+                    Logger.Trace("Restarted {0}", Environment.Repository);
                     ProjectWindowInterface.Initialize(Environment.Repository);
-                    Window.Initialize(Environment.Repository);
-                }, UIScheduler);
+                    var view = Window.GetView();
+                    if (view != null)
+                        view.Initialize(this);
+                });
         }
 
         private void ListenToUnityExit()
@@ -137,8 +134,6 @@ namespace GitHub.Unity
                 if (!disposed)
                 {
                     disposed = true;
-                    if (taskRunner != null)
-                        taskRunner.Shutdown();
                 }
             }
         }

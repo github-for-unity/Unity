@@ -2,46 +2,42 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
+    interface IPlatform
+    {
+        IPlatform Initialize(IProcessManager processManager, ITaskManager taskManager);
+        IProcessEnvironment GitEnvironment { get; }
+        ICredentialManager CredentialManager { get; }
+        IEnvironment Environment { get; }
+        IProcessManager ProcessManager { get; }
+        IKeychain Keychain { get; }
+    }
+
     class Platform : IPlatform
     {
-        public Platform(IEnvironment environment, IFileSystem filesystem)
+        public Platform(IEnvironment environment)
         {
             Environment = environment;
-
-            if (environment.IsWindows)
-            {
-                GitEnvironment = new WindowsGitEnvironment(environment, filesystem);
-            }
-            else if (environment.IsMac)
-            {
-                GitEnvironment = new MacGitEnvironment(environment, filesystem);
-            }
-            else
-            {
-                GitEnvironment = new LinuxGitEnvironment(environment, filesystem);
-            }
+            GitEnvironment = new ProcessEnvironment(environment);
         }
 
-        public Task<IPlatform> Initialize(IProcessManager processManager, IUIDispatcher uiDispatcher)
+        public IPlatform Initialize(IProcessManager processManager, ITaskManager taskManager)
         {
-            UIDispatcher = uiDispatcher;
             ProcessManager = processManager;
 
             if (CredentialManager == null)
             {
-                CredentialManager = new GitCredentialManager(Environment, processManager);
+                CredentialManager = new GitCredentialManager(Environment, processManager, taskManager);
                 Keychain = new Keychain(Environment, CredentialManager);
                 Keychain.Initialize();
             }
 
-            return TaskEx.FromResult(this as IPlatform);
+            return this;
         }
 
         public IEnvironment Environment { get; private set; }
         public IProcessEnvironment GitEnvironment { get; private set; }
         public ICredentialManager CredentialManager { get; private set; }
         public IProcessManager ProcessManager { get; private set; }
-        public IUIDispatcher UIDispatcher { get; private set; }
         public IKeychain Keychain { get; private set; }
     }
 }

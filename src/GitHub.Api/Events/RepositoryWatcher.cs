@@ -18,7 +18,6 @@ namespace GitHub.Unity
         event Action<string> LocalBranchCreated;
         event Action<string> LocalBranchDeleted;
         event Action RepositoryChanged;
-        event Action<string, string> RemoteBranchChanged;
         event Action<string, string> RemoteBranchCreated;
         event Action<string, string> RemoteBranchDeleted;
         void Initialize();
@@ -29,7 +28,7 @@ namespace GitHub.Unity
         private readonly RepositoryPathConfiguration paths;
         private readonly CancellationToken cancellationToken;
         private readonly NPath[] ignoredPaths;
-        private readonly AutoResetEvent autoResetEvent;
+        private readonly ManualResetEventSlim pauseEvent;
         private readonly bool disableNative;
         private NativeInterface nativeInterface;
         private bool running;
@@ -42,7 +41,6 @@ namespace GitHub.Unity
         public event Action<string> LocalBranchCreated;
         public event Action<string> LocalBranchDeleted;
         public event Action RepositoryChanged;
-        public event Action<string, string> RemoteBranchChanged;
         public event Action<string, string> RemoteBranchCreated;
         public event Action<string, string> RemoteBranchDeleted;
 
@@ -56,7 +54,7 @@ namespace GitHub.Unity
                 platform.Environment.UnityProjectPath.Combine("Temp")
             };
 
-            autoResetEvent = new AutoResetEvent(false);
+            pauseEvent = new ManualResetEventSlim();
             disableNative = !platform.Environment.IsWindows;
         }
 
@@ -84,7 +82,8 @@ namespace GitHub.Unity
             }
 
             running = true;
-            task = Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, ThreadingHelper.TaskScheduler);
+            pauseEvent.Reset();
+            task = Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         public void Stop()
@@ -98,7 +97,7 @@ namespace GitHub.Unity
             Logger.Trace("Stopping watcher");
 
             running = false;
-            autoResetEvent.Set();
+            pauseEvent.Set();
         }
 
         private void WatcherLoop()
@@ -164,11 +163,11 @@ namespace GitHub.Unity
 
                 if (repositoryChanged)
                 {
-                    Logger.Debug("RepositoryChanged");
+                    Logger.Trace("RepositoryChanged");
                     RepositoryChanged?.Invoke();
                 }
 
-                if (autoResetEvent.WaitOne(200))
+                if (pauseEvent.Wait(200))
                 {
                     break;
                 }
@@ -270,7 +269,7 @@ namespace GitHub.Unity
 
                     var branch = string.Join(@"/", relativePathElements.ToArray());
 
-                    Logger.Debug("LocalBranchChanged: {0}", branch);
+                    Logger.Trace("LocalBranchChanged: {0}", branch);
                     LocalBranchChanged?.Invoke(branch);
                 }
                 else if (fileEvent.Type == EventType.DELETED)
@@ -290,7 +289,7 @@ namespace GitHub.Unity
 
                     var branch = string.Join(@"/", relativePathElements.ToArray());
 
-                    Logger.Debug("LocalBranchDeleted: {0}", branch);
+                    Logger.Trace("LocalBranchDeleted: {0}", branch);
                     LocalBranchDeleted?.Invoke(branch);
                 }
                 else if (fileEvent.Type == EventType.RENAMED)
@@ -314,7 +313,7 @@ namespace GitHub.Unity
 
                             var branch = string.Join(@"/", relativePathElements.ToArray());
 
-                            Logger.Debug("LocalBranchCreated: {0}", branch);
+                            Logger.Trace("LocalBranchCreated: {0}", branch);
                             LocalBranchCreated?.Invoke(branch);
                         }
                     }

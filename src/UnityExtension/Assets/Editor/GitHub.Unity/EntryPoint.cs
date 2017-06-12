@@ -60,7 +60,7 @@ namespace GitHub.Unity
             Logging.LogAdapter = new FileLogAdapter(logPath);
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
-            ApplicationManager.Run();
+            ((ApplicationManager)ApplicationManager).Run();
         }
 
         private static bool ServerCertificateValidationCallback(object sender, X509Certificate certificate,
@@ -83,7 +83,7 @@ namespace GitHub.Unity
             return success;
         }
 
-        private static ApplicationManager ApplicationManager
+        public static IApplicationManager ApplicationManager
         {
             get
             {
@@ -95,25 +95,6 @@ namespace GitHub.Unity
             }
         }
 
-        public static IApplicationManager AppManager { get { return ApplicationManager; } }
-
         public static IEnvironment Environment { get { return ApplicationManager.Environment; } }
-        public static IFileSystem FileSystem { get { return Environment.FileSystem; } }
-
-        public static IProcessEnvironment GitEnvironment { get { return ApplicationManager.GitEnvironment; } }
-
-        public static IPlatform Platform { get { return ApplicationManager.Platform; } }
-        public static ICredentialManager CredentialManager { get { return Platform.CredentialManager; } }
-        public static IKeychain Keychain { get { return Platform.Keychain; } }
-
-        public static IProcessManager ProcessManager { get { return ApplicationManager.ProcessManager; } }
-        public static GitObjectFactory GitObjectFactory { get { return new GitObjectFactory(Environment); } }
-
-        public static ISettings LocalSettings { get { return ApplicationManager.LocalSettings; } }
-        public static ISettings UserSettings { get { return ApplicationManager.UserSettings; } }
-        public static ISettings SystemSettings { get { return ApplicationManager.SystemSettings; } }
-        public static ITaskResultDispatcher TaskResultDispatcher { get { return ApplicationManager.MainThreadResultDispatcher; } }
-
-        public static bool Initialized { get; private set; }
     }
 }

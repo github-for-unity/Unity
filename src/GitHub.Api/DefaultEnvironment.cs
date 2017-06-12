@@ -6,7 +6,6 @@ namespace GitHub.Unity
     class DefaultEnvironment : IEnvironment
     {
         private const string logFile = "github-unity.log";
-        private IFileSystem filesystem;
 
         public NPath LogPath { get; }
         public DefaultEnvironment()
@@ -27,7 +26,7 @@ namespace GitHub.Unity
             else
             {
                 localAppData = GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData).ToNPath();
-                commonAppData = "/usr/local/share/";
+                commonAppData = "/usr/local/share/".ToNPath();
             }
 
             UserCachePath = localAppData.Combine(ApplicationInfo.ApplicationName);
@@ -70,35 +69,18 @@ namespace GitHub.Unity
             return Environment.GetEnvironmentVariable(variable);
         }
 
-        public IFileSystem FileSystem
-        {
-            get
-            {
-                if (filesystem == null)
-                {
-                    filesystem = new FileSystem();
-                    NPathFileSystemProvider.Current = filesystem;
-                }
-                return filesystem;
-            }
-            set
-            {
-                filesystem = value;
-                NPathFileSystemProvider.Current = filesystem;
-            }
-        }
-
-        public NPath UnityApplication { get; private set; }
-        public NPath UnityAssetsPath { get; private set; }
-        public NPath UnityProjectPath { get; private set; }
+        public IFileSystem FileSystem { get { return NPath.FileSystem; } set { NPath.FileSystem = value; } }
+        public NPath UnityApplication { get; set; }
+        public NPath UnityAssetsPath { get; set; }
+        public NPath UnityProjectPath { get; set; }
         public NPath ExtensionInstallPath { get; set; }
         public NPath UserCachePath { get; set; }
         public NPath SystemCachePath { get; set; }
-        public string Path { get { return Environment.GetEnvironmentVariable("PATH"); } }
+        public NPath Path { get { return Environment.GetEnvironmentVariable("PATH").ToNPath(); } }
         public string NewLine { get { return Environment.NewLine; } }
 
-        private string gitExecutablePath;
-        public string GitExecutablePath
+        private NPath gitExecutablePath;
+        public NPath GitExecutablePath
         {
             get { return gitExecutablePath; }
             set
@@ -108,8 +90,8 @@ namespace GitHub.Unity
             }
         }
 
-        private string gitInstallPath;
-        public string GitInstallPath
+        private NPath gitInstallPath;
+        public NPath GitInstallPath
         {
             get
             {
@@ -120,11 +102,11 @@ namespace GitHub.Unity
                     {
                         if (IsWindows)
                         {
-                            gitInstallPath = GitExecutablePath.ToNPath().Parent.Parent;
+                            gitInstallPath = GitExecutablePath.Parent.Parent;
                         }
                         else
                         {
-                            gitInstallPath = GitExecutablePath.ToNPath().Parent;
+                            gitInstallPath = GitExecutablePath.Parent;
                         }
                     }
                     else
@@ -134,7 +116,7 @@ namespace GitHub.Unity
             }
         }
 
-        public string RepositoryPath { get; private set; }
+        public NPath RepositoryPath { get; private set; }
         public IRepository Repository { get; set; }
 
         public bool IsWindows { get { return OnWindows; } }
@@ -188,5 +170,6 @@ namespace GitHub.Unity
             }
             set { onMac = value; }
         }
+        public string ExecutableExtension { get { return IsWindows ? ".exe" : null; } }
     }
 }

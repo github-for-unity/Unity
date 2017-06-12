@@ -11,11 +11,11 @@ namespace GitHub.Unity
         IPlatform Platform { get; }
         IProcessEnvironment GitEnvironment { get; }
         IProcessManager ProcessManager { get; }
-        ITaskResultDispatcher MainThreadResultDispatcher { get; }
         ISettings SystemSettings { get; }
         ISettings LocalSettings { get; }
         ISettings UserSettings { get; }
-        AppConfiguration AppConfiguration { get; }
-        Task RestartRepository();
+        ITaskManager TaskManager { get; }
+        IGitClient GitClient { get; }
+        ITask RestartRepository();
     }
 }

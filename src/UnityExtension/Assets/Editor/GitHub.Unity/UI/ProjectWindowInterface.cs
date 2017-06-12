@@ -47,7 +47,7 @@ namespace GitHub.Unity
             if (locks == null)
                 return false;
 
-            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
 
             var alreadyLocked = locks.Any(x =>
@@ -69,19 +69,18 @@ namespace GitHub.Unity
             isBusy = true;
             var selected = Selection.activeObject;
 
-            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
 
-            repository.RequestLock(new MainThreadTaskResultDispatcher<string>(s => {
-                isBusy = false;
-                Selection.activeGameObject = null;
-                EditorApplication.RepaintProjectWindow();
-            },
-            () => {
-                isBusy = false;
-                Selection.activeGameObject = null;
-                EditorApplication.RepaintProjectWindow();
-            }), repositoryPath);
+            repository
+                .RequestLock(repositoryPath)
+                .ThenInUI(_ =>
+                {
+                    isBusy = false;
+                    Selection.activeGameObject = null;
+                    EditorApplication.RepaintProjectWindow();
+                })
+                .Start();
         }
 
         [MenuItem("Assets/Release lock", true, 1000)]
@@ -98,7 +97,7 @@ namespace GitHub.Unity
             if (locks == null || locks.Count == 0)
                 return false;
 
-            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
 
             var isLocked = locks.Any(x => repositoryPath == x.Path);
@@ -111,16 +110,18 @@ namespace GitHub.Unity
             isBusy = true;
             var selected = Selection.activeObject;
 
-            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID());
+            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
 
-            repository.ReleaseLock(new MainThreadTaskResultDispatcher<string>(s =>
-            {
-                isBusy = false;
-                Selection.activeGameObject = null;
-                EditorApplication.RepaintProjectWindow();
-            },
-            () => isBusy = false), repositoryPath, false);
+            repository
+                .ReleaseLock(repositoryPath, false)
+                .ThenInUI(_ =>
+                {
+                    isBusy = false;
+                    Selection.activeGameObject = null;
+                    EditorApplication.RepaintProjectWindow();
+                })
+                .Start();
         }
         public static void Run()
         {
@@ -147,7 +148,8 @@ namespace GitHub.Unity
 
         private static void RunLocksUpdateOnMainThread(IEnumerable<GitLock> update)
         {
-            TaskRunner.ScheduleMainThread(() => OnLocksUpdate(update));
+            new ActionTask(EntryPoint.ApplicationManager.TaskManager.Token, _ => OnLocksUpdate(update))
+                .ScheduleUI(EntryPoint.ApplicationManager.TaskManager);
         }
 
         private static void OnLocksUpdate(IEnumerable<GitLock> update)
@@ -161,7 +163,7 @@ namespace GitHub.Unity
             guidsLocks.Clear();
             foreach (var lck in locks)
             {
-                NPath repositoryPath = lck.Path;
+                NPath repositoryPath = lck.Path.ToNPath();
                 NPath assetPath = EntryPoint.Environment.GetAssetPath(repositoryPath);
 
                 var g = AssetDatabase.AssetPathToGUID(assetPath);
@@ -171,7 +173,7 @@ namespace GitHub.Unity
 
         private static void RunStatusUpdateOnMainThread(GitStatus update)
         {
-            TaskRunner.ScheduleMainThread(() => OnStatusUpdate(update));
+            EntryPoint.ApplicationManager.TaskManager.ScheduleUI(new ActionTask(EntryPoint.ApplicationManager.TaskManager.Token, _ => OnStatusUpdate(update)));
         }
 
         private static void OnStatusUpdate(GitStatus update)

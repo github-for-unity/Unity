@@ -4,15 +4,17 @@ namespace GitHub.Unity
 {
     class RepositoryInitializer : RepositoryInitializerBase
     {
-        public RepositoryInitializer(IEnvironment environment, IProcessManager processManager, ITaskQueueScheduler scheduler, IApplicationManager applicationManager) : base(environment, processManager, scheduler, applicationManager)
-        { }
+        public RepositoryInitializer(IApplicationManager applicationManager)
+            : base(applicationManager)
+        {
+        }
 
         protected override void SetProjectToTextSerialization()
         {
             Logger.Trace("SetProjectToTextSerialization");
 
-            TaskRunner.Add(new SimpleTask(() => { EditorSettings.serializationMode = SerializationMode.ForceText; },
-                ThreadingHelper.MainThreadScheduler));
+            new ActionTask(TaskManager.Token, _ => { EditorSettings.serializationMode = SerializationMode.ForceText; })
+                .ScheduleUI(TaskManager);
         }
     }
 }
