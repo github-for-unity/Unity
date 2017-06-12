@@ -58,14 +58,24 @@ namespace GitHub.Unity
         [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
         [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
 
-        public override void Initialize(IView parent)
+        public override void Initialize(IApplicationManager applicationManager)
         {
-            base.Initialize(parent);
+            base.Initialize(applicationManager);
+            if (Manager != null)
+            {
+                UpdateLog();
+            }
+        }
+
+        public override void InitializeView(IView parent)
+        {
+            Logger.Trace("InitializeView(IView)");
+            base.InitializeView(parent);
 
             lastWidth = Position.width;
             selectionIndex = newSelectionIndex = -1;
 
-            changesetTree.Initialize(this);
+            changesetTree.InitializeView(this);
             changesetTree.Readonly = true;
             
             if (Repository != null)

@@ -27,10 +27,10 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 horizontalScroll;
         [SerializeField] private ChangesetTreeView tree = new ChangesetTreeView();
 
-        public override void Initialize(IView parent)
+        public override void InitializeView(IView parent)
         {
-            base.Initialize(parent);
-            tree.Initialize(this);
+            base.InitializeView(parent);
+            tree.InitializeView(this);
         }
 
         public override void OnShow()

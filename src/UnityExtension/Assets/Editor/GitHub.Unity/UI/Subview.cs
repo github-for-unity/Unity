@@ -93,12 +93,13 @@ namespace GitHub.Unity
         protected IEnvironment Environment { get { return Manager != null ? Manager.Environment : null; } }
         protected IPlatform Platform { get { return Manager != null ? Manager.Platform : null; } }
 
-        void IView.Initialize(IApplicationManager applicationManager)
+        public virtual void Initialize(IApplicationManager applicationManager)
         {
+            Logger.Trace("Initialize(IApplicationManager: {0})", applicationManager != null);
             Manager = applicationManager;
         }
 
-        public virtual void Initialize(IView parent)
+        public virtual void InitializeView(IView parent)
         {
             Debug.Assert(parent != null, NullParentError);
             Parent = parent;
