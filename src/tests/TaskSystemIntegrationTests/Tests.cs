@@ -574,7 +574,7 @@ namespace IntegrationTests
         }
 
         [Test]
-        [Ignore]
+        [Ignore("borked")]
         [ExpectedException(typeof(InvalidOperationException))]
         public async Task DeferExceptions()
         {
