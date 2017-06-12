@@ -1,4 +1,4 @@
-using System.IO;
+using System;
 using GitHub.Unity;
 using NUnit.Framework;
 
@@ -12,11 +12,7 @@ namespace IntegrationTests
         {
             //Logging.TracingEnabled = true;
 
-            var tempFileName = Path.GetTempFileName();
-            var fileLog = tempFileName.Substring(0, tempFileName.Length - 4) + "_integrationtest.log";
-
-            Logging.LogAdapter = new MultipleLogAdapter(new ConsoleLogAdapter(), new FileLogAdapter(fileLog));
-            Logging.Debug("Logging to \"{0}\"", fileLog);
+            Logging.LogAdapter = new MultipleLogAdapter(new FileLogAdapter($"{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-integration-tests.log"));
         }
     }
 }
