@@ -13,6 +13,8 @@ namespace UnitTests
         {
             var filesystem = Substitute.For<IFileSystem>();
 
+            filesystem.DirectorySeparatorChar.Returns('\\');
+
             filesystem
                 .GetDirectoryName(Args.String)
                 .Returns(info => Path.GetDirectoryName((string) info[0]));
@@ -50,6 +52,20 @@ namespace UnitTests
                     switch ((string) info[0])
                     {
                         case @"c:\Source\.git":
+                            return true;
+                        case @"c:\Source":
+                            return true;
+                        default:
+                            return false;
+                    }
+                });
+
+            filesystem.FileExists(Args.String)
+                .Returns(info =>
+                {
+                    switch ((string) info[0])
+                    {
+                        case @"c:\Source\file.txt":
                             return true;
 
                         default:

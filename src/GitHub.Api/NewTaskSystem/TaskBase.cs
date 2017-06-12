@@ -80,12 +80,30 @@ namespace GitHub.Unity
 
         public TaskBase(Task task)
         {
-            task.ContinueWith(t =>
+            Task = new Task(t =>
             {
+                var scheduler = TaskManager.GetScheduler(Affinity);
                 RaiseOnStart();
-                RaiseOnEnd();
-            }, Token, runAlwaysOptions, TaskScheduler.Current);
-            Task = task;
+                var tk = ((Task)t);
+                try
+                {
+                    if (tk.Status == TaskStatus.Created && !tk.IsCompleted &&
+                      ((tk.CreationOptions & (TaskCreationOptions)512) == TaskCreationOptions.None))
+                    {
+                        tk.RunSynchronously(scheduler);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Errors = ex.Message;
+                    if (!RaiseFaultHandlers(ex))
+                        throw;
+                }
+                finally
+                {
+                    RaiseOnEnd();
+                }
+            }, task, Token, TaskCreationOptions.None);
         }
 
         protected TaskBase() {}
@@ -395,7 +413,33 @@ namespace GitHub.Unity
         public TaskBase(Task<TResult> task)
             : base()
         {
-            Task = task;
+            var scheduler = TaskManager.GetScheduler(Affinity);
+            Task = new Task<TResult>(t =>
+            {
+                TResult ret = default(TResult);
+                RaiseOnStart();
+                var tk = ((Task<TResult>)t);
+                try
+                {
+                    if (tk.Status == TaskStatus.Created && !tk.IsCompleted &&
+                      ((tk.CreationOptions & (TaskCreationOptions)512) == TaskCreationOptions.None))
+                    {
+                        tk.RunSynchronously();
+                    }
+                    ret = tk.Result;
+                }
+                catch (Exception ex)
+                {
+                    Errors = ex.Message;
+                    if (!RaiseFaultHandlers(ex))
+                        throw;
+                }
+                finally
+                {
+                    RaiseOnEnd();
+                }
+                return ret;
+            }, task, Token, TaskCreationOptions.None);
         }
 
 

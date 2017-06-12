@@ -30,7 +30,7 @@ namespace IntegrationTests
         public void OneTimeSetup()
         {
             GitHub.Unity.Guard.InUnitTestRunner = true;
-            Logging.LogAdapter = new ConsoleLogAdapter();
+            Logging.LogAdapter = new MultipleLogAdapter(new FileLogAdapter($"{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-tasksystem-tests.log"));
             //Logging.TracingEnabled = true;
             TaskManager = new TaskManager();
             var syncContext = new ThreadSynchronizationContext(Token);
@@ -573,8 +573,8 @@ namespace IntegrationTests
             await task.StartAsAsync();
         }
 
-        [Test]
-        [Ignore]
+        //[Test]
+        //[Ignore("borked")]
         [ExpectedException(typeof(InvalidOperationException))]
         public async Task DeferExceptions()
         {
@@ -656,22 +656,18 @@ namespace IntegrationTests
         [Test]
         public async Task CanWrapATask()
         {
-            var uiThread = 0;
-            await new ActionTask(Token, _ => uiThread = Thread.CurrentThread.ManagedThreadId) { Affinity = TaskAffinity.UI }
-                .StartAsAsync();
-
             var runOrder = new List<string>();
-            var task = new Task(() => runOrder.Add($"ran {Thread.CurrentThread.ManagedThreadId}"));
-            var act = new ActionTask(task) { Affinity = TaskAffinity.UI };
+            var task = new Task(() => runOrder.Add($"ran"));
+            var act = new ActionTask(task) { Affinity = TaskAffinity.Exclusive };
             await act.Start().Task;
-            CollectionAssert.AreEqual(new string[] { $"ran {uiThread}" }, runOrder);
+            CollectionAssert.AreEqual(new string[] { $"ran" }, runOrder);
         }
 
         /// <summary>
         /// Always call Then or another non-Defer variant after calling Defer
         /// </summary>
-        [Test]
-        [Ignore("borked")]
+        //[Test]
+        //[Ignore("borked")]
         public async Task AlwaysChainAsyncBodiesWithNonAsync()
         {
             var runOrder = new List<int>();
@@ -713,8 +709,8 @@ namespace IntegrationTests
         /// <summary>
         /// Always call Then or another non-Defer variant after calling Defer
         /// </summary>
-        [Test]
-        [Ignore("borked")]
+        //[Test]
+        //[Ignore("borked")]
         public async Task TwoDefersInARowWillNotWork()
         {
             var runOrder = new List<int>();
@@ -727,8 +723,8 @@ namespace IntegrationTests
             Assert.IsNull(ret);
         }
 
-        [Test]
-        [Ignore("borked")]
+        //[Test]
+        //[Ignore("borked")]
         public async Task DoNotEndChainsWithDefer()
         {
             var runOrder = new List<int>();
@@ -820,9 +816,10 @@ namespace IntegrationTests
         }
 
         [Test]
-        public void GetTopMostTaskInCreatedState()
+        public async Task GetTopMostTaskInCreatedState()
         {
-            var task1 = new ActionTask(TaskEx.FromResult(true));
+            var task1 = new ActionTask(Token, () => { });
+            await task1.StartAwait();
             var task2 = new TestActionTask(Token, _ => { });
             var task3 = new TestActionTask(Token, _ => { });
 
@@ -831,7 +828,6 @@ namespace IntegrationTests
             var top = task3.Test_GetTopMostTaskInCreatedState();
             Assert.AreSame(task2, top);
         }
-
 
         [Test]
         public void GetTopMostTask()
