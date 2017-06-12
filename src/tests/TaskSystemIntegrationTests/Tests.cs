@@ -573,8 +573,8 @@ namespace IntegrationTests
             await task.StartAsAsync();
         }
 
-        [Test]
-        [Ignore("borked")]
+        //[Test]
+        //[Ignore("borked")]
         [ExpectedException(typeof(InvalidOperationException))]
         public async Task DeferExceptions()
         {
@@ -670,8 +670,8 @@ namespace IntegrationTests
         /// <summary>
         /// Always call Then or another non-Defer variant after calling Defer
         /// </summary>
-        [Test]
-        [Ignore("borked")]
+        //[Test]
+        //[Ignore("borked")]
         public async Task AlwaysChainAsyncBodiesWithNonAsync()
         {
             var runOrder = new List<int>();
@@ -713,8 +713,8 @@ namespace IntegrationTests
         /// <summary>
         /// Always call Then or another non-Defer variant after calling Defer
         /// </summary>
-        [Test]
-        [Ignore("borked")]
+        //[Test]
+        //[Ignore("borked")]
         public async Task TwoDefersInARowWillNotWork()
         {
             var runOrder = new List<int>();
@@ -727,8 +727,8 @@ namespace IntegrationTests
             Assert.IsNull(ret);
         }
 
-        [Test]
-        [Ignore("borked")]
+        //[Test]
+        //[Ignore("borked")]
         public async Task DoNotEndChainsWithDefer()
         {
             var runOrder = new List<int>();
@@ -831,7 +831,6 @@ namespace IntegrationTests
             var top = task3.Test_GetTopMostTaskInCreatedState();
             Assert.AreSame(task2, top);
         }
-
 
         [Test]
         public void GetTopMostTask()
