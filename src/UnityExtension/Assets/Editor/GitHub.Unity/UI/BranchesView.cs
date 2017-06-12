@@ -445,7 +445,10 @@ namespace GitHub.Unity
                         var selectedBranchName = selectedNode.Name;
                         var dialogTitle = "Delete Branch: " + selectedBranchName;
                         var dialogMessage = "Are you sure you want to delete the branch: " + selectedBranchName + "?";
-                        EditorUtility.DisplayDialog("Delete Branch?", dialogMessage, "Delete", "Cancel");
+                        if (EditorUtility.DisplayDialog("Delete Branch?", dialogMessage, "Delete", "Cancel"))
+                        {
+                            GitClient.DeleteBranch(selectedBranchName, true).Start();
+                        }
                     }
                 }
                 EditorGUI.EndDisabledGroup();
