@@ -6,7 +6,7 @@ namespace GitHub.Unity
 {
     abstract class ApplicationManagerBase : IApplicationManager
     {
-        protected static readonly ILogging logger = Logging.GetLogger<IApplicationManager>();
+        protected static ILogging Logger { get; } = Logging.GetLogger<IApplicationManager>();
 
         private IEnvironment environment;
         private AppConfiguration appConfiguration;
@@ -19,113 +19,95 @@ namespace GitHub.Unity
             ThreadingHelper.SetMainThread();
             UIScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             ThreadingHelper.MainThreadScheduler = UIScheduler;
-            CancellationTokenSource = new CancellationTokenSource();
+            TaskManager = new TaskManager(UIScheduler);
             // accessing Environment triggers environment initialization if it hasn't happened yet
-            Platform = new Platform(Environment, Environment.FileSystem);
+            Platform = new Platform(Environment);
         }
 
-        protected void Initialize(IUIDispatcher uiDispatcher)
+        protected void Initialize()
         {
             UserSettings = new UserSettings(Environment);
-            UserSettings.Initialize();
-            Logging.TracingEnabled = UserSettings.Get("EnableTraceLogging", false);
-
             LocalSettings = new LocalSettings(Environment);
-            LocalSettings.Initialize();
-
             SystemSettings = new SystemSettings(Environment);
+
+            UserSettings.Initialize();
+            LocalSettings.Initialize();
             SystemSettings.Initialize();
 
+            Logging.TracingEnabled = UserSettings.Get("EnableTraceLogging", false);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
-            Platform.Initialize(ProcessManager, uiDispatcher);
+            Platform.Initialize(ProcessManager, TaskManager);
+            GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
         }
 
-        public virtual Task Run()
+        public virtual ITask Run()
         {
-            Task task = null;
-            try
-            {
-                task = RunInternal();
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex);
-                throw;
-            }
-            return task;
+            var progress = new ProgressReport();
+            return new ActionTask(SetupAndRestart(progress));
         }
 
         protected abstract string DetermineInstallationPath();
         protected abstract string GetAssetsPath();
         protected abstract string GetUnityPath();
 
-        public virtual async Task RestartRepository()
+        public virtual ITask RestartRepository()
         {
-            await ThreadingHelper.SwitchToThreadAsync();
-
-            Environment.Initialize();
-
-            if (Environment.RepositoryPath != null)
+            return new FuncTask<bool>(TaskManager.Token, _ =>
             {
-                try
-                {
-                    var repositoryManagerFactory = new RepositoryManagerFactory();
-                    repositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskRunner, Environment.RepositoryPath, CancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    logger.Error(ex);
-                }
+                Environment.Initialize();
+
+                if (Environment.RepositoryPath == null)
+                    return false;
+                return true;
+
+            })
+            .Defer(async s =>
+            {
+                if (!s)
+                    return false;
+
+                var repositoryPathConfiguration = new RepositoryPathConfiguration(Environment.RepositoryPath);
+                var gitConfig = new GitConfig(repositoryPathConfiguration.DotGitConfig);
+
+                var repositoryWatcher = new RepositoryWatcher(Platform, repositoryPathConfiguration, TaskManager.Token);
+                repositoryManager = new RepositoryManager(Platform, TaskManager, gitConfig, repositoryWatcher,
+                        GitClient, repositoryPathConfiguration, TaskManager.Token);
+
+                await repositoryManager.Initialize().SafeAwait();
                 Environment.Repository = repositoryManager.Repository;
-                repositoryManager.Initialize();
+                Logger.Trace($"Got a repository? {Environment.Repository}");
                 repositoryManager.Start();
-            }
+                return true;
+            })
+            .Finally((_, __) => { });
         }
 
-        private async Task RunInternal()
+        private async Task SetupAndRestart(ProgressReport progress)
         {
-            await ThreadingHelper.SwitchToThreadAsync();
-
-            var gitSetup = new GitSetup(Environment, Environment.FileSystem, CancellationToken);
+            var gitSetup = new GitSetup(Environment, CancellationToken);
             var expectedPath = gitSetup.GitInstallationPath;
-
-            var setupDone = await gitSetup.SetupIfNeeded(
-                //new Progress<float>(x => logger.Trace("Percentage: {0}", x)),
-                //new Progress<long>(x => logger.Trace("Remaining: {0}", x))
-            );
-
+            var setupDone = await gitSetup.SetupIfNeeded(progress.Percentage, progress.Remaining);
             if (setupDone)
                 Environment.GitExecutablePath = gitSetup.GitExecutablePath;
             else
                 Environment.GitExecutablePath = await LookForGitInstallationPath();
 
-            logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
+            Logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
 
-            await RestartRepository();
+            await RestartRepository().StartAwait();
 
             if (Environment.IsWindows)
             {
-                string credentialHelper = null;
-                var gitConfigGetTask = new GitConfigGetTask(Environment, ProcessManager,
-                    new TaskResultDispatcher<string>(s => {
-                        credentialHelper = s;
-                    }), "credential.helper", GitConfigSource.Global);
-
-
-                await gitConfigGetTask.RunAsync(CancellationToken.None);
+                var credentialHelper = await GitClient.GetConfig("credential.helper", GitConfigSource.Global).StartAwait();
 
                 if (string.IsNullOrEmpty(credentialHelper))
                 {
-                    var gitConfigSetTask = new GitConfigSetTask(Environment, ProcessManager,
-                        new TaskResultDispatcher<string>(s => { }), "credential.helper", "wincred",
-                        GitConfigSource.Global);
-
-                    await gitConfigSetTask.RunAsync(CancellationToken.None);
+                    await GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global).StartAwait();
                 }
             }
         }
 
-        private async Task<string> LookForGitInstallationPath()
+        private async Task<NPath> LookForGitInstallationPath()
         {
             NPath cachedGitInstallPath = null;
             var path = SystemSettings.Get("GitInstallPath");
@@ -133,15 +115,11 @@ namespace GitHub.Unity
                 cachedGitInstallPath = path.ToNPath();
 
             // Root paths
-            if (cachedGitInstallPath == null ||
-               !cachedGitInstallPath.DirectoryExists())
+            if (cachedGitInstallPath != null && cachedGitInstallPath.DirectoryExists())
             {
-                return await GitEnvironment.FindGitInstallationPath(ProcessManager);
+                return cachedGitInstallPath;
             }
-            else
-            {
-                return cachedGitInstallPath.ToString();
-            }
+            return await GitClient.FindGitInstallation().SafeAwait();
         }
 
         private bool disposed = false;
@@ -151,7 +129,7 @@ namespace GitHub.Unity
             {
                 if (disposed) return;
                 disposed = true;
-                if (CancellationTokenSource != null) CancellationTokenSource.Cancel();
+                if (TaskManager != null) TaskManager.Stop();
                 if (repositoryManager != null) repositoryManager.Dispose();
             }
         }
@@ -194,11 +172,11 @@ namespace GitHub.Unity
         public IPlatform Platform { get; protected set; }
         public virtual IProcessEnvironment GitEnvironment { get; set; }
         public IProcessManager ProcessManager { get; protected set; }
-        public ITaskResultDispatcher MainThreadResultDispatcher { get; protected set; }
-        public CancellationToken CancellationToken { get; protected set; }
-        public ITaskRunner TaskRunner { get; protected set; }
+        public CancellationToken CancellationToken { get { return TaskManager.Token; } }
+        public ITaskManager TaskManager { get; protected set; }
+        public IGitClient GitClient { get; protected set; }
 
-        protected CancellationTokenSource CancellationTokenSource { get; private set; }
+
         protected TaskScheduler UIScheduler { get; private set; }
         protected SynchronizationContext SynchronizationContext { get; private set; }
         protected IRepositoryManager RepositoryManager { get { return repositoryManager; } }

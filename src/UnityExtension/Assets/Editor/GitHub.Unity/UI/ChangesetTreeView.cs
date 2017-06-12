@@ -19,6 +19,7 @@ namespace GitHub.Unity
         [SerializeField] private List<GitCommitTarget> entryCommitTargets = new List<GitCommitTarget>();
         [SerializeField] private List<string> foldedTreeEntries = new List<string>();
         [NonSerialized] private FileTreeNode tree;
+        [NonSerialized] private Action<FileTreeNode> stateChangeCallback;
 
         public override void OnGUI()
         {
@@ -152,15 +153,15 @@ namespace GitHub.Unity
 
             // Build tree structure
 
-            tree = new FileTreeNode(FileSystemHelpers.FindCommonPath(entries.Select(e => e.Path)));
+            tree = new FileTreeNode(FileSystemHelpers.FindCommonPath(entries.Select(e => e.Path)), stateChangeCallback);
             tree.RepositoryPath = tree.Path;
             for (var index = 0; index < entries.Count; index++)
             {
                 var entryPath = entries[index].Path.ToNPath();
                 if (entryPath.IsChildOf(tree.Path))
-                    entryPath = entryPath.RelativeTo(tree.Path);
+                    entryPath = entryPath.RelativeTo(tree.Path.ToNPath());
 
-                var node = new FileTreeNode(entryPath) { Target = entryCommitTargets[index] };
+                var node = new FileTreeNode(entryPath, stateChangeCallback) { Target = entryCommitTargets[index] };
                 if (!string.IsNullOrEmpty(entries[index].ProjectPath))
                 {
                     node.Icon = AssetDatabase.GetCachedIcon(entries[index].ProjectPath);
@@ -208,7 +209,7 @@ namespace GitHub.Unity
                 if (!found)
                 {
                     var p = parent.RepositoryPath.ToNPath().Combine(root);
-                    BuildTree(parent.Add(new FileTreeNode(root) { RepositoryPath = p }), node);
+                    BuildTree(parent.Add(new FileTreeNode(root, stateChangeCallback) { RepositoryPath = p }), node);
                 }
             }
             else if (nodePath.ExtensionWithDot == ".meta")
@@ -258,7 +259,25 @@ namespace GitHub.Unity
                     }
                     if (EditorGUI.EndChangeCheck())
                     {
+                        var filesAdded = new List<string>();
+                        var filesRemoved = new List<string>();
+                        stateChangeCallback = new Action<FileTreeNode>(s =>
+                        {
+                            if (s.State == CommitState.None)
+                                filesRemoved.Add(s.Path);
+                            else
+                                filesAdded.Add(s.Path);
+                        });
                         node.State = toggled ? CommitState.All : CommitState.None;
+                        if (filesAdded.Count > 0)
+                            GitClient.Add(filesAdded);
+                        if (filesRemoved.Count > 0)
+                            GitClient.Remove(filesAdded);
+                        if (filesAdded.Count > 0|| filesRemoved.Count > 0)
+                        {
+                            GitClient.Status();
+                        }
+                        // we might need to run git status after these calls
                     }
                 }
 
@@ -402,23 +421,26 @@ namespace GitHub.Unity
 
         private class FileTreeNode
         {
+            private readonly Action<FileTreeNode> stateChangeCallback;
             private List<FileTreeNode> children;
+            private string path;
+            private CommitState state;
 
             public Texture Icon;
             public string Label;
             public bool Open = true;
-            private string path;
             public string RepositoryPath;
-            public GitCommitTarget Target;
-            private CommitState state;
+            public GitCommitTarget Target { get; set; }
 
-            public FileTreeNode()
+            public FileTreeNode(Action<FileTreeNode> stateChangeCallback)
             {
+                this.stateChangeCallback = stateChangeCallback;
                 children = new List<FileTreeNode>();
             }
 
-            public FileTreeNode(string path)
+            public FileTreeNode(string path, Action<FileTreeNode> stateChangeCallback)
             {
+                this.stateChangeCallback = stateChangeCallback;
                 this.path = path ?? "";
                 Label = this.path;
                 children = new List<FileTreeNode>();
@@ -492,6 +514,7 @@ namespace GitHub.Unity
                     }
 
                     state = value;
+                    stateChangeCallback.SafeInvoke(this);
 
                     if (children == null)
                     {

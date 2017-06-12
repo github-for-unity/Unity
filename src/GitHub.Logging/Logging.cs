@@ -108,6 +108,11 @@ namespace GitHub.Unity
             Instance.Error(s);
         }
 
+        public static void Error(Exception exception)
+        {
+            Instance.Error(exception);
+        }
+
         public static void Info(string format, params object[] objects)
         {
             Instance.Info(format, objects);

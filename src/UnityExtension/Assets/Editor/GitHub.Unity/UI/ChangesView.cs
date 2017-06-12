@@ -19,7 +19,7 @@ namespace GitHub.Unity
         private const string OneChangedFileLabel = "1 changed file";
         private const string NoChangedFilesLabel = "No changed files";
 
-        [NonSerialized] private bool lockCommit = true;
+        [NonSerialized] private bool busy = true;
         [SerializeField] private string commitBody = "";
 
         [SerializeField] private string commitMessage = "";
@@ -54,7 +54,8 @@ namespace GitHub.Unity
 
         private void RunStatusUpdateOnMainThread(GitStatus status)
         {
-            TaskRunner.ScheduleMainThread(() => OnStatusUpdate(status));
+            new ActionTask(TaskManager.Token, _ => OnStatusUpdate(status))
+                .ScheduleUI(TaskManager);
         }
 
         private void OnStatusUpdate(GitStatus update)
@@ -71,7 +72,7 @@ namespace GitHub.Unity
             // (Re)build tree
             tree.UpdateEntries(update.Entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
 
-            lockCommit = false;
+            busy = false;
         }
 
 
@@ -143,7 +144,7 @@ namespace GitHub.Unity
                     GUILayout.Space(Styles.CommitAreaPadding);
 
                     // Disable committing when already committing or if we don't have all the data needed
-                    EditorGUI.BeginDisabledGroup(lockCommit || string.IsNullOrEmpty(commitMessage) || !tree.CommitTargets.Any(t => t.Any));
+                    EditorGUI.BeginDisabledGroup(busy || string.IsNullOrEmpty(commitMessage) || !tree.CommitTargets.Any(t => t.Any));
                     {
                         GUILayout.BeginHorizontal();
                         {
@@ -186,29 +187,19 @@ namespace GitHub.Unity
         private void Commit()
         {
             // Do not allow new commits before we have received one successful update
-            lockCommit = true;
+            busy = true;
 
-            // Schedule the commit with the added files
-            var files = Enumerable.Range(0, tree.Entries.Count).Where(i => tree.CommitTargets[i].All).Select(i => tree.Entries[i].Path);
+            var files = Enumerable.Range(0, tree.Entries.Count).Where(i => tree.CommitTargets[i].All).Select(i => tree.Entries[i].Path).ToArray();
 
-            var commitTask = new GitCommitTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                                    new MainThreadTaskResultDispatcher<string>(_ => {
-                                        commitMessage = "";
-                                        commitBody = "";
-                                        for (var index = 0; index < tree.Entries.Count; ++index)
-                                        {
-                                            tree.CommitTargets[index].Clear();
-                                        }
-                                    },
-                                () => lockCommit = false),
-                                commitMessage,
-                                commitBody);
-
-            // run add, then commit
-            var addTask = new GitAddTask(EntryPoint.Environment, EntryPoint.ProcessManager,
-                            TaskResultDispatcher.Default.GetDispatcher<string>(_ => TaskRunner.Add(commitTask), () => lockCommit = false),
-                            files);
-            TaskRunner.Add(addTask);
+            GitClient.Add(files)
+                .Then(GitClient.Commit(commitMessage, commitBody))
+                .Then(GitClient.Status())
+                .FinallyInUI((b, exception) => 
+                    {
+                        commitMessage = "";
+                        commitBody = "";
+                        busy = false;
+                    }).Start();
         }
     }
 }

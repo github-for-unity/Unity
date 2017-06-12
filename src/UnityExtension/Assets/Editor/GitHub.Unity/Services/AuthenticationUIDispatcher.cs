@@ -2,11 +2,11 @@ using System;
 
 namespace GitHub.Unity
 {
-    class AuthenticationUIDispatcher : BaseUIDispatcher
+    class AuthenticationUIDispatcher// : BaseUIDispatcher
     {
-        protected override void Run(Action<bool> onClose)
+        protected void Run(Action<bool> onClose)
         {
-            TaskRunner.ScheduleMainThread(() => AuthenticationWindow.Open(onClose));
+            //TaskRunner.ScheduleMainThread(() => AuthenticationWindow.Open(onClose));
         }
     }
 }
