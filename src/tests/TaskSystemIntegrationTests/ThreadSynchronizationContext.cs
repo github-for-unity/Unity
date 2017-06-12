@@ -49,6 +49,7 @@ namespace GitHub.Unity
 
         private void Start()
         {
+            SetSynchronizationContext(this);
             threadId = Thread.CurrentThread.ManagedThreadId;
             var lastTime = DateTime.Now.Ticks;
             var wait = new ManualResetEventSlim(false);

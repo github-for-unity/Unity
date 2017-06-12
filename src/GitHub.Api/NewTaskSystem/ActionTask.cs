@@ -10,6 +10,14 @@ namespace GitHub.Unity
         protected Action<bool> Callback { get; }
         protected Action<bool, Exception> CallbackWithException { get; }
 
+        public ActionTask(CancellationToken token, Action action)
+            : base(token)
+        {
+            Guard.ArgumentNotNull(action, "action");
+            this.Callback = _ => action();
+            Name = "ActionTask";
+        }
+
         public ActionTask(CancellationToken token, Action<bool> action)
             : base(token)
         {
@@ -122,6 +130,14 @@ namespace GitHub.Unity
     {
         protected Func<bool, T> Callback { get; }
         protected Func<bool, Exception, T> CallbackWithException { get; }
+
+        public FuncTask(CancellationToken token, Func<T> action)
+            : base(token)
+        {
+            Guard.ArgumentNotNull(action, "action");
+            this.Callback = _ => action();
+            Name = $"FuncTask<{typeof(T)}>";
+        }
 
         public FuncTask(CancellationToken token, Func<bool, T> action)
             : base(token)
