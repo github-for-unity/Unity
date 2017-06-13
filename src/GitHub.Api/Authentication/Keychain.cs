@@ -32,19 +32,29 @@ namespace GitHub.Unity
 
         private readonly ILogging logger = Logging.GetLogger<Keychain>();
 
+        private readonly IEnvironment environment;
+        private readonly IFileSystem fileSystem;
         private readonly ICredentialManager credentialManager;
-        private readonly NPath cachePath;
+        private readonly string cachePath;
 
         // loaded at the start of application from cached/serialized data
         private Dictionary<UriString, Connection> connectionCache = new Dictionary<UriString, Connection>();
 
         // cached credentials loaded from git to pass to GitHub/ApiClient
-        private Dictionary<UriString, KeychainAdapter> keychainAdapters =
-            new Dictionary<UriString, KeychainAdapter>();
+        private readonly Dictionary<UriString, KeychainAdapter> keychainAdapters
+            = new Dictionary<UriString, KeychainAdapter>();
 
-        public Keychain(IEnvironment environment, ICredentialManager credentialManager)
+        public Keychain(IEnvironment environment, IFileSystem fileSystem, ICredentialManager credentialManager)
         {
-            cachePath = environment.UserCachePath.Combine(ConnectionFile);
+            Guard.ArgumentNotNull(environment, nameof(environment));
+            Guard.ArgumentNotNull(fileSystem, nameof(fileSystem));
+            Guard.ArgumentNotNull(credentialManager, nameof(credentialManager));
+
+            Guard.NotNull(environment, environment.UserCachePath, nameof(environment.UserCachePath));
+
+            cachePath = environment.UserCachePath.Combine(ConnectionFile).ToString();
+            this.environment = environment;
+            this.fileSystem = fileSystem;
             this.credentialManager = credentialManager;
         }
 
@@ -101,9 +111,10 @@ namespace GitHub.Unity
             logger.Trace("ReadCacheFromDisk Path:{0}", cachePath.ToString());
 
             ConnectionCacheItem[] connections = null;
-            if (cachePath.FileExists())
+            
+            if (fileSystem.FileExists(cachePath))
             {
-                var json = cachePath.ReadAllText();
+                var json = fileSystem.ReadAllText(cachePath);
                 try
                 {
                     connections = SimpleJson.DeserializeObject<ConnectionCacheItem[]>(json);
@@ -111,7 +122,7 @@ namespace GitHub.Unity
                 catch (Exception ex)
                 {
                     logger.Error(ex, "Error deserializing connection cache: {0}", cachePath);
-                    cachePath.Delete();
+                    fileSystem.FileDelete(cachePath);
                 }
             }
 
@@ -140,7 +151,7 @@ namespace GitHub.Unity
                         }).ToArray();
 
             var json = SimpleJson.SerializeObject(connectionCacheItems);
-            cachePath.WriteAllText(json);
+            fileSystem.WriteAllText(cachePath, json);
         }
 
         /// <summary>
