@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
@@ -12,6 +13,7 @@ namespace GitHub.Unity
         void UpdateToken(UriString host, string token);
         void Save(ICredential credential);
         void Initialize();
+        IList<UriString> Connections { get; }
         bool HasKeys { get; }
     }
 }

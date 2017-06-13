@@ -55,11 +55,23 @@ namespace GitHub.Unity
 
         public async Task<KeychainAdapter> Load(UriString host)
         {
-            logger.Trace("Load Host:{0}", host);
+            logger.Trace("Load KeychainAdapter Host:\"{0}\"", host);
 
             var keychainAdapter = FindOrCreateAdapter(host);
 
+            var keychainAdapterCredential = keychainAdapter.Credential;
+            if (keychainAdapterCredential == null)
+            {
+                throw new NullReferenceException($"{nameof(keychainAdapterCredential)} is null");
+            }
+
+            logger.Trace("Load KeychainAdapter Host:\"{0}\" Username:\"{1}\"", keychainAdapterCredential.Host ?? "NULL",
+                keychainAdapterCredential.Username ?? "NULL");
+
             var keychainItem = await credentialManager.Load(host);
+
+            logger.Trace("Loading KeychainItem:{0}", keychainItem?.ToString() ?? "NULL");
+
             keychainAdapter.Set(keychainItem);
 
             return keychainAdapter;
@@ -206,6 +218,8 @@ namespace GitHub.Unity
             var keychainItem = keychainAdapter.Credential;
             keychainItem.UpdateToken(token);
         }
+
+        public IList<UriString> Connections => connectionCache.Keys.ToArray();
 
         public bool HasKeys => connectionCache.Any();
     }

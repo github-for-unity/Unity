@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Octokit;
 
 namespace GitHub.Unity
 {
@@ -42,8 +44,29 @@ namespace GitHub.Unity
 
         public virtual ITask Run()
         {
+            Logger.Trace("Run");
+
             var progress = new ProgressReport();
-            return new ActionTask(SetupAndRestart(progress));
+            return new ActionTask(SetupAndRestart(progress))
+                .Then(new ActionTask(LoadKeychain()));
+        }
+
+        private async Task LoadKeychain()
+        {
+            Logger.Trace("Loading Keychain");
+
+            var firstConnection = Platform.Keychain.Connections.FirstOrDefault();
+            if (firstConnection == null)
+            {
+                Logger.Trace("No Host Found");
+            }
+            else
+            {
+                Logger.Trace("Loading Connection to Host:\"{0}\"", firstConnection);
+                var keychainAdapter = await Platform.Keychain.Load(firstConnection).SafeAwait();
+                if (keychainAdapter.OctokitCredentials == Credentials.Anonymous)
+                { }
+            }
         }
 
         protected abstract string DetermineInstallationPath();
@@ -84,6 +107,8 @@ namespace GitHub.Unity
 
         private async Task SetupAndRestart(ProgressReport progress)
         {
+            Logger.Trace("SetupAndRestart");
+
             var gitSetup = new GitSetup(Environment, CancellationToken);
             var expectedPath = gitSetup.GitInstallationPath;
             var setupDone = await gitSetup.SetupIfNeeded(progress.Percentage, progress.Remaining);

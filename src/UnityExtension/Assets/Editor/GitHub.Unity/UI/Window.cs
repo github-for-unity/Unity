@@ -222,7 +222,10 @@ namespace GitHub.Unity
         }
         private void SignOut(object obj)
         {
-            var task = new ActionTask(Platform.CredentialManager.Delete(Platform.CredentialManager.CachedCredentials.Host))
+            var credentialManager = Platform.CredentialManager;
+            var cachedCredentialsHost = credentialManager.CachedCredentials.Host;
+
+            new ActionTask(credentialManager.Delete(cachedCredentialsHost))
                 .Then(s =>
                 {
                     if (s)
@@ -230,7 +233,7 @@ namespace GitHub.Unity
                         Platform.Keychain.Clear(Repository.CloneUrl.ToRepositoryUrl());
                         Platform.Keychain.Flush(Repository.CloneUrl.ToRepositoryUrl());
                     }
-                });
+                }).Start();
         }
 
         private bool ValidateSettings()
