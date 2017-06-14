@@ -38,9 +38,9 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private BranchTreeNode selectedNode;
 
-        public override void Initialize(IView parent)
+        public override void InitializeView(IView parent)
         {
-            base.Initialize(parent);
+            base.InitializeView(parent);
             targetMode = mode;
         }
 

@@ -46,9 +46,9 @@ namespace GitHub.Unity
             }
         }
 
-        public override void Initialize(IView parent)
+        public override void InitializeView(IView parent)
         {
-            base.Initialize(parent);
+            base.InitializeView(parent);
             need2fa = busy = false;
         }
 
