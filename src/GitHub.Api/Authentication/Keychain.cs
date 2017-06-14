@@ -58,31 +58,27 @@ namespace GitHub.Unity
             this.credentialManager = credentialManager;
         }
 
-        public KeychainAdapter Connect(UriString host)
+        public IKeychainAdapter Connect(UriString host)
         {
             return FindOrCreateAdapter(host);
         }
 
-        public async Task<KeychainAdapter> Load(UriString host)
+        public async Task<IKeychainAdapter> Load(UriString host)
         {
-            logger.Trace("Load KeychainAdapter Host:\"{0}\"", host);
-
             var keychainAdapter = FindOrCreateAdapter(host);
 
-            var keychainAdapterCredential = keychainAdapter.Credential;
-            if (keychainAdapterCredential == null)
-            {
-                throw new NullReferenceException($"{nameof(keychainAdapterCredential)} is null");
-            }
-
-            logger.Trace("Load KeychainAdapter Host:\"{0}\" Username:\"{1}\"", keychainAdapterCredential.Host ?? "NULL",
-                keychainAdapterCredential.Username ?? "NULL");
-
+            logger.Trace("Load KeychainAdapter Host:\"{0}\"", host);
             var keychainItem = await credentialManager.Load(host);
 
-            logger.Trace("Loading KeychainItem:{0}", keychainItem?.ToString() ?? "NULL");
-
-            keychainAdapter.Set(keychainItem);
+            if (keychainItem == null)
+            {
+                await Clear(host, false);
+            }
+            else
+            {
+                logger.Trace("Loading KeychainItem:{0}", keychainItem?.ToString() ?? "NULL");
+                keychainAdapter.Set(keychainItem);
+            }
 
             return keychainAdapter;
         }
@@ -145,7 +141,7 @@ namespace GitHub.Unity
             var connectionCacheItems =
                 connectionCache.Select(
                     pair =>
-                        new ConnectionCacheItem() {
+                        new ConnectionCacheItem {
                             Host = pair.Value.Host.ToString(),
                             Username = pair.Value.Username
                         }).ToArray();
@@ -154,35 +150,27 @@ namespace GitHub.Unity
             fileSystem.WriteAllText(cachePath, json);
         }
 
-        /// <summary>
-        /// Call Flush() to apply these changes
-        /// </summary>
-        public void Clear(UriString host)
+        public async Task Clear(UriString host, bool deleteFromCredentialManager)
         {
             logger.Trace("Clear Host:{0}", host);
-       
+
             // delete connection in the connection list
             connectionCache.Remove(host);
 
-            // delete credential in octokit store
+            //clear octokit credentials
             FindOrCreateAdapter(host).Clear();
-        }
 
-        /// <summary>
-        /// Call Flush() to apply these changes
-        /// </summary>
-        public void Clear()
-        {
-            foreach (var k in keychainAdapters.Values.ToArray())
+            WriteCacheToDisk();
+
+            if (deleteFromCredentialManager)
             {
-                k.Clear();
+                await credentialManager.Delete(host);
             }
-            connectionCache.Clear();
         }
 
-        public async Task Flush(UriString host)
+        public async Task Save(UriString host)
         {
-            logger.Trace("Flush: {0}", host);
+            logger.Trace("Save: {0}", host);
 
             KeychainAdapter credentialAdapter;
             if (!keychainAdapters.TryGetValue(host, out credentialAdapter))
@@ -198,6 +186,7 @@ namespace GitHub.Unity
             // create new connection in the connection cache for this host
             if (connectionCache.ContainsKey(host))
                 connectionCache.Remove(host);
+
             connectionCache.Add(host, new Connection { Host = host, Username = credentialAdapter.OctokitCredentials.Login });
 
             // flushes credential cache to disk (host and username only)
@@ -208,12 +197,20 @@ namespace GitHub.Unity
             await credentialManager.Save(credentialAdapter.Credential);
         }
 
-        public void Save(ICredential credential)
+        public void SetCredentials(ICredential credential)
         {
-            logger.Trace("Save Host:{0}", credential.Host);
+            logger.Trace("SetCredentials Host:{0}", credential.Host);
 
             var credentialAdapter = FindOrCreateAdapter(credential.Host);
             credentialAdapter.Set(credential);
+        }
+
+        public void SetToken(UriString host, string token)
+        {
+            logger.Trace("SetToken Host:{0}", host);
+
+            var credentialAdapter = FindOrCreateAdapter(host);
+            credentialAdapter.UpdateToken(token);
         }
 
         public void UpdateToken(UriString host, string token)

@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -222,18 +223,10 @@ namespace GitHub.Unity
         }
         private void SignOut(object obj)
         {
-            var credentialManager = Platform.CredentialManager;
-            var cachedCredentialsHost = credentialManager.CachedCredentials.Host;
-
-            new ActionTask(credentialManager.Delete(cachedCredentialsHost))
-                .Then(s =>
-                {
-                    if (s)
-                    {
-                        Platform.Keychain.Clear(Repository.CloneUrl.ToRepositoryUrl());
-                        Platform.Keychain.Flush(Repository.CloneUrl.ToRepositoryUrl());
-                    }
-                }).Start();
+            var uriString = Platform.Keychain.Connections.First();
+            
+            new ActionTask(Platform.Keychain.Clear(uriString, true))
+                .Start();
         }
 
         private bool ValidateSettings()

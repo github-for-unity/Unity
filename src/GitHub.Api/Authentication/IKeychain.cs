@@ -5,15 +5,15 @@ namespace GitHub.Unity
 {
     interface IKeychain
     {
-        KeychainAdapter Connect(UriString host);
-        Task<KeychainAdapter> Load(UriString host);
-        void Clear(UriString host);
-        void Clear();
-        Task Flush(UriString host);
+        IKeychainAdapter Connect(UriString host);
+        Task<IKeychainAdapter> Load(UriString host);
+        Task Clear(UriString host, bool deleteFromCredentialManager);
+        Task Save(UriString host);
         void UpdateToken(UriString host, string token);
-        void Save(ICredential credential);
+        void SetCredentials(ICredential credential);
         void Initialize();
         IList<UriString> Connections { get; }
         bool HasKeys { get; }
+        void SetToken(UriString host, string token);
     }
 }

@@ -3,7 +3,7 @@ using Octokit;
 
 namespace GitHub.Unity
 {
-    class KeychainAdapter : ICredentialStore
+    class KeychainAdapter : IKeychainAdapter
     {
         public Credentials OctokitCredentials { get; private set; } = Credentials.Anonymous;
         public ICredential Credential { get; private set; }
@@ -32,5 +32,11 @@ namespace GitHub.Unity
         {
             return TaskEx.FromResult(OctokitCredentials);
         }
+    }
+
+    interface IKeychainAdapter: ICredentialStore
+    {
+        Credentials OctokitCredentials { get; }
+        ICredential Credential { get; }
     }
 }

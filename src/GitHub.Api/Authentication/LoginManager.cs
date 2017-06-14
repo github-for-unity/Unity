@@ -72,7 +72,7 @@ namespace GitHub.Unity
             // until an authorization token has been created and acquired:
             var keychainAdapter = keychain.Connect(host);
             var keychainItem = new Credential(host, username, password);
-            keychainAdapter.Set(keychainItem);
+            keychain.SetCredentials(keychainItem);
 
             var newAuth = new NewAuthorization
             {
@@ -110,7 +110,7 @@ namespace GitHub.Unity
             {
                 logger.Warning(e, "Login LoginAttemptsExceededException: {0}", e.Message);
 
-                keychain.Clear(host);
+                await keychain.Clear(host, false);
                 return new LoginResultData(LoginResultCodes.LockedOut, Localization.LockedOut, host);
             }
             catch (ApiValidationException e)
@@ -118,7 +118,7 @@ namespace GitHub.Unity
                 logger.Warning(e, "Login ApiValidationException: {0}", e.Message);
 
                 var message = e.ApiError.FirstErrorMessageSafe();
-                keychain.Clear(host);
+                await keychain.Clear(host, false);
                 return new LoginResultData(LoginResultCodes.Failed, message, host);
             }
             catch (Exception e)
@@ -134,13 +134,13 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    keychain.Clear(host);
+                    await keychain.Clear(host, false);
                     return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
                 }
             }
 
-            keychainAdapter.UpdateToken(auth.Token);
-            await keychain.Flush(host);
+            keychain.SetToken(host, auth.Token);
+            await keychain.Save(host);
 
             return new LoginResultData(LoginResultCodes.Success, "Success", host);
         }
@@ -161,10 +161,8 @@ namespace GitHub.Unity
                     twofacode);
                 EnsureNonNullAuthorization(auth);
 
-
-                var keychainAdapter = keychain.Connect(host);
-                keychainAdapter.UpdateToken(auth.Token);
-                await keychain.Flush(host);
+                keychain.SetToken(host, auth.Token);
+                await keychain.Save(host);
 
                 return new LoginResultData(LoginResultCodes.Success, "", host);
             }
@@ -179,14 +177,14 @@ namespace GitHub.Unity
                 logger.Debug(e, "2FA ApiValidationException: {0}", e.Message);
 
                 var message = e.ApiError.FirstErrorMessageSafe();
-                keychain.Clear(host);
+                await keychain.Clear(host, false);
                 return new LoginResultData(LoginResultCodes.Failed, message, host);
             }
             catch (Exception e)
             {
                 logger.Debug(e, "Exception: {0}", e.Message);
 
-                keychain.Clear(host);
+                await keychain.Clear(host, false);
                 return new LoginResultData(LoginResultCodes.Failed, e.Message, host);
             }
         }
@@ -198,8 +196,7 @@ namespace GitHub.Unity
 
             logger.Trace("Logout");
 
-            keychain.Clear(hostAddress);
-            await keychain.Flush(hostAddress);
+            await keychain.Clear(hostAddress, true);
         }
 
         private async Task<ApplicationAuthorization> CreateAndDeleteExistingApplicationAuthorization(
