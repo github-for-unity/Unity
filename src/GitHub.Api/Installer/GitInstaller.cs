@@ -6,7 +6,7 @@ namespace GitHub.Unity
 {
     class GitInstaller : IGitInstaller
     {
-        public const string GitLfsExecutableMD5 = "CD59072535B9DFF416676C8A84571B0C";
+        public const string GitLfsExecutableMD5 = "63700E111EF68EE1AD866C2C4373B68D";
 
         private const string PortableGitExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
         private const string PackageName = "PortableGit";

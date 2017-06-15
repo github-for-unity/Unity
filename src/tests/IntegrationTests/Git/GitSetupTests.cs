@@ -4,6 +4,7 @@ using GitHub.Unity;
 using NUnit.Framework;
 using Rackspace.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace IntegrationTests
 {
@@ -64,6 +65,26 @@ namespace IntegrationTests
             gitBranches.Should().BeEquivalentTo(
                 new GitBranch("master", "origin/master: behind 1", true),
                 new GitBranch("feature/document", "origin/feature/document", false));
+        }
+
+
+        [Test]
+        public void VerifyGitLfsBundle()
+        {
+            var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
+
+            var gitLfsPath = environmentPath.Combine("git-lfs.exe");
+            gitLfsPath.Exists().Should().BeFalse();
+
+            var inputZipFile = SolutionDirectory.Combine("PlatformResources", "windows", "git-lfs.zip");
+
+            var fastZip = new FastZip();
+            fastZip.ExtractZip(inputZipFile, environmentPath, null);
+
+            gitLfsPath.Exists().Should().BeTrue();
+
+            var calculateMd5 = NPath.FileSystem.CalculateMD5(gitLfsPath);
+            GitInstaller.GitLfsExecutableMD5.Should().Be(calculateMd5);
         }
     }
 }

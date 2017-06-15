@@ -85,9 +85,9 @@ namespace GitHub.Unity
         [SerializeField] private string repositoryRemoteName;
         [SerializeField] private string repositoryRemoteUrl;
 
-        public override void Initialize(IView parent)
+        public override void InitializeView(IView parent)
         {
-            base.Initialize(parent);
+            base.InitializeView(parent);
             Setup();
         }
 
