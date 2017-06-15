@@ -48,7 +48,7 @@ namespace UnitTests
             credentialManager.DidNotReceive().Save(Arg.Any<ICredential>());
 
             keychain.HasKeys.Should().BeFalse();
-            keychain.Connections.Should().BeEmpty();
+            keychain.ConnectionKeys.Should().BeEmpty();
         }
 
         [Test]
@@ -88,7 +88,7 @@ namespace UnitTests
             credentialManager.DidNotReceive().Save(Arg.Any<ICredential>());
 
             keychain.HasKeys.Should().BeFalse();
-            keychain.Connections.Should().BeEmpty();
+            keychain.ConnectionKeys.Should().BeEmpty();
         }
 
         [Test]
@@ -130,7 +130,7 @@ namespace UnitTests
             credentialManager.DidNotReceive().Save(Arg.Any<ICredential>());
 
             keychain.HasKeys.Should().BeTrue();
-            keychain.Connections.Should().BeEquivalentTo(hostUri);
+            keychain.ConnectionKeys.Should().BeEquivalentTo(hostUri);
         }
 
         [Test]
@@ -177,7 +177,7 @@ namespace UnitTests
             fileSystem.DidNotReceive().WriteAllText(Args.String, Args.String);
             fileSystem.DidNotReceive().WriteAllLines(Args.String, Arg.Any<string[]>());
 
-            var uriString = keychain.Connections.FirstOrDefault();
+            var uriString = keychain.ConnectionKeys.FirstOrDefault();
             var keychainAdapter = keychain.Load(uriString).Result;
             keychainAdapter.Credential.Username.Should().Be(username);
             keychainAdapter.Credential.Token.Should().Be(token);
@@ -227,7 +227,7 @@ namespace UnitTests
             fileSystem.DidNotReceive().WriteAllText(Args.String, Args.String);
             fileSystem.ClearReceivedCalls();
 
-            var uriString = keychain.Connections.FirstOrDefault();
+            var uriString = keychain.ConnectionKeys.FirstOrDefault();
             var keychainAdapter = keychain.Load(uriString).Result;
             keychainAdapter.Credential.Should().BeNull();
 
@@ -289,7 +289,7 @@ namespace UnitTests
             credentialManager.DidNotReceive().Save(Arg.Any<ICredential>());
 
             keychain.HasKeys.Should().BeFalse();
-            keychain.Connections.Should().BeEmpty();
+            keychain.ConnectionKeys.Should().BeEmpty();
 
             var keychainAdapter = keychain.Connect(hostUri);
 
@@ -375,7 +375,7 @@ namespace UnitTests
             credentialManager.DidNotReceive().Save(Arg.Any<ICredential>());
 
             keychain.HasKeys.Should().BeFalse();
-            keychain.Connections.Should().BeEmpty();
+            keychain.ConnectionKeys.Should().BeEmpty();
 
             var keychainAdapter = keychain.Connect(hostUri);
 

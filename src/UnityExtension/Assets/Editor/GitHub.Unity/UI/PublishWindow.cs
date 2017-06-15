@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,7 +16,7 @@ namespace GitHub.Unity
         // TODO: Replace me since this is just to test rendering errors
         private bool error = true;
 
-        private string[] orgs = { "donokuda", "github", "donokudallc", "another-org" };
+        private string[] owners = { };
         private IApiClient client;
 
         public static IView Open(Action<bool> onClose = null)
@@ -46,6 +47,17 @@ namespace GitHub.Unity
             {
                 Initialize(EntryPoint.ApplicationManager);
 
+                var keychainConnections = Platform.Keychain.Connections;
+                if (keychainConnections.Any())
+                {
+                    var username = keychainConnections[0].Username;
+                    owners = new[] { username };
+                }
+                else
+                {
+                    Logger.Warning("No Keychain connections to use");
+                }
+
                 Logger.Trace("Create Client");
 
                 var repository = Environment.Repository;
@@ -72,10 +84,13 @@ namespace GitHub.Unity
                         return;
                     }
 
-                    foreach (var organization in organizations)
-                    {
-                        Logger.Trace("Organization: {0}", organization.Name);
-                    }
+                    Logger.Trace("Loaded {0} organizations", organizations.Count);
+
+                    var organizationLogins = organizations
+                        .OrderBy(organization => organization.Login)
+                        .Select(organization => organization.Login);
+
+                    owners = owners.Union(organizationLogins).ToArray();
                 });
 
             }
@@ -117,7 +132,7 @@ namespace GitHub.Unity
                 togglePrivate = GUILayout.Toggle(togglePrivate, "Keep my code private");
             }
             GUILayout.EndHorizontal();
-            selectedOrg = EditorGUILayout.Popup("Owner", 0, orgs);
+            selectedOrg = EditorGUILayout.Popup("Owner", 0, owners);
 
             GUILayout.Space(5);
 

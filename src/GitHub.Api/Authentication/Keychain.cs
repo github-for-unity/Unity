@@ -215,7 +215,9 @@ namespace GitHub.Unity
             keychainItem.UpdateToken(token);
         }
 
-        public IList<UriString> Connections => connectionCache.Keys.ToArray();
+        public Connection[] Connections => connectionCache.Values.ToArray();
+
+        public IList<UriString> ConnectionKeys => connectionCache.Keys.ToArray();
 
         public bool HasKeys => connectionCache.Any();
     }
