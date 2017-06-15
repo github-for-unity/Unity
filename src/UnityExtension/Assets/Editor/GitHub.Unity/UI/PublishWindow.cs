@@ -1,11 +1,12 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using UnityEngine;
 
 namespace GitHub.Unity
 {
-    public class PublishWindow : EditorWindow
+    class PublishWindow : BaseWindow
     {
-        private const string PublishTitle = "Publish this repository to GitHub";
+        private const string Title = "Publish this repository to GitHub";
         private string repoName = "";
         private string repoDescription = "";
         private int selectedOrg = 0;
@@ -15,11 +16,74 @@ namespace GitHub.Unity
         private bool error = true;
 
         private string[] orgs = { "donokuda", "github", "donokudallc", "another-org" };
+        private IApiClient client;
 
-        static void Init()
+        public static IView Open(Action<bool> onClose = null)
         {
-            PublishWindow window = (PublishWindow)EditorWindow.GetWindow(typeof(PublishWindow));
-            window.Show();
+            var publishWindow = GetWindow<PublishWindow>();
+
+            if (onClose != null)
+                publishWindow.OnClose += onClose;
+
+            publishWindow.minSize = new Vector2(300, 200);
+            publishWindow.Show();
+
+            return publishWindow;
+        }
+
+        public override void OnEnable()
+        {
+            // Set window title
+            titleContent = new GUIContent(Title, Styles.SmallLogo);
+
+            Utility.UnregisterReadyCallback(PopulateView);
+            Utility.RegisterReadyCallback(PopulateView);
+        }
+
+        private void PopulateView()
+        {
+            try
+            {
+                Initialize(EntryPoint.ApplicationManager);
+
+                Logger.Trace("Create Client");
+
+                var repository = Environment.Repository;
+                UriString host;
+                if (repository != null && !string.IsNullOrEmpty(repository.CloneUrl))
+                {
+                    host = repository.CloneUrl.ToRepositoryUrl();
+                }
+                else
+                {
+                    host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
+                }
+
+                Logger.Trace("GetOrganizations");
+
+                Guard.NotNull(this, Platform, "Platform");
+                Guard.NotNull(Platform, Platform.Keychain, "Platform.Keychain");
+
+                client = ApiClient.Create(host, Platform.Keychain, new AppConfiguration());
+                client.GetOrganizations(organizations => {
+                    if (organizations == null)
+                    {
+                        Logger.Warning("Organizations is null");
+                        return;
+                    }
+
+                    foreach (var organization in organizations)
+                    {
+                        Logger.Trace("Organization: {0}", organization.Name);
+                    }
+                });
+
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "Error PopulateView & GetOrganizations");
+                throw;
+            }
         }
 
         void OnGUI()
@@ -36,7 +100,7 @@ namespace GitHub.Unity
                 GUILayout.BeginVertical();
                 {
                     GUILayout.Space(11);
-                    GUILayout.Label(PublishTitle, EditorStyles.boldLabel); 
+                    GUILayout.Label(Title, EditorStyles.boldLabel); 
                 }
                 GUILayout.EndVertical();
             }
@@ -65,7 +129,6 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("Create"))
                 {
-                    Debug.Log("CREATING A REPO HAPPENS HERE!");
                     this.Close();
                 }
             }
