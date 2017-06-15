@@ -12,6 +12,7 @@ namespace GitHub.Unity
 
         public virtual void Initialize(IApplicationManager applicationManager)
         {
+            Logger.Trace("Initialize(IApplicationManager:{0})", applicationManager != null ? applicationManager.ToString() : "NULL");
             Manager = applicationManager;
         }
 
@@ -102,6 +103,7 @@ namespace GitHub.Unity
         public virtual void InitializeView(IView parent)
         {
             Debug.Assert(parent != null, NullParentError);
+            Logger.Trace("Initialize(IView)");
             Parent = parent;
             ((IView)this).Initialize(parent.Manager);
         }

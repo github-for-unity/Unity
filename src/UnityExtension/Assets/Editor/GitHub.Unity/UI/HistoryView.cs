@@ -351,11 +351,7 @@ namespace GitHub.Unity
                     var publishedClicked = GUILayout.Button(publishButton, Styles.HistoryToolbarButtonStyle);
                     if (publishedClicked)
                     {
-                        PublishWindow publishWindow = (PublishWindow)EditorWindow.GetWindow(typeof(PublishWindow));
-                        GUIContent titleContent = new GUIContent("Publish");
-                        publishWindow.titleContent = titleContent;
-                        publishWindow.minSize = new Vector2(300, 200);
-                        publishWindow.Show();
+                        PublishWindow.Open();
                     }
                 }
             }
