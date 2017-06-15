@@ -224,7 +224,7 @@ namespace GitHub.Unity
         private void SignOut(object obj)
         {
             var uriString = Platform.Keychain.Connections.First();
-            
+
             new ActionTask(Platform.Keychain.Clear(uriString, true))
                 .Start();
         }

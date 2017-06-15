@@ -72,11 +72,12 @@ namespace GitHub.Unity
 
             if (keychainItem == null)
             {
+                logger.Warning("Cannot load host from credential manager; removing from cache");
                 await Clear(host, false);
             }
             else
             {
-                logger.Trace("Loading KeychainItem:{0}", keychainItem?.ToString() ?? "NULL");
+                logger.Trace("Loading KeychainItem:{0}", keychainItem.ToString());
                 keychainAdapter.Set(keychainItem);
             }
 
@@ -201,16 +202,16 @@ namespace GitHub.Unity
         {
             logger.Trace("SetCredentials Host:{0}", credential.Host);
 
-            var credentialAdapter = FindOrCreateAdapter(credential.Host);
-            credentialAdapter.Set(credential);
+            var keychainAdapter = keychainAdapters[credential.Host];
+            keychainAdapter.Set(credential);
         }
 
         public void SetToken(UriString host, string token)
         {
             logger.Trace("SetToken Host:{0}", host);
 
-            var credentialAdapter = FindOrCreateAdapter(host);
-            credentialAdapter.UpdateToken(token);
+            var keychainAdapter = keychainAdapters[host];
+            keychainAdapter.UpdateToken(token);
         }
 
         public void UpdateToken(UriString host, string token)
