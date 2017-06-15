@@ -188,16 +188,6 @@ namespace GitHub.Unity
             }
         }
 
-        /// <inheritdoc/>
-        public async Task Logout(UriString hostAddress)
-        {
-            Guard.ArgumentNotNull(hostAddress, nameof(hostAddress));
-
-            logger.Trace("Logout");
-
-            await keychain.Clear(hostAddress, true);
-        }
-
         private async Task<ApplicationAuthorization> CreateAndDeleteExistingApplicationAuthorization(
             IGitHubClient client,
             NewAuthorization newAuth,
