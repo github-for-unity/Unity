@@ -73,10 +73,10 @@ namespace GitHub.Unity
             // Set window title
             titleContent = new GUIContent(Title, Styles.SmallLogo);
 
-            historyTab.Initialize(this);
-            changesTab.Initialize(this);
-            branchesTab.Initialize(this);
-            settingsTab.Initialize(this);
+            historyTab.InitializeView(this);
+            changesTab.InitializeView(this);
+            branchesTab.InitializeView(this);
+            settingsTab.InitializeView(this);
         }
 
         public override void Refresh()
@@ -336,11 +336,11 @@ namespace GitHub.Unity
         {
             base.Initialize(applicationManager);
 
-            HistoryTab.Initialize(this);
-            ChangesTab.Initialize(this);
-            BranchesTab.Initialize(this);
-            SettingsTab.Initialize(this);
-            ActiveTab.Initialize(this);
+            HistoryTab.InitializeView(this);
+            ChangesTab.InitializeView(this);
+            BranchesTab.InitializeView(this);
+            SettingsTab.InitializeView(this);
+            ActiveTab.InitializeView(this);
         }
     }
 }
