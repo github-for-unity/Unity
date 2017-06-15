@@ -313,7 +313,8 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-                var isPublished = false;
+
+                var isPublished = Repository.CurrentRemote.HasValue;
                 if (isPublished)
                 {
                     // Pull / Push buttons

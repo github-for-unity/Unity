@@ -65,6 +65,12 @@ namespace GitHub.Unity
             await loginManager.Logout(host);
         }
 
+        public async void CreateRepository(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization = null)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            await CreateRepositoryInternal(newRepository, callback, organization);
+        }
+
         public async void GetOrganizations(Action<IList<Organization>> callback)
         {
             Guard.ArgumentNotNull(callback, "callback");
@@ -201,6 +207,31 @@ namespace GitHub.Unity
             }
 
             return repositoryCache;
+        }
+
+        private async Task CreateRepositoryInternal(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization)
+        {
+            try
+            {
+                logger.Trace("Creating Repository");
+
+                Octokit.Repository repository;
+                if (organization != null)
+                {
+                    repository = await githubClient.Repository.Create(organization, newRepository);
+                }
+                else
+                {
+                    repository = await githubClient.Repository.Create(newRepository);
+                }
+
+                callback(repository, null);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error Creating Repository");
+                callback(null, ex);
+            }
         }
 
         private async Task<IList<Organization>> GetOrganizationInternal()
