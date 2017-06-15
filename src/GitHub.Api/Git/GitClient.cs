@@ -32,6 +32,9 @@ namespace GitHub.Unity
         ITask<string> Push(string remote, string branch,
             IOutputProcessor<string> processor = null);
 
+        ITask<string> Revert(string changeset,
+            IOutputProcessor<string> processor = null);
+
         ITask<string> Fetch(string remote,
             IOutputProcessor<string> processor = null);
 
@@ -195,6 +198,12 @@ namespace GitHub.Unity
             IOutputProcessor<string> processor = null)
         {
             return new GitPushTask(remote, branch, true, cancellationToken, processor)
+                .Configure(processManager);
+        }
+
+        public ITask<string> Revert(string changeset, IOutputProcessor<string> processor = null)
+        {
+            return new GitRevertTask(changeset, cancellationToken, processor)
                 .Configure(processManager);
         }
 

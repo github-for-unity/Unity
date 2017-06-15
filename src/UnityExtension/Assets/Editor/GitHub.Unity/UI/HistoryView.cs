@@ -550,13 +550,23 @@ namespace GitHub.Unity
 
         private void RevertCommit()
         {
-            var commitSummary = "An awesome commit title";
+            var selection = history[selectionIndex];
+
             var dialogTitle = "Revert commit";
-            var dialogBody = "Are you sure you want to revert the following commit:\n" + "\"" + commitSummary + "\"";
+            var dialogBody = string.Format(@"Are you sure you want to revert the following commit:""{0}""", selection.Summary);
 
             if (EditorUtility.DisplayDialog(dialogTitle, dialogBody, "Revert", "Cancel"))
             {
-                Debug.Log("(Pretend a commit was reverted)");
+                Repository
+                    .Revert(selection.CommitID)
+                    .FinallyInUI((success, e) => {
+                        if (!success)
+                        {
+                            EditorUtility.DisplayDialog(dialogTitle,
+                                "Error reverting commit: " + e.Message, Localization.Cancel);
+                        }
+                    })
+                    .Start();
             }
         }
 
