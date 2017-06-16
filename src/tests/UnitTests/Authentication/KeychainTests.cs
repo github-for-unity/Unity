@@ -22,13 +22,14 @@ namespace UnitTests
         {
             const string connectionsCachePath = @"c:\UserCachePath\";
 
-            var environment = SubstituteFactory.CreateEnvironment();
-            environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
-
             var fileSystem = SubstituteFactory.CreateFileSystem();
             var credentialManager = Substitute.For<ICredentialManager>();
 
-            var keychain = new Keychain(environment, fileSystem, credentialManager);
+            var environment = SubstituteFactory.CreateEnvironment();
+            environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
+            environment.FileSystem.Returns(fileSystem);
+
+            var keychain = new Keychain(environment, credentialManager);
             keychain.Initialize();
 
             fileSystem.Received(1).FileExists(@"c:\UserCachePath\connections.json");
@@ -53,9 +54,6 @@ namespace UnitTests
             const string connectionsCachePath = @"c:\UserCachePath\";
             const string connectionsCacheFile = @"c:\UserCachePath\connections.json";
 
-            var environment = SubstituteFactory.CreateEnvironment();
-            environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
-
             var fileSystem = SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions {
                 FilesThatExist = new List<string> { connectionsCacheFile },
                 FileContents = new Dictionary<string, IList<string>> {
@@ -63,9 +61,13 @@ namespace UnitTests
                 }
             });
 
+            var environment = SubstituteFactory.CreateEnvironment();
+            environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
+            environment.FileSystem.Returns(fileSystem);
+
             var credentialManager = Substitute.For<ICredentialManager>();
 
-            var keychain = new Keychain(environment, fileSystem, credentialManager);
+            var keychain = new Keychain(environment, credentialManager);
             keychain.Initialize();
 
             fileSystem.Received(1).FileExists(connectionsCacheFile);
@@ -92,9 +94,6 @@ namespace UnitTests
 
             var hostUri = new UriString("https://github.com/");
 
-            var environment = SubstituteFactory.CreateEnvironment();
-            environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
-
             var fileSystem = SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions {
                 FilesThatExist = new List<string> { connectionsCacheFile },
                 FileContents = new Dictionary<string, IList<string>> {
@@ -102,9 +101,13 @@ namespace UnitTests
                 }
             });
 
+            var environment = SubstituteFactory.CreateEnvironment();
+            environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
+            environment.FileSystem.Returns(fileSystem);
+
             var credentialManager = Substitute.For<ICredentialManager>();
 
-            var keychain = new Keychain(environment, fileSystem, credentialManager);
+            var keychain = new Keychain(environment, credentialManager);
             keychain.Initialize();
 
             fileSystem.Received(1).FileExists(connectionsCacheFile);
@@ -131,15 +134,16 @@ namespace UnitTests
 
             var hostUri = new UriString("https://github.com/");
 
-            var environment = SubstituteFactory.CreateEnvironment();
-            environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
-
             var fileSystem = SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions {
                 FilesThatExist = new List<string> { connectionsCacheFile },
                 FileContents = new Dictionary<string, IList<string>> {
                     {connectionsCacheFile, new List<string> { @"[{""Host"":""https://github.com/"",""Username"":""SomeUser""}]" }}
                 }
             });
+
+            var environment = SubstituteFactory.CreateEnvironment();
+            environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
+            environment.FileSystem.Returns(fileSystem);
 
             const string username = "SomeUser";
             const string token = "SomeToken";
@@ -154,7 +158,7 @@ namespace UnitTests
                 return TaskEx.FromResult(credential);
             });
 
-            var keychain = new Keychain(environment, fileSystem, credentialManager);
+            var keychain = new Keychain(environment, credentialManager);
             keychain.Initialize();
 
             fileSystem.Received(1).FileExists(connectionsCacheFile);
@@ -188,9 +192,6 @@ namespace UnitTests
 
             var hostUri = new UriString("https://github.com/");
 
-            var environment = SubstituteFactory.CreateEnvironment();
-            environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
-
             var fileSystem = SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions {
                 FilesThatExist = new List<string> { connectionsCacheFile },
                 FileContents = new Dictionary<string, IList<string>> {
@@ -198,10 +199,14 @@ namespace UnitTests
                 }
             });
 
+            var environment = SubstituteFactory.CreateEnvironment();
+            environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
+            environment.FileSystem.Returns(fileSystem);
+
             var credentialManager = Substitute.For<ICredentialManager>();
             credentialManager.Load(hostUri).Returns(info => TaskEx.FromResult<ICredential>(null));
 
-            var keychain = new Keychain(environment, fileSystem, credentialManager);
+            var keychain = new Keychain(environment, credentialManager);
             keychain.Initialize();
 
             fileSystem.Received(1).FileExists(connectionsCacheFile);
@@ -243,17 +248,19 @@ namespace UnitTests
 
             var hostUri = new UriString("https://github.com/");
 
+            var fileSystem = SubstituteFactory.CreateFileSystem();
+
             var environment = SubstituteFactory.CreateEnvironment();
             environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
+            environment.FileSystem.Returns(fileSystem);
 
-            var fileSystem = SubstituteFactory.CreateFileSystem();
             var credentialManager = Substitute.For<ICredentialManager>();
 
             credentialManager.Delete(Args.UriString).Returns(info => TaskEx.FromResult(0));
 
             credentialManager.Save(Arg.Any<ICredential>()).Returns(info => TaskEx.FromResult(0));
 
-            var keychain = new Keychain(environment, fileSystem, credentialManager);
+            var keychain = new Keychain(environment, credentialManager);
             keychain.Initialize();
 
             fileSystem.Received(1).FileExists(connectionsCacheFile);
@@ -325,17 +332,19 @@ namespace UnitTests
 
             var hostUri = new UriString("https://github.com/");
 
+            var fileSystem = SubstituteFactory.CreateFileSystem();
+
             var environment = SubstituteFactory.CreateEnvironment();
             environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
+            environment.FileSystem.Returns(fileSystem);
 
-            var fileSystem = SubstituteFactory.CreateFileSystem();
             var credentialManager = Substitute.For<ICredentialManager>();
 
             credentialManager.Delete(Args.UriString).Returns(info => TaskEx.FromResult(0));
 
             credentialManager.Save(Arg.Any<ICredential>()).Returns(info => TaskEx.FromResult(0));
 
-            var keychain = new Keychain(environment, fileSystem, credentialManager);
+            var keychain = new Keychain(environment, credentialManager);
             keychain.Initialize();
 
             fileSystem.Received(1).FileExists(connectionsCacheFile);
