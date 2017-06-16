@@ -32,9 +32,8 @@ namespace GitHub.Unity
 
         private readonly ILogging logger = Logging.GetLogger<Keychain>();
 
-        private readonly IEnvironment environment;
         private readonly ICredentialManager credentialManager;
-        private readonly string cachePath;
+        private readonly NPath cachePath;
 
         // loaded at the start of application from cached/serialized data
         private Dictionary<UriString, Connection> connectionCache = new Dictionary<UriString, Connection>();
@@ -43,8 +42,6 @@ namespace GitHub.Unity
         private readonly Dictionary<UriString, KeychainAdapter> keychainAdapters
             = new Dictionary<UriString, KeychainAdapter>();
 
-        private IFileSystem FileSystem => environment.FileSystem;
-
         public Keychain(IEnvironment environment, ICredentialManager credentialManager)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));
@@ -52,8 +49,7 @@ namespace GitHub.Unity
 
             Guard.NotNull(environment, environment.UserCachePath, nameof(environment.UserCachePath));
 
-            cachePath = environment.UserCachePath.Combine(ConnectionFile).ToString();
-            this.environment = environment;
+            cachePath = environment.UserCachePath.Combine(ConnectionFile);
             this.credentialManager = credentialManager;
         }
 
@@ -108,9 +104,9 @@ namespace GitHub.Unity
 
             ConnectionCacheItem[] connections = null;
             
-            if (FileSystem.FileExists(cachePath))
+            if (cachePath.FileExists())
             {
-                var json = FileSystem.ReadAllText(cachePath);
+                var json = cachePath.ReadAllText();
                 try
                 {
                     connections = SimpleJson.DeserializeObject<ConnectionCacheItem[]>(json);
@@ -118,7 +114,7 @@ namespace GitHub.Unity
                 catch (Exception ex)
                 {
                     logger.Error(ex, "Error deserializing connection cache: {0}", cachePath);
-                    FileSystem.FileDelete(cachePath);
+                    cachePath.Delete();
                 }
             }
 
@@ -147,7 +143,7 @@ namespace GitHub.Unity
                         }).ToArray();
 
             var json = SimpleJson.SerializeObject(connectionCacheItems);
-            FileSystem.WriteAllText(cachePath, json);
+            cachePath.WriteAllText(json);
         }
 
         public async Task Clear(UriString host, bool deleteFromCredentialManager)
