@@ -11,7 +11,8 @@ namespace GitHub.Unity
         private const string WindowTitle = "Publish";
         private const string Title = "Publish this repository to GitHub";
         private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
-        private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
+        // private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
+        private const string PublicRepoMessage = "Test";
         private string repoName = "";
         private string repoDescription = "";
         private int selectedOrg = 0;
@@ -151,7 +152,7 @@ namespace GitHub.Unity
 
                 GUILayout.BeginVertical();
                 {
-                    GUILayout.FlexibleSpace();
+                    GUILayout.Space(20);
                     GUILayout.Label("/");
                 }
                 GUILayout.EndVertical();
@@ -167,7 +168,6 @@ namespace GitHub.Unity
 
             GUILayout.Label("Description");
             repoDescription = EditorGUILayout.TextField(repoDescription);
-
             GUILayout.Space(5);
 
             GUILayout.BeginVertical();
