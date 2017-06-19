@@ -11,8 +11,7 @@ namespace GitHub.Unity
         private const string WindowTitle = "Publish";
         private const string Title = "Publish this repository to GitHub";
         private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
-        // private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
-        private const string PublicRepoMessage = "Test";
+        private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
         private string repoName = "";
         private string repoDescription = "";
         private int selectedOrg = 0;
@@ -54,7 +53,7 @@ namespace GitHub.Unity
             if (onClose != null)
                 publishWindow.OnClose += onClose;
 
-            publishWindow.minSize = new Vector2(300, 400);
+            publishWindow.minSize = new Vector2(300, 250);
             publishWindow.Show();
 
             return publishWindow;
@@ -223,6 +222,7 @@ namespace GitHub.Unity
                     }, owners[selectedOrg] == username ? null : owners[selectedOrg]);
                 }
                 GUI.enabled = true;
+                GUILayout.Space(5);
             }
             GUILayout.EndHorizontal();
         }
