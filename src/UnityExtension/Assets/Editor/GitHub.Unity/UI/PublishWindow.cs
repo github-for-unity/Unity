@@ -10,6 +10,8 @@ namespace GitHub.Unity
     {
         private const string WindowTitle = "Publish";
         private const string Title = "Publish this repository to GitHub";
+        private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
+        private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
         private string repoName = "";
         private string repoDescription = "";
         private int selectedOrg = 0;
@@ -114,8 +116,10 @@ namespace GitHub.Unity
             }
         }
 
-        void OnGUI()
+        public override void OnGUI()
         {
+            base.OnGUI();
+
             GUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
             {
                 GUILayout.BeginVertical(GUILayout.Width(16));
@@ -177,7 +181,7 @@ namespace GitHub.Unity
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.Space(5);
-                    var repoPrivacyExplanation = togglePrivate ? "You choose who can see and commit to this repository" : "Anyone can see this repository. You choose who can commit";
+                    var repoPrivacyExplanation = togglePrivate ? PrivateRepoMessage : PublicRepoMessage;
                     GUILayout.Label(repoPrivacyExplanation, Styles.LongMessageStyle);
                 }
                 GUILayout.EndHorizontal();
