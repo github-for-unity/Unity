@@ -165,9 +165,24 @@ namespace GitHub.Unity
 
             GUILayout.Space(5);
 
-            togglePrivate = GUILayout.Toggle(togglePrivate, "Create as a private repository");
-            var repoPrivacyExplanation = togglePrivate ? "Anyone can see this repository. You choose who can commit" : "You choose who can see and commit to this repository";
-            GUILayout.Label(repoPrivacyExplanation, Styles.LongMessageStyle);
+            GUILayout.BeginVertical();
+            {
+                GUILayout.BeginHorizontal();
+                {
+                    togglePrivate = GUILayout.Toggle(togglePrivate, "Create as a private repository");
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Space(5);
+                    var repoPrivacyExplanation = togglePrivate ? "You choose who can see and commit to this repository" : "Anyone can see this repository. You choose who can commit";
+                    GUILayout.Label(repoPrivacyExplanation, Styles.LongMessageStyle);
+                }
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.EndVertical();
+
 
             GUILayout.Space(5);
 
@@ -177,7 +192,6 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal();
             {
                 GUILayout.FlexibleSpace();
-
                 GUI.enabled = !string.IsNullOrEmpty(repoName);
                 if (GUILayout.Button("Create"))
                 {
