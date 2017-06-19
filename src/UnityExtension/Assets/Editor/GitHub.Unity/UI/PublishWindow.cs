@@ -135,16 +135,27 @@ namespace GitHub.Unity
 
             GUILayout.Space(5);
 
-            repoName = EditorGUILayout.TextField("Name", repoName);
-            repoDescription = EditorGUILayout.TextField("Description", repoDescription);
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Label("Owner");
+                GUILayout.Label("Repository Name");
+            }
+            GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.FlexibleSpace();
-                togglePrivate = GUILayout.Toggle(togglePrivate, "Keep my code private");
+                selectedOrg = EditorGUILayout.Popup(0, owners);
+                GUILayout.Label("/");
+                repoName = EditorGUILayout.TextField(repoName);
             }
             GUILayout.EndHorizontal();
-            selectedOrg = EditorGUILayout.Popup("Owner", 0, owners);
+
+            GUILayout.Label("Description");
+            repoDescription = EditorGUILayout.TextField(repoDescription);
+
+            togglePrivate = GUILayout.Toggle(togglePrivate, "Create as a private repository");
+            var repoPrivacyExplanation = togglePrivate ? "Anyone can see this repository. You choose who can commit" : "You choose who can see and commit to this repository";
+            GUILayout.Label(repoPrivacyExplanation);
 
             GUILayout.Space(5);
 
