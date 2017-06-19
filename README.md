@@ -44,3 +44,12 @@ Go to the "Window" top level menu and select "GitHub".
 - Resizing the history view into wide-mode isn't working right
 - Scrolling the changes view hides UI elements that should be always visible (the commit box, the top bar)
 - Initializing the project as a git repo is not plugged in yet
+
+### Copyright
+Copyright 2015 - 2017 GitHub, Inc.
+
+Licensed under the MIT License
+
+The MIT license grant is not for GitHub's trademarks, which include the logo designs. GitHub reserves all trademark and copyright rights in and to all GitHub trademarks. GitHub's logos include, for instance, the stylized Invertocat designs that include "logo" in the file title in the following folder: https://github.com/github/UnityInternal/tree/master/src/UnityExtension/Assets/Editor/GitHub.Unity/IconsAndLogos.
+
+GitHub® and its stylized versions and the Invertocat mark are GitHub's Trademarks or registered Trademarks. When using GitHub's logos, be sure to follow the GitHub logo guidelines.
