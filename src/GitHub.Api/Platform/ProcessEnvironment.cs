@@ -61,7 +61,6 @@ namespace GitHub.Unity
 
             //TODO: Remove with Git LFS Locking becomes standard
             psi.EnvironmentVariables["GITLFSLOCKSENABLED"] = "1";
-            //psi.EnvironmentVariables["GIT_TRACE"] = "1";
 
             string path;
             var baseExecPath = gitPathRoot;
@@ -91,50 +90,18 @@ namespace GitHub.Unity
             }
             psi.EnvironmentVariables["GIT_EXEC_PATH"] = execPath.ToString();
 
-            //Logger.Trace("EnvironmentVariables[\"PATH\"]=\"{0}\"", path);
-
             psi.EnvironmentVariables["PATH"] = path;
 
-            //psi.EnvironmentVariables["github_shell"] = "true";
-            //psi.EnvironmentVariables["git_install_root"] = gitPath; // todo: remove in favor of github_git
-            //psi.EnvironmentVariables["github_git"] = gitPath;
             psi.EnvironmentVariables["PLINK_PROTOCOL"] = "ssh";
             psi.EnvironmentVariables["TERM"] = "msys";
-
-            //psi.EnvironmentVariables["EDITOR"] = Environment.GetEnvironmentVariable("EDITOR");
 
             var httpProxy = Environment.GetEnvironmentVariable("HTTP_PROXY");
             if (!String.IsNullOrEmpty(httpProxy))
                 psi.EnvironmentVariables["HTTP_PROXY"] = httpProxy;
+
             var httpsProxy = Environment.GetEnvironmentVariable("HTTPS_PROXY");
             if (!String.IsNullOrEmpty(httpsProxy))
                 psi.EnvironmentVariables["HTTPS_PROXY"] = httpsProxy;
-
-            //foreach (string k in psi.EnvironmentVariables.Keys)
-            //{
-            //    Logger.Debug("{0}={1}", k, psi.EnvironmentVariables[k]);
-            //}
-
-            //var existingSshAgentProcess = sshAgentBridge.GetRunningSshAgentInfo();
-            //if (existingSshAgentProcess != null)
-            //{
-            //    psi.EnvironmentVariables["SSH_AGENT_PID"] = existingSshAgentProcess.ProcessId;
-            //    psi.EnvironmentVariables["SSH_AUTH_SOCK"] = existingSshAgentProcess.AuthSocket;
-            //}
-
-            var internalUseOnly = false;
-            if (internalUseOnly)
-            {
-                psi.EnvironmentVariables["GIT_PAGER"] = "cat";
-                psi.EnvironmentVariables["LC_ALL"] = "C";
-                psi.EnvironmentVariables["GIT_ASKPASS"] = "true";
-                psi.EnvironmentVariables["DISPLAY"] = "localhost:1";
-                psi.EnvironmentVariables["SSH_ASKPASS"] = "true";
-                psi.EnvironmentVariables["GIT_SSH"] = "ssh-noprompt";
-
-                psi.StandardOutputEncoding = Encoding.UTF8;
-                psi.StandardErrorEncoding = Encoding.UTF8;
-            }
         }
     }
 }

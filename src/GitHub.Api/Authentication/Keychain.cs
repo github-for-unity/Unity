@@ -18,14 +18,6 @@ namespace GitHub.Unity
         public string Username { get; set; }
     }
 
-    /// <summary>
-    /// {
-    ///     connections: [
-    ///         connection: { host: "github.com", user: "shana" },
-    ///         connection: { host: "server.com", user: "auser" },
-    ///     ]
-    /// }
-    /// </summary>
     class Keychain : IKeychain
     {
         const string ConnectionFile = "connections.json";

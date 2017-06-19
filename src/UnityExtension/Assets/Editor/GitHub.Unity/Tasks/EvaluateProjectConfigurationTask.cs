@@ -179,16 +179,12 @@ namespace GitHub.Unity
 
         public static string EditorSettingsPath = "ProjectSettings/EditorSettings.asset";
 
-        //private static event Action<IEnumerable<ProjectConfigurationIssue>> onEvaluationResult;
-
         public static void RegisterCallback(Action<IEnumerable<ProjectConfigurationIssue>> callback)
         {
-            //onEvaluationResult += callback;
         }
 
         public static void UnregisterCallback(Action<IEnumerable<ProjectConfigurationIssue>> callback)
         {
-            //onEvaluationResult -= callback;
         }
 
         public static Object LoadEditorSettings()

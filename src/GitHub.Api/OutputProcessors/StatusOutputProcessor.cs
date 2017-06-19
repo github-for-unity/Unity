@@ -13,12 +13,6 @@ namespace GitHub.Unity
         private readonly IGitObjectFactory gitObjectFactory;
         GitStatus gitStatus;
         
-        //private int ahead;
-        //private int behind;
-        //private List<GitStatusEntry> entries;
-        //private string localBranch;
-        //private string remoteBranch;
-
         public StatusOutputProcessor(IGitObjectFactory gitObjectFactory)
         {
             Guard.ArgumentNotNull(gitObjectFactory, "gitObjectFactory");

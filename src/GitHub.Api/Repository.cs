@@ -105,15 +105,12 @@ namespace GitHub.Unity
 
         private void RepositoryManager_OnRemoteOrTrackingChanged()
         {
-            //if (String.IsNullOrEmpty(CloneUrl))
-            //{
-                var remote = repositoryManager.Config.GetRemotes()
-                               .Where(x => HostAddress.Create(new UriString(x.Url).ToRepositoryUri()).IsGitHubDotCom())
-                               .FirstOrDefault();
-                if (remote.Url != null)
-                    CloneUrl = new UriString(remote.Url).ToRepositoryUrl();
-                //repositoryManager.OnRemoteOrTrackingChanged -= RepositoryManager_OnRemoteOrTrackingChanged;
-            //}
+            var remote = repositoryManager.Config.GetRemotes()
+                            .Where(x => HostAddress.Create(new UriString(x.Url).ToRepositoryUri()).IsGitHubDotCom())
+                            .FirstOrDefault();
+
+            if (remote.Url != null)
+                CloneUrl = new UriString(remote.Url).ToRepositoryUrl();
         }
 
         private void RepositoryManager_OnHeadChanged()

@@ -385,8 +385,6 @@ namespace GitHub.Unity
 
         private void OnIndexChanged()
         {
-            //Logger.Trace("OnIndexChanged Trigger OnRepositoryUpdatedHandler");
-            //repositoryUpdateCallback.Invoke();
         }
 
         private void OnLocalBranchCreated(string name)

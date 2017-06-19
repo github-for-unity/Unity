@@ -25,9 +25,6 @@ namespace GitHub.Unity
             {
                 MoveFrom(Application.dataPath + selfPath.Substring("Assets".Length, selfPath.LastIndexOf('/') - "Assets".Length));
             }
-
-            // Self-delete
-            //AssetDatabase.DeleteAsset(selfPath);
         }
 
         private static void MoveFrom(string path)

@@ -218,7 +218,6 @@ namespace GitHub.Unity
 
         private void GoToProfile(object obj)
         {
-            //Logger.Debug("{0} {1}", EntryPoint.CredentialManager.CachedCredentials.Host, EntryPoint.CredentialManager.CachedCredentials.Username);
             Application.OpenURL(Platform.CredentialManager.CachedCredentials.Host.Combine(Platform.CredentialManager.CachedCredentials.Username));
         }
         private void SignOut(object obj)

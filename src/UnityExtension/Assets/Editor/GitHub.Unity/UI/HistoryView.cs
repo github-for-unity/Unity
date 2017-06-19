@@ -146,12 +146,6 @@ namespace GitHub.Unity
 
         public override void Refresh()
         {
-            //            if (historyTarget != null)
-            //            {
-            //                //TODO: Create a task that can get the log of one target
-            //                //GitLogTask.Schedule(Utility.AssetPathToRepository(AssetDatabase.GetAssetPath(historyTarget)),);
-            //            }
-
             RefreshLog();
 #if ENABLE_BROADMODE
             if (broadMode)
@@ -295,13 +289,6 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
-
-            //GUILayout.BeginVertical();
-            //{
-            //    var padding = 10;
-            //    GUILayout.Label(Styles.BigLogo, GUILayout.Height(this.Position.width - padding * 2), GUILayout.Width(this.Position.width - padding * 2));
-            //}
-            //GUILayout.EndVertical();
         }
 
         public void OnEmbeddedGUI()

@@ -118,18 +118,6 @@ namespace GitHub.Unity
                     {
                         Directory.CreateDirectory(directoryName);
                     }
-//#if !WINDOWS
-//                    if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
-//                    {
-//                        if (zipEntry.ExternalFileAttributes > 0)
-//                        {
-//                            int fd = Mono.Unix.Native.Syscall.open(fullZipToPath,
-//                                                                    Mono.Unix.Native.OpenFlags.O_CREAT | Mono.Unix.Native.OpenFlags.O_TRUNC,
-//                                                                    (Mono.Unix.Native.FilePermissions)zipEntry.ExternalFileAttributes);
-//                            Mono.Unix.Native.Syscall.close(fd);
-//                        }
-//                    }
-//#endif
 
                     // Unzip file in buffered chunks. This is just as fast as unpacking to a buffer the full size
                     // of the file, but does not waste memory.

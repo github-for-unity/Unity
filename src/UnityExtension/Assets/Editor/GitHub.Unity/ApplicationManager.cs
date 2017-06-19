@@ -22,7 +22,6 @@ namespace GitHub.Unity
             ListenToUnityExit();
             DetermineInstallationPath();
 
-            var uiDispatcher = new AuthenticationUIDispatcher();
             Initialize();
         }
 
@@ -41,7 +40,6 @@ namespace GitHub.Unity
                     var view = Window.GetView();
                     if (view != null)
                         view.Initialize(this);
-
                     return new { Version = Application.unityVersion, FirstRun = ApplicationCache.Instance.FirstRun };
                 })
                 .Then((s, x) => SetupMetrics(x.Version, x.FirstRun))

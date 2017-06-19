@@ -158,7 +158,6 @@ namespace GitHub.Unity
 					headerBranchLabelStyle = new GUIStyle(EditorStyles.label);
 					headerBranchLabelStyle.name = "HeaderBranchLabelStyle";
 					headerBranchLabelStyle.margin = new RectOffset(0,0,0,0);
-					//headerBranchLabelStyle.normal.textColor = new Color(0f,0f,0f,0.6f);
 				}
 
 				return headerBranchLabelStyle;
@@ -607,7 +606,6 @@ namespace GitHub.Unity
             {
                 if (trackingBranchIcon == null)
                 {
-                    // trackingBranchIcon = Utility.GetIcon("tracked-branch-indicator.png", "tracked-branch-indicator@2x.png");
                     trackingBranchIcon = Utility.GetIcon("tracked-branch-indicator.png");
                 }
 

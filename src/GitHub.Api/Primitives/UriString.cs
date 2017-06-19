@@ -22,7 +22,6 @@ namespace GitHub.Unity
     [Serializable]
     public class UriString : StringEquivalent<UriString>, IEquatable<UriString>
     {
-        //static readonly NLog.Logger log = NLog.LogManager.GetCurrentClassLogger();
         static readonly Regex sshRegex = new Regex(@"^.+@(?<host>(\[.*?\]|[a-z0-9-.]+?))(:(?<owner>.*?))?(/(?<repo>.*)(\.git)?)?$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         readonly Uri url;
 

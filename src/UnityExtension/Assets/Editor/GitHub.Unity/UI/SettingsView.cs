@@ -167,24 +167,8 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            //bool onIssuesGui;
             scroll = GUILayout.BeginScrollView(scroll);
             {
-                // Issues
-                //onIssuesGui = OnIssuesGUI();
-                //if (onIssuesGui)
-                //{
-                    // Hey, I hear you like TODO's:
-                    // TODO: Favourite branches settings?
-                    // TODO: GitHub Login Settings
-                    // TODO: Auto-fetch toggle
-                    // TODO: Auto-push toggle
-                    //
-                    // TODO: Clean up OnGitIgnoreRulesList
-                    // gitignore rules list
-                    // OnGitIgnoreRulesGUI();
-                //}
-
                 if (Repository != null)
                 {
                     OnUserSettingsGUI();
@@ -206,17 +190,6 @@ namespace GitHub.Unity
             }
 
             GUILayout.EndScrollView();
-
-            // Effectuate new selection at end of frame
-            //if (onIssuesGui)
-            //{
-            //    if (Event.current.type == EventType.Repaint && newGitIgnoreRulesSelection > -1)
-            //    {
-            //        gitIgnoreRulesSelection = newGitIgnoreRulesSelection;
-            //        newGitIgnoreRulesSelection = -1;
-            //        GUIUtility.hotControl = GUIUtility.keyboardControl = -1;
-            //    }
-            //}
         }
 
         private void OnUserSettingsGUI()
@@ -409,7 +382,6 @@ namespace GitHub.Unity
                         if (GUILayout.Button(RefreshIssuesButton))
                         {
                             // TODO: Fix this
-                            //EvaluateProjectConfigurationTask.Schedule();
                         }
 
                         if (GUILayout.Button(SelectEditorSettingsButton))
@@ -532,7 +504,6 @@ namespace GitHub.Unity
                     {
                         GitIgnoreRule.Save(gitIgnoreRulesSelection, newEffect, newFile, newLine, newDescription);
                         // TODO: Fix this
-                        //EvaluateProjectConfigurationTask.Schedule();
                     }
                 }
                 GUILayout.EndVertical();

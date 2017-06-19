@@ -62,7 +62,6 @@ namespace GitHub.Unity
                 return;
             }
             sb.AppendLine(line);
-            //Logger.Debug(@"Phase {0} - LineReceived: ""{1}""", phase, line == null ? "null" : line);
 
             if (phase == ProcessingPhase.Files && seenBodyEnd)
             {
@@ -311,8 +310,6 @@ namespace GitHub.Unity
 
         private void ReturnGitLogEntry()
         {
-            //Logger.Debug("ReturnGitLogEntry commitId:" + commitId);
-
             PopNewlines();
 
             var description = string.Join(Environment.NewLine, descriptionLines.ToArray());

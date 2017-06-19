@@ -51,8 +51,6 @@ namespace GitHub.Unity
 
                                   assetsGitignore.CreateFile();
                               }))
-                              //TODO: Find out why this doesn't work
-                              //.Then(ApplicationManager.GitClient.AddAndCommit(filesForInitialCommit, "Initial commit", null))
                               .Then(ApplicationManager.GitClient.Add(filesForInitialCommit))
                               .Then(ApplicationManager.GitClient.Commit("Initial commit", null))
                               .Then(ApplicationManager.RestartRepository())
