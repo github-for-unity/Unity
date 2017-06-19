@@ -150,7 +150,7 @@ namespace GitHub.Unity
                 }
                 GUILayout.EndVertical();
 
-                GUILayout.BeginVertical();
+                GUILayout.BeginVertical(GUILayout.Width(8));
                 {
                     GUILayout.Space(20);
                     GUILayout.Label("/");
