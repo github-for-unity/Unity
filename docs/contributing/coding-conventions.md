@@ -1,6 +1,6 @@
-#Contributing to GitHub for Unity
+# Contributing to GitHub for Unity
 
-##Coding Conventions
+## Coding Conventions
 - PascalCase for all types regardless of visibility
 - PascalCase for public members and const members
 - camelCase for private members, parameters and variables
