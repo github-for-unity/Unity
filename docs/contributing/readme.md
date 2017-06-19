@@ -2,4 +2,4 @@
 
 ### Table of Contents
 
-- [Coding Conventions](coding-coventions.md)
+- [Coding Conventions](coding-conventions.md)
