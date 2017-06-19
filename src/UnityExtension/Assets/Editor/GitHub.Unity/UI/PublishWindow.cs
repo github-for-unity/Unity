@@ -8,6 +8,7 @@ namespace GitHub.Unity
 {
     class PublishWindow : BaseWindow
     {
+        private const string WindowTitle = "Publish";
         private const string Title = "Publish this repository to GitHub";
         private string repoName = "";
         private string repoDescription = "";
@@ -59,7 +60,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             // Set window title
-            titleContent = new GUIContent(Title, Styles.SmallLogo);
+            titleContent = new GUIContent(WindowTitle, Styles.SmallLogo);
 
             Utility.UnregisterReadyCallback(PopulateView);
             Utility.RegisterReadyCallback(PopulateView);
