@@ -30,7 +30,7 @@ namespace GitHub.Unity
         private const string ClearSelectionButton = "×";
         private const string NoRepoTitle = "No Git repository found for this project";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
-        private const string publishButton = "Publish";
+        private const string PublishButton = "Publish";
         private const int HistoryExtraItemCount = 10;
         private const float MaxChangelistHeightRatio = .2f;
 
@@ -349,7 +349,7 @@ namespace GitHub.Unity
                 else
                 {
                     // Publishing a repo
-                    var publishedClicked = GUILayout.Button(publishButton, Styles.HistoryToolbarButtonStyle);
+                    var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
                     if (publishedClicked)
                     {
                         PublishWindow.Open();
