@@ -50,7 +50,7 @@ namespace GitHub.Unity
             if (onClose != null)
                 publishWindow.OnClose += onClose;
 
-            publishWindow.minSize = new Vector2(300, 200);
+            publishWindow.minSize = new Vector2(300, 400);
             publishWindow.Show();
 
             return publishWindow;
