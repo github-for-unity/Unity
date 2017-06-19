@@ -77,11 +77,11 @@ namespace GitHub.Unity
                 filename = filename2x;
             }
 
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GitHub.Unity.Icons." + filename);
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GitHub.Unity.IconsAndLogos." + filename);
             if (stream != null)
                 return stream.ToTexture2D();
 
-            var iconPath = ExtensionInstallPath.ToNPath().Combine("Icons", filename).ToString(SlashMode.Forward);
+            var iconPath = ExtensionInstallPath.ToNPath().Combine("IconsAndLogos", filename).ToString(SlashMode.Forward);
             return AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
         }
 
