@@ -1,9 +1,9 @@
-#Contributing to GitHub for Unity
+# Contributing to GitHub for Unity
 
-##How to Build
+## How to Build
 
-###Visual Studio
+### Visual Studio
 
-###Mono and Bash
+### Mono and Bash
 
-##Build Output
+## Build Output
