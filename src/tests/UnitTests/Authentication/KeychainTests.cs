@@ -23,6 +23,9 @@ namespace UnitTests
             const string connectionsCachePath = @"c:\UserCachePath\";
 
             var fileSystem = SubstituteFactory.CreateFileSystem();
+
+            NPath.FileSystem = fileSystem;
+
             var credentialManager = Substitute.For<ICredentialManager>();
 
             var environment = SubstituteFactory.CreateEnvironment();
@@ -60,6 +63,8 @@ namespace UnitTests
                     {connectionsCacheFile, new List<string> { @"invalid json" }}
                 }
             });
+
+            NPath.FileSystem = fileSystem;
 
             var environment = SubstituteFactory.CreateEnvironment();
             environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
@@ -101,6 +106,8 @@ namespace UnitTests
                 }
             });
 
+            NPath.FileSystem = fileSystem;
+
             var environment = SubstituteFactory.CreateEnvironment();
             environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
             environment.FileSystem.Returns(fileSystem);
@@ -140,6 +147,8 @@ namespace UnitTests
                     {connectionsCacheFile, new List<string> { @"[{""Host"":""https://github.com/"",""Username"":""SomeUser""}]" }}
                 }
             });
+
+            NPath.FileSystem = fileSystem;
 
             var environment = SubstituteFactory.CreateEnvironment();
             environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
@@ -199,6 +208,8 @@ namespace UnitTests
                 }
             });
 
+            NPath.FileSystem = fileSystem;
+
             var environment = SubstituteFactory.CreateEnvironment();
             environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
             environment.FileSystem.Returns(fileSystem);
@@ -249,6 +260,8 @@ namespace UnitTests
             var hostUri = new UriString("https://github.com/");
 
             var fileSystem = SubstituteFactory.CreateFileSystem();
+
+            NPath.FileSystem = fileSystem;
 
             var environment = SubstituteFactory.CreateEnvironment();
             environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
@@ -333,6 +346,8 @@ namespace UnitTests
             var hostUri = new UriString("https://github.com/");
 
             var fileSystem = SubstituteFactory.CreateFileSystem();
+
+            NPath.FileSystem = fileSystem;
 
             var environment = SubstituteFactory.CreateEnvironment();
             environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
