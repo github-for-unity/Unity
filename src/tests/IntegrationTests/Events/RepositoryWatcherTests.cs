@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
+    [TestFixture, Category("TimeSensitive")]
     class RepositoryWatcherTests : BaseGitEnvironmentTest
     {
         private const int ThreadSleepTimeout = 2000;
