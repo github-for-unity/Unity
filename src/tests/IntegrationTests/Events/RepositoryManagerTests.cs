@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
+    [TestFixture, Category("TimeSensitive")]
     class RepositoryManagerTests : BaseGitEnvironmentTest
     {
         [Test]

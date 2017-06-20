@@ -6,6 +6,11 @@
     <HiddenComponentWarnings>
       <Value>PostBuildEventDisabled</Value>
     </HiddenComponentWarnings>
+    <IgnoredTests>
+      <FixtureTestSelector>
+        <FixtureName>UnitTests.RepositoryManagerTests</FixtureName>
+      </FixtureTestSelector>
+    </IgnoredTests>
     <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
   </Settings>
 </ProjectConfiguration>
