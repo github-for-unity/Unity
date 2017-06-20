@@ -21,5 +21,12 @@ namespace GitHub.Unity
         /// </exception>
         Task<LoginResultData> Login(UriString host, IGitHubClient client, string username, string password);
         Task<LoginResultData> ContinueLogin(LoginResultData loginResultData, string twofacode);
+
+        /// <summary>
+        /// Logs out of GitHub server.
+        /// </summary>
+        /// <param name="hostAddress">The address of the server.</param>
+        /// <inheritdoc/>
+        Task Logout(UriString hostAddress);
     }
 }

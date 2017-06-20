@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Octokit;
 using GitHub.Unity;
+using Octokit_Extensions35;
 
 namespace GitHub.Unity
 {
@@ -186,6 +187,14 @@ namespace GitHub.Unity
                 await keychain.Clear(host, false);
                 return new LoginResultData(LoginResultCodes.Failed, e.Message, host);
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task Logout(UriString hostAddress)
+        {
+            Guard.ArgumentNotNull(hostAddress, nameof(hostAddress));
+
+            await new ActionTask(keychain.Clear(hostAddress, true)).StartAwait();
         }
 
         private async Task<ApplicationAuthorization> CreateAndDeleteExistingApplicationAuthorization(

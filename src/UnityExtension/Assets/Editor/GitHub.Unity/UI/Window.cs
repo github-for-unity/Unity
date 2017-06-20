@@ -223,10 +223,12 @@ namespace GitHub.Unity
         }
         private void SignOut(object obj)
         {
-            var uriString = Platform.Keychain.Connections.First();
+            var host = Repository != null
+                ? new UriString(Repository.CloneUrl.ToRepositoryUri().GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped))
+                : UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
 
-            new ActionTask(Platform.Keychain.Clear(uriString, true))
-                .Start();
+            var apiClient = ApiClient.Create(host, Platform.Keychain, new AppConfiguration());
+            apiClient.Logout(host);
         }
 
         private bool ValidateSettings()
