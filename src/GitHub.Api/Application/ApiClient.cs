@@ -55,13 +55,13 @@ namespace GitHub.Unity
             callback(repo);
         }
 
-        public async void CreateRepository(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization = null)
+        public async Task CreateRepository(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization = null)
         {
             Guard.ArgumentNotNull(callback, "callback");
             await CreateRepositoryInternal(newRepository, callback, organization);
         }
 
-        public async void GetOrganizations(Action<IList<Organization>> callback)
+        public async Task GetOrganizations(Action<IList<Organization>> callback)
         {
             Guard.ArgumentNotNull(callback, "callback");
             var organizations = await GetOrganizationInternal();
