@@ -193,6 +193,8 @@ namespace GitHub.Unity
             if (error != null)
                 GUILayout.Label(error, Styles.ErrorLabel);
 
+            GUILayout.FlexibleSpace();
+
             GUILayout.BeginHorizontal();
             {
                 GUILayout.FlexibleSpace();
@@ -222,9 +224,9 @@ namespace GitHub.Unity
                     }, owners[selectedOrg] == username ? null : owners[selectedOrg]);
                 }
                 GUI.enabled = true;
-                GUILayout.Space(5);
             }
             GUILayout.EndHorizontal();
+            GUILayout.Space(10);
         }
     }
 }
