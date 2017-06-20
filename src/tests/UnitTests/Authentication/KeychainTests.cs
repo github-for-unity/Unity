@@ -248,6 +248,81 @@ namespace UnitTests
         }
 
         [Test]
+        public void Should_Delete_From_Cache_When_Load_Returns_Null_From_ConnectionManager_Due_To_User_Mismatch()
+        {
+            const string connectionsCachePath = @"c:\UserCachePath\";
+            const string connectionsCacheFile = @"c:\UserCachePath\connections.json";
+
+            const string cachedUsername = "SomeCachedUser";
+            const string credentialedUsername = "SomeCredentialedUser";
+
+            const string token = "SomeToken";
+
+            var hostUri = new UriString("https://github.com/");
+
+            var fileSystem = SubstituteFactory.CreateFileSystem(new CreateFileSystemOptions
+            {
+                FilesThatExist = new List<string> { connectionsCacheFile },
+                FileContents = new Dictionary<string, IList<string>> {
+                    {connectionsCacheFile, new List<string> {$@"[{{""Host"":""https://github.com/"",""Username"":""{cachedUsername}""}}]"
+                    }}
+                }
+            });
+
+            NPath.FileSystem = fileSystem;
+
+            var environment = SubstituteFactory.CreateEnvironment();
+            environment.UserCachePath.Returns(info => connectionsCachePath.ToNPath());
+            environment.FileSystem.Returns(fileSystem);
+
+            var credentialManager = Substitute.For<ICredentialManager>();
+            credentialManager.Load(hostUri).Returns(info =>
+            {
+                var credential = Substitute.For<ICredential>();
+                credential.Username.Returns(credentialedUsername);
+                credential.Token.Returns(token);
+                credential.Host.Returns(hostUri);
+                return TaskEx.FromResult(credential);
+            });
+
+            var keychain = new Keychain(environment, credentialManager);
+            keychain.Initialize();
+
+            fileSystem.Received(1).FileExists(connectionsCacheFile);
+            fileSystem.DidNotReceive().FileDelete(Args.String);
+            fileSystem.Received(1).ReadAllText(connectionsCacheFile);
+            fileSystem.DidNotReceive().ReadAllLines(Args.String);
+            fileSystem.DidNotReceive().WriteAllText(Args.String, Args.String);
+            fileSystem.DidNotReceive().WriteAllLines(Args.String, Arg.Any<string[]>());
+
+            credentialManager.DidNotReceive().Load(Args.UriString);
+            credentialManager.DidNotReceive().HasCredentials();
+            credentialManager.DidNotReceive().Delete(Args.UriString);
+            credentialManager.DidNotReceive().Save(Arg.Any<ICredential>());
+
+            fileSystem.ClearReceivedCalls();
+
+            var uriString = keychain.Connections.FirstOrDefault();
+            var keychainAdapter = keychain.Load(uriString).Result;
+            keychainAdapter.Credential.Should().BeNull();
+
+            keychainAdapter.OctokitCredentials.AuthenticationType.Should().Be(AuthenticationType.Anonymous);
+            keychainAdapter.OctokitCredentials.Login.Should().BeNull();
+            keychainAdapter.OctokitCredentials.Password.Should().BeNull();
+
+            fileSystem.DidNotReceive().FileExists(Args.String);
+            fileSystem.DidNotReceive().ReadAllText(Args.String);
+            fileSystem.DidNotReceive().FileDelete(Args.String);
+            fileSystem.Received(1).WriteAllText(connectionsCacheFile, "[]");
+            fileSystem.DidNotReceive().WriteAllLines(Args.String, Arg.Any<string[]>());
+
+            credentialManager.Received(1).Load(hostUri);
+            credentialManager.DidNotReceive().HasCredentials();
+            credentialManager.DidNotReceive().Delete(Args.UriString);
+            credentialManager.DidNotReceive().Save(Arg.Any<ICredential>());
+        }
+
+        [Test]
         public void Should_Connect_Set_Credentials_Token_And_Save()
         {
             const string connectionsCachePath = @"c:\UserCachePath\";
