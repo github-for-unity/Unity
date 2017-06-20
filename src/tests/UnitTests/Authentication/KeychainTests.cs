@@ -75,7 +75,7 @@ namespace UnitTests
             var keychain = new Keychain(environment, credentialManager);
             keychain.Initialize();
 
-            fileSystem.Received(1).FileExists(connectionsCacheFile);
+            fileSystem.Received(2).FileExists(connectionsCacheFile);
             fileSystem.Received(1).FileDelete(connectionsCacheFile);
             fileSystem.Received(1).ReadAllText(connectionsCacheFile);
             fileSystem.DidNotReceive().ReadAllLines(Args.String);
