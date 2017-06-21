@@ -11,7 +11,7 @@
     <AssemblyName>GitHub.Api</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <BuildType Condition="Exists('..\..\script\src\ApiClientConfiguration.cs')">Internal</BuildType>
+    <BuildType Condition="Exists('..\..\script\src\MetricsService.cs')">Internal</BuildType>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <TargetFrameworkProfile />
     <LangVersion>6</LangVersion>
@@ -47,7 +47,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>TRACE;DEBUG;DEVELOPER_BUILD,HAS_METRICS_SERVICE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEVELOPER_BUILD</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>false</RunCodeAnalysis>
@@ -133,7 +133,7 @@
     <Compile Include="Metrics\IUsageTracker.cs" />
     <Compile Include="Metrics\UsageModel.cs" />
     <Compile Include="Metrics\UsageTracker.cs" />
-    <Compile Include="..\..\script\src\MetricsService.cs" Condition="$(DefineConstants.Contains('HAS_METRICS_SERVICE'))">
+    <Compile Include="..\..\script\src\MetricsService.cs" Condition="$(Buildtype) == 'Internal'">
       <Link>Metrics\MetricsService.cs</Link>
     </Compile>
     <Compile Include="Git\Tasks\GitLfsInstallTask.cs" />
