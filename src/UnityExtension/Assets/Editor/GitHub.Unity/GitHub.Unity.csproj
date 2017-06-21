@@ -80,7 +80,9 @@
     <Compile Include="ApplicationCache.cs" />
     <Compile Include="ApplicationManager.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
-    <Compile Include="MetricsInitialization.cs" Condition="$(Buildtype) == 'Internal'"/>
+    <Compile Include="$(SolutionDir)\script\src\MetricsInitialization.cs" Condition="$(Buildtype) == 'Internal'">
+      <Link>Metrics\MetricsInitialization.cs</Link>
+    </Compile>
     <Compile Include="Misc\RepositoryInitializer.cs" />
     <Compile Include="RunLocationShim.cs" />
     <Compile Include="Services\AuthenticationUIDispatcher.cs" />
