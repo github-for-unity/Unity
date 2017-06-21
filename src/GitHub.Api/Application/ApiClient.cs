@@ -48,14 +48,14 @@ namespace GitHub.Unity
             loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
         }
 
-        public async void GetRepository(Action<Octokit.Repository> callback)
+        public async Task GetRepository(Action<Octokit.Repository> callback)
         {
             Guard.ArgumentNotNull(callback, "callback");
             var repo = await GetRepositoryInternal();
             callback(repo);
         }
 
-        public async void Logout(UriString host)
+        public async Task Logout(UriString host)
         {
             await LogoutInternal(host);
         }
