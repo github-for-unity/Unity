@@ -11,7 +11,7 @@
     <AssemblyName>GitHub.Unity</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <BuildType Condition="Exists('..\..\script\src\MetricsService.cs')">Internal</BuildType>
+    <BuildType Condition="Exists('$(SolutionDir)\script\src\MetricsService.cs')">Internal</BuildType>
     <OutputPath>$(SolutionDir)\unity\TestProject\Assets\Editor\</OutputPath>
     <IntermediateOutputPath>..\..\..\obj\</IntermediateOutputPath>
   </PropertyGroup>
@@ -80,6 +80,7 @@
     <Compile Include="ApplicationCache.cs" />
     <Compile Include="ApplicationManager.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
+    <Compile Include="MetricsInitialization.cs" Condition="$(Buildtype) == 'Internal'"/>
     <Compile Include="Misc\RepositoryInitializer.cs" />
     <Compile Include="RunLocationShim.cs" />
     <Compile Include="Services\AuthenticationUIDispatcher.cs" />

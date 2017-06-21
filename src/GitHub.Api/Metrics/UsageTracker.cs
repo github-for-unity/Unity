@@ -9,42 +9,31 @@ namespace GitHub.Unity
 {
     class UsageTracker : IUsageTracker
     {
-        private readonly ILogging logger = Logging.GetLogger<UsageTracker>();
+        private static ILogging Logger { get; } = Logging.GetLogger<UsageTracker>();
+        private static IMetricsService metricsService;
+
         private readonly NPath storePath;
         private readonly string userTrackingId;
 
-        private IMetricsService client;
         private bool firstRun = true;
         private Timer timer;
 
         public UsageTracker(NPath storePath, string userTrackingId)
         {
             this.userTrackingId = userTrackingId;
-            logger.Trace("Tracking Id:{0}", userTrackingId);
+            Logger.Trace("Tracking Id:{0}", userTrackingId);
 
             this.storePath = storePath;
 
             RunTimer();
         }
 
-        private void Initialize()
-        {
-#if HAS_METRICS_SERVICE
-            if (client == null)
-            {
-                client = new MetricsService($"GitHub4Unity{AssemblyVersionInformation.Version}");
-            }
-#endif
-        }
-
         private UsageStore LoadUsage()
         {
-            Initialize();
-
             string json = null;
             if (storePath.FileExists())
             {
-                logger.Trace("LoadUsage: \"{0}\"", storePath);
+                Logger.Trace("LoadUsage: \"{0}\"", storePath);
 
                 try
                 {
@@ -52,7 +41,7 @@ namespace GitHub.Unity
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(ex, "LoadUsage Error {0}", ex.Message);
+                    Logger.Error(ex, "LoadUsage Error {0}", ex.Message);
                 }
             }
 
@@ -64,12 +53,12 @@ namespace GitHub.Unity
                     result = SimpleJson.DeserializeObject<UsageStore>(json);
                     if (result.Model == null)
                     {
-                        logger.Warning("Model is Null");
+                        Logger.Warning("Model is Null");
                     }
 
                     if (result.Model.Reports == null)
                     {
-                        logger.Warning("Reports is Null");
+                        Logger.Warning("Reports is Null");
                     }
                 }
                 else
@@ -81,7 +70,7 @@ namespace GitHub.Unity
             {
                 result = new UsageStore();
 
-                logger.Warning(ex, "Error Loading Usage: {0}; Deleting File", storePath);
+                Logger.Warning(ex, "Error Loading Usage: {0}; Deleting File", storePath);
 
                 try
                 {
@@ -109,7 +98,7 @@ namespace GitHub.Unity
             }
 
             var pathString = storePath.ToString();
-            logger.Trace("SaveUsage: \"{0}\"", pathString);
+            Logger.Trace("SaveUsage: \"{0}\"", pathString);
 
             try
             {
@@ -118,13 +107,13 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "SaveUsage Error: \"{0}\"", pathString);
+                Logger.Error(ex, "SaveUsage Error: \"{0}\"", pathString);
             }
         }
 
         private void RunTimer()
         {
-            logger.Trace("Scheduling timer for 3 minutes from now");
+            Logger.Trace("Scheduling timer for 3 minutes from now");
             // The timer first ticks after 3 minutes to allow things to settle down after startup.
             // This will be changed to 8 hours after the first tick by the TimerTick method.
             timer = new Timer(TimeSpan.FromMinutes(3).TotalMilliseconds);
@@ -135,33 +124,32 @@ namespace GitHub.Unity
         private void TimerTick(object sender, ElapsedEventArgs e)
         {
             TimerTick().Catch((Action<Task, Exception>)((task, exception) => {
-                logger.Error(exception, "TimerTicker Error: {0}", exception.Message);
+                Logger.Error(exception, "TimerTicker Error: {0}", exception.Message);
             })).Forget();
         }
 
         private async Task TimerTick()
         {
-            logger.Trace("TimerTick");
+            Logger.Trace("TimerTick");
 
-            Initialize();
             var usageStore = LoadUsage();
 
             if (firstRun)
             {
                 timer.Interval = TimeSpan.FromHours(8).TotalMilliseconds;
                 firstRun = false;
-                logger.Trace("Scheduling timer for 8 hours from now");
+                Logger.Trace("Scheduling timer for 8 hours from now");
 
                 if (!Enabled)
                 {
-                    logger.Warning("Tracking Disabled");
+                    Logger.Warning("Tracking Disabled");
                     return;
                 }
             }
 
-            if (client == null)
+            if (metricsService == null)
             {
-                logger.Warning("MetricsClient is null; stopping timer");
+                Logger.Warning("MetricsClient is null; stopping timer");
                 if (timer != null)
                 {
                     timer.Enabled = false;
@@ -172,7 +160,7 @@ namespace GitHub.Unity
 
             if (!Enabled)
             {
-                logger.Warning("Tracking Disabled");
+                Logger.Warning("Tracking Disabled");
                 return;
             }
 
@@ -184,7 +172,7 @@ namespace GitHub.Unity
 
         private async Task SendUsage(UsageStore usage)
         {
-            logger.Trace("Sending Usage");
+            Logger.Trace("Sending Usage");
 
             var currentTimeOffset = DateTimeOffset.UtcNow;
             var beforeDate = currentTimeOffset.Date;
@@ -192,19 +180,19 @@ namespace GitHub.Unity
             var extractReports = usage.Model.SelectReports(beforeDate);
             if (!extractReports.Any())
             {
-                logger.Trace("No items to send");
+                Logger.Trace("No items to send");
             }
             else
             {
                 var success = false;
                 try
                 {
-                    await client.PostUsage(userTrackingId, extractReports);
+                    await metricsService.PostUsage(userTrackingId, extractReports);
                     success = true;
                 }
                 catch (Exception ex)
                 {
-                    logger.Warning(ex, "Error Sending Usage");
+                    Logger.Warning(ex, "Error Sending Usage");
                 }
 
                 if (success)
@@ -224,9 +212,15 @@ namespace GitHub.Unity
             var usage = usageStore.Model.GetCurrentUsage();
             usage.NumberOfStartups++;
 
-            logger.Trace("IncrementLaunchCount Date:{0} NumberOfStartups:{1}", usage.Date, usage.NumberOfStartups);
+            Logger.Trace("IncrementLaunchCount Date:{0} NumberOfStartups:{1}", usage.Date, usage.NumberOfStartups);
 
             SaveUsage(usageStore);
+        }
+
+        public static void SetMetricsService(IMetricsService instance)
+        {
+            Logger.Trace("SetMetricsService instance:{1}", instance?.ToString() ?? "Null");
+            metricsService = instance;
         }
 
         public bool Enabled { get; set; }

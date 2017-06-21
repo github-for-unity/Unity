@@ -11,7 +11,7 @@
     <AssemblyName>GitHub.Api</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <BuildType Condition="Exists('..\..\script\src\MetricsService.cs')">Internal</BuildType>
+    <BuildType Condition="Exists('$(SolutionDir)\script\src\MetricsService.cs')">Internal</BuildType>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <TargetFrameworkProfile />
     <LangVersion>6</LangVersion>

@@ -14,5 +14,7 @@ namespace GitHub.Unity
         public bool Enabled { get; set; }
 
         public void IncrementLaunchCount(){ }
+        public void SetMetricsService(IMetricsService instance)
+        { }
     }
 }
