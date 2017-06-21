@@ -85,8 +85,13 @@ namespace GitHub.Unity
                     return null;
                 }
 
-                string user = null;
-                dict.TryGetValue("user", out user);
+                string user;
+                if (!dict.TryGetValue("username", out user))
+                {
+                    Logger.Error("No username is stored");
+                    return null;
+                }
+
                 credential = new Credential(host, user, password);
             }
             return credential;

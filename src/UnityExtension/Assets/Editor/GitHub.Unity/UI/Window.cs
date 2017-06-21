@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -222,15 +223,19 @@ namespace GitHub.Unity
         }
         private void SignOut(object obj)
         {
-            var task = new ActionTask(Platform.CredentialManager.Delete(Platform.CredentialManager.CachedCredentials.Host))
-                .Then(s =>
-                {
-                    if (s)
-                    {
-                        Platform.Keychain.Clear(Repository.CloneUrl.ToRepositoryUrl());
-                        Platform.Keychain.Flush(Repository.CloneUrl.ToRepositoryUrl());
-                    }
-                });
+            UriString host;
+            if (Repository != null && Repository.CloneUrl != null && Repository.CloneUrl.IsValidUri)
+            {
+                host = new UriString(Repository.CloneUrl.ToRepositoryUri()
+                                               .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
+            }
+            else
+            {
+                host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
+            }
+
+            var apiClient = ApiClient.Create(host, Platform.Keychain, new AppConfiguration());
+            apiClient.Logout(host);
         }
 
         private bool ValidateSettings()

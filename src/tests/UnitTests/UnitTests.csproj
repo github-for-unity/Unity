@@ -80,6 +80,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Authentication\KeychainTests.cs" />
     <Compile Include="Git\GitConfigTests.cs" />
     <Compile Include="IO\BranchListOutputProcessorTests.cs" />
     <Compile Include="Extensions\EnvironmentExtensionTests.cs" />
