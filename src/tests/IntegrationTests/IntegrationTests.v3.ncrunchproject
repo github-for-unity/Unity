@@ -11,6 +11,9 @@
       <NamedTestSelector>
         <TestName>IntegrationTests.GitSetupTests.InstallGit</TestName>
       </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>IntegrationTests.GitSetupTests.VerifyGitLfsBundle</TestName>
+      </NamedTestSelector>
     </IgnoredTests>
     <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
     <RunPostBuildEvents>True</RunPostBuildEvents>
