@@ -225,6 +225,8 @@ namespace GitHub.Unity
                     repository = await githubClient.Repository.Create(newRepository);
                 }
 
+                logger.Trace("Created Repository");
+
                 callback(repository, null);
             }
             catch (Exception ex)

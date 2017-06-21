@@ -16,6 +16,7 @@ namespace GitHub.Unity
         private string repoDescription = "";
         private int selectedOrg = 0;
         private bool togglePrivate = false;
+        private bool isBusy = false;
         private string error;
 
         private string username;
@@ -145,7 +146,10 @@ namespace GitHub.Unity
                 GUILayout.BeginVertical();
                 {
                     GUILayout.Label("Owner");
+
+                    GUI.enabled = !isBusy;
                     selectedOrg = EditorGUILayout.Popup(0, owners);
+                    GUI.enabled = true;
                 }
                 GUILayout.EndVertical();
 
@@ -159,21 +163,27 @@ namespace GitHub.Unity
                 GUILayout.BeginVertical();
                 {
                     GUILayout.Label("Repository Name");
+                    GUI.enabled = !isBusy;
                     repoName = EditorGUILayout.TextField(repoName);
+                    GUI.enabled = true;
                 }
                 GUILayout.EndVertical();
             }
             GUILayout.EndHorizontal();
 
             GUILayout.Label("Description");
+            GUI.enabled = !isBusy;
             repoDescription = EditorGUILayout.TextField(repoDescription);
+            GUI.enabled = true;
             GUILayout.Space(5);
 
             GUILayout.BeginVertical();
             {
                 GUILayout.BeginHorizontal();
                 {
+                    GUI.enabled = !isBusy;
                     togglePrivate = GUILayout.Toggle(togglePrivate, "Create as a private repository");
+                    GUI.enabled = true;
                 }
                 GUILayout.EndHorizontal();
 
@@ -198,22 +208,27 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal();
             {
                 GUILayout.FlexibleSpace();
-                GUI.enabled = !string.IsNullOrEmpty(repoName);
+                GUI.enabled = !string.IsNullOrEmpty(repoName) && !isBusy;
                 if (GUILayout.Button("Create"))
                 {
+                    isBusy = true;
+
                     Client.CreateRepository(new NewRepository(repoName) {
                         Private = togglePrivate,
                     }, (repository, ex) => {
+                        Logger.Trace("Create Repository Callback");
 
                         if (ex != null)
                         {
                             error = ex.Message;
+                            isBusy = false;
                             return;
                         }
 
                         if (repository == null)
                         {
                             Logger.Warning("Returned Repository is null");
+                            isBusy = false;
                             return;
                         }
 
