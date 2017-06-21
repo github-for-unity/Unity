@@ -133,7 +133,7 @@
     <Compile Include="Metrics\IUsageTracker.cs" />
     <Compile Include="Metrics\UsageModel.cs" />
     <Compile Include="Metrics\UsageTracker.cs" />
-    <Compile Include="..\..\script\src\MetricsService.cs" Condition="$(Buildtype) == 'Internal'">
+    <Compile Include="$(SolutionDir)\script\src\MetricsService.cs" Condition="$(Buildtype) == 'Internal'">
       <Link>Metrics\MetricsService.cs</Link>
     </Compile>
     <Compile Include="Git\Tasks\GitLfsInstallTask.cs" />
