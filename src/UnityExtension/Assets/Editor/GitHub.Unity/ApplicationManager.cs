@@ -146,8 +146,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("Setup User Tracking");
 
-            var usagePath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
-                                  .ToNPath().Combine(ApplicationInfo.ApplicationName, "github-unity-usage.json");
+            var usagePath = Environment.UserCachePath.Combine("github-unity-usage.json");
 
             string userTrackingId;
             if (!UserSettings.Exists("UserTrackingId"))
