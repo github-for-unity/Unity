@@ -49,6 +49,16 @@ namespace GitHub.Unity
             callback(repo);
         }
 
+        public async void Logout(UriString host)
+        {
+            await LogoutInternal(host);
+        }
+
+        private async Task LogoutInternal(UriString host)
+        {
+            await loginManager.Logout(host);
+        }
+
         public async Task Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result)
         {
             Guard.ArgumentNotNull(need2faCode, "need2faCode");

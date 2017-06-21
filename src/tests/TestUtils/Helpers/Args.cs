@@ -11,11 +11,13 @@ namespace TestUtils
         public static string String { get { return Arg.Any<string>(); } }
         public static bool Bool { get { return Arg.Any<bool>(); } }
         public static int Int { get { return Arg.Any<int>(); } }
+        public static UriString UriString { get { return Arg.Any<UriString>(); } }
         public static SearchOption SearchOption { get { return Arg.Any<SearchOption>(); } }
         public static GitFileStatus GitFileStatus { get { return Arg.Any<GitFileStatus>(); } }
         public static GitConfigSource GitConfigSource { get { return Arg.Any<GitConfigSource>(); } }
         public static GitStatus GitStatus { get { return Arg.Any<GitStatus>(); } }
         public static IEnumerable<GitLock> EnumerableGitLock { get { return Arg.Any<IEnumerable<GitLock>>(); } }
+
         public static ITask<GitStatus?> GitStatusTask
         {
             get
@@ -34,5 +36,6 @@ namespace TestUtils
                 return task;
             }
         }
+
     }
 }
