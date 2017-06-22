@@ -11,7 +11,6 @@ namespace GitHub.Unity
         protected static ILogging Logger { get; } = Logging.GetLogger<IApplicationManager>();
 
         private IEnvironment environment;
-        private AppConfiguration appConfiguration;
         private RepositoryManager repositoryManager;
 
         public ApplicationManagerBase(SynchronizationContext synchronizationContext)
@@ -188,14 +187,6 @@ namespace GitHub.Unity
         public void Dispose()
         {
             Dispose(true);
-        }
-
-        public AppConfiguration AppConfiguration
-        {
-            get
-            {
-                return appConfiguration ?? (appConfiguration = new AppConfiguration());
-            }
         }
 
         public IEnvironment Environment
