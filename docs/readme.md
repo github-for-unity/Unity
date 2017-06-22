@@ -1,8 +1,10 @@
-# Contributing to GitHub for Unity
+# GitHub for Unity Documentation
 
-### Table of Contents
+[Install](install.md)
 
-- [Roadmap](roadmap.md)
-- [Coding Conventions](coding-conventions.md)
-- [How To Build](how-to-build.md)
+[Features](features.md)
+
+[Known Issues](known-issues.md)
+
+[Contributing](contributing/install.md)
 
