@@ -164,8 +164,7 @@ namespace GitHub.Unity
                 UserSettings.Set(Constants.GuidKey, id);
             }
 
-            UsageTracker = new UsageTracker(usagePath, id, unityVersion);
-            UsageTracker.Enabled = UserSettings.Get(Constants.MetricsKey, true);
+            UsageTracker = new UsageTracker(UserSettings, usagePath, id, unityVersion);
 
             if (firstRun)
             {

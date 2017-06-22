@@ -678,8 +678,7 @@ namespace GitHub.Unity
             }
             if (EditorGUI.EndChangeCheck())
             {
-                EntryPoint.UsageTracker.Enabled = metricsEnabled;
-                Manager.UserSettings.Set(Constants.MetricsKey, metricsEnabled);
+                Manager.UsageTracker.Enabled = metricsEnabled;
             }
 
             GUI.enabled = true;
