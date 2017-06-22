@@ -13,5 +13,6 @@ namespace GitHub.Unity
         Task ContinueLogin(LoginResult loginResult, string code);
         Task<bool> LoginAsync(string username, string password, Func<LoginResult, string> need2faCode);
         Task<bool> ValidateCredentials();
+        void Logout(UriString host);
     }
 }

@@ -34,8 +34,17 @@ namespace GitHub.Unity
             {
                 if (authenticationService == null)
                 {
-                    var host = Repository != null ? Repository.CloneUrl.ToRepositoryUrl() : UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
-                    
+                    UriString host;
+                    if (Repository != null && Repository.CloneUrl != null && Repository.CloneUrl.IsValidUri)
+                    {
+                        host = new UriString(Repository.CloneUrl.ToRepositoryUri()
+                            .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
+                    }
+                    else
+                    {
+                        host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
+                    }
+
                     AuthenticationService = new AuthenticationService(host, new AppConfiguration(), Platform.Keychain);
                 }
                 return authenticationService;
