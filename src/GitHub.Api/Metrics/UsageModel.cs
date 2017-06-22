@@ -17,13 +17,7 @@ namespace GitHub.Unity
 
     class UsageModel
     {
-        private List<Usage> reports = new List<Usage>();
-
-        public IList<Usage> Reports
-        {
-            get { return reports; }
-            set { reports = value.ToList(); }
-        }
+        public List<Usage> Reports { get; } = new List<Usage>();
 
         private Usage currentUsage;
 
@@ -40,12 +34,12 @@ namespace GitHub.Unity
                 currentUsage = null;
             }
 
-            currentUsage = reports.FirstOrDefault(usage => usage.Date == date);
+            currentUsage = Reports.FirstOrDefault(usage => usage.Date == date);
 
             if (currentUsage == null)
             {
                 currentUsage = new Usage { Date = date };
-                reports.Add(currentUsage);
+                Reports.Add(currentUsage);
             }
 
             return currentUsage;
@@ -53,26 +47,12 @@ namespace GitHub.Unity
 
         public List<Usage> SelectReports(DateTime beforeDate)
         {
-            return reports.Where(usage => usage.Date.Date != beforeDate.Date).ToList();
+            return Reports.Where(usage => usage.Date.Date != beforeDate.Date).ToList();
         }
 
         public void RemoveReports(DateTime beforeDate)
         {
-            var reportsCopy = reports;
-
-            var excludeUsage = reportsCopy.FirstOrDefault(usage => usage.Date.Date != beforeDate.Date);
-            if (excludeUsage != null)
-            {
-                reports = new List<Usage> {
-                    excludeUsage
-                };
-
-                reportsCopy.Remove(excludeUsage);
-            }
-            else
-            {
-                reports = new List<Usage>();
-            }
+            Reports.RemoveAll(usage => usage.Date.Date != beforeDate.Date);
         }
     }
 
