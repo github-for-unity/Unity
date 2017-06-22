@@ -8,4 +8,4 @@ The GitHub for Unity extension brings Git and GitHub into Unity, integrating sou
 
 [Known Issues](docs/known-issues.md)
 
-[Contributing](docs/contributing/install.md)
+[Contributing](docs/contributing/readme.md)
