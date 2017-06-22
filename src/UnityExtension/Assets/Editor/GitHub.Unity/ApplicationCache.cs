@@ -3,11 +3,10 @@ using System.IO;
 using System.Linq;
 using UnityEditorInternal;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
-    sealed class ApplicationCache : ScriptableObject, ISerializationCallbackReceiver
+    sealed class ApplicationCache : ScriptableObject
     {
         private static ApplicationCache instance;
         private static string cachePath;
@@ -21,12 +20,6 @@ namespace GitHub.Unity
                 firstRun = value;
                 Flush();
             }
-        }
-
-        [SerializeField] private string createdDate;
-        public string CreatedDate
-        {
-            get { return createdDate; }
         }
 
         public static ApplicationCache Instance
@@ -57,7 +50,6 @@ namespace GitHub.Unity
             }
 
             instance = CreateInstance<ApplicationCache>();
-            instance.createdDate = DateTime.Now.ToLongTimeString();
             instance.Flush();
 
             return instance;
@@ -65,15 +57,7 @@ namespace GitHub.Unity
 
         private void Flush()
         {
-            InternalEditorUtility.SaveToSerializedFileAndForget(new Object[] { this }, cachePath, true);
-        }
-
-        void ISerializationCallbackReceiver.OnBeforeSerialize()
-        {
-        }
-
-        void ISerializationCallbackReceiver.OnAfterDeserialize()
-        {
+            InternalEditorUtility.SaveToSerializedFileAndForget(new UnityEngine.Object[] { this }, cachePath, true);
         }
     }
 }

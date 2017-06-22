@@ -28,8 +28,10 @@ namespace IntegrationTests
 
             GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
 
+            var usageTracker = new NullUsageTracker();
+
             var repositoryManagerFactory = new RepositoryManagerFactory();
-            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, GitClient, repoPath);
+            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, usageTracker, GitClient, repoPath);
             await RepositoryManager.Initialize();
             RepositoryManager.Start();
 

@@ -11,7 +11,6 @@ namespace GitHub.Unity
         protected static ILogging Logger { get; } = Logging.GetLogger<IApplicationManager>();
 
         private IEnvironment environment;
-        private AppConfiguration appConfiguration;
         private RepositoryManager repositoryManager;
 
         public ApplicationManagerBase(SynchronizationContext synchronizationContext)
@@ -36,7 +35,7 @@ namespace GitHub.Unity
             LocalSettings.Initialize();
             SystemSettings.Initialize();
 
-            Logging.TracingEnabled = UserSettings.Get("EnableTraceLogging", false);
+            Logging.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
             GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
@@ -93,7 +92,7 @@ namespace GitHub.Unity
                 var gitConfig = new GitConfig(repositoryPathConfiguration.DotGitConfig);
 
                 var repositoryWatcher = new RepositoryWatcher(Platform, repositoryPathConfiguration, TaskManager.Token);
-                repositoryManager = new RepositoryManager(Platform, TaskManager, gitConfig, repositoryWatcher,
+                repositoryManager = new RepositoryManager(Platform, TaskManager, UsageTracker, gitConfig, repositoryWatcher,
                         GitClient, repositoryPathConfiguration, TaskManager.Token);
 
                 await repositoryManager.Initialize().SafeAwait();
@@ -135,7 +134,7 @@ namespace GitHub.Unity
         private async Task<NPath> LookForGitInstallationPath()
         {
             NPath cachedGitInstallPath = null;
-            var path = SystemSettings.Get("GitInstallPath");
+            var path = SystemSettings.Get(Constants.GitInstallPathKey);
             if (!String.IsNullOrEmpty(path))
                 cachedGitInstallPath = path.ToNPath();
 
@@ -145,6 +144,32 @@ namespace GitHub.Unity
                 return cachedGitInstallPath;
             }
             return await GitClient.FindGitInstallation().SafeAwait();
+        }
+
+        protected void SetupMetrics(string unityVersion, bool firstRun)
+        {
+            Logger.Trace("Setup metrics");
+
+            var usagePath = Environment.UserCachePath.Combine(Constants.UsageFile);
+
+            string id = null;
+            if (UserSettings.Exists(Constants.GuidKey))
+            {
+                id = UserSettings.Get(Constants.GuidKey);
+            }
+
+            if (String.IsNullOrEmpty(id))
+            {
+                id = Guid.NewGuid().ToString();
+                UserSettings.Set(Constants.GuidKey, id);
+            }
+
+            UsageTracker = new UsageTracker(UserSettings, usagePath, id, unityVersion);
+
+            if (firstRun)
+            {
+                UsageTracker.IncrementLaunchCount();
+            }
         }
 
         private bool disposed = false;
@@ -162,14 +187,6 @@ namespace GitHub.Unity
         public void Dispose()
         {
             Dispose(true);
-        }
-
-        public AppConfiguration AppConfiguration
-        {
-            get
-            {
-                return appConfiguration ?? (appConfiguration = new AppConfiguration());
-            }
         }
 
         public IEnvironment Environment
@@ -209,5 +226,6 @@ namespace GitHub.Unity
         public ISettings LocalSettings { get; protected set; }
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
+        public IUsageTracker UsageTracker { get; protected set; }
     }
 }
