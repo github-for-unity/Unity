@@ -102,6 +102,7 @@
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="ApplicationManagerBase.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="DefaultEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Extensions\FileEventExtensions.cs" />

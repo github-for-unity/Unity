@@ -668,7 +668,7 @@ namespace GitHub.Unity
             if (EditorGUI.EndChangeCheck())
             {
                 EntryPoint.UsageTracker.Enabled = metricsEnabled;
-                Manager.UserSettings.Set("MetricsEnabled", metricsEnabled);
+                Manager.UserSettings.Set(Constants.MetricsKey, metricsEnabled);
 
                 GUI.FocusControl(null);
             }
@@ -691,7 +691,7 @@ namespace GitHub.Unity
             if (EditorGUI.EndChangeCheck())
             {
                 Logging.TracingEnabled = traceLogging;
-                Manager.UserSettings.Set("EnableTraceLogging", traceLogging);
+                Manager.UserSettings.Set(Constants.TraceLoggingKey, traceLogging);
 
                 GUI.FocusControl(null);
             }

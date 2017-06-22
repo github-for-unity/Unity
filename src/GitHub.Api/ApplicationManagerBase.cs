@@ -35,7 +35,7 @@ namespace GitHub.Unity
             LocalSettings.Initialize();
             SystemSettings.Initialize();
 
-            Logging.TracingEnabled = UserSettings.Get("EnableTraceLogging", false);
+            Logging.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
             GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
@@ -134,7 +134,7 @@ namespace GitHub.Unity
         private async Task<NPath> LookForGitInstallationPath()
         {
             NPath cachedGitInstallPath = null;
-            var path = SystemSettings.Get("GitInstallPath");
+            var path = SystemSettings.Get(Constants.GitInstallPathKey);
             if (!String.IsNullOrEmpty(path))
                 cachedGitInstallPath = path.ToNPath();
 
@@ -150,21 +150,22 @@ namespace GitHub.Unity
         {
             Logger.Trace("Setup metrics");
 
-            var usagePath = Environment.UserCachePath.Combine("usage.json");
+            var usagePath = Environment.UserCachePath.Combine(Constants.UsageFile);
 
-            string id;
-            if (!UserSettings.Exists("Id"))
+            string id = null;
+            if (UserSettings.Exists(Constants.GuidKey))
+            {
+                id = UserSettings.Get(Constants.GuidKey);
+            }
+
+            if (String.IsNullOrEmpty(id))
             {
                 id = Guid.NewGuid().ToString();
-                UserSettings.Set("Id", id);
-            }
-            else
-            {
-                id = UserSettings.Get("Id");
+                UserSettings.Set(Constants.GuidKey, id);
             }
 
             UsageTracker = new UsageTracker(usagePath, id, unityVersion);
-            UsageTracker.Enabled = UserSettings.Get("MetricsEnabled", true);
+            UsageTracker.Enabled = UserSettings.Get(Constants.MetricsKey, true);
 
             if (firstRun)
             {
