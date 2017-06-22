@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace GitHub.Unity
 {
-    public class Usage
+    class Usage
     {
         public DateTime Date { get; set; }
         public bool IsGitHubUser { get; set; }
@@ -15,7 +15,7 @@ namespace GitHub.Unity
         public int NumberOfStartups { get; set; }
     }
 
-    public class UsageModel
+    class UsageModel
     {
         private List<Usage> reports = new List<Usage>();
 
