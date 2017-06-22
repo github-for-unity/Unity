@@ -6,9 +6,8 @@ namespace GitHub.Unity
 {
     class Usage
     {
+        public string Id { get; set; }
         public DateTime Date { get; set; }
-        public bool IsGitHubUser { get; set; }
-        public bool IsEnterpriseUser { get; set; }
         public string AppVersion { get; set; }
         public string UnityVersion { get; set; }
         public string Lang { get; set; }
@@ -17,7 +16,8 @@ namespace GitHub.Unity
 
     class UsageModel
     {
-        public List<Usage> Reports { get; } = new List<Usage>();
+        public List<Usage> Reports { get; set; } = new List<Usage>();
+        public string Id { get; set; }
 
         private Usage currentUsage;
 
@@ -38,7 +38,7 @@ namespace GitHub.Unity
 
             if (currentUsage == null)
             {
-                currentUsage = new Usage { Date = date };
+                currentUsage = new Usage { Date = date, Id = Id };
                 Reports.Add(currentUsage);
             }
 

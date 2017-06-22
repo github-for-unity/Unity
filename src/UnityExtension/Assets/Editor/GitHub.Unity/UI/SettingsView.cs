@@ -61,9 +61,9 @@ namespace GitHub.Unity
         private const string GitRepositoryRemoteLabel = "Remote";
         private const string GitRepositorySave = "Save Repository";
         private const string DebugSettingsTitle = "Debug";
-        private const string UserTrackingSettingsTitle = "User Tracking";
+        private const string PrivacyTitle = "Privacy";
         private const string EnableTraceLoggingLabel = "Enable Trace Logging";
-        private const string EnableUserTrackingLabel = "Enable User Tracking";
+        private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
 
         private Vector2 lockScrollPos;
 
@@ -201,7 +201,7 @@ namespace GitHub.Unity
                 }
 
                 OnInstallPathGUI();
-                OnTrackingSettingsGui();
+                OnPrivacyGui();
                 OnLoggingSettingsGui();
             }
 
@@ -654,21 +654,21 @@ namespace GitHub.Unity
             GUI.enabled = true;
         }
 
-        private void OnTrackingSettingsGui()
+        private void OnPrivacyGui()
         {
-            GUILayout.Label(UserTrackingSettingsTitle, EditorStyles.boldLabel);
+            GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
 
             GUI.enabled = !busy;
 
-            var trackingEnabled = EntryPoint.UsageTracker.Enabled;
+            var metricsEnabled = EntryPoint.UsageTracker.Enabled;
             EditorGUI.BeginChangeCheck();
             {
-                trackingEnabled = EditorGUILayout.Toggle(EnableUserTrackingLabel, trackingEnabled);
+                metricsEnabled = EditorGUILayout.Toggle(MetricsOptInLabel, metricsEnabled);
             }
             if (EditorGUI.EndChangeCheck())
             {
-                EntryPoint.UsageTracker.Enabled = trackingEnabled;
-                Manager.UserSettings.Set("UserTrackingEnabled", trackingEnabled);
+                EntryPoint.UsageTracker.Enabled = metricsEnabled;
+                Manager.UserSettings.Set("MetricsEnabled", metricsEnabled);
 
                 GUI.FocusControl(null);
             }

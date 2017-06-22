@@ -31,6 +31,7 @@ namespace GitHub.Unity
 
         private UsageStore LoadUsage()
         {
+            UsageStore result = null;
             string json = null;
             if (storePath.FileExists())
             {
@@ -39,38 +40,28 @@ namespace GitHub.Unity
                 try
                 {
                     json = storePath.ReadAllText(Encoding.UTF8);
+                    if (json != null)
+                    {
+                        result = SimpleJson.DeserializeObject<UsageStore>(json);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(ex, "LoadUsage Error {0}", ex.Message);
+                    Logger.Warning(ex, "Error Loading Usage: {0}; Deleting File", storePath);
+
+                    try
+                    {
+                        storePath.DeleteIfExists();
+                    }
+                    catch {}
                 }
             }
 
-            UsageStore result;
-            try
-            {
-                if (json != null)
-                {
-                    result = SimpleJson.DeserializeObject<UsageStore>(json);
-                }
-                else
-                {
-                    result = new UsageStore();
-                }
-            }
-            catch (Exception ex)
+            if (result == null)
             {
                 result = new UsageStore();
-
-                Logger.Warning(ex, "Error Loading Usage: {0}; Deleting File", storePath);
-
-                try
-                {
-                    storePath.DeleteIfExists();
-                }
-                catch{}
+                result.Model.Id = id;
             }
-
             //TODO: Figure out these values
             //result.Model.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
             //result.Model.AppVersion = AssemblyVersionInformation.Version;
@@ -134,7 +125,7 @@ namespace GitHub.Unity
 
                 if (!Enabled)
                 {
-                    Logger.Warning("Tracking Disabled");
+                    Logger.Warning("Metrics Disabled");
                     return;
                 }
             }
@@ -152,7 +143,7 @@ namespace GitHub.Unity
 
             if (!Enabled)
             {
-                Logger.Warning("Tracking Disabled");
+                Logger.Warning("Metrics Disabled");
                 return;
             }
 
@@ -169,14 +160,15 @@ namespace GitHub.Unity
             var currentTimeOffset = DateTimeOffset.UtcNow;
             var beforeDate = currentTimeOffset.Date;
 
+            var success = false;
             var extractReports = usage.Model.SelectReports(beforeDate);
             if (!extractReports.Any())
             {
                 Logger.Trace("No items to send");
+                success = true;
             }
             else
             {
-                var success = false;
                 try
                 {
                     await metricsService.PostUsage(extractReports);
@@ -187,14 +179,14 @@ namespace GitHub.Unity
                     Logger.Warning(ex, "Error Sending Usage");
                 }
 
-                if (success)
-                {
-                    usage.Model.RemoveReports(beforeDate);
-                }
             }
 
-            usage.LastUpdated = currentTimeOffset;
-            SaveUsage(usage);
+            if (success)
+            {
+                usage.Model.RemoveReports(beforeDate);
+                usage.LastUpdated = currentTimeOffset;
+                SaveUsage(usage);
+            }
         }
 
         public void IncrementLaunchCount()
@@ -203,6 +195,7 @@ namespace GitHub.Unity
 
             var usage = usageStore.Model.GetCurrentUsage();
             usage.NumberOfStartups++;
+            usage.UnityVersion = unityVersion;
 
             Logger.Trace("IncrementLaunchCount Date:{0} NumberOfStartups:{1}", usage.Date, usage.NumberOfStartups);
 
