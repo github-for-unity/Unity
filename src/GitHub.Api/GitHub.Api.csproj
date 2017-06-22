@@ -11,7 +11,7 @@
     <AssemblyName>GitHub.Api</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <BuildType Condition="Exists('..\..\script\src\ApiClientConfiguration.cs')">Internal</BuildType>
+    <BuildType Condition="Exists('$(SolutionDir)\script\src\MetricsService.cs')">Internal</BuildType>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <TargetFrameworkProfile />
     <LangVersion>6</LangVersion>
@@ -47,7 +47,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;DEVELOPER_BUILD</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEVELOPER_BUILD</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>false</RunCodeAnalysis>
@@ -102,6 +102,7 @@
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="ApplicationManagerBase.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="DefaultEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Extensions\FileEventExtensions.cs" />
@@ -128,6 +129,13 @@
     <Compile Include="NewTaskSystem\TaskManager.cs" />
     <Compile Include="Platform\FindExecTask.cs" />
     <Compile Include="ProgressReport.cs" />
+    <Compile Include="Metrics\IMetricsService.cs" />
+    <Compile Include="Metrics\IUsageTracker.cs" />
+    <Compile Include="Metrics\UsageModel.cs" />
+    <Compile Include="Metrics\UsageTracker.cs" />
+    <Compile Include="$(SolutionDir)\script\src\MetricsService.cs" Condition="$(Buildtype) == 'Internal'">
+      <Link>Metrics\MetricsService.cs</Link>
+    </Compile>
     <Compile Include="Git\Tasks\GitLfsInstallTask.cs" />
     <Compile Include="Extensions\GitStatusExtensions.cs" />
     <Compile Include="Git\Tasks\GitRemoteChangeTask.cs" />
@@ -212,7 +220,6 @@
     <Compile Include="Guard.cs" />
     <Compile Include="Authentication\ICredentialManager.cs" />
     <Compile Include="IEnvironment.cs" />
-    <Compile Include="IAppConfiguration.cs" />
     <Compile Include="Primitives\HostAddress.cs" />
     <Compile Include="Primitives\StringEquivalent.cs" />
     <Compile Include="Primitives\UriString.cs" />
@@ -226,6 +233,10 @@
     <Compile Include="Api\ApiClient.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\submodules\dotnet-httpClient35\System.Net.Http\System.Net.Http-net_3_5.csproj">
+      <Project>{9862694D-E4FA-418B-8692-A0280FEDDF36}</Project>
+      <Name>System.Net.Http-net_3_5</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">
       <Project>{eb4b074e-62a7-4f1d-8f95-e64b7aea0236}</Project>
       <Name>Octokit-Extensions35</Name>

@@ -1,5 +1,5 @@
 #!/bin/sh -eux
-Configuration="Debug"
+Configuration="dev"
 if [ $# -gt 0 ]; then
 	Configuration=$1
 fi

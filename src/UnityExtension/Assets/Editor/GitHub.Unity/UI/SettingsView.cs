@@ -61,7 +61,9 @@ namespace GitHub.Unity
         private const string GitRepositoryRemoteLabel = "Remote";
         private const string GitRepositorySave = "Save Repository";
         private const string DebugSettingsTitle = "Debug";
+        private const string PrivacyTitle = "Privacy";
         private const string EnableTraceLoggingLabel = "Enable Trace Logging";
+        private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
 
         private Vector2 lockScrollPos;
 
@@ -199,6 +201,7 @@ namespace GitHub.Unity
                 }
 
                 OnInstallPathGUI();
+                OnPrivacyGui();
                 OnLoggingSettingsGui();
             }
 
@@ -605,21 +608,30 @@ namespace GitHub.Unity
 
         private void OnInstallPathGUI()
         {
+            string gitExecPath = null;
+            string extension = null;
+            string gitInstallPath = null;
+            if (Environment != null)
+            {
+                extension = Environment.ExecutableExtension;
+                gitInstallPath = Environment.GitInstallPath;
+                if (Environment.GitExecutablePath != null)
+                    gitExecPath = Environment.GitExecutablePath.ToString();
+            }
+                
+
             // Install path
             GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
 
-            GUI.enabled = !busy;
+            GUI.enabled = !busy && gitExecPath != null;
 
-            var gitExecPath = Environment.GitExecutablePath.ToString();
             // Install path field
             EditorGUI.BeginChangeCheck();
             {
                 //TODO: Verify necessary value for a non Windows OS
-                var extension = Environment.ExecutableExtension;
-
                 Styles.PathField(ref gitExecPath,
                     () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
-                        Environment.GitInstallPath,
+                        gitInstallPath,
                         extension), ValidateGitInstall);
             }
             if (EditorGUI.EndChangeCheck())
@@ -651,6 +663,27 @@ namespace GitHub.Unity
             GUI.enabled = true;
         }
 
+        private void OnPrivacyGui()
+        {
+            var service = Manager != null && Manager.UsageTracker != null ? Manager.UsageTracker : null;
+
+            GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
+
+            GUI.enabled = !busy && service != null;
+
+            var metricsEnabled = service != null ? service.Enabled : false;
+            EditorGUI.BeginChangeCheck();
+            {
+                metricsEnabled = GUILayout.Toggle(metricsEnabled, MetricsOptInLabel);
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                Manager.UsageTracker.Enabled = metricsEnabled;
+            }
+
+            GUI.enabled = true;
+        }
+
         private void OnLoggingSettingsGui()
         {
             GUILayout.Label(DebugSettingsTitle, EditorStyles.boldLabel);
@@ -661,14 +694,12 @@ namespace GitHub.Unity
 
             EditorGUI.BeginChangeCheck();
             {
-                traceLogging = EditorGUILayout.Toggle(EnableTraceLoggingLabel, traceLogging);
+                traceLogging = GUILayout.Toggle(traceLogging, EnableTraceLoggingLabel);
             }
             if (EditorGUI.EndChangeCheck())
             {
                 Logging.TracingEnabled = traceLogging;
-                Manager.UserSettings.Set("EnableTraceLogging", traceLogging);
-
-                GUI.FocusControl(null);
+                Manager.UserSettings.Set(Constants.TraceLoggingKey, traceLogging);
             }
 
             GUI.enabled = true;

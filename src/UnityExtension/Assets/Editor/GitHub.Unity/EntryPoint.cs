@@ -96,5 +96,7 @@ namespace GitHub.Unity
         }
 
         public static IEnvironment Environment { get { return ApplicationManager.Environment; } }
+
+        public static IUsageTracker UsageTracker { get { return ApplicationManager.UsageTracker; } }
     }
 }

@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Rackspace.Threading;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -41,8 +42,10 @@ namespace GitHub.Unity
                     if (view != null)
                         view.Initialize(this);
 
-                    //logger.Debug("Application Restarted");
-                }).Start();
+                    return new { Version = Application.unityVersion, FirstRun = ApplicationCache.Instance.FirstRun };
+                })
+                .Then((s, x) => SetupMetrics(x.Version, x.FirstRun))
+                .Start();
         }
 
 

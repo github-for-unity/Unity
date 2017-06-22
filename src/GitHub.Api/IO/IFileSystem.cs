@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace GitHub.Unity
 {
@@ -31,9 +32,11 @@ namespace GitHub.Unity
         void DirectoryMove(string toString, string s);
         string GetCurrentDirectory();
         void WriteAllText(string path, string contents);
-        Stream OpenRead(string path);
-        string ReadAllText(string path);
+        void WriteAllText(string path, string contents, Encoding encoding);
         void WriteAllLines(string path, string[] contents);
+        string ReadAllText(string path);
+        string ReadAllText(string path, Encoding encoding);
+        Stream OpenRead(string path);
         string[] ReadAllLines(string path);
         char DirectorySeparatorChar { get; }
         bool ExistingPathIsDirectory(string path);

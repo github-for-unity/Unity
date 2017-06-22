@@ -87,7 +87,7 @@ namespace UnitTests
 
         private RepositoryManager CreateRepositoryManager(IGitClient gitClient)
         {
-            return new RepositoryManager(platform, taskManager, gitConfig, repositoryWatcher,
+            return new RepositoryManager(platform, taskManager, new NullUsageTracker(), gitConfig, repositoryWatcher,
                 gitClient, repositoryPathConfiguration, cancellationToken);
         }
 

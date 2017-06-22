@@ -5,15 +5,13 @@ namespace GitHub.Unity
 {
     class AuthenticationService
     {
-        private readonly IAppConfiguration appConfiguration;
         private readonly IApiClient client;
 
         private LoginResult loginResultData;
 
-        public AuthenticationService(UriString host, IAppConfiguration appConfiguration, IKeychain keychain)
+        public AuthenticationService(UriString host, IKeychain keychain)
         {
-            this.appConfiguration = appConfiguration;
-            client = ApiClient.Create(host, keychain, appConfiguration);
+            client = ApiClient.Create(host, keychain);
         }
 
         public void Login(string username, string password, Action<string> twofaRequired, Action<bool, string> authResult)

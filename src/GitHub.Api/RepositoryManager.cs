@@ -90,7 +90,7 @@ namespace GitHub.Unity
 
     class RepositoryManagerFactory
     {
-        public RepositoryManager CreateRepositoryManager(IPlatform platform, ITaskManager taskManager,
+        public RepositoryManager CreateRepositoryManager(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker,
             IGitClient gitClient, NPath repositoryRoot)
         {
             var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
@@ -99,7 +99,7 @@ namespace GitHub.Unity
 
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
 
-            return new RepositoryManager(platform, taskManager, gitConfig, repositoryWatcher,
+            return new RepositoryManager(platform, taskManager, usageTracker, gitConfig, repositoryWatcher,
                 gitClient, repositoryPathConfiguration, taskManager.Token);
         }
     }
@@ -111,6 +111,7 @@ namespace GitHub.Unity
         private readonly IGitConfig config;
         private readonly IPlatform platform;
         private readonly ITaskManager taskManager;
+        private readonly IUsageTracker usageTracker;
         private IRepository repository;
         private readonly IRepositoryPathConfiguration repositoryPaths;
         private readonly IGitClient gitClient;
@@ -135,13 +136,14 @@ namespace GitHub.Unity
         public event Action OnRemoteOrTrackingChanged;
         public event Action<IEnumerable<GitLock>> OnLocksUpdated;
 
-        public RepositoryManager(IPlatform platform, ITaskManager taskManager, IGitConfig gitConfig,
+        public RepositoryManager(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker, IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
             IRepositoryPathConfiguration repositoryPaths, CancellationToken cancellationToken)
         {
             this.repositoryPaths = repositoryPaths;
             this.platform = platform;
             this.taskManager = taskManager;
+            this.usageTracker = usageTracker;
             this.cancellationToken = cancellationToken;
             this.gitClient = gitClient;
 
