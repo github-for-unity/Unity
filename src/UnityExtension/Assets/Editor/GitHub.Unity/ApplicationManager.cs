@@ -31,9 +31,6 @@ namespace GitHub.Unity
             Utility.Initialize();
 
             return base.Run()
-                .Then(_ => {
-                    SetupUserTracking();
-                })
                 .ThenInUI(_ =>
                 {
                     Logger.Debug("Run");
@@ -45,8 +42,10 @@ namespace GitHub.Unity
                     if (view != null)
                         view.Initialize(this);
 
-                    //logger.Debug("Application Restarted");
-                }).Start();
+                    return new { Version = Application.unityVersion, FirstRun = ApplicationCache.Instance.FirstRun };
+                })
+                .Then((s, x) => SetupMetrics(x.Version, x.FirstRun))
+                .Start();
         }
 
 
@@ -139,32 +138,6 @@ namespace GitHub.Unity
                 {
                     disposed = true;
                 }
-            }
-        }
-
-        private void SetupUserTracking()
-        {
-            Logger.Trace("Setup User Tracking");
-
-            var usagePath = Environment.UserCachePath.Combine("github-unity-usage.json");
-
-            string userTrackingId;
-            if (!UserSettings.Exists("UserTrackingId"))
-            {
-                userTrackingId = Guid.NewGuid().ToString();
-                UserSettings.Set("UserTrackingId", userTrackingId);
-            }
-            else
-            {
-                userTrackingId = UserSettings.Get("UserTrackingId");
-            }
-
-            UsageTracker = new UsageTracker(usagePath, userTrackingId);
-            UsageTracker.Enabled = UserSettings.Get("UserTrackingEnabled", true);
-
-            if (ApplicationCache.Instance.FirstRun)
-            {
-                UsageTracker.IncrementLaunchCount();
             }
         }
 

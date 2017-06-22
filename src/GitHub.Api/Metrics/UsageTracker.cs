@@ -13,18 +13,19 @@ namespace GitHub.Unity
         private static IMetricsService metricsService;
 
         private readonly NPath storePath;
-        private readonly string userTrackingId;
+        private readonly string id;
+        private readonly string unityVersion;
 
         private bool firstRun = true;
         private Timer timer;
 
-        public UsageTracker(NPath storePath, string userTrackingId)
+        public UsageTracker(NPath storePath, string id, string unityVersion)
         {
-            this.userTrackingId = userTrackingId;
-            Logger.Trace("Tracking Id:{0}", userTrackingId);
-
+            this.id = id;
             this.storePath = storePath;
+            this.unityVersion = unityVersion;
 
+            Logger.Trace("id:{0}", id);
             RunTimer();
         }
 

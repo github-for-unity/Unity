@@ -147,6 +147,32 @@ namespace GitHub.Unity
             return await GitClient.FindGitInstallation().SafeAwait();
         }
 
+        protected void SetupMetrics(string unityVersion, bool firstRun)
+        {
+            Logger.Trace("Setup metrics");
+
+            var usagePath = Environment.UserCachePath.Combine("usage.json");
+
+            string id;
+            if (!UserSettings.Exists("Id"))
+            {
+                id = Guid.NewGuid().ToString();
+                UserSettings.Set("Id", id);
+            }
+            else
+            {
+                id = UserSettings.Get("Id");
+            }
+
+            UsageTracker = new UsageTracker(usagePath, id, unityVersion);
+            UsageTracker.Enabled = UserSettings.Get("MetricsEnabled", true);
+
+            if (firstRun)
+            {
+                UsageTracker.IncrementLaunchCount();
+            }
+        }
+
         private bool disposed = false;
         protected virtual void Dispose(bool disposing)
         {
