@@ -178,7 +178,7 @@ namespace GitHub.Unity
                 var success = false;
                 try
                 {
-                    await metricsService.PostUsage(userTrackingId, extractReports);
+                    await metricsService.PostUsage(extractReports);
                     success = true;
                 }
                 catch (Exception ex)
