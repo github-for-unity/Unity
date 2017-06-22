@@ -59,10 +59,10 @@ namespace GitHub.Unity
             }
 
             if (result == null)
-            {
                 result = new UsageStore();
+
+            if (String.IsNullOrEmpty(result.Model.Guid))
                 result.Model.Guid = guid;
-            }
 
             return result;
         }
