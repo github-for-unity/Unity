@@ -674,14 +674,12 @@ namespace GitHub.Unity
             var metricsEnabled = service != null ? service.Enabled : false;
             EditorGUI.BeginChangeCheck();
             {
-                metricsEnabled = EditorGUILayout.Toggle(MetricsOptInLabel, metricsEnabled);
+                metricsEnabled = GUILayout.Toggle(metricsEnabled, MetricsOptInLabel);
             }
             if (EditorGUI.EndChangeCheck())
             {
                 EntryPoint.UsageTracker.Enabled = metricsEnabled;
                 Manager.UserSettings.Set(Constants.MetricsKey, metricsEnabled);
-
-                GUI.FocusControl(null);
             }
 
             GUI.enabled = true;
@@ -697,14 +695,12 @@ namespace GitHub.Unity
 
             EditorGUI.BeginChangeCheck();
             {
-                traceLogging = EditorGUILayout.Toggle(EnableTraceLoggingLabel, traceLogging);
+                traceLogging = GUILayout.Toggle(traceLogging, EnableTraceLoggingLabel);
             }
             if (EditorGUI.EndChangeCheck())
             {
                 Logging.TracingEnabled = traceLogging;
                 Manager.UserSettings.Set(Constants.TraceLoggingKey, traceLogging);
-
-                GUI.FocusControl(null);
             }
 
             GUI.enabled = true;
