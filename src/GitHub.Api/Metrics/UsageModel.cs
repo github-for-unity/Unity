@@ -17,7 +17,7 @@ namespace GitHub.Unity
 
     public class UsageModel
     {
-        private List<Usage> reports;
+        private List<Usage> reports = new List<Usage>();
 
         public IList<Usage> Reports
         {

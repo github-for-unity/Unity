@@ -51,15 +51,6 @@ namespace GitHub.Unity
                 if (json != null)
                 {
                     result = SimpleJson.DeserializeObject<UsageStore>(json);
-                    if (result.Model == null)
-                    {
-                        Logger.Warning("Model is Null");
-                    }
-
-                    if (result.Model.Reports == null)
-                    {
-                        Logger.Warning("Reports is Null");
-                    }
                 }
                 else
                 {
