@@ -3,9 +3,9 @@ using Octokit;
 
 namespace GitHub.Unity
 {
-    class AppConfiguration : IAppConfiguration
+    static class AppConfiguration
     {
-        public AppConfiguration()
+        static AppConfiguration()
         {
             var executingAssembly = typeof(AppConfiguration).Assembly;
             AssemblyName = executingAssembly.GetName();
@@ -15,11 +15,11 @@ namespace GitHub.Unity
         /// <summary>
         /// The currently executing assembly.
         /// </summary>
-        public AssemblyName AssemblyName { get; private set; }
+        public static AssemblyName AssemblyName { get; private set; }
 
         /// <summary>
         /// The product header used in the user agent.
         /// </summary>
-        public ProductHeaderValue ProductHeader { get; private set; }
+        public static ProductHeaderValue ProductHeader { get; private set; }
     }
 }

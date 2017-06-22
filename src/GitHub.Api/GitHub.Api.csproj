@@ -219,7 +219,6 @@
     <Compile Include="Guard.cs" />
     <Compile Include="Authentication\ICredentialManager.cs" />
     <Compile Include="IEnvironment.cs" />
-    <Compile Include="IAppConfiguration.cs" />
     <Compile Include="Primitives\HostAddress.cs" />
     <Compile Include="Primitives\StringEquivalent.cs" />
     <Compile Include="Primitives\UriString.cs" />

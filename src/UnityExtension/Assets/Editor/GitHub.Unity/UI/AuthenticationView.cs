@@ -45,7 +45,7 @@ namespace GitHub.Unity
                         host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
                     }
 
-                    AuthenticationService = new AuthenticationService(host, new AppConfiguration(), Platform.Keychain);
+                    AuthenticationService = new AuthenticationService(host, Platform.Keychain);
                 }
                 return authenticationService;
             }

@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using Rackspace.Threading;
+using System.Globalization;
 
 namespace GitHub.Unity
 {
@@ -13,19 +14,19 @@ namespace GitHub.Unity
         private static IMetricsService metricsService;
 
         private readonly NPath storePath;
-        private readonly string id;
+        private readonly string guid;
         private readonly string unityVersion;
 
         private bool firstRun = true;
         private Timer timer;
 
-        public UsageTracker(NPath storePath, string id, string unityVersion)
+        public UsageTracker(NPath storePath, string guid, string unityVersion)
         {
-            this.id = id;
+            this.guid = guid;
             this.storePath = storePath;
             this.unityVersion = unityVersion;
 
-            Logger.Trace("id:{0}", id);
+            Logger.Trace("guid:{0}", guid);
             RunTimer();
         }
 
@@ -60,15 +61,8 @@ namespace GitHub.Unity
             if (result == null)
             {
                 result = new UsageStore();
-                result.Model.Id = id;
+                result.Model.Guid = guid;
             }
-            //TODO: Figure out these values
-            //result.Model.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
-            //result.Model.AppVersion = AssemblyVersionInformation.Version;
-
-            //TODO: Get Unity Version
-            //result.Model.UnityVersion
-            //result.Model.VSVersion = vsservices.VSVersion;
 
             return result;
         }
@@ -196,6 +190,8 @@ namespace GitHub.Unity
             var usage = usageStore.Model.GetCurrentUsage();
             usage.NumberOfStartups++;
             usage.UnityVersion = unityVersion;
+            usage.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
+            usage.AppVersion = AppConfiguration.AssemblyName.Version.ToString();
 
             Logger.Trace("IncrementLaunchCount Date:{0} NumberOfStartups:{1}", usage.Date, usage.NumberOfStartups);
 

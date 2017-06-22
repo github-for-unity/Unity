@@ -7,13 +7,13 @@ namespace GitHub.Unity
 {
     class ApiClient : IApiClient
     {
-        public static IApiClient Create(UriString repositoryUrl, IKeychain keychain, IAppConfiguration appConfiguration)
+        public static IApiClient Create(UriString repositoryUrl, IKeychain keychain)
         {
             var credentialStore = keychain.Connect(repositoryUrl);
             var hostAddress = HostAddress.Create(repositoryUrl);
 
             return new ApiClient(repositoryUrl, keychain,
-                new GitHubClient(appConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri));
+                new GitHubClient(AppConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri));
         }
 
         private static readonly Unity.ILogging logger = Unity.Logging.GetLogger<ApiClient>();

@@ -6,7 +6,7 @@ namespace GitHub.Unity
 {
     class Usage
     {
-        public string Id { get; set; }
+        public string Guid { get; set; }
         public DateTime Date { get; set; }
         public string AppVersion { get; set; }
         public string UnityVersion { get; set; }
@@ -17,28 +17,27 @@ namespace GitHub.Unity
     class UsageModel
     {
         public List<Usage> Reports { get; set; } = new List<Usage>();
-        public string Id { get; set; }
+        public string Guid { get; set; }
 
         private Usage currentUsage;
 
         public Usage GetCurrentUsage()
         {
             var date = DateTime.UtcNow.Date;
-            if (currentUsage != null)
-            {
-                if (currentUsage.Date == date)
-                {
-                    return currentUsage;
-                }
-
-                currentUsage = null;
-            }
-
-            currentUsage = Reports.FirstOrDefault(usage => usage.Date == date);
-
             if (currentUsage == null)
             {
-                currentUsage = new Usage { Date = date, Id = Id };
+                currentUsage = Reports.FirstOrDefault(usage => usage.Date == date);
+            }
+
+            if (currentUsage?.Date == date)
+            {
+                // update any fields that might be missing, if we've changed the format
+                if (currentUsage.Guid != Guid)
+                    currentUsage.Guid = Guid;
+            }
+            else
+            {
+                currentUsage = new Usage { Date = date, Guid = Guid };
                 Reports.Add(currentUsage);
             }
 
