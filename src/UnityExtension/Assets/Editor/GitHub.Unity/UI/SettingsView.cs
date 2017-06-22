@@ -608,21 +608,30 @@ namespace GitHub.Unity
 
         private void OnInstallPathGUI()
         {
+            string gitExecPath = null;
+            string extension = null;
+            string gitInstallPath = null;
+            if (Environment != null)
+            {
+                extension = Environment.ExecutableExtension;
+                gitInstallPath = Environment.GitInstallPath;
+                if (Environment.GitExecutablePath != null)
+                    gitExecPath = Environment.GitExecutablePath.ToString();
+            }
+                
+
             // Install path
             GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
 
-            GUI.enabled = !busy;
+            GUI.enabled = !busy && gitExecPath != null;
 
-            var gitExecPath = Environment.GitExecutablePath.ToString();
             // Install path field
             EditorGUI.BeginChangeCheck();
             {
                 //TODO: Verify necessary value for a non Windows OS
-                var extension = Environment.ExecutableExtension;
-
                 Styles.PathField(ref gitExecPath,
                     () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
-                        Environment.GitInstallPath,
+                        gitInstallPath,
                         extension), ValidateGitInstall);
             }
             if (EditorGUI.EndChangeCheck())
@@ -656,11 +665,13 @@ namespace GitHub.Unity
 
         private void OnPrivacyGui()
         {
+            var service = Manager != null && Manager.UsageTracker != null ? Manager.UsageTracker : null;
+
             GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
 
-            GUI.enabled = !busy;
+            GUI.enabled = !busy && service != null;
 
-            var metricsEnabled = EntryPoint.UsageTracker.Enabled;
+            var metricsEnabled = service != null ? service.Enabled : false;
             EditorGUI.BeginChangeCheck();
             {
                 metricsEnabled = EditorGUILayout.Toggle(MetricsOptInLabel, metricsEnabled);
