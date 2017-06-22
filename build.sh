@@ -32,7 +32,7 @@ else
 	nuget restore
 fi
 
-xbuild GitHub.Unity.sln /verbosity:normal /property:Configuration=$Configuration /target:$Target
+xbuild GitHub.Unity.sln /verbosity:normal /property:Configuration=$Configuration /target:$Target || true
 
 cp -r unity/PackageProject/Assets/Editor/GitHub ../github-unity-test/GitHubExtensionProject/Assets/Editor || true
 
