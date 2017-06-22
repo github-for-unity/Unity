@@ -231,7 +231,7 @@ namespace GitHub.Unity
         {
             if (Task.Status == TaskStatus.Created)
             {
-                Logger.Trace($"Starting {Affinity} {ToString()}");
+                //Logger.Trace($"Starting {Affinity} {ToString()}");
                 Task.Start(scheduler);
             }
             RunContinuation();
@@ -242,7 +242,7 @@ namespace GitHub.Unity
         {
             if (continuation != null)
             {
-                Logger.Trace($"Setting ContinueWith {Affinity} {continuation}");
+                //Logger.Trace($"Setting ContinueWith {Affinity} {continuation}");
                 Task.ContinueWith(_ => ((TaskBase)(object)continuation).Run(), Token, continuationAlways ? runAlwaysOptions : runOnSuccessOptions,
                     TaskManager.GetScheduler(continuation.Affinity));
             }
@@ -295,7 +295,7 @@ namespace GitHub.Unity
 
         protected virtual void RaiseOnStart()
         {
-            Logger.Trace($"Executing {ToString()}");
+            //Logger.Trace($"Executing {ToString()}");
             OnStart?.Invoke(this);
         }
 
@@ -304,7 +304,7 @@ namespace GitHub.Unity
             OnEnd?.Invoke(this);
             if (Task.Status != TaskStatus.Faulted && continuation == null)
                 finallyHandler?.Invoke();
-            Logger.Trace($"Finished {ToString()}");
+            //Logger.Trace($"Finished {ToString()}");
         }
 
         protected virtual bool RaiseFaultHandlers(Exception ex)
@@ -569,7 +569,7 @@ namespace GitHub.Unity
         }
         protected override void RaiseOnStart()
         {
-            Logger.Trace($"Executing {ToString()}");
+            //Logger.Trace($"Executing {ToString()}");
             OnStart?.Invoke(this);
             base.RaiseOnStart();
         }
@@ -580,7 +580,7 @@ namespace GitHub.Unity
             if (Task.Status == TaskStatus.Faulted || continuation == null)
                 finallyHandler?.Invoke(result);
             RaiseOnEnd();
-            Logger.Trace($"Finished {ToString()} {result}");
+            //Logger.Trace($"Finished {ToString()} {result}");
         }
 
         public new Task<TResult> Task
