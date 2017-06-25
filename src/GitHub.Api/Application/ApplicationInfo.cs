@@ -1,7 +1,7 @@
 #pragma warning disable 436
 namespace GitHub.Unity
 {
-    public static class ApplicationInfo
+    static partial class ApplicationInfo
     {
 #if DEBUG
         public const string ApplicationName = "GitHubUnityDebug";
@@ -13,9 +13,16 @@ namespace GitHub.Unity
         public const string ApplicationSafeName = "unity-internal-test";
         public const string ApplicationDescription = "GitHub for Unity";
 
-        internal const string ClientId = "";
-        internal const string ClientSecret = "";
+        internal static string ClientId { get; private set; } = "";
+        internal static string ClientSecret { get; private set; } = "";
 
         public static string Version { get { return System.AssemblyVersionInformation.Version; } }
+
+        static partial void SetClientData();
+
+        static ApplicationInfo()
+        {
+            SetClientData();
+        }
     }
 }

@@ -93,30 +93,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Api\ApplicationInfo.cs" />
-    <Compile Include="Api\LoginResult.cs" />
-    <Compile Include="AppConfiguration.cs" />
-    <Compile Include="AssemblyResources.cs" />
+    <Compile Include="Application\ApplicationInfo.cs" />
+    <Compile Include="Application\LoginResult.cs" />
+    <Compile Include="Application\AppConfiguration.cs" />
+    <Compile Include="Helpers\AssemblyResources.cs" />
     <Compile Include="Authentication\IKeychain.cs" />
     <Compile Include="Authentication\Keychain.cs" />
     <Compile Include="Authentication\LoginManager.cs" />
     <Compile Include="Authentication\ILoginManager.cs" />
-    <Compile Include="ApplicationManagerBase.cs" />
-    <Compile Include="Constants.cs" />
-    <Compile Include="DefaultEnvironment.cs" />
+    <Compile Include="Application\ApplicationManagerBase.cs" />
+    <Compile Include="Helpers\Constants.cs" />
+    <Compile Include="Platform\DefaultEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Extensions\FileEventExtensions.cs" />
     <Compile Include="Events\RepositoryWatcher.cs" />
     <Compile Include="Extensions\FileSystemExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
-    <Compile Include="GitSetup.cs" />
+    <Compile Include="Git\GitSetup.cs" />
     <Compile Include="Git\GitFileStatus.cs" />
     <Compile Include="Git\GitLock.cs" />
     <Compile Include="Git\GitObjectFactory.cs" />
     <Compile Include="Git\GitStatusEntry.cs" />
     <Compile Include="Git\IGitObjectFactory.cs" />
     <Compile Include="IO\FileSystemHelpers.cs" />
-    <Compile Include="IApplicationManager.cs" />
+    <Compile Include="Application\IApplicationManager.cs" />
     <Compile Include="NewTaskSystem\ActionTask.cs" />
     <Compile Include="NewTaskSystem\BaseOutputProcessor.cs" />
     <Compile Include="NewTaskSystem\ConcurrentExclusiveInterleave.cs" />
@@ -128,14 +128,11 @@
     <Compile Include="NewTaskSystem\TaskExtensions.cs" />
     <Compile Include="NewTaskSystem\TaskManager.cs" />
     <Compile Include="Platform\FindExecTask.cs" />
-    <Compile Include="ProgressReport.cs" />
+    <Compile Include="Helpers\ProgressReport.cs" />
     <Compile Include="Metrics\IMetricsService.cs" />
     <Compile Include="Metrics\IUsageTracker.cs" />
     <Compile Include="Metrics\UsageModel.cs" />
     <Compile Include="Metrics\UsageTracker.cs" />
-    <Compile Include="$(SolutionDir)\script\src\MetricsService.cs" Condition="$(Buildtype) == 'Internal'">
-      <Link>Metrics\MetricsService.cs</Link>
-    </Compile>
     <Compile Include="Git\Tasks\GitLfsInstallTask.cs" />
     <Compile Include="Extensions\GitStatusExtensions.cs" />
     <Compile Include="Git\Tasks\GitRemoteChangeTask.cs" />
@@ -146,14 +143,13 @@
     <Compile Include="Installer\GitInstaller.cs" />
     <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
-    <Compile Include="ITaskRunner.cs" />
-    <Compile Include="LocalSettings.cs" />
+    <Compile Include="Platform\LocalSettings.cs" />
     <Compile Include="OutputProcessors\BranchListOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LockOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LogEntryOutputProcessor.cs" />
     <Compile Include="OutputProcessors\ProcessManager.cs" />
     <Compile Include="OutputProcessors\StatusOutputProcessor.cs" />
-    <Compile Include="RepositoryLocator.cs" />
+    <Compile Include="Git\RepositoryLocator.cs" />
     <Compile Include="Git\GitConfig.cs" />
     <Compile Include="OutputProcessors\LineProcessor.cs" />
     <Compile Include="IO\FileSystem.cs" />
@@ -161,8 +157,8 @@
     <Compile Include="OutputProcessors\IProcessManager.cs" />
     <Compile Include="IO\NiceIO.cs" />
     <Compile Include="OutputProcessors\RemoteListOutputProcessor.cs" />
-    <Compile Include="IRepository.cs" />
-    <Compile Include="ISettings.cs" />
+    <Compile Include="Git\IRepository.cs" />
+    <Compile Include="Platform\ISettings.cs" />
     <Compile Include="Localization.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -172,13 +168,10 @@
     <Compile Include="IO\IFileSystem.cs" />
     <Compile Include="Platform\IProcessEnvironment.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
-      <Link>Properties\SolutionInfo.cs</Link>
-    </Compile>
-    <Compile Include="Repository.cs" />
-    <Compile Include="RepositoryManager.cs" />
-    <Compile Include="GitClient.cs" />
-    <Compile Include="SimpleJson.cs" />
+    <Compile Include="Git\Repository.cs" />
+    <Compile Include="Git\RepositoryManager.cs" />
+    <Compile Include="Git\GitClient.cs" />
+    <Compile Include="Helpers\SimpleJson.cs" />
     <Compile Include="Tasks\CachedTask.cs" />
     <Compile Include="Git\FailureSeverity.cs" />
     <Compile Include="Git\Tasks\GitAddTask.cs" />
@@ -212,14 +205,15 @@
     <Compile Include="Threading\ThreadingHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Api\IApiClient.cs" />
+    <Compile Include="Application\IApiClient.cs" />
+    <Compile Include="Application\ApiClient.cs" />
     <Compile Include="Authentication\AuthenticationResult.cs" />
     <Compile Include="Authentication\AuthenticationResultExtensions.cs" />
     <Compile Include="Authentication\Credential.cs" />
     <Compile Include="Extensions\ExceptionExtensions.cs" />
-    <Compile Include="Guard.cs" />
+    <Compile Include="Helpers\Guard.cs" />
     <Compile Include="Authentication\ICredentialManager.cs" />
-    <Compile Include="IEnvironment.cs" />
+    <Compile Include="Platform\IEnvironment.cs" />
     <Compile Include="Primitives\HostAddress.cs" />
     <Compile Include="Primitives\StringEquivalent.cs" />
     <Compile Include="Primitives\UriString.cs" />
@@ -230,7 +224,22 @@
     <Compile Include="Git\GitCredentialManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Api\ApiClient.cs" />
+    <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup Condition="$(Buildtype) != 'Internal'">
+    <None Include="$(SolutionDir)\common\ApplicationInfo_Local.cs-example" Condition="!Exists('$(SolutionDir)\common\ApplicationInfo_Local.cs')">
+      <Link>Properties\ApplicationInfo_Local.cs-example</Link>
+    </None>
+    <Compile Include="$(SolutionDir)\common\ApplicationInfo_Local.cs" Condition="Exists('$(SolutionDir)\common\ApplicationInfo_Local.cs')">
+      <Link>Properties\ApplicationInfo_Local.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup Condition="$(Buildtype) == 'Internal'">
+    <Compile Include="$(SolutionDir)\script\src\MetricsService.cs">
+      <Link>Metrics\MetricsService.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\submodules\dotnet-httpClient35\System.Net.Http\System.Net.Http-net_3_5.csproj">

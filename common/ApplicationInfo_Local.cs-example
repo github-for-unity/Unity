@@ -1,0 +1,15 @@
+#pragma warning disable 436
+namespace GitHub.Unity
+{
+    static partial class ApplicationInfo
+    {
+        private const string myClientId = "YOUR CLIENT ID HERE";
+        private const string myClientSecret = "YOUR CLIENT SECRET HERE";
+
+        static partial void SetClientData()
+        {
+            ClientId = myClientId;
+            ClientSecret = myClientSecret;
+        }
+    }
+}
