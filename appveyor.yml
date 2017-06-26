@@ -31,6 +31,9 @@ install:
       Set-Content c:\users\appveyor\.ssh\id_rsa $fileContent
     } else {
       git submodule deinit script
+      $destination = Join-Path $env:appveyor_build_folder 'lib\deps.zip'
+      Invoke-WebRequest "https://ghfvs-installer.github.com/dependencies/deps.zip" -OutFile $destination
+      &'7z' x $destination
     }
 
     git submodule update
