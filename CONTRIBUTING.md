@@ -62,7 +62,8 @@ it asks for helps us resolve issues faster.
 
 **Perform a [cursory search](https://github.com/github-for-unity/Unity/labels/bug)**
 to see if the problem has already been reported. If it does exist, add a
-:thumbsup: to the issue to indicate this is also an issue for you, and add a
+[reaction](https://help.github.com/articles/about-discussions-in-issues-and-pull-requests/#reacting-to-ideas-in-issues-and-pull-requests)
+to the issue to indicate this is also an issue for you, and add a
 comment to the existing issue if there is extra information you can contribute.
 
 #### How Do I Submit A (Good) Bug Report?
