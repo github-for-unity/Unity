@@ -15,21 +15,22 @@ clone_script:
     }
     
     Set-Location $env:appveyor_build_folder
+
 install:
 - ps: >-
-    $full_build = Test-Path env:GHFU_KEY
-
     git submodule sync
 
     git submodule init
 
-    if ($full_build) {
-    	$fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
-    	$fileContent += $env:GHFU_KEY.Replace(' ', "`n")
-    	$fileContent += "`n-----END RSA PRIVATE KEY-----`n"
-    	Set-Content c:\users\appveyor\.ssh\id_rsa $fileContent
-    } else {
+    $full_build = $env:appveyor_repo_name -eq "github-for-unity/Unity"
 
+    if ($full_build) {
+      $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
+      $fileContent += $env:GHFU_KEY.Replace(' ', "`n")
+      $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
+      Set-Content c:\users\appveyor\.ssh\id_rsa $fileContent
+    } else {
+      git submodule deinit script
     }
 
     git submodule update
