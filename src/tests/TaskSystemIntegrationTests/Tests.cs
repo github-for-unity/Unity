@@ -30,7 +30,7 @@ namespace IntegrationTests
         public void OneTimeSetup()
         {
             GitHub.Unity.Guard.InUnitTestRunner = true;
-            Logging.LogAdapter = new MultipleLogAdapter(new FileLogAdapter($"{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-tasksystem-tests.log"));
+            Logging.LogAdapter = new MultipleLogAdapter(new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-tasksystem-tests.log"));
             //Logging.TracingEnabled = true;
             TaskManager = new TaskManager();
             var syncContext = new ThreadSynchronizationContext(Token);
