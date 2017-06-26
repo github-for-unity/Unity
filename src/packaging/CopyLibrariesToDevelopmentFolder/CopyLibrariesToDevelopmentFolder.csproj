@@ -51,7 +51,7 @@
     </ProjectReference>
     <Reference Include="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(SolutionDir)\lib\5.5\Mono.Security.dll</HintPath>
+      <HintPath>$(SolutionDir)\lib\Mono.Security.dll</HintPath>
     </Reference>
     <Reference Include="sfw.net">
       <HintPath>$(SolutionDir)\lib\sfw.net\$(Configuration)\sfw.net.dll</HintPath>

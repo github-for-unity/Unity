@@ -15,21 +15,28 @@ clone_script:
     }
     
     Set-Location $env:appveyor_build_folder
+
 install:
 - ps: >-
-    $full_build = Test-Path env:GHFU_KEY
-
     git submodule sync
 
     git submodule init
 
-    if ($full_build) {
-    	$fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
-    	$fileContent += $env:GHFU_KEY.Replace(' ', "`n")
-    	$fileContent += "`n-----END RSA PRIVATE KEY-----`n"
-    	Set-Content c:\users\appveyor\.ssh\id_rsa $fileContent
-    } else {
+    $full_build = Test-Path env:GHFU_KEY
 
+    if ($full_build) {
+      $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
+      $fileContent += $env:GHFU_KEY.Replace(' ', "`n")
+      $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
+      Set-Content c:\users\appveyor\.ssh\id_rsa $fileContent
+    } else {
+      git submodule deinit script
+      $destdir = Join-Path $env:appveyor_build_folder 'lib'
+      $destfile = Join-Path $destdir 'deps.zip'
+      Set-Location $destdir
+      Invoke-WebRequest "https://ghfvs-installer.github.com/dependencies/deps.zip" -OutFile $destfile
+      &'7z' -bb3 x 'deps.zip'
+      Set-Location $env:appveyor_build_folder
     }
 
     git submodule update
@@ -46,3 +53,4 @@ test:
 artifacts:
 - path: unity\TestProject\Assets\Editor\*.dll
 - path: unity\TestProject\Assets\Editor\*.pdb
+- path: build\*.log

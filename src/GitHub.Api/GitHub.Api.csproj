@@ -64,10 +64,10 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
-      <HintPath>$(SolutionDir)lib\5.5\ICSharpCode.SharpZipLib.dll</HintPath>
+      <HintPath>$(SolutionDir)lib\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Security">
-      <HintPath>$(SolutionDir)lib\5.5\Mono.Security.dll</HintPath>
+      <HintPath>$(SolutionDir)lib\Mono.Security.dll</HintPath>
     </Reference>
     <Reference Include="Rackspace.Threading, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bb62785d398726f0, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\Rackspace.Threading.2.0.0-alpha001\lib\net35-client\Rackspace.Threading.dll</HintPath>
