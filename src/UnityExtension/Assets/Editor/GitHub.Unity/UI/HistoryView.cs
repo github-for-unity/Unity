@@ -326,8 +326,7 @@ namespace GitHub.Unity
                         EditorUtility.DisplayDialog(PullConfirmTitle,
                             String.Format(PullConfirmDescription, currentRemote),
                             PullConfirmYes,
-                            PullConfirmCancel)
-                    )
+                            PullConfirmCancel))
                     {
                         Pull();
                     }
@@ -354,8 +353,6 @@ namespace GitHub.Unity
                     {
                         PublishWindow.Open();
                     }
-                }
-
                 }
             }
             GUILayout.EndHorizontal();
