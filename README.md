@@ -10,7 +10,7 @@ The GitHub for Unity extension brings [git](https://git-scm.com/) and GitHub int
 
 ## Where can I get it?
 
-### TODO: Add more information
+- [Releases](https://github.com/github-for-unity/Unity/releases)
 
 ## Installing GitHub for Unity
 
