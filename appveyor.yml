@@ -22,7 +22,7 @@ install:
 
     git submodule init
 
-    $full_build = $env:appveyor_repo_name -eq "github-for-unity/Unity"
+    $full_build = Test-Path env:GHFU_KEY
 
     if ($full_build) {
       $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
