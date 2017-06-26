@@ -33,7 +33,9 @@ install:
       git submodule deinit script
       $destination = Join-Path $env:appveyor_build_folder 'lib\deps.zip'
       Invoke-WebRequest "https://ghfvs-installer.github.com/dependencies/deps.zip" -OutFile $destination
+      Set-Location Join-Path $env:appveyor_build_folder 'lib'
       &'7z' x $destination
+      Set-Location $env:appveyor_build_folder
     }
 
     git submodule update
