@@ -103,6 +103,7 @@
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="Application\ApplicationManagerBase.cs" />
     <Compile Include="Helpers\Constants.cs" />
+    <Compile Include="Cache\IBranchCache.cs" />
     <Compile Include="Platform\DefaultEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Extensions\FileEventExtensions.cs" />
