@@ -3,3 +3,5 @@ packages/
 _NCrunch_GitHub.Unity
 *.user
 .DS_Store
+build/
+TestResult.xml
