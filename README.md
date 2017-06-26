@@ -10,7 +10,7 @@ The GitHub for Unity extension brings [git](https://git-scm.com/) and GitHub int
 
 ## Where can I get it?
 
-- [Releases](https://github.com/github-for-unity/Unity/releases)
+[Releases](https://github.com/github-for-unity/Unity/releases)
 
 ## Installing GitHub for Unity
 
@@ -54,15 +54,6 @@ The MIT license grant is not for GitHub's trademarks, which include the logo
 designs. GitHub reserves all trademark and copyright rights in and to all
 GitHub trademarks. GitHub's logos include, for instance, the stylized
 Invertocat designs that include "logo" in the file title in the following
-folder: [logos](app/static/logos).
+folder: [IconsAndLogos](https://github.com/github-for-unity/Unity/tree/master/src/UnityExtension/Assets/Editor/GitHub.Unity/IconsAndLogos).
 
-### Copyright
 Copyright 2015 - 2017 GitHub, Inc.
-
-Licensed under the MIT License
-
-The MIT license grant is not for GitHub's trademarks, which include the logo designs.
-GitHub reserves all trademark and copyright rights in and to all GitHub trademarks.
-GitHub's logos include, for instance, the stylized Invertocat designs that include "logo" in the file title in the following folder: [IconsAndLogos](https://github.com/github-for-unity/Unity/tree/master/src/UnityExtension/Assets/Editor/GitHub.Unity/IconsAndLogos).
-
-GitHub® and its stylized versions and the Invertocat mark are GitHub's Trademarks or registered Trademarks. When using GitHub's logos, be sure to follow the GitHub logo guidelines.
