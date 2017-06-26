@@ -7,14 +7,14 @@ related projects, which are hosted in the [GitHub for Unity Organization](https:
 on GitHub. These are just guidelines, not rules. Use your best judgment, and
 feel free to propose changes to this document in a pull request.
 
-Note that GitHub for Unity is currently a public beta, so everything is likely to
+Note that GitHub for Unity is currently a public alpha, so everything is likely to
 change over time as we learn and refine how we work with the community.
 
 #### Table Of Contents
 
 [What should I know before I get started?](#what-should-i-know-before-i-get-started)
   * [Code of Conduct](#code-of-conduct)
-  * [The Beta Roadmap](#the-beta-roadmap)
+  * [The Roadmap](#the-roadmap)
 
 [How Can I Contribute?](#how-can-i-contribute)
   * [Reporting Bugs](#reporting-bugs)
@@ -32,7 +32,7 @@ This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDU
 By participating, you are expected to uphold this code.
 Please report unacceptable behavior to [unity@github.com](mailto:unity@github.com).
 
-### The Beta Roadmap
+### The Roadmap
 
 Currently GitHub for Unity is in a public alpha, and the team is focused on
 triaging reported issues and working towards a 1.0 milestone.
