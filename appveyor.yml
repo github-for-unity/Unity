@@ -53,3 +53,4 @@ test:
 artifacts:
 - path: unity\TestProject\Assets\Editor\*.dll
 - path: unity\TestProject\Assets\Editor\*.pdb
+- path: build\*.log
