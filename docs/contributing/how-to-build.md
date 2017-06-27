@@ -1,9 +1,23 @@
 # Contributing to GitHub for Unity
 
 ## Build Requirements
-To build GitHub for Unity we recommend using Visual Studio 2015 or Mono 4.x and bash.
+- To build GitHub for Unity we recommend using Visual Studio 2015 or Mono 4.x and bash.
+- The build scripts expect to find Unity in it's default installed location
+  - Windows: `C:\Program Files (x86)\Unity\`
+  - macOS: `\Applications\Unity\`
+- Alternatively `UnityEditor.dll` and `UnityEngine.dll` can be copied to `.\script\lib`
 
 ## How to Build
+
+Clone the repository and its submodules in a git GUI client or via the command line:
+
+```
+git clone https://github.com/github-for-unity/Unity
+cd Unity
+git submodule init
+git submodule deinit script
+git submodule update
+```
     
 ### Visual Studio
 
