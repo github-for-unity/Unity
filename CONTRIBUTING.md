@@ -146,26 +146,26 @@ pull requests.
 
 | Label name | :mag_right: | Description |
 | --- | --- | --- |
-| `enhancement` | [search](https://github.com/desktop/desktop/labels/enhancement) | Feature requests. |
-| `bug` | [search](https://github.com/desktop/desktop/labels/bug)  | Confirmed bugs or reports that are very likely to be bugs. |
-| `question` | [search](https://github.com/desktop/desktop/labels/question)  | Questions more than bug reports or feature requests (e.g. how do I do X). |
-| `more-information-needed` | [search](https://github.com/desktop/desktop/labels/more-information-needed) | More information needs to be collected about these problems or feature requests (e.g. steps to reproduce). |
-| `needs-reproduction` | [search](https://github.com/desktop/desktop/labels/needs-reproduction)  | Likely bugs, but haven't been reliably reproduced. |
-| `macOS` | [search](https://github.com/desktop/desktop/labels/macOS)  | Issues specific to macOS users. |
-| `Windows` | [search](https://github.com/desktop/desktop/labels/Windows)  | Issues specific to Windows users. |
-| `Linux` | [search](https://github.com/desktop/desktop/labels/Linux)  | Issues specific to Linux users. |
+| `enhancement` | [search](https://github.com/github-for-unity/Unity/labels/enhancement) | Feature requests. |
+| `bug` | [search](https://github.com/github-for-unity/Unity/labels/bug)  | Confirmed bugs or reports that are very likely to be bugs. |
+| `question` | [search](https://github.com/github-for-unity/Unity/labels/question)  | Questions more than bug reports or feature requests (e.g. how do I do X). |
+| `more-information-needed` | [search](https://github.com/github-for-unity/Unity/labels/more-information-needed) | More information needs to be collected about these problems or feature requests (e.g. steps to reproduce). |
+| `needs-reproduction` | [search](https://github.com/github-for-unity/Unity/labels/needs-reproduction)  | Likely bugs, but haven't been reliably reproduced. |
+| `macOS` | [search](https://github.com/github-for-unity/Unity/labels/macOS)  | Issues specific to macOS users. |
+| `Windows` | [search](https://github.com/github-for-unity/Unity/labels/Windows)  | Issues specific to Windows users. |
+| `Linux` | [search](https://github.com/github-for-unity/Unity/labels/Linux)  | Issues specific to Linux users. |
 
 #### Topics
 
 | Label name | :mag_right: | Description |
 | --- | --- | --- |
-| `up-for-grabs` | [search](https://github.com/desktop/desktop/labels/up-for-grabs)  | Issues marked as ideal for external contributors. |
-| `polish` | [search](https://github.com/desktop/desktop/labels/polish) | Issues not critical to the application but would provide a better experience if resolved. |
-| `tech-debt` | [search](https://github.com/desktop/desktop/labels/tech-debt) | Issues related to code or architecture decisions. |
-| `design` | [search](https://github.com/desktop/desktop/labels/design)  | Issues that require some design input from the maintainers as part of completing the work. |
+| `up-for-grabs` | [search](https://github.com/github-for-unity/Unity/labels/up-for-grabs)  | Issues marked as ideal for external contributors. |
+| `polish` | [search](https://github.com/github-for-unity/Unity/labels/polish) | Issues not critical to the application but would provide a better experience if resolved. |
+| `tech-debt` | [search](https://github.com/github-for-unity/Unity/labels/tech-debt) | Issues related to code or architecture decisions. |
+| `design` | [search](https://github.com/github-for-unity/Unity/labels/design)  | Issues that require some design input from the maintainers as part of completing the work. |
 
 #### Workflow
 
 | Label name | :mag_right: | Description |
 | --- | --- | --- |
-| `ready-for-review` | [search](https://github.com/desktop/desktop/labels/ready-for-review)  | Pull Requests that are ready to be reviewed by the maintainers. |
+| `ready-for-review` | [search](https://github.com/github-for-unity/Unity/labels/ready-for-review)  | Pull Requests that are ready to be reviewed by the maintainers. |
