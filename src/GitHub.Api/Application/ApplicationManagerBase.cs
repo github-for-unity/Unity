@@ -44,8 +44,7 @@ namespace GitHub.Unity
 
         public virtual async Task Run(bool firstRun)
         {
-            Logger.Trace("Run");
-            Logger.Trace("CurrentDirectory", NPath.CurrentDirectory);
+            Logger.Trace("Run - CurrentDirectory", NPath.CurrentDirectory);
 
             if (Environment.GitExecutablePath != null)
             {
@@ -139,7 +138,7 @@ namespace GitHub.Unity
 
         private void RunRepositoryManager()
         {
-            Logger.Trace("RestartRepository");
+            Logger.Trace("RunRepositoryManager");
 
             if (Environment.RepositoryPath != null)
             {
