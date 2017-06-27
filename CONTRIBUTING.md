@@ -153,6 +153,7 @@ pull requests.
 | `needs-reproduction` | [search](https://github.com/desktop/desktop/labels/needs-reproduction)  | Likely bugs, but haven't been reliably reproduced. |
 | `macOS` | [search](https://github.com/desktop/desktop/labels/macOS)  | Issues specific to macOS users. |
 | `Windows` | [search](https://github.com/desktop/desktop/labels/Windows)  | Issues specific to Windows users. |
+| `Linux` | [search](https://github.com/desktop/desktop/labels/Linux)  | Issues specific to Linux users. |
 
 #### Topics
 
