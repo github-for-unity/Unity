@@ -44,7 +44,7 @@ namespace GitHub.Unity
 
         public virtual async Task Run(bool firstRun)
         {
-            Logger.Trace("Run - CurrentDirectory", NPath.CurrentDirectory);
+            Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
             if (Environment.GitExecutablePath != null)
             {
