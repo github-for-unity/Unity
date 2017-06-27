@@ -11,6 +11,7 @@ namespace GitHub.Unity
         Both
     }
 
+    [Serializable]
     struct GitRemote
     {
         public string Name;

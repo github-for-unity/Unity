@@ -166,12 +166,26 @@ namespace GitHub.Unity
             repositoryUpdateCallback = debounceTimeout == 0 ?
                 OnRepositoryUpdatedHandler
                 : TaskExtensions.Debounce(OnRepositoryUpdatedHandler, debounceTimeout);
-            watcher.Initialize();
+
+            var remote = config.GetRemote("origin");
+            if (!remote.HasValue)
+                remote = config.GetRemotes()
+                      .Where(x => HostAddress.Create(new UriString(x.Url).ToRepositoryUri()).IsGitHubDotCom())
+                      .FirstOrDefault();
+            UriString cloneUrl = "";
+            if (remote.Value.Url != null)
+            {
+                cloneUrl = new UriString(remote.Value.Url).ToRepositoryUrl();
+            }
+
+            repository = new Repository(gitClient, this, repositoryPaths.RepositoryPath.FileName, cloneUrl,
+                repositoryPaths.RepositoryPath);
         }
 
         public async Task Initialize()
         {
             Logger.Trace("Initialize");
+            watcher.Initialize();
             repository = await InitializeRepository().SafeAwait();
             Logger.Trace($"Initialize done {Repository}");
         }
@@ -412,19 +426,6 @@ namespace GitHub.Unity
 
             RefreshConfigData();
 
-            var remote =
-                config.GetRemotes()
-                      .Where(x => HostAddress.Create(new UriString(x.Url).ToRepositoryUri()).IsGitHubDotCom())
-                      .FirstOrDefault();
-            UriString cloneUrl = "";
-            if (remote.Url != null)
-            {
-                cloneUrl = new UriString(remote.Url).ToRepositoryUrl();
-            }
-
-            var repo = new Repository(gitClient, this, repositoryPaths.RepositoryPath.FileName, cloneUrl,
-                repositoryPaths.RepositoryPath);
-
             var user = new User();
 
             var res = await GitClient.GetConfig("user.name", GitConfigSource.User).StartAwait();
@@ -436,8 +437,8 @@ namespace GitHub.Unity
                 throw new InvalidOperationException("No user configured");
             }
             user.Email = res;
-            repo.User = user;
-            return repo;
+            repository.User = user;
+            return repository;
         }
 
         private void RefreshConfigData()

@@ -307,11 +307,11 @@ namespace GitHub.Unity
             for (var index = 0; index < localBranches.Count; ++index)
             {
                 var branch = localBranches[index];
-                var node = new BranchTreeNode(branch.Name, NodeType.LocalBranch, branch.Active);
+                var node = new BranchTreeNode(branch.Name, NodeType.LocalBranch, branch.IsActive);
                 localBranchNodes.Add(node);
 
                 // Keep active node for quick reference
-                if (branch.Active)
+                if (branch.IsActive)
                 {
                     activeBranchNode = node;
                 }
