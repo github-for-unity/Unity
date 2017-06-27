@@ -42,7 +42,7 @@ namespace IntegrationTests
                 gitLfsDestinationPath.FileExists().Should().BeTrue();
 
                 var calculateMd5 = NPath.FileSystem.CalculateMD5(gitLfsDestinationPath);
-                GitInstaller.WindowsGitLfsExecutableMD5.Should().Be(calculateMd5);
+                Assert.IsTrue(string.Compare(calculateMd5, GitInstaller.WindowsGitLfsExecutableMD5, true) == 0);
 
                 setupDone = await gitSetup.SetupIfNeeded(new Progress<float>(x => percent = x));
                 setupDone.Should().BeFalse();
