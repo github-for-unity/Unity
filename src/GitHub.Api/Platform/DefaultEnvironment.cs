@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 
 namespace GitHub.Unity
 {
@@ -34,20 +35,38 @@ namespace GitHub.Unity
             LogPath = UserCachePath.Combine(logFile);
         }
 
-        public void Initialize(NPath extensionInstallPath, NPath unityPath, NPath assetsPath)
+        public void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityPath, NPath assetsPath)
         {
             ExtensionInstallPath = extensionInstallPath;
             UnityApplication = unityPath;
             UnityAssetsPath = assetsPath;
             UnityProjectPath = assetsPath.Parent;
-            Initialize();
+            UnityVersion = unityVersion;
+            InitializeRepository();
         }
 
-        public void Initialize()
+        public void InitializeRepository(NPath expectedRepositoryPath = null)
         {
+            if (RepositoryPath != null && RepositoryPath.DirectoryExists(".git"))
+            {
+                FileSystem.SetCurrentDirectory(RepositoryPath);
+                return;
+            }
+
             Guard.NotNull(this, UnityProjectPath, nameof(UnityProjectPath));
+
+            if (expectedRepositoryPath == null)
+                expectedRepositoryPath = UnityProjectPath;
+
             Guard.NotNull(this, FileSystem, nameof(FileSystem));
-            RepositoryPath = new RepositoryLocator(UnityProjectPath).FindRepositoryRoot();
+            if (expectedRepositoryPath != null && expectedRepositoryPath.DirectoryExists(".git"))
+            {
+                RepositoryPath = expectedRepositoryPath;
+                FileSystem.SetCurrentDirectory(RepositoryPath);
+                return;
+            }
+
+            RepositoryPath = UnityProjectPath.RecursiveParents.FirstOrDefault(d => d.DirectoryExists(".git"));
             if (RepositoryPath == null)
                 FileSystem.SetCurrentDirectory(UnityProjectPath);
             else
@@ -70,6 +89,7 @@ namespace GitHub.Unity
         }
 
         public IFileSystem FileSystem { get { return NPath.FileSystem; } set { NPath.FileSystem = value; } }
+        public string UnityVersion { get; set; }
         public NPath UnityApplication { get; set; }
         public NPath UnityAssetsPath { get; set; }
         public NPath UnityProjectPath { get; set; }

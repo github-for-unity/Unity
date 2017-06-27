@@ -84,7 +84,6 @@
     <Compile Include="$(SolutionDir)\script\src\MetricsInitialization.cs" Condition="$(Buildtype) == 'Internal'">
       <Link>Metrics\MetricsInitialization.cs</Link>
     </Compile>
-    <Compile Include="Misc\RepositoryInitializer.cs" />
     <Compile Include="RunLocationShim.cs" />
     <Compile Include="ScriptObjectSingleton.cs" />
     <Compile Include="Threading\SingleThreadSynchronizationContext.cs" />

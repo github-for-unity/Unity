@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace GitHub.Unity
@@ -24,6 +26,50 @@ namespace GitHub.Unity
         public string CreatedDate
         {
             get { return createdDate; }
+        }
+    }
+
+    sealed class EnvironmentCache : ScriptObjectSingleton<EnvironmentCache>
+    {
+        [SerializeField] private string repositoryPath;
+        [SerializeField] private string unityApplication;
+        [SerializeField] private string unityAssetsPath;
+        [SerializeField] private string extensionInstallPath;
+        [SerializeField] private string gitExecutablePath;
+        [SerializeField] private string unityVersion;
+
+        [NonSerialized] private IEnvironment environment;
+        public IEnvironment Environment
+        {
+            get
+            {
+                if (environment == null)
+                {
+                    environment = new DefaultEnvironment();
+                    if (unityApplication == null)
+                    {
+                        unityAssetsPath = Application.dataPath;
+                        unityApplication = EditorApplication.applicationPath;
+                        extensionInstallPath = AssetDatabase.GetAssetPath(this);
+                        unityVersion = Application.unityVersion;
+                    }
+                    environment.Initialize(unityVersion, extensionInstallPath.ToNPath(), unityApplication.ToNPath(), unityAssetsPath.ToNPath());
+                    if (repositoryPath != null)
+                        environment.InitializeRepository(repositoryPath.ToNPath());
+                    Flush();
+                }
+                return environment;
+            }
+        }
+
+        public void Flush()
+        {
+            repositoryPath = Environment.RepositoryPath;
+            unityApplication = Environment.UnityApplication;
+            unityAssetsPath = Environment.UnityAssetsPath;
+            extensionInstallPath = Environment.ExtensionInstallPath;
+            gitExecutablePath = Environment.GitExecutablePath;
+            Save(true);
         }
     }
 

@@ -150,7 +150,6 @@
     <Compile Include="OutputProcessors\LogEntryOutputProcessor.cs" />
     <Compile Include="OutputProcessors\ProcessManager.cs" />
     <Compile Include="OutputProcessors\StatusOutputProcessor.cs" />
-    <Compile Include="Git\RepositoryLocator.cs" />
     <Compile Include="Git\GitConfig.cs" />
     <Compile Include="OutputProcessors\LineProcessor.cs" />
     <Compile Include="IO\FileSystem.cs" />
