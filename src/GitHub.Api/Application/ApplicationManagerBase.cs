@@ -55,7 +55,7 @@ namespace GitHub.Unity
                 var progress = new ProgressReport();
 
                 var gitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
-                var gitSetup = new GitSetup(Environment, CancellationToken);
+                var gitSetup = new GitInstaller(Environment, CancellationToken);
                 var expectedPath = gitSetup.GitInstallationPath;
                 var setupDone = await gitSetup.SetupIfNeeded(progress.Percentage, progress.Remaining);
                 if (setupDone)

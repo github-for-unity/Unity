@@ -16,7 +16,7 @@ namespace IntegrationTests
 
             Environment = new IntegrationTestEnvironment(repoPath, SolutionDirectory, environmentPath, enableEnvironmentTrace);
 
-            var gitSetup = new GitSetup(Environment, TaskManager.Token);
+            var gitSetup = new GitInstaller(Environment, TaskManager.Token);
             await gitSetup.SetupIfNeeded();
             Environment.GitExecutablePath = gitSetup.GitExecutablePath;
 

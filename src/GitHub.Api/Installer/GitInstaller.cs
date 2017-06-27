@@ -6,7 +6,8 @@ namespace GitHub.Unity
 {
     class GitInstaller : IGitInstaller
     {
-        public const string GitLfsExecutableMD5 = "63700E111EF68EE1AD866C2C4373B68D";
+        public const string WindowsGitLfsExecutableMD5 = "7cfa21e5e9f9819a7cb0c317b0be1c5b";
+        public const string MacGitLfsExecutableMD5 = "54f586df05a4b80feae4fabed10d8e95";
 
         private const string PortableGitExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
         private const string PackageName = "PortableGit";
@@ -40,7 +41,7 @@ namespace GitHub.Unity
                  : ZipHelper.ExtractZipFile;
 
 
-            PackageDestinationDirectory = environment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
+            GitInstallationPath = environment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
                 .ToNPath().Combine(ApplicationInfo.ApplicationName, PackageNameWithVersion);
             var gitExecutable = "git";
             var gitLfsExecutable = "git-lfs";
@@ -52,21 +53,21 @@ namespace GitHub.Unity
             GitLfsExecutable = gitLfsExecutable;
             GitExecutable = gitExecutable;
 
-            GitDestinationPath = PackageDestinationDirectory;
+            GitExecutablePath = GitInstallationPath;
             if (DefaultEnvironment.OnWindows)
-                GitDestinationPath = GitDestinationPath.Combine("cmd");
+                GitExecutablePath = GitExecutablePath.Combine("cmd");
             else
-                GitDestinationPath = GitDestinationPath.Combine("bin");
-            GitDestinationPath = GitDestinationPath.Combine(GitExecutable);
+                GitExecutablePath = GitExecutablePath.Combine("bin");
+            GitExecutablePath = GitExecutablePath.Combine(GitExecutable);
 
-            GitLfsDestinationPath = PackageDestinationDirectory;
+            GitLfsExecutablePath = GitInstallationPath;
 
             if (DefaultEnvironment.OnWindows)
             {
-                GitLfsDestinationPath = GitLfsDestinationPath.Combine("mingw32");
+                GitLfsExecutablePath = GitLfsExecutablePath.Combine("mingw32");
             }
 
-            GitLfsDestinationPath = GitLfsDestinationPath.Combine("libexec", "git-core", GitLfsExecutable);
+            GitLfsExecutablePath = GitLfsExecutablePath.Combine("libexec", "git-core", GitLfsExecutable);
         }
 
         public bool IsExtracted()
@@ -76,9 +77,9 @@ namespace GitHub.Unity
 
         private bool IsPortableGitExtracted()
         {
-            if (!GitDestinationPath.FileExists())
+            if (!GitExecutablePath.FileExists())
             {
-                logger.Trace("{0} not installed yet", GitDestinationPath);
+                logger.Trace("{0} not installed yet", GitExecutablePath);
                 return false;
             }
 
@@ -89,18 +90,18 @@ namespace GitHub.Unity
 
         public bool IsGitLfsExtracted()
         {
-            if (!GitLfsDestinationPath.FileExists())
+            if (!GitLfsExecutablePath.FileExists())
             {
-                logger.Trace("{0} not installed yet", GitLfsDestinationPath);
+                logger.Trace("{0} not installed yet", GitLfsExecutablePath);
                 return false;
             }
 
-            var calculateMd5 = environment.FileSystem.CalculateMD5(GitLfsDestinationPath);
+            var calculateMd5 = environment.FileSystem.CalculateMD5(GitLfsExecutablePath);
             logger.Trace("GitLFS MD5: {0}", calculateMd5);
-
-            if (calculateMd5 != GitLfsExecutableMD5)
+            var md5 = environment.IsWindows ? WindowsGitLfsExecutableMD5 : MacGitLfsExecutableMD5;
+            if (calculateMd5 != md5)
             {
-                logger.Trace("{0} has incorrect MD5", GitDestinationPath);
+                logger.Trace("{0} has incorrect MD5", GitExecutablePath);
                 return false;
             }
 
@@ -156,7 +157,7 @@ namespace GitHub.Unity
 
             if (IsPortableGitExtracted())
             {
-                logger.Trace("Already extracted {0}, returning", PackageDestinationDirectory);
+                logger.Trace("Already extracted {0}, returning", GitInstallationPath);
                 return TaskEx.FromResult(true);
             }
 
@@ -196,16 +197,16 @@ namespace GitHub.Unity
 
             try
             {
-                PackageDestinationDirectory.DeleteIfExists();
-                PackageDestinationDirectory.EnsureParentDirectoryExists();
+                GitInstallationPath.DeleteIfExists();
+                GitInstallationPath.EnsureParentDirectoryExists();
 
-                logger.Trace("Moving \"{0}\" to \"{1}\"", unzipPath, PackageDestinationDirectory);
+                logger.Trace("Moving \"{0}\" to \"{1}\"", unzipPath, GitInstallationPath);
 
-                unzipPath.Move(PackageDestinationDirectory);
+                unzipPath.Move(GitInstallationPath);
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Error Moving \"{0}\" to \"{1}\"", tempPath, PackageDestinationDirectory);
+                logger.Error(ex, "Error Moving \"{0}\" to \"{1}\"", tempPath, GitInstallationPath);
                 return TaskEx.FromResult(false);
             }
             unzipPath.DeleteIfExists();
@@ -221,7 +222,7 @@ namespace GitHub.Unity
 
             if (IsGitLfsExtracted())
             {
-                logger.Trace("Already extracted {0}, returning", GitLfsDestinationPath);
+                logger.Trace("Already extracted {0}, returning", GitLfsExecutablePath);
                 return TaskEx.FromResult(false);
             }
 
@@ -262,13 +263,13 @@ namespace GitHub.Unity
             try
             {
                 var unzippedGitLfsExecutablePath = unzipPath.Combine(GitLfsExecutable);
-                logger.Trace("Copying \"{0}\" to \"{1}\"", unzippedGitLfsExecutablePath, GitLfsDestinationPath);
+                logger.Trace("Copying \"{0}\" to \"{1}\"", unzippedGitLfsExecutablePath, GitLfsExecutablePath);
 
-                unzippedGitLfsExecutablePath.Copy(GitLfsDestinationPath);
+                unzippedGitLfsExecutablePath.Copy(GitLfsExecutablePath);
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Error Copying git-lfs Source:\"{0}\" Destination:\"{1}\"", unzipPath, GitLfsDestinationPath);
+                logger.Error(ex, "Error Copying git-lfs Source:\"{0}\" Destination:\"{1}\"", unzipPath, GitLfsExecutablePath);
                 return TaskEx.FromResult(false);
             }
             unzipPath.DeleteIfExists();
@@ -280,11 +281,11 @@ namespace GitHub.Unity
             return NPath.CreateTempDirectory(TempPathPrefix);
         }
 
-        public NPath PackageDestinationDirectory { get; private set; }
+        public NPath GitInstallationPath { get; private set; }
 
-        public NPath GitLfsDestinationPath { get; private set; }
+        public NPath GitLfsExecutablePath { get; private set; }
 
-        public NPath GitDestinationPath { get; private set; }
+        public NPath GitExecutablePath { get; private set; }
         public string PackageNameWithVersion => PackageName + "_" + PortableGitExpectedVersion;
 
         private string GitLfsExecutable { get; set; }
