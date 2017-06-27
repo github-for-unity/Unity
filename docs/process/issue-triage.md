@@ -35,8 +35,6 @@ work should proceed:
  - user experience - ensure things are consistent, discoverable
  - quality - ensure the change does not adversely affect other features
 
-e.g. GitHub for Unity should support worktrees as a first class feature.
-
 For work that we may evaluate post-1.0, we will label the issue `future-work`
 and close it out, to keep our short-term backlog under control.
 
