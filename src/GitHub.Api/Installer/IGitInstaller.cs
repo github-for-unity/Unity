@@ -7,7 +7,7 @@ namespace GitHub.Unity
     interface IGitInstaller
     {
         bool IsExtracted();
-        NPath PackageDestinationDirectory { get; }
+        NPath GitInstallationPath { get; }
         string PackageNameWithVersion { get; }
     }
 }
