@@ -52,13 +52,13 @@ namespace GitHub.Unity
 
             var alreadyLocked = locks.Any(x =>
             {
-                return repositoryPath == x.Path;
+                return repositoryPath == x.Path.ToNPath();
 
             });
             GitFileStatus status = GitFileStatus.None;
             if (entries != null)
             {
-                status = entries.FirstOrDefault(x => repositoryPath == x.Path).Status;
+                status = entries.FirstOrDefault(x => repositoryPath == x.Path.ToNPath()).Status;
             }
             return !alreadyLocked && status != GitFileStatus.Untracked && status != GitFileStatus.Ignored;
         }
@@ -100,7 +100,7 @@ namespace GitHub.Unity
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
 
-            var isLocked = locks.Any(x => repositoryPath == x.Path);
+            var isLocked = locks.Any(x => repositoryPath == x.Path.ToNPath());
             return isLocked;
         }
 
