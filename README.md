@@ -8,8 +8,6 @@ The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub int
 
 **Please note:** this software is currently alpha quality. Please refer to the [list of known issues](https://github.com/github-for-unity/Unity/issues?q=is%3Aissue+is%3Aopen+label%3Abug), and make sure you have backups of your work before trying it out.
 
-![GitHub for Unity screenshot](https://unity.github.com/images/unity-screenshot.png)
-
 ## Installing GitHub for Unity
 
 ### Requirements
