@@ -21,7 +21,7 @@ The GitHub for Unity extension brings [git](https://git-scm.com/) and GitHub int
 ### Installation
 
 - Create a new Unity project.
-- Download the latest release from the [releases page](https://github.com/github/UnityInternal/releases) and double-click the unitypackage file. The package will install itself into the project currently opened in Unity, and Unity will automatically load it once all the files are in the project.
+- Download the latest release from the [releases page](https://github.com/github-for-unity/Unity/releases) and double-click the unitypackage file. The package will install itself into the project currently opened in Unity, and Unity will automatically load it once all the files are in the project.
 
 ## I have a problem with GitHub for Unity
 
