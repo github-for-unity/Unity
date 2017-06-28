@@ -29,6 +29,10 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
+            if (authView == null)
+            {
+                CreateViews();
+            }
             authView.OnGUI();
         }
 
