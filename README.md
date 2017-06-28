@@ -4,7 +4,7 @@
 
 [![Join the chat at https://gitter.im/github/VisualStudio](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/github-for-unity/Unity?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-The GitHub for Unity extension brings [git](https://git-scm.com/) and GitHub into [Unity](https://unity3d.com/), integrating source control into your work with friendly and accessible tools and workflows.
+The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub into [Unity](https://unity3d.com/), integrating source control into your work with friendly and accessible tools and workflows.
 
 **Please note:** this software is currently alpha quality. Please refer to the [list of known issues](https://github.com/github-for-unity/Unity/issues?q=is%3Aissue+is%3Aopen+label%3Abug), and make sure you have backups of your work before trying it out.
 
