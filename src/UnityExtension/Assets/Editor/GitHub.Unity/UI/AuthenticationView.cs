@@ -144,6 +144,7 @@ namespace GitHub.Unity
             GUILayout.FlexibleSpace();
             if (GUILayout.Button(loginButton))
             {
+                GUI.FocusControl(null);
                 busy = true;
                 AuthenticationService.Login(username, password, DoRequire2fa, DoResult);
             }
@@ -177,6 +178,7 @@ namespace GitHub.Unity
             GUILayout.FlexibleSpace();
             if (GUILayout.Button(backButton))
             {
+                GUI.FocusControl(null);
                 need2fa = false;
                 Redraw();
             }
@@ -185,6 +187,7 @@ namespace GitHub.Unity
 
             if (GUILayout.Button(twofaButton))
             {
+                GUI.FocusControl(null);
                 busy = true;
                 AuthenticationService.LoginWith2fa(two2fa);
             }

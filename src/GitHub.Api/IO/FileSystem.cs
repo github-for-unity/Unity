@@ -1,5 +1,6 @@
 using GitHub.Unity;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -20,6 +21,7 @@ namespace GitHub.Unity
 
         public void SetCurrentDirectory(string currentDirectory)
         {
+            Debug.Assert(Path.IsPathRooted(currentDirectory));
             this.currentDirectory = currentDirectory;
         }
 

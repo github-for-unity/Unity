@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using GitHub.Unity;
 using System.Threading.Tasks;
 
@@ -10,12 +11,12 @@ namespace IntegrationTests
             bool enableEnvironmentTrace = false)
         {
             TaskManager = new TaskManager();
-            var sc = new ThreadSynchronizationContext(TaskManager.Token);
-            TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(sc);
+            SyncContext = new ThreadSynchronizationContext(TaskManager.Token);
+            TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(SyncContext);
 
             Environment = new IntegrationTestEnvironment(repoPath, SolutionDirectory, environmentPath, enableEnvironmentTrace);
 
-            var gitSetup = new GitSetup(Environment, TaskManager.Token);
+            var gitSetup = new GitInstaller(Environment, TaskManager.Token);
             await gitSetup.SetupIfNeeded();
             Environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
@@ -24,7 +25,6 @@ namespace IntegrationTests
             ProcessManager = new ProcessManager(Environment, GitEnvironment, TaskManager.Token);
 
             Platform.Initialize(ProcessManager, TaskManager);
-
 
             GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
 
@@ -67,12 +67,13 @@ namespace IntegrationTests
         public IRepositoryManager RepositoryManager { get; private set; }
 
         protected IPlatform Platform { get; private set; }
-
+        protected IApplicationManager ApplicationManager { get; set; }
         protected IProcessManager ProcessManager { get; private set; }
         protected ITaskManager TaskManager { get; private set; }
 
         protected IProcessEnvironment GitEnvironment { get; private set; }
         protected IGitClient GitClient { get; set; }
+        protected SynchronizationContext SyncContext { get; set; }
 
         protected NPath DotGitConfig { get; private set; }
 

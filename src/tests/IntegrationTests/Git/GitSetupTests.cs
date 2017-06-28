@@ -16,14 +16,14 @@ namespace IntegrationTests
             var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
             var environment = await Initialize(TestRepoMasterDirtyUnsynchronized, environmentPath);
 
-            var gitSetup = new GitSetup(environment, TaskManager.Token);
+            var gitSetup = new GitInstaller(environment, TaskManager.Token);
             var expectedPath = gitSetup.GitInstallationPath;
 
             var setupDone = false;
             var percent = -1f;
             gitSetup.GitExecutablePath.FileExists().Should().BeFalse();
 
-            setupDone = await gitSetup.SetupIfNeeded(percentage: new Progress<float>(x => percent = x));
+            setupDone = await gitSetup.SetupIfNeeded(new Progress<float>(x => percent = x));
 
             if (environment.IsWindows)
             {
@@ -42,9 +42,9 @@ namespace IntegrationTests
                 gitLfsDestinationPath.FileExists().Should().BeTrue();
 
                 var calculateMd5 = NPath.FileSystem.CalculateMD5(gitLfsDestinationPath);
-                GitInstaller.GitLfsExecutableMD5.Should().Be(calculateMd5);
+                Assert.IsTrue(string.Compare(calculateMd5, GitInstaller.WindowsGitLfsExecutableMD5, true) == 0);
 
-                setupDone = await gitSetup.SetupIfNeeded(percentage: new Progress<float>(x => percent = x));
+                setupDone = await gitSetup.SetupIfNeeded(new Progress<float>(x => percent = x));
                 setupDone.Should().BeFalse();
             }
             else
@@ -84,7 +84,7 @@ namespace IntegrationTests
             gitLfsPath.Exists().Should().BeTrue();
 
             var calculateMd5 = NPath.FileSystem.CalculateMD5(gitLfsPath);
-            GitInstaller.GitLfsExecutableMD5.Should().Be(calculateMd5);
+            Assert.IsTrue(string.Compare(calculateMd5, GitInstaller.WindowsGitLfsExecutableMD5, true) == 0);
         }
     }
 }
