@@ -50,7 +50,7 @@ namespace GitHub.Unity
                     {
                         unityAssetsPath = Application.dataPath;
                         unityApplication = EditorApplication.applicationPath;
-                        extensionInstallPath = AssetDatabase.GetAssetPath(this);
+                        extensionInstallPath = DetermineInstallationPath();
                         unityVersion = Application.unityVersion;
                     }
                     environment.Initialize(unityVersion, extensionInstallPath.ToNPath(), unityApplication.ToNPath(), unityAssetsPath.ToNPath());
@@ -60,6 +60,16 @@ namespace GitHub.Unity
                 }
                 return environment;
             }
+        }
+
+        private NPath DetermineInstallationPath()
+        {
+            // Juggling to find out where we got installed
+            var shim = ScriptableObject.CreateInstance<RunLocationShim>();
+            var script = MonoScript.FromScriptableObject(shim);
+            var scriptPath = AssetDatabase.GetAssetPath(script).ToNPath();
+            ScriptableObject.DestroyImmediate(shim);
+            return scriptPath.Parent;
         }
 
         public void Flush()
