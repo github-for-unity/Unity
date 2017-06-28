@@ -70,8 +70,9 @@ namespace GitHub.Unity
             };
 
             gitEnvironment.Configure(startInfo, workingDirectory);
-            var p = new ProcessTask<string>(cancellationToken);
+            var p = new ProcessTask<string>(cancellationToken, new SimpleOutputProcessor());
             p.Configure(startInfo);
+            p.Start();
             return p;
         }
 

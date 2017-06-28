@@ -12,7 +12,7 @@ namespace GitHub.Unity
 
     class AssemblyResources
     {
-        public static NPath ToFile(ResourceType resourceType, string resource, NPath destinationPath)
+        public static NPath ToFile(ResourceType resourceType, string resource, NPath destinationPath, IEnvironment environment)
         {
             var os = "";
             if (resourceType == ResourceType.Platform)
@@ -21,7 +21,7 @@ namespace GitHub.Unity
                     : DefaultEnvironment.OnLinux ? "linux"
                         : "mac";
             }
-            var type = resourceType == ResourceType.Icon ? "Icons"
+            var type = resourceType == ResourceType.Icon ? "IconsAndLogos"
                 : resourceType == ResourceType.Platform ? "PlatformResources"
                 : "Resources";
             var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
@@ -29,7 +29,7 @@ namespace GitHub.Unity
             if (stream != null)
                 return destinationPath.Combine(resource).WriteAllBytes(stream.ToByteArray());
 
-            return new NPath(type).Combine(os, resource);
+            return environment.ExtensionInstallPath.Combine(type, os, resource);
         }
     }
 }

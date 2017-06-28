@@ -103,13 +103,13 @@
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="Application\ApplicationManagerBase.cs" />
     <Compile Include="Helpers\Constants.cs" />
+    <Compile Include="Cache\IBranchCache.cs" />
     <Compile Include="Platform\DefaultEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Extensions\FileEventExtensions.cs" />
     <Compile Include="Events\RepositoryWatcher.cs" />
     <Compile Include="Extensions\FileSystemExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
-    <Compile Include="Git\GitSetup.cs" />
     <Compile Include="Git\GitFileStatus.cs" />
     <Compile Include="Git\GitLock.cs" />
     <Compile Include="Git\GitObjectFactory.cs" />
@@ -149,7 +149,6 @@
     <Compile Include="OutputProcessors\LogEntryOutputProcessor.cs" />
     <Compile Include="OutputProcessors\ProcessManager.cs" />
     <Compile Include="OutputProcessors\StatusOutputProcessor.cs" />
-    <Compile Include="Git\RepositoryLocator.cs" />
     <Compile Include="Git\GitConfig.cs" />
     <Compile Include="OutputProcessors\LineProcessor.cs" />
     <Compile Include="IO\FileSystem.cs" />
