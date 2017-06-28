@@ -107,8 +107,8 @@ namespace GitHub.Unity
                 .Then(GitClient.LfsInstall())
                 .ThenInUI(SetProjectToTextSerialization)
                 .Then(new ActionTask(CancellationToken, _ => {
-                    AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath);
-                    AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath);
+                    AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath, Environment);
+                    AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath, Environment);
 
                     assetsGitignore.CreateFile();
                 }))
