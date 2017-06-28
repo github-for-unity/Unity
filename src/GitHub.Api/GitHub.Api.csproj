@@ -239,6 +239,9 @@
     <Compile Include="$(SolutionDir)\script\src\MetricsService.cs">
       <Link>Metrics\MetricsService.cs</Link>
     </Compile>
+    <Compile Include="$(SolutionDir)\script\src\ApplicationInfo_Local.cs">
+      <Link>Properties\ApplicationInfo_Local.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\submodules\dotnet-httpClient35\System.Net.Http\System.Net.Http-net_3_5.csproj">
