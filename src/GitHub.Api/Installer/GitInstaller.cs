@@ -163,7 +163,7 @@ namespace GitHub.Unity
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitZipFile, tempPath);
+            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitZipFile, tempPath, environment);
             if (!archiveFilePath.FileExists())
             {
                 logger.Warning("Archive \"{0}\" missing", archiveFilePath.ToString());
@@ -228,7 +228,7 @@ namespace GitHub.Unity
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitLfsZipFile, tempPath);
+            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitLfsZipFile, tempPath, environment);
             if (!archiveFilePath.FileExists())
             {
                 logger.Warning("Archive \"{0}\" missing", archiveFilePath.ToString());
