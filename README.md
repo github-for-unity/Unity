@@ -6,6 +6,8 @@
 
 The GitHub for Unity extension brings [git](https://git-scm.com/) and GitHub into [Unity](https://unity3d.com/), integrating source control into your work with friendly and accessible tools and workflows.
 
+**Please note:** this software is currently alpha quality. Please refer to the [list of known issues](https://github.com/github-for-unity/Unity/issues?q=is%3Aissue+is%3Aopen+label%3Abug), and make sure you have backups of your work before trying it out.
+
 ![GitHub for Unity screenshot](https://unity.github.com/assets/unity-screenshot.png)
 
 ## Where can I get it?
