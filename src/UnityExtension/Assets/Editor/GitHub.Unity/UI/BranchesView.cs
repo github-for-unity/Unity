@@ -452,6 +452,8 @@ namespace GitHub.Unity
                     var cannotCreate = selectedNode == null ||
                                        selectedNode.Type == NodeType.Folder ||
                                        newBranchName == null ||
+                                       newBranchName.StartsWith("/") ||
+                                       newBranchName.EndsWith("/") ||
                                        !Utility.BranchNameRegex.IsMatch(newBranchName);
 
                     // Create on return/enter or cancel on escape
