@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,7 +7,7 @@ namespace GitHub.Unity
     [Serializable]
     class AuthenticationWindow : BaseWindow
     {
-        private const string Title = "Sign in";
+        private const string Title = "Authentication";
 
         [SerializeField] private AuthenticationView authView;
 
@@ -19,10 +19,10 @@ namespace GitHub.Unity
 
         public static IView Open(Action<bool> onClose = null)
         {
-            AuthenticationWindow authWindow = GetWindow<AuthenticationWindow>();
+            AuthenticationWindow authWindow = GetWindow<AuthenticationWindow>(true);
             if (onClose != null)
                 authWindow.OnClose += onClose;
-            authWindow.minSize = new Vector2(290, 290);
+            authWindow.minSize = authWindow.maxSize = new Vector2(290, 290);
             authWindow.Show();
             return authWindow;
        }
