@@ -57,6 +57,7 @@ namespace GitHub.Unity
 
         [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
         [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
+        [SerializeField] private bool isBusy;
 
         public override void Initialize(IApplicationManager applicationManager)
         {
@@ -279,10 +280,18 @@ namespace GitHub.Unity
 
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
+
+                var enabled = GUI.enabled;
+                GUI.enabled = !isBusy;
+
                 if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
                 {
-                    new RepositoryInitializer(Manager).Run();
+                    isBusy = true;
+                    Manager.InitializeRepository()
+                        .FinallyInUI(() => isBusy = false)
+                        .Start();
                 }
+                GUI.enabled = enabled;
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 

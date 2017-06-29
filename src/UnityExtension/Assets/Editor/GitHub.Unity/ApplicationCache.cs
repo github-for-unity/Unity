@@ -1,63 +1,177 @@
 using System;
-using System.IO;
-using System.Linq;
-using UnityEditorInternal;
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace GitHub.Unity
 {
-    sealed class ApplicationCache : ScriptableObject
+    sealed class ApplicationCache : ScriptObjectSingleton<ApplicationCache>
     {
-        private static ApplicationCache instance;
-        private static string cachePath;
-
         [SerializeField] private bool firstRun = true;
         public bool FirstRun
         {
-            get { return firstRun; }
-            private set
+            get
             {
-                firstRun = value;
-                Flush();
-            }
-        }
-
-        public static ApplicationCache Instance
-        {
-            get { return instance ?? CreateApplicationCache(EntryPoint.Environment); }
-        }
-
-        private static ApplicationCache CreateApplicationCache(IEnvironment environment)
-        {
-            cachePath = environment.UnityProjectPath + "/Temp/github_cache.yaml";
-
-            if (File.Exists(cachePath))
-            {
-                var objects = InternalEditorUtility.LoadSerializedFileAndForget(cachePath);
-                if (objects.Any())
+                var val = firstRun;
+                if (firstRun)
                 {
-                    instance = objects[0] as ApplicationCache;
-                    if (instance != null)
-                    {
-                        if (instance.FirstRun)
-                        {
-                            instance.FirstRun = false;
-                        }
-
-                        return instance;
-                    }
+                    firstRun = false;
+                    Save(true);
                 }
+                return val;
             }
-
-            instance = CreateInstance<ApplicationCache>();
-            instance.Flush();
-
-            return instance;
         }
 
-        private void Flush()
+        [SerializeField] private string createdDate;
+        public string CreatedDate
         {
-            InternalEditorUtility.SaveToSerializedFileAndForget(new UnityEngine.Object[] { this }, cachePath, true);
+            get { return createdDate; }
+        }
+    }
+
+    sealed class EnvironmentCache : ScriptObjectSingleton<EnvironmentCache>
+    {
+        [SerializeField] private string repositoryPath;
+        [SerializeField] private string unityApplication;
+        [SerializeField] private string unityAssetsPath;
+        [SerializeField] private string extensionInstallPath;
+        [SerializeField] private string gitExecutablePath;
+        [SerializeField] private string unityVersion;
+
+        [NonSerialized] private IEnvironment environment;
+        public IEnvironment Environment
+        {
+            get
+            {
+                if (environment == null)
+                {
+                    environment = new DefaultEnvironment();
+                    if (unityApplication == null)
+                    {
+                        unityAssetsPath = Application.dataPath;
+                        unityApplication = EditorApplication.applicationPath;
+                        extensionInstallPath = DetermineInstallationPath();
+                        unityVersion = Application.unityVersion;
+                    }
+                    environment.Initialize(unityVersion, extensionInstallPath.ToNPath(), unityApplication.ToNPath(), unityAssetsPath.ToNPath());
+                    if (repositoryPath != null)
+                        environment.InitializeRepository(repositoryPath.ToNPath());
+                    Flush();
+                }
+                return environment;
+            }
+        }
+
+        private NPath DetermineInstallationPath()
+        {
+            // Juggling to find out where we got installed
+            var shim = ScriptableObject.CreateInstance<RunLocationShim>();
+            var script = MonoScript.FromScriptableObject(shim);
+            var scriptPath = AssetDatabase.GetAssetPath(script).ToNPath();
+            ScriptableObject.DestroyImmediate(shim);
+            return scriptPath.Parent;
+        }
+
+        public void Flush()
+        {
+            repositoryPath = Environment.RepositoryPath;
+            unityApplication = Environment.UnityApplication;
+            unityAssetsPath = Environment.UnityAssetsPath;
+            extensionInstallPath = Environment.ExtensionInstallPath;
+            gitExecutablePath = Environment.GitExecutablePath;
+            Save(true);
+        }
+    }
+
+    [Location("cache/branches.yaml", LocationAttribute.Location.UserFolder)]
+    sealed class BranchCache : ScriptObjectSingleton<BranchCache>, IBranchCache
+    {
+        [SerializeField] private List<GitBranch> localBranches;
+        [SerializeField] private List<GitBranch> remoteBranches;
+        [SerializeField] private List<GitBranch> test;
+        public BranchCache()
+        {
+            test = new List<GitBranch>() { new GitBranch("name", "tracking", false) };
+        }
+
+        public List<GitBranch> LocalBranches
+        {
+            get
+            {
+                if (localBranches == null)
+                    localBranches = new List<GitBranch>();
+                return localBranches;
+            }
+            set
+            {
+                Logging.GetLogger().Debug("Saving branches {0}", value.Join(","));
+                localBranches = value;
+                Save(true);
+            }
+        }
+        public List<GitBranch> RemoteBranches
+        {
+            get
+            {
+                if (remoteBranches == null)
+                    remoteBranches = new List<GitBranch>();
+                return remoteBranches;
+            }
+            set
+            {
+                remoteBranches = value;
+                Save(true);
+            }
+        }
+    }
+
+    [Location("views/branches.yaml", LocationAttribute.Location.UserFolder)]
+    sealed class Favourites : ScriptObjectSingleton<Favourites>
+    {
+        [SerializeField] private List<string> favouriteBranches;
+        public List<string> FavouriteBranches
+        {
+            get
+            {
+                if (favouriteBranches == null)
+                    FavouriteBranches = new List<string>();
+                return favouriteBranches;
+            }
+            set
+            {
+                favouriteBranches = value;
+                Save(true);
+            }
+        }
+
+        public void SetFavourite(string branchName)
+        {
+            if (FavouriteBranches.Contains(branchName))
+                return;
+            FavouriteBranches.Add(branchName);
+            Save(true);
+        }
+
+        public void UnsetFavourite(string branchName)
+        {
+            if (!FavouriteBranches.Contains(branchName))
+                return;
+            FavouriteBranches.Remove(branchName);
+            Save(true);
+        }
+
+        public void ToggleFavourite(string branchName)
+        {
+            if (FavouriteBranches.Contains(branchName))
+                FavouriteBranches.Remove(branchName);
+            else
+                FavouriteBranches.Add(branchName);
+            Save(true);
+        }
+
+        public bool IsFavourite(string branchName)
+        {
+            return FavouriteBranches.Contains(branchName);
         }
     }
 }

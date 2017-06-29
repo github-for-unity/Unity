@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEditor;
 
@@ -26,6 +26,7 @@ namespace GitHub.Unity
         [NonSerialized] private bool need2fa;
         [NonSerialized] private bool busy;
         [NonSerialized] private string message;
+        [NonSerialized] private bool enterPressed;
 
         [NonSerialized] private AuthenticationService authenticationService;
         private AuthenticationService AuthenticationService
@@ -73,6 +74,8 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
+            HandleEnterPressed();
+
             scroll = GUILayout.BeginScrollView(scroll);
             {
                 Rect authHeader = EditorGUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
@@ -116,6 +119,16 @@ namespace GitHub.Unity
             GUILayout.EndScrollView();
         }
 
+        private void HandleEnterPressed()
+        {
+            if (Event.current.type != EventType.KeyDown)
+                return;
+
+            enterPressed = Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter;
+            if (enterPressed)
+                Event.current.Use();
+        }
+
         private void OnGUILogin()
         {
             GUILayout.Space(3);
@@ -142,8 +155,9 @@ namespace GitHub.Unity
             if (busy) GUI.enabled = false;
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button(loginButton))
+            if (GUILayout.Button(loginButton) || (GUI.enabled && enterPressed))
             {
+                GUI.FocusControl(null);
                 busy = true;
                 AuthenticationService.Login(username, password, DoRequire2fa, DoResult);
             }
@@ -177,14 +191,16 @@ namespace GitHub.Unity
             GUILayout.FlexibleSpace();
             if (GUILayout.Button(backButton))
             {
+                GUI.FocusControl(null);
                 need2fa = false;
                 Redraw();
             }
 
             GUILayout.Space(Styles.BaseSpacing);
 
-            if (GUILayout.Button(twofaButton))
+            if (GUILayout.Button(twofaButton) || (GUI.enabled && enterPressed))
             {
+                GUI.FocusControl(null);
                 busy = true;
                 AuthenticationService.LoginWith2fa(two2fa);
             }

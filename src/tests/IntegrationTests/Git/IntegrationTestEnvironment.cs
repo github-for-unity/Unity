@@ -28,8 +28,8 @@ namespace IntegrationTests
 
             var installPath = solutionDirectory.Parent.Parent.Parent.Combine("GitHub.Api");
 
-            Initialize(installPath, solutionDirectory, repoPath.Combine("Assets"));
-            Initialize();
+            Initialize(UnityVersion, installPath, solutionDirectory, repoPath.Combine("Assets"));
+            InitializeRepository();
 
             this.enableTrace = enableTrace;
 
@@ -40,14 +40,14 @@ namespace IntegrationTests
             }
         }
 
-        public void Initialize(NPath extensionInstallPath, NPath unityPath, NPath assetsPath)
+        public void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityPath, NPath assetsPath)
         {
-            defaultEnvironment.Initialize(extensionInstallPath, unityPath, assetsPath);
+            defaultEnvironment.Initialize(unityVersion, extensionInstallPath, unityPath, assetsPath);
         }
 
-        public void Initialize()
+        public void InitializeRepository(NPath expectedPath = null)
         {
-            defaultEnvironment.Initialize();
+            defaultEnvironment.InitializeRepository(expectedPath);
         }
 
         public string ExpandEnvironmentVariables(string name)
@@ -82,6 +82,7 @@ namespace IntegrationTests
 
         public NPath Path => Environment.GetEnvironmentVariable("PATH").ToNPath();
         public string NewLine => Environment.NewLine;
+        public string UnityVersion => "5.6";
 
         public NPath GitExecutablePath
         {
