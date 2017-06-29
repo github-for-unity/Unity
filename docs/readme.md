@@ -10,8 +10,8 @@ resources to get familiar with how things work:
 
  - **[How Can I Contribute?](../CONTRIBUTING.md#how-can-i-contribute)** -
     details about how you can participate
- - **[Development Environment Setup](contributing/setup.md)** - everything
-    you need to know to get Desktop up and running
+ - **[How To Build](contributing/how-to-build.md)** - learn how to build the
+    application
  - **[Style Guide](contributing/styleguide.md)** - notes on the coding style
  - **[Tooling](contributing/tooling.md)** - if you have a preferred IDE,
     there's some enhancements to make your life easier
