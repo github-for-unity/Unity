@@ -735,7 +735,7 @@ namespace GitHub.Unity
                     if (!success)
                     {
                         EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
-                            Localization.Cancel);
+                            Localization.Ok);
                     }
                 })
                 .Start();
