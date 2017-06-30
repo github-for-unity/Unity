@@ -12,6 +12,7 @@
     <AssemblyName>UnitTests</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <SolutionType Condition="$(SolutionName)=='GitHub.Unity.Internal'">Internal</SolutionType>
     <TargetFrameworkProfile />
     <OutputPath>$(SolutionDir)build\$(AssemblyName)</OutputPath>
   </PropertyGroup>
@@ -58,21 +59,12 @@
       <HintPath>$(SolutionDir)packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Octokit">
-      <HintPath>..\..\..\lib\octokit.net\Octokit.dll</HintPath>
-    </Reference>
-    <Reference Include="Octokit-Extensions35">
-      <HintPath>..\..\..\lib\octokit.net\Octokit-Extensions35.dll</HintPath>
-    </Reference>
     <Reference Include="Rackspace.Threading, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bb62785d398726f0, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\Rackspace.Threading.2.0.0-alpha001\lib\net35-client\Rackspace.Threading.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Net.Http">
-      <HintPath>..\..\..\lib\system.net.http_35\System.Net.Http.dll</HintPath>
-    </Reference>
     <Reference Include="System.Threading, Version=1.0.2856.102, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\TaskParallelLibrary.1.0.2856.0\lib\Net35\System.Threading.dll</HintPath>
       <Private>True</Private>
@@ -113,6 +105,37 @@
     <Compile Include="SetUpFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <Choose>
+    <When Condition="$(SolutionType) == 'Internal'">
+      <ItemGroup>
+        <ProjectReference Include="$(SolutionDir)..\dotnet-httpclient35\System.Net.Http\System.Net.Http-net_3_5.csproj">
+          <Project>{9862694d-e4fa-418b-8692-a0280feddf36}</Project>
+          <Name>System.Net.Http-net_3_5</Name>
+        </ProjectReference>
+        <ProjectReference Include="$(SolutionDir)..\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">
+          <Project>{eb4b074e-62a7-4f1d-8f95-e64b7aea0236}</Project>
+          <Name>Octokit-Extensions35</Name>
+        </ProjectReference>
+        <ProjectReference Include="$(SolutionDir)..\octokit.net\Octokit\Octokit-35.csproj">
+          <Project>{49ef16a2-5ed1-480f-80a1-d1d05d6c1be4}</Project>
+          <Name>Octokit-35</Name>
+        </ProjectReference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <Reference Include="Octokit">
+          <HintPath>$(SolutionDir)lib\octokit.net\Octokit.dll</HintPath>
+        </Reference>
+        <Reference Include="Octokit-Extensions35">
+          <HintPath>$(SolutionDir)octokit.net\Octokit-Extensions35\bin\Debug\Octokit-Extensions35.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Net.Http">
+          <HintPath>$(SolutionDir)lib\system.net.http_35\System.Net.Http.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\src\GitHub.Api\GitHub.Api.csproj">
       <Project>{B389ADAF-62CC-486E-85B4-2D8B078DF763}</Project>
