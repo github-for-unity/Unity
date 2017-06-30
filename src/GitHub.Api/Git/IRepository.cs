@@ -12,6 +12,7 @@ namespace GitHub.Unity
         ITask SetupRemote(string remoteName, string remoteUrl);
         ITask Pull();
         ITask Push();
+        ITask Fetch();
         ITask ListLocks();
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);

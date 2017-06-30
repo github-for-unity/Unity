@@ -30,6 +30,13 @@ namespace GitHub.Unity
         private const string ClearSelectionButton = "×";
         private const string NoRepoTitle = "No Git repository found for this project";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
+        private const string FetchActionTitle = "Fetch Changes";
+        private const string FetchButtonText = "Fetch";
+        private const string FetchFailureDescription = "Could not fetch changes";
+        private const string FetchConfirmTitle = "Fetch Changes?";
+        private const string FetchConfirmDescription = "Would you like to fetch changes from remote '{0}'?";
+        private const string FetchConfirmYes = "Fetch";
+        private const string FetchConfirmCancel = "Cancel";
         private const int HistoryExtraItemCount = 10;
         private const float MaxChangelistHeightRatio = .2f;
 
@@ -321,8 +328,19 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
+                GUI.enabled = currentRemote != null;
+                var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
+                GUI.enabled = true;
+                if (fetchClicked &&
+                    EditorUtility.DisplayDialog(FetchConfirmTitle,
+                        String.Format(FetchConfirmDescription, currentRemote),
+                        FetchConfirmYes,
+                        FetchConfirmCancel)
+                )
+                {
+                    Fetch();
+                }
 
-                // Pull / Push buttons
                 var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
                 GUI.enabled = currentRemote != null;
                 var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
@@ -703,6 +721,21 @@ namespace GitHub.Unity
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             Localization.PushFailureDescription,
                         Localization.Cancel);
+                    }
+                })
+                .Start();
+        }
+
+        private void Fetch()
+        {
+            var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
+            Repository
+                .Fetch()
+                .FinallyInUI((success, e) => {
+                    if (!success)
+                    {
+                        EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
+                            Localization.Cancel);
                     }
                 })
                 .Start();
