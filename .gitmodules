@@ -3,7 +3,7 @@
 	url = git@github.com:github-for-unity/UnityBuildScripts
 [submodule "submodules/octokit.net"]
 	path = submodules/octokit.net
-	url = https://github.com/github-for-unity/octokit.net
+	url = https://github.com/github-for-unity/octokit.net.git
 [submodule "submodules/dotnet-httpclient35"]
 	path = submodules/dotnet-httpclient35
-	url = https://github.com/shana/dotnet-httpClient35
+	url = https://github.com/github-for-unity/dotnet-httpClient35
