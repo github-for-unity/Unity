@@ -514,7 +514,7 @@ namespace GitHub.Unity
 
                                          EditorUtility.DisplayDialog(CreateBranchTitle,
                                              errorMessage,
-                                             Localization.Cancel);
+                                             Localization.Ok);
                                      }
                             })
                             .Start();
