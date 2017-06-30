@@ -125,14 +125,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">
-      <Project>{eb4b074e-62a7-4f1d-8f95-e64b7aea0236}</Project>
-      <Name>Octokit-Extensions35</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\submodules\octokit.net\Octokit\Octokit-35.csproj">
-      <Project>{49ef16a2-5ed1-480f-80a1-d1d05d6c1be4}</Project>
-      <Name>Octokit-35</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\GitHub.Api\GitHub.Api.csproj">
       <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
       <Name>GitHub.Api</Name>
