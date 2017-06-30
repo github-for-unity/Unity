@@ -267,7 +267,7 @@
           <HintPath>$(SolutionDir)lib\octokit.net\Octokit.dll</HintPath>
         </Reference>
         <Reference Include="Octokit-Extensions35">
-          <HintPath>$(SolutionDir)octokit.net\Octokit-Extensions35\bin\Debug\Octokit-Extensions35.dll</HintPath>
+          <HintPath>$(SolutionDir)lib\octokit.net\Octokit-Extensions35.dll</HintPath>
         </Reference>
         <Reference Include="System.Net.Http">
           <HintPath>$(SolutionDir)lib\system.net.http_35\System.Net.Http.dll</HintPath>
