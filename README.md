@@ -12,7 +12,7 @@ The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub int
 
 ### Requirements
 
-- [Unity 5.4 or higher](https://store.unity.com/download). Personal edition is fine.
+- [Unity 5.4 - 5.6](https://store.unity.com/download). Personal edition is fine.
 
 ### Installation
 
