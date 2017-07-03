@@ -135,7 +135,8 @@ namespace GitHub.Unity
 
         private void RepositoryManager_OnActiveRemoteChanged()
         {
-            OnActiveRemoteChanged?.Invoke(CurrentRemote.Value.Name);
+            var currentRemoteName = CurrentRemote?.Name;
+            OnActiveRemoteChanged?.Invoke(currentRemoteName);
         }
 
         private void RepositoryManager_OnActiveBranchChanged()

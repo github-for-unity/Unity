@@ -64,6 +64,7 @@ namespace GitHub.Unity
         private const string PrivacyTitle = "Privacy";
         private const string EnableTraceLoggingLabel = "Enable Trace Logging";
         private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
+        private const string DefaultRepositoryRemoteName = "origin";
 
         private Vector2 lockScrollPos;
 
@@ -98,25 +99,32 @@ namespace GitHub.Unity
                 return;
             }
 
+            UpdateRemote();
+        }
+
+        private void UpdateRemote()
+        {
             var currentRemote = Repository.CurrentRemote;
-            if (!currentRemote.HasValue && String.IsNullOrEmpty(repositoryRemoteName))
+            if (!currentRemote.HasValue)
             {
-                repositoryRemoteName = "origin";
-                repositoryRemoteUrl = "";
+                repositoryRemoteName = DefaultRepositoryRemoteName;
+                repositoryRemoteUrl = string.Empty;
+
                 Repository.OnActiveRemoteChanged += Repository_OnActiveRemoteChanged;
             }
-            else if (currentRemote.HasValue)
+            else
             {
-                repositoryRemoteName = !String.IsNullOrEmpty(currentRemote.Value.Name) ? currentRemote.Value.Name : "origin";
+                repositoryRemoteName = !String.IsNullOrEmpty(currentRemote.Value.Name)
+                    ? currentRemote.Value.Name
+                    : DefaultRepositoryRemoteName;
+
                 repositoryRemoteUrl = currentRemote.Value.Url;
             }
         }
 
         private void Repository_OnActiveRemoteChanged(string remote)
         {
-            var currentRemote = Repository.CurrentRemote;
-            repositoryRemoteName = currentRemote.Value.Name;
-            repositoryRemoteUrl = currentRemote.Value.Url;
+            UpdateRemote();
         }
 
         public override void OnEnable()
