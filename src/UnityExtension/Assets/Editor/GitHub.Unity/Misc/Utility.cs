@@ -87,12 +87,10 @@ namespace GitHub.Unity
 
         public static Texture2D CreateTextureFromColor(Color color)
         {
-            Texture2D backgroundTexture = new Texture2D(1, 1);
-            Color c = color;
-            backgroundTexture.SetPixel(1, 1, c);
-            backgroundTexture.Apply();
-
-            return backgroundTexture;
+            var texture = new Texture2D(1, 1);
+            texture.SetPixel(0, 0, color);
+            texture.Apply();
+            return texture;
         }
 
         public static string GitInstallPath
