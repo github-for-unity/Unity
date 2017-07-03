@@ -290,6 +290,10 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
+            RepositoryManager.ActiveRemote.HasValue.Should().BeTrue();
+            RepositoryManager.ActiveRemote.Value.Name.Should().Be("origin");
+            RepositoryManager.ActiveRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+
             await RepositoryManager.RemoteRemove("origin").StartAsAsync();
             await TaskManager.Wait();
 
@@ -298,6 +302,8 @@ namespace IntegrationTests
             managerAutoResetEvent.OnRemoteOrTrackingChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             Logger.Trace("Continue test");
+
+            RepositoryManager.ActiveRemote.HasValue.Should().BeFalse();
 
             repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
@@ -320,6 +326,10 @@ namespace IntegrationTests
             managerAutoResetEvent.OnRemoteOrTrackingChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             Logger.Trace("Continue test");
+
+            RepositoryManager.ActiveRemote.HasValue.Should().BeTrue();
+            RepositoryManager.ActiveRemote.Value.Name.Should().Be("origin");
+            RepositoryManager.ActiveRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
 
             repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
