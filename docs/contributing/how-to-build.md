@@ -26,6 +26,13 @@ Clone the repository and its submodules in a git GUI client that supports Git LF
 git lfs clone https://github.com/github-for-unity/Unity
 ```
 
+*Note*: git might complain that it can't checkout the `script` submodule. That submodule is not required for normal builds and you can ignore the error,
+or run the following to stop it complaining:
+
+```
+git submodule deinit script
+```
+
 ### Important pre-build steps
 
 To be able to authenticate in GitHub for Unity, you'll need to:
