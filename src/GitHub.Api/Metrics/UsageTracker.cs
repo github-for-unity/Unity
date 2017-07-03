@@ -175,7 +175,7 @@ namespace GitHub.Unity
 
         public static void SetMetricsService(IMetricsService instance)
         {
-            Logger.Trace("SetMetricsService instance:{1}", instance?.ToString() ?? "Null");
+            Logger.Trace("SetMetricsService instance:{0}", instance?.ToString() ?? "Null");
             metricsService = instance;
         }
 
