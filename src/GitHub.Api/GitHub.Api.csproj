@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="..\..\common\build.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -11,7 +12,6 @@
     <AssemblyName>GitHub.Api</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <BuildType Condition="Exists('$(SolutionDir)\script\src\MetricsService.cs')">Internal</BuildType>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <TargetFrameworkProfile />
     <LangVersion>6</LangVersion>
@@ -202,8 +202,6 @@
     <Compile Include="Threading\IAwaitable.cs" />
     <Compile Include="Threading\IAwaiter.cs" />
     <Compile Include="Threading\ThreadingHelper.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Application\IApiClient.cs" />
     <Compile Include="Application\ApiClient.cs" />
     <Compile Include="Authentication\AuthenticationResult.cs" />
@@ -222,40 +220,29 @@
     <Compile Include="Platform\Platform.cs" />
     <Compile Include="Git\GitCredentialManager.cs" />
   </ItemGroup>
+  <Choose>
+    <When Condition="$(Buildtype) == 'Internal'">
+      <ItemGroup>
+        <Compile Include="$(SolutionDir)\script\src\MetricsService.cs">
+          <Link>Metrics\MetricsService.cs</Link>
+        </Compile>
+        <Compile Include="$(SolutionDir)\script\src\ApplicationInfo_Local.cs">
+          <Link>Properties\ApplicationInfo_Local.cs</Link>
+        </Compile>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <None Include="$(SolutionDir)\common\ApplicationInfo_Local.cs-example" Condition="!Exists('$(SolutionDir)\common\ApplicationInfo_Local.cs')">
+          <Link>Properties\ApplicationInfo_Local.cs-example</Link>
+        </None>
+        <Compile Include="$(SolutionDir)\common\ApplicationInfo_Local.cs" Condition="Exists('$(SolutionDir)\common\ApplicationInfo_Local.cs')">
+          <Link>Properties\ApplicationInfo_Local.cs</Link>
+        </Compile>
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
   <ItemGroup>
-    <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
-      <Link>Properties\SolutionInfo.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup Condition="$(Buildtype) != 'Internal'">
-    <None Include="$(SolutionDir)\common\ApplicationInfo_Local.cs-example" Condition="!Exists('$(SolutionDir)\common\ApplicationInfo_Local.cs')">
-      <Link>Properties\ApplicationInfo_Local.cs-example</Link>
-    </None>
-    <Compile Include="$(SolutionDir)\common\ApplicationInfo_Local.cs" Condition="Exists('$(SolutionDir)\common\ApplicationInfo_Local.cs')">
-      <Link>Properties\ApplicationInfo_Local.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup Condition="$(Buildtype) == 'Internal'">
-    <Compile Include="$(SolutionDir)\script\src\MetricsService.cs">
-      <Link>Metrics\MetricsService.cs</Link>
-    </Compile>
-    <Compile Include="$(SolutionDir)\script\src\ApplicationInfo_Local.cs">
-      <Link>Properties\ApplicationInfo_Local.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\submodules\dotnet-httpClient35\System.Net.Http\System.Net.Http-net_3_5.csproj">
-      <Project>{9862694D-E4FA-418B-8692-A0280FEDDF36}</Project>
-      <Name>System.Net.Http-net_3_5</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">
-      <Project>{eb4b074e-62a7-4f1d-8f95-e64b7aea0236}</Project>
-      <Name>Octokit-Extensions35</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\submodules\octokit.net\Octokit\Octokit-35.csproj">
-      <Project>{49ef16a2-5ed1-480f-80a1-d1d05d6c1be4}</Project>
-      <Name>Octokit-35</Name>
-    </ProjectReference>
     <ProjectReference Include="..\GitHub.Logging\GitHub.Logging.csproj">
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
