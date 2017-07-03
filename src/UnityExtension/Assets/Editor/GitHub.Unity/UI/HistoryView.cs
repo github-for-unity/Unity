@@ -679,7 +679,7 @@ namespace GitHub.Unity
                         {
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 Localization.PullFailureDescription,
-                            Localization.Cancel);
+                            Localization.Ok);
                         }
                     })
                     .Start();
@@ -702,7 +702,7 @@ namespace GitHub.Unity
                     {
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             Localization.PushFailureDescription,
-                        Localization.Cancel);
+                        Localization.Ok);
                     }
                 })
                 .Start();
