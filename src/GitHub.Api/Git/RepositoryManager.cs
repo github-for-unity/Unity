@@ -34,6 +34,7 @@ namespace GitHub.Unity
         ITask Fetch(string remote);
         ITask Pull(string remote, string branch);
         ITask Push(string remote, string branch);
+        ITask Revert(string changeset);
         ITask RemoteAdd(string remote, string url);
         ITask RemoteRemove(string remote);
         ITask RemoteChange(string remote, string url);
@@ -231,6 +232,12 @@ namespace GitHub.Unity
         public ITask Push(string remote, string branch)
         {
             var task = GitClient.Push(remote, branch);
+            return HookupHandlers(task);
+        }
+
+        public ITask Revert(string changeset)
+        {
+            var task = GitClient.Revert(changeset);
             return HookupHandlers(task);
         }
 
