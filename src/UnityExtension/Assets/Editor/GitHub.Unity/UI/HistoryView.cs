@@ -557,6 +557,28 @@ namespace GitHub.Unity
                                 EntryHeight + 1, 0, history.Count);
         }
 
+        private void RevertCommit()
+        {
+            var selection = history[selectionIndex];
+
+            var dialogTitle = "Revert commit";
+            var dialogBody = string.Format(@"Are you sure you want to revert the following commit:""{0}""", selection.Summary);
+
+            if (EditorUtility.DisplayDialog(dialogTitle, dialogBody, "Revert", "Cancel"))
+            {
+                Repository
+                    .Revert(selection.CommitID)
+                    .FinallyInUI((success, e) => {
+                        if (!success)
+                        {
+                            EditorUtility.DisplayDialog(dialogTitle,
+                                "Error reverting commit: " + e.Message, Localization.Cancel);
+                        }
+                    })
+                    .Start();
+            }
+        }
+
         private bool HistoryEntry(GitLogEntry entry, LogEntryState state, bool selected)
         {
             var entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
@@ -620,6 +642,14 @@ namespace GitHub.Unity
                     GUI.DrawTexture(normalIndicatorRect, Styles.DotIcon);
                 }
             }
+            else if (Event.current.type == EventType.ContextClick && entryRect.Contains(Event.current.mousePosition))
+            {
+                GenericMenu menu = new GenericMenu();
+                menu.AddItem(new GUIContent("Revert"), false, RevertCommit);
+                menu.ShowAsContext();
+
+                Event.current.Use();
+            }
             else if (Event.current.type == EventType.MouseDown && entryRect.Contains(Event.current.mousePosition))
             {
                 Event.current.Use();
@@ -679,7 +709,7 @@ namespace GitHub.Unity
                         {
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 Localization.PullFailureDescription,
-                            Localization.Cancel);
+                            Localization.Ok);
                         }
                     })
                     .Start();
@@ -702,7 +732,7 @@ namespace GitHub.Unity
                     {
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             Localization.PushFailureDescription,
-                        Localization.Cancel);
+                        Localization.Ok);
                     }
                 })
                 .Start();
