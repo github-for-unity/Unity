@@ -20,7 +20,7 @@ The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub int
   * [Windows](#windows)
   * [macOS](#macos)
 
-[Quick Guide to GitHub for Unity](#quick-guide-to-gitHub-for-unity)
+[Quick Guide to GitHub for Unity](#quick-guide-to-github-for-unity)
   * [Opening the GitHub window](#opening-the-github-window)
   * [Initialize Repository](#initialize-repository)
   * [Authentication](#authentication)
@@ -29,7 +29,9 @@ The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub int
   * [Pushing/pulling your work - History tab](#pushingpulling-your-work---history-tab)
   * [Branches tab](#branches-tab)
   * [Settings tab](#settings-tab)
+  
 [More Resources](#more-resources)
+
 [License](#license)
 
 ## Installing GitHub for Unity
