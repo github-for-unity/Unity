@@ -5,3 +5,4 @@ _NCrunch_GitHub.Unity
 .DS_Store
 build/
 TestResult.xml
+submodules/

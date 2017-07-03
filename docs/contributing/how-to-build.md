@@ -20,14 +20,17 @@ This repository is LFS-enabled. To clone it, you should use a git client that su
 
 ## How to Build
 
-Clone the repository and its submodules in a git GUI client that supports Git LFS or via the command line with the following commands
+Clone the repository and its submodules in a git GUI client that supports Git LFS, or via the command line with the following command:
 
 ```
 git lfs clone https://github.com/github-for-unity/Unity
-cd Unity
-git submodule init
+```
+
+*Note*: git might complain that it can't checkout the `script` submodule. That submodule is not required for normal builds and you can ignore the error,
+or run the following to stop it complaining:
+
+```
 git submodule deinit script
-git submodule update
 ```
 
 ### Important pre-build steps
@@ -65,3 +68,9 @@ The `GitHub.Unity.sln` solution includes several projects:
 - GitHub.Logging: A logging helper library
 - GitHub.Api: The core of the extension. This project is C#6 and includes async/await threading and other features that Unity cannot currently compile.
 - GitHub.Unity: Unity-specific code. This project is compilable by Unity
+
+## Other solutions
+
+Octokit is normally included as a prebuilt DLL (in the `lib` directory), but when updating Octokit or debugging issues with the 3.5 backport, it can sometimes be handy to reference the project directly. The `GitHub.Unity.OctokitDebugging.sln` solution is a helper solution that includes Octokit and dotnet-httpclient35 as referenced projects instead of prebuilt dlls.
+
+This solution requires a clone of [https://github.com/github-for-unity/octokit.net](https://github.com/github-for-unity/octokit.net) and [https://github.com/github-for-unity/dotnet-httpclient35](https://github.com/github-for-unity/dotnet-httpclient35) to exist next to your GitHub for Unity checkout.
