@@ -234,15 +234,13 @@ namespace GitHub.Unity
         public CancellationToken CancellationToken { get { return TaskManager.Token; } }
         public ITaskManager TaskManager { get; protected set; }
         public IGitClient GitClient { get; protected set; }
-
-
-        protected TaskScheduler UIScheduler { get; private set; }
-        protected SynchronizationContext SynchronizationContext { get; private set; }
-        protected IRepositoryManager RepositoryManager { get { return repositoryManager; } }
-
         public ISettings LocalSettings { get; protected set; }
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
         public IUsageTracker UsageTracker { get; protected set; }
+
+        protected TaskScheduler UIScheduler { get; private set; }
+        protected SynchronizationContext SynchronizationContext { get; private set; }
+        protected IRepositoryManager RepositoryManager { get { return repositoryManager; } }
     }
 }

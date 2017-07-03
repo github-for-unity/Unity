@@ -6,14 +6,28 @@ namespace GitHub.Unity
 {
     abstract class BaseWindow :  EditorWindow, IView
     {
-        private bool finishCalled = false;
+        [NonSerialized] private bool finishCalled = false;
+        [NonSerialized] private bool initialized = false;
+
+        [NonSerialized] private IApplicationManager cachedManager;
+        [NonSerialized] private bool initializeWasCalled;
+        [NonSerialized] private bool inLayout;
 
         public event Action<bool> OnClose;
 
         public virtual void Initialize(IApplicationManager applicationManager)
         {
-            Logger.Trace("Initialize(IApplicationManager:{0})", applicationManager != null ? applicationManager.ToString() : "NULL");
+            Logger.Trace("Initialize ApplicationManager:{0} Initialized:{1}", applicationManager, initialized);
+
+            if (inLayout)
+            {
+                initializeWasCalled = true;
+                cachedManager = applicationManager;
+                return;
+            }
+
             Manager = applicationManager;
+            initialized = true;
         }
 
         public virtual void Redraw()
@@ -24,6 +38,7 @@ namespace GitHub.Unity
         public virtual void Refresh()
         {
         }
+
         public virtual void Finish(bool result)
         {
             finishCalled = true;
@@ -37,36 +52,65 @@ namespace GitHub.Unity
 
         public virtual void Awake()
         {
+            Logger.Trace("Awake Initialized:{0}", initialized);
+            if (!initialized)
+                Initialize(EntryPoint.ApplicationManager);
         }
 
         public virtual void OnEnable()
         {
+            Logger.Trace("OnEnable Initialized:{0}", initialized);
+            if (!initialized)
+                Initialize(EntryPoint.ApplicationManager);
         }
 
-        public virtual void OnDisable()
-        {
-        }
+        public virtual void OnDisable() {}
 
         public virtual void Update() {}
-        public virtual void OnGUI() {}
+
+        // OnGUI calls this everytime, so override it to render as you would OnGUI
+        public virtual void OnUI() {}
+
+        // This is Unity's magic method
+        private void OnGUI()
+        {
+            if (Event.current.type == EventType.layout)
+            {
+                inLayout = true;
+            }
+
+            OnUI();
+
+            if (Event.current.type == EventType.repaint)
+            {
+                inLayout = false;
+                if (initializeWasCalled)
+                {
+                    initializeWasCalled = false;
+                    Initialize(cachedManager);
+                }
+            }
+        }
+
         public virtual void OnDestroy()
         {
             if (!finishCalled)
             {
                 RaiseOnClose(false);
             }
-
         }
+
         public virtual void OnSelectionChange()
         {}
 
         public virtual Rect Position { get { return position; } }
+
         public IApplicationManager Manager { get; private set; }
-        public IRepository Repository { get { return Manager != null ? Manager.Environment.Repository : null; } }
-        public ITaskManager TaskManager { get { return Manager != null ? Manager.TaskManager : null; } }
-        protected IGitClient GitClient { get { return Manager != null ? Manager.GitClient : null; } }
-        protected IEnvironment Environment { get { return Manager != null ? Manager.Environment : null; } }
-        protected IPlatform Platform { get { return Manager != null ? Manager.Platform : null; } }
+        public IRepository Repository { get { return Environment.Repository; } }
+        public ITaskManager TaskManager { get { return Manager.TaskManager; } }
+        protected IGitClient GitClient { get { return Manager.GitClient; } }
+        protected IEnvironment Environment { get { return Manager.Environment; } }
+        protected IPlatform Platform { get { return Manager.Platform; } }
 
 
         private ILogging logger;
@@ -87,25 +131,17 @@ namespace GitHub.Unity
 
         private const string NullParentError = "Subview parent is null";
         protected IView Parent { get; private set; }
-        public IApplicationManager Manager { get; private set; }
-        public IRepository Repository { get { return Manager != null ? Manager.Environment.Repository : null; } }
-        public ITaskManager TaskManager { get { return Manager != null ? Manager.TaskManager : null; } }
-        protected IGitClient GitClient { get { return Manager != null ? Manager.GitClient : null; } }
-        protected IEnvironment Environment { get { return Manager != null ? Manager.Environment : null; } }
-        protected IPlatform Platform { get { return Manager != null ? Manager.Platform : null; } }
-
-        public virtual void Initialize(IApplicationManager applicationManager)
-        {
-            Logger.Trace("Initialize(IApplicationManager: {0})", applicationManager != null);
-            Manager = applicationManager;
-        }
+        public IApplicationManager Manager { get { return Parent.Manager; } }
+        public IRepository Repository { get { return Manager.Environment.Repository; } }
+        public ITaskManager TaskManager { get { return Manager.TaskManager; } }
+        protected IGitClient GitClient { get { return Manager.GitClient; } }
+        protected IEnvironment Environment { get { return Manager.Environment; } }
+        protected IPlatform Platform { get { return Manager.Platform; } }
 
         public virtual void InitializeView(IView parent)
         {
             Debug.Assert(parent != null, NullParentError);
-            Logger.Trace("Initialize(IView)");
             Parent = parent;
-            ((IView)this).Initialize(parent.Manager);
         }
 
         public virtual void OnShow()

@@ -27,7 +27,7 @@ namespace GitHub.Unity
             return authWindow;
        }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             if (authView == null)
             {
