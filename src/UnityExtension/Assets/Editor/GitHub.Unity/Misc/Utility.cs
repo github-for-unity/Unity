@@ -23,6 +23,18 @@ namespace GitHub.Unity
             var iconPath = EntryPoint.Environment.ExtensionInstallPath.Combine("IconsAndLogos", filename).ToString(SlashMode.Forward);
             return AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
         }
+
+        public static Texture2D GetTextureFromColor(Color color)
+        {
+            Color[] pix = new Color[1];
+            pix[0] = color;
+
+            Texture2D result = new Texture2D(1, 1);
+            result.SetPixels(pix);
+            result.Apply();
+
+            return result;
+        }
     }
 
     static class StreamExtensions

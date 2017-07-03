@@ -2,7 +2,7 @@
 
 namespace GitHub.Unity
 {
-    interface IBranchCache
+    public interface IBranchCache
     {
         List<GitBranch> LocalBranches { get; set; }
         List<GitBranch> RemoteBranches { get; set; }

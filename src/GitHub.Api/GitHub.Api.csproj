@@ -110,6 +110,7 @@
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="Application\ApplicationManagerBase.cs" />
     <Compile Include="Helpers\Constants.cs" />
+    <Compile Include="Cache\CacheManager.cs" />
     <Compile Include="Cache\IBranchCache.cs" />
     <Compile Include="Helpers\Validation.cs" />
     <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />

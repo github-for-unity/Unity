@@ -12,6 +12,7 @@ namespace GitHub.Unity
         protected static ILogging Logger { get; } = Logging.GetLogger<IApplicationManager>();
 
         private RepositoryManager repositoryManager;
+        private IBranchCache branchCache;
 
         public ApplicationManagerBase(SynchronizationContext synchronizationContext)
         {
@@ -21,6 +22,7 @@ namespace GitHub.Unity
             UIScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             ThreadingHelper.MainThreadScheduler = UIScheduler;
             TaskManager = new TaskManager(UIScheduler);
+            CacheManager = new CacheManager();
         }
 
         protected void Initialize()
@@ -78,6 +80,11 @@ namespace GitHub.Unity
                 }
             }
 
+        }
+
+        public void SetupCache(IBranchCache bcache)
+        {
+            branchCache = bcache;
         }
 
         public ITask InitializeRepository()
@@ -214,6 +221,7 @@ namespace GitHub.Unity
         public ISettings LocalSettings { get; protected set; }
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
+        public CacheManager CacheManager { get; private set; }
         public IUsageTracker UsageTracker { get; protected set; }
 
         protected TaskScheduler UIScheduler { get; private set; }
