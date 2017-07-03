@@ -106,42 +106,10 @@
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\..\..\common\packaging.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
 -->
-  <PropertyGroup>
-    <PublishTo Condition="'$(PublishTo)' == '' ">$(SolutionDir)\unity\PackageProject\Assets\Editor\GitHub</PublishTo>
-    <ExternalPublishTo>$(SolutionDir)..\github-unity-test\GitHubExtensionProject\Assets\Editor\GitHub</ExternalPublishTo>
-  </PropertyGroup>
-  <Target Name="AfterBuild">
-    <CreateItem Include="$(OutputPath)\**\*.*">
-      <Output TaskParameter="Include" ItemName="ToCopy" />
-    </CreateItem>
-    <Copy SourceFiles="@(ToCopy)" DestinationFiles="@(ToCopy->'$(PublishTo)\%(RecursiveDir)%(Filename)%(Extension)')" Condition="!$([System.String]::Copy('%(Filename)').Contains('deleteme')) and !$([System.String]::Copy('%(Extension)').Contains('xml')) and !$([System.String]::Copy('%(Extension)').Contains('pdb')) and !$([System.String]::Copy('%(Extension)').Contains('dll.mdb'))" />
-    <CreateItem Include="$(PublishTo)\**\*.*">
-      <Output TaskParameter="Include" ItemName="ToMoreCopy" />
-    </CreateItem>
-    <Copy SourceFiles="@(ToMoreCopy)" DestinationFiles="@(ToMoreCopy->'$(ExternalPublishTo)\%(RecursiveDir)%(Filename)%(Extension)')" Retries="0" ContinueOnError="WarnAndContinue" />
-  </Target>
-  <Target Name="CopyMainAssembly" DependsOnTargets="DetectMainAssembly">
-    <Copy Condition="'%(IndirectDependency.FullPath)'!=''" SourceFiles="%(IndirectDependency.FullPath)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true">
-      <Output TaskParameter="CopiedFiles" ItemName="IndirectDependencyCopied" />
-    </Copy>
-    <Message Importance="high" Condition="'%(IndirectDependencyCopied.FullPath)'!='' and '%(IndirectDependencyCopied.Extension)'!='.pdb' and '%(IndirectDependencyCopied.Extension)'!='.xml'" Text="Dependency copied: %(IndirectDependencyCopied.FullPath)" />
-  </Target>
-  <Target Name="DetectMainAssembly" DependsOnTargets="ResolveAssemblyReferences">
-    <Message Importance="low" Text="Dependency: %(ReferencePath.Filename)%(ReferencePath.Extension) %(ReferencePath.CopyLocal)" />
-    <!-- Creating indirect dependency list -->
-    <CreateItem Include="%(ReferencePath.FullPath)" Condition="$([System.String]::Copy('%(ReferencePath.Filename)').Contains('GitHub.Unity'))">
-      <Output TaskParameter="Include" ItemName="IndirectDependency" />
-    </CreateItem>
-  </Target>
-  <PropertyGroup>
-    <CoreBuildDependsOn>
-      $(CoreBuildDependsOn);
-      CopyMainAssembly
-    </CoreBuildDependsOn>
-  </PropertyGroup>
 </Project>
