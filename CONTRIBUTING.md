@@ -17,6 +17,7 @@ change over time as we learn and refine how we work with the community.
   * [The Roadmap](#the-roadmap)
 
 [How Can I Contribute?](#how-can-i-contribute)
+  * [How to Build](#how-to-build)
   * [Reporting Bugs](#reporting-bugs)
   * [Suggesting Enhancements](#suggesting-enhancements)
   * [Up for Grabs](#up-for-grabs)
@@ -44,6 +45,12 @@ this 1.0 milestone. If you have ideas or suggestions please read the [Suggesting
 section below to understand how to contribute your feedback.
 
 ## How Can I Contribute?
+
+### How to Build
+
+This repository is LFS-enabled. To clone it, you should use a git client that supports git LFS 2.x and submodules.
+
+Please read the [How to Build](https://raw.githubusercontent.com/github-for-unity/Unity/master/docs/contributing/how-to-build.md) document for information on how to build GitHub for Unity.
 
 ### Reporting Bugs
 
