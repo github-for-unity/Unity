@@ -5,7 +5,6 @@ namespace GitHub.Unity
 {
     interface IView
     {
-        void Initialize(IApplicationManager applicationManager);
         void Refresh();
         void Redraw();
         Rect Position { get; }
