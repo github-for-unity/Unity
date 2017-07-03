@@ -13,6 +13,7 @@ namespace GitHub.Unity
         ITask Pull();
         ITask Push();
         ITask Fetch();
+        ITask Revert(string changeset);
         ITask ListLocks();
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);

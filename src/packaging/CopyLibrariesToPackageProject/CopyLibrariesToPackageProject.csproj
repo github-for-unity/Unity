@@ -30,18 +30,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\submodules\dotnet-httpClient35\System.Net.Http\System.Net.Http-net_3_5.csproj">
-      <Project>{9862694d-e4fa-418b-8692-a0280feddf36}</Project>
-      <Name>System.Net.Http-net_3_5</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">
-      <Project>{eb4b074e-62a7-4f1d-8f95-e64b7aea0236}</Project>
-      <Name>Octokit-Extensions35</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\submodules\octokit.net\Octokit\Octokit-35.csproj">
-      <Project>{49ef16a2-5ed1-480f-80a1-d1d05d6c1be4}</Project>
-      <Name>Octokit-35</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\GitHub.Api\GitHub.Api.csproj">
       <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
       <Name>GitHub.Api</Name>
@@ -118,57 +106,10 @@
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\..\..\common\packaging.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
 -->
-  <PropertyGroup>
-    <PublishTo Condition="'$(PublishTo)' == '' ">$(SolutionDir)\unity\PackageProject\Assets\Editor\GitHub</PublishTo>
-    <ExternalPublishTo>$(SolutionDir)..\github-unity-test\GitHubExtensionProject\Assets\Editor\GitHub</ExternalPublishTo>
-  </PropertyGroup>
-  <Target Name="AfterBuild">
-    <CreateItem Include="$(OutputPath)\**\*.*">
-      <Output TaskParameter="Include" ItemName="ToCopy" />
-    </CreateItem>
-    <Copy
-      SourceFiles="@(ToCopy)"
-      DestinationFiles="@(ToCopy->'$(PublishTo)\%(RecursiveDir)%(Filename)%(Extension)')"
-      Condition="!$([System.String]::Copy('%(Filename)').Contains('deleteme')) and !$([System.String]::Copy('%(Extension)').Contains('xml')) and !$([System.String]::Copy('%(Extension)').Contains('pdb')) and !$([System.String]::Copy('%(Extension)').Contains('dll.mdb'))" />
-    <CreateItem Include="$(PublishTo)\**\*.*">
-      <Output TaskParameter="Include" ItemName="ToMoreCopy" />
-    </CreateItem>
-    <Copy SourceFiles="@(ToMoreCopy)"
-      DestinationFiles="@(ToMoreCopy->'$(ExternalPublishTo)\%(RecursiveDir)%(Filename)%(Extension)')" Retries="0" ContinueOnError="WarnAndContinue" />
-  </Target>
-
-  <Target
-    Name="CopyMainAssembly"
-    DependsOnTargets="DetectMainAssembly">
-    
-    <Copy
-      Condition="'%(IndirectDependency.FullPath)'!=''"
-      SourceFiles="%(IndirectDependency.FullPath)"
-      DestinationFolder="$(OutputPath)"
-      SkipUnchangedFiles="true">
-      <Output TaskParameter="CopiedFiles" ItemName="IndirectDependencyCopied" />
-    </Copy>
-    <Message Importance="high"
-      Condition="'%(IndirectDependencyCopied.FullPath)'!='' and '%(IndirectDependencyCopied.Extension)'!='.pdb' and '%(IndirectDependencyCopied.Extension)'!='.xml'"
-      Text="Dependency copied: %(IndirectDependencyCopied.FullPath)" />
-  </Target>
-
-  <Target Name="DetectMainAssembly" DependsOnTargets="ResolveAssemblyReferences">
-    <Message Importance="low" Text="Dependency: %(ReferencePath.Filename)%(ReferencePath.Extension) %(ReferencePath.CopyLocal)" />
-    <!-- Creating indirect dependency list -->
-    <CreateItem Include="%(ReferencePath.FullPath)" Condition="$([System.String]::Copy('%(ReferencePath.Filename)').Contains('GitHub.Unity'))">
-      <Output TaskParameter="Include" ItemName="IndirectDependency" />
-    </CreateItem>
-  </Target>
-  <PropertyGroup>
-    <CoreBuildDependsOn>
-      $(CoreBuildDependsOn);
-      CopyMainAssembly
-    </CoreBuildDependsOn>
-  </PropertyGroup>
 </Project>

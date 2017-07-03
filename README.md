@@ -15,13 +15,14 @@ The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub int
 
 [Installing GitHub for Unity](#installing-github-for-unity)
   * [Requirements](#requirements)
+     * [Git on macOS](#git-on-macos)
+     * [Git on Windows](#git-on-windows)
   * [Installation](#installation)
+  * [Log files](#log-files)
+     * [Windows](#windows)
+     * [macOS](#macos)
 
 [Building and Contributing](#building-and-contributing)
-
-[Log files and Known issues](#log-files-and-known-issues)
-  * [Windows](#windows)
-  * [macOS](#macos)
 
 [Quick Guide to GitHub for Unity](#quick-guide-to-github-for-unity)
   * [Opening the GitHub window](#opening-the-github-window)
@@ -41,51 +42,60 @@ The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub int
 
 ### Requirements
 
-- We've only tested the extension so far on Unity 5.4 to 5.6. There's currently an blocker issue opened for 5.3 support, so we know it doesn't run there. There are some issues for 2017.x, so it may or may not run well on that version. Personal edition is fine.
+- Unity 5.4-5.6
+   - We've only tested the extension so far on Unity 5.4 to 5.6. There's currently an blocker issue opened for 5.3 support, so we know it doesn't run there. There are some issues for 2017.x, so it may or may not run well on that version. Personal edition is fine.
+- Git and Git LFS 2.x
 
-### Installation
-
-To install the extension, download the latest package from [the releases page](https://github.com/github-for-unity/Unity/releases) and double click on it.
-
-## Building and Contributing
-
-The [CONTRIBUTING.md](CONTRIBUTING.md) document will help you get setup and familiar with the source. The [documentation](docs/) folder also contains more resources relevant to the project.
-
-Please read the [How to Build](docs/contributing/how-to-build.md) document for sinformation on how to build GitHub for Unity.
-
-If you're looking for something to work on, check out the [up-for-grabs](https://github.com/github-for-unity/Unity/issues?q=is%3Aopen+is%3Aissue+label%3Aup-for-grabs) label.
-
-## Log files and Known issues
-
-### Windows
-
-The GitHub for Unity extension ships with a bundle of Git and Git LFS, to ensure that you have the correct version. These will be installed into `%LOCALAPPDATA%\GitHubUnityDebug` when the extension runs for the first time.
-
-You can open a command line with the same Git and Git LFS version that the extension uses by going to the GitHub -> Command line menu.
-
-Make sure a Git user and email address are set in the `%HOME%\.gitconfig` file before you initialize a repository for the first time. You can set these values by opening your `%HOME%\.gitconfig`  file and adding the following section, if it doesn't exist yet:
-
-```
-[user]
-	name = Your Name
-	email = Your Email
-```
-
-The extension log file can be found at `%LOCALAPPDATA%\GitHubUnityDebug\github-unity.log`
-
-#### macOS
-
-The extension log file can be found at `~/.local/share/GitHubUnityDebug/github-unity.log`. This is a temporary location and will be changed in the future.
+#### Git on macOS
 
 The current release has limited macOS support. macOS users will need to install the latest [Git](https://git-scm.com/downloads) and [Git LFS](https://git-lfs.github.com/) manually, and make sure these are on the path. You can configure the Git location in the Settings tab on the GitHub window.
+
+The easiest way of installing git and git lfs is to install [Homebrew](https://brew.sh/) and then do `brew install git git-lfs`.
 
 Make sure a Git user and email address are set in the `~/.gitconfig` file before you initialize a repository for the first time. You can set these values by opening your `~/.gitconfig` file and adding the following section, if it doesn't exist yet:
 
 ```
 [user]
-	name = Your Name
-	email = Your Email
+  name = Your Name
+  email = Your Email
 ```
+
+#### Git on Windows
+
+The GitHub for Unity extension ships with a bundle of Git and Git LFS, to ensure that you have the correct version. These will be installed into `%LOCALAPPDATA%\GitHubUnity` when the extension runs for the first time.
+
+Make sure a Git user and email address are set in the `%HOME%\.gitconfig` file before you initialize a repository for the first time. You can set these values by opening your `%HOME%\.gitconfig`  file and adding the following section, if it doesn't exist yet:
+
+```
+[user]
+  name = Your Name
+  email = Your Email
+```
+
+Once the extension is installed, you can open a command line with the same Git and Git LFS version that the extension uses by going to the `GitHub` -> `Command line` menu in Unity.
+
+### Installation
+
+To install the extension, download the latest package from [the releases page](https://github.com/github-for-unity/Unity/releases) and double click on it.
+
+#### Log files
+
+##### macOS
+
+The extension log file can be found at `~/.local/share/GitHubUnityDebug/github-unity.log`. This is a temporary location and will be changed in the future.
+
+##### Windows
+
+The extension log file can be found at `%LOCALAPPDATA%\GitHubUnityDebug\github-unity.log`
+
+## Building and Contributing
+
+The [CONTRIBUTING.md](CONTRIBUTING.md) document will help you get setup and familiar with the source. The [documentation](docs/) folder also contains more resources relevant to the project.
+
+Please read the [How to Build](docs/contributing/how-to-build.md) document for information on how to build GitHub for Unity.
+
+If you're looking for something to work on, check out the [up-for-grabs](https://github.com/github-for-unity/Unity/issues?q=is%3Aopen+is%3Aissue+label%3Aup-for-grabs) label.
+
 
 ## I have a problem with GitHub for Unity
 

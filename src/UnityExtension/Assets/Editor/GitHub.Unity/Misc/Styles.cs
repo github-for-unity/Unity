@@ -266,7 +266,7 @@ namespace GitHub.Unity
         {
           errorLabel = new GUIStyle(EditorStyles.label);
           errorLabel.name = "ErrorLabel";
-
+          errorLabel.wordWrap = true;
           errorLabel.normal.textColor = Color.red;
         }
 

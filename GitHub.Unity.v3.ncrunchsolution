@@ -3,7 +3,6 @@
     <AllowParallelTestExecution>True</AllowParallelTestExecution>
     <MetricsExclusionList>
       <Value>submodules\octokit.net\Octokit\Octokit-35.csproj</Value>
-      <Value>submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj</Value>
       <Value>src\UnitTests\UnitTests.csproj</Value>
       <Value>src\IntegrationTests\IntegrationTests.csproj</Value>
       <Value>submodules\dotnet-httpClient35\System.Net.Http\System.Net.Http-net_3_5.csproj</Value>
