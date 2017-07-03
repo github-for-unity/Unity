@@ -17,7 +17,7 @@ namespace GitHub.Unity
 
         public virtual void Initialize(IApplicationManager applicationManager)
         {
-            Debug.Log("Initialize " + applicationManager + " " + initialized);
+            Logger.Trace("Initialize ApplicationManager:{0} Initialized:{1}", applicationManager, initialized);
 
             if (inLayout)
             {
@@ -52,14 +52,14 @@ namespace GitHub.Unity
 
         public virtual void Awake()
         {
-            Debug.Log("Awake " + initialized);
+            Logger.Trace("Awake Initialized:{0}", initialized);
             if (!initialized)
                 Initialize(EntryPoint.ApplicationManager);
         }
 
         public virtual void OnEnable()
         {
-            Debug.Log("OnEnable " + initialized);
+            Logger.Trace("OnEnable Initialized:{0}", initialized);
             if (!initialized)
                 Initialize(EntryPoint.ApplicationManager);
         }
@@ -78,8 +78,6 @@ namespace GitHub.Unity
             {
                 inLayout = true;
             }
-
-            Debug.LogFormat("OnGUI initialize?{0} inLayout?{1} initializeWasCalled?{2}", initialized, inLayout, initializeWasCalled);
 
             OnUI();
 
