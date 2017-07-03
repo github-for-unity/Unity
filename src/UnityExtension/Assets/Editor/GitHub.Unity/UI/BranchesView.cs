@@ -630,7 +630,7 @@ namespace GitHub.Unity
                                 {
                                     EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
                                         String.Format(Localization.SwitchBranchFailedDescription, node.Name),
-                                    Localization.Cancel);
+                                    Localization.Ok);
                                 }
                             }).Start();
                     }
@@ -645,7 +645,7 @@ namespace GitHub.Unity
                                 {
                                     EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
                                         String.Format(Localization.SwitchBranchFailedDescription, node.Name),
-                                    Localization.Cancel);
+                                    Localization.Ok);
                                 }
                             }).Start();
                     }
