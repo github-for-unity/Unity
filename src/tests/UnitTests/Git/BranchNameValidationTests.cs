@@ -28,7 +28,7 @@ namespace UnitTests
         [TestCase(false, "@", TestName = "Single character cannot be @")]
         [TestCase(false, ".", TestName = "Single character cannot be [period]")]
         [TestCase(true, "features/feature-1", TestName = "Folder and branch name is valid")]
-        [TestCase(true, "features\\feature-1", TestName = "Backslash is not a valid character")]
+        [TestCase(false, @"features\feature-1", TestName = "Backslash is not a valid character")]
         [TestCase(true, ".hidden", TestName = "Branch name is valid when starting with [period]")]
         [TestCase(false, ".features/feature-1", TestName = "Folder and branch name is not valid when starting with [period]")]
         [TestCase(false, "features//feature-1", TestName = "Multiple consecutive slashes are not valid")]
