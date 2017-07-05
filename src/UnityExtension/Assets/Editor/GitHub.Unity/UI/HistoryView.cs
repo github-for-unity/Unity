@@ -331,12 +331,7 @@ namespace GitHub.Unity
                 GUI.enabled = currentRemote != null;
                 var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
                 GUI.enabled = true;
-                if (fetchClicked &&
-                    EditorUtility.DisplayDialog(FetchConfirmTitle,
-                        String.Format(FetchConfirmDescription, currentRemote),
-                        FetchConfirmYes,
-                        FetchConfirmCancel)
-                )
+                if (fetchClicked)
                 {
                     Fetch();
                 }
