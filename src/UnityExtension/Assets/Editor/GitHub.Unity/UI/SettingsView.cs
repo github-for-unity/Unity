@@ -114,9 +114,9 @@ namespace GitHub.Unity
             UpdateRemote();
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
             if (Repository == null)
                 return;
 
@@ -138,9 +138,9 @@ namespace GitHub.Unity
             gitEmail = Repository.User.Email;
         }
 
-        public override void OnHide()
+        public override void OnDisable()
         {
-            base.OnHide();
+            base.OnDisable();
 
             Repository.OnActiveRemoteChanged -= Repository_OnActiveRemoteChanged;
         }

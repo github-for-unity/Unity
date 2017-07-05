@@ -57,9 +57,20 @@ namespace GitHub.Unity
             window.Show();
         }
 
-        public static IView GetView()
+        public static Window GetWindow()
         {
-            return Resources.FindObjectsOfTypeAll(typeof(Window)).FirstOrDefault() as IView;
+            return Resources.FindObjectsOfTypeAll(typeof(Window)).FirstOrDefault() as Window;
+        }
+
+        public override void Initialize(IApplicationManager applicationManager)
+        {
+            base.Initialize(applicationManager);
+
+            HistoryTab.InitializeView(this);
+            ChangesTab.InitializeView(this);
+            BranchesTab.InitializeView(this);
+            SettingsTab.InitializeView(this);
+            ActiveTab.InitializeView(this);
         }
 
         public override void OnEnable()
@@ -73,48 +84,34 @@ namespace GitHub.Unity
             // Set window title
             titleContent = new GUIContent(Title, Styles.SmallLogo);
 
-            historyTab.InitializeView(this);
-            changesTab.InitializeView(this);
-            branchesTab.InitializeView(this);
-            settingsTab.InitializeView(this);
-        }
-
-        public override void Refresh()
-        {
             if (ActiveTab != null)
-                ActiveTab.Refresh();
-        }
-
-        private void ShowActiveView()
-        {
-            if (Repository == null)
-                return;
-
-            if (ActiveTab != null)
-                ActiveTab.OnShow();
-            Refresh();
-        }
-
-        private void SwitchView(Subview from, Subview to)
-        {
-            GUI.FocusControl(null);
-            from.OnHide();
-            to.OnShow();
-            Refresh();
+                ActiveTab.OnEnable();
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
-
             if (ActiveTab != null)
-                ActiveTab.OnHide();
+                ActiveTab.OnDisable();
         }
 
-
-        public override void OnGUI()
+        public override void OnSelectionChange()
         {
-            base.OnGUI();
+            base.OnSelectionChange();
+            if (ActiveTab != null)
+                ActiveTab.OnSelectionChange();
+        }
+
+        public override void Refresh()
+        {
+            base.Refresh();
+            if (ActiveTab != null)
+                ActiveTab.Refresh();
+        }
+
+        public override void OnUI()
+        {
+            base.OnUI();
 
             if (Repository != null)
             {
@@ -128,6 +125,28 @@ namespace GitHub.Unity
             {
                 ActiveTab.OnGUI();
             }
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            // Notification auto-clear timer override
+            if (notificationClearTime > 0f && EditorApplication.timeSinceStartup > notificationClearTime)
+            {
+                notificationClearTime = -1f;
+                RemoveNotification();
+                Redraw();
+            }
+        }
+
+        private void SwitchView(Subview from, Subview to)
+        {
+            GUI.FocusControl(null);
+            if (from != null)
+                from.OnDisable();
+            to.OnEnable();
+            Refresh();
         }
 
         private void DoHeaderGUI()
@@ -253,17 +272,6 @@ namespace GitHub.Unity
             return true;
         }
 
-        public override void Update()
-        {
-            // Notification auto-clear timer override
-            if (notificationClearTime > 0f && EditorApplication.timeSinceStartup > notificationClearTime)
-            {
-                notificationClearTime = -1f;
-                RemoveNotification();
-                Redraw();
-            }
-        }
-
         public new void ShowNotification(GUIContent content)
         {
             ShowNotification(content, DefaultNotificationTimeout);
@@ -280,12 +288,6 @@ namespace GitHub.Unity
         private static SubTab TabButton(SubTab tab, string title, SubTab activeTab)
         {
             return GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
-        }
-
-        public override void OnSelectionChange()
-        {
-            if (ActiveTab != null)
-                ActiveTab.OnSelectionChange();
         }
 
         public HistoryView HistoryTab
@@ -338,17 +340,6 @@ namespace GitHub.Unity
             Changes,
             Branches,
             Settings
-        }
-
-        public override void Initialize(IApplicationManager applicationManager)
-        {
-            base.Initialize(applicationManager);
-
-            HistoryTab.InitializeView(this);
-            ChangesTab.InitializeView(this);
-            BranchesTab.InitializeView(this);
-            SettingsTab.InitializeView(this);
-            ActiveTab.InitializeView(this);
         }
     }
 }
