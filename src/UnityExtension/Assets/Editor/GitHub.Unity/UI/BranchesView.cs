@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GitHub.Unity.Helpers;
 using UnityEditor;
 using UnityEngine;
 using Debug = System.Diagnostics.Debug;
@@ -453,10 +454,7 @@ namespace GitHub.Unity
                     var cancelCreate = false;
                     var cannotCreate = selectedNode == null ||
                                        selectedNode.Type == NodeType.Folder ||
-                                       newBranchName == null ||
-                                       newBranchName.StartsWith("/") ||
-                                       newBranchName.EndsWith("/") ||
-                                       !Utility.BranchNameRegex.IsMatch(newBranchName);
+                                       !BranchNameValidator.IsBranchNameValid(newBranchName);
 
                     // Create on return/enter or cancel on escape
                     var offsetID = GUIUtility.GetControlID(FocusType.Passive);
