@@ -10,6 +10,7 @@ namespace GitHub.Unity
         [NonSerialized] private bool initialized = false;
 
         [NonSerialized] private IApplicationManager cachedManager;
+        [NonSerialized] private IRepository cachedRepository;
         [NonSerialized] private bool initializeWasCalled;
         [NonSerialized] private bool inLayout;
 
@@ -27,6 +28,7 @@ namespace GitHub.Unity
             }
 
             Manager = applicationManager;
+            cachedRepository = Environment.Repository;
             initialized = true;
         }
 
@@ -68,6 +70,9 @@ namespace GitHub.Unity
 
         public virtual void Update() {}
 
+        public virtual void OnDataUpdate()
+        {}
+
         // OnGUI calls this everytime, so override it to render as you would OnGUI
         public virtual void OnUI() {}
 
@@ -76,7 +81,10 @@ namespace GitHub.Unity
         {
             if (Event.current.type == EventType.layout)
             {
+                RepositoryHasChanged = cachedRepository != Environment.Repository;
+                cachedRepository = Environment.Repository;
                 inLayout = true;
+                OnDataUpdate();
             }
 
             OnUI();
@@ -104,9 +112,9 @@ namespace GitHub.Unity
         {}
 
         public virtual Rect Position { get { return position; } }
-
         public IApplicationManager Manager { get; private set; }
-        public IRepository Repository { get { return Environment.Repository; } }
+        public IRepository Repository { get { return inLayout ? cachedRepository : Environment.Repository; } }
+        public bool RepositoryHasChanged { get; private set; }
         public ITaskManager TaskManager { get { return Manager.TaskManager; } }
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }
@@ -129,13 +137,6 @@ namespace GitHub.Unity
         public event Action<bool> OnClose;
 
         private const string NullParentError = "Subview parent is null";
-        protected IView Parent { get; private set; }
-        public IApplicationManager Manager { get { return Parent.Manager; } }
-        public IRepository Repository { get { return Manager.Environment.Repository; } }
-        public ITaskManager TaskManager { get { return Manager.TaskManager; } }
-        protected IGitClient GitClient { get { return Manager.GitClient; } }
-        protected IEnvironment Environment { get { return Manager.Environment; } }
-        protected IPlatform Platform { get { return Manager.Platform; } }
 
         public virtual void InitializeView(IView parent)
         {
@@ -147,6 +148,9 @@ namespace GitHub.Unity
         {}
 
         public virtual void OnDisable()
+        {}
+
+        public virtual void OnDataUpdate()
         {}
 
         public virtual void OnGUI()
@@ -167,6 +171,15 @@ namespace GitHub.Unity
         {
             Parent.Finish(result);
         }
+
+        protected IView Parent { get; private set; }
+        public IApplicationManager Manager { get { return Parent.Manager; } }
+        public IRepository Repository { get { return Manager.Environment.Repository; } }
+        public bool RepositoryHasChanged { get { return Parent.RepositoryHasChanged; } }
+        public ITaskManager TaskManager { get { return Manager.TaskManager; } }
+        protected IGitClient GitClient { get { return Manager.GitClient; } }
+        protected IEnvironment Environment { get { return Manager.Environment; } }
+        protected IPlatform Platform { get { return Manager.Platform; } }
 
         public virtual Rect Position { get { return Parent.Position; } }
 
