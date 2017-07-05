@@ -95,6 +95,13 @@ namespace GitHub.Unity
                 ActiveTab.OnDisable();
         }
 
+        public override void OnDataUpdate()
+        {
+            base.OnDataUpdate();
+            if (ActiveTab != null)
+                ActiveTab.OnDataUpdate();
+        }
+
         public override void OnSelectionChange()
         {
             base.OnSelectionChange();

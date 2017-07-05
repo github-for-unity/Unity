@@ -66,103 +66,64 @@ namespace GitHub.Unity
         private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
         private const string DefaultRepositoryRemoteName = "origin";
 
-        private Vector2 lockScrollPos;
-
+        [NonSerialized] private bool busy = false;
+        [NonSerialized] private int lockedFileSelection = -1;
+        [NonSerialized] private int newGitIgnoreRulesSelection = -1;
+        [NonSerialized] private bool hasRemote;
+        [NonSerialized] private ConfigRemote? activeRemote;
 
         // TODO: Replace me with the real values
         [SerializeField] private string gitName;
         [SerializeField] private string gitEmail;
 
-        [NonSerialized] private int newGitIgnoreRulesSelection = -1;
-        [NonSerialized] private int lockedFileSelection = -1;
-
         [SerializeField] private int gitIgnoreRulesSelection = 0;
         [SerializeField] private string initDirectory;
-        [SerializeField] private Vector2 scroll;
-
-        [NonSerialized] private bool busy = false;
-
-        [SerializeField] List<GitLock> lockedFiles = new List<GitLock>();
+        [SerializeField] private List<GitLock> lockedFiles = new List<GitLock>();
+        [SerializeField] private Vector2 lockScrollPos;
         [SerializeField] private string repositoryRemoteName;
         [SerializeField] private string repositoryRemoteUrl;
-
-        private void UpdateRemote()
-        {
-            if (Repository == null)
-            {
-                return;
-            }
-
-            var currentRemote = Repository.CurrentRemote;
-            if (!currentRemote.HasValue)
-            {
-                repositoryRemoteName = DefaultRepositoryRemoteName;
-                repositoryRemoteUrl = string.Empty;
-            }
-            else
-            {
-                repositoryRemoteName = !String.IsNullOrEmpty(currentRemote.Value.Name)
-                    ? currentRemote.Value.Name
-                    : DefaultRepositoryRemoteName;
-
-                repositoryRemoteUrl = currentRemote.Value.Url;
-            }
-        }
-
-        private void Repository_OnActiveRemoteChanged(string remote)
-        {
-            UpdateRemote();
-        }
+        [SerializeField] private Vector2 scroll;
+        [SerializeField] private bool remoteHasChanged;
 
         public override void OnEnable()
         {
             base.OnEnable();
-            if (Repository == null)
-                return;
-
-            Repository.OnActiveRemoteChanged += Repository_OnActiveRemoteChanged;
-            UpdateRemote();
-
             if (lockedFiles == null)
                 lockedFiles = new List<GitLock>();
 
-            OnLocksUpdate(Repository.CurrentLocks);
-
-            if (Repository.CurrentRemote.HasValue && !string.IsNullOrEmpty(Repository.CurrentRemote.Value.Url))
-            {
-                Repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
-                Repository.ListLocks().Start();
-            }
-
-            gitName = Repository.User.Name;
-            gitEmail = Repository.User.Email;
+            if (Repository != null)
+                Repository.OnActiveRemoteChanged += Repository_OnActiveRemoteChanged;
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
 
-            Repository.OnActiveRemoteChanged -= Repository_OnActiveRemoteChanged;
-        }
-
-        private void RunLocksUpdateOnMainThread(IEnumerable<GitLock> locks)
-        {
-            new ActionTask(TaskManager.Token, _ => OnLocksUpdate(locks))
-                .ScheduleUI(TaskManager);
-        }
-
-        private void OnLocksUpdate(IEnumerable<GitLock> update)
-        {
-            if (update == null)
+            if (Repository != null)
             {
+                Repository.OnActiveRemoteChanged -= Repository_OnActiveRemoteChanged;
+                Repository.OnLocksUpdated -= RunLocksUpdateOnMainThread;
+            }
+        }
+
+        public override void OnDataUpdate()
+        {
+            base.OnDataUpdate();
+
+            if (Repository == null)
                 return;
-            }
-            lockedFiles = update.ToList();
-            if (lockedFiles.Count <= lockedFileSelection)
+
+            MaybeUpdateRemote();
+
+            if (RepositoryHasChanged)
             {
-                lockedFileSelection = -1;
+                gitName = Repository.User.Name;
+                gitEmail = Repository.User.Email;
+
+                Repository.OnActiveRemoteChanged += Repository_OnActiveRemoteChanged;
+                Repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
+                Repository.ListLocks().Start();
             }
-            Redraw();
         }
 
         public override void OnGUI()
@@ -190,6 +151,58 @@ namespace GitHub.Unity
             }
 
             GUILayout.EndScrollView();
+        }
+
+        private void MaybeUpdateRemote()
+        {
+            if (!remoteHasChanged)
+                return;
+
+            remoteHasChanged = false;
+            hasRemote = activeRemote.HasValue && !String.IsNullOrEmpty(activeRemote.Value.Url);
+            if (!hasRemote)
+            {
+                ResetToDefaults();
+            }
+            else
+            {
+                repositoryRemoteName = activeRemote.Value.Name;
+                repositoryRemoteUrl = activeRemote.Value.Url;
+            }
+        }
+
+        private void ResetToDefaults()
+        {
+            gitName = String.Empty;
+            gitEmail = String.Empty;
+            repositoryRemoteName = DefaultRepositoryRemoteName;
+            repositoryRemoteUrl = string.Empty;
+        }
+
+        private void Repository_OnActiveRemoteChanged(string remote)
+        {
+            activeRemote = Repository.CurrentRemote;
+            remoteHasChanged = true;
+        }
+
+        private void RunLocksUpdateOnMainThread(IEnumerable<GitLock> locks)
+        {
+            new ActionTask(TaskManager.Token, _ => OnLocksUpdate(locks))
+                .ScheduleUI(TaskManager);
+        }
+
+        private void OnLocksUpdate(IEnumerable<GitLock> update)
+        {
+            if (update == null)
+            {
+                return;
+            }
+            lockedFiles = update.ToList();
+            if (lockedFiles.Count <= lockedFileSelection)
+            {
+                lockedFileSelection = -1;
+            }
+            Redraw();
         }
 
         private void OnUserSettingsGUI()
@@ -247,23 +260,6 @@ namespace GitHub.Unity
                 }
             }
             GUI.enabled = true;
-        }
-
-        private static void TableCell(string label, float width)
-        {
-            GUILayout.Label(label, EditorStyles.miniLabel, GUILayout.Width(width), GUILayout.MaxWidth(width));
-        }
-
-        private static bool ValidateInitDirectory(string path)
-        {
-            if (Utility.UnityProjectPath.IndexOf(path) != 0)
-            {
-                EditorUtility.DisplayDialog(InvalidInitDirectoryTitle, String.Format(InvalidInitDirectoryMessage, path),
-                    InvalidInitDirectoryOK);
-                return false;
-            }
-
-            return true;
         }
 
         private bool ValidateGitInstall(string path)
@@ -696,6 +692,23 @@ namespace GitHub.Unity
         private void Init()
         {
             Logger.Debug("TODO: Init '{0}'", initDirectory);
+        }
+
+        private static void TableCell(string label, float width)
+        {
+            GUILayout.Label(label, EditorStyles.miniLabel, GUILayout.Width(width), GUILayout.MaxWidth(width));
+        }
+
+        private static bool ValidateInitDirectory(string path)
+        {
+            if (Utility.UnityProjectPath.IndexOf(path) != 0)
+            {
+                EditorUtility.DisplayDialog(InvalidInitDirectoryTitle, String.Format(InvalidInitDirectoryMessage, path),
+                    InvalidInitDirectoryOK);
+                return false;
+            }
+
+            return true;
         }
     }
 }
