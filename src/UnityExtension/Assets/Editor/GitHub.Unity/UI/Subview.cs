@@ -112,7 +112,6 @@ namespace GitHub.Unity
         protected IEnvironment Environment { get { return Manager.Environment; } }
         protected IPlatform Platform { get { return Manager.Platform; } }
 
-
         private ILogging logger;
         protected ILogging Logger
         {
@@ -144,21 +143,13 @@ namespace GitHub.Unity
             Parent = parent;
         }
 
-        public virtual void OnShow()
-        {
-        }
+        public virtual void OnEnable()
+        {}
 
-        public virtual void OnHide()
-        {
-        }
-
-        public virtual void OnUpdate()
+        public virtual void OnDisable()
         {}
 
         public virtual void OnGUI()
-        {}
-
-        public virtual void OnDestroy()
         {}
 
         public virtual void OnSelectionChange()

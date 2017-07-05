@@ -81,9 +81,9 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
             if (Repository != null)
             {
                 Repository.OnCommitChanged += UpdateLogOnMainThread;
@@ -92,9 +92,9 @@ namespace GitHub.Unity
             UpdateLog();
         }
 
-        public override void OnHide()
+        public override void OnDisable()
         {
-            base.OnHide();
+            base.OnDisable();
             if (Repository != null)
             {
                 Repository.OnCommitChanged -= UpdateLogOnMainThread;

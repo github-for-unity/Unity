@@ -44,9 +44,9 @@ namespace GitHub.Unity
             targetMode = mode;
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
             if (Repository != null)
             {
                 Repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
@@ -55,9 +55,9 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnHide()
+        public override void OnDisable()
         {
-            base.OnHide();
+            base.OnDisable();
             if (Repository != null)
             {
                 Repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
