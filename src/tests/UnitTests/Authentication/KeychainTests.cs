@@ -18,7 +18,7 @@ namespace UnitTests
         private static readonly SubstituteFactory SubstituteFactory = new SubstituteFactory();
 
         [Test]
-        public void Should_Initialize_When_Cache_Does_Not_Exist()
+        public void ShouldInitializeWhenCacheDoesNotExist()
         {
             const string connectionsCachePath = @"c:\UserCachePath\";
 
@@ -52,7 +52,7 @@ namespace UnitTests
         }
 
         [Test]
-        public void Should_Initialize_When_Cache_Invalid()
+        public void ShouldInitializeWhenCacheInvalid()
         {
             const string connectionsCachePath = @"c:\UserCachePath\";
             const string connectionsCacheFile = @"c:\UserCachePath\connections.json";
@@ -92,7 +92,7 @@ namespace UnitTests
         }
 
         [Test]
-        public void Should_Initialize_When_Cache_Exists()
+        public void ShouldInitializeWhenCacheExists()
         {
             const string connectionsCachePath = @"c:\UserCachePath\";
             const string connectionsCacheFile = @"c:\UserCachePath\connections.json";
@@ -134,7 +134,7 @@ namespace UnitTests
         }
 
         [Test]
-        public void Should_Load_From_ConnectionManager()
+        public void ShouldLoadFromConnectionManager()
         {
             const string connectionsCachePath = @"c:\UserCachePath\";
             const string connectionsCacheFile = @"c:\UserCachePath\connections.json";
@@ -194,7 +194,7 @@ namespace UnitTests
         }
 
         [Test]
-        public void Should_Delete_From_Cache_When_Load_Returns_Null_From_ConnectionManager()
+        public void ShouldDeleteFromCacheWhenLoadReturnsNullFromConnectionManager()
         {
             const string connectionsCachePath = @"c:\UserCachePath\";
             const string connectionsCacheFile = @"c:\UserCachePath\connections.json";
@@ -248,7 +248,7 @@ namespace UnitTests
         }
 
         [Test]
-        public void Should_Delete_From_Cache_When_Load_Returns_Null_From_ConnectionManager_Due_To_User_Mismatch()
+        public void ShouldDeleteFromCacheWhenLoadReturnsNullFromConnectionManagerDueToUserMismatch()
         {
             const string connectionsCachePath = @"c:\UserCachePath\";
             const string connectionsCacheFile = @"c:\UserCachePath\connections.json";
@@ -323,7 +323,7 @@ namespace UnitTests
         }
 
         [Test]
-        public void Should_Connect_Set_Credentials_Token_And_Save()
+        public void ShouldConnectSetCredentialsTokenAndSave()
         {
             const string connectionsCachePath = @"c:\UserCachePath\";
             const string connectionsCacheFile = @"c:\UserCachePath\connections.json";
@@ -409,7 +409,7 @@ namespace UnitTests
         }
 
         [Test]
-        public void Should_Connect_Set_Credentials_And_Clear()
+        public void ShouldConnectSetCredentialsAndClear()
         {
             const string connectionsCachePath = @"c:\UserCachePath\";
             const string connectionsCacheFile = @"c:\UserCachePath\connections.json";
