@@ -66,19 +66,14 @@ namespace GitHub.Unity
         [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
         [SerializeField] private bool isBusy;
 
-        public override void Initialize(IApplicationManager applicationManager)
+        public override void InitializeView(IView parent)
         {
-            base.Initialize(applicationManager);
+            base.InitializeView(parent);
+
             if (Manager != null)
             {
                 UpdateLog();
             }
-        }
-
-        public override void InitializeView(IView parent)
-        {
-            Logger.Trace("InitializeView(IView)");
-            base.InitializeView(parent);
 
             lastWidth = Position.width;
             selectionIndex = newSelectionIndex = -1;
@@ -93,9 +88,9 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
             if (Repository != null)
             {
                 Repository.OnCommitChanged += UpdateLogOnMainThread;
@@ -104,9 +99,9 @@ namespace GitHub.Unity
             UpdateLog();
         }
 
-        public override void OnHide()
+        public override void OnDisable()
         {
-            base.OnHide();
+            base.OnDisable();
             if (Repository != null)
             {
                 Repository.OnCommitChanged -= UpdateLogOnMainThread;

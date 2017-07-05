@@ -117,10 +117,6 @@
       <Project>{66a1d219-f61d-4ae4-9bd7-aaeb97276fff}</Project>
       <Name>TestUtils</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
-      <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
-      <Name>GitHub.Unity</Name>
-    </ProjectReference>
     <Reference Include="sfw.net">
       <HintPath>$(SolutionDir)\lib\sfw.net\$(Configuration)\sfw.net.dll</HintPath>
       <Private>True</Private>

@@ -33,9 +33,9 @@ namespace GitHub.Unity
             tree.InitializeView(this);
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
             if (Repository == null)
                 return;
 
@@ -44,9 +44,9 @@ namespace GitHub.Unity
             Repository.Refresh();
         }
 
-        public override void OnHide()
+        public override void OnDisable()
         {
-            base.OnHide();
+            base.OnDisable();
             if (Repository == null)
                 return;
             Repository.OnRepositoryChanged -= RunStatusUpdateOnMainThread;

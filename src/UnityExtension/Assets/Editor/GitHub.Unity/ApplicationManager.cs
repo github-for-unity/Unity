@@ -23,6 +23,7 @@ namespace GitHub.Unity
 
         protected override void SetupMetrics()
         {
+
             new ActionTask(CancellationToken,
                     () => SetupMetrics(Environment.UnityVersion, ApplicationCache.Instance.FirstRun))
                 { Affinity = TaskAffinity.UI }
@@ -33,7 +34,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("Restarted {0}", Environment.Repository);
             ProjectWindowInterface.Initialize(Environment.Repository);
-            var view = Window.GetView();
+            var view = Window.GetWindow();
             if (view != null)
                 view.Initialize(this);
         }

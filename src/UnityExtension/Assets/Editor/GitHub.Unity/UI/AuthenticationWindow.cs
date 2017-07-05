@@ -27,45 +27,45 @@ namespace GitHub.Unity
             return authWindow;
        }
 
-        public override void OnGUI()
+        public override void Initialize(IApplicationManager applicationManager)
         {
+            base.Initialize(applicationManager);
             if (authView == null)
-            {
-                CreateViews();
-            }
+                authView = new AuthenticationView();
+            authView.InitializeView(this);
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+
+            // Set window title
+            titleContent = new GUIContent(Title, Styles.SmallLogo);
+            authView.OnEnable();
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            authView.OnDisable();
+        }
+
+        public override void OnUI()
+        {
+            base.OnUI();
             authView.OnGUI();
         }
 
         public override void Refresh()
         {
+            base.Refresh();
             authView.Refresh();
         }
 
-        public override void OnEnable()
+        public override void OnSelectionChange()
         {
-            // Set window title
-            titleContent = new GUIContent(Title, Styles.SmallLogo);
-
-            Utility.UnregisterReadyCallback(CreateViews);
-            Utility.RegisterReadyCallback(CreateViews);
-
-            Utility.UnregisterReadyCallback(ShowActiveView);
-            Utility.RegisterReadyCallback(ShowActiveView);
-        }
-
-        private void CreateViews()
-        {
-            if (authView == null)
-                authView = new AuthenticationView();
-
-            Initialize(EntryPoint.ApplicationManager);
-            authView.InitializeView(this);
-        }
-
-        private void ShowActiveView()
-        {
-            authView.OnShow();
-            Refresh();
+            base.OnSelectionChange();
+            authView.OnSelectionChange();
         }
 
         public override void Finish(bool result)
