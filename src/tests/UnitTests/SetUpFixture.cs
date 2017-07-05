@@ -10,7 +10,7 @@ namespace UnitTests
         [SetUp]
         public void SetUp()
         {
-            //Logging.TracingEnabled = true;
+            Logging.TracingEnabled = true;
 
             Logging.LogAdapter = new MultipleLogAdapter(new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-unit-tests.log"));
         }
