@@ -61,14 +61,14 @@ namespace GitHub.Unity
             need2fa = busy = false;
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
         }
 
-        public override void OnHide()
+        public override void OnDisable()
         {
-            base.OnHide();
+            base.OnDisable();
         }
 
         public override void OnGUI()

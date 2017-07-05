@@ -114,9 +114,9 @@ namespace GitHub.Unity
             UpdateRemote();
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
             if (Repository == null)
                 return;
 

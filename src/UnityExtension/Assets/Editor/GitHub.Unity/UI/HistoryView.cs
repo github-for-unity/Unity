@@ -30,6 +30,13 @@ namespace GitHub.Unity
         private const string ClearSelectionButton = "×";
         private const string NoRepoTitle = "No Git repository found for this project";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
+        private const string FetchActionTitle = "Fetch Changes";
+        private const string FetchButtonText = "Fetch";
+        private const string FetchFailureDescription = "Could not fetch changes";
+        private const string FetchConfirmTitle = "Fetch Changes?";
+        private const string FetchConfirmDescription = "Would you like to fetch changes from remote '{0}'?";
+        private const string FetchConfirmYes = "Fetch";
+        private const string FetchConfirmCancel = "Cancel";
         private const int HistoryExtraItemCount = 10;
         private const float MaxChangelistHeightRatio = .2f;
 
@@ -59,19 +66,14 @@ namespace GitHub.Unity
         [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
         [SerializeField] private bool isBusy;
 
-        public override void Initialize(IApplicationManager applicationManager)
+        public override void InitializeView(IView parent)
         {
-            base.Initialize(applicationManager);
+            base.InitializeView(parent);
+
             if (Manager != null)
             {
                 UpdateLog();
             }
-        }
-
-        public override void InitializeView(IView parent)
-        {
-            Logger.Trace("InitializeView(IView)");
-            base.InitializeView(parent);
 
             lastWidth = Position.width;
             selectionIndex = newSelectionIndex = -1;
@@ -86,9 +88,9 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
             if (Repository != null)
             {
                 Repository.OnCommitChanged += UpdateLogOnMainThread;
@@ -97,9 +99,9 @@ namespace GitHub.Unity
             UpdateLog();
         }
 
-        public override void OnHide()
+        public override void OnDisable()
         {
-            base.OnHide();
+            base.OnDisable();
             if (Repository != null)
             {
                 Repository.OnCommitChanged -= UpdateLogOnMainThread;
@@ -321,8 +323,14 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
+                GUI.enabled = currentRemote != null;
+                var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
+                GUI.enabled = true;
+                if (fetchClicked)
+                {
+                    Fetch();
+                }
 
-                // Pull / Push buttons
                 var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
                 GUI.enabled = currentRemote != null;
                 var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
@@ -733,6 +741,21 @@ namespace GitHub.Unity
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             Localization.PushFailureDescription,
                         Localization.Ok);
+                    }
+                })
+                .Start();
+        }
+
+        private void Fetch()
+        {
+            var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
+            Repository
+                .Fetch()
+                .FinallyInUI((success, e) => {
+                    if (!success)
+                    {
+                        EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
+                            Localization.Ok);
                     }
                 })
                 .Start();
