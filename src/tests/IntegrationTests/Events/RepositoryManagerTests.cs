@@ -294,6 +294,9 @@ namespace IntegrationTests
             RepositoryManager.ActiveRemote.Value.Name.Should().Be("origin");
             RepositoryManager.ActiveRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
 
+            RepositoryManager.Repository.CloneUrl.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo");
+            RepositoryManager.Repository.Owner.Should().Be("EvilStanleyGoldman");
+
             await RepositoryManager.RemoteRemove("origin").StartAsAsync();
             await TaskManager.Wait();
 
@@ -304,6 +307,9 @@ namespace IntegrationTests
             Logger.Trace("Continue test");
 
             RepositoryManager.ActiveRemote.HasValue.Should().BeFalse();
+
+            RepositoryManager.Repository.CloneUrl.Should().BeNull();
+            RepositoryManager.Repository.Owner.Should().BeNull();
 
             repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
@@ -319,7 +325,7 @@ namespace IntegrationTests
 
             Logger.Trace("Issuing Command");
 
-            await RepositoryManager.RemoteAdd("origin", "https://github.com/EvilStanleyGoldman/IOTestsRepo.git").StartAsAsync();
+            await RepositoryManager.RemoteAdd("origin", "https://github.com/EvilShana/IOTestsRepo.git").StartAsAsync();
             await TaskManager.Wait();
 
             managerAutoResetEvent.OnActiveRemoteChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
@@ -329,7 +335,10 @@ namespace IntegrationTests
 
             RepositoryManager.ActiveRemote.HasValue.Should().BeTrue();
             RepositoryManager.ActiveRemote.Value.Name.Should().Be("origin");
-            RepositoryManager.ActiveRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            RepositoryManager.ActiveRemote.Value.Url.Should().Be("https://github.com/EvilShana/IOTestsRepo.git");
+
+            RepositoryManager.Repository.CloneUrl.Should().Be("https://github.com/EvilShana/IOTestsRepo.git");
+            RepositoryManager.Repository.Owner.Should().Be("EvilStanleyGoldman");
 
             repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
