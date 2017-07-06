@@ -11,8 +11,6 @@ namespace GitHub.Unity
     [InitializeOnLoad]
     class EntryPoint : ScriptableObject
     {
-        private static ApplicationManager appManager;
-
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
         {
@@ -69,6 +67,7 @@ namespace GitHub.Unity
             return true;
         }
 
+        private static ApplicationManager appManager;
         public static IApplicationManager ApplicationManager
         {
             get

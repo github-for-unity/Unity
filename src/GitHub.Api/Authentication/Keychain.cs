@@ -52,19 +52,26 @@ namespace GitHub.Unity
 
         public async Task<IKeychainAdapter> Load(UriString host)
         {
-            var keychainAdapter = FindOrCreateAdapter(host);
+            KeychainAdapter keychainAdapter = FindOrCreateAdapter(host);
+            var cachedConnection = connectionCache[host];
 
-            logger.Trace("Load KeychainAdapter Host:\"{0}\"", host);
+            logger.Trace($@"Loading KeychainAdapter Host:""{host}"" Cached Username:""{cachedConnection.Username}""");
+
             var keychainItem = await credentialManager.Load(host);
 
             if (keychainItem == null)
             {
-                logger.Warning("Cannot load host from credential manager; removing from cache");
+                logger.Warning("Cannot load host from Credential Manager; removing from cache");
+                await Clear(host, false);
+            }
+            else if (keychainItem.Username != cachedConnection.Username)
+            {
+                logger.Warning("Item loaded from credential manager does not match connection cache ; removing from cache");
                 await Clear(host, false);
             }
             else
             {
-                logger.Trace("Loading KeychainItem:{0}", keychainItem.ToString());
+                logger.Trace($@"Loaded from Credential Manager Host:""{keychainItem.Host}"" Username:""{keychainItem.Username}""");
                 keychainAdapter.Set(keychainItem);
             }
 
@@ -113,7 +120,10 @@ namespace GitHub.Unity
             if (connections != null)
             {
                 connectionCache =
-                    connections.Select(item => new Connection { Host = new UriString(item.Host), Username = item.Username })
+                    connections.Select(item => {
+                                    logger.Trace("ReadCacheFromDisk Item Host:{0} Username:{1}", item.Host, item.Username);
+                                    return new Connection { Host = new UriString(item.Host), Username = item.Username };
+                               })
                                .ToDictionary(connection => connection.Host);
             }
             else

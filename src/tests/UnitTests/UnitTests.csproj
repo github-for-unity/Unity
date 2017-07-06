@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <Import Project="..\..\..\common\unitylocation.props" />
+  <Import Project="..\..\..\common\build.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -105,14 +105,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">
-      <Project>{eb4b074e-62a7-4f1d-8f95-e64b7aea0236}</Project>
-      <Name>Octokit-Extensions35</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\submodules\octokit.net\Octokit\Octokit-35.csproj">
-      <Project>{49ef16a2-5ed1-480f-80a1-d1d05d6c1be4}</Project>
-      <Name>Octokit-35</Name>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)\src\GitHub.Api\GitHub.Api.csproj">
       <Project>{B389ADAF-62CC-486E-85B4-2D8B078DF763}</Project>
       <Name>GitHub.Api</Name>
@@ -124,10 +116,6 @@
     <ProjectReference Include="..\TestUtils\TestUtils.csproj">
       <Project>{66a1d219-f61d-4ae4-9bd7-aaeb97276fff}</Project>
       <Name>TestUtils</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
-      <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
-      <Name>GitHub.Unity</Name>
     </ProjectReference>
     <Reference Include="sfw.net">
       <HintPath>$(SolutionDir)\lib\sfw.net\$(Configuration)\sfw.net.dll</HintPath>

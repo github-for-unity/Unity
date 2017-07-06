@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="..\..\..\common\build.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -85,21 +86,17 @@
     <Compile Include="ThreadSynchronizationContext.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\src\\GitHub.Api\GitHub.Api.csproj">
+    <ProjectReference Include="$(SolutionDir)src\GitHub.Api\GitHub.Api.csproj">
       <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
       <Name>GitHub.Api</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\src\\GitHub.Logging\GitHub.Logging.csproj">
+    <ProjectReference Include="$(SolutionDir)src\GitHub.Logging\GitHub.Logging.csproj">
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestUtils\TestUtils.csproj">
       <Project>{66a1d219-f61d-4ae4-9bd7-aaeb97276fff}</Project>
       <Name>TestUtils</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\src\\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
-      <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
-      <Name>GitHub.Unity</Name>
     </ProjectReference>
     <Reference Include="sfw.net">
       <HintPath>$(SolutionDir)\lib\sfw.net\$(Configuration)\sfw.net.dll</HintPath>

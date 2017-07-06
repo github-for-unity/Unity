@@ -119,9 +119,9 @@ namespace GitHub.Unity
             repositoryRemoteUrl = currentRemote.Value.Url;
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
             if (Repository == null)
                 return;
 
@@ -140,9 +140,9 @@ namespace GitHub.Unity
             gitEmail = Repository.User.Email;
         }
 
-        public override void OnHide()
+        public override void OnDisable()
         {
-            base.OnHide();
+            base.OnDisable();
         }
 
         private void RunLocksUpdateOnMainThread(IEnumerable<GitLock> locks)

@@ -7,15 +7,14 @@ namespace GitHub.Unity
     [Serializable]
     class AuthenticationView : Subview
     {
-        const string serverLabel = "Server";
         const string usernameLabel = "Username";
         const string passwordLabel = "Password";
-        const string twofaLabel = "Authentication code";
+        const string twofaLabel = "2FA Code";
         const string loginButton = "Sign in";
         const string backButton = "Back";
         const string authTitle = "Sign in to GitHub";
-        const string twofaTitle = "Two-factor authentication";
-        const string twofaDescription = "Open the two-factor authentication app on your device to view your authentication code and verify your identity.";
+        const string twofaTitle = "Two-Factor Authentication";
+        const string twofaDescription = "Open the two-factor authentication app on your device to view your 2FA code and verify your identity.";
         const string twofaButton = "Verify";
 
         [SerializeField] private Vector2 scroll;
@@ -62,19 +61,21 @@ namespace GitHub.Unity
             need2fa = busy = false;
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
         }
 
-        public override void OnHide()
+        public override void OnDisable()
         {
-            base.OnHide();
+            base.OnDisable();
         }
 
         public override void OnGUI()
         {
             HandleEnterPressed();
+
+            EditorGUIUtility.labelWidth = 90f;
 
             scroll = GUILayout.BeginScrollView(scroll);
             {
@@ -114,7 +115,6 @@ namespace GitHub.Unity
                 }
 
                 GUILayout.EndVertical();
-                GUILayout.Space(Styles.BaseSpacing);
             }
             GUILayout.EndScrollView();
         }
@@ -135,7 +135,7 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal();
             {
                 if (busy) GUI.enabled = false;
-                username = EditorGUILayout.TextField("Username" ,username, Styles.TextFieldStyle);
+                username = EditorGUILayout.TextField(usernameLabel ,username, Styles.TextFieldStyle);
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
@@ -143,7 +143,7 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal();
             {
                 if (busy) GUI.enabled = false;
-                password = EditorGUILayout.PasswordField("Password", password, Styles.TextFieldStyle);
+                password = EditorGUILayout.PasswordField(passwordLabel, password, Styles.TextFieldStyle);
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
@@ -196,8 +196,6 @@ namespace GitHub.Unity
                 Redraw();
             }
 
-            GUILayout.Space(Styles.BaseSpacing);
-
             if (GUILayout.Button(twofaButton) || (GUI.enabled && enterPressed))
             {
                 GUI.FocusControl(null);
@@ -209,7 +207,6 @@ namespace GitHub.Unity
             GUI.enabled = true;
             GUILayout.Space(Styles.BaseSpacing);
             GUILayout.EndVertical();
-            GUILayout.Space(Styles.BaseSpacing);
         }
 
         private void DoRequire2fa(string msg)
