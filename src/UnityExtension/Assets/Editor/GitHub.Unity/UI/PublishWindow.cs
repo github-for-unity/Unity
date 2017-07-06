@@ -26,45 +26,37 @@ namespace GitHub.Unity
             return publishWindow;
        }
 
+        public override void Initialize(IApplicationManager applicationManager)
+        {
+            base.Initialize(applicationManager);
+            if (publishView == null)
+                publishView = new PublishView();
+            publishView.InitializeView(this);
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+       
+            // Set window title
+            titleContent = new GUIContent(Title, Styles.SmallLogo);
+            publishView.OnEnable();
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            publishView.OnDisable();
+        }
+
         public override void OnUI()
         {
-            if (publishView == null)
-            {
-                CreateViews();
-            }
             publishView.OnGUI();
         }
 
         public override void Refresh()
         {
             publishView.Refresh();
-        }
-
-        public override void OnEnable()
-        {
-            // Set window title
-            titleContent = new GUIContent(Title, Styles.SmallLogo);
-
-            Utility.UnregisterReadyCallback(CreateViews);
-            Utility.RegisterReadyCallback(CreateViews);
-
-            Utility.UnregisterReadyCallback(ShowActiveView);
-            Utility.RegisterReadyCallback(ShowActiveView);
-        }
-
-        private void CreateViews()
-        {
-            if (publishView == null)
-                publishView = new PublishView();
-
-            Initialize(EntryPoint.ApplicationManager);
-            publishView.InitializeView(this);
-        }
-
-        private void ShowActiveView()
-        {
-            publishView.OnShow();
-            Refresh();
         }
 
         public override void Finish(bool result)
