@@ -41,9 +41,9 @@ namespace UnitTests
             BranchNameValidator.IsBranchNameValid(branch).Should().Be(isValid);
         }
 
-        [TestCase(true, 45, 45, 45, TestName = "Can test with ascii values")]
-        [TestCase(false, 45, 45, 39, TestName = "No individual ASCII value should be < octal(40)")]
-        [TestCase(false, 45, 45, 177, TestName = "No individual ASCII value should = octal(177)")]
+        [TestCase(true, 65, 65, 65, TestName = "Can test with ascii values")]
+        [TestCase(false, 65, 65, 31, TestName = "No individual ASCII value should be < octal(40) or dec(32)")]
+        [TestCase(false, 65, 65, 127, TestName = "No individual ASCII value should = octal(177) or dec(127)")]
         public void TestFeatureStringFromAsciiArray(bool isValid, params int[] asciiValues)
         {
             var branch = new string(asciiValues.Select(Convert.ToChar).ToArray());
