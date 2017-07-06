@@ -44,7 +44,6 @@
     <CodeAnalysisRuleSet>$(SolutionDir)common\GitHub.ruleset</CodeAnalysisRuleSet>
     <LangVersion>4</LangVersion>
   </PropertyGroup>
-  <Import Project="..\..\..\..\..\common\build.targets" />
   <ItemGroup>
     <Reference Include="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -239,4 +238,5 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Import Project="..\..\..\..\..\common\build.targets" />
 </Project>

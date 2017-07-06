@@ -24,7 +24,7 @@
 
   <!-- Common includes and references -->
   <Choose>
-    <When Condition="$(SolutionType) == 'OctokitDebugging'">
+    <When Condition="'$(SolutionType)' == 'OctokitDebugging'">
       <ItemGroup>
         <ProjectReference Include="$(SolutionDir)..\dotnet-httpclient35\System.Net.Http\System.Net.Http-net_3_5.csproj">
           <Project>{9862694d-e4fa-418b-8692-a0280feddf36}</Project>
@@ -50,8 +50,11 @@
 
   <Target Name="BeforeBuild">
     <PropertyGroup>
-      <ErrorText>Location of Unity dlls is not set. You'll need to install Unity in a known location (the default installation directory for your system), or copy UnityEngine.dll and UnityEditor.dll to the {0}lib folder</ErrorText>
+      <UnityDLLsMissingErrorText>Location of Unity dlls is not set. You'll need to install Unity in a known location (the default installation directory for your system), or copy UnityEngine.dll and UnityEditor.dll to the {0}lib folder</UnityDLLsMissingErrorText>
+      <MissingOctokitProject>To build the OctokitDebugging solution you need to have https://github.com/github-for-unity/octokit.net checked out in {0}</MissingOctokitProject>
+      <MissingHttpProject>To build the OctokitDebugging solution you need to have https://github.com/github-for-unity/dotnet-httpclient35 checked out in {0}</MissingHttpProject>
     </PropertyGroup>
-    <Error Condition="'$(UnityDir)' == ''" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)'))" />
+    <Error Condition="'$(UnityDir)' == ''" Text="$([System.String]::Format('$(UnityDLLsMissingErrorText)', '$(SolutionDir)'))" />
+    <Error Condition="$(SolutionType) == 'OctokitDebugging' and !Exists('$(SolutionDir)..\dotnet-httpclient35\System.Net.Http\System.Net.Http-net_3_5.csproj')" Text="$([System.String]::Format('$(MissingOctokitProject)', '$(SolutionDir)..\dotnet-httpclient35'))" />
   </Target>
 </Project>
