@@ -33,10 +33,6 @@ namespace GitHub.Unity
         private const string FetchActionTitle = "Fetch Changes";
         private const string FetchButtonText = "Fetch";
         private const string FetchFailureDescription = "Could not fetch changes";
-        private const string FetchConfirmTitle = "Fetch Changes?";
-        private const string FetchConfirmDescription = "Would you like to fetch changes from remote '{0}'?";
-        private const string FetchConfirmYes = "Fetch";
-        private const string FetchConfirmCancel = "Cancel";
         private const int HistoryExtraItemCount = 10;
         private const float MaxChangelistHeightRatio = .2f;
 
