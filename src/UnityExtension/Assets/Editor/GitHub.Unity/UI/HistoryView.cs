@@ -31,6 +31,9 @@ namespace GitHub.Unity
         private const string NoRepoTitle = "No Git repository found for this project";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
         private const string PublishButton = "Publish";
+        private const string FetchActionTitle = "Fetch Changes";
+        private const string FetchButtonText = "Fetch";
+        private const string FetchFailureDescription = "Could not fetch changes";
         private const int HistoryExtraItemCount = 10;
         private const float MaxChangelistHeightRatio = .2f;
 
@@ -82,9 +85,9 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
             if (Repository != null)
             {
                 Repository.OnCommitChanged += UpdateLogOnMainThread;
@@ -93,9 +96,9 @@ namespace GitHub.Unity
             UpdateLog();
         }
 
-        public override void OnHide()
+        public override void OnDisable()
         {
-            base.OnHide();
+            base.OnDisable();
             if (Repository != null)
             {
                 Repository.OnCommitChanged -= UpdateLogOnMainThread;
@@ -321,6 +324,14 @@ namespace GitHub.Unity
                 var isPublished = Repository.CurrentRemote.HasValue;
                 if (isPublished)
                 {
+                    GUI.enabled = currentRemote != null;
+                    var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
+                    GUI.enabled = true;
+                    if (fetchClicked)
+                    {
+                        Fetch();
+                    }
+
                     // Pull / Push buttons
                     var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
                     GUI.enabled = currentRemote != null;
@@ -742,6 +753,21 @@ namespace GitHub.Unity
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             Localization.PushFailureDescription,
                         Localization.Ok);
+                    }
+                })
+                .Start();
+        }
+
+        private void Fetch()
+        {
+            var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
+            Repository
+                .Fetch()
+                .FinallyInUI((success, e) => {
+                    if (!success)
+                    {
+                        EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
+                            Localization.Ok);
                     }
                 })
                 .Start();

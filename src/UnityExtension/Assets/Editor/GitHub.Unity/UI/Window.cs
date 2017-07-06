@@ -83,6 +83,23 @@ namespace GitHub.Unity
 
             // Set window title
             titleContent = new GUIContent(Title, Styles.SmallLogo);
+
+            if (ActiveTab != null)
+                ActiveTab.OnEnable();
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            if (ActiveTab != null)
+                ActiveTab.OnDisable();
+        }
+
+        public override void OnSelectionChange()
+        {
+            base.OnSelectionChange();
+            if (ActiveTab != null)
+                ActiveTab.OnSelectionChange();
         }
 
         public override void Refresh()
@@ -90,14 +107,6 @@ namespace GitHub.Unity
             base.Refresh();
             if (ActiveTab != null)
                 ActiveTab.Refresh();
-        }
-
-        public override void OnDisable()
-        {
-            base.OnDisable();
-
-            if (ActiveTab != null)
-                ActiveTab.OnHide();
         }
 
         public override void OnUI()
@@ -131,28 +140,12 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnSelectionChange()
-        {
-            base.OnSelectionChange();
-            if (ActiveTab != null)
-                ActiveTab.OnSelectionChange();
-        }
-
-        private void ShowActiveView()
-        {
-            if (Repository == null)
-                return;
-
-            if (ActiveTab != null)
-                ActiveTab.OnShow();
-            Refresh();
-        }
-
         private void SwitchView(Subview from, Subview to)
         {
             GUI.FocusControl(null);
-            from.OnHide();
-            to.OnShow();
+            if (from != null)
+                from.OnDisable();
+            to.OnEnable();
             Refresh();
         }
 
