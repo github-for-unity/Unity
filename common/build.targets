@@ -1,17 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Build flags -->
-  <PropertyGroup>
-    <SolutionType Condition="'$(SolutionName)' == 'GitHub.Unity.OctokitDebugging'">OctokitDebugging</SolutionType>
-    <BuildType Condition="Exists('$(SolutionDir)\script\src\MetricsService.cs')">Internal</BuildType>
-
-    <UnityDir Condition="$(UnityDir) == '' and Exists('$(SolutionDir)\script\lib\UnityEditor.dll')">$(SolutionDir)\script\lib\</UnityDir>
-    <UnityDir Condition="$(UnityDir) == '' and Exists('$(SolutionDir)\lib\UnityEditor.dll')">$(SolutionDir)\lib\</UnityDir>
-    <UnityDir Condition="$(UnityDir) == '' and Exists('C:\Program Files (x86)\Unity\Editor\Data\Managed\UnityEditor.dll')">C:\Program Files (x86)\Unity\Editor\Data\Managed\</UnityDir>
-    <UnityDir Condition="$(UnityDir) == '' and Exists('\Applications\Unity\Unity.app\Contents\Managed\UnityEditor.dll')">\Applications\Unity\Unity.app\Contents\Managed\</UnityDir>
-    <BuildConfig Condition=" '$(BuildConfig)' == '' ">Debug</BuildConfig>
-  </PropertyGroup>
-
   <!-- Common assembly properties (versioning) -->
   <ItemGroup>
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">

@@ -14,6 +14,7 @@
     <TargetFrameworkProfile />
     <OutputPath>$(SolutionDir)build\$(AssemblyName)</OutputPath>
   </PropertyGroup>
+  <Import Project="..\..\..\common\properties.props" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
