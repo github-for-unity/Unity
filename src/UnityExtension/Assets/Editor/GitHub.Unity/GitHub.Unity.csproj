@@ -23,7 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>false</RunCodeAnalysis>
-    <CodeAnalysisRuleSet>$(SolutionDir)common\GitHub.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\..\..\..\common\codeanalysis-small.ruleset</CodeAnalysisRuleSet>
     <LangVersion>4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -111,7 +111,7 @@
   </ItemGroup>
   <Choose>
     <When Condition="$(Buildtype) == 'Internal'">
-      <ItemGroup >
+      <ItemGroup>
         <Compile Include="$(SolutionDir)\script\src\MetricsInitialization.cs">
           <Link>Metrics\MetricsInitialization.cs</Link>
         </Compile>
