@@ -86,31 +86,18 @@ namespace GitHub.Unity
         [SerializeField] private string repositoryRemoteName;
         [SerializeField] private string repositoryRemoteUrl;
 
-        public override void InitializeView(IView parent)
-        {
-            base.InitializeView(parent);
-            Setup();
-        }
-
-        private void Setup()
+        private void UpdateRemote()
         {
             if (Repository == null)
             {
                 return;
             }
 
-            UpdateRemote();
-        }
-
-        private void UpdateRemote()
-        {
             var currentRemote = Repository.CurrentRemote;
             if (!currentRemote.HasValue)
             {
                 repositoryRemoteName = DefaultRepositoryRemoteName;
                 repositoryRemoteUrl = string.Empty;
-
-                Repository.OnActiveRemoteChanged += Repository_OnActiveRemoteChanged;
             }
             else
             {
@@ -133,6 +120,9 @@ namespace GitHub.Unity
             if (Repository == null)
                 return;
 
+            Repository.OnActiveRemoteChanged += Repository_OnActiveRemoteChanged;
+            UpdateRemote();
+
             if (lockedFiles == null)
                 lockedFiles = new List<GitLock>();
 
@@ -151,6 +141,8 @@ namespace GitHub.Unity
         public override void OnDisable()
         {
             base.OnDisable();
+
+            Repository.OnActiveRemoteChanged -= Repository_OnActiveRemoteChanged;
         }
 
         private void RunLocksUpdateOnMainThread(IEnumerable<GitLock> locks)
