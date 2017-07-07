@@ -10,11 +10,10 @@ namespace GitHub.Unity
         public FindExecTask(string executable, CancellationToken token)
             : base(token, new FirstLineIsPathOutputProcessor())
         {
-            name = DefaultEnvironment.OnWindows ? "where" : "which";
+            Name = name = DefaultEnvironment.OnWindows ? "where" : "which";
             arguments = executable;
         }
 
-        public override string Name { get { return name; } }
         public override string ProcessArguments { get { return arguments; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Concurrent; } }
     }

@@ -257,7 +257,7 @@ namespace GitHub.Unity
             // the failure, using basic authentication (with username and password) instead of trying
             // to get an authorization token.
             var apiException = e as ApiException;
-            return !HostAddress.IsGitHubDotComUri(hostAddress.ToUri()) &&
+            return !HostAddress.IsGitHubDotCom(hostAddress.ToUri()) &&
                 (e is NotFoundException ||
                  e is ForbiddenException ||
                  apiException?.StatusCode == (HttpStatusCode)422);

@@ -21,12 +21,6 @@ namespace GitHub.Unity
                 return val;
             }
         }
-
-        [SerializeField] private string createdDate;
-        public string CreatedDate
-        {
-            get { return createdDate; }
-        }
     }
 
     sealed class EnvironmentCache : ScriptObjectSingleton<EnvironmentCache>

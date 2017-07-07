@@ -56,7 +56,7 @@ namespace IntegrationTests
         [TestFixtureTearDown]
         public void OneTimeTearDown()
         {
-            TaskManager?.Stop();
+            TaskManager?.Dispose();
             try
             {
                 TestBasePath.DeleteIfExists();

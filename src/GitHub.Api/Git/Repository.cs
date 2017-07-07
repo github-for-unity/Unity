@@ -217,7 +217,7 @@ namespace GitHub.Unity
         public UriString CloneUrl { get; private set; }
         public NPath LocalPath { get; private set; }
         public string Owner => CloneUrl?.Owner ?? string.Empty;
-        public bool IsGitHub { get { return CloneUrl != ""; } }
+        public bool IsGitHub { get { return HostAddress.IsGitHubDotCom(CloneUrl); } }
 
         internal string DebuggerDisplay => String.Format(
             CultureInfo.InvariantCulture,

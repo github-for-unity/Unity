@@ -14,7 +14,7 @@ namespace GitHub.Unity
     interface ICredentialManager
     {
         Task<ICredential> Load(UriString host);
-        Task Save(ICredential credential);
+        Task Save(ICredential cred);
         Task Delete(UriString host);
         bool HasCredentials();
         ICredential CachedCredentials { get; }

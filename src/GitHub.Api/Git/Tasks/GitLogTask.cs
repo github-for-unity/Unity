@@ -4,13 +4,14 @@ namespace GitHub.Unity
 {
     class GitLogTask : ProcessTaskWithListOutput<GitLogEntry>
     {
+        private const string TaskName = "git log";
+
         public GitLogTask(IGitObjectFactory gitObjectFactory,
             CancellationToken token, BaseOutputListProcessor<GitLogEntry> processor = null)
             : base(token, processor ?? new LogEntryOutputProcessor(gitObjectFactory))
         {
+            Name = TaskName;
         }
-
-        public override string Name { get { return "git log"; } }
 
         public override string ProcessArguments
         {

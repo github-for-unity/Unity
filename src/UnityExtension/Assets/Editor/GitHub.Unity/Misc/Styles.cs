@@ -86,15 +86,7 @@ namespace GitHub.Unity
             historyDetailsMetaInfoStyle,
             genericBoxStyle;
         static Texture2D
-            modifiedStatusIcon,
-            addedStatusIcon,
-            deletedStatusIcon,
-            renamedStatusIcon,
-            untrackedStatusIcon,
             branchIcon,
-            trackedStatusIcon,
-            lockedStatusIcon,
-            lockedModifiedStatusIcon,
             activeBranchIcon,
             trackingBranchIcon,
             favouriteIconOn,

@@ -326,7 +326,7 @@ namespace GitHub.Unity
 
                 if (IsBusy)
                 {
-                    throw new Exception("System Busy");
+                    throw new InvalidOperationException("RepositoryManager already busy");
                 }
 
                 IsBusy = true;
