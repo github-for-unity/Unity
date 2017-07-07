@@ -14,7 +14,6 @@ namespace GitHub.Unity
         void Finish(bool result);
         event Action<bool> OnClose;
         IRepository Repository { get; }
-        bool RepositoryHasChanged { get; }
         IApplicationManager Manager { get; }
     }
 }

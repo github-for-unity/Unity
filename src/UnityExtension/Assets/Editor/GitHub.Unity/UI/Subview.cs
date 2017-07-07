@@ -73,6 +73,9 @@ namespace GitHub.Unity
         public virtual void OnDataUpdate()
         {}
 
+        public virtual void OnRepositoryChanged(IRepository oldRepository)
+        {}
+
         // OnGUI calls this everytime, so override it to render as you would OnGUI
         public virtual void OnUI() {}
 
@@ -81,8 +84,11 @@ namespace GitHub.Unity
         {
             if (Event.current.type == EventType.layout)
             {
-                RepositoryHasChanged = cachedRepository != Environment.Repository;
-                cachedRepository = Environment.Repository;
+                if (cachedRepository != Environment.Repository)
+                {
+                    OnRepositoryChanged(cachedRepository);
+                    cachedRepository = Environment.Repository;
+                }
                 inLayout = true;
                 OnDataUpdate();
             }
@@ -114,7 +120,6 @@ namespace GitHub.Unity
         public virtual Rect Position { get { return position; } }
         public IApplicationManager Manager { get; private set; }
         public IRepository Repository { get { return inLayout ? cachedRepository : Environment.Repository; } }
-        public bool RepositoryHasChanged { get; private set; }
         public ITaskManager TaskManager { get { return Manager.TaskManager; } }
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }
@@ -153,6 +158,9 @@ namespace GitHub.Unity
         public virtual void OnDataUpdate()
         {}
 
+        public virtual void OnRepositoryChanged(IRepository oldRepository)
+        {}
+
         public virtual void OnGUI()
         {}
 
@@ -175,7 +183,6 @@ namespace GitHub.Unity
         protected IView Parent { get; private set; }
         public IApplicationManager Manager { get { return Parent.Manager; } }
         public IRepository Repository { get { return Manager.Environment.Repository; } }
-        public bool RepositoryHasChanged { get { return Parent.RepositoryHasChanged; } }
         public ITaskManager TaskManager { get { return Manager.TaskManager; } }
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }

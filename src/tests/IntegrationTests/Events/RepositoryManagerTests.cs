@@ -341,6 +341,64 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
 
+        [Test]
+        public async Task ShouldUpdateCloneUrlIfRemoteIsDeleted()
+        {
+            await Initialize(TestRepoMasterCleanSynchronized);
+
+            var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
+            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            RepositoryManager.ActiveRemote.HasValue.Should().BeTrue();
+            RepositoryManager.ActiveRemote.Value.Name.Should().Be("origin");
+            RepositoryManager.ActiveRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+
+            RepositoryManager.Repository.CloneUrl.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            RepositoryManager.Repository.Owner.Should().Be("EvilStanleyGoldman");
+
+            await RepositoryManager.RemoteRemove("origin").StartAsAsync();
+            await TaskManager.Wait();
+            RepositoryManager.WaitForEvents();
+
+            RepositoryManager.ActiveRemote.HasValue.Should().BeFalse();
+
+            RepositoryManager.Repository.CloneUrl.Should().BeNull();
+            RepositoryManager.Repository.Owner.Should().BeNull();
+
+            repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
+            repositoryManagerListener.Received().OnActiveBranchChanged(Args.String);
+            repositoryManagerListener.Received().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
+            repositoryManagerListener.DidNotReceive().OnHeadChanged(Args.String);
+            repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
+            repositoryManagerListener.Received().OnRemoteOrTrackingChanged();
+            repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
+
+            repositoryManagerListener.ClearReceivedCalls();
+            repositoryManagerEvents.Reset();
+
+            await RepositoryManager.RemoteAdd("origin", "https://github.com/EvilShana/IOTestsRepo.git").StartAsAsync();
+            await TaskManager.Wait();
+            RepositoryManager.WaitForEvents();
+
+            RepositoryManager.ActiveRemote.HasValue.Should().BeTrue();
+            RepositoryManager.ActiveRemote.Value.Name.Should().Be("origin");
+            RepositoryManager.ActiveRemote.Value.Url.Should().Be("https://github.com/EvilShana/IOTestsRepo.git");
+
+            RepositoryManager.Repository.CloneUrl.Should().Be("https://github.com/EvilShana/IOTestsRepo.git");
+            RepositoryManager.Repository.Owner.Should().Be("EvilShana");
+
+            repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
+            repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Args.String);
+            repositoryManagerListener.Received().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
+            repositoryManagerListener.DidNotReceive().OnHeadChanged(Args.String);
+            repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
+            repositoryManagerListener.Received().OnRemoteOrTrackingChanged();
+            repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
+        }
 
         [Test]
         public async Task ShouldDetectGitPull()

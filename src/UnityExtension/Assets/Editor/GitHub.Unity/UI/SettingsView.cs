@@ -114,8 +114,19 @@ namespace GitHub.Unity
                 return;
 
             MaybeUpdateRemote();
+        }
 
-            if (RepositoryHasChanged)
+        public override void OnRepositoryChanged(IRepository oldRepository)
+        {
+            base.OnRepositoryChanged(oldRepository);
+
+            if (oldRepository != null)
+            {
+                oldRepository.OnActiveRemoteChanged -= Repository_OnActiveRemoteChanged;
+                oldRepository.OnLocksUpdated -= RunLocksUpdateOnMainThread;
+            }
+
+            if (Repository != null)
             {
                 gitName = Repository.User.Name;
                 gitEmail = Repository.User.Email;
@@ -248,7 +259,11 @@ namespace GitHub.Unity
                     if (needsSaving)
                     {
                         Repository.SetupRemote(repositoryRemoteName, repositoryRemoteUrl)
-                            .FinallyInUI((_, __) => busy = false)
+                            .FinallyInUI((_, __) =>
+                            {
+                                busy = false;
+                                Redraw();
+                            })
                             .Start();
                     }
                     else

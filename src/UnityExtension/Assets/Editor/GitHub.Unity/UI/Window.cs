@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -22,6 +21,10 @@ namespace GitHub.Unity
         private const string BranchesTitle = "Branches";
         private const string SettingsTitle = "Settings";
         private const string AuthenticationTitle = "Auth";
+        private const string DefaultRepoUrl = "No remote configured";
+        private const string Window_RepoUrlTooltip = "Url of the {0} remote";
+        private const string Window_RepoNoUrlTooltip = "Add a remote in the Settings tab";
+        private const string Window_RepoBranchTooltip = "Active branch";
 
         [NonSerialized] private double notificationClearTime = -1;
 
@@ -30,6 +33,11 @@ namespace GitHub.Unity
         [SerializeField] private ChangesView changesTab = new ChangesView();
         [SerializeField] private HistoryView historyTab = new HistoryView();
         [SerializeField] private SettingsView settingsTab = new SettingsView();
+
+        [SerializeField] private string repoBranch;
+        [SerializeField] private string repoUrl;
+        [SerializeField] private GUIContent repoBranchContent;
+        [SerializeField] private GUIContent repoUrlContent;
 
         [MenuItem(LaunchMenu)]
         public static void Window_GitHub()
@@ -83,6 +91,11 @@ namespace GitHub.Unity
 
             // Set window title
             titleContent = new GUIContent(Title, Styles.SmallLogo);
+            if (String.IsNullOrEmpty(repoUrl))
+                repoUrl = DefaultRepoUrl;
+
+            repoBranchContent = new GUIContent(repoBranch, Window_RepoBranchTooltip);
+            repoUrlContent = new GUIContent(repoUrl, Window_RepoNoUrlTooltip);
 
             if (ActiveTab != null)
                 ActiveTab.OnEnable();
@@ -98,8 +111,32 @@ namespace GitHub.Unity
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
+
             if (ActiveTab != null)
                 ActiveTab.OnDataUpdate();
+        }
+
+        public override void OnRepositoryChanged(IRepository oldRepository)
+        {
+            base.OnRepositoryChanged(oldRepository);
+
+            if (Repository != null)
+            {
+                repoBranch = Repository.CurrentBranch;
+                repoBranchContent = new GUIContent(repoBranch, Window_RepoBranchTooltip);
+                repoUrl = Repository.CloneUrl != null ? Repository.CloneUrl.ToString() : DefaultRepoUrl;
+                if (repoUrl != null)
+                {
+                    repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, Repository.CurrentRemote.Value.Name));
+                }
+                else
+                {
+                    repoUrlContent = new GUIContent(repoUrl, Window_RepoNoUrlTooltip);
+                }
+            }
+
+            if (ActiveTab != null)
+                ActiveTab.OnRepositoryChanged(oldRepository);
         }
 
         public override void OnSelectionChange()
@@ -172,13 +209,9 @@ namespace GitHub.Unity
                 {
                     GUILayout.Space(3);
 
-                    var headerRepoLabelText = String.IsNullOrEmpty(Repository.Owner)
-                        ? Repository.Name
-                        : String.Format("{0}/{1}", Repository.Owner, Repository.Name);
-
-                    GUILayout.Label(headerRepoLabelText, Styles.HeaderRepoLabelStyle);
+                    GUILayout.Label(repoUrlContent, Styles.HeaderRepoLabelStyle);
                     GUILayout.Space(-2);
-                    GUILayout.Label(Repository.CurrentBranch, Styles.HeaderBranchLabelStyle);
+                    GUILayout.Label(repoBranchContent, Styles.HeaderBranchLabelStyle);
                 }
                 GUILayout.EndVertical();
             }
@@ -214,8 +247,8 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-                if(GUILayout.Button("Account", EditorStyles.toolbarDropDown))
-                  DoAccountDropdown();
+                if (GUILayout.Button("Account", EditorStyles.toolbarDropDown))
+                    DoAccountDropdown();
             }
             EditorGUILayout.EndHorizontal();
         }

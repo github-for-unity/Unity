@@ -160,7 +160,7 @@ namespace GitHub.Unity
                 OnRepositoryUpdatedHandler
                 : TaskExtensions.Debounce(OnRepositoryUpdatedHandler, debounceTimeout);
 
-            this.repository = new Repository(gitClient, this, repositoryPaths.RepositoryPath.FileName, repositoryPaths.RepositoryPath);
+            this.repository = new Repository(gitClient, this, repositoryPaths.RepositoryPath);
         }
 
         public async Task Initialize()

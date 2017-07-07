@@ -66,43 +66,57 @@ namespace GitHub.Unity
         {
             base.InitializeView(parent);
 
-            if (Manager != null)
-            {
-                UpdateLog();
-            }
-
             lastWidth = Position.width;
             selectionIndex = newSelectionIndex = -1;
 
             changesetTree.InitializeView(this);
             changesetTree.Readonly = true;
-            
-            if (Repository != null)
-            {
-                Repository.OnActiveBranchChanged += s => Refresh();
-                Repository.OnActiveRemoteChanged += s => Refresh();
-            }
         }
 
         public override void OnEnable()
         {
             base.OnEnable();
-            if (Repository != null)
-            {
-                Repository.OnCommitChanged += UpdateLogOnMainThread;
-                Repository.OnRepositoryChanged += UpdateStatusOnMainThread;
-            }
+            AttachHandlers(Repository);
             UpdateLog();
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
-            if (Repository != null)
-            {
-                Repository.OnCommitChanged -= UpdateLogOnMainThread;
-                Repository.OnRepositoryChanged -= UpdateStatusOnMainThread;
-            }
+            DetachHandlers(Repository);
+        }
+
+        public override void OnDataUpdate()
+        {
+            base.OnDataUpdate();
+        }
+
+        public override void OnRepositoryChanged(IRepository oldRepository)
+        {
+            base.OnRepositoryChanged(oldRepository);
+
+            DetachHandlers(oldRepository);
+            AttachHandlers(Repository);
+        }
+
+        private void AttachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+            repository.OnCommitChanged += UpdateLogOnMainThread;
+            repository.OnRepositoryChanged += UpdateStatusOnMainThread;
+            repository.OnActiveBranchChanged += s => Refresh();
+            repository.OnActiveRemoteChanged += s => Refresh();
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+            repository.OnCommitChanged -= UpdateLogOnMainThread;
+            repository.OnRepositoryChanged -= UpdateStatusOnMainThread;
+            repository.OnActiveBranchChanged -= s => Refresh();
+            repository.OnActiveRemoteChanged -= s => Refresh();
         }
 
         private void UpdateStatusOnMainThread(GitStatus status)
@@ -135,7 +149,7 @@ namespace GitHub.Unity
 
         private void RefreshLog()
         {
-            if (Environment.Repository != null && GitClient != null)
+            if (Repository != null)
             {
                 GitClient.Log()
                     .ThenInUI((success, log) => { if (success) OnLogUpdate(log); })
