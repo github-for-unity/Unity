@@ -48,11 +48,11 @@ namespace IntegrationTests
 
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
+            WaitForNotBusy(repositoryManagerEvents, 1);
 
             repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
             result.AssertEqual(expected);
 
-            repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Args.String);
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnHeadChanged(Args.String);
@@ -105,6 +105,7 @@ namespace IntegrationTests
             await TaskManager.Wait();
             WaitForNotBusy(repositoryManagerEvents, 1);
             RepositoryManager.WaitForEvents();
+            WaitForNotBusy(repositoryManagerEvents, 1);
 
             repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
             result.AssertEqual(expectedAfterChanges);
@@ -126,8 +127,8 @@ namespace IntegrationTests
                 .StartAsAsync();
 
             await TaskManager.Wait();
-            WaitForNotBusy(repositoryManagerEvents, 1);
             RepositoryManager.WaitForEvents();
+            WaitForNotBusy(repositoryManagerEvents, 1);
 
             repositoryManagerListener.Received(1).OnActiveBranchChanged(Args.String);
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
@@ -159,12 +160,15 @@ namespace IntegrationTests
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
 
+            repositoryManagerListener.Received(1).OnActiveBranchChanged(Args.String);
+            repositoryManagerListener.Received(1).OnHeadChanged(Args.String);
+            repositoryManagerEvents.Reset();
+            WaitForNotBusy(repositoryManagerEvents, 1);
+
             repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
             result.AssertEqual(expected);
-            repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.Received(1).OnActiveBranchChanged(Args.String);
+
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.Received(1).OnHeadChanged(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
@@ -182,6 +186,7 @@ namespace IntegrationTests
             await RepositoryManager.DeleteBranch("feature/document", true).StartAsAsync();
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
+            WaitForNotBusy(repositoryManagerEvents, 1);
 
             repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
@@ -358,13 +363,13 @@ namespace IntegrationTests
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
 
-            repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
-            RepositoryManager.IsBusy.Should().BeFalse();
+            repositoryManagerListener.Received(1).OnActiveBranchChanged(Args.String);
+            repositoryManagerEvents.Reset();
+            WaitForNotBusy(repositoryManagerEvents, 1);
 
             repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
             result.AssertEqual(expected);
 
-            repositoryManagerListener.Received(1).OnActiveBranchChanged(Args.String);
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnHeadChanged(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
