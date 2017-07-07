@@ -34,16 +34,14 @@ namespace GitHub.Unity
         /// <param name="name">The repository name.</param>
         /// <param name="cloneUrl">The repository's clone URL.</param>
         /// <param name="localPath"></param>
-        public Repository(IGitClient gitClient, IRepositoryManager repositoryManager, string name, UriString cloneUrl, NPath localPath)
+        public Repository(IGitClient gitClient, IRepositoryManager repositoryManager, string name, NPath localPath)
         {
             Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
             Guard.ArgumentNotNullOrWhiteSpace(name, nameof(name));
-            Guard.ArgumentNotNull(cloneUrl, nameof(cloneUrl));
 
             this.gitClient = gitClient;
             this.repositoryManager = repositoryManager;
             Name = name;
-            CloneUrl = cloneUrl;
             LocalPath = localPath;
 
             repositoryManager.OnRepositoryChanged += RepositoryManager_OnRepositoryChanged;
@@ -52,11 +50,8 @@ namespace GitHub.Unity
             repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;
             repositoryManager.OnHeadChanged += RepositoryManager_OnHeadChanged;
             repositoryManager.OnLocksUpdated += RepositoryManager_OnLocksUpdated;
-
-            if (String.IsNullOrEmpty(CloneUrl))
-            {
-                repositoryManager.OnRemoteOrTrackingChanged += RepositoryManager_OnRemoteOrTrackingChanged; ;
-            }
+            repositoryManager.OnRemoteOrTrackingChanged += RefreshRemote;
+            RefreshRemote();
         }
 
         public void Refresh()
@@ -113,17 +108,24 @@ namespace GitHub.Unity
             return repositoryManager.UnlockFile(file, force);
         }
 
-        private void RepositoryManager_OnRemoteOrTrackingChanged()
+        private void RefreshRemote()
         {
-            var remote = repositoryManager.Config.GetRemotes()
-                            .Where(x => HostAddress.Create(new UriString(x.Url).ToRepositoryUri()).IsGitHubDotCom())
-                            .FirstOrDefault();
+            var remoteName = "origin";
+            var masterBranch = repositoryManager.Config.GetBranch("master");
+            if (masterBranch.HasValue && masterBranch.Value.IsTracking)
+                remoteName = masterBranch.Value.Remote.Value.Name;
 
-            if (remote.Url != null)
-                CloneUrl = new UriString(remote.Url).ToRepositoryUrl();
+            var remote = repositoryManager.Config.GetRemotes()
+                    .FirstOrDefault(x => x.Name == remoteName);
+            if (String.IsNullOrEmpty(remote.Name))
+            {
+                remote = repositoryManager.Config.GetRemotes()
+                    .FirstOrDefault();
+            }
+            CloneUrl = remote.Url != null ? new UriString(remote.Url) : null;
         }
 
-        private void RepositoryManager_OnHeadChanged()
+        private void RepositoryManager_OnHeadChanged(string head)
         {
             OnCommitChanged?.Invoke();
         }
@@ -133,14 +135,15 @@ namespace GitHub.Unity
             OnLocalBranchListChanged?.Invoke();
         }
 
-        private void RepositoryManager_OnActiveRemoteChanged()
+        private void RepositoryManager_OnActiveRemoteChanged(ConfigRemote? remote)
         {
-            var currentRemoteName = CurrentRemote?.Name;
-            OnActiveRemoteChanged?.Invoke(currentRemoteName);
+            CurrentRemote = remote;
+            OnActiveRemoteChanged?.Invoke(CurrentRemote.HasValue ? CurrentRemote.Value.Name : null);
         }
 
-        private void RepositoryManager_OnActiveBranchChanged()
+        private void RepositoryManager_OnActiveBranchChanged(string branch)
         {
+            CurrentBranch = branch;
             OnActiveBranchChanged?.Invoke(CurrentBranch);
         }
 
@@ -194,29 +197,17 @@ namespace GitHub.Unity
         /// <summary>
         /// Gets the current branch of the repository.
         /// </summary>
-        public string CurrentBranch
-        {
-            get
-            {
-                return repositoryManager.ActiveBranch?.Name;
-            }
-        }
+        public string CurrentBranch { get; private set; }
 
         /// <summary>
         /// Gets the current remote of the repository.
         /// </summary>
-        public ConfigRemote? CurrentRemote
-        {
-            get
-            {
-                return repositoryManager.ActiveRemote;
-            }
-        }
+        public ConfigRemote? CurrentRemote { get; private set; }
 
         public string Name { get; private set; }
         public UriString CloneUrl { get; private set; }
         public NPath LocalPath { get; private set; }
-        public string Owner => CloneUrl?.Owner ?? string.Empty;
+        public string Owner => CloneUrl?.Owner ?? null;
         public bool IsGitHub { get { return HostAddress.IsGitHubDotCom(CloneUrl); } }
 
         internal string DebuggerDisplay => String.Format(
