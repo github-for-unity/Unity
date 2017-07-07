@@ -103,6 +103,7 @@ namespace IntegrationTests
             var testDocumentTxt = TestRepoMasterCleanSynchronized.Combine("Assets", "TestDocument.txt");
             testDocumentTxt.WriteAllText("foobar");
             await TaskManager.Wait();
+            WaitForNotBusy(repositoryManagerEvents, 1);
             RepositoryManager.WaitForEvents();
 
             repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
@@ -125,6 +126,7 @@ namespace IntegrationTests
                 .StartAsAsync();
 
             await TaskManager.Wait();
+            WaitForNotBusy(repositoryManagerEvents, 1);
             RepositoryManager.WaitForEvents();
 
             repositoryManagerListener.Received(1).OnActiveBranchChanged(Args.String);
@@ -396,10 +398,8 @@ namespace IntegrationTests
 
         private void WaitForNotBusy(RepositoryManagerEvents managerEvents, int seconds = 1)
         {
-            if (RepositoryManager.IsBusy)
-            {
-                managerEvents.OnIsBusyChanged.WaitOne(TimeSpan.FromSeconds(seconds));
-            }
+            managerEvents.OnIsBusy.WaitOne(TimeSpan.FromSeconds(seconds));
+            managerEvents.OnIsNotBusy.WaitOne(TimeSpan.FromSeconds(seconds));
         }
     }
 }

@@ -15,13 +15,14 @@ namespace TestUtils.Events
         void OnLocalBranchListChanged();
         void OnRemoteBranchListChanged();
         void OnRemoteOrTrackingChanged();
-        void OnIsBusyChanged(bool obj);
+        void OnIsBusyChanged(bool busy);
         void OnLocksUpdated(IEnumerable<GitLock> locks);
     }
 
     class RepositoryManagerEvents
     {
-        public EventWaitHandle OnIsBusyChanged { get; } = new ManualResetEvent(false);
+        public EventWaitHandle OnIsBusy { get; } = new ManualResetEvent(false);
+        public EventWaitHandle OnIsNotBusy { get; } = new ManualResetEvent(false);
         public EventWaitHandle OnRepositoryChanged { get; } = new ManualResetEvent(false);
         public EventWaitHandle OnActiveBranchChanged { get; } = new ManualResetEvent(false);
         public EventWaitHandle OnActiveRemoteChanged { get; } = new ManualResetEvent(false);
@@ -33,7 +34,8 @@ namespace TestUtils.Events
 
         public void Reset()
         {
-            OnIsBusyChanged.Reset();
+            OnIsBusy.Reset();
+            OnIsNotBusy.Reset();
             OnRepositoryChanged.Reset();
             OnActiveBranchChanged.Reset();
             OnActiveRemoteChanged.Reset();
@@ -55,7 +57,10 @@ namespace TestUtils.Events
             repositoryManager.OnIsBusyChanged += b => {
                 logger?.Trace("OnIsBusyChanged: {0}", b);
                 listener.OnIsBusyChanged(b);
-                managerEvents?.OnIsBusyChanged.Set();
+                if (b)
+                    managerEvents?.OnIsBusy.Set();
+                else
+                    managerEvents?.OnIsNotBusy.Set();
             };
 
             repositoryManager.OnRepositoryChanged += status => {
