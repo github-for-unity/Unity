@@ -77,15 +77,14 @@ namespace GitHub.Unity
         }
     }
 
-    [Location("cache/branches.yaml", LocationAttribute.Location.UserFolder)]
+    [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class BranchCache : ScriptObjectSingleton<BranchCache>, IBranchCache
     {
         [SerializeField] private List<GitBranch> localBranches;
         [SerializeField] private List<GitBranch> remoteBranches;
-        [SerializeField] private List<GitBranch> test;
+
         public BranchCache()
         {
-            test = new List<GitBranch>() { new GitBranch("name", "tracking", false) };
         }
 
         public List<GitBranch> LocalBranches
@@ -119,7 +118,7 @@ namespace GitHub.Unity
         }
     }
 
-    [Location("views/branches.yaml", LocationAttribute.Location.UserFolder)]
+    [Location("views/branches.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class Favourites : ScriptObjectSingleton<Favourites>
     {
         [SerializeField] private List<string> favouriteBranches;
@@ -166,6 +165,29 @@ namespace GitHub.Unity
         public bool IsFavourite(string branchName)
         {
             return FavouriteBranches.Contains(branchName);
+        }
+    }
+
+    [Location("cache/log.yaml", LocationAttribute.Location.LibraryFolder)]
+    sealed class LogCache : ScriptObjectSingleton<LogCache>
+    {
+        [SerializeField] private List<GitLogEntry> log;
+        public LogCache()
+        {}
+
+        public List<GitLogEntry> Log
+        {
+            get
+            {
+                if (log == null)
+                    log = new List<GitLogEntry>();
+                return log;
+            }
+            set
+            {
+                log = value;
+                Save(true);
+            }
         }
     }
 }
