@@ -454,7 +454,7 @@ namespace GitHub.Unity
                     var cancelCreate = false;
                     var cannotCreate = selectedNode == null ||
                                        selectedNode.Type == NodeType.Folder ||
-                                       !BranchNameValidator.IsBranchNameValid(newBranchName);
+                                       !Validation.IsBranchNameValid(newBranchName);
 
                     // Create on return/enter or cancel on escape
                     var offsetID = GUIUtility.GetControlID(FocusType.Passive);

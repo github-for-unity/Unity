@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace UnitTests
 {
     [TestFixture]
-    public class BranchNameValidatorTests
+    public class ValidationTests
     {
         [TestCase(true, "feature1", TestName = "Branch name is valid")]
         [TestCase(true, "feature-1", TestName = "Branch name with hyphen is valid")]
@@ -29,8 +29,7 @@ namespace UnitTests
         [TestCase(false, ".", TestName = "Single character cannot be [period]")]
         [TestCase(true, "features/feature-1", TestName = "Folder and branch name is valid")]
         [TestCase(false, @"features\feature-1", TestName = "Backslash is not a valid character")]
-        [TestCase(true, ".hidden", TestName = "Branch name is valid when starting with [period]")]
-        [TestCase(false, ".features/feature-1", TestName = "Folder and branch name is not valid when starting with [period]")]
+        [TestCase(false, ".hidden", TestName = "Branch name is not valid when starting with [period]")]
         [TestCase(false, "features//feature-1", TestName = "Multiple consecutive slashes are not valid")]
         [TestCase(false, null, TestName = "null string is not valid")]
         [TestCase(false, "", TestName = "Empty string is not valid")]
@@ -38,7 +37,7 @@ namespace UnitTests
         [TestCase(false, "asdf@{", TestName = "Sequence @{ is not valid")]
         public void TestFeatureString(bool isValid, string branch)
         {
-            BranchNameValidator.IsBranchNameValid(branch).Should().Be(isValid);
+            Validation.IsBranchNameValid(branch).Should().Be(isValid);
         }
 
         [TestCase(true, 65, 65, 65, TestName = "Can test with ascii values")]
@@ -47,7 +46,7 @@ namespace UnitTests
         public void TestFeatureStringFromAsciiArray(bool isValid, params int[] asciiValues)
         {
             var branch = new string(asciiValues.Select(Convert.ToChar).ToArray());
-            BranchNameValidator.IsBranchNameValid(branch).Should().Be(isValid);
+            Validation.IsBranchNameValid(branch).Should().Be(isValid);
         }
     }
 }
