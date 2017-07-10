@@ -81,6 +81,7 @@ namespace GitHub.Unity
                         owners = new[] { user.Login };
 
                         Logger.Trace("GetOrganizations");
+
                         Client.GetOrganizations(organizations =>
                         {
                             if (organizations == null)

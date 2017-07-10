@@ -23,6 +23,7 @@ namespace GitHub.Unity
         public void Clear()
         {
             OctokitCredentials = Credentials.Anonymous;
+            Credential = null;
         }
 
         /// <summary>
