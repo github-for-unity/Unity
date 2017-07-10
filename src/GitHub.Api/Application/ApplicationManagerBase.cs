@@ -39,17 +39,17 @@ namespace GitHub.Unity
             Logging.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
+            if (Environment.GitExecutablePath != null)
+            {
+                GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
+            }
         }
 
         public virtual async Task Run(bool firstRun)
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
-            if (Environment.GitExecutablePath != null)
-            {
-                GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
-            }
-            else
+            if (Environment.GitExecutablePath == null)
             {
                 var progress = new ProgressReport();
 

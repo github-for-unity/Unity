@@ -61,7 +61,7 @@ namespace GitHub.Unity
         {
             var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.InspectorWindow");
             var window = GetWindow<Window>(type);
-            window.Initialize(applicationManager);
+            window.InitializeWindow(applicationManager);
             window.Show();
         }
 

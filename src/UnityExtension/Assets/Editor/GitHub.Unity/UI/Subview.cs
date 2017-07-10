@@ -19,7 +19,10 @@ namespace GitHub.Unity
         public virtual void Initialize(IApplicationManager applicationManager)
         {
             Logger.Trace("Initialize ApplicationManager:{0} Initialized:{1}", applicationManager, initialized);
+        }
 
+        public void InitializeWindow(IApplicationManager applicationManager)
+        {
             if (inLayout)
             {
                 initializeWasCalled = true;
@@ -30,6 +33,9 @@ namespace GitHub.Unity
             Manager = applicationManager;
             cachedRepository = Environment.Repository;
             initialized = true;
+            Initialize(applicationManager);
+            OnRepositoryChanged(null);
+            Redraw();
         }
 
         public virtual void Redraw()
@@ -56,14 +62,14 @@ namespace GitHub.Unity
         {
             Logger.Trace("Awake Initialized:{0}", initialized);
             if (!initialized)
-                Initialize(EntryPoint.ApplicationManager);
+                InitializeWindow(EntryPoint.ApplicationManager);
         }
 
         public virtual void OnEnable()
         {
             Logger.Trace("OnEnable Initialized:{0}", initialized);
             if (!initialized)
-                Initialize(EntryPoint.ApplicationManager);
+                InitializeWindow(EntryPoint.ApplicationManager);
         }
 
         public virtual void OnDisable() {}
@@ -101,7 +107,7 @@ namespace GitHub.Unity
                 if (initializeWasCalled)
                 {
                     initializeWasCalled = false;
-                    Initialize(cachedManager);
+                    InitializeWindow(cachedManager);
                 }
             }
         }
@@ -124,7 +130,7 @@ namespace GitHub.Unity
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }
         protected IPlatform Platform { get { return Manager.Platform; } }
-
+        protected bool HasRepository { get { return Environment.RepositoryPath != null; } }
         private ILogging logger;
         protected ILogging Logger
         {
@@ -158,9 +164,6 @@ namespace GitHub.Unity
         public virtual void OnDataUpdate()
         {}
 
-        public virtual void OnRepositoryChanged(IRepository oldRepository)
-        {}
-
         public virtual void OnGUI()
         {}
 
@@ -180,6 +183,9 @@ namespace GitHub.Unity
             Parent.Finish(result);
         }
 
+        public virtual void OnRepositoryChanged(IRepository oldRepository)
+        {}
+
         protected IView Parent { get; private set; }
         public IApplicationManager Manager { get { return Parent.Manager; } }
         public IRepository Repository { get { return Manager.Environment.Repository; } }
@@ -187,7 +193,7 @@ namespace GitHub.Unity
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }
         protected IPlatform Platform { get { return Manager.Platform; } }
-
+        protected bool HasRepository { get { return Environment.RepositoryPath != null; } }
         public virtual Rect Position { get { return Parent.Position; } }
 
         private ILogging logger;
