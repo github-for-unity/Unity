@@ -302,7 +302,7 @@ namespace UnitTests
 
             fileSystem.ClearReceivedCalls();
 
-            var uriString = keychain.Connections.FirstOrDefault();
+            var uriString = keychain.Hosts.FirstOrDefault();
             var keychainAdapter = keychain.Load(uriString).Result;
             keychainAdapter.Credential.Should().BeNull();
 
