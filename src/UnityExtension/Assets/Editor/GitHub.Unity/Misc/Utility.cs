@@ -28,7 +28,6 @@ namespace GitHub.Unity
         public static readonly Regex StatusAheadBehindRegex =
                                          new Regex(
                                              @"\[ahead (?<ahead>\d+), behind (?<behind>\d+)\]|\[ahead (?<ahead>\d+)\]|\[behind (?<behind>\d+>)\]");
-        public static readonly Regex BranchNameRegex = new Regex(@"^(?<name>[\w\d\/\-\_]+)$");
 
         private static bool ready;
         private static Action onReady;
