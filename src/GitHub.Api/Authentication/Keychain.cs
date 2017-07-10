@@ -227,7 +227,7 @@ namespace GitHub.Unity
 
         public Connection[] Connections => connectionCache.Values.ToArray();
 
-        public IList<UriString> ConnectionKeys => connectionCache.Keys.ToArray();
+        public IList<UriString> Hosts => connectionCache.Keys.ToArray();
 
         public bool HasKeys => connectionCache.Any();
     }

@@ -13,7 +13,7 @@ namespace GitHub.Unity
         void SetCredentials(ICredential credential);
         void Initialize();
         Connection[] Connections { get; }
-        IList<UriString> ConnectionKeys { get; }
+        IList<UriString> Hosts { get; }
         bool HasKeys { get; }
         void SetToken(UriString host, string token);
     }
