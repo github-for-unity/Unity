@@ -97,7 +97,6 @@ namespace GitHub.Unity
             }
             set
             {
-                Logging.GetLogger().Debug("Saving branches {0}", value.Join(","));
                 localBranches = value;
                 Save(true);
             }
