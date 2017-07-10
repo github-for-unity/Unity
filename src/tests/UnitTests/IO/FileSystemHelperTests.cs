@@ -27,18 +27,18 @@ namespace UnitTests
         }
 
         [Test]
-        public void ShouldErrorIfEmpty()
+        public void ShouldNotErrorIfEmpty()
         {
             Action item;
 
             item = () => { FileSystemHelpers.FindCommonPath(new List<string>()); };
-            item.ShouldThrow<InvalidOperationException>();
+            item.ShouldNotThrow<InvalidOperationException>();
 
             item = () => { FileSystemHelpers.FindCommonPath(new List<string> { null }); };
-            item.ShouldThrow<InvalidOperationException>();
+            item.ShouldNotThrow<InvalidOperationException>();
 
             item = () => { FileSystemHelpers.FindCommonPath(new List<string> { "" }); };
-            item.ShouldThrow<InvalidOperationException>();
+            item.ShouldNotThrow<InvalidOperationException>();
         }
 
         [Test]
