@@ -392,7 +392,7 @@ namespace UnitTests
             keychainAdapter.Credential.Token.Should().Be(token);
             keychainAdapter.OctokitCredentials.AuthenticationType.Should().Be(AuthenticationType.Basic);
             keychainAdapter.OctokitCredentials.Login.Should().Be(username);
-            keychainAdapter.OctokitCredentials.Password.Should().Be(password);
+            keychainAdapter.OctokitCredentials.Password.Should().Be(token);
 
             keychain.Save(hostUri).Wait();
 
@@ -472,10 +472,7 @@ namespace UnitTests
 
             keychain.Clear(hostUri, false).Wait();
 
-            keychainAdapter.Credential.Should().NotBeNull();
-            keychainAdapter.Credential.Host.Should().Be(hostUri);
-            keychainAdapter.Credential.Username.Should().Be(username);
-            keychainAdapter.Credential.Token.Should().Be(password);
+            keychainAdapter.Credential.Should().BeNull();
             keychainAdapter.OctokitCredentials.AuthenticationType.Should().Be(AuthenticationType.Anonymous);
             keychainAdapter.OctokitCredentials.Login.Should().BeNull();
             keychainAdapter.OctokitCredentials.Password.Should().BeNull();
