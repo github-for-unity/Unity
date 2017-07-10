@@ -31,6 +31,7 @@ namespace GitHub.Unity
 
         Octokit.Repository repositoryCache = new Octokit.Repository();
         IList<Organization> organizationsCache;
+        Octokit.User userCache;
 
         string owner;
         bool? isEnterprise;
@@ -76,6 +77,13 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(callback, "callback");
             var organizations = await GetOrganizationInternal();
             callback(organizations);
+        }
+
+        public async Task GetCurrentUser(Action<Octokit.User> callback)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            var user = await GetCurrentUserInternal();
+            callback(user);
         }
 
         public async Task Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result)
@@ -258,6 +266,23 @@ namespace GitHub.Unity
             }
 
             return organizationsCache;
+        }
+
+        private async Task<Octokit.User> GetCurrentUserInternal()
+        {
+            try
+            {
+                logger.Trace("Getting Organizations");
+
+                userCache = await githubClient.User.Current();
+            }
+            catch(Exception ex)
+            {
+                logger.Error(ex, "Error Getting Current User");
+                throw;
+            }
+
+            return userCache;
         }
 
         public async Task<bool> ValidateCredentials()

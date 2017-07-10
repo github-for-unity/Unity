@@ -17,6 +17,7 @@ namespace GitHub.Unity
         public void UpdateToken(string token)
         {
             Credential.UpdateToken(token);
+            OctokitCredentials = new Credentials(OctokitCredentials.Login, token);
         }
 
         public void Clear()

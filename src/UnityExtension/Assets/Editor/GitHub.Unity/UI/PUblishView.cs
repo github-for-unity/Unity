@@ -69,38 +69,40 @@ namespace GitHub.Unity
                 var keychainConnections = Platform.Keychain.Connections;
                 if (keychainConnections.Any())
                 {
-                    username = keychainConnections[0].Username;
-                    owners = new[] { username };
+                    Logger.Trace("GetCurrentUser");
+
+                    Client.GetCurrentUser(user => {
+                        if (user == null)
+                        {
+                            Logger.Warning("Unable to get current user");
+                            return;
+                        }
+
+                        owners = new[] { user.Login };
+
+                        Logger.Trace("GetOrganizations");
+                        Client.GetOrganizations(organizations =>
+                        {
+                            if (organizations == null)
+                            {
+                                Logger.Warning("Unable to get list of organizations");
+                                return;
+                            }
+
+                            Logger.Trace("Loaded {0} organizations", organizations.Count);
+
+                            var organizationLogins = organizations
+                                .OrderBy(organization => organization.Login)
+                                .Select(organization => organization.Login);
+
+                            owners = owners.Union(organizationLogins).ToArray();
+                        });
+                    });
                 }
                 else
                 {
                     Logger.Warning("No Keychain connections to use");
                 }
-
-                Logger.Trace("Create Client");
-
-                Logger.Trace("GetOrganizations");
-
-                Guard.NotNull(this, Platform, "Platform");
-                Guard.NotNull(Platform, Platform.Keychain, "Platform.Keychain");
-
-                Client.GetOrganizations(organizations =>
-                {
-                    if (organizations == null)
-                    {
-                        Logger.Warning("Organizations is null");
-                        return;
-                    }
-
-                    Logger.Trace("Loaded {0} organizations", organizations.Count);
-
-                    var organizationLogins = organizations
-                        .OrderBy(organization => organization.Login)
-                        .Select(organization => organization.Login);
-
-                    owners = owners.Union(organizationLogins).ToArray();
-                });
-
             }
             catch (Exception e)
             {
