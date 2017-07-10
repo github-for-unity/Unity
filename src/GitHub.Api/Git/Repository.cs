@@ -19,6 +19,7 @@ namespace GitHub.Unity
         public event Action OnLocalBranchListChanged;
         public event Action OnCommitChanged;
         public event Action<IEnumerable<GitLock>> OnLocksUpdated;
+        public event Action OnRepositoryInfoChanged;
 
         public IEnumerable<GitBranch> LocalBranches => repositoryManager.LocalBranches.Values.Select(
             x => new GitBranch(x.Name, (x.IsTracking ? (x.Remote.Value.Name + "/" + x.Name) : "[None]"), x.Name == CurrentBranch));
@@ -54,7 +55,16 @@ namespace GitHub.Unity
             repositoryManager.OnHeadChanged += RepositoryManager_OnHeadChanged;
             repositoryManager.OnLocksUpdated += RepositoryManager_OnLocksUpdated;
             repositoryManager.OnRemoteOrTrackingChanged += SetCloneUrl;
+        }
 
+        public void Initialize()
+        {
+            User = new User();
+            gitClient.GetConfig("user.name", GitConfigSource.User)
+                .Then((s, x) => User.Name = x)
+                .Then(gitClient.GetConfig("user.email", GitConfigSource.User))
+                .Then((s, x) => User.Email = x)
+                .Start();
         }
 
         public void Refresh()
@@ -118,6 +128,7 @@ namespace GitHub.Unity
             else
                 CloneUrl = null;
             Name = CloneUrl != null ? CloneUrl.RepositoryName : LocalPath.FileName;
+            OnRepositoryInfoChanged?.Invoke();
         }
 
         private void SetCurrentRemote(ConfigRemote? remote)
@@ -163,7 +174,7 @@ namespace GitHub.Unity
         /// <returns></returns>
         public override int GetHashCode()
         {
-            return 17 * 23 + (Name?.GetHashCode() ?? 0) * 23 + (Owner?.GetHashCode() ?? 0) * 23 + (LocalPath?.GetHashCode() ?? 0);
+            return LocalPath.GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -184,9 +195,6 @@ namespace GitHub.Unity
             if (ReferenceEquals(this, other))
                 return true;
             return other != null &&
-                String.Equals(Name, other.Name) &&
-                String.Equals(Owner, other.Owner) &&
-                String.Equals(CloneUrl, other.CloneUrl) &&
                 object.Equals(LocalPath, other.LocalPath);
         }
 
@@ -213,7 +221,7 @@ namespace GitHub.Unity
 
         internal string DebuggerDisplay => String.Format(
             CultureInfo.InvariantCulture,
-            "{0}\tOwner: {1} Name: {2} CloneUrl: {3} LocalPath: {4} Branch: {5} Remote: {6}",
+            "{0} Owner: {1} Name: {2} CloneUrl: {3} LocalPath: {4} Branch: {5} Remote: {6}",
             GetHashCode(),
             Owner,
             Name,

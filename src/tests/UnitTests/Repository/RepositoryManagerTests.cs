@@ -110,11 +110,11 @@ namespace UnitTests
         }
 
         [Test]
-        public async void ShouldNotRefreshIfNoGitStatusIsReturned()
+        public void ShouldNotRefreshIfNoGitStatusIsReturned()
         {
             var repositoryProcessRunner = CreateRepositoryProcessRunner(null, new List<GitLock>());
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
-            await repositoryManager.Initialize();
+            repositoryManager.Initialize();
             repositoryManager.Start();
 
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
@@ -161,7 +161,7 @@ namespace UnitTests
             var repositoryProcessRunner = CreateRepositoryProcessRunner(responseGitStatus, responseGitLocks);
 
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
-            await repositoryManager.Initialize();
+            repositoryManager.Initialize();
             repositoryManager.Start();
 
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
@@ -188,7 +188,7 @@ namespace UnitTests
         }
 
         [Test]
-        public async void ShouldRefreshAndReturnCombinedStatusAndLockInformation2()
+        public void ShouldRefreshAndReturnCombinedStatusAndLockInformation2()
         {
             var responseGitStatus = new GitStatus {
                 LocalBranch = "master",
@@ -224,7 +224,7 @@ namespace UnitTests
             var repositoryProcessRunner = CreateRepositoryProcessRunner(responseGitStatus, responseGitLocks);
 
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
-            await repositoryManager.Initialize();
+            repositoryManager.Initialize();
             repositoryManager.Start();
 
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
@@ -251,7 +251,7 @@ namespace UnitTests
         }
 
         [Test]
-        public async void ShouldRefreshAndReturnWithEmptyGitLockResponse()
+        public void ShouldRefreshAndReturnWithEmptyGitLockResponse()
         {
             var responseGitStatus = new GitStatus {
                 LocalBranch = "master",
@@ -264,7 +264,7 @@ namespace UnitTests
             var repositoryProcessRunner = CreateRepositoryProcessRunner(responseGitStatus, new List<GitLock>());
 
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
-            await repositoryManager.Initialize();
+            repositoryManager.Initialize();
             repositoryManager.Start();
 
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
@@ -291,7 +291,7 @@ namespace UnitTests
         }
 
         [Test]
-        public async void ShouldRefreshAndReturnWithNoGitLockResponse()
+        public void ShouldRefreshAndReturnWithNoGitLockResponse()
         {
             var responseGitStatus = new GitStatus {
                 LocalBranch = "master",
@@ -304,7 +304,7 @@ namespace UnitTests
             var repositoryProcessRunner = CreateRepositoryProcessRunner(responseGitStatus, new List<GitLock>());
 
             var repositoryManager = CreateRepositoryManager(repositoryProcessRunner);
-            await repositoryManager.Initialize();
+            repositoryManager.Initialize();
             repositoryManager.Start();
 
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();

@@ -126,11 +126,12 @@ namespace GitHub.Unity
         public virtual Rect Position { get { return position; } }
         public IApplicationManager Manager { get; private set; }
         public IRepository Repository { get { return inLayout ? cachedRepository : Environment.Repository; } }
-        public ITaskManager TaskManager { get { return Manager.TaskManager; } }
+        public bool HasRepository { get { return Environment.RepositoryPath != null; } }
+
+        protected ITaskManager TaskManager { get { return Manager.TaskManager; } }
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }
         protected IPlatform Platform { get { return Manager.Platform; } }
-        protected bool HasRepository { get { return Environment.RepositoryPath != null; } }
         private ILogging logger;
         protected ILogging Logger
         {
@@ -188,12 +189,13 @@ namespace GitHub.Unity
 
         protected IView Parent { get; private set; }
         public IApplicationManager Manager { get { return Parent.Manager; } }
-        public IRepository Repository { get { return Manager.Environment.Repository; } }
-        public ITaskManager TaskManager { get { return Manager.TaskManager; } }
+        public IRepository Repository { get { return Parent.Repository; } }
+        public bool HasRepository { get { return Parent.HasRepository; } }
+
+        protected ITaskManager TaskManager { get { return Manager.TaskManager; } }
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }
         protected IPlatform Platform { get { return Manager.Platform; } }
-        protected bool HasRepository { get { return Environment.RepositoryPath != null; } }
         public virtual Rect Position { get { return Parent.Position; } }
 
         private ILogging logger;

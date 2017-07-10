@@ -271,7 +271,7 @@ namespace GitHub.Unity
                 }
                 catch (Exception ex)
                 {
-                    Logger.Debug(ex);
+                    Logger.Error(ex);
                 }
             }
             GUI.enabled = true;
@@ -706,7 +706,7 @@ namespace GitHub.Unity
 
         private void Init()
         {
-            Logger.Debug("TODO: Init '{0}'", initDirectory);
+            //Logger.Debug("TODO: Init '{0}'", initDirectory);
         }
 
         private static void TableCell(string label, float width)

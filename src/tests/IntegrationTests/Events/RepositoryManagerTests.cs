@@ -250,8 +250,8 @@ namespace IntegrationTests
             RepositoryManager.ActiveRemote.Value.Name.Should().Be("origin");
             RepositoryManager.ActiveRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
 
-            RepositoryManager.Repository.CloneUrl.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
-            RepositoryManager.Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Environment.Repository.CloneUrl.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Environment.Repository.Owner.Should().Be("EvilStanleyGoldman");
 
             await RepositoryManager.RemoteRemove("origin").StartAsAsync();
             await TaskManager.Wait();
@@ -259,8 +259,8 @@ namespace IntegrationTests
 
             RepositoryManager.ActiveRemote.HasValue.Should().BeFalse();
 
-            RepositoryManager.Repository.CloneUrl.Should().BeNull();
-            RepositoryManager.Repository.Owner.Should().BeNull();
+            Environment.Repository.CloneUrl.Should().BeNull();
+            Environment.Repository.Owner.Should().BeNull();
 
             repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
@@ -283,8 +283,8 @@ namespace IntegrationTests
             RepositoryManager.ActiveRemote.Value.Name.Should().Be("origin");
             RepositoryManager.ActiveRemote.Value.Url.Should().Be("https://github.com/EvilShana/IOTestsRepo.git");
 
-            RepositoryManager.Repository.CloneUrl.Should().Be("https://github.com/EvilShana/IOTestsRepo.git");
-            RepositoryManager.Repository.Owner.Should().Be("EvilShana");
+            Environment.Repository.CloneUrl.Should().Be("https://github.com/EvilShana/IOTestsRepo.git");
+            Environment.Repository.Owner.Should().Be("EvilShana");
 
             repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
@@ -310,8 +310,8 @@ namespace IntegrationTests
             RepositoryManager.ActiveRemote.HasValue.Should().BeTrue();
             RepositoryManager.ActiveRemote.Value.Name.Should().Be("origin");
             Assert.AreEqual(expectedCloneUrl, RepositoryManager.ActiveRemote.Value.Url, "Remote is wrong for initial test setup");
-            Assert.AreEqual(expectedCloneUrl, RepositoryManager.Repository.CloneUrl?.ToString(), "CloneUrl is wrong for initial test setup");
-            RepositoryManager.Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Assert.AreEqual(expectedCloneUrl, Environment.Repository.CloneUrl?.ToString(), "CloneUrl is wrong for initial test setup");
+            Environment.Repository.Owner.Should().Be("EvilStanleyGoldman");
 
             await RepositoryManager.CreateBranch("branch2", "another/master")
                 .Then(RepositoryManager.SwitchBranch("branch2"))
@@ -324,8 +324,8 @@ namespace IntegrationTests
             var expectedRemoteUrl = "https://another.remote/Owner/Url.git";
 
             Assert.AreEqual(expectedRemoteUrl, RepositoryManager.ActiveRemote.Value.Url, "Remote is wrong");
-            Assert.AreEqual(expectedCloneUrl, RepositoryManager.Repository.CloneUrl?.ToString(), "CloneUrl should not change");
-            RepositoryManager.Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Assert.AreEqual(expectedRemoteUrl, Environment.Repository.CloneUrl?.ToString(), "CloneUrl is wrong");
+            Environment.Repository.Owner.Should().Be("Owner");
 
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
             // this should probably not be triggered
@@ -353,8 +353,8 @@ namespace IntegrationTests
             RepositoryManager.ActiveRemote.Value.Name.Should().Be("origin");
             RepositoryManager.ActiveRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
 
-            RepositoryManager.Repository.CloneUrl.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
-            RepositoryManager.Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Environment.Repository.CloneUrl.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Environment.Repository.Owner.Should().Be("EvilStanleyGoldman");
 
             await RepositoryManager.RemoteRemove("origin").StartAsAsync();
             await TaskManager.Wait();
@@ -362,8 +362,8 @@ namespace IntegrationTests
 
             RepositoryManager.ActiveRemote.HasValue.Should().BeFalse();
 
-            RepositoryManager.Repository.CloneUrl.Should().BeNull();
-            RepositoryManager.Repository.Owner.Should().BeNull();
+            Environment.Repository.CloneUrl.Should().BeNull();
+            Environment.Repository.Owner.Should().BeNull();
 
             repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
@@ -386,8 +386,8 @@ namespace IntegrationTests
             RepositoryManager.ActiveRemote.Value.Name.Should().Be("origin");
             RepositoryManager.ActiveRemote.Value.Url.Should().Be("https://github.com/EvilShana/IOTestsRepo.git");
 
-            RepositoryManager.Repository.CloneUrl.Should().Be("https://github.com/EvilShana/IOTestsRepo.git");
-            RepositoryManager.Repository.Owner.Should().Be("EvilShana");
+            Environment.Repository.CloneUrl.Should().Be("https://github.com/EvilShana/IOTestsRepo.git");
+            Environment.Repository.Owner.Should().Be("EvilShana");
 
             repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);

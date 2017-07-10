@@ -43,6 +43,7 @@ namespace GitHub.Unity
             {
                 GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
             }
+            SetupMetrics();
         }
 
         public virtual async Task Run(bool firstRun)
@@ -79,9 +80,7 @@ namespace GitHub.Unity
             RestartRepository();
             InitializeUI();
 
-            new ActionTask(CancellationToken, SetupMetrics).Start();
             new ActionTask(new Task(() => LoadKeychain().Start())).Start();
-            new ActionTask(CancellationToken, RunRepositoryManager).Start();
         }
 
         public ITask InitializeRepository()
@@ -114,8 +113,7 @@ namespace GitHub.Unity
                 .Then(GitClient.Add(filesForInitialCommit))
                 .Then(GitClient.Commit("Initial commit", null))
                 .Then(RestartRepository)
-                .ThenInUI(InitializeUI)
-                .Then(RunRepositoryManager);
+                .ThenInUI(InitializeUI);
             return task;
         }
 
@@ -124,26 +122,12 @@ namespace GitHub.Unity
             Environment.InitializeRepository();
             if (Environment.RepositoryPath != null)
             {
-                var repositoryPathConfiguration = new RepositoryPathConfiguration(Environment.RepositoryPath);
-                var gitConfig = new GitConfig(repositoryPathConfiguration.DotGitConfig);
-
-                var repositoryWatcher = new RepositoryWatcher(Platform, repositoryPathConfiguration, TaskManager.Token);
-                repositoryManager = new RepositoryManager(Platform, TaskManager, UsageTracker, gitConfig, repositoryWatcher,
-                        GitClient, repositoryPathConfiguration, TaskManager.Token);
-                Environment.Repository = repositoryManager.Repository;
+                repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, UsageTracker, GitClient, Environment.RepositoryPath);
+                Environment.Repository = new Repository(GitClient, repositoryManager, Environment.RepositoryPath);
+                repositoryManager.Initialize();
+                Environment.Repository.Initialize();
+                repositoryManager.Start();
                 Logger.Trace($"Got a repository? {Environment.Repository}");
-            }
-        }
-
-        private void RunRepositoryManager()
-        {
-            Logger.Trace("RunRepositoryManager");
-
-            if (Environment.RepositoryPath != null)
-            {
-                new ActionTask(repositoryManager.Initialize())
-                    .Then(repositoryManager.Start)
-                    .Start();;
             }
         }
 

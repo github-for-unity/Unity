@@ -91,11 +91,6 @@ namespace GitHub.Unity
 
             // Set window title
             titleContent = new GUIContent(Title, Styles.SmallLogo);
-            if (String.IsNullOrEmpty(repoUrl))
-                repoUrl = DefaultRepoUrl;
-
-            repoBranchContent = new GUIContent(repoBranch, Window_RepoBranchTooltip);
-            repoUrlContent = new GUIContent(repoUrl, Window_RepoNoUrlTooltip);
 
             if (ActiveTab != null)
                 ActiveTab.OnEnable();
@@ -112,6 +107,20 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
 
+            string repoRemote = null;
+            if (MaybeUpdateData(out repoRemote))
+            {
+                repoBranchContent = new GUIContent(repoBranch, Window_RepoBranchTooltip);
+                if (repoUrl != null)
+                {
+                    repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, repoRemote));
+                }
+                else
+                {
+                    repoUrlContent = new GUIContent(repoUrl, Window_RepoNoUrlTooltip);
+                }
+            }
+
             if (ActiveTab != null)
                 ActiveTab.OnDataUpdate();
         }
@@ -120,20 +129,8 @@ namespace GitHub.Unity
         {
             base.OnRepositoryChanged(oldRepository);
 
-            if (Repository != null)
-            {
-                repoBranch = Repository.CurrentBranch;
-                repoBranchContent = new GUIContent(repoBranch, Window_RepoBranchTooltip);
-                repoUrl = Repository.CloneUrl != null ? Repository.CloneUrl.ToString() : DefaultRepoUrl;
-                if (repoUrl != null)
-                {
-                    repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, Repository.CurrentRemote.Value.Name));
-                }
-                else
-                {
-                    repoUrlContent = new GUIContent(repoUrl, Window_RepoNoUrlTooltip);
-                }
-            }
+            DetachHandlers(oldRepository);
+            AttachHandlers(Repository);
 
             if (ActiveTab != null)
                 ActiveTab.OnRepositoryChanged(oldRepository);
@@ -151,13 +148,14 @@ namespace GitHub.Unity
             base.Refresh();
             if (ActiveTab != null)
                 ActiveTab.Refresh();
+            Repaint();
         }
 
         public override void OnUI()
         {
             base.OnUI();
 
-            if (Repository != null)
+            if (HasRepository)
             {
                 DoHeaderGUI();
             }
@@ -183,6 +181,59 @@ namespace GitHub.Unity
                 Redraw();
             }
         }
+
+        private void RefreshOnMainThread()
+        {
+            new ActionTask(TaskManager.Token, Refresh) { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private bool MaybeUpdateData(out string repoRemote)
+        {
+            repoRemote = null;
+            bool repoDataChanged = false;
+            if (Repository != null)
+            {
+                if (repoBranch != Repository.CurrentBranch)
+                {
+                    repoBranch = Repository.CurrentBranch;
+                    repoDataChanged = true;
+                }
+                var url = Repository.CloneUrl != null ? Repository.CloneUrl.ToString() : DefaultRepoUrl;
+                if (repoUrl != url)
+                {
+                    repoUrl = url;
+                    repoDataChanged = true;
+                }
+                repoRemote = Repository.CurrentRemote.Value.Name;
+            }
+            else if (!HasRepository)
+            {
+                repoBranch = null;
+                repoUrl = null;
+            }
+
+            if (repoUrl == null)
+            {
+                repoUrl = DefaultRepoUrl;
+                repoDataChanged = true;
+            }
+            return repoDataChanged;
+        }
+
+        private void AttachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+            repository.OnRepositoryInfoChanged += RefreshOnMainThread;
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+            repository.OnRepositoryInfoChanged -= RefreshOnMainThread;
+        }
+
 
         private void SwitchView(Subview from, Subview to)
         {
@@ -226,7 +277,7 @@ namespace GitHub.Unity
                 SubTab tab = activeTab;
                 EditorGUI.BeginChangeCheck();
                 {
-                    if (Repository != null)
+                    if (HasRepository)
                     {
                         tab = TabButton(SubTab.Changes, ChangesTitle, tab);
                         tab = TabButton(SubTab.History, HistoryTitle, tab);

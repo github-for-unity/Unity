@@ -18,7 +18,7 @@ namespace GitHub.Unity
         event Action OnRemoteBranchListChanged;
         event Action OnRemoteOrTrackingChanged;
         event Action<GitStatus> OnRepositoryChanged;
-        Task Initialize();
+        void Initialize();
         void Start();
         void Stop();
         void Refresh();
@@ -38,7 +38,6 @@ namespace GitHub.Unity
         ITask UnlockFile(string file, bool force);
         Dictionary<string, ConfigBranch> LocalBranches { get; }
         Dictionary<string, Dictionary<string, ConfigBranch>> RemoteBranches { get; }
-        IRepository Repository { get; }
         IGitConfig Config { get; }
         ConfigBranch? ActiveBranch { get; }
         ConfigRemote? ActiveRemote { get; }
@@ -90,22 +89,6 @@ namespace GitHub.Unity
         public NPath DotGitConfig { get; }
     }
 
-    class RepositoryManagerFactory
-    {
-        public RepositoryManager CreateRepositoryManager(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker,
-            IGitClient gitClient, NPath repositoryRoot)
-        {
-            var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
-            string filePath = repositoryPathConfiguration.DotGitConfig;
-            var gitConfig = new GitConfig(filePath);
-
-            var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
-
-            return new RepositoryManager(platform, taskManager, usageTracker, gitConfig, repositoryWatcher,
-                gitClient, repositoryPathConfiguration, taskManager.Token);
-        }
-    }
-
     class RepositoryManager : IRepositoryManager
     {
         private readonly Dictionary<string, ConfigBranch> branches = new Dictionary<string, ConfigBranch>();
@@ -125,7 +108,6 @@ namespace GitHub.Unity
         private IEnumerable<GitLock> locks;
         private Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
         private Dictionary<string, ConfigRemote> remotes;
-        private IRepository repository;
         private Action repositoryUpdateCallback;
 
         public event Action<string> OnActiveBranchChanged;
@@ -137,6 +119,19 @@ namespace GitHub.Unity
         public event Action OnRemoteBranchListChanged;
         public event Action OnRemoteOrTrackingChanged;
         public event Action<GitStatus> OnRepositoryChanged;
+
+        public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker,
+            IGitClient gitClient, NPath repositoryRoot)
+        {
+            var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
+            string filePath = repositoryPathConfiguration.DotGitConfig;
+            var gitConfig = new GitConfig(filePath);
+
+            var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
+
+            return new RepositoryManager(platform, taskManager, usageTracker, gitConfig, repositoryWatcher,
+                gitClient, repositoryPathConfiguration, taskManager.Token);
+        }
 
         public RepositoryManager(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker, IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
@@ -159,16 +154,12 @@ namespace GitHub.Unity
             this.repositoryUpdateCallback = debounceTimeout == 0 ?
                 OnRepositoryUpdatedHandler
                 : TaskExtensions.Debounce(OnRepositoryUpdatedHandler, debounceTimeout);
-
-            this.repository = new Repository(gitClient, this, repositoryPaths.RepositoryPath);
         }
 
-        public async Task Initialize()
+        public void Initialize()
         {
             Logger.Trace("Initialize");
             watcher.Initialize();
-            repository = await InitializeRepository().SafeAwait();
-            Logger.Trace($"Initialize done {Repository}");
         }
 
         public void Start()
@@ -432,23 +423,6 @@ namespace GitHub.Unity
             }
         }
 
-        private async Task<IRepository> InitializeRepository()
-        {
-            var user = new User();
-
-            var res = await GitClient.GetConfig("user.name", GitConfigSource.User).StartAwait();
-            user.Name = res;
-
-            res = await gitClient.GetConfig("user.email", GitConfigSource.User).StartAwait();
-            if (res == null)
-            {
-                throw new InvalidOperationException("No user configured");
-            }
-            user.Email = res;
-            repository.User = user;
-            return repository;
-        }
-
         private void RefreshConfigData()
         {
             Logger.Trace("RefreshConfigData");
@@ -629,7 +603,6 @@ namespace GitHub.Unity
         public Dictionary<string, ConfigBranch> LocalBranches => branches;
         public Dictionary<string, Dictionary<string, ConfigBranch>> RemoteBranches => remoteBranches;
 
-        public IRepository Repository => repository;
         public IGitConfig Config => config;
 
         public ConfigBranch? ActiveBranch
