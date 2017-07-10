@@ -1,6 +1,7 @@
 ﻿using TestUtils;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using NUnit.Framework;
 using GitHub.Unity;
 
@@ -12,6 +13,7 @@ namespace UnitTests
         [Test]
         public void ShouldEqualSelf()
         {
+            var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
             var gitLogEntry = new GitLogEntry()
             {
                 AuthorName = "AuthorName",
@@ -22,7 +24,10 @@ namespace UnitTests
                 CommitID = "CommitID",
                 Summary = "Summary",
                 Description = "Description",
-                Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                TimeValue = commitTime,
+                CommitTimeValue = commitTime
             };
 
             gitLogEntry.AssertEqual(gitLogEntry);
@@ -31,6 +36,8 @@ namespace UnitTests
         [Test]
         public void ShouldEqualAnotherWhenChangesIsNull()
         {
+            var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
+
             var gitLogEntry1 = new GitLogEntry()
             {
                 AuthorName = "AuthorName",
@@ -41,7 +48,10 @@ namespace UnitTests
                 CommitID = "CommitID",
                 Summary = "Summary",
                 Description = "Description",
-                Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                TimeValue = commitTime,
+                CommitTimeValue = commitTime
             };
 
             var gitLogEntry2 = new GitLogEntry()
@@ -54,7 +64,10 @@ namespace UnitTests
                 CommitID = "CommitID",
                 Summary = "Summary",
                 Description = "Description",
-                Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                TimeValue = commitTime,
+                CommitTimeValue = commitTime
             };
 
             gitLogEntry1.AssertEqual(gitLogEntry2);
@@ -63,6 +76,7 @@ namespace UnitTests
         [Test]
         public void ShouldNotEqualAnotherWhenFieldsAreDifferent()
         {
+            var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
             var gitLogEntry1 = new GitLogEntry()
             {
                 AuthorName = "AuthorName",
@@ -73,7 +87,10 @@ namespace UnitTests
                 CommitID = "CommitID",
                 Summary = "Summary",
                 Description = "Description",
-                Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                TimeValue = commitTime,
+                CommitTimeValue = commitTime
             };
 
             var gitLogEntry2 = new GitLogEntry()
@@ -86,7 +103,10 @@ namespace UnitTests
                 CommitID = "CommitID",
                 Summary = "Summary",
                 Description = "Description",
-                Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                TimeValue = commitTime,
+                CommitTimeValue = commitTime
             };
 
             gitLogEntry1.AssertNotEqual(gitLogEntry2);
@@ -95,6 +115,7 @@ namespace UnitTests
         [Test]
         public void ShouldEqualAnotherWhenChangesIsEmpty()
         {
+            var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
             var gitLogEntry1 = new GitLogEntry()
             {
                 AuthorName = "AuthorName",
@@ -105,7 +126,10 @@ namespace UnitTests
                 CommitID = "CommitID",
                 Summary = "Summary",
                 Description = "Description",
-                Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                TimeValue = commitTime,
+                CommitTimeValue = commitTime
             };
 
             var gitLogEntry2 = new GitLogEntry()
@@ -118,7 +142,10 @@ namespace UnitTests
                 CommitID = "CommitID",
                 Summary = "Summary",
                 Description = "Description",
-                Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                TimeValue = commitTime,
+                CommitTimeValue = commitTime
             };
 
             gitLogEntry1.AssertEqual(gitLogEntry2);
@@ -127,6 +154,8 @@ namespace UnitTests
         [Test]
         public void ShouldEqualAnotherWhenChangesIsNotEmpty()
         {
+            var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
+
             var gitLogEntry1 = new GitLogEntry()
             {
                 AuthorName = "AuthorName",
@@ -141,7 +170,10 @@ namespace UnitTests
                 CommitID = "CommitID",
                 Summary = "Summary",
                 Description = "Description",
-                Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                TimeValue = commitTime,
+                CommitTimeValue = commitTime,
             };
 
             var gitLogEntry2 = new GitLogEntry()
@@ -158,7 +190,10 @@ namespace UnitTests
                 CommitID = "CommitID",
                 Summary = "Summary",
                 Description = "Description",
-                Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                TimeValue = commitTime,
+                CommitTimeValue = commitTime
             };
 
             gitLogEntry1.AssertEqual(gitLogEntry2);
@@ -167,6 +202,8 @@ namespace UnitTests
         [Test]
         public void ShouldNotEqualAnotherWhenChangesAreDifferent()
         {
+            var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
+
             var gitLogEntry1 = new GitLogEntry()
             {
                 AuthorName = "AuthorName",
@@ -181,7 +218,10 @@ namespace UnitTests
                 CommitID = "CommitID",
                 Summary = "Summary",
                 Description = "Description",
-                Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                TimeValue = commitTime,
+                CommitTimeValue = commitTime
             };
 
             var gitLogEntry2 = new GitLogEntry()
@@ -198,7 +238,10 @@ namespace UnitTests
                 CommitID = "CommitID",
                 Summary = "Summary",
                 Description = "Description",
-                Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                TimeValue = commitTime,
+                CommitTimeValue = commitTime
             };
 
             gitLogEntry1.AssertNotEqual(gitLogEntry2);

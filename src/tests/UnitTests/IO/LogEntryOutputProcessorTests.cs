@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using NUnit.Framework;
 using TestUtils;
 using GitHub.Unity;
@@ -39,6 +40,7 @@ namespace UnitTests
                 null,
             };
 
+            var commitTime = new DateTimeOffset(2017, 1, 6, 15, 36, 57, TimeSpan.FromHours(1));
             var expected = new[]
             {
                 new GitLogEntry
@@ -56,8 +58,10 @@ namespace UnitTests
                     },
                     Summary = "Rename RepositoryModelBase to RepositoryModel",
                     Description = "Rename RepositoryModelBase to RepositoryModel",
-                    Time = new DateTimeOffset(2017, 1, 6, 15, 36, 57, TimeSpan.FromHours(1)),
-                    CommitTime = new DateTimeOffset(2017, 1, 6, 15, 36, 57, TimeSpan.FromHours(1)),
+                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    TimeValue = commitTime,
+                    CommitTimeValue = commitTime
                 },
             };
 

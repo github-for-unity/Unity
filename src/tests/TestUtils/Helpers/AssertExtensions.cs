@@ -20,8 +20,10 @@ namespace TestUtils
             gitLogEntry.CommitID.Should().Be(other.CommitID);
             gitLogEntry.Summary.Should().Be(other.Summary);
             gitLogEntry.Description.Should().Be(other.Description);
-            gitLogEntry.Time.Should().Be(other.Time);
-            gitLogEntry.CommitTime.Should().Be(other.CommitTime);
+            gitLogEntry.TimeString.Should().Be(other.TimeString);
+            gitLogEntry.CommitTimeString.Should().Be(other.CommitTimeString);
+            gitLogEntry.TimeValue.Should().Be(other.TimeValue);
+            gitLogEntry.CommitTimeValue.Should().Be(other.CommitTimeValue);
         }
 
         public static void AssertNotEqual(this GitLogEntry gitLogEntry, GitLogEntry other)

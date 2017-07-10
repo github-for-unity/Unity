@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -328,8 +329,8 @@ namespace GitHub.Unity
                     Summary = summary,
                     Description = description,
                     CommitID = commitId,
-                    Time = time.Value,
-                    CommitTime = committerTime.Value
+                    TimeString = time.Value.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = committerTime.Value.ToString(DateTimeFormatInfo.CurrentInfo)
                 });
             }
 

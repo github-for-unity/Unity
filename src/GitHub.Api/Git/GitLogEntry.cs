@@ -19,8 +19,11 @@ namespace GitHub.Unity
         public string CommitName;
         public string Summary;
         public string Description;
-        public DateTimeOffset Time;
-        public DateTimeOffset CommitTime;
+
+        public string TimeString;
+        public string CommitTimeString;
+
+
         public List<GitStatusEntry> Changes;
 
         public string ShortID
@@ -32,7 +35,7 @@ namespace GitHub.Unity
         {
             get
             {
-                DateTimeOffset now = DateTimeOffset.Now, relative = Time.ToLocalTime();
+                DateTimeOffset now = DateTimeOffset.Now, relative = TimeValue.ToLocalTime();
 
                 return String.Format("{0}, {1:HH}:{1:mm}",
                     relative.DayOfYear == now.DayOfYear
@@ -41,10 +44,24 @@ namespace GitHub.Unity
             }
         }
 
+        [NonSerialized] public DateTimeOffset timeValue;
+        public DateTimeOffset TimeValue
+        {
+            get { return timeValue; }
+            set { timeValue = value; }
+        }
+
+        [NonSerialized] public DateTimeOffset commitTimeValue;
+        public DateTimeOffset CommitTimeValue
+        {
+            get { return commitTimeValue; }
+            set { commitTimeValue = value; }
+        }
+
         public void Clear()
         {
             CommitID = MergeA = MergeB = AuthorName = AuthorEmail = Summary = Description = "";
-            Time = DateTimeOffset.Now;
+            TimeValue = DateTimeOffset.Now;
             Changes = new List<GitStatusEntry>();
         }
 
@@ -56,7 +73,7 @@ namespace GitHub.Unity
             sb.AppendLine(String.Format("MergeB: {0}", MergeB));
             sb.AppendLine(String.Format("AuthorName: {0}", AuthorName));
             sb.AppendLine(String.Format("AuthorEmail: {0}", AuthorEmail));
-            sb.AppendLine(String.Format("Time: {0}", Time.ToString()));
+            sb.AppendLine(String.Format("Time: {0}", TimeValue.ToString()));
             sb.AppendLine(String.Format("Summary: {0}", Summary));
             sb.AppendLine(String.Format("Description: {0}", Description));
             return sb.ToString();
