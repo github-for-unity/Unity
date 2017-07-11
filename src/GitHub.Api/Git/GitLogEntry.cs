@@ -20,11 +20,8 @@ namespace GitHub.Unity
         public string CommitName;
         public string Summary;
         public string Description;
-
         public string TimeString;
         public string CommitTimeString;
-
-
         public List<GitStatusEntry> Changes;
 
         public string ShortID
