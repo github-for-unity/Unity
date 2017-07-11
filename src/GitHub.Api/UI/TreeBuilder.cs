@@ -77,6 +77,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNullOrEmpty(newEntries, "newEntries");
 
             var newEntriesSetByPath = new HashSet<string>(newEntries.Select(entry => entry.Path));
+            var gitStatusEntriesSetByPath = new HashSet<string>(gitStatusEntries.Select(entry => entry.Path));
 
             // Remove what got nuked
             for (var index = 0; index < gitStatusEntries.Count;)
@@ -95,7 +96,7 @@ namespace GitHub.Unity
             // Remove folding state of nuked items
             for (var index = 0; index < foldedTreeEntries.Count;)
             {
-                if (!newEntries.Any(e => e.Path.IndexOf(foldedTreeEntries[index]) == 0))
+                if (newEntries.All(e => e.Path.IndexOf(foldedTreeEntries[index], StringComparison.CurrentCulture) != 0))
                 {
                     foldedTreeEntries.RemoveAt(index);
                 }
@@ -109,7 +110,7 @@ namespace GitHub.Unity
             for (var index = 0; index < newEntries.Count; ++index)
             {
                 var entry = newEntries[index];
-                if (!gitStatusEntries.Contains(entry))
+                if (!gitStatusEntriesSetByPath.Contains(entry.Path))
                 {
                     gitStatusEntries.Add(entry);
                     gitCommitTargets.Add(new GitCommitTarget());
