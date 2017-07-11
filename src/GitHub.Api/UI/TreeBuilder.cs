@@ -122,7 +122,7 @@ namespace GitHub.Unity
 
             for (var index1 = 0; index1 < gitStatusEntries.Count; index1++)
             {
-                GitStatusEntry gitStatusEntry = gitStatusEntries[index1];
+                var gitStatusEntry = gitStatusEntries[index1];
                 var entryPath = gitStatusEntry.Path.ToNPath();
                 if (entryPath.IsChildOf(tree.Path)) entryPath = entryPath.RelativeTo(tree.Path.ToNPath());
 
@@ -132,7 +132,7 @@ namespace GitHub.Unity
                     node.Icon = iconLoaderFunc?.Invoke(gitStatusEntry.ProjectPath);
                 }
 
-                TreeBuilder.BuildChildNode(tree, node, foldedTreeEntries, stateChangeCallback);
+                BuildChildNode(tree, node, foldedTreeEntries, stateChangeCallback);
             }
 
             return tree;
