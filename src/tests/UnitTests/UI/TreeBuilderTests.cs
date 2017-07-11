@@ -5,8 +5,10 @@ using System.Text;
 using FluentAssertions;
 using GitHub.Unity;
 using NCrunch.Framework;
+using NSubstitute;
 using NUnit.Framework;
 using TestUtils;
+using UnityEngine;
 
 namespace UnitTests.UI
 {
@@ -14,6 +16,8 @@ namespace UnitTests.UI
     [TestFixture, Isolated]
     public class TreeBuilderTests
     {
+        private ILogging logger = Logging.GetLogger<TreeBuilderTests>();
+
         private IEnvironment environment;
         private GitObjectFactory gitObjectFactory;
 
@@ -30,10 +34,10 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            Action<FileTreeNode> stateChangeCallback = node => { };
+            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallback);
+                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(1);
@@ -44,7 +48,6 @@ namespace UnitTests.UI
             children[0].Open.Should().BeTrue();
             children[0].Path.Should().Be("file1.txt");
             children[0].RepositoryPath.Should().Be("file1.txt");
-            children[0].State.Should().Be(CommitState.None);
             children[0].State.Should().Be(CommitState.None);
             children[0].Target.Should().Be(gitCommitTargets[0]);
 
@@ -64,10 +67,10 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            Action<FileTreeNode> stateChangeCallback = node => { };
+            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallback);
+                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(1);
@@ -78,7 +81,6 @@ namespace UnitTests.UI
             children[0].Open.Should().BeTrue();
             children[0].Path.Should().Be("file1.txt");
             children[0].RepositoryPath.Should().Be(@"Project\file1.txt");
-            children[0].State.Should().Be(CommitState.None);
             children[0].State.Should().Be(CommitState.None);
             children[0].Target.Should().Be(gitCommitTargets[0]);
 
@@ -98,10 +100,10 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            Action<FileTreeNode> stateChangeCallback = node => { };
+            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallback);
+                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(1);
@@ -112,7 +114,6 @@ namespace UnitTests.UI
             children[0].Open.Should().BeTrue();
             children[0].Path.Should().Be("file1.txt");
             children[0].RepositoryPath.Should().Be(@"folder\file1.txt");
-            children[0].State.Should().Be(CommitState.None);
             children[0].State.Should().Be(CommitState.None);
             children[0].Target.Should().Be(gitCommitTargets[0]);
 
@@ -132,10 +133,10 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            Action<FileTreeNode> stateChangeCallback = node => { };
+            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallback);
+                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(1);
@@ -146,7 +147,6 @@ namespace UnitTests.UI
             children[0].Open.Should().BeTrue();
             children[0].Path.Should().Be("file1.txt");
             children[0].RepositoryPath.Should().Be(@"Project\folder\file1.txt");
-            children[0].State.Should().Be(CommitState.None);
             children[0].State.Should().Be(CommitState.None);
             children[0].Target.Should().Be(gitCommitTargets[0]);
 
@@ -167,10 +167,10 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            Action<FileTreeNode> stateChangeCallback = node => { };
+            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallback);
+                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(2);
@@ -182,7 +182,6 @@ namespace UnitTests.UI
             children[0].Path.Should().Be("file1.txt");
             children[0].RepositoryPath.Should().Be("file1.txt");
             children[0].State.Should().Be(CommitState.None);
-            children[0].State.Should().Be(CommitState.None);
             children[0].Target.Should().Be(gitCommitTargets[0]);
 
             children[0].Children.Should().BeEmpty();
@@ -191,7 +190,6 @@ namespace UnitTests.UI
             children[1].Open.Should().BeTrue();
             children[1].Path.Should().Be("file2.txt");
             children[1].RepositoryPath.Should().Be("file2.txt");
-            children[1].State.Should().Be(CommitState.None);
             children[1].State.Should().Be(CommitState.None);
             children[1].Target.Should().Be(gitCommitTargets[1]);
 
@@ -212,10 +210,10 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            Action<FileTreeNode> stateChangeCallback = node => { };
+            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallback);
+                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(2);
@@ -227,7 +225,6 @@ namespace UnitTests.UI
             children[0].Path.Should().Be("file1.txt");
             children[0].RepositoryPath.Should().Be(@"Project\file1.txt");
             children[0].State.Should().Be(CommitState.None);
-            children[0].State.Should().Be(CommitState.None);
             children[0].Target.Should().Be(gitCommitTargets[0]);
 
             children[0].Children.Should().BeEmpty();
@@ -236,7 +233,6 @@ namespace UnitTests.UI
             children[1].Open.Should().BeTrue();
             children[1].Path.Should().Be("file2.txt");
             children[1].RepositoryPath.Should().Be(@"Project\file2.txt");
-            children[1].State.Should().Be(CommitState.None);
             children[1].State.Should().Be(CommitState.None);
             children[1].Target.Should().Be(gitCommitTargets[1]);
 
@@ -260,10 +256,10 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            Action<FileTreeNode> stateChangeCallback = node => { };
+            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallback);
+                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(3);
@@ -275,7 +271,6 @@ namespace UnitTests.UI
             children[0].Path.Should().Be("file1.txt");
             children[0].RepositoryPath.Should().Be("file1.txt");
             children[0].State.Should().Be(CommitState.None);
-            children[0].State.Should().Be(CommitState.None);
             children[0].Target.Should().Be(gitCommitTargets[0]);
 
             children[0].Children.Should().BeEmpty();
@@ -285,14 +280,12 @@ namespace UnitTests.UI
             children[1].Path.Should().Be("folder1");
             children[1].RepositoryPath.Should().Be("folder1");
             children[1].State.Should().Be(CommitState.None);
-            children[1].State.Should().Be(CommitState.None);
             children[1].Target.Should().BeNull();
 
             children[2].Label.Should().Be("folder2");
             children[2].Open.Should().BeTrue();
             children[2].Path.Should().Be("folder2");
             children[2].RepositoryPath.Should().Be("folder2");
-            children[2].State.Should().Be(CommitState.None);
             children[2].State.Should().Be(CommitState.None);
             children[2].Target.Should().BeNull();
 
@@ -304,7 +297,6 @@ namespace UnitTests.UI
             folder1Children[0].Path.Should().Be(@"folder1\file2.txt");
             folder1Children[0].RepositoryPath.Should().Be(@"folder1\file2.txt");
             folder1Children[0].State.Should().Be(CommitState.None);
-            folder1Children[0].State.Should().Be(CommitState.None);
             folder1Children[0].Target.Should().Be(gitCommitTargets[1]);
 
             folder1Children[0].Children.Should().BeEmpty();
@@ -313,7 +305,6 @@ namespace UnitTests.UI
             folder1Children[1].Open.Should().BeTrue();
             folder1Children[1].Path.Should().Be(@"folder1\file3.txt");
             folder1Children[1].RepositoryPath.Should().Be(@"folder1\file3.txt");
-            folder1Children[1].State.Should().Be(CommitState.None);
             folder1Children[1].State.Should().Be(CommitState.None);
             folder1Children[1].Target.Should().Be(gitCommitTargets[2]);
 
@@ -327,7 +318,6 @@ namespace UnitTests.UI
             folder2Children[0].Path.Should().Be(@"folder2\file4.txt");
             folder2Children[0].RepositoryPath.Should().Be(@"folder2\file4.txt");
             folder2Children[0].State.Should().Be(CommitState.None);
-            folder2Children[0].State.Should().Be(CommitState.None);
             folder2Children[0].Target.Should().Be(gitCommitTargets[3]);
 
             folder2Children[0].Children.Should().BeEmpty();
@@ -336,7 +326,6 @@ namespace UnitTests.UI
             folder2Children[1].Open.Should().BeTrue();
             folder2Children[1].Path.Should().Be(@"folder2\file5.txt");
             folder2Children[1].RepositoryPath.Should().Be(@"folder2\file5.txt");
-            folder2Children[1].State.Should().Be(CommitState.None);
             folder2Children[1].State.Should().Be(CommitState.None);
             folder2Children[1].Target.Should().Be(gitCommitTargets[4]);
 
@@ -357,10 +346,10 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            Action<FileTreeNode> stateChangeCallback = node => { };
+            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallback);
+                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(2);
@@ -372,7 +361,6 @@ namespace UnitTests.UI
             children[0].RepositoryPath.Should().Be(@"Project\file1.txt");
             children[0].Open.Should().BeTrue();
             children[0].State.Should().Be(CommitState.None);
-            children[0].State.Should().Be(CommitState.None);
             children[0].Target.Should().Be(gitCommitTargets[0]);
 
             children[0].Children.Should().BeEmpty();
@@ -381,7 +369,6 @@ namespace UnitTests.UI
             children[1].Label.Should().Be("folder");
             children[1].RepositoryPath.Should().Be(@"Project\folder");
             children[1].Open.Should().BeTrue();
-            children[1].State.Should().Be(CommitState.None);
             children[1].State.Should().Be(CommitState.None);
             children[1].Target.Should().BeNull();
 
@@ -392,7 +379,6 @@ namespace UnitTests.UI
             folderChildren[0].Open.Should().BeTrue();
             folderChildren[0].Path.Should().Be(@"folder\file2.txt");
             folderChildren[0].RepositoryPath.Should().Be(@"Project\folder\file2.txt");
-            folderChildren[0].State.Should().Be(CommitState.None);
             folderChildren[0].State.Should().Be(CommitState.None);
             folderChildren[0].Target.Should().Be(gitCommitTargets[1]);
 
@@ -413,10 +399,10 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            Action<FileTreeNode> stateChangeCallback = node => { };
+            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallback);
+                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(1);
@@ -427,7 +413,6 @@ namespace UnitTests.UI
             children[0].Open.Should().BeTrue();
             children[0].Path.Should().Be("file1.txt");
             children[0].RepositoryPath.Should().Be("file1.txt");
-            children[0].State.Should().Be(CommitState.None);
             children[0].State.Should().Be(CommitState.None);
             children[0].Target.Should().Be(gitCommitTargets[0]);
 
@@ -448,6 +433,49 @@ namespace UnitTests.UI
             fileChildren[0].Children.Should().BeEmpty();
         }
 
+        [Test]
+        public void CanUpdateTreeForSingleItem()
+        {
+            InitializeEnvironment(@"c:\Project", @"c:\Project");
+
+            var gitStatusEntriesGen0 = new List<GitStatusEntry>();
+
+            var gitStatusEntriesGen1 = new List<GitStatusEntry>() {
+                gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified)
+            };
+
+            var gitCommitTargets = new List<GitCommitTarget>();
+            var foldedTreeEntries = new List<string>();
+
+            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
+
+            var treeRootGen1 = TreeBuilder.BuildTreeRoot(gitStatusEntriesGen1, gitStatusEntriesGen0, gitCommitTargets,
+                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+
+            var fileTreeNodesGen1 = treeRootGen1.Children.ToArray();
+
+            fileTreeNodesGen1[0].Label.Should().Be("file1.txt");
+            fileTreeNodesGen1[0].Open.Should().BeTrue();
+            fileTreeNodesGen1[0].Path.Should().Be("file1.txt");
+            fileTreeNodesGen1[0].RepositoryPath.Should().Be("file1.txt");
+            fileTreeNodesGen1[0].State.Should().Be(CommitState.None);
+            fileTreeNodesGen1[0].Target.Should().Be(gitCommitTargets[0]);
+            fileTreeNodesGen1[0].Children.Should().BeEmpty();
+
+            fileTreeNodesGen1[0].State = CommitState.All;
+
+            stateChangeCallbackListener.ReceivedWithAnyArgs(1).StateChangeCallback(Arg.Any<FileTreeNode>());
+            stateChangeCallbackListener.ClearReceivedCalls();
+
+            var gitStatusEntriesGen2 = new List<GitStatusEntry>() {
+                gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
+                gitObjectFactory.CreateGitStatusEntry("file2.txt", GitFileStatus.Modified)
+            };
+
+            var treeRootGen2 = TreeBuilder.BuildTreeRoot(gitStatusEntriesGen2, gitStatusEntriesGen1, gitCommitTargets,
+                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+        }
+
         private void InitializeEnvironment(string repositoryPath, string projectPath)
         {
             var substituteFactory = new SubstituteFactory();
@@ -465,5 +493,10 @@ namespace UnitTests.UI
 
             gitObjectFactory = new GitObjectFactory(environment);
         }
+    }
+
+    interface IStateChangeCallbackListener
+    {
+        void StateChangeCallback(FileTreeNode fileTreeNode);
     }
 }
