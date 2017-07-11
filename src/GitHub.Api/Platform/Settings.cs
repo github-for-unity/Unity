@@ -46,7 +46,8 @@ namespace GitHub.Unity
         {
             logger.Debug($"Initializing settings {GetType()}");
             cachePath = SettingsPath.Combine(SettingsFileName);
-            logger.Trace("Initializing settings file at {0}", cachePath);
+
+            logger.Debug("Initializing settings file at {0}", cachePath);
             LoadFromCache(cachePath);
         }
 
@@ -65,19 +66,31 @@ namespace GitHub.Unity
             object value = null;
             if (cacheData.GitHubUnity.TryGetValue(key, out value))
             {
+                logger.Debug("Get: {0}", key);
                 return (T)value;
             }
 
+            logger.Debug("Miss: {0}", key);
             return fallback;
         }
 
         public override void Set<T>(string key, T value)
         {
-            if (!cacheData.GitHubUnity.ContainsKey(key))
-                cacheData.GitHubUnity.Add(key, value);
-            else
-                cacheData.GitHubUnity[key] = value;
-            SaveToCache(cachePath);
+            try
+            {
+                logger.Trace("Set: {0}", key);
+
+                if (!cacheData.GitHubUnity.ContainsKey(key))
+                    cacheData.GitHubUnity.Add(key, value);
+                else
+                    cacheData.GitHubUnity[key] = value;
+                SaveToCache(cachePath);
+            }
+            catch (Exception e)
+            {
+                logger.Error(e, "Error storing to cache");
+                throw;
+            }
         }
 
         public override void Unset(string key)
