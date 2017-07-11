@@ -1,5 +1,9 @@
 ﻿<ProjectConfiguration>
   <Settings>
+    <AdditionalFilesToIncludeForProject>
+      <Value>..\..\script\lib\UnityEditor.dll</Value>
+      <Value>..\..\script\lib\UnityEngine.dll</Value>
+    </AdditionalFilesToIncludeForProject>
     <HiddenComponentWarnings />
     <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
   </Settings>
