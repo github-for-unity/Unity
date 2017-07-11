@@ -49,10 +49,11 @@ namespace GitHub.Unity
             {
                 // Look for a branch matching our root in the existing children
                 var found = false;
+                var searchLabel = nodePath.Parent.Combine(nodePath.FileNameWithoutExtension);
                 foreach (var child in parent.Children)
                 {
                     // If we found the branch, continue building from that branch
-                    if (child.Label.Equals(nodePath.Parent.Combine(nodePath.FileNameWithoutExtension)))
+                    if (child.Label.Equals(searchLabel))
                     {
                         found = true;
                         BuildChildNode(child, node, foldedTreeEntries1, stateChangeCallback1);
