@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GitHub.Unity;
-using UnityEditor;
 
 static internal class TreeBuilder
 {
@@ -89,7 +88,7 @@ static internal class TreeBuilder
             var node = new FileTreeNode(entryPath, stateChangeCallback1) { Target = entryCommitTargets[index] };
             if (!String.IsNullOrEmpty(gitStatusEntry.ProjectPath))
             {
-                node.Icon = AssetDatabase.GetCachedIcon(gitStatusEntry.ProjectPath);
+                //node.Icon = AssetDatabase.GetCachedIcon(gitStatusEntry.ProjectPath);
             }
 
             TreeBuilder.BuildTree(tree, node, foldedTreeEntries1, stateChangeCallback1);

@@ -97,12 +97,10 @@
     <Compile Include="UI\BranchesView.cs" />
     <Compile Include="UI\ChangesetTreeView.cs" />
     <Compile Include="UI\ChangesView.cs" />
-    <Compile Include="UI\GitCommitTarget.cs" />
     <Compile Include="UI\HistoryView.cs" />
     <Compile Include="UI\IView.cs" />
     <Compile Include="UI\SettingsView.cs" />
     <Compile Include="UI\Subview.cs" />
-    <Compile Include="UI\TreeBuilder.cs" />
     <Compile Include="UI\Window.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -232,6 +230,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
