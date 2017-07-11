@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using FluentAssertions;
 using GitHub.Unity;
 using NCrunch.Framework;
 using NSubstitute;
 using NUnit.Framework;
 using TestUtils;
-using UnityEngine;
 
 namespace UnitTests.UI
 {
@@ -26,7 +23,7 @@ namespace UnitTests.UI
         {
             InitializeEnvironment(@"c:\Project", @"c:\Project");
 
-            var newGitStatusEntries = new List<GitStatusEntry>() {
+            var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified)
             };
             var gitStatusEntries = new List<GitStatusEntry>();
@@ -34,11 +31,15 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
+            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
+            gitStatusEntries.Count.Should().Be(1);
+            gitCommitTargets.Count.Should().Be(1);
+            foldedTreeEntries.Count.Should().Be(0);
+            
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(1);
 
@@ -59,7 +60,7 @@ namespace UnitTests.UI
         {
             InitializeEnvironment(@"c:\Repo", @"c:\Repo\Project");
 
-            var newGitStatusEntries = new List<GitStatusEntry>() {
+            var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified)
             };
             var gitStatusEntries = new List<GitStatusEntry>();
@@ -67,15 +68,17 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
+            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
+            gitStatusEntries.Count.Should().Be(1);
+            gitCommitTargets.Count.Should().Be(1);
+            foldedTreeEntries.Count.Should().Be(0);
+
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(1);
-
-            gitCommitTargets.Count.Should().Be(1);
 
             children[0].Label.Should().Be("file1.txt");
             children[0].Open.Should().BeTrue();
@@ -92,7 +95,7 @@ namespace UnitTests.UI
         {
             InitializeEnvironment(@"c:\Project", @"c:\Project");
 
-            var newGitStatusEntries = new List<GitStatusEntry>() {
+            var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry(@"folder\file1.txt", GitFileStatus.Modified)
             };
             var gitStatusEntries = new List<GitStatusEntry>();
@@ -100,15 +103,17 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
+            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
+            gitStatusEntries.Count.Should().Be(1);
+            gitCommitTargets.Count.Should().Be(1);
+            foldedTreeEntries.Count.Should().Be(0);
+
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(1);
-
-            gitCommitTargets.Count.Should().Be(1);
 
             children[0].Label.Should().Be("file1.txt");
             children[0].Open.Should().BeTrue();
@@ -125,7 +130,7 @@ namespace UnitTests.UI
         {
             InitializeEnvironment(@"c:\Repo", @"c:\Repo\Project");
 
-            var newGitStatusEntries = new List<GitStatusEntry>() {
+            var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry(@"folder\file1.txt", GitFileStatus.Modified)
             };
             var gitStatusEntries = new List<GitStatusEntry>();
@@ -133,15 +138,17 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
+            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
+            gitStatusEntries.Count.Should().Be(1);
+            gitCommitTargets.Count.Should().Be(1);
+            foldedTreeEntries.Count.Should().Be(0);
+
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(1);
-
-            gitCommitTargets.Count.Should().Be(1);
 
             children[0].Label.Should().Be("file1.txt");
             children[0].Open.Should().BeTrue();
@@ -158,7 +165,7 @@ namespace UnitTests.UI
         {
             InitializeEnvironment(@"c:\Project", @"c:\Project");
 
-            var newGitStatusEntries = new List<GitStatusEntry>() {
+            var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
                 gitObjectFactory.CreateGitStatusEntry("file2.txt", GitFileStatus.Modified)
             };
@@ -167,15 +174,17 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
+            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
+            gitStatusEntries.Count.Should().Be(2);
+            gitCommitTargets.Count.Should().Be(2);
+            foldedTreeEntries.Count.Should().Be(0);
+
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(2);
-
-            gitCommitTargets.Count.Should().Be(2);
 
             children[0].Label.Should().Be("file1.txt");
             children[0].Open.Should().BeTrue();
@@ -201,7 +210,7 @@ namespace UnitTests.UI
         {
             InitializeEnvironment(@"c:\Repo", @"c:\Repo\Project");
 
-            var newGitStatusEntries = new List<GitStatusEntry>() {
+            var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
                 gitObjectFactory.CreateGitStatusEntry("file2.txt", GitFileStatus.Modified)
             };
@@ -210,15 +219,17 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
+            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
+            gitStatusEntries.Count.Should().Be(2);
+            gitCommitTargets.Count.Should().Be(2);
+            foldedTreeEntries.Count.Should().Be(0);
+
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(2);
-
-            gitCommitTargets.Count.Should().Be(2);
 
             children[0].Label.Should().Be("file1.txt");
             children[0].Open.Should().BeTrue();
@@ -244,7 +255,7 @@ namespace UnitTests.UI
         {
             InitializeEnvironment(@"c:\Project", @"c:\Project");
 
-            var newGitStatusEntries = new List<GitStatusEntry>() {
+            var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
                 gitObjectFactory.CreateGitStatusEntry(@"folder1\file2.txt", GitFileStatus.Modified),
                 gitObjectFactory.CreateGitStatusEntry(@"folder1\file3.txt", GitFileStatus.Modified),
@@ -256,15 +267,17 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
+            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
+            gitStatusEntries.Count.Should().Be(5);
+            gitCommitTargets.Count.Should().Be(5);
+            foldedTreeEntries.Count.Should().Be(0);
+
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(3);
-
-            gitCommitTargets.Count.Should().Be(5);
 
             children[0].Label.Should().Be("file1.txt");
             children[0].Open.Should().BeTrue();
@@ -337,7 +350,7 @@ namespace UnitTests.UI
         {
             InitializeEnvironment(@"c:\Repo", @"c:\Repo\Project");
 
-            var newGitStatusEntries = new List<GitStatusEntry>() {
+            var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
                 gitObjectFactory.CreateGitStatusEntry(@"folder\file2.txt", GitFileStatus.Modified)
             };
@@ -346,15 +359,17 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
+            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
+            gitStatusEntries.Count.Should().Be(2);
+            gitCommitTargets.Count.Should().Be(2);
+            foldedTreeEntries.Count.Should().Be(0);
+
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(2);
-
-            gitCommitTargets.Count.Should().Be(2);
 
             children[0].Path.Should().Be("file1.txt");
             children[0].Label.Should().Be("file1.txt");
@@ -390,7 +405,7 @@ namespace UnitTests.UI
         {
             InitializeEnvironment(@"c:\Project", @"c:\Project");
 
-            var newGitStatusEntries = new List<GitStatusEntry>() {
+            var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
                 gitObjectFactory.CreateGitStatusEntry("file1.txt.meta", GitFileStatus.Modified)
             };
@@ -399,15 +414,17 @@ namespace UnitTests.UI
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
+            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
+            gitStatusEntries.Count.Should().Be(2);
+            gitCommitTargets.Count.Should().Be(2);
+            foldedTreeEntries.Count.Should().Be(0);
+
             var children = treeRoot.Children.ToArray();
             children.Length.Should().Be(1);
-
-            gitCommitTargets.Count.Should().Be(2);
 
             children[0].Label.Should().Be("file1.txt");
             children[0].Open.Should().BeTrue();
@@ -438,21 +455,28 @@ namespace UnitTests.UI
         {
             InitializeEnvironment(@"c:\Project", @"c:\Project");
 
-            var gitStatusEntriesGen0 = new List<GitStatusEntry>();
+            var gitStatusEntries = new List<GitStatusEntry>();
 
-            var gitStatusEntriesGen1 = new List<GitStatusEntry>() {
-                gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified)
+            var gitStatusEntriesGen1 = new List<GitStatusEntry> {
+                gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
+                gitObjectFactory.CreateGitStatusEntry("file2.txt", GitFileStatus.Modified)
             };
 
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
 
-            var stateChangeCallbackListener = NSubstitute.Substitute.For<IStateChangeCallbackListener>();
+            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
-            var treeRootGen1 = TreeBuilder.BuildTreeRoot(gitStatusEntriesGen1, gitStatusEntriesGen0, gitCommitTargets,
+            var treeRootGen1 = TreeBuilder.BuildTreeRoot(gitStatusEntriesGen1, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
+            gitStatusEntries.Count.Should().Be(2);
+            gitCommitTargets.Count.Should().Be(2);
+            foldedTreeEntries.Count.Should().Be(0);
+
             var fileTreeNodesGen1 = treeRootGen1.Children.ToArray();
+
+            fileTreeNodesGen1.Length.Should().Be(2);
 
             fileTreeNodesGen1[0].Label.Should().Be("file1.txt");
             fileTreeNodesGen1[0].Open.Should().BeTrue();
@@ -462,18 +486,48 @@ namespace UnitTests.UI
             fileTreeNodesGen1[0].Target.Should().Be(gitCommitTargets[0]);
             fileTreeNodesGen1[0].Children.Should().BeEmpty();
 
+            fileTreeNodesGen1[1].Label.Should().Be("file2.txt");
+            fileTreeNodesGen1[1].Open.Should().BeTrue();
+            fileTreeNodesGen1[1].Path.Should().Be("file2.txt");
+            fileTreeNodesGen1[1].RepositoryPath.Should().Be("file2.txt");
+            fileTreeNodesGen1[1].State.Should().Be(CommitState.None);
+            fileTreeNodesGen1[1].Target.Should().Be(gitCommitTargets[1]);
+            fileTreeNodesGen1[1].Children.Should().BeEmpty();
+
             fileTreeNodesGen1[0].State = CommitState.All;
 
             stateChangeCallbackListener.ReceivedWithAnyArgs(1).StateChangeCallback(Arg.Any<FileTreeNode>());
             stateChangeCallbackListener.ClearReceivedCalls();
 
-            var gitStatusEntriesGen2 = new List<GitStatusEntry>() {
+            var gitStatusEntriesGen2 = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
-                gitObjectFactory.CreateGitStatusEntry("file2.txt", GitFileStatus.Modified)
+                gitObjectFactory.CreateGitStatusEntry("file3.txt", GitFileStatus.Modified)
             };
 
-            var treeRootGen2 = TreeBuilder.BuildTreeRoot(gitStatusEntriesGen2, gitStatusEntriesGen1, gitCommitTargets,
+            var treeRootGen2 = TreeBuilder.BuildTreeRoot(gitStatusEntriesGen2, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+
+            gitStatusEntries.Count.Should().Be(2);
+
+            var fileTreeNodesGen2 = treeRootGen2.Children.ToArray();
+
+            fileTreeNodesGen1.Length.Should().Be(2);
+
+            fileTreeNodesGen2[0].Label.Should().Be("file1.txt");
+            fileTreeNodesGen2[0].Open.Should().BeTrue();
+            fileTreeNodesGen2[0].Path.Should().Be("file1.txt");
+            fileTreeNodesGen2[0].RepositoryPath.Should().Be("file1.txt");
+            fileTreeNodesGen2[0].State.Should().Be(CommitState.All);
+            fileTreeNodesGen2[0].Target.Should().Be(gitCommitTargets[0]);
+            fileTreeNodesGen2[0].Children.Should().BeEmpty();
+
+            fileTreeNodesGen2[1].Label.Should().Be("file3.txt");
+            fileTreeNodesGen2[1].Open.Should().BeTrue();
+            fileTreeNodesGen2[1].Path.Should().Be("file3.txt");
+            fileTreeNodesGen2[1].RepositoryPath.Should().Be("file3.txt");
+            fileTreeNodesGen2[1].State.Should().Be(CommitState.None);
+            fileTreeNodesGen2[1].Target.Should().Be(gitCommitTargets[1]);
+            fileTreeNodesGen2[1].Children.Should().BeEmpty();
         }
 
         private void InitializeEnvironment(string repositoryPath, string projectPath)
