@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,7 +7,7 @@ namespace GitHub.Unity
     [Serializable]
     class AuthenticationWindow : BaseWindow
     {
-        private const string Title = "Sign in";
+        private const string Title = "Authentication";
 
         [SerializeField] private AuthenticationView authView;
 
@@ -19,49 +19,53 @@ namespace GitHub.Unity
 
         public static IView Open(Action<bool> onClose = null)
         {
-            AuthenticationWindow authWindow = GetWindow<AuthenticationWindow>();
+            AuthenticationWindow authWindow = GetWindow<AuthenticationWindow>(true);
             if (onClose != null)
                 authWindow.OnClose += onClose;
-            authWindow.minSize = new Vector2(290, 290);
+            authWindow.minSize = authWindow.maxSize = new Vector2(290, 290);
             authWindow.Show();
             return authWindow;
        }
 
-        public override void OnGUI()
+        public override void Initialize(IApplicationManager applicationManager)
         {
+            base.Initialize(applicationManager);
+            if (authView == null)
+                authView = new AuthenticationView();
+            authView.InitializeView(this);
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+
+            // Set window title
+            titleContent = new GUIContent(Title, Styles.SmallLogo);
+            authView.OnEnable();
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            authView.OnDisable();
+        }
+
+        public override void OnUI()
+        {
+            base.OnUI();
             authView.OnGUI();
         }
 
         public override void Refresh()
         {
+            base.Refresh();
             authView.Refresh();
         }
 
-        public override void OnEnable()
+        public override void OnSelectionChange()
         {
-            // Set window title
-            titleContent = new GUIContent(Title, Styles.SmallLogo);
-
-            Utility.UnregisterReadyCallback(CreateViews);
-            Utility.RegisterReadyCallback(CreateViews);
-
-            Utility.UnregisterReadyCallback(ShowActiveView);
-            Utility.RegisterReadyCallback(ShowActiveView);
-        }
-
-        private void CreateViews()
-        {
-            if (authView == null)
-                authView = new AuthenticationView();
-
-            Initialize(EntryPoint.ApplicationManager);
-            authView.InitializeView(this);
-        }
-
-        private void ShowActiveView()
-        {
-            authView.OnShow();
-            Refresh();
+            base.OnSelectionChange();
+            authView.OnSelectionChange();
         }
 
         public override void Finish(bool result)

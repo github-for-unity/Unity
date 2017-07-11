@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GitHub.Unity.Helpers;
 using UnityEditor;
 using UnityEngine;
+using Debug = System.Diagnostics.Debug;
 
 namespace GitHub.Unity
 {
@@ -17,6 +19,7 @@ namespace GitHub.Unity
         private const string NewBranchConfirmButton = "Create";
         private const string FavoritesSetting = "Favorites";
         private const string FavoritesTitle = "Favorites";
+        private const string CreateBranchTitle = "Create Branch";
         private const string LocalTitle = "Local branches";
         private const string RemoteTitle = "Remote branches";
         private const string CreateBranchButton = "New Branch";
@@ -44,9 +47,9 @@ namespace GitHub.Unity
             targetMode = mode;
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
             if (Repository != null)
             {
                 Repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
@@ -55,9 +58,9 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnHide()
+        public override void OnDisable()
         {
-            base.OnHide();
+            base.OnDisable();
             if (Repository != null)
             {
                 Repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
@@ -307,11 +310,11 @@ namespace GitHub.Unity
             for (var index = 0; index < localBranches.Count; ++index)
             {
                 var branch = localBranches[index];
-                var node = new BranchTreeNode(branch.Name, NodeType.LocalBranch, branch.Active);
+                var node = new BranchTreeNode(branch.Name, NodeType.LocalBranch, branch.IsActive);
                 localBranchNodes.Add(node);
 
                 // Keep active node for quick reference
-                if (branch.Active)
+                if (branch.IsActive)
                 {
                     activeBranchNode = node;
                 }
@@ -468,8 +471,7 @@ namespace GitHub.Unity
                     var cancelCreate = false;
                     var cannotCreate = selectedNode == null ||
                                        selectedNode.Type == NodeType.Folder ||
-                                       newBranchName == null ||
-                                       !Utility.BranchNameRegex.IsMatch(newBranchName);
+                                       !Validation.IsBranchNameValid(newBranchName);
 
                     // Create on return/enter or cancel on escape
                     var offsetID = GUIUtility.GetControlID(FocusType.Passive);
@@ -515,7 +517,21 @@ namespace GitHub.Unity
                     if (createBranch)
                     {
                         GitClient.CreateBranch(newBranchName, selectedNode.Name)
-                            .FinallyInUI((success, e) => { if (success) Refresh(); })
+                            .FinallyInUI((success, e) => {
+                                     if (success)
+                                     {
+                                         Refresh();
+                                     }
+                                     else
+                                     {
+                                         var errorHeader = "fatal: ";
+                                         var errorMessage = e.Message.StartsWith(errorHeader) ? e.Message.Remove(0, errorHeader.Length) : e.Message;
+
+                                         EditorUtility.DisplayDialog(CreateBranchTitle,
+                                             errorMessage,
+                                             Localization.Ok);
+                                     }
+                            })
                             .Start();
                     }
 
@@ -629,7 +645,7 @@ namespace GitHub.Unity
                                 {
                                     EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
                                         String.Format(Localization.SwitchBranchFailedDescription, node.Name),
-                                    Localization.Cancel);
+                                    Localization.Ok);
                                 }
                             }).Start();
                     }
@@ -644,7 +660,7 @@ namespace GitHub.Unity
                                 {
                                     EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
                                         String.Format(Localization.SwitchBranchFailedDescription, node.Name),
-                                    Localization.Cancel);
+                                    Localization.Ok);
                                 }
                             }).Start();
                     }

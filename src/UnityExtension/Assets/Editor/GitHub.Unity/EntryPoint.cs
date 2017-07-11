@@ -11,8 +11,6 @@ namespace GitHub.Unity
     [InitializeOnLoad]
     class EntryPoint : ScriptableObject
     {
-        private static ApplicationManager appManager;
-
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
         {
@@ -60,7 +58,7 @@ namespace GitHub.Unity
             Logging.LogAdapter = new FileLogAdapter(logPath);
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
-            ((ApplicationManager)ApplicationManager).Run();
+            ((ApplicationManager)ApplicationManager).Run(ApplicationCache.Instance.FirstRun).Forget();
         }
 
         private static bool ServerCertificateValidationCallback(object sender, X509Certificate certificate,
@@ -69,6 +67,7 @@ namespace GitHub.Unity
             return true;
         }
 
+        private static ApplicationManager appManager;
         public static IApplicationManager ApplicationManager
         {
             get

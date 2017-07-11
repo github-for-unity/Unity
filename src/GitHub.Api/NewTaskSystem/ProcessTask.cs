@@ -156,7 +156,7 @@ namespace GitHub.Unity
                     }
                 }
 
-                if (Process.ExitCode != 0)
+                if (Process.ExitCode != 0 && errors.Count > 0)
                 {
                     onError?.Invoke(null, String.Join(Environment.NewLine, errors.ToArray()));
                 }

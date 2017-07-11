@@ -30,6 +30,9 @@ namespace GitHub.Unity
         private const string ClearSelectionButton = "×";
         private const string NoRepoTitle = "No Git repository found for this project";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
+        private const string FetchActionTitle = "Fetch Changes";
+        private const string FetchButtonText = "Fetch";
+        private const string FetchFailureDescription = "Could not fetch changes";
         private const int HistoryExtraItemCount = 10;
         private const float MaxChangelistHeightRatio = .2f;
 
@@ -57,20 +60,16 @@ namespace GitHub.Unity
 
         [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
         [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
+        [SerializeField] private bool isBusy;
 
-        public override void Initialize(IApplicationManager applicationManager)
+        public override void InitializeView(IView parent)
         {
-            base.Initialize(applicationManager);
+            base.InitializeView(parent);
+
             if (Manager != null)
             {
                 UpdateLog();
             }
-        }
-
-        public override void InitializeView(IView parent)
-        {
-            Logger.Trace("InitializeView(IView)");
-            base.InitializeView(parent);
 
             lastWidth = Position.width;
             selectionIndex = newSelectionIndex = -1;
@@ -85,9 +84,9 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
             if (Repository != null)
             {
                 Repository.OnCommitChanged += UpdateLogOnMainThread;
@@ -96,9 +95,9 @@ namespace GitHub.Unity
             UpdateLog();
         }
 
-        public override void OnHide()
+        public override void OnDisable()
         {
-            base.OnHide();
+            base.OnDisable();
             if (Repository != null)
             {
                 Repository.OnCommitChanged -= UpdateLogOnMainThread;
@@ -279,10 +278,18 @@ namespace GitHub.Unity
 
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
+
+                var enabled = GUI.enabled;
+                GUI.enabled = !isBusy;
+
                 if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
                 {
-                    new RepositoryInitializer(Manager).Run();
+                    isBusy = true;
+                    Manager.InitializeRepository()
+                        .FinallyInUI(() => isBusy = false)
+                        .Start();
                 }
+                GUI.enabled = enabled;
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 
@@ -312,8 +319,14 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
+                GUI.enabled = currentRemote != null;
+                var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
+                GUI.enabled = true;
+                if (fetchClicked)
+                {
+                    Fetch();
+                }
 
-                // Pull / Push buttons
                 var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
                 GUI.enabled = currentRemote != null;
                 var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
@@ -548,6 +561,28 @@ namespace GitHub.Unity
                                 EntryHeight + 1, 0, history.Count);
         }
 
+        private void RevertCommit()
+        {
+            var selection = history[selectionIndex];
+
+            var dialogTitle = "Revert commit";
+            var dialogBody = string.Format(@"Are you sure you want to revert the following commit:""{0}""", selection.Summary);
+
+            if (EditorUtility.DisplayDialog(dialogTitle, dialogBody, "Revert", "Cancel"))
+            {
+                Repository
+                    .Revert(selection.CommitID)
+                    .FinallyInUI((success, e) => {
+                        if (!success)
+                        {
+                            EditorUtility.DisplayDialog(dialogTitle,
+                                "Error reverting commit: " + e.Message, Localization.Cancel);
+                        }
+                    })
+                    .Start();
+            }
+        }
+
         private bool HistoryEntry(GitLogEntry entry, LogEntryState state, bool selected)
         {
             var entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
@@ -611,6 +646,14 @@ namespace GitHub.Unity
                     GUI.DrawTexture(normalIndicatorRect, Styles.DotIcon);
                 }
             }
+            else if (Event.current.type == EventType.ContextClick && entryRect.Contains(Event.current.mousePosition))
+            {
+                GenericMenu menu = new GenericMenu();
+                menu.AddItem(new GUIContent("Revert"), false, RevertCommit);
+                menu.ShowAsContext();
+
+                Event.current.Use();
+            }
             else if (Event.current.type == EventType.MouseDown && entryRect.Contains(Event.current.mousePosition))
             {
                 Event.current.Use();
@@ -670,7 +713,7 @@ namespace GitHub.Unity
                         {
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 Localization.PullFailureDescription,
-                            Localization.Cancel);
+                            Localization.Ok);
                         }
                     })
                     .Start();
@@ -693,7 +736,22 @@ namespace GitHub.Unity
                     {
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             Localization.PushFailureDescription,
-                        Localization.Cancel);
+                        Localization.Ok);
+                    }
+                })
+                .Start();
+        }
+
+        private void Fetch()
+        {
+            var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
+            Repository
+                .Fetch()
+                .FinallyInUI((success, e) => {
+                    if (!success)
+                    {
+                        EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
+                            Localization.Ok);
                     }
                 })
                 .Start();

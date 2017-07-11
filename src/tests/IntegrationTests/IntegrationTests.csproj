@@ -14,6 +14,7 @@
     <TargetFrameworkProfile />
     <OutputPath>$(SolutionDir)build\$(AssemblyName)</OutputPath>
   </PropertyGroup>
+  <Import Project="..\..\..\common\properties.props" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -78,7 +79,6 @@
     <Compile Include="BaseIntegrationTest.cs" />
     <Compile Include="Git\GitSetupTests.cs" />
     <Compile Include="Git\IntegrationTestEnvironment.cs" />
-    <Compile Include="Git\RepositoryLocatorTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="Process\ProcessManagerIntegrationTests.cs" />
     <Compile Include="SetupFixture.cs" />
@@ -86,21 +86,17 @@
     <Compile Include="ThreadSynchronizationContext.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\src\\GitHub.Api\GitHub.Api.csproj">
+    <ProjectReference Include="$(SolutionDir)src\GitHub.Api\GitHub.Api.csproj">
       <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
       <Name>GitHub.Api</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\src\\GitHub.Logging\GitHub.Logging.csproj">
+    <ProjectReference Include="$(SolutionDir)src\GitHub.Logging\GitHub.Logging.csproj">
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestUtils\TestUtils.csproj">
       <Project>{66a1d219-f61d-4ae4-9bd7-aaeb97276fff}</Project>
       <Name>TestUtils</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\src\\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
-      <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
-      <Name>GitHub.Unity</Name>
     </ProjectReference>
     <Reference Include="sfw.net">
       <HintPath>$(SolutionDir)\lib\sfw.net\$(Configuration)\sfw.net.dll</HintPath>
@@ -142,4 +138,5 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Import Project="..\..\..\common\build.targets" />
 </Project>

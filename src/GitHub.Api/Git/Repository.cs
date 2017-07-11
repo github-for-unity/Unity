@@ -88,6 +88,16 @@ namespace GitHub.Unity
             return repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch);
         }
 
+        public ITask Fetch()
+        {
+            return repositoryManager.Fetch(CurrentRemote.Value.Name);
+        }
+        
+        public ITask Revert(string changeset)
+        {
+            return repositoryManager.Revert(changeset);
+        }
+
         public ITask ListLocks()
         {
             return repositoryManager.ListLocks(false);
