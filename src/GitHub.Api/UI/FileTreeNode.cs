@@ -4,6 +4,13 @@ using System.Linq;
 
 namespace GitHub.Unity
 {
+    enum CommitState
+    {
+        None,
+        Some,
+        All
+    }
+
     class FileTreeNode
     {
         private readonly Action<FileTreeNode> stateChangeCallback;

@@ -221,7 +221,6 @@
     <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="Platform\Platform.cs" />
     <Compile Include="Git\GitCredentialManager.cs" />
-    <Compile Include="UI\CommitState.cs" />
     <Compile Include="UI\FileTreeNode.cs" />
     <Compile Include="UI\GitCommitTarget.cs" />
     <Compile Include="UI\TreeBuilder.cs" />

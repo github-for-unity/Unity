@@ -109,7 +109,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            tree = TreeBuilder.BuildTreeRoot(newEntries, entries, entryCommitTargets, foldedTreeEntries, stateChangeCallback);
+            tree = TreeBuilder.BuildTreeRoot(newEntries, entries, entryCommitTargets, foldedTreeEntries, stateChangeCallback, AssetDatabase.GetCachedIcon);
 
             OnCommitTreeChange();
         }
