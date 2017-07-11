@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using GitHub.Unity;
 
-static internal class TreeBuilder
+static class TreeBuilder
 {
-    internal static void BuildTree(FileTreeNode parent, FileTreeNode node, List<string> foldedTreeEntries1, Action<FileTreeNode> stateChangeCallback1)
+    internal static void BuildChildNode(FileTreeNode parent, FileTreeNode node, List<string> foldedTreeEntries1, Action<FileTreeNode> stateChangeCallback1)
     {
         if (String.IsNullOrEmpty(node.Label))
         {
@@ -32,7 +32,7 @@ static internal class TreeBuilder
                 if (child.Label.Equals(root))
                 {
                     found = true;
-                    BuildTree(child, node, foldedTreeEntries1, stateChangeCallback1);
+                    BuildChildNode(child, node, foldedTreeEntries1, stateChangeCallback1);
                     break;
                 }
             }
@@ -41,7 +41,7 @@ static internal class TreeBuilder
             if (!found)
             {
                 var p = parent.RepositoryPath.ToNPath().Combine(root);
-                BuildTree(parent.Add(new FileTreeNode(root, stateChangeCallback1) { RepositoryPath = p }), node, foldedTreeEntries1, stateChangeCallback1);
+                BuildChildNode(parent.Add(new FileTreeNode(root, stateChangeCallback1) { RepositoryPath = p }), node, foldedTreeEntries1, stateChangeCallback1);
             }
         }
         else if (nodePath.ExtensionWithDot == ".meta")
@@ -54,7 +54,7 @@ static internal class TreeBuilder
                 if (child.Label.Equals(nodePath.Parent.Combine(nodePath.FileNameWithoutExtension)))
                 {
                     found = true;
-                    BuildTree(child, node, foldedTreeEntries1, stateChangeCallback1);
+                    BuildChildNode(child, node, foldedTreeEntries1, stateChangeCallback1);
                     break;
                 }
             }
@@ -70,35 +70,10 @@ static internal class TreeBuilder
         }
     }
 
-    internal static FileTreeNode BuildTree3(List<GitStatusEntry> gitStatusEntries, Action<FileTreeNode> stateChangeCallback1, List<GitCommitTarget> entryCommitTargets, List<string> foldedTreeEntries1)
+    internal static FileTreeNode BuildTreeRoot(IList<GitStatusEntry> newEntries, List<GitStatusEntry> gitStatusEntries, List<GitCommitTarget> gitCommitTargets, List<string> foldedTreeEntries, Action<FileTreeNode> stateChangeCallback)
     {
-        // TODO: Filter .meta files - consider adding them as children of the asset or folder they're supporting
-        // TODO: In stead of completely rebuilding the tree structure, figure out a way to migrate open/closed states from the old tree to the new
-        // Build tree structure
+        Guard.ArgumentNotNullOrEmpty(newEntries, "newEntries");
 
-        var tree = new FileTreeNode(FileSystemHelpers.FindCommonPath(gitStatusEntries.Select(e => e.Path)), stateChangeCallback1);
-        tree.RepositoryPath = tree.Path;
-
-        for (var index = 0; index < gitStatusEntries.Count; index++)
-        {
-            GitStatusEntry gitStatusEntry = gitStatusEntries[index];
-            var entryPath = gitStatusEntry.Path.ToNPath();
-            if (entryPath.IsChildOf(tree.Path)) entryPath = entryPath.RelativeTo(tree.Path.ToNPath());
-
-            var node = new FileTreeNode(entryPath, stateChangeCallback1) { Target = entryCommitTargets[index] };
-            if (!String.IsNullOrEmpty(gitStatusEntry.ProjectPath))
-            {
-                //node.Icon = AssetDatabase.GetCachedIcon(gitStatusEntry.ProjectPath);
-            }
-
-            TreeBuilder.BuildTree(tree, node, foldedTreeEntries1, stateChangeCallback1);
-        }
-
-        return tree;
-    }
-
-    internal static FileTreeNode BuildTree4(IList<GitStatusEntry> newEntries, List<GitStatusEntry> gitStatusEntries, List<GitCommitTarget> gitCommitTargets, List<string> foldedTreeEntries1, Action<FileTreeNode> stateChangeCallback1)
-    {
         // Remove what got nuked
         for (var index = 0; index < gitStatusEntries.Count;)
         {
@@ -114,11 +89,11 @@ static internal class TreeBuilder
         }
 
         // Remove folding state of nuked items
-        for (var index = 0; index < foldedTreeEntries1.Count;)
+        for (var index = 0; index < foldedTreeEntries.Count;)
         {
-            if (!newEntries.Any(e => e.Path.IndexOf(foldedTreeEntries1[index]) == 0))
+            if (!newEntries.Any(e => e.Path.IndexOf(foldedTreeEntries[index]) == 0))
             {
-                foldedTreeEntries1.RemoveAt(index);
+                foldedTreeEntries.RemoveAt(index);
             }
             else
             {
@@ -137,6 +112,28 @@ static internal class TreeBuilder
             }
         }
 
-        return TreeBuilder.BuildTree3(gitStatusEntries, stateChangeCallback1, gitCommitTargets, foldedTreeEntries1);
+        // TODO: Filter .meta files - consider adding them as children of the asset or folder they're supporting
+        // TODO: In stead of completely rebuilding the tree structure, figure out a way to migrate open/closed states from the old tree to the new
+        // Build tree structure
+
+        var tree = new FileTreeNode(FileSystemHelpers.FindCommonPath(gitStatusEntries.Select(e => e.Path)), stateChangeCallback);
+        tree.RepositoryPath = tree.Path;
+
+        for (var index1 = 0; index1 < gitStatusEntries.Count; index1++)
+        {
+            GitStatusEntry gitStatusEntry = gitStatusEntries[index1];
+            var entryPath = gitStatusEntry.Path.ToNPath();
+            if (entryPath.IsChildOf(tree.Path)) entryPath = entryPath.RelativeTo(tree.Path.ToNPath());
+
+            var node = new FileTreeNode(entryPath, stateChangeCallback) { Target = gitCommitTargets[index1] };
+            if (!String.IsNullOrEmpty(gitStatusEntry.ProjectPath))
+            {
+                //node.Icon = AssetDatabase.GetCachedIcon(gitStatusEntry.ProjectPath);
+            }
+
+            TreeBuilder.BuildChildNode(tree, node, foldedTreeEntries, stateChangeCallback);
+        }
+
+        return tree;
     }
 }
