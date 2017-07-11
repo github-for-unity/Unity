@@ -33,7 +33,7 @@ namespace GitHub.Unity
         {
             get
             {
-                DateTimeOffset now = DateTimeOffset.Now, relative = TimeValue.ToLocalTime();
+                DateTimeOffset now = DateTimeOffset.Now, relative = Time.ToLocalTime();
 
                 return String.Format("{0}, {1:HH}:{1:mm}",
                     relative.DayOfYear == now.DayOfYear
@@ -43,7 +43,7 @@ namespace GitHub.Unity
         }
 
         [NonSerialized] public DateTimeOffset? timeValue;
-        public DateTimeOffset TimeValue
+        public DateTimeOffset Time
         {
             get
             {
@@ -57,7 +57,7 @@ namespace GitHub.Unity
         }
 
         [NonSerialized] public DateTimeOffset? commitTimeValue;
-        public DateTimeOffset? CommitTimeValue
+        public DateTimeOffset? CommitTime
         {
             get
             {
@@ -89,7 +89,7 @@ namespace GitHub.Unity
             sb.AppendLine(String.Format("MergeB: {0}", MergeB));
             sb.AppendLine(String.Format("AuthorName: {0}", AuthorName));
             sb.AppendLine(String.Format("AuthorEmail: {0}", AuthorEmail));
-            sb.AppendLine(String.Format("Time: {0}", TimeValue.ToString()));
+            sb.AppendLine(String.Format("Time: {0}", Time.ToString()));
             sb.AppendLine(String.Format("Summary: {0}", Summary));
             sb.AppendLine(String.Format("Description: {0}", Description));
             return sb.ToString();

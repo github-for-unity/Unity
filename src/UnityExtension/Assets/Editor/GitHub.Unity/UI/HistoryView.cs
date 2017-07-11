@@ -367,7 +367,7 @@ namespace GitHub.Unity
                 scroll = GUILayout.BeginScrollView(scroll);
                 if (lastScroll != scroll && !updated)
                 {
-                    scrollTime = history[historyStartIndex].TimeValue;
+                    scrollTime = history[historyStartIndex].Time;
                     scrollOffset = scroll.y - historyStartIndex * EntryHeight;
                     useScrollTime = true;
                 }
@@ -507,7 +507,7 @@ namespace GitHub.Unity
                     double closestDifference = Mathf.Infinity;
                     for (var index = 0; index < history.Count; ++index)
                     {
-                        var diff = Math.Abs((history[index].TimeValue - scrollTime).TotalSeconds);
+                        var diff = Math.Abs((history[index].Time - scrollTime).TotalSeconds);
                         if (diff < closestDifference)
                         {
                             closestDifference = diff;

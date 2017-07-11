@@ -22,8 +22,8 @@ namespace TestUtils
             gitLogEntry.Description.Should().Be(other.Description);
             gitLogEntry.TimeString.Should().Be(other.TimeString);
             gitLogEntry.CommitTimeString.Should().Be(other.CommitTimeString);
-            gitLogEntry.TimeValue.Should().Be(other.TimeValue);
-            gitLogEntry.CommitTimeValue.Should().Be(other.CommitTimeValue);
+            gitLogEntry.Time.Should().Be(other.Time);
+            gitLogEntry.CommitTime.Should().Be(other.CommitTime);
         }
 
         public static void AssertNotEqual(this GitLogEntry gitLogEntry, GitLogEntry other)
