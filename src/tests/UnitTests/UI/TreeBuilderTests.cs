@@ -667,6 +667,25 @@ namespace UnitTests.UI
             file5.Target.Should().Be(gitCommitTargets[4]);
 
             file5.Children.Should().BeEmpty();
+
+            newGitStatusEntries = new List<GitStatusEntry> {
+                gitObjectFactory.CreateGitStatusEntry(@"folder1\file2.txt", GitFileStatus.Modified),
+                gitObjectFactory.CreateGitStatusEntry(@"folder1\file3.txt", GitFileStatus.Modified),
+                gitObjectFactory.CreateGitStatusEntry(@"folder3\file6.txt", GitFileStatus.Modified),
+                gitObjectFactory.CreateGitStatusEntry(@"folder3\file7.txt", GitFileStatus.Modified)
+            };
+
+            foldedTreeEntries.Add(folder1.RepositoryPath);
+            foldedTreeEntries.Add(folder2.RepositoryPath);
+
+            foldedTreeEntries.Count.Should().Be(2);
+
+            treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
+                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+
+            gitStatusEntries.Count.Should().Be(4);
+            gitCommitTargets.Count.Should().Be(4);
+            foldedTreeEntries.Count.Should().Be(1);
         }
 
 
