@@ -129,7 +129,7 @@ namespace GitHub.Unity
                 var node = new FileTreeNode(entryPath, stateChangeCallback) { Target = gitCommitTargets[index1] };
                 if (!String.IsNullOrEmpty(gitStatusEntry.ProjectPath))
                 {
-                    node.Icon = iconLoaderFunc.Invoke(gitStatusEntry.ProjectPath);
+                    node.Icon = iconLoaderFunc?.Invoke(gitStatusEntry.ProjectPath);
                 }
 
                 TreeBuilder.BuildChildNode(tree, node, foldedTreeEntries, stateChangeCallback);
