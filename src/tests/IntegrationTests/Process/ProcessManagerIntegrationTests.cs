@@ -59,8 +59,6 @@ namespace IntegrationTests
                     Summary = "Moving project files where they should be kept",
                     TimeString = firstCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = firstCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = firstCommitTime,
-                    CommitTimeValue = firstCommitTime,
                 },
                 new GitLogEntry
                 {
@@ -79,8 +77,6 @@ namespace IntegrationTests
                     Summary = "Initial Commit",
                     TimeString = secondCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = secondCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = secondCommitTime,
-                    CommitTimeValue = secondCommitTime,
                 },
             });
         }
@@ -116,8 +112,6 @@ namespace IntegrationTests
                     Summary = "Я люблю github",
                     TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = commitTime,
-                    CommitTimeValue = commitTime
                 }
             });
         }

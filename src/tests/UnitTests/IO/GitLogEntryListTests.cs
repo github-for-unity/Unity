@@ -46,8 +46,6 @@ namespace UnitTests
                     Description = "Description",
                     TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = commitTime,
-                    CommitTimeValue = commitTime
                 }
             };
             GitLogEntry[] otherEntries = null;
@@ -73,8 +71,6 @@ namespace UnitTests
                     Description = "Description",
                     TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = commitTime,
-                    CommitTimeValue = commitTime
                 }
             };
             GitLogEntry[] otherEntries = new GitLogEntry[0];
@@ -104,8 +100,6 @@ namespace UnitTests
                     Description = "Description",
                     TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = commitTime,
-                    CommitTimeValue = commitTime
                 }
             };
 
@@ -127,8 +121,6 @@ namespace UnitTests
                     Description = "Description",
                     TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = commitTime,
-                    CommitTimeValue = commitTime
                 }
             };
 
@@ -159,8 +151,6 @@ namespace UnitTests
                     Description = "Description",
                     TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = commitTime,
-                    CommitTimeValue = commitTime
                 },
                 new GitLogEntry
                 {
@@ -174,8 +164,6 @@ namespace UnitTests
                     Description = "OtherDescription",
                     TimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = otherCommitTime,
-                    CommitTimeValue = otherCommitTime
                 }
             };
 
@@ -197,8 +185,6 @@ namespace UnitTests
                     Description = "Description",
                     TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = commitTime,
-                    CommitTimeValue = commitTime
                 },
                 new GitLogEntry
                 {
@@ -212,8 +198,6 @@ namespace UnitTests
                     Description = "OtherDescription",
                     TimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = otherCommitTime,
-                    CommitTimeValue = otherCommitTime
                 }
             };
 
@@ -244,8 +228,6 @@ namespace UnitTests
                     Description = "Description",
                     TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = commitTime,
-                    CommitTimeValue = commitTime
                 },
                 new GitLogEntry
                 {
@@ -259,8 +241,6 @@ namespace UnitTests
                     Description = "OtherDescription",
                     TimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = otherCommitTime,
-                    CommitTimeValue = otherCommitTime
                 }
             };
 
@@ -278,8 +258,6 @@ namespace UnitTests
                     Description = "OtherDescription",
                     TimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = otherCommitTime,
-                    CommitTimeValue = otherCommitTime
                 },
                 new GitLogEntry
                 {
@@ -297,8 +275,6 @@ namespace UnitTests
                     Description = "Description",
                     TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = commitTime,
-                    CommitTimeValue = commitTime
                 }
             };
 

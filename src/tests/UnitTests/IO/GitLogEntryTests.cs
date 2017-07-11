@@ -26,8 +26,6 @@ namespace UnitTests
                 Description = "Description",
                 TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                TimeValue = commitTime,
-                CommitTimeValue = commitTime
             };
 
             gitLogEntry.AssertEqual(gitLogEntry);
@@ -50,8 +48,6 @@ namespace UnitTests
                 Description = "Description",
                 TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                TimeValue = commitTime,
-                CommitTimeValue = commitTime
             };
 
             var gitLogEntry2 = new GitLogEntry()
@@ -66,8 +62,6 @@ namespace UnitTests
                 Description = "Description",
                 TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                TimeValue = commitTime,
-                CommitTimeValue = commitTime
             };
 
             gitLogEntry1.AssertEqual(gitLogEntry2);
@@ -89,8 +83,6 @@ namespace UnitTests
                 Description = "Description",
                 TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                TimeValue = commitTime,
-                CommitTimeValue = commitTime
             };
 
             var gitLogEntry2 = new GitLogEntry()
@@ -105,8 +97,6 @@ namespace UnitTests
                 Description = "Description",
                 TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                TimeValue = commitTime,
-                CommitTimeValue = commitTime
             };
 
             gitLogEntry1.AssertNotEqual(gitLogEntry2);
@@ -128,8 +118,6 @@ namespace UnitTests
                 Description = "Description",
                 TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                TimeValue = commitTime,
-                CommitTimeValue = commitTime
             };
 
             var gitLogEntry2 = new GitLogEntry()
@@ -144,8 +132,6 @@ namespace UnitTests
                 Description = "Description",
                 TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                TimeValue = commitTime,
-                CommitTimeValue = commitTime
             };
 
             gitLogEntry1.AssertEqual(gitLogEntry2);
@@ -172,8 +158,6 @@ namespace UnitTests
                 Description = "Description",
                 TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                TimeValue = commitTime,
-                CommitTimeValue = commitTime,
             };
 
             var gitLogEntry2 = new GitLogEntry()
@@ -192,8 +176,6 @@ namespace UnitTests
                 Description = "Description",
                 TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                TimeValue = commitTime,
-                CommitTimeValue = commitTime
             };
 
             gitLogEntry1.AssertEqual(gitLogEntry2);
@@ -220,8 +202,6 @@ namespace UnitTests
                 Description = "Description",
                 TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                TimeValue = commitTime,
-                CommitTimeValue = commitTime
             };
 
             var gitLogEntry2 = new GitLogEntry()
@@ -240,8 +220,6 @@ namespace UnitTests
                 Description = "Description",
                 TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                TimeValue = commitTime,
-                CommitTimeValue = commitTime
             };
 
             gitLogEntry1.AssertNotEqual(gitLogEntry2);

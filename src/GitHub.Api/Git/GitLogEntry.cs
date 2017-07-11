@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace GitHub.Unity
@@ -44,25 +45,43 @@ namespace GitHub.Unity
             }
         }
 
-        [NonSerialized] public DateTimeOffset timeValue;
+        [NonSerialized] public DateTimeOffset? timeValue;
         public DateTimeOffset TimeValue
         {
-            get { return timeValue; }
-            set { timeValue = value; }
+            get
+            {
+                if (!timeValue.HasValue)
+                {
+                    timeValue = DateTimeOffset.Parse(TimeString);
+                }
+
+                return timeValue.Value;
+            }
         }
 
-        [NonSerialized] public DateTimeOffset commitTimeValue;
-        public DateTimeOffset CommitTimeValue
+        [NonSerialized] public DateTimeOffset? commitTimeValue;
+        public DateTimeOffset? CommitTimeValue
         {
-            get { return commitTimeValue; }
-            set { commitTimeValue = value; }
+            get
+            {
+                if (!timeValue.HasValue && !string.IsNullOrEmpty(CommitTimeString))
+                {
+                    commitTimeValue = DateTimeOffset.Parse(CommitTimeString);
+                }
+
+                return commitTimeValue;
+            }
         }
 
         public void Clear()
         {
             CommitID = MergeA = MergeB = AuthorName = AuthorEmail = Summary = Description = "";
-            TimeValue = DateTimeOffset.Now;
-            Changes = new List<GitStatusEntry>();
+
+            timeValue = DateTimeOffset.MinValue;
+            TimeString = timeValue.Value.ToString(DateTimeFormatInfo.CurrentInfo);
+
+            commitTimeValue = null;
+            CommitTimeString = null;
         }
 
         public override string ToString()

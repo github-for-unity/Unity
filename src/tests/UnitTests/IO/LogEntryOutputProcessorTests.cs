@@ -60,8 +60,6 @@ namespace UnitTests
                     Description = "Rename RepositoryModelBase to RepositoryModel",
                     TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                     CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    TimeValue = commitTime,
-                    CommitTimeValue = commitTime
                 },
             };
 
