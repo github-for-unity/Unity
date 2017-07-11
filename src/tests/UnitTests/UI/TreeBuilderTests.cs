@@ -535,6 +535,11 @@ namespace UnitTests.UI
             treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries2, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
 
+            treeRootChidren = treeRoot.Children.ToArray();
+            treeRootChidren.Length.Should().Be(2);
+
+            var file3 = treeRootChidren[1];
+
             gitStatusEntries.Count.Should().Be(2);
             gitCommitTargets.Count.Should().Be(2);
             foldedTreeEntries.Count.Should().Be(0);
@@ -550,13 +555,13 @@ namespace UnitTests.UI
             file1.Target.Should().Be(gitCommitTargets[0]);
             file1.Children.Should().BeEmpty();
 
-            file2.Label.Should().Be("file3.txt");
-            file2.Open.Should().BeTrue();
-            file2.Path.Should().Be("file3.txt");
-            file2.RepositoryPath.Should().Be("file3.txt");
-            file2.State.Should().Be(CommitState.None);
-            file2.Target.Should().Be(gitCommitTargets[1]);
-            file2.Children.Should().BeEmpty();
+            file3.Label.Should().Be("file3.txt");
+            file3.Open.Should().BeTrue();
+            file3.Path.Should().Be("file3.txt");
+            file3.RepositoryPath.Should().Be("file3.txt");
+            file3.State.Should().Be(CommitState.None);
+            file3.Target.Should().Be(gitCommitTargets[1]);
+            file3.Children.Should().BeEmpty();
         }
 
         [Test]
