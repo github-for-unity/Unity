@@ -76,10 +76,12 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNullOrEmpty(newEntries, "newEntries");
 
+            var newEntriesSetByPath = new HashSet<string>(newEntries.Select(entry => entry.Path));
+
             // Remove what got nuked
             for (var index = 0; index < gitStatusEntries.Count;)
             {
-                if (!newEntries.Contains(gitStatusEntries[index]))
+                if (!newEntriesSetByPath.Contains(gitStatusEntries[index].Path))
                 {
                     gitStatusEntries.RemoveAt(index);
                     gitCommitTargets.RemoveAt(index);
