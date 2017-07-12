@@ -1,5 +1,5 @@
-SETLOCAL
 @ECHO off
+SETLOCAL
 
 set Configuration=Release
 
