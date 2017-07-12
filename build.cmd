@@ -27,8 +27,8 @@ call common\nuget.exe restore GitHub.Unity.sln
 echo xbuild GitHub.Unity.sln /verbosity:normal /property:Configuration=%Configuration% /target:%Target%
 call xbuild GitHub.Unity.sln /verbosity:normal /property:Configuration=%Configuration% /target:%Target%
 
-echo xcopy /Y /Q unity\PackageProject\Assets\Editor\GitHub ..\github-unity-test\GitHubExtensionProject\Assets\Editor
-call xcopy /Y /Q unity\PackageProject\Assets\Editor\GitHub ..\github-unity-test\GitHubExtensionProject\Assets\Editor
+echo xcopy /C /H /R /S /Y /Q unity\PackageProject\Assets\Editor\GitHub ..\github-unity-test\GitHubExtensionProject\Assets\Editor
+call xcopy /C /H /R /S /Y /Q unity\PackageProject\Assets\Editor\GitHub ..\github-unity-test\GitHubExtensionProject\Assets\Editor
 
 del /Q unity\PackageProject\Assets\Editor\GitHub\deleteme*
 del /Q unity\PackageProject\Assets\Editor\GitHub\deleteme*
