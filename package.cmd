@@ -1,11 +1,11 @@
-@ECHO off
-SETLOCAL
+@echo off
+setlocal
 
 set Configuration=Release
 
 if %1.==. (
 	echo Need path to Unity
-	EXIT /b 1
+	exit /b 1
 )
 
 set UnityPath=%1
@@ -39,12 +39,13 @@ if not exist "%Unity%" (
 	cd ..
 	
 	call common\nuget.exe restore GitHub.Unity.sln
+	echo xbuild GitHub.Unity.sln /property:Configuration=%Configuration%
 	call xbuild GitHub.Unity.sln /property:Configuration=%Configuration%
 	
-	del /Q unity/PackageProject/Assets/Editor/GitHub/deleteme*
-	del /Q unity/PackageProject/Assets/Editor/GitHub/*.pdb
-	del /Q unity/PackageProject/Assets/Editor/GitHub/*.pdb.meta
-	del /Q unity/PackageProject/Assets/Editor/GitHub/*.xml
+	del /Q unity\PackageProject\Assets\Editor\GitHub\deleteme*
+	del /Q unity\PackageProject\Assets\Editor\GitHub\*.pdb
+	del /Q unity\PackageProject\Assets\Editor\GitHub\*.pdb.meta
+	del /Q unity\PackageProject\Assets\Editor\GitHub\*.xml
 	
 	for /f tokens^=^2^ usebackq^ delims^=^" %%G in (`find "const string Version" common\SolutionInfo.cs`) do call :Package %%G
 	
@@ -60,4 +61,4 @@ if not exist "%Unity%" (
 	:End
 	echo Completed
 )
-ENDLOCAL
+endlocal
