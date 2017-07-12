@@ -1,4 +1,5 @@
-@ECHO on
+SETLOCAL
+@ECHO off
 
 set Configuration=Release
 
