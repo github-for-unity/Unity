@@ -31,24 +31,33 @@ if not exist "%Unity%" (
 	exit /b 1
 ) else (
 	cd unity\PackageProject\Assets
-	git clean -xdf
+	call git clean -xdf
 	cd ..\..\..
 
 	cd src
-	git clean -xdf
+	call git clean -xdf
 	cd ..
 	
-	common\nuget.exe restore GitHub.Unity.sln
-	xbuild GitHub.Unity.sln /property:Configuration=%Configuration%
+	call common\nuget.exe restore GitHub.Unity.sln
+	call xbuild GitHub.Unity.sln /property:Configuration=%Configuration%
 	
 	del /Q unity/PackageProject/Assets/Editor/GitHub/deleteme*
 	del /Q unity/PackageProject/Assets/Editor/GitHub/*.pdb
 	del /Q unity/PackageProject/Assets/Editor/GitHub/*.pdb.meta
 	del /Q unity/PackageProject/Assets/Editor/GitHub/*.xml
 	
-	for /f tokens^=^2^ usebackq^ delims^=^" %%G in (`find "const string Version" common\SolutionInfo.cs`) do (
-		set Version=%%G
-		set GITHUB_UNITY_DISABLE=1
-		"%Unity%" -batchmode -projectPath "%~dp0unity\PackageProject" -exportPackage Assets/Editor/GitHub github-for-unity-%Version%-alpha.unitypackage -force-free -quit
-	)
+	for /f tokens^=^2^ usebackq^ delims^=^" %%G in (`find "const string Version" common\SolutionInfo.cs`) do call :Package %%G
+	
+	goto End
+	
+	:Package
+	set Version=%1
+	set GITHUB_UNITY_DISABLE=1
+	echo "%Unity%" -batchmode -projectPath "%~dp0unity\PackageProject" -exportPackage Assets/Editor/GitHub github-for-unity-%Version%-alpha.unitypackage -force-free -quit
+	call "%Unity%" -batchmode -projectPath "%~dp0unity\PackageProject" -exportPackage Assets/Editor/GitHub github-for-unity-%Version%-alpha.unitypackage -force-free -quit
+	goto:eof
+	
+	:End
+	echo Completed
 )
+ENDLOCAL
