@@ -19,7 +19,6 @@ namespace GitHub.Unity
         [SerializeField] private List<GitCommitTarget> entryCommitTargets = new List<GitCommitTarget>();
         [SerializeField] private List<string> foldedTreeEntries = new List<string>();
         [NonSerialized] private FileTreeNode tree;
-        [NonSerialized] private Action<FileTreeNode> stateChangeCallback;
 
         public override void OnGUI()
         {
@@ -109,7 +108,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            tree = TreeBuilder.BuildTreeRoot(newEntries, entries, entryCommitTargets, foldedTreeEntries, stateChangeCallback, AssetDatabase.GetCachedIcon);
+            tree = TreeBuilder.BuildTreeRoot(newEntries, entries, entryCommitTargets, foldedTreeEntries, AssetDatabase.GetCachedIcon);
 
             OnCommitTreeChange();
         }
@@ -135,25 +134,7 @@ namespace GitHub.Unity
                     }
                     if (EditorGUI.EndChangeCheck())
                     {
-                        var filesAdded = new List<string>();
-                        var filesRemoved = new List<string>();
-                        stateChangeCallback = new Action<FileTreeNode>(s =>
-                        {
-                            if (s.State == CommitState.None)
-                                filesRemoved.Add(s.Path);
-                            else
-                                filesAdded.Add(s.Path);
-                        });
                         node.State = toggled ? CommitState.All : CommitState.None;
-                        if (filesAdded.Count > 0)
-                            GitClient.Add(filesAdded);
-                        if (filesRemoved.Count > 0)
-                            GitClient.Remove(filesAdded);
-                        if (filesAdded.Count > 0|| filesRemoved.Count > 0)
-                        {
-                            GitClient.Status();
-                        }
-                        // we might need to run git status after these calls
                     }
                 }
 
