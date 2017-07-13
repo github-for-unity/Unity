@@ -420,7 +420,7 @@ namespace GitHub.Unity
 
         private void OnLocalBranchChanged(string name)
         {
-            if (name == this.Repository.CurrentBranch)
+            if (name == ActiveBranch?.Name)
             {
                 OnActiveBranchChanged?.Invoke();
                 OnRepositoryUpdatedHandler();
