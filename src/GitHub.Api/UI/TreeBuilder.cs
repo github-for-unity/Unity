@@ -6,7 +6,7 @@ namespace GitHub.Unity
 {
     static class TreeBuilder
     {
-        internal static void BuildChildNode(FileTreeNode parent, FileTreeNode node, List<string> foldedTreeEntries1, Action<FileTreeNode> stateChangeCallback1)
+        internal static void BuildChildNode(FileTreeNode parent, FileTreeNode node, List<string> foldedTreeEntries, Action<FileTreeNode> stateChangeCallback)
         {
             if (String.IsNullOrEmpty(node.Label))
             {
@@ -15,7 +15,7 @@ namespace GitHub.Unity
             }
 
             node.RepositoryPath = parent.RepositoryPath.ToNPath().Combine(node.Label);
-            parent.Open = !foldedTreeEntries1.Contains(parent.RepositoryPath);
+            parent.Open = !foldedTreeEntries.Contains(parent.RepositoryPath);
 
             // Is this node inside a folder?
             var nodePath = node.Label.ToNPath();
@@ -33,7 +33,7 @@ namespace GitHub.Unity
                     if (child.Label.Equals(root))
                     {
                         found = true;
-                        BuildChildNode(child, node, foldedTreeEntries1, stateChangeCallback1);
+                        BuildChildNode(child, node, foldedTreeEntries, stateChangeCallback);
                         break;
                     }
                 }
@@ -42,7 +42,7 @@ namespace GitHub.Unity
                 if (!found)
                 {
                     var p = parent.RepositoryPath.ToNPath().Combine(root);
-                    BuildChildNode(parent.Add(new FileTreeNode(root, stateChangeCallback1) { RepositoryPath = p }), node, foldedTreeEntries1, stateChangeCallback1);
+                    BuildChildNode(parent.Add(new FileTreeNode(root, stateChangeCallback) { RepositoryPath = p }), node, foldedTreeEntries, stateChangeCallback);
                 }
             }
             else if (nodePath.ExtensionWithDot == ".meta")
@@ -55,7 +55,7 @@ namespace GitHub.Unity
                     if (child.Label.Equals(nodePath.Parent.Combine(nodePath.FileNameWithoutExtension)))
                     {
                         found = true;
-                        BuildChildNode(child, node, foldedTreeEntries1, stateChangeCallback1);
+                        BuildChildNode(child, node, foldedTreeEntries, stateChangeCallback);
                         break;
                     }
                 }
