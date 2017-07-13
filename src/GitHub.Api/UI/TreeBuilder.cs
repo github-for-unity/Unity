@@ -6,7 +6,7 @@ namespace GitHub.Unity
 {
     static class TreeBuilder
     {
-        internal static void BuildChildNode(FileTreeNode parent, FileTreeNode node, List<string> foldedTreeEntries, Action<FileTreeNode> stateChangeCallback)
+        internal static void BuildChildNode(FileTreeNode parent, FileTreeNode node, List<string> foldedTreeEntries)
         {
             if (String.IsNullOrEmpty(node.Label))
             {
@@ -33,7 +33,7 @@ namespace GitHub.Unity
                     if (child.Label.Equals(root))
                     {
                         found = true;
-                        BuildChildNode(child, node, foldedTreeEntries, stateChangeCallback);
+                        BuildChildNode(child, node, foldedTreeEntries);
                         break;
                     }
                 }
@@ -42,7 +42,7 @@ namespace GitHub.Unity
                 if (!found)
                 {
                     var p = parent.RepositoryPath.ToNPath().Combine(root);
-                    BuildChildNode(parent.Add(new FileTreeNode(root, stateChangeCallback) { RepositoryPath = p }), node, foldedTreeEntries, stateChangeCallback);
+                    BuildChildNode(parent.Add(new FileTreeNode(root) { RepositoryPath = p }), node, foldedTreeEntries);
                 }
             }
             else if (nodePath.ExtensionWithDot == ".meta")
@@ -55,7 +55,7 @@ namespace GitHub.Unity
                     if (child.Label.Equals(nodePath.Parent.Combine(nodePath.FileNameWithoutExtension)))
                     {
                         found = true;
-                        BuildChildNode(child, node, foldedTreeEntries, stateChangeCallback);
+                        BuildChildNode(child, node, foldedTreeEntries);
                         break;
                     }
                 }
@@ -71,7 +71,7 @@ namespace GitHub.Unity
             }
         }
 
-        internal static FileTreeNode BuildTreeRoot(IList<GitStatusEntry> newEntries, List<GitStatusEntry> gitStatusEntries, List<GitCommitTarget> gitCommitTargets, List<string> foldedTreeEntries, Action<FileTreeNode> stateChangeCallback, Func<string, object> iconLoaderFunc = null)
+        internal static FileTreeNode BuildTreeRoot(IList<GitStatusEntry> newEntries, List<GitStatusEntry> gitStatusEntries, List<GitCommitTarget> gitCommitTargets, List<string> foldedTreeEntries, Func<string, object> iconLoaderFunc = null)
         {
             Guard.ArgumentNotNullOrEmpty(newEntries, "newEntries");
 
@@ -117,7 +117,7 @@ namespace GitHub.Unity
             // TODO: In stead of completely rebuilding the tree structure, figure out a way to migrate open/closed states from the old tree to the new
             // Build tree structure
 
-            var tree = new FileTreeNode(FileSystemHelpers.FindCommonPath(gitStatusEntries.Select(e => e.Path)), stateChangeCallback);
+            var tree = new FileTreeNode(FileSystemHelpers.FindCommonPath(gitStatusEntries.Select(e => e.Path)));
             tree.RepositoryPath = tree.Path;
 
             for (var index1 = 0; index1 < gitStatusEntries.Count; index1++)
@@ -126,13 +126,13 @@ namespace GitHub.Unity
                 var entryPath = gitStatusEntry.Path.ToNPath();
                 if (entryPath.IsChildOf(tree.Path)) entryPath = entryPath.RelativeTo(tree.Path.ToNPath());
 
-                var node = new FileTreeNode(entryPath, stateChangeCallback) { Target = gitCommitTargets[index1] };
+                var node = new FileTreeNode(entryPath) { Target = gitCommitTargets[index1] };
                 if (!String.IsNullOrEmpty(gitStatusEntry.ProjectPath))
                 {
                     node.Icon = iconLoaderFunc?.Invoke(gitStatusEntry.ProjectPath);
                 }
 
-                BuildChildNode(tree, node, foldedTreeEntries, stateChangeCallback);
+                BuildChildNode(tree, node, foldedTreeEntries);
             }
 
             return tree;

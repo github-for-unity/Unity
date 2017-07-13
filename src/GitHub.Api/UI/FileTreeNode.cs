@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,7 +12,6 @@ namespace GitHub.Unity
 
     class FileTreeNode
     {
-        private readonly Action<FileTreeNode> stateChangeCallback;
         private List<FileTreeNode> children;
         private string path;
         private CommitState state;
@@ -24,15 +22,13 @@ namespace GitHub.Unity
         public string RepositoryPath;
         public GitCommitTarget Target { get; set; }
 
-        public FileTreeNode(Action<FileTreeNode> stateChangeCallback)
+        public FileTreeNode()
         {
-            this.stateChangeCallback = stateChangeCallback;
             children = new List<FileTreeNode>();
         }
 
-        public FileTreeNode(string path, Action<FileTreeNode> stateChangeCallback)
+        public FileTreeNode(string path)
         {
-            this.stateChangeCallback = stateChangeCallback;
             this.path = path ?? "";
             Label = this.path;
             children = new List<FileTreeNode>();
@@ -106,7 +102,6 @@ namespace GitHub.Unity
                 }
 
                 state = value;
-                stateChangeCallback?.Invoke(this);
 
                 if (children == null)
                 {
