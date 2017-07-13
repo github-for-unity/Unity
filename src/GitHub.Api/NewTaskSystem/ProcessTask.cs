@@ -78,21 +78,18 @@ namespace GitHub.Unity
 
         public void Run()
         {
+            Thread thread = null;
             if (Process.StartInfo.RedirectStandardOutput)
             {
-                Process.OutputDataReceived += (s, e) =>
+                thread = new Thread(() =>
                 {
-                    //Logger.Trace("OutputData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
-
-                    string encodedData = null;
-                    if (e.Data != null)
+                    string line;
+                    while ((line = Process.StandardOutput.ReadLine()) != null)
                     {
-                        encodedData = Encoding.UTF8.GetString(Encoding.Default.GetBytes(e.Data));
+                        outputProcessor.LineReceived(line);
                     }
-                    outputProcessor.LineReceived(encodedData);
-                };
+                });
             }
-
             if (Process.StartInfo.RedirectStandardError)
             {
                 Process.ErrorDataReceived += (s, e) =>
@@ -102,11 +99,9 @@ namespace GitHub.Unity
                     //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
                     //}
 
-                    string encodedData = null;
                     if (e.Data != null)
                     {
-                        encodedData = Encoding.UTF8.GetString(Encoding.Default.GetBytes(e.Data));
-                        errors.Add(encodedData);
+                        errors.Add(e.Data);
                     }
                 };
             }
@@ -133,8 +128,8 @@ namespace GitHub.Unity
                 return;
             }
 
-            if (Process.StartInfo.RedirectStandardOutput)
-                Process.BeginOutputReadLine();
+            if (Process.StartInfo.RedirectStandardOutput && thread != null)
+                thread.Start();
             if (Process.StartInfo.RedirectStandardError)
                 Process.BeginErrorReadLine();
             if (Process.StartInfo.RedirectStandardInput)
@@ -160,6 +155,10 @@ namespace GitHub.Unity
                 {
                     onError?.Invoke(null, String.Join(Environment.NewLine, errors.ToArray()));
                 }
+            }
+            if (thread != null && thread.ThreadState != System.Threading.ThreadState.Aborted)
+            {
+                thread.Abort();
             }
             onEnd?.Invoke();
         }

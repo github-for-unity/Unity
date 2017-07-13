@@ -14,7 +14,7 @@ namespace GitHub.Unity
 
         public override string ProcessArguments
         {
-            get { return @"log --pretty=format:""%H%n%P%n%aN%n%aE%n%aI%n%cN%n%cE%n%cI%n%B---GHUBODYEND---"" --name-status"; }
+            get { return @"-c i18n.logoutputencoding=utf8 log --pretty=format:""%H%n%P%n%aN%n%aE%n%aI%n%cN%n%cE%n%cI%n%B---GHUBODYEND---"" --name-status"; }
         }
     }
 }
