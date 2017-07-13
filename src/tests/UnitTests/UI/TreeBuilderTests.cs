@@ -33,7 +33,7 @@ namespace UnitTests.UI
             };
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+                foldedTreeEntries);
 
             gitStatusEntries.Count.Should().Be(1);
             gitCommitTargets.Count.Should().Be(1);
@@ -71,7 +71,7 @@ namespace UnitTests.UI
             };
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+                foldedTreeEntries);
 
             gitStatusEntries.Count.Should().Be(1);
             gitCommitTargets.Count.Should().Be(1);
@@ -107,7 +107,7 @@ namespace UnitTests.UI
             };
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+                foldedTreeEntries);
 
             gitStatusEntries.Count.Should().Be(1);
             gitCommitTargets.Count.Should().Be(1);
@@ -143,7 +143,7 @@ namespace UnitTests.UI
             };
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+                foldedTreeEntries);
 
             gitStatusEntries.Count.Should().Be(1);
             gitCommitTargets.Count.Should().Be(1);
@@ -180,7 +180,7 @@ namespace UnitTests.UI
             };
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+                foldedTreeEntries);
 
             gitStatusEntries.Count.Should().Be(2);
             gitCommitTargets.Count.Should().Be(2);
@@ -228,7 +228,7 @@ namespace UnitTests.UI
             };
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+                foldedTreeEntries);
 
             gitStatusEntries.Count.Should().Be(2);
             gitCommitTargets.Count.Should().Be(2);
@@ -279,7 +279,7 @@ namespace UnitTests.UI
             };
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+                foldedTreeEntries);
 
             gitStatusEntries.Count.Should().Be(5);
             gitCommitTargets.Count.Should().Be(5);
@@ -380,7 +380,7 @@ namespace UnitTests.UI
             };
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+                foldedTreeEntries);
 
             gitStatusEntries.Count.Should().Be(2);
             gitCommitTargets.Count.Should().Be(2);
@@ -439,7 +439,7 @@ namespace UnitTests.UI
             };
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+                foldedTreeEntries);
 
             gitStatusEntries.Count.Should().Be(2);
             gitCommitTargets.Count.Should().Be(2);
@@ -493,7 +493,7 @@ namespace UnitTests.UI
             var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries1, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+                foldedTreeEntries);
 
             gitStatusEntries.Count.Should().Be(2);
             gitCommitTargets.Count.Should().Be(2);
@@ -533,7 +533,7 @@ namespace UnitTests.UI
             };
 
             treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries2, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+                foldedTreeEntries);
 
             treeRootChidren = treeRoot.Children.ToArray();
             treeRootChidren.Length.Should().Be(2);
@@ -584,7 +584,7 @@ namespace UnitTests.UI
             var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+                foldedTreeEntries);
 
             gitStatusEntries.Count.Should().Be(5);
             gitCommitTargets.Count.Should().Be(5);
@@ -681,7 +681,7 @@ namespace UnitTests.UI
             foldedTreeEntries.Count.Should().Be(2);
 
             treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
-                foldedTreeEntries, stateChangeCallbackListener.StateChangeCallback);
+                foldedTreeEntries);
 
             gitStatusEntries.Count.Should().Be(4);
             gitCommitTargets.Count.Should().Be(4);
