@@ -62,6 +62,9 @@ namespace GitHub.Unity
         ITask<string> Add(IList<string> files,
             IOutputProcessor<string> processor = null);
 
+        ITask<string> Add(GitAddTask.AddFileOption addFileOption,
+            IOutputProcessor<string> processor = null);
+
         ITask<string> Remove(IList<string> files,
             IOutputProcessor<string> processor = null);
 
@@ -262,11 +265,31 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
+        public ITask<string> Add(GitAddTask.AddFileOption addFileOption, IOutputProcessor<string> processor = null)
+        {
+            return new GitAddTask(addFileOption, cancellationToken, processor)
+                .Configure(processManager);
+        }
+
         public ITask<string> Add(IList<string> files,
             IOutputProcessor<string> processor = null)
         {
-            return new GitAddTask(files, cancellationToken, processor)
-                .Configure(processManager);
+            GitAddTask last = null;
+            foreach (var batch in files.Spool(5000))
+            {
+                var current = new GitAddTask(batch, cancellationToken, processor).Configure(processManager);
+                if (last == null)
+                {
+                    last = current;
+                }
+                else
+                {
+                    last.Then(current);
+                    last = current;
+                }
+            }
+
+            return last;
         }
 
         public ITask<string> Remove(IList<string> files,
