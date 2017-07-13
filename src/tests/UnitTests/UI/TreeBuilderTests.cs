@@ -524,7 +524,6 @@ namespace UnitTests.UI
             file1.State = CommitState.All;
             file2.State = CommitState.All;
 
-            stateChangeCallbackListener.ReceivedWithAnyArgs(2).StateChangeCallback(Arg.Any<FileTreeNode>());
             stateChangeCallbackListener.ClearReceivedCalls();
 
             var newGitStatusEntries2 = new List<GitStatusEntry> {
