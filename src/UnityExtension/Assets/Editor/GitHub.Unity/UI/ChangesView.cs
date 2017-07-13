@@ -31,11 +31,7 @@ namespace GitHub.Unity
         {
             base.InitializeView(parent);
             tree.InitializeView(this);
-        }
 
-        public override void OnEnable()
-        {
-            base.OnEnable();
             if (Repository == null)
                 return;
 
