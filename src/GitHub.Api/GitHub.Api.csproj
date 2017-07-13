@@ -96,6 +96,7 @@
     <Compile Include="Application\ApplicationInfo.cs" />
     <Compile Include="Application\LoginResult.cs" />
     <Compile Include="Application\AppConfiguration.cs" />
+    <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Helpers\AssemblyResources.cs" />
     <Compile Include="Authentication\IKeychain.cs" />
     <Compile Include="Authentication\Keychain.cs" />

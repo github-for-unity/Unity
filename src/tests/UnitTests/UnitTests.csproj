@@ -81,6 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Authentication\KeychainTests.cs" />
+    <Compile Include="Extensions\ListExtensionTests.cs" />
     <Compile Include="Git\ValidationTests.cs" />
     <Compile Include="Git\GitConfigTests.cs" />
     <Compile Include="IO\BranchListOutputProcessorTests.cs" />
