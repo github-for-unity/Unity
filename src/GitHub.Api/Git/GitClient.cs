@@ -301,6 +301,8 @@ namespace GitHub.Unity
 
         public ITask<string> Add(GitAddTask.AddFileOption addFileOption, IOutputProcessor<string> processor = null)
         {
+            Logger.Trace("Add {0}", addFileOption);
+
             return new GitAddTask(addFileOption, cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -308,6 +310,8 @@ namespace GitHub.Unity
         public ITask<string> Add(IList<string> files,
             IOutputProcessor<string> processor = null)
         {
+            Logger.Trace("Add Files");
+
             GitAddTask last = null;
             foreach (var batch in files.Spool(5000))
             {
