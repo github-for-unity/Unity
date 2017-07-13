@@ -89,8 +89,8 @@ namespace GitHub.Unity
             base.OnEnable();
             if (Repository != null)
             {
-                Repository.OnCommitChanged += UpdateLogOnMainThread;
-                Repository.OnRepositoryChanged += UpdateStatusOnMainThread;
+                Repository.OnHeadChanged += UpdateLogOnMainThread;
+                Repository.OnStatusUpdated += UpdateStatusOnMainThread;
             }
             UpdateLog();
         }
@@ -100,8 +100,8 @@ namespace GitHub.Unity
             base.OnDisable();
             if (Repository != null)
             {
-                Repository.OnCommitChanged -= UpdateLogOnMainThread;
-                Repository.OnRepositoryChanged -= UpdateStatusOnMainThread;
+                Repository.OnHeadChanged -= UpdateLogOnMainThread;
+                Repository.OnStatusUpdated -= UpdateStatusOnMainThread;
             }
         }
 
