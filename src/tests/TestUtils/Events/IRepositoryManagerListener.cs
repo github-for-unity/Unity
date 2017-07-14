@@ -45,8 +45,8 @@ namespace TestUtils.Events
                 managerAutoResetEvent?.OnIsBusyChanged.Set();
             };
 
-            repositoryManager.OnRepositoryChanged += status => {
-                logger?.Debug("OnRepositoryChanged: {0}", status);
+            repositoryManager.OnStatusUpdated += status => {
+                logger?.Debug("OnStatusUpdated: {0}", status);
                 listener.OnRepositoryChanged(status);
                 managerAutoResetEvent?.OnRepositoryChanged.Set();
             };

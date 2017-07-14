@@ -12,11 +12,11 @@ namespace GitHub.Unity
     {
         private readonly IRepositoryManager repositoryManager;
 
-        public event Action<GitStatus> OnRepositoryChanged;
+        public event Action<GitStatus> OnStatusUpdated;
         public event Action<string> OnActiveBranchChanged;
         public event Action<string> OnActiveRemoteChanged;
         public event Action OnLocalBranchListChanged;
-        public event Action OnCommitChanged;
+        public event Action OnHeadChanged;
         public event Action<IEnumerable<GitLock>> OnLocksUpdated;
 
         public IEnumerable<GitBranch> LocalBranches => repositoryManager.LocalBranches.Values.Select(
@@ -40,7 +40,7 @@ namespace GitHub.Unity
             Name = name;
             LocalPath = localPath;
 
-            repositoryManager.OnRepositoryChanged += RepositoryManager_OnRepositoryChanged;
+            repositoryManager.OnStatusUpdated += RepositoryManager_OnStatusUpdated;
             repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
             repositoryManager.OnActiveRemoteChanged += RepositoryManager_OnActiveRemoteChanged;
             repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;
@@ -104,7 +104,7 @@ namespace GitHub.Unity
 
         private void RepositoryManager_OnHeadChanged()
         {
-            OnCommitChanged?.Invoke();
+            OnHeadChanged?.Invoke();
         }
 
         private void RepositoryManager_OnLocalBranchListChanged()
@@ -122,11 +122,10 @@ namespace GitHub.Unity
             OnActiveBranchChanged?.Invoke(CurrentBranch);
         }
 
-        private void RepositoryManager_OnRepositoryChanged(GitStatus status)
+        private void RepositoryManager_OnStatusUpdated(GitStatus status)
         {
             CurrentStatus = status;
-            //Logger.Debug("Got STATUS 2 {0} {1}", OnRepositoryChanged, status);
-            OnRepositoryChanged?.Invoke(CurrentStatus);
+            OnStatusUpdated?.Invoke(CurrentStatus);
         }
 
         private void RepositoryManager_OnLocksUpdated(IEnumerable<GitLock> locks)
