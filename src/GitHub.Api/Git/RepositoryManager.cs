@@ -16,7 +16,6 @@ namespace GitHub.Unity
         event Action<GitStatus> OnRepositoryChanged;
         event Action OnHeadChanged;
         event Action<bool> OnIsBusyChanged;
-        event Action OnRemoteOrTrackingChanged;
         event Action<IEnumerable<GitLock>> OnLocksUpdated;
         Dictionary<string, ConfigBranch> LocalBranches { get; }
         Dictionary<string, Dictionary<string, ConfigBranch>> RemoteBranches { get; }
@@ -24,6 +23,7 @@ namespace GitHub.Unity
         IGitConfig Config { get; }
         ConfigBranch? ActiveBranch { get; }
         ConfigRemote? ActiveRemote { get; }
+        UriString CloneUrl { get; }
         IGitClient GitClient { get; }
         bool IsBusy { get; }
         Task Initialize();
@@ -134,7 +134,6 @@ namespace GitHub.Unity
         public event Action<GitStatus> OnRepositoryChanged;
         public event Action OnHeadChanged;
         public event Action<bool> OnIsBusyChanged;
-        public event Action OnRemoteOrTrackingChanged;
         public event Action<IEnumerable<GitLock>> OnLocksUpdated;
 
         public RepositoryManager(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker, IGitConfig gitConfig,
@@ -168,18 +167,7 @@ namespace GitHub.Unity
                 OnRepositoryUpdatedHandler
                 : TaskExtensions.Debounce(OnRepositoryUpdatedHandler, debounceTimeout);
 
-            var remote = config.GetRemote("origin");
-            if (!remote.HasValue)
-                remote = config.GetRemotes()
-                      .Where(x => HostAddress.Create(new UriString(x.Url).ToRepositoryUri()).IsGitHubDotCom())
-                      .FirstOrDefault();
-            UriString cloneUrl = "";
-            if (remote.Value.Url != null)
-            {
-                cloneUrl = new UriString(remote.Value.Url).ToRepositoryUrl();
-            }
-
-            repository = new Repository(this, repositoryPaths.RepositoryPath.FileName, cloneUrl,
+            repository = new Repository(this, repositoryPaths.RepositoryPath.FileName,
                 repositoryPaths.RepositoryPath);
         }
 
@@ -391,7 +379,6 @@ namespace GitHub.Unity
             RefreshConfigData();
 
             Logger.Trace("OnRemoteOrTrackingChanged");
-            OnRemoteOrTrackingChanged?.Invoke();
         }
 
         private void HeadChanged(string contents)
@@ -655,6 +642,18 @@ namespace GitHub.Unity
                     Logger.Trace("OnActiveRemoteChanged: {0}", value?.ToString() ?? "NULL");
                     OnActiveRemoteChanged?.Invoke();
                 }
+            }
+        }
+
+
+        public UriString CloneUrl
+        {
+            get
+            {
+                if (ActiveRemote.HasValue && ActiveRemote.Value.Url != null)
+                    return new UriString(ActiveRemote.Value.Url).ToRepositoryUrl();
+
+                return null;
             }
         }
 

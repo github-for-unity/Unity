@@ -30,16 +30,14 @@ namespace GitHub.Unity
         /// </summary>
         /// <param name="repositoryManager"></param>
         /// <param name="name">The repository name.</param>
-        /// <param name="cloneUrl">The repository's clone URL.</param>
         /// <param name="localPath"></param>
-        public Repository(IRepositoryManager repositoryManager, string name, UriString cloneUrl, NPath localPath)
+        public Repository(IRepositoryManager repositoryManager, string name, NPath localPath)
         {
             Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
             Guard.ArgumentNotNullOrWhiteSpace(name, nameof(name));
 
             this.repositoryManager = repositoryManager;
             Name = name;
-            CloneUrl = cloneUrl;
             LocalPath = localPath;
 
             repositoryManager.OnRepositoryChanged += RepositoryManager_OnRepositoryChanged;
@@ -48,11 +46,6 @@ namespace GitHub.Unity
             repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;
             repositoryManager.OnHeadChanged += RepositoryManager_OnHeadChanged;
             repositoryManager.OnLocksUpdated += RepositoryManager_OnLocksUpdated;
-
-            if (String.IsNullOrEmpty(CloneUrl))
-            {
-                repositoryManager.OnRemoteOrTrackingChanged += RepositoryManager_OnRemoteOrTrackingChanged; ;
-            }
         }
 
         public void Refresh()
@@ -107,16 +100,6 @@ namespace GitHub.Unity
         public ITask ReleaseLock(string file, bool force)
         {
             return repositoryManager.UnlockFile(file, force);
-        }
-
-        private void RepositoryManager_OnRemoteOrTrackingChanged()
-        {
-            var remote = repositoryManager.Config.GetRemotes()
-                            .Where(x => HostAddress.Create(new UriString(x.Url).ToRepositoryUri()).IsGitHubDotCom())
-                            .FirstOrDefault();
-
-            if (remote.Url != null)
-                CloneUrl = new UriString(remote.Url).ToRepositoryUrl();
         }
 
         private void RepositoryManager_OnHeadChanged()
@@ -208,8 +191,12 @@ namespace GitHub.Unity
             }
         }
 
+        public UriString CloneUrl
+        {
+            get { return repositoryManager.CloneUrl; }
+        }
+
         public string Name { get; private set; }
-        public UriString CloneUrl { get; private set; }
         public NPath LocalPath { get; private set; }
         public string Owner => CloneUrl?.Owner ?? string.Empty;
         public bool IsGitHub { get { return CloneUrl != ""; } }

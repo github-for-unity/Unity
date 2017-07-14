@@ -81,12 +81,6 @@ namespace TestUtils.Events
                 managerAutoResetEvent?.OnRemoteBranchListChanged.Set();
             };
 
-            repositoryManager.OnRemoteOrTrackingChanged += () => {
-                logger?.Trace("OnRemoteOrTrackingChanged");
-                listener.OnRemoteOrTrackingChanged();
-                managerAutoResetEvent?.OnRemoteOrTrackingChanged.Set();
-            };
-
             repositoryManager.OnLocksUpdated += locks => {
                 var lockArray = locks.ToArray();
                 logger?.Trace("OnLocksUpdated Count:{0}", lockArray.Length);
