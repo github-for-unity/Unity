@@ -179,7 +179,7 @@ namespace GitHub.Unity
                 cloneUrl = new UriString(remote.Value.Url).ToRepositoryUrl();
             }
 
-            repository = new Repository(gitClient, this, repositoryPaths.RepositoryPath.FileName, cloneUrl,
+            repository = new Repository(this, repositoryPaths.RepositoryPath.FileName, cloneUrl,
                 repositoryPaths.RepositoryPath);
         }
 

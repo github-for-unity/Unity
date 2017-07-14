@@ -10,7 +10,6 @@ namespace GitHub.Unity
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     class Repository : IRepository, IEquatable<Repository>
     {
-        private readonly IGitClient gitClient;
         private readonly IRepositoryManager repositoryManager;
 
         public event Action<GitStatus> OnRepositoryChanged;
@@ -29,18 +28,15 @@ namespace GitHub.Unity
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
         /// </summary>
-        /// <param name="gitClient"></param>
         /// <param name="repositoryManager"></param>
         /// <param name="name">The repository name.</param>
         /// <param name="cloneUrl">The repository's clone URL.</param>
         /// <param name="localPath"></param>
-        public Repository(IGitClient gitClient, IRepositoryManager repositoryManager, string name, UriString cloneUrl, NPath localPath)
+        public Repository(IRepositoryManager repositoryManager, string name, UriString cloneUrl, NPath localPath)
         {
             Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
             Guard.ArgumentNotNullOrWhiteSpace(name, nameof(name));
-            Guard.ArgumentNotNull(cloneUrl, nameof(cloneUrl));
 
-            this.gitClient = gitClient;
             this.repositoryManager = repositoryManager;
             Name = name;
             CloneUrl = cloneUrl;
