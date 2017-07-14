@@ -44,6 +44,7 @@ namespace GitHub.Unity
         ITask ListLocks(bool local);
         ITask LockFile(string file);
         ITask UnlockFile(string file, bool force);
+        GitStatus CurrentStatus { get; }
     }
 
     interface IRepositoryPathConfiguration
@@ -118,6 +119,7 @@ namespace GitHub.Unity
         private readonly IGitClient gitClient;
         private readonly IRepositoryWatcher watcher;
 
+        private GitStatus currentStatus;
         private ConfigBranch? activeBranch;
         private ConfigRemote? activeRemote;
         private string head;
@@ -356,7 +358,7 @@ namespace GitHub.Unity
                 {
                     if (success && data.HasValue)
                     {
-                        OnStatusUpdated?.Invoke(data.Value);
+                        CurrentStatus = data.Value;
                     }
                     Logger.Trace("Updated Git Status");
                 });
@@ -639,6 +641,15 @@ namespace GitHub.Unity
             }
         }
 
+        public GitStatus CurrentStatus
+        {
+            get { return currentStatus; }
+            set
+            {
+                currentStatus = value;
+                OnStatusUpdated?.Invoke(value);
+            }
+        }
 
         public UriString CloneUrl
         {

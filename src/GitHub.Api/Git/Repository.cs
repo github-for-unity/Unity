@@ -124,7 +124,6 @@ namespace GitHub.Unity
 
         private void RepositoryManager_OnStatusUpdated(GitStatus status)
         {
-            CurrentStatus = status;
             OnStatusUpdated?.Invoke(CurrentStatus);
         }
 
@@ -209,7 +208,8 @@ namespace GitHub.Unity
             LocalPath,
             GetHashCode());
 
-        public GitStatus CurrentStatus { get; private set; }
+        public GitStatus CurrentStatus => repositoryManager.CurrentStatus;
+
         public IUser User { get; set; }
         public IEnumerable<GitLock> CurrentLocks { get; private set; }
         protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
