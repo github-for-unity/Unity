@@ -78,6 +78,10 @@ namespace GitHub.Unity
 
         public void Run()
         {
+            /*
+             * Process.OutputDataReceived in .NET3.5 has encoding bug
+             * refer: https://github.com/github-for-unity/Unity/issues/124
+             */
             Thread thread = null;
             if (Process.StartInfo.RedirectStandardOutput)
             {
