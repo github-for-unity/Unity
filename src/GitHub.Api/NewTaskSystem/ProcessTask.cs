@@ -131,7 +131,10 @@ namespace GitHub.Unity
             }
 
             if (Process.StartInfo.RedirectStandardOutput && thread != null)
+            {
                 thread.Start();
+                thread.Join();
+            }
             if (Process.StartInfo.RedirectStandardError)
                 Process.BeginErrorReadLine();
             if (Process.StartInfo.RedirectStandardInput)
