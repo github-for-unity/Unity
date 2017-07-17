@@ -78,6 +78,17 @@ namespace GitHub.Unity
 
         public void Run()
         {
+#if NET_4_6
+            if (Process.StartInfo.RedirectStandardOutput)
+            {
+                Process.OutputDataReceived += (s, e) =>
+                {
+                    //Logger.Trace("OutputData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
+
+                    outputProcessor.LineReceived(line);
+                }
+            }
+#else
             /*
              * Process.OutputDataReceived in .NET3.5 has encoding bug
              * refer: https://github.com/github-for-unity/Unity/issues/124
@@ -96,6 +107,7 @@ namespace GitHub.Unity
                     outputProcessor.LineReceived(null);
                 });
             }
+#endif
             if (Process.StartInfo.RedirectStandardError)
             {
                 Process.ErrorDataReceived += (s, e) =>
@@ -134,11 +146,16 @@ namespace GitHub.Unity
                 return;
             }
 
+#if NET_4_6
+            if (Process.StartInfo.RedirectStandardOutput)
+                Process.BeginOutputReadLine();
+#else
             if (Process.StartInfo.RedirectStandardOutput && thread != null)
             {
                 thread.Start();
                 thread.Join();
             }
+#endif
             if (Process.StartInfo.RedirectStandardError)
                 Process.BeginErrorReadLine();
             if (Process.StartInfo.RedirectStandardInput)
@@ -165,10 +182,12 @@ namespace GitHub.Unity
                     onError?.Invoke(null, String.Join(Environment.NewLine, errors.ToArray()));
                 }
             }
+#if (!NET_4_6)
             if (thread != null && thread.ThreadState != System.Threading.ThreadState.Aborted)
             {
                 thread.Abort();
             }
+#endif
             onEnd?.Invoke();
         }
 
