@@ -88,6 +88,8 @@ namespace GitHub.Unity
                     {
                         outputProcessor.LineReceived(line);
                     }
+                    // null is terminator
+                    outputProcessor.LineReceived(null);
                 });
             }
             if (Process.StartInfo.RedirectStandardError)
