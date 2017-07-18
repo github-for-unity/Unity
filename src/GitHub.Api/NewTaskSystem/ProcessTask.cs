@@ -57,6 +57,12 @@ namespace GitHub.Unity
         private readonly Action<Exception, string> onError;
         private readonly CancellationToken token;
         private readonly List<string> errors = new List<string>();
+#if (!NET_4_6)
+        private byte[] outputBuffer;
+        private byte[] errorBuffer;
+        // buffer size refers to https://github.com/Unity-Technologies/mono/blob/unity-5.6-staging/mcs/class/System/System.Diagnostics/Process.cs#L1149-L1157
+        const int BufferSize = 8192;
+#endif
 
         public Process Process { get; }
         public StreamWriter Input { get; private set; }
@@ -74,42 +80,65 @@ namespace GitHub.Unity
             this.onError = onError;
             this.token = token;
             this.Process = process;
+#if (!NET_4_6)
+            this.outputBuffer = new Byte[BufferSize];
+            this.errorBuffer = new Byte[BufferSize];
+#endif
         }
 
         public void Run()
         {
-#if NET_4_6
+#if (!NET_4_6)
+            AsyncCallback outputCallback = null;
+            AsyncCallback errorCallback = null;
+            var outputReset = new ManualResetEvent(false);
+            var errorReset = new ManualResetEvent(false);
+#endif
             if (Process.StartInfo.RedirectStandardOutput)
             {
+#if NET_4_6
                 Process.OutputDataReceived += (s, e) =>
                 {
                     //Logger.Trace("OutputData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
 
                     outputProcessor.LineReceived(line);
                 }
-            }
 #else
-            /*
-             * Process.OutputDataReceived in .NET3.5 has encoding bug
-             * refer: https://github.com/github-for-unity/Unity/issues/124
-             */
-            Thread thread = null;
-            if (Process.StartInfo.RedirectStandardOutput)
-            {
-                thread = new Thread(() =>
+                /*
+                 * Process.OutputDataReceived in .NET3.5 has encoding bug
+                 * refer: https://github.com/github-for-unity/Unity/issues/124
+                 */
+                var outputContents = new StringBuilder();
+                var outputEncoding = Process.StartInfo.StandardOutputEncoding ?? Console.Out.Encoding;
+                outputCallback = (r) =>
                 {
-                    string line;
-                    while ((line = Process.StandardOutput.ReadLine()) != null)
+                    int bytesRead = Process.StandardOutput.BaseStream.EndRead(r);
+                    if (bytesRead > 0)
                     {
-                        outputProcessor.LineReceived(line);
+                        var encoded = outputEncoding.GetString(outputBuffer, 0, bytesRead);
+                        outputContents.Append(encoded);
+                        Process.StandardOutput.BaseStream.BeginRead(outputBuffer, 0, outputBuffer.Length, outputCallback, Process.StandardOutput);
                     }
-                    // null is terminator
-                    outputProcessor.LineReceived(null);
-                });
+                    else
+                    {
+                        using (var reader = new StringReader(outputContents.ToString()))
+                        {
+                            string line;
+                            while ((line = reader.ReadLine()) != null)
+                            {
+                                outputProcessor.LineReceived(line);
+                            }
+                        }
+                        // null is terminator
+                        outputProcessor.LineReceived(null);
+                        outputReset.Set();
+                    }
+                };
             }
 #endif
             if (Process.StartInfo.RedirectStandardError)
             {
+#if NET_4_6
                 Process.ErrorDataReceived += (s, e) =>
                 {
                     //if (e.Data != null)
@@ -122,6 +151,32 @@ namespace GitHub.Unity
                         errors.Add(e.Data);
                     }
                 };
+#else
+                var errorContents = new StringBuilder();
+                var errorEncoding = Process.StartInfo.StandardErrorEncoding ?? Console.Out.Encoding;
+                errorCallback = (r) =>
+                {
+                    int bytesRead = Process.StandardError.BaseStream.EndRead(r);
+                    if (bytesRead > 0)
+                    {
+                        var encoded = errorEncoding.GetString(errorBuffer, 0, bytesRead);
+                        errorContents.Append(encoded);
+                        Process.StandardError.BaseStream.BeginRead(errorBuffer, 0, errorBuffer.Length, errorCallback, Process.StandardError);
+                    }
+                    else
+                    {
+                        using (var reader = new StringReader(errorContents.ToString()))
+                        {
+                            string line;
+                            while ((line = reader.ReadLine()) != null)
+                            {
+                                errors.Add(line);
+                            }
+                        }
+                        errorReset.Set();
+                    }
+                };
+#endif
             }
 
             try
@@ -146,23 +201,47 @@ namespace GitHub.Unity
                 return;
             }
 
-#if NET_4_6
             if (Process.StartInfo.RedirectStandardOutput)
+#if NET_4_6
                 Process.BeginOutputReadLine();
 #else
-            if (Process.StartInfo.RedirectStandardOutput && thread != null)
             {
-                thread.Start();
-                thread.Join();
+                outputReset.Reset();
+                Process.StandardOutput.BaseStream.BeginRead(
+                    outputBuffer,
+                    0,
+                    outputBuffer.Length,
+                    outputCallback,
+                    Process.StandardOutput
+                    );
             }
 #endif
             if (Process.StartInfo.RedirectStandardError)
+#if NET_4_6
                 Process.BeginErrorReadLine();
+#else
+            {
+                errorReset.Reset();
+                Process.StandardError.BaseStream.BeginRead(
+                    errorBuffer,
+                    0,
+                    errorBuffer.Length,
+                    errorCallback,
+                    Process.StandardError
+                    );
+            }
+#endif
             if (Process.StartInfo.RedirectStandardInput)
                 Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
 
             onStart?.Invoke();
 
+#if (!NET_4_6)
+            if (Process.StartInfo.RedirectStandardOutput)
+                outputReset.WaitOne();
+            if (Process.StartInfo.RedirectStandardError)
+                errorReset.WaitOne();
+#endif
             if (Process.StartInfo.CreateNoWindow)
             {
                 while (!WaitForExit(500))
@@ -182,12 +261,7 @@ namespace GitHub.Unity
                     onError?.Invoke(null, String.Join(Environment.NewLine, errors.ToArray()));
                 }
             }
-#if (!NET_4_6)
-            if (thread != null && thread.ThreadState != System.Threading.ThreadState.Aborted)
-            {
-                thread.Abort();
-            }
-#endif
+
             onEnd?.Invoke();
         }
 
