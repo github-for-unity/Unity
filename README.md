@@ -86,7 +86,7 @@ The extension log file can be found at `~/.local/share/GitHubUnityDebug/github-u
 
 ##### Windows
 
-The extension log file can be found at `%LOCALAPPDATA%\GitHubUnityDebug\github-unity.log`
+The extension log file can be found at `%LOCALAPPDATA%\GitHubUnity\github-unity.log`
 
 ## Building and Contributing
 
