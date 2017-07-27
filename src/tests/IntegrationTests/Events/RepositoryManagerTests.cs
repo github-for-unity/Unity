@@ -35,7 +35,7 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            RepositoryManager.OnRepositoryChanged += status => { result = status; };
+            RepositoryManager.OnStatusUpdated += status => { result = status; };
 
             Logger.Trace("Issuing Changes");
 
@@ -97,7 +97,7 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            RepositoryManager.OnRepositoryChanged += status => {
+            RepositoryManager.OnStatusUpdated += status => {
                 result = status;
             };
 
@@ -166,7 +166,7 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            RepositoryManager.OnRepositoryChanged += status => { result = status; };
+            RepositoryManager.OnStatusUpdated += status => { result = status; };
 
             Logger.Trace("Issuing Command");
 
@@ -349,7 +349,7 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            RepositoryManager.OnRepositoryChanged += status => { result = status; };
+            RepositoryManager.OnStatusUpdated += status => { result = status; };
 
             Logger.Trace("Issuing Command");
 
