@@ -413,7 +413,7 @@ namespace GitHub.Unity
 
         private void Watcher_OnLocalBranchChanged(string name)
         {
-            if (name == this.Repository.CurrentBranch)
+            if (name == ActiveBranch?.Name)
             {
                 OnActiveBranchChanged?.Invoke();
                 UpdateGitStatus();
