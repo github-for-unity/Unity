@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -170,7 +169,7 @@ namespace GitHub.Unity
 
                     GUILayout.Label(headerRepoLabelText, Styles.HeaderRepoLabelStyle);
                     GUILayout.Space(-2);
-                    GUILayout.Label(Repository.CurrentBranch, Styles.HeaderBranchLabelStyle);
+                    GUILayout.Label(Repository.CurrentBranchName, Styles.HeaderBranchLabelStyle);
                 }
                 GUILayout.EndVertical();
             }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
-    [TestFixture, Category("TimeSensitive")]
+    [TestFixture/*, Category("TimeSensitive")*/]
     class RepositoryManagerTests : BaseGitEnvironmentTest
     {
         [Test]
@@ -35,7 +35,7 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            RepositoryManager.OnStatusUpdated += status => { result = status; };
+            Environment.Repository.OnStatusUpdated += status => { result = status; };
 
             Logger.Trace("Issuing Changes");
 
@@ -47,11 +47,11 @@ namespace IntegrationTests
             await TaskEx.Delay(200);
             await TaskManager.Wait();
 
-            managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            managerAutoResetEvent.OnStatusUpdate.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
-            repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.Received().OnStatusUpdate(Args.GitStatus);
             result.AssertEqual(expected);
 
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
@@ -60,7 +60,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-            repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
 
@@ -97,7 +96,7 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            RepositoryManager.OnStatusUpdated += status => {
+            RepositoryManager.Repository.OnStatusUpdated += status => {
                 result = status;
             };
 
@@ -110,11 +109,11 @@ namespace IntegrationTests
             testDocumentTxt.WriteAllText("foobar");
             await TaskManager.Wait();
 
-            managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(200)).Should().BeTrue();
+            managerAutoResetEvent.OnStatusUpdate.WaitOne(TimeSpan.FromSeconds(200)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
-            repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.Received().OnStatusUpdate(Args.GitStatus);
             result.AssertEqual(expectedAfterChanges);
 
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
@@ -123,7 +122,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-            repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
 
             repositoryManagerListener.ClearReceivedCalls();
@@ -136,16 +134,15 @@ namespace IntegrationTests
 
             await TaskManager.Wait();
 
-            managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(5)).Should().BeTrue();
+            managerAutoResetEvent.OnStatusUpdate.WaitOne(TimeSpan.FromSeconds(5)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
-            repositoryManagerListener.Received(1).OnActiveBranchChanged();
+            repositoryManagerListener.Received(1).OnStatusUpdate(Args.GitStatus);
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
             repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-            repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
 
@@ -166,7 +163,7 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            RepositoryManager.OnStatusUpdated += status => { result = status; };
+            RepositoryManager.Repository.OnStatusUpdated += status => { result = status; };
 
             Logger.Trace("Issuing Command");
 
@@ -178,12 +175,12 @@ namespace IntegrationTests
             await TaskManager.Wait();
 
             managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();
-            managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();
+            managerAutoResetEvent.OnStatusUpdate.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();
             managerAutoResetEvent.OnHeadChanged.WaitOne(TimeSpan.FromSeconds(3)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
-            repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.Received().OnStatusUpdate(Args.GitStatus);
             result.AssertEqual(expected);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.Received(1).OnActiveBranchChanged();
@@ -191,7 +188,6 @@ namespace IntegrationTests
             repositoryManagerListener.Received(1).OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-            repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
 
@@ -211,18 +207,16 @@ namespace IntegrationTests
             await TaskManager.Wait();
 
             managerAutoResetEvent.OnLocalBranchListChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-            managerAutoResetEvent.OnRemoteOrTrackingChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
-            repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().OnStatusUpdate(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged();
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
             repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.Received(1).OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-            repositoryManagerListener.Received().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
 
@@ -245,14 +239,13 @@ namespace IntegrationTests
 
             Logger.Trace("Continue test");
 
-            repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().OnStatusUpdate(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged();
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
             repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.Received(1).OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-            repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
 
             repositoryManagerListener.ClearReceivedCalls();
@@ -266,13 +259,12 @@ namespace IntegrationTests
 
             Logger.Trace("Continue test");
 
-            repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().OnStatusUpdate(Args.GitStatus);
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged();
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
             repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.Received(1).OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-            repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
 
             repositoryManagerListener.ClearReceivedCalls();
@@ -295,18 +287,16 @@ namespace IntegrationTests
 
             managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
             managerAutoResetEvent.OnActiveRemoteChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-            managerAutoResetEvent.OnRemoteOrTrackingChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
-            repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().OnStatusUpdate(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.Received().OnActiveBranchChanged();
             repositoryManagerListener.Received().OnActiveRemoteChanged();
             repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-            repositoryManagerListener.Received().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
 
             repositoryManagerListener.ClearReceivedCalls();
@@ -317,18 +307,16 @@ namespace IntegrationTests
             await TaskManager.Wait();
 
             managerAutoResetEvent.OnActiveRemoteChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-            managerAutoResetEvent.OnRemoteOrTrackingChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             Logger.Trace("Continue test");
 
-            repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().OnStatusUpdate(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged();
             repositoryManagerListener.Received().OnActiveRemoteChanged();
             repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-            repositoryManagerListener.Received().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
 
@@ -349,15 +337,15 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            RepositoryManager.OnStatusUpdated += status => { result = status; };
+            RepositoryManager.Repository.OnStatusUpdated += status => { result = status; };
 
             Logger.Trace("Issuing Command");
 
             await RepositoryManager.Pull("origin", "master").StartAsAsync();
             await TaskManager.Wait();
 
-            managerAutoResetEvent.OnRepositoryChanged.WaitOne(TimeSpan.FromSeconds(7)).Should().BeTrue();
-            managerAutoResetEvent.OnActiveBranchChanged.WaitOne(TimeSpan.FromSeconds(7)).Should().BeTrue();
+            managerAutoResetEvent.OnHeadChanged.WaitOne(TimeSpan.FromSeconds(7)).Should().BeTrue();
+            managerAutoResetEvent.OnStatusUpdate.WaitOne(TimeSpan.FromSeconds(7)).Should().BeTrue();
 
             WaitForNotBusy(managerAutoResetEvent, 3);
             WaitForNotBusy(managerAutoResetEvent, 3);
@@ -367,15 +355,14 @@ namespace IntegrationTests
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
             RepositoryManager.IsBusy.Should().BeFalse();
 
-            repositoryManagerListener.Received().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.Received().OnStatusUpdate(Args.GitStatus);
             result.AssertEqual(expected);
 
-            repositoryManagerListener.Received(1).OnActiveBranchChanged();
+            repositoryManagerListener.Received(1).OnHeadChanged();
+            repositoryManagerListener.DidNotReceive().OnActiveBranchChanged();
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
-            repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-            repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
 
@@ -399,14 +386,13 @@ namespace IntegrationTests
 
             Logger.Trace("Continue test");
 
-            repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().OnStatusUpdate(Args.GitStatus);
             repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged();
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
             repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.Received(2).OnRemoteBranchListChanged();
-            repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
 
