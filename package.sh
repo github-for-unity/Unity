@@ -24,8 +24,8 @@ popd
 
 if [ -f "$1/Unity.app/Contents/MacOS/Unity" ]; then
 	Unity="$1/Unity.app/Contents/MacOS/Unity"
-elif [ -f $1/Unity ]; then
-	Unity="$1/Unity"
+elif [ -f "$1/Editor/Unity" ]; then
+	Unity="$1/Editor/Unity"
 else
 	echo "Can't find Unity in $1"
 	exit 1
