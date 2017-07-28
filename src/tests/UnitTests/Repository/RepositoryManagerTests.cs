@@ -169,7 +169,7 @@ namespace UnitTests
             repositoryManagerListener.AttachListener(repositoryManager);
 
             GitStatus? result = null;
-            repositoryManager.OnRepositoryChanged += s => { result = s; };
+            repositoryManager.OnStatusUpdated += s => { result = s; };
 
             repositoryManager.Refresh();
 
@@ -232,7 +232,7 @@ namespace UnitTests
             repositoryManagerListener.AttachListener(repositoryManager);
 
             GitStatus? result = null;
-            repositoryManager.OnRepositoryChanged += s => { result = s; };
+            repositoryManager.OnStatusUpdated += s => { result = s; };
 
             repositoryManager.Refresh();
 
@@ -272,7 +272,7 @@ namespace UnitTests
             repositoryManagerListener.AttachListener(repositoryManager);
 
             GitStatus? result = null;
-            repositoryManager.OnRepositoryChanged += s => { result = s; };
+            repositoryManager.OnStatusUpdated += s => { result = s; };
 
             repositoryManager.Refresh();
 
@@ -312,7 +312,7 @@ namespace UnitTests
             repositoryManagerListener.AttachListener(repositoryManager);
 
             GitStatus? result = null;
-            repositoryManager.OnRepositoryChanged += s => { result = s; };
+            repositoryManager.OnStatusUpdated += s => { result = s; };
 
             repositoryManager.Refresh();
 
