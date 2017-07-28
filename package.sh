@@ -1,4 +1,4 @@
-#!/bin/sh -eu
+#!/bin/sh -eux
 
 Configuration="Release"
 if [ $# -lt 1 ]; then
