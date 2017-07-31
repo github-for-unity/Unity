@@ -22,18 +22,27 @@ pushd src
 git clean -xdf
 popd
 
-if [ -f "$1/Unity.app/Contents/MacOS/Unity" ]; then
-	Unity="$1/Unity.app/Contents/MacOS/Unity"
-elif [ -f $1/Unity ]; then
-	Unity="$1/Unity"
-else
-	echo "Can't find Unity in $1"
-	exit 1
+OS="Mac"
+if [ -e "c:\\" ]; then
+	OS="Windows"
 fi
 
-OS="Mac"
-if [ -e "/c/" ]; then
-	OS="Windows"
+if [ x"$OS" == x"Windows" ]; then
+	if [ -f "$1/Editor/Unity.exe" ]; then
+		Unity="$1/Editor/Unity.exe"
+	else
+		echo "Can't find Unity in $1"
+		exit 1
+	fi
+else
+	if [ -f "$1/Unity.app/Contents/MacOS/Unity" ]; then
+		Unity="$1/Unity.app/Contents/MacOS/Unity"
+	elif [ -f "$1/Unity" ]; then
+		Unity="$1/Unity"
+	else
+		echo "Can't find Unity in $1"
+		exit 1
+	fi
 fi
 
 if [ x"$OS" == x"Windows" ]; then
