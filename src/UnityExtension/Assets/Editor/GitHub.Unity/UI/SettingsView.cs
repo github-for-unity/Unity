@@ -607,6 +607,9 @@ namespace GitHub.Unity
             }
             if (EditorGUI.EndChangeCheck())
             {
+                Logger.Trace("Setting GitExecPath: " + gitExecPath);
+
+                Manager.SystemSettings.Set(Constants.GitInstallPathKey, gitExecPath);
                 Environment.GitExecutablePath = gitExecPath.ToNPath();
             }
 
