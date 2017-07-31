@@ -90,8 +90,8 @@ namespace GitHub.Unity
             base.OnEnable();
             if (Repository != null)
             {
-                Repository.OnCommitChanged += UpdateLogOnMainThread;
-                Repository.OnRepositoryChanged += UpdateStatusOnMainThread;
+                Repository.OnHeadChanged += UpdateLogOnMainThread;
+                Repository.OnStatusUpdated += UpdateStatusOnMainThread;
             }
             UpdateLog();
         }
@@ -101,8 +101,8 @@ namespace GitHub.Unity
             base.OnDisable();
             if (Repository != null)
             {
-                Repository.OnCommitChanged -= UpdateLogOnMainThread;
-                Repository.OnRepositoryChanged -= UpdateStatusOnMainThread;
+                Repository.OnHeadChanged -= UpdateLogOnMainThread;
+                Repository.OnStatusUpdated -= UpdateStatusOnMainThread;
             }
         }
 
@@ -146,6 +146,7 @@ namespace GitHub.Unity
 
         public override void Refresh()
         {
+            base.Refresh();
             RefreshLog();
 #if ENABLE_BROADMODE
             if (broadMode)
