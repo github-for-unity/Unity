@@ -19,13 +19,13 @@ namespace GitHub.Unity
 
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string username = "";
-        [SerializeField] private string password = "";
         [SerializeField] private string two2fa = "";
 
         [NonSerialized] private bool need2fa;
         [NonSerialized] private bool busy;
         [NonSerialized] private string message;
         [NonSerialized] private bool enterPressed;
+        [NonSerialized] private string password = "";
 
         [NonSerialized] private AuthenticationService authenticationService;
         private AuthenticationService AuthenticationService
