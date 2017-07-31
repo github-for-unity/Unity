@@ -168,7 +168,7 @@ namespace UnitTests
             repositoryManagerListener.AttachListener(repositoryManager);
 
             GitStatus? result = null;
-            repositoryManager.OnRepositoryChanged += s => { result = s; };
+            repositoryManager.OnStatusUpdated += s => { result = s; };
 
             repositoryManager.Refresh();
 
@@ -181,7 +181,7 @@ namespace UnitTests
 
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Args.String);
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnHeadChanged(Args.String);
+            repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
@@ -231,7 +231,7 @@ namespace UnitTests
             repositoryManagerListener.AttachListener(repositoryManager);
 
             GitStatus? result = null;
-            repositoryManager.OnRepositoryChanged += s => { result = s; };
+            repositoryManager.OnStatusUpdated += s => { result = s; };
 
             repositoryManager.Refresh();
 
@@ -244,7 +244,7 @@ namespace UnitTests
 
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Args.String);
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnHeadChanged(Args.String);
+            repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
@@ -271,7 +271,7 @@ namespace UnitTests
             repositoryManagerListener.AttachListener(repositoryManager);
 
             GitStatus? result = null;
-            repositoryManager.OnRepositoryChanged += s => { result = s; };
+            repositoryManager.OnStatusUpdated += s => { result = s; };
 
             repositoryManager.Refresh();
 
@@ -284,7 +284,7 @@ namespace UnitTests
 
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Args.String);
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnHeadChanged(Args.String);
+            repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
@@ -311,7 +311,7 @@ namespace UnitTests
             repositoryManagerListener.AttachListener(repositoryManager);
 
             GitStatus? result = null;
-            repositoryManager.OnRepositoryChanged += s => { result = s; };
+            repositoryManager.OnStatusUpdated += s => { result = s; };
 
             repositoryManager.Refresh();
 
@@ -324,7 +324,7 @@ namespace UnitTests
 
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Args.String);
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnHeadChanged(Args.String);
+            repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();

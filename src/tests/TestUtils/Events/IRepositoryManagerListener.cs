@@ -11,7 +11,7 @@ namespace TestUtils.Events
         void OnRepositoryChanged(GitStatus status);
         void OnActiveBranchChanged(string branch);
         void OnActiveRemoteChanged(ConfigRemote? remote);
-        void OnHeadChanged(string head);
+        void OnHeadChanged();
         void OnLocalBranchListChanged();
         void OnRemoteBranchListChanged();
         void OnRemoteOrTrackingChanged();
@@ -63,8 +63,8 @@ namespace TestUtils.Events
                     managerEvents?.OnIsNotBusy.Set();
             };
 
-            repositoryManager.OnRepositoryChanged += status => {
-                logger?.Debug("OnRepositoryChanged: {0}", status);
+            repositoryManager.OnStatusUpdated += status => {
+                logger?.Debug("OnStatusUpdated: {0}", status);
                 listener.OnRepositoryChanged(status);
                 managerEvents?.OnRepositoryChanged.Set();
             };
@@ -81,9 +81,9 @@ namespace TestUtils.Events
                 managerEvents?.OnActiveRemoteChanged.Set();
             };
 
-            repositoryManager.OnHeadChanged += head => {
-                logger?.Trace($"OnHeadChanged {head}");
-                listener.OnHeadChanged(head);
+            repositoryManager.OnHeadChanged += () => {
+                logger?.Trace($"OnHeadChanged");
+                listener.OnHeadChanged();
                 managerEvents?.OnHeadChanged.Set();
             };
 
@@ -118,7 +118,7 @@ namespace TestUtils.Events
             repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Args.String);
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnHeadChanged(Args.String);
+            repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();

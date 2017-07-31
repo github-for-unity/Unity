@@ -11,13 +11,13 @@ namespace GitHub.Unity
     {
         event Action<string> OnActiveBranchChanged;
         event Action<ConfigRemote?> OnActiveRemoteChanged;
-        event Action<string> OnHeadChanged;
         event Action<bool> OnIsBusyChanged;
         event Action OnLocalBranchListChanged;
+        event Action OnHeadChanged;
+        event Action<GitStatus> OnStatusUpdated;
         event Action<IEnumerable<GitLock>> OnLocksUpdated;
         event Action OnRemoteBranchListChanged;
         event Action OnRemoteOrTrackingChanged;
-        event Action<GitStatus> OnRepositoryChanged;
         void Initialize();
         void Start();
         void Stop();
@@ -112,13 +112,13 @@ namespace GitHub.Unity
 
         public event Action<string> OnActiveBranchChanged;
         public event Action<ConfigRemote?> OnActiveRemoteChanged;
-        public event Action<string> OnHeadChanged;
+        public event Action OnHeadChanged;
         public event Action<bool> OnIsBusyChanged;
         public event Action OnLocalBranchListChanged;
         public event Action<IEnumerable<GitLock>> OnLocksUpdated;
         public event Action OnRemoteBranchListChanged;
         public event Action OnRemoteOrTrackingChanged;
-        public event Action<GitStatus> OnRepositoryChanged;
+        public event Action<GitStatus> OnStatusUpdated;
 
         public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker,
             IGitClient gitClient, NPath repositoryRoot)
@@ -148,12 +148,6 @@ namespace GitHub.Unity
 
             SetupConfig(repositoryPaths);
             SetupWatcher();
-
-            const int debounceTimeout = 0;
-
-            this.repositoryUpdateCallback = debounceTimeout == 0 ?
-                OnRepositoryUpdatedHandler
-                : TaskExtensions.Debounce(OnRepositoryUpdatedHandler, debounceTimeout);
         }
 
         public void Initialize()
@@ -187,7 +181,8 @@ namespace GitHub.Unity
 
         public void Refresh()
         {
-            OnRepositoryUpdated();
+            Logger.Trace("Refresh");
+            UpdateGitStatus();
         }
 
         public ITask CommitFiles(List<string> files, string message, string body)
@@ -229,7 +224,7 @@ namespace GitHub.Unity
             HookupHandlers(task);
             if (!platform.Environment.IsWindows)
             {
-                task.Then(_ => OnConfigChanged());
+                task.Then(_ => UpdateConfigData());
             }
             return task;
         }
@@ -240,7 +235,7 @@ namespace GitHub.Unity
             HookupHandlers(task);
             if (!platform.Environment.IsWindows)
             {
-                task.Then(_ => OnConfigChanged());
+                task.Then(_ => UpdateConfigData());
             }
             return task;
         }
@@ -303,15 +298,15 @@ namespace GitHub.Unity
 
         private void SetupWatcher()
         {
-            watcher.HeadChanged += HeadChanged;
-            watcher.IndexChanged += OnIndexChanged;
-            watcher.ConfigChanged += OnConfigChanged;
-            watcher.LocalBranchChanged += OnLocalBranchChanged;
-            watcher.LocalBranchCreated += OnLocalBranchCreated;
-            watcher.LocalBranchDeleted += OnLocalBranchDeleted;
-            watcher.RepositoryChanged += OnRepositoryUpdated;
-            watcher.RemoteBranchCreated += OnRemoteBranchCreated;
-            watcher.RemoteBranchDeleted += OnRemoteBranchDeleted;
+            watcher.HeadChanged += Watcher_OnHeadChanged;
+            watcher.IndexChanged += Watcher_OnIndexChanged;
+            watcher.ConfigChanged += Watcher_OnConfigChanged;
+            watcher.LocalBranchChanged += Watcher_OnLocalBranchChanged;
+            watcher.LocalBranchCreated += Watcher_OnLocalBranchCreated;
+            watcher.LocalBranchDeleted += Watcher_OnLocalBranchDeleted;
+            watcher.RepositoryChanged += Watcher_OnRepositoryChanged;
+            watcher.RemoteBranchCreated += Watcher_OnRemoteBranchCreated;
+            watcher.RemoteBranchDeleted += Watcher_OnRemoteBranchDeleted;
         }
 
         private void SetupConfig(IRepositoryPathConfiguration repositoryPaths)
@@ -346,80 +341,79 @@ namespace GitHub.Unity
             return task;
         }
 
-        private void OnRemoteBranchDeleted(string remote, string name)
+        private void Watcher_OnRemoteBranchDeleted(string remote, string name)
         {
             RemoveRemoteBranch(remote, name);
         }
 
-        private void OnRemoteBranchChanged(string remote, string name)
-        {}
-
-        private void OnRemoteBranchCreated(string remote, string name)
+        private void Watcher_OnRemoteBranchCreated(string remote, string name)
         {
             AddRemoteBranch(remote, name);
         }
 
-        private void OnRepositoryUpdated()
+        private void Watcher_OnRepositoryChanged()
         {
-            Logger.Trace("OnRepositoryUpdated Trigger OnRepositoryUpdatedHandler");
-            repositoryUpdateCallback.Invoke();
+            UpdateGitStatus();
         }
 
-        private void OnRepositoryUpdatedHandler()
+        private void UpdateGitStatus()
         {
-            Logger.Trace("Starting OnRepositoryUpdatedHandler");
+            Logger.Trace("Updating Git Status");
 
             var task = GitClient.Status()
                 .Finally((success, ex, data) =>
                 {
                     if (success && data.HasValue)
                     {
-                        OnRepositoryChanged?.Invoke(data.Value);
+                        OnStatusUpdated?.Invoke(data.Value);
                     }
-                    Logger.Trace("Ending OnRepositoryUpdatedHandler");
+                    Logger.Trace("Updated Git Status");
                 });
+
             HookupHandlers(task).Start();
         }
 
-        private void OnConfigChanged()
+        private void Watcher_OnConfigChanged()
+        {
+            UpdateConfigData();
+        }
+
+        private void UpdateConfigData()
         {
             config.Reset();
             RefreshConfigData();
-
-            Logger.Trace("OnRemoteOrTrackingChanged");
-            OnRemoteOrTrackingChanged?.Invoke();
         }
 
-        private void HeadChanged(string contents)
+        private void Watcher_OnHeadChanged(string contents)
         {
-            Logger.Trace($"HeadChanged {contents}");
+            Logger.Trace("Watcher_OnHeadChanged");
             head = contents;
             ActiveBranch = GetActiveBranch();
             ActiveRemote = GetActiveRemote();
-            OnHeadChanged?.Invoke(head);
-            OnRepositoryUpdatedHandler();
+            OnHeadChanged?.Invoke();
+            UpdateGitStatus();
         }
 
-        private void OnIndexChanged()
+        private void Watcher_OnIndexChanged()
         {
         }
 
-        private void OnLocalBranchCreated(string name)
+        private void Watcher_OnLocalBranchCreated(string name)
         {
             AddLocalBranch(name);
         }
 
-        private void OnLocalBranchDeleted(string name)
+        private void Watcher_OnLocalBranchDeleted(string name)
         {
             RemoveLocalBranch(name);
         }
 
-        private void OnLocalBranchChanged(string name)
+        private void Watcher_OnLocalBranchChanged(string name)
         {
             if (name == ActiveBranch?.Name)
             {
                 OnActiveBranchChanged?.Invoke(name);
-                OnRepositoryUpdatedHandler();
+                UpdateGitStatus();
             }
         }
 

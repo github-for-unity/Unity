@@ -53,11 +53,11 @@ namespace GitHub.Unity
         IUser User { get; set; }
         IEnumerable<GitLock> CurrentLocks { get; }
 
-        event Action<GitStatus> OnRepositoryChanged;
+        event Action<GitStatus> OnStatusUpdated;
         event Action<string> OnActiveBranchChanged;
         event Action<string> OnActiveRemoteChanged;
         event Action OnLocalBranchListChanged;
-        event Action OnCommitChanged;
+        event Action OnHeadChanged;
         event Action<IEnumerable<GitLock>> OnLocksUpdated;
         event Action OnRepositoryInfoChanged;
     }
