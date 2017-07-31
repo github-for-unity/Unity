@@ -23,7 +23,7 @@ git clean -xdf
 popd
 
 OS="Mac"
-if [ -e "/c/" ]; then
+if [ -e "c:\\" ]; then
 	OS="Windows"
 fi
 
@@ -37,7 +37,7 @@ if [ x"$OS" == x"Windows" ]; then
 else
 	if [ -f "$1/Unity.app/Contents/MacOS/Unity" ]; then
 		Unity="$1/Unity.app/Contents/MacOS/Unity"
-	elif [ -f $1/Unity ]; then
+	elif [ -f "$1/Unity" ]; then
 		Unity="$1/Unity"
 	else
 		echo "Can't find Unity in $1"
