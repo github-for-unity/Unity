@@ -14,11 +14,11 @@ namespace GitHub.Unity
 
         public GitStatusEntry CreateGitStatusEntry(string path, GitFileStatus status, string originalPath = null, bool staged = false)
         {
-            var npath = new NPath(path).MakeAbsolute();
-            var relativePath = npath.RelativeTo(environment.RepositoryPath);
-            var projectPath = npath.RelativeTo(environment.UnityProjectPath);
+            var absolutePath = new NPath(path).MakeAbsolute();
+            var relativePath = absolutePath.RelativeTo(environment.RepositoryPath);
+            var projectPath = absolutePath.RelativeTo(environment.UnityProjectPath);
 
-            return new GitStatusEntry(relativePath, npath, projectPath, status, originalPath?.ToNPath(), staged);
+            return new GitStatusEntry(relativePath, absolutePath, projectPath, status, originalPath?.ToNPath(), staged);
         }
 
         public GitLock CreateGitLock(string path, string user, int id)

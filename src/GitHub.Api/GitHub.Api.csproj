@@ -145,7 +145,7 @@
     <Compile Include="Installer\GitInstaller.cs" />
     <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
-    <Compile Include="Platform\LocalSettings.cs" />
+    <Compile Include="Platform\Settings.cs" />
     <Compile Include="OutputProcessors\BranchListOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LockOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LogEntryOutputProcessor.cs" />
@@ -221,6 +221,9 @@
     <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="Platform\Platform.cs" />
     <Compile Include="Git\GitCredentialManager.cs" />
+    <Compile Include="UI\FileTreeNode.cs" />
+    <Compile Include="UI\GitCommitTarget.cs" />
+    <Compile Include="UI\TreeBuilder.cs" />
   </ItemGroup>
   <Choose>
     <When Condition="$(Buildtype) == 'Internal'">

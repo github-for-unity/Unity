@@ -82,6 +82,7 @@ namespace GitHub.Unity
 
         public override void Refresh()
         {
+            base.Refresh();
             var historyView = ((Window)Parent).HistoryTab;
 
 #if ENABLE_BROADMODE
