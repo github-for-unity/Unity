@@ -11,7 +11,6 @@ namespace GitHub.Unity
     {
         protected static ILogging Logger { get; } = Logging.GetLogger<IApplicationManager>();
 
-        private IEnvironment environment;
         private RepositoryManager repositoryManager;
 
         public ApplicationManagerBase(SynchronizationContext synchronizationContext)

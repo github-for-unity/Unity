@@ -413,7 +413,6 @@ namespace GitHub.Unity
         public TaskBase(Task<TResult> task)
             : base()
         {
-            var scheduler = TaskManager.GetScheduler(Affinity);
             Task = new Task<TResult>(t =>
             {
                 TResult ret = default(TResult);
