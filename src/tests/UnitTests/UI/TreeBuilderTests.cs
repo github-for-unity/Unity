@@ -26,7 +26,6 @@ namespace UnitTests.UI
             var gitStatusEntries = new List<GitStatusEntry>();
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
-            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified)
@@ -64,7 +63,6 @@ namespace UnitTests.UI
             var gitStatusEntries = new List<GitStatusEntry>();
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
-            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified)
@@ -100,7 +98,6 @@ namespace UnitTests.UI
             var gitStatusEntries = new List<GitStatusEntry>();
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
-            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry(@"folder\file1.txt", GitFileStatus.Modified)
@@ -136,7 +133,6 @@ namespace UnitTests.UI
             var gitStatusEntries = new List<GitStatusEntry>();
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
-            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry(@"folder\file1.txt", GitFileStatus.Modified)
@@ -172,7 +168,6 @@ namespace UnitTests.UI
             var gitStatusEntries = new List<GitStatusEntry>();
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
-            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
@@ -220,7 +215,6 @@ namespace UnitTests.UI
             var gitStatusEntries = new List<GitStatusEntry>();
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
-            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
@@ -268,7 +262,6 @@ namespace UnitTests.UI
             var gitStatusEntries = new List<GitStatusEntry>();
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
-            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
@@ -372,7 +365,6 @@ namespace UnitTests.UI
             var gitStatusEntries = new List<GitStatusEntry>();
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
-            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
@@ -431,7 +423,6 @@ namespace UnitTests.UI
             var gitStatusEntries = new List<GitStatusEntry>();
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
-            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var newGitStatusEntries = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
@@ -490,8 +481,6 @@ namespace UnitTests.UI
                 gitObjectFactory.CreateGitStatusEntry("file2.txt", GitFileStatus.Modified)
             };
 
-            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
-
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries1, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries);
 
@@ -523,8 +512,6 @@ namespace UnitTests.UI
 
             file1.State = CommitState.All;
             file2.State = CommitState.All;
-
-            stateChangeCallbackListener.ClearReceivedCalls();
 
             var newGitStatusEntries2 = new List<GitStatusEntry> {
                 gitObjectFactory.CreateGitStatusEntry("file1.txt", GitFileStatus.Modified),
@@ -579,8 +566,6 @@ namespace UnitTests.UI
             var gitStatusEntries = new List<GitStatusEntry>();
             var gitCommitTargets = new List<GitCommitTarget>();
             var foldedTreeEntries = new List<string>();
-
-            var stateChangeCallbackListener = Substitute.For<IStateChangeCallbackListener>();
 
             var treeRoot = TreeBuilder.BuildTreeRoot(newGitStatusEntries, gitStatusEntries, gitCommitTargets,
                 foldedTreeEntries);
@@ -705,10 +690,5 @@ namespace UnitTests.UI
 
             gitObjectFactory = new GitObjectFactory(environment);
         }
-    }
-
-    interface IStateChangeCallbackListener
-    {
-        void StateChangeCallback(FileTreeNode fileTreeNode);
     }
 }

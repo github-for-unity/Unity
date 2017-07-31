@@ -17,11 +17,13 @@ namespace GitHub.Unity
         public void UpdateToken(string token)
         {
             Credential.UpdateToken(token);
+            OctokitCredentials = new Credentials(OctokitCredentials.Login, token);
         }
 
         public void Clear()
         {
             OctokitCredentials = Credentials.Anonymous;
+            Credential = null;
         }
 
         /// <summary>

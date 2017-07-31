@@ -20,6 +20,8 @@ namespace TestUtils
             gitLogEntry.CommitID.Should().Be(other.CommitID);
             gitLogEntry.Summary.Should().Be(other.Summary);
             gitLogEntry.Description.Should().Be(other.Description);
+            gitLogEntry.TimeString.Should().Be(other.TimeString);
+            gitLogEntry.CommitTimeString.Should().Be(other.CommitTimeString);
             gitLogEntry.Time.Should().Be(other.Time);
             gitLogEntry.CommitTime.Should().Be(other.CommitTime);
         }

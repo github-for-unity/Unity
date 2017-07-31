@@ -585,11 +585,16 @@ namespace GitHub.Unity
             if (Environment != null)
             {
                 extension = Environment.ExecutableExtension;
+                if (Environment.IsWindows)
+                {
+                    extension = extension.TrimStart('.');
+                }
+
                 gitInstallPath = Environment.GitInstallPath;
+
                 if (Environment.GitExecutablePath != null)
                     gitExecPath = Environment.GitExecutablePath.ToString();
             }
-                
 
             // Install path
             GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
@@ -607,6 +612,9 @@ namespace GitHub.Unity
             }
             if (EditorGUI.EndChangeCheck())
             {
+                Logger.Trace("Setting GitExecPath: " + gitExecPath);
+
+                Manager.SystemSettings.Set(Constants.GitInstallPathKey, gitExecPath);
                 Environment.GitExecutablePath = gitExecPath.ToNPath();
             }
 
