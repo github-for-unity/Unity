@@ -115,7 +115,7 @@ namespace GitHub.Unity
             var attr = typeof(T).GetCustomAttributes(true)
                                 .Select(t => t as LocationAttribute)
                                 .FirstOrDefault(t => t != null);
-            Logging.Instance.Debug("FilePath {0}", attr != null ? attr.filepath : null);
+            //Logging.Instance.Debug("FilePath {0}", attr != null ? attr.filepath : null);
 
             return attr != null ? attr.filepath.ToNPath() : null;
         }

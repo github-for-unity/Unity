@@ -71,7 +71,7 @@ namespace GitHub.Unity
         {
             if (disableNative)
             {
-                Logger.Debug("Native interface is disabled");
+                Logger.Trace("Native interface is disabled");
                 return;
             }
 
