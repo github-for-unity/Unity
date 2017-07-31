@@ -78,7 +78,7 @@ namespace GitHub.Unity
             if (nativeInterface == null)
             {
                 Logger.Warning("NativeInterface is null");
-                throw new Exception("Not initialized");
+                throw new InvalidOperationException("NativeInterface is null");
             }
 
             running = true;
