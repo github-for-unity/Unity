@@ -142,7 +142,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("Loading Keychain");
 
-            var firstConnection = Platform.Keychain.Connections.FirstOrDefault();
+            var firstConnection = Platform.Keychain.Hosts.FirstOrDefault();
             if (firstConnection == null)
             {
                 Logger.Trace("No Host Found");
