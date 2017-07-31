@@ -123,7 +123,7 @@ namespace GitHub.Unity
             }
             GUILayout.EndHorizontal();
 
-            GUILayout.Space(5);
+            GUILayout.Space(Styles.PublishViewSpacingHeight);
 
             GUILayout.BeginHorizontal();
             {
@@ -159,7 +159,7 @@ namespace GitHub.Unity
             GUI.enabled = !isBusy;
             repoDescription = EditorGUILayout.TextField(repoDescription);
             GUI.enabled = true;
-            GUILayout.Space(5);
+            GUILayout.Space(Styles.PublishViewSpacingHeight);
 
             GUILayout.BeginVertical();
             {
@@ -173,7 +173,7 @@ namespace GitHub.Unity
 
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Space(5);
+                    GUILayout.Space(Styles.PublishViewSpacingHeight);
                     var repoPrivacyExplanation = togglePrivate ? PrivateRepoMessage : PublicRepoMessage;
                     GUILayout.Label(repoPrivacyExplanation, Styles.LongMessageStyle);
                 }
@@ -182,7 +182,7 @@ namespace GitHub.Unity
             GUILayout.EndVertical();
 
 
-            GUILayout.Space(5);
+            GUILayout.Space(Styles.PublishViewSpacingHeight);
 
             if (error != null)
                 GUILayout.Label(error, Styles.ErrorLabel);
