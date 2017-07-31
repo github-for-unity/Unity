@@ -370,7 +370,7 @@ namespace GitHub.Unity
         public WaitHandle AsyncWaitHandle { get { return (Task as IAsyncResult).AsyncWaitHandle; } }
         public object AsyncState { get { return (Task as IAsyncResult).AsyncState; } }
         public bool CompletedSynchronously { get { return (Task as IAsyncResult).CompletedSynchronously; } }
-        public virtual string Name { get; set; }
+        public string Name { get; set; }
         public virtual TaskAffinity Affinity { get; set; }
         private ILogging logger;
         protected ILogging Logger { get { return logger = logger ?? Logging.GetLogger(GetType()); } }

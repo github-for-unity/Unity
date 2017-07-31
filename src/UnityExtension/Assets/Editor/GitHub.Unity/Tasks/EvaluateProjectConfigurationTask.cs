@@ -321,7 +321,7 @@ namespace GitHub.Unity
             }
         }
 
-        public override string Name { get { return "Project Evaluation"; } }
+        public string Name { get { return "Project Evaluation"; } }
 
         private enum SerializationSetting
         {
