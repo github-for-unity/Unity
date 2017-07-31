@@ -8,7 +8,7 @@ namespace GitHub.Unity
     [AttributeUsage(AttributeTargets.Class)]
     class LocationAttribute : Attribute
     {
-        public enum Location { PreferencesFolder, ProjectFolder, UserFolder }
+        public enum Location { PreferencesFolder, ProjectFolder, LibraryFolder, UserFolder }
         public string filepath { get; set; }
         public LocationAttribute(string relativePath, Location location)
         {
@@ -21,8 +21,8 @@ namespace GitHub.Unity
                 filepath = InternalEditorUtility.unityPreferencesFolder + "/" + relativePath;
             else if (location == Location.UserFolder)
                 filepath = EntryPoint.Environment.UserCachePath.Combine(relativePath).ToString(SlashMode.Forward);
-            else
-                filepath = relativePath;
+            else if (location == Location.LibraryFolder)
+                filepath = EntryPoint.Environment.UnityProjectPath.Combine("Library", "gfu", relativePath);
         }
     }
 
