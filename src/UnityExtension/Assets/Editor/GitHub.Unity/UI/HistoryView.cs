@@ -113,6 +113,7 @@ namespace GitHub.Unity
 
         private void UpdateStatus(GitStatus status)
         {
+            // TODO: this shouldn't be updated here, it should be updated whenever the active remote changes
             currentRemote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : null;
             statusAhead = status.Ahead;
             statusBehind = status.Behind;

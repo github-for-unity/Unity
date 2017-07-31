@@ -8,13 +8,12 @@ namespace TestUtils.Events
 {
     interface IRepositoryManagerListener
     {
-        void OnRepositoryChanged(GitStatus obj);
+        void OnStatusUpdate(GitStatus obj);
         void OnActiveBranchChanged();
         void OnActiveRemoteChanged();
         void OnHeadChanged();
         void OnLocalBranchListChanged();
         void OnRemoteBranchListChanged();
-        void OnRemoteOrTrackingChanged();
         void OnIsBusyChanged(bool obj);
         void OnLocksUpdated(IEnumerable<GitLock> locks);
     }
@@ -22,13 +21,12 @@ namespace TestUtils.Events
     class RepositoryManagerAutoResetEvent
     {
         public AutoResetEvent OnIsBusyChanged { get; } = new AutoResetEvent(false);
-        public AutoResetEvent OnRepositoryChanged { get; } = new AutoResetEvent(false);
+        public AutoResetEvent OnStatusUpdate { get; } = new AutoResetEvent(false);
         public AutoResetEvent OnActiveBranchChanged { get; } = new AutoResetEvent(false);
         public AutoResetEvent OnActiveRemoteChanged { get; } = new AutoResetEvent(false);
         public AutoResetEvent OnHeadChanged { get; } = new AutoResetEvent(false);
         public AutoResetEvent OnLocalBranchListChanged { get; } = new AutoResetEvent(false);
         public AutoResetEvent OnRemoteBranchListChanged { get; } = new AutoResetEvent(false);
-        public AutoResetEvent OnRemoteOrTrackingChanged { get; } = new AutoResetEvent(false);
         public AutoResetEvent OnLocksUpdated { get; } = new AutoResetEvent(false);
     }
 
@@ -45,19 +43,19 @@ namespace TestUtils.Events
                 managerAutoResetEvent?.OnIsBusyChanged.Set();
             };
 
-            repositoryManager.OnStatusUpdated += status => {
+            repositoryManager.Repository.OnStatusUpdated += status => {
                 logger?.Debug("OnStatusUpdated: {0}", status);
-                listener.OnRepositoryChanged(status);
-                managerAutoResetEvent?.OnRepositoryChanged.Set();
+                listener.OnStatusUpdate(status);
+                managerAutoResetEvent?.OnStatusUpdate.Set();
             };
 
-            repositoryManager.OnActiveBranchChanged += () => {
+            repositoryManager.Repository.OnActiveBranchChanged += branch => {
                 logger?.Trace("OnActiveBranchChanged");
                 listener.OnActiveBranchChanged();
                 managerAutoResetEvent?.OnActiveBranchChanged.Set();
             };
 
-            repositoryManager.OnActiveRemoteChanged += () => {
+            repositoryManager.Repository.OnActiveRemoteChanged += remote => {
                 logger?.Trace("OnActiveRemoteChanged");
                 listener.OnActiveRemoteChanged();
                 managerAutoResetEvent?.OnActiveRemoteChanged.Set();
@@ -81,12 +79,6 @@ namespace TestUtils.Events
                 managerAutoResetEvent?.OnRemoteBranchListChanged.Set();
             };
 
-            repositoryManager.OnRemoteOrTrackingChanged += () => {
-                logger?.Trace("OnRemoteOrTrackingChanged");
-                listener.OnRemoteOrTrackingChanged();
-                managerAutoResetEvent?.OnRemoteOrTrackingChanged.Set();
-            };
-
             repositoryManager.OnLocksUpdated += locks => {
                 var lockArray = locks.ToArray();
                 logger?.Trace("OnLocksUpdated Count:{0}", lockArray.Length);
@@ -97,13 +89,12 @@ namespace TestUtils.Events
 
         public static void AssertDidNotReceiveAnyCalls(this IRepositoryManagerListener repositoryManagerListener)
         {
-            repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().OnStatusUpdate(Args.GitStatus);
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged();
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged();
             repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-            repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
     }
