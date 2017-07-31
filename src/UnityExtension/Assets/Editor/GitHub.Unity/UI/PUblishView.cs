@@ -11,6 +11,7 @@ namespace GitHub.Unity
         private const string Title = "Publish this repository to GitHub";
         private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
         private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
+        private const string PublishViewCreateButton = "Create";
 
         [SerializeField] private string username;
         [SerializeField] private string[] owners = { };
@@ -193,7 +194,7 @@ namespace GitHub.Unity
             {
                 GUILayout.FlexibleSpace();
                 GUI.enabled = !string.IsNullOrEmpty(repoName) && !isBusy;
-                if (GUILayout.Button("Create"))
+                if (GUILayout.Button(PublishViewCreateButton))
                 {
                     isBusy = true;
 
