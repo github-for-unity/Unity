@@ -1,12 +1,11 @@
 using System;
-using UnityEngine;
 
 namespace GitHub.Unity
 {
     [Serializable]
     class GitCommitTarget
     {
-        [SerializeField] public bool All = false;
+        public bool All = false;
 
         public void Clear()
         {
