@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using NUnit.Framework;
 using TestUtils;
 using GitHub.Unity;
@@ -30,6 +31,7 @@ namespace UnitTests
         [Test]
         public void NullListShouldNotEqualListOf1()
         {
+            var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
             var entries = new[]
             {
                 new GitLogEntry
@@ -42,7 +44,8 @@ namespace UnitTests
                     CommitID = "CommitID",
                     Summary = "Summary",
                     Description = "Description",
-                    Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 }
             };
             GitLogEntry[] otherEntries = null;
@@ -53,6 +56,7 @@ namespace UnitTests
         [Test]
         public void EmptyListShouldNotEqualListOf1()
         {
+            var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
             var entries = new[]
             {
                 new GitLogEntry
@@ -65,7 +69,8 @@ namespace UnitTests
                     CommitID = "CommitID",
                     Summary = "Summary",
                     Description = "Description",
-                    Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 }
             };
             GitLogEntry[] otherEntries = new GitLogEntry[0];
@@ -76,6 +81,7 @@ namespace UnitTests
         [Test]
         public void ListOf1ShouldEqualListOf1()
         {
+            var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
             var entries = new[]
             {
                 new GitLogEntry
@@ -92,7 +98,8 @@ namespace UnitTests
                     CommitID = "CommitID",
                     Summary = "Summary",
                     Description = "Description",
-                    Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 }
             };
 
@@ -112,7 +119,8 @@ namespace UnitTests
                     CommitID = "CommitID",
                     Summary = "Summary",
                     Description = "Description",
-                    Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 }
             };
 
@@ -122,6 +130,9 @@ namespace UnitTests
         [Test]
         public void ListOf2ShouldEqualListOf2()
         {
+            var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
+            var otherCommitTime = new DateTimeOffset(1981, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
+
             var entries = new[]
             {
                 new GitLogEntry
@@ -138,7 +149,8 @@ namespace UnitTests
                     CommitID = "CommitID",
                     Summary = "Summary",
                     Description = "Description",
-                    Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 },
                 new GitLogEntry
                 {
@@ -150,7 +162,8 @@ namespace UnitTests
                     CommitID = "OtherCommitID",
                     Summary = "OtherSummary",
                     Description = "OtherDescription",
-                    Time = new DateTimeOffset(1981, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                    TimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 }
             };
 
@@ -170,7 +183,8 @@ namespace UnitTests
                     CommitID = "CommitID",
                     Summary = "Summary",
                     Description = "Description",
-                    Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 },
                 new GitLogEntry
                 {
@@ -182,7 +196,8 @@ namespace UnitTests
                     CommitID = "OtherCommitID",
                     Summary = "OtherSummary",
                     Description = "OtherDescription",
-                    Time = new DateTimeOffset(1981, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                    TimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 }
             };
 
@@ -192,6 +207,9 @@ namespace UnitTests
         [Test]
         public void ListOf2ShouldNotEqualListOf2InDifferentOrder()
         {
+            var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
+            var otherCommitTime = new DateTimeOffset(1981, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
+
             var entries = new[]
             {
                 new GitLogEntry
@@ -208,7 +226,8 @@ namespace UnitTests
                     CommitID = "CommitID",
                     Summary = "Summary",
                     Description = "Description",
-                    Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 },
                 new GitLogEntry
                 {
@@ -220,7 +239,8 @@ namespace UnitTests
                     CommitID = "OtherCommitID",
                     Summary = "OtherSummary",
                     Description = "OtherDescription",
-                    Time = new DateTimeOffset(1981, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                    TimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 }
             };
 
@@ -236,7 +256,8 @@ namespace UnitTests
                     CommitID = "OtherCommitID",
                     Summary = "OtherSummary",
                     Description = "OtherDescription",
-                    Time = new DateTimeOffset(1981, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                    TimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 },
                 new GitLogEntry
                 {
@@ -252,7 +273,8 @@ namespace UnitTests
                     CommitID = "CommitID",
                     Summary = "Summary",
                     Description = "Description",
-                    Time = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero)
+                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 }
             };
 

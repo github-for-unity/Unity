@@ -48,7 +48,7 @@ namespace UnitTests
             credentialManager.DidNotReceive().Save(Arg.Any<ICredential>());
 
             keychain.HasKeys.Should().BeFalse();
-            keychain.Connections.Should().BeEmpty();
+            keychain.Hosts.Should().BeEmpty();
         }
 
         [Test]
@@ -88,7 +88,7 @@ namespace UnitTests
             credentialManager.DidNotReceive().Save(Arg.Any<ICredential>());
 
             keychain.HasKeys.Should().BeFalse();
-            keychain.Connections.Should().BeEmpty();
+            keychain.Hosts.Should().BeEmpty();
         }
 
         [Test]
@@ -130,7 +130,7 @@ namespace UnitTests
             credentialManager.DidNotReceive().Save(Arg.Any<ICredential>());
 
             keychain.HasKeys.Should().BeTrue();
-            keychain.Connections.Should().BeEquivalentTo(hostUri);
+            keychain.Hosts.Should().BeEquivalentTo(hostUri);
         }
 
         [Test]
@@ -177,7 +177,7 @@ namespace UnitTests
             fileSystem.DidNotReceive().WriteAllText(Args.String, Args.String);
             fileSystem.DidNotReceive().WriteAllLines(Args.String, Arg.Any<string[]>());
 
-            var uriString = keychain.Connections.FirstOrDefault();
+            var uriString = keychain.Hosts.FirstOrDefault();
             var keychainAdapter = keychain.Load(uriString).Result;
             keychainAdapter.Credential.Username.Should().Be(username);
             keychainAdapter.Credential.Token.Should().Be(token);
@@ -227,7 +227,7 @@ namespace UnitTests
             fileSystem.DidNotReceive().WriteAllText(Args.String, Args.String);
             fileSystem.ClearReceivedCalls();
 
-            var uriString = keychain.Connections.FirstOrDefault();
+            var uriString = keychain.Hosts.FirstOrDefault();
             var keychainAdapter = keychain.Load(uriString).Result;
             keychainAdapter.Credential.Should().BeNull();
 
@@ -302,7 +302,7 @@ namespace UnitTests
 
             fileSystem.ClearReceivedCalls();
 
-            var uriString = keychain.Connections.FirstOrDefault();
+            var uriString = keychain.Hosts.FirstOrDefault();
             var keychainAdapter = keychain.Load(uriString).Result;
             keychainAdapter.Credential.Should().BeNull();
 
@@ -364,7 +364,7 @@ namespace UnitTests
             credentialManager.DidNotReceive().Save(Arg.Any<ICredential>());
 
             keychain.HasKeys.Should().BeFalse();
-            keychain.Connections.Should().BeEmpty();
+            keychain.Hosts.Should().BeEmpty();
 
             var keychainAdapter = keychain.Connect(hostUri);
 
@@ -392,7 +392,7 @@ namespace UnitTests
             keychainAdapter.Credential.Token.Should().Be(token);
             keychainAdapter.OctokitCredentials.AuthenticationType.Should().Be(AuthenticationType.Basic);
             keychainAdapter.OctokitCredentials.Login.Should().Be(username);
-            keychainAdapter.OctokitCredentials.Password.Should().Be(password);
+            keychainAdapter.OctokitCredentials.Password.Should().Be(token);
 
             keychain.Save(hostUri).Wait();
 
@@ -449,7 +449,7 @@ namespace UnitTests
             credentialManager.DidNotReceive().Save(Arg.Any<ICredential>());
 
             keychain.HasKeys.Should().BeFalse();
-            keychain.Connections.Should().BeEmpty();
+            keychain.Hosts.Should().BeEmpty();
 
             var keychainAdapter = keychain.Connect(hostUri);
 
@@ -471,10 +471,7 @@ namespace UnitTests
 
             keychain.Clear(hostUri, false).Wait();
 
-            keychainAdapter.Credential.Should().NotBeNull();
-            keychainAdapter.Credential.Host.Should().Be(hostUri);
-            keychainAdapter.Credential.Username.Should().Be(username);
-            keychainAdapter.Credential.Token.Should().Be(password);
+            keychainAdapter.Credential.Should().BeNull();
             keychainAdapter.OctokitCredentials.AuthenticationType.Should().Be(AuthenticationType.Anonymous);
             keychainAdapter.OctokitCredentials.Login.Should().BeNull();
             keychainAdapter.OctokitCredentials.Password.Should().BeNull();

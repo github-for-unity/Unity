@@ -102,6 +102,7 @@ namespace GitHub.Unity
 
         public override void Refresh()
         {
+            base.Refresh();
             RefreshLog();
 #if ENABLE_BROADMODE
             if (broadMode)

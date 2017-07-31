@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using FluentAssertions;
 using NUnit.Framework;
 using GitHub.Unity;
@@ -36,6 +37,9 @@ namespace IntegrationTests
                 .GetGitLogEntries(TestRepoMasterCleanUnsynchronized, Environment, GitEnvironment, 2)
                 .StartAsAsync();
 
+            var firstCommitTime = new DateTimeOffset(2017, 1, 27, 17, 19, 32, TimeSpan.FromHours(-5));
+            var secondCommitTime = new DateTimeOffset(2017, 1, 17, 11, 46, 16, TimeSpan.FromHours(-8));
+
             logEntries.AssertEqual(new[]
             {
                 new GitLogEntry
@@ -53,8 +57,8 @@ namespace IntegrationTests
                     CommitID = "018997938335742f8be694240a7c2b352ec0835f",
                     Description = "Moving project files where they should be kept",
                     Summary = "Moving project files where they should be kept",
-                    Time = new DateTimeOffset(2017, 1, 27, 17, 19, 32, TimeSpan.FromHours(-5)),
-                    CommitTime = new DateTimeOffset(2017, 1, 27, 17, 19, 32, TimeSpan.FromHours(-5)),
+                    TimeString = firstCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = firstCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 },
                 new GitLogEntry
                 {
@@ -71,8 +75,8 @@ namespace IntegrationTests
                     CommitID = "03939ffb3eb8486dba0259b43db00842bbe6eca1",
                     Description = "Initial Commit",
                     Summary = "Initial Commit",
-                    Time = new DateTimeOffset(2017, 1, 17, 11, 46, 16, TimeSpan.FromHours(-8)),
-                    CommitTime = new DateTimeOffset(2017, 1, 17, 11, 46, 16, TimeSpan.FromHours(-8)),
+                    TimeString = secondCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = secondCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 },
             });
         }
@@ -86,6 +90,8 @@ namespace IntegrationTests
             logEntries = await ProcessManager
                 .GetGitLogEntries(TestRepoMasterCleanUnsynchronizedRussianLanguage, Environment, GitEnvironment, 1)
                 .StartAsAsync();
+
+            var commitTime = new DateTimeOffset(2017, 4, 20, 11, 47, 18, TimeSpan.FromHours(-4));
 
             logEntries.AssertEqual(new[]
             {
@@ -104,8 +110,8 @@ namespace IntegrationTests
                     CommitID = "06d6451d351626894a30e9134f551db12c74254b",
                     Description = "Я люблю github",
                     Summary = "Я люблю github",
-                    Time = new DateTimeOffset(2017, 4, 20, 11, 47, 18, TimeSpan.FromHours(-4)),
-                    CommitTime = new DateTimeOffset(2017, 4, 20, 11, 47, 18, TimeSpan.FromHours(-4)),
+                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
                 }
             });
         }
