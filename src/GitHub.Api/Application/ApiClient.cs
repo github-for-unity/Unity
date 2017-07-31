@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Octokit;
@@ -9,6 +11,8 @@ namespace GitHub.Unity
     {
         public static IApiClient Create(UriString repositoryUrl, IKeychain keychain)
         {
+            logger.Trace("Creating ApiClient: {0}", repositoryUrl);
+
             var credentialStore = keychain.Connect(repositoryUrl);
             var hostAddress = HostAddress.Create(repositoryUrl);
 
@@ -26,6 +30,9 @@ namespace GitHub.Unity
         private static readonly SemaphoreSlim sem = new SemaphoreSlim(1);
 
         Octokit.Repository repositoryCache = new Octokit.Repository();
+        IList<Organization> organizationsCache;
+        Octokit.User userCache;
+
         string owner;
         bool? isEnterprise;
 
@@ -42,14 +49,14 @@ namespace GitHub.Unity
             loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
         }
 
-        public async void GetRepository(Action<Octokit.Repository> callback)
+        public async Task GetRepository(Action<Octokit.Repository> callback)
         {
             Guard.ArgumentNotNull(callback, "callback");
             var repo = await GetRepositoryInternal();
             callback(repo);
         }
 
-        public async void Logout(UriString host)
+        public async Task Logout(UriString host)
         {
             await LogoutInternal(host);
         }
@@ -57,6 +64,26 @@ namespace GitHub.Unity
         private async Task LogoutInternal(UriString host)
         {
             await loginManager.Logout(host);
+        }
+
+        public async Task CreateRepository(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization = null)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            await CreateRepositoryInternal(newRepository, callback, organization);
+        }
+
+        public async Task GetOrganizations(Action<IList<Organization>> callback)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            var organizations = await GetOrganizationInternal();
+            callback(organizations);
+        }
+
+        public async Task GetCurrentUser(Action<Octokit.User> callback)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            var user = await GetCurrentUserInternal();
+            callback(user);
         }
 
         public async Task Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result)
@@ -188,6 +215,74 @@ namespace GitHub.Unity
             }
 
             return repositoryCache;
+        }
+
+        private async Task CreateRepositoryInternal(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization)
+        {
+            try
+            {
+                logger.Trace("Creating Repository");
+
+                Octokit.Repository repository;
+                if (organization != null)
+                {
+                    repository = await githubClient.Repository.Create(organization, newRepository);
+                }
+                else
+                {
+                    repository = await githubClient.Repository.Create(newRepository);
+                }
+
+                logger.Trace("Created Repository");
+
+                callback(repository, null);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error Creating Repository");
+                callback(null, ex);
+            }
+        }
+
+        private async Task<IList<Organization>> GetOrganizationInternal()
+        {
+            try
+            {
+                logger.Trace("Getting Organizations");
+
+                var organizations = await githubClient.Organization.GetAllForCurrent();
+
+                logger.Trace("Obtained {0} Organizations", organizations?.Count.ToString() ?? "NULL");
+
+                if (organizations != null)
+                {
+                    organizationsCache = organizations.ToArray();
+                }
+            }
+            catch(Exception ex)
+            {
+                logger.Error(ex, "Error Getting Organizations");
+                throw;
+            }
+
+            return organizationsCache;
+        }
+
+        private async Task<Octokit.User> GetCurrentUserInternal()
+        {
+            try
+            {
+                logger.Trace("Getting Organizations");
+
+                userCache = await githubClient.User.Current();
+            }
+            catch(Exception ex)
+            {
+                logger.Error(ex, "Error Getting Current User");
+                throw;
+            }
+
+            return userCache;
         }
 
         public async Task<bool> ValidateCredentials()
