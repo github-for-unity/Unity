@@ -6,7 +6,7 @@ namespace GitHub.Unity
 {
     static class TreeBuilder
     {
-        internal static void BuildChildNode(FileTreeNode parent, FileTreeNode node, List<string> foldedTreeEntries)
+        internal static void BuildChildNode(FileTreeNode parent, FileTreeNode node, HashSet<string> foldedTreeSet)
         {
             if (String.IsNullOrEmpty(node.Label))
             {
@@ -15,7 +15,7 @@ namespace GitHub.Unity
             }
 
             node.RepositoryPath = parent.RepositoryPath.ToNPath().Combine(node.Label);
-            parent.Open = !foldedTreeEntries.Contains(parent.RepositoryPath);
+            parent.Open = !foldedTreeSet.Contains(parent.RepositoryPath);
 
             // Is this node inside a folder?
             var nodePath = node.Label.ToNPath();
@@ -33,7 +33,7 @@ namespace GitHub.Unity
                     if (child.Label.Equals(root))
                     {
                         found = true;
-                        BuildChildNode(child, node, foldedTreeEntries);
+                        BuildChildNode(child, node, foldedTreeSet);
                         break;
                     }
                 }
@@ -42,20 +42,21 @@ namespace GitHub.Unity
                 if (!found)
                 {
                     var p = parent.RepositoryPath.ToNPath().Combine(root);
-                    BuildChildNode(parent.Add(new FileTreeNode(root) { RepositoryPath = p }), node, foldedTreeEntries);
+                    BuildChildNode(parent.Add(new FileTreeNode(root) { RepositoryPath = p }), node, foldedTreeSet);
                 }
             }
             else if (nodePath.ExtensionWithDot == ".meta")
             {
                 // Look for a branch matching our root in the existing children
                 var found = false;
+                var searchLabel = nodePath.Parent.Combine(nodePath.FileNameWithoutExtension);
                 foreach (var child in parent.Children)
                 {
                     // If we found the branch, continue building from that branch
-                    if (child.Label.Equals(nodePath.Parent.Combine(nodePath.FileNameWithoutExtension)))
+                    if (child.Label.Equals(searchLabel))
                     {
                         found = true;
-                        BuildChildNode(child, node, foldedTreeEntries);
+                        BuildChildNode(child, node, foldedTreeSet);
                         break;
                     }
                 }
@@ -75,10 +76,13 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNullOrEmpty(newEntries, "newEntries");
 
+            var newEntriesSetByPath = new HashSet<string>(newEntries.Select(entry => entry.Path));
+            var gitStatusEntriesSetByPath = new HashSet<string>(gitStatusEntries.Select(entry => entry.Path));
+
             // Remove what got nuked
             for (var index = 0; index < gitStatusEntries.Count;)
             {
-                if (!newEntries.Contains(gitStatusEntries[index]))
+                if (!newEntriesSetByPath.Contains(gitStatusEntries[index].Path))
                 {
                     gitStatusEntries.RemoveAt(index);
                     gitCommitTargets.RemoveAt(index);
@@ -92,7 +96,7 @@ namespace GitHub.Unity
             // Remove folding state of nuked items
             for (var index = 0; index < foldedTreeEntries.Count;)
             {
-                if (!newEntries.Any(e => e.Path.IndexOf(foldedTreeEntries[index]) == 0))
+                if (newEntries.All(e => e.Path.IndexOf(foldedTreeEntries[index], StringComparison.CurrentCulture) != 0))
                 {
                     foldedTreeEntries.RemoveAt(index);
                 }
@@ -102,11 +106,13 @@ namespace GitHub.Unity
                 }
             }
 
+            var foldedTreeSet = new HashSet<string>(foldedTreeEntries);
+
             // Add new stuff
             for (var index = 0; index < newEntries.Count; ++index)
             {
                 var entry = newEntries[index];
-                if (!gitStatusEntries.Contains(entry))
+                if (!gitStatusEntriesSetByPath.Contains(entry.Path))
                 {
                     gitStatusEntries.Add(entry);
                     gitCommitTargets.Add(new GitCommitTarget());
@@ -132,7 +138,7 @@ namespace GitHub.Unity
                     node.Icon = iconLoaderFunc?.Invoke(gitStatusEntry.ProjectPath);
                 }
 
-                BuildChildNode(tree, node, foldedTreeEntries);
+                BuildChildNode(tree, node, foldedTreeSet);
             }
 
             return tree;
