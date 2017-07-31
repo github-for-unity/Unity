@@ -52,20 +52,10 @@ namespace GitHub.Unity
             }
             else
             {
-                var progress = new ProgressReport();
+                GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
+                Environment.GitExecutablePath = await DetermineGitExecutablePath();
 
-                var gitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
-                var gitSetup = new GitInstaller(Environment, CancellationToken);
-                var expectedPath = gitSetup.GitInstallationPath;
-                var setupDone = await gitSetup.SetupIfNeeded(progress.Percentage, progress.Remaining);
-                if (setupDone)
-                    Environment.GitExecutablePath = gitSetup.GitExecutablePath;
-                else
-                    Environment.GitExecutablePath = await LookForGitInstallationPath(gitClient, SystemSettings).SafeAwait();
-
-                GitClient = gitClient;
-
-                Logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", gitSetup.GitExecutablePath, gitSetup.GitExecutablePath.FileExists());
+                Logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", Environment.GitExecutablePath, Environment.GitExecutablePath.FileExists());
 
                 if (Environment.IsWindows)
                 {
@@ -152,7 +142,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("Loading Keychain");
 
-            var firstConnection = Platform.Keychain.Connections.FirstOrDefault();
+            var firstConnection = Platform.Keychain.Hosts.FirstOrDefault();
             if (firstConnection == null)
             {
                 Logger.Trace("No Host Found");
@@ -164,19 +154,25 @@ namespace GitHub.Unity
             }
         }
 
-        private static async Task<NPath> LookForGitInstallationPath(IGitClient gitClient, ISettings systemSettings)
+        private async Task<NPath> DetermineGitExecutablePath(ProgressReport progress = null)
         {
-            NPath cachedGitInstallPath = null;
-            var path = systemSettings.Get(Constants.GitInstallPathKey);
-            if (!String.IsNullOrEmpty(path))
-                cachedGitInstallPath = path.ToNPath();
-
-            // Root paths
-            if (cachedGitInstallPath != null && cachedGitInstallPath.DirectoryExists())
+            var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();
+            if (gitExecutablePath != null && gitExecutablePath.FileExists())
             {
-                return cachedGitInstallPath;
+                Logger.Trace("Using git install path from settings");
+                return gitExecutablePath;
             }
-            return await gitClient.FindGitInstallation();
+
+            var gitInstaller = new GitInstaller(Environment, CancellationToken);
+            var setupDone = await gitInstaller.SetupIfNeeded(progress?.Percentage, progress?.Remaining);
+            if (setupDone)
+            {
+                Logger.Trace("Setup performed using new path");
+                return gitInstaller.GitExecutablePath;
+            }
+
+            Logger.Trace("Finding git install path");
+            return await GitClient.FindGitInstallation().SafeAwait();
         }
 
         protected void SetupMetrics(string unityVersion, bool firstRun)

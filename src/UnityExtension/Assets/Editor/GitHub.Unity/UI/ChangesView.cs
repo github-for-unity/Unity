@@ -40,7 +40,7 @@ namespace GitHub.Unity
                 return;
 
             OnStatusUpdate(Repository.CurrentStatus);
-            Repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
+            Repository.OnStatusUpdated += RunStatusUpdateOnMainThread;
             Repository.Refresh();
         }
 
@@ -49,7 +49,7 @@ namespace GitHub.Unity
             base.OnDisable();
             if (Repository == null)
                 return;
-            Repository.OnRepositoryChanged -= RunStatusUpdateOnMainThread;
+            Repository.OnStatusUpdated -= RunStatusUpdateOnMainThread;
         }
 
         private void RunStatusUpdateOnMainThread(GitStatus status)

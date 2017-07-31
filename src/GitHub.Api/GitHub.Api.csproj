@@ -146,7 +146,7 @@
     <Compile Include="Installer\GitInstaller.cs" />
     <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
-    <Compile Include="Platform\LocalSettings.cs" />
+    <Compile Include="Platform\Settings.cs" />
     <Compile Include="OutputProcessors\BranchListOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LockOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LogEntryOutputProcessor.cs" />

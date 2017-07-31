@@ -90,7 +90,6 @@ namespace GitHub.Unity
         {
             Height = 0f;
             Redraw();
-            Redraw();
         }
 
         public void UpdateEntries(IList<GitStatusEntry> newEntries)

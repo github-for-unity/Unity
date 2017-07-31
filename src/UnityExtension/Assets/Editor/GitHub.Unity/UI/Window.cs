@@ -70,7 +70,6 @@ namespace GitHub.Unity
             ChangesTab.InitializeView(this);
             BranchesTab.InitializeView(this);
             SettingsTab.InitializeView(this);
-            ActiveTab.InitializeView(this);
         }
 
         public override void OnEnable()
