@@ -12,25 +12,16 @@ namespace GitHub.Unity
         private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
         private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
 
-        [SerializeField]
-        private string username;
-        [SerializeField]
-        private string[] owners = { };
-        [SerializeField]
-        private int selectedOwner;
-        [SerializeField]
-        private string repoName = String.Empty;
-        [SerializeField]
-        private string repoDescription = "";
-        [SerializeField]
-        private bool togglePrivate;
+        [SerializeField] private string username;
+        [SerializeField] private string[] owners = { };
+        [SerializeField] private int selectedOwner;
+        [SerializeField] private string repoName = String.Empty;
+        [SerializeField] private string repoDescription = "";
+        [SerializeField] private bool togglePrivate;
 
-        [NonSerialized]
-        private IApiClient client;
-        [NonSerialized]
-        private bool isBusy;
-        [NonSerialized]
-        private string error;
+        [NonSerialized] private IApiClient client;
+        [NonSerialized] private bool isBusy;
+        [NonSerialized] private string error;
 
         public IApiClient Client
         {
