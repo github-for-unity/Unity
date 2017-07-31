@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace GitHub.Unity
@@ -19,8 +20,8 @@ namespace GitHub.Unity
         public string CommitName;
         public string Summary;
         public string Description;
-        public DateTimeOffset Time;
-        public DateTimeOffset CommitTime;
+        public string TimeString;
+        public string CommitTimeString;
         public List<GitStatusEntry> Changes;
 
         public string ShortID
@@ -41,11 +42,43 @@ namespace GitHub.Unity
             }
         }
 
+        [NonSerialized] public DateTimeOffset? timeValue;
+        public DateTimeOffset Time
+        {
+            get
+            {
+                if (!timeValue.HasValue)
+                {
+                    timeValue = DateTimeOffset.Parse(TimeString);
+                }
+
+                return timeValue.Value;
+            }
+        }
+
+        [NonSerialized] public DateTimeOffset? commitTimeValue;
+        public DateTimeOffset? CommitTime
+        {
+            get
+            {
+                if (!timeValue.HasValue && !string.IsNullOrEmpty(CommitTimeString))
+                {
+                    commitTimeValue = DateTimeOffset.Parse(CommitTimeString);
+                }
+
+                return commitTimeValue;
+            }
+        }
+
         public void Clear()
         {
             CommitID = MergeA = MergeB = AuthorName = AuthorEmail = Summary = Description = "";
-            Time = DateTimeOffset.Now;
-            Changes = new List<GitStatusEntry>();
+
+            timeValue = DateTimeOffset.MinValue;
+            TimeString = timeValue.Value.ToString(DateTimeFormatInfo.CurrentInfo);
+
+            commitTimeValue = null;
+            CommitTimeString = null;
         }
 
         public override string ToString()
