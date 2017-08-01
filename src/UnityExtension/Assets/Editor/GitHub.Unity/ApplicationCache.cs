@@ -167,11 +167,11 @@ namespace GitHub.Unity
         }
     }
 
-    [Location("cache/log.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class LogCache : ScriptObjectSingleton<LogCache>
+    [Location("cache/gitlog.yaml", LocationAttribute.Location.LibraryFolder)]
+    sealed class GitLogCache : ScriptObjectSingleton<GitLogCache>
     {
         [SerializeField] private List<GitLogEntry> log;
-        public LogCache()
+        public GitLogCache()
         {}
 
         public List<GitLogEntry> Log
