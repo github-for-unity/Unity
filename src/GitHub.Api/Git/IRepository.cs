@@ -8,6 +8,7 @@ namespace GitHub.Unity
     /// </summary>
     interface IRepository : IEquatable<IRepository>
     {
+        void Initialize();
         void Refresh();
         ITask SetupRemote(string remoteName, string remoteUrl);
         ITask Pull();
@@ -58,5 +59,6 @@ namespace GitHub.Unity
         event Action OnLocalBranchListChanged;
         event Action OnHeadChanged;
         event Action<IEnumerable<GitLock>> OnLocksUpdated;
+        event Action OnRepositoryInfoChanged;
     }
 }

@@ -26,7 +26,7 @@ namespace IntegrationTests
             UserCachePath = integrationTestEnvironmentPath.Combine("User");
             SystemCachePath = integrationTestEnvironmentPath.Combine("System");
 
-            var installPath = solutionDirectory.Parent.Parent.Parent.Combine("GitHub.Api");
+            var installPath = solutionDirectory.Parent.Parent.Combine("src", "GitHub.Api");
 
             Initialize(UnityVersion, installPath, solutionDirectory, repoPath.Combine("Assets"));
             InitializeRepository();
