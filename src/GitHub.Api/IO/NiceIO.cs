@@ -62,7 +62,7 @@ GitHub.Unity
         public NPath(string path)
         {
             if (path == null)
-                throw new ArgumentNullException();
+                throw new ArgumentNullException("path");
 
             path = ParseDriveLetter(path, out _driveLetter);
 
