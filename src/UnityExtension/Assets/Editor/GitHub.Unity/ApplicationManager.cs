@@ -23,11 +23,7 @@ namespace GitHub.Unity
 
         protected override void SetupMetrics()
         {
-
-            new ActionTask(CancellationToken,
-                    () => SetupMetrics(Environment.UnityVersion, ApplicationCache.Instance.FirstRun))
-                { Affinity = TaskAffinity.UI }
-                .Start();
+            SetupMetrics(Environment.UnityVersion, ApplicationCache.Instance.FirstRun);
         }
 
         protected override void InitializeUI()
