@@ -11,7 +11,6 @@ namespace GitHub.Unity
     {
         protected static ILogging Logger { get; } = Logging.GetLogger<IApplicationManager>();
 
-        private IEnvironment environment;
         private RepositoryManager repositoryManager;
 
         public ApplicationManagerBase(SynchronizationContext synchronizationContext)
@@ -212,7 +211,7 @@ namespace GitHub.Unity
             {
                 if (disposed) return;
                 disposed = true;
-                if (TaskManager != null) TaskManager.Stop();
+                if (TaskManager != null) TaskManager.Dispose();
                 if (repositoryManager != null) repositoryManager.Dispose();
             }
         }

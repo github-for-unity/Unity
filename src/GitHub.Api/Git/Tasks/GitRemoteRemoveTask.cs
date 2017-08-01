@@ -5,6 +5,7 @@ namespace GitHub.Unity
 {
     class GitRemoteRemoveTask : ProcessTask<string>
     {
+        private const string TaskName = "git remote rm";
         private readonly string arguments;
 
         public GitRemoteRemoveTask(string remote,
@@ -12,10 +13,10 @@ namespace GitHub.Unity
             : base(token, processor ?? new SimpleOutputProcessor())
         {
             Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
+            Name = TaskName;
             arguments = String.Format("remote rm {0}", remote);
         }
 
-        public override string Name { get { return "git remote rm"; } }
         public override string ProcessArguments { get { return arguments; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Exclusive; } }
     }

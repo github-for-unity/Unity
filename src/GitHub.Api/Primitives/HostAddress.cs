@@ -16,7 +16,7 @@ namespace GitHub.Unity
         /// <returns></returns>
         public static HostAddress Create(Uri hostUri)
         {
-            return IsGitHubDotComUri(hostUri)
+            return IsGitHubDotCom(hostUri)
                 ? GitHubDotComHostAddress
                 : new HostAddress(hostUri);
         }
@@ -68,16 +68,26 @@ namespace GitHub.Unity
         // since that's the same cache key for all the other github.com operations.
         public string CredentialCacheKeyHost { get; private set; }
 
-        public static bool IsGitHubDotComUri(Uri hostUri)
+        public static bool IsGitHubDotCom(Uri hostUri)
         {
             return hostUri.IsSameHost(GitHubDotComHostAddress.WebUri)
                    || hostUri.IsSameHost(GitHubDotComHostAddress.ApiUri)
                    || hostUri.IsSameHost(gistUri);
         }
 
+        public static bool IsGitHubDotCom(string url)
+        {
+            if (String.IsNullOrEmpty(url))
+                return false;
+            Uri uri = null;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
+                return false;
+            return IsGitHubDotCom(uri);
+        }
+
         public bool IsGitHubDotCom()
         {
-            return IsGitHubDotComUri(ApiUri);
+            return IsGitHubDotCom(ApiUri);
         }
 
         public string Title

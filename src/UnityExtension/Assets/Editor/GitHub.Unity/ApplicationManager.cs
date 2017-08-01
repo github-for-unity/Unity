@@ -34,9 +34,9 @@ namespace GitHub.Unity
         {
             Logger.Trace("Restarted {0}", Environment.Repository);
             ProjectWindowInterface.Initialize(Environment.Repository);
-            var view = Window.GetWindow();
-            if (view != null)
-                view.Initialize(this);
+            var window = Window.GetWindow();
+            if (window != null)
+                window.Initialize(this);
         }
 
         protected override void SetProjectToTextSerialization()

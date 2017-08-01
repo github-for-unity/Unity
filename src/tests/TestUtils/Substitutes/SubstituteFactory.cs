@@ -294,6 +294,9 @@ namespace TestUtils
 
             fileSystem.GetFullPath(Args.String).Returns(info => Path.GetFullPath((string)info[0]));
 
+            fileSystem.GetFileNameWithoutExtension(Args.String)
+                      .Returns(info => Path.GetFileNameWithoutExtension((string)info[0]));
+
             return fileSystem;
         }
 

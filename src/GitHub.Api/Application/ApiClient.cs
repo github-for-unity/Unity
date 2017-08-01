@@ -205,7 +205,7 @@ namespace GitHub.Unity
             // it'll throw if it's private or an enterprise instance requiring authentication
             catch (ApiException apiex)
             {
-                if (!HostAddress.IsGitHubDotComUri(OriginalUrl.ToRepositoryUri()))
+                if (!HostAddress.IsGitHubDotCom(OriginalUrl.ToRepositoryUri()))
                     isEnterprise = apiex.IsGitHubApiException();
             }
             catch {}

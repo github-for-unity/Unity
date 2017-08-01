@@ -5,6 +5,7 @@ namespace GitHub.Unity
 {
     class GitAddTask : ProcessTask<string>
     {
+        private const string TaskName = "git add";
         private readonly string arguments;
 
         public GitAddTask(IEnumerable<string> files,
@@ -12,6 +13,7 @@ namespace GitHub.Unity
             : base(token, processor ?? new SimpleOutputProcessor())
         {
             Guard.ArgumentNotNull(files, "files");
+            Name = TaskName;
 
             arguments = "add ";
             arguments += " -- ";
@@ -22,7 +24,6 @@ namespace GitHub.Unity
             }
         }
 
-        public override string Name { get { return "git add"; } }
         public override string ProcessArguments { get { return arguments; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Exclusive; } }
     }

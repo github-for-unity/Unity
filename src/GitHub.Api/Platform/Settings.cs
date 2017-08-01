@@ -16,7 +16,7 @@ namespace GitHub.Unity
         public abstract void Unset(string key);
 
         protected virtual string SettingsFileName { get; set; }
-        protected virtual NPath SettingsPath { get; set; }
+        protected NPath SettingsPath { get; set; }
     }
 
     class JsonBackedSettings : BaseSettings
@@ -111,16 +111,16 @@ namespace GitHub.Unity
             SaveToCache(cachePath);
         }
 
-        private void LoadFromCache(string cachePath)
+        private void LoadFromCache(string path)
         {
-            logger.Trace("LoadFromCache: {0}", cachePath);
+            logger.Trace("LoadFromCache: {0}", path);
 
-            EnsureCachePath(cachePath);
+            EnsureCachePath(path);
 
-            if (!fileExists(cachePath))
+            if (!fileExists(path))
                 return;
 
-            var data = readAllText(cachePath, Encoding.UTF8);
+            var data = readAllText(path, Encoding.UTF8);
 
             try
             {
@@ -135,21 +135,21 @@ namespace GitHub.Unity
             if (cacheData == null)
             {
                 // cache is corrupt, remove
-                fileDelete(cachePath);
+                fileDelete(path);
                 return;
             }
         }
 
-        private bool SaveToCache(string cachePath)
+        private bool SaveToCache(string path)
         {
-            logger.Trace("SaveToCache: {0}", cachePath);
+            logger.Trace("SaveToCache: {0}", path);
 
-            EnsureCachePath(cachePath);
+            EnsureCachePath(path);
 
             try
             {
                 var data = SimpleJson.SerializeObject(cacheData);
-                writeAllText(cachePath, data);
+                writeAllText(path, data);
             }
             catch (Exception ex)
             {
@@ -160,12 +160,12 @@ namespace GitHub.Unity
             return true;
         }
 
-        private void EnsureCachePath(string cachePath)
+        private void EnsureCachePath(string path)
         {
-            if (fileExists(cachePath))
+            if (fileExists(path))
                 return;
 
-            var di = Path.GetDirectoryName(cachePath);
+            var di = Path.GetDirectoryName(path);
             if (!dirExists(di))
                 dirCreate(di);
         }
