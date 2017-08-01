@@ -37,6 +37,7 @@ namespace GitHub.Unity
         ITask UnlockFile(string file, bool force);
         Dictionary<string, ConfigBranch> LocalBranches { get; }
         Dictionary<string, Dictionary<string, ConfigBranch>> RemoteBranches { get; }
+        IRepository Repository { get; }
         IGitConfig Config { get; }
         ConfigBranch? ActiveBranch { get; }
         ConfigRemote? ActiveRemote { get; }
@@ -394,8 +395,7 @@ namespace GitHub.Unity
         }
 
         private void Watcher_OnIndexChanged()
-        {
-        }
+        { }
 
         private void Watcher_OnLocalBranchCreated(string name)
         {
@@ -603,7 +603,8 @@ namespace GitHub.Unity
             get { return activeBranch; }
             private set
             {
-                if (activeBranch.HasValue != value.HasValue || (activeBranch.HasValue && !activeBranch.Value.Equals(value.Value)))
+                if (activeBranch.HasValue != value.HasValue ||
+                    activeBranch.HasValue && !activeBranch.Value.Equals(value.Value))
                 {
                     activeBranch = value;
                     Logger.Trace("OnActiveBranchChanged: {0}", value?.ToString() ?? "NULL");
@@ -617,7 +618,8 @@ namespace GitHub.Unity
             get { return activeRemote; }
             private set
             {
-                if (activeRemote.HasValue != value.HasValue || (activeRemote.HasValue && !activeRemote.Value.Equals(value.Value)))
+                if (activeRemote.HasValue != value.HasValue ||
+                    activeRemote.HasValue && !activeRemote.Value.Equals(value.Value))
                 {
                     activeRemote = value;
                     Logger.Trace("OnActiveRemoteChanged: {0}", value?.ToString() ?? "NULL");
