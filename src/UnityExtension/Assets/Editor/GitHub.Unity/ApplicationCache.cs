@@ -21,12 +21,6 @@ namespace GitHub.Unity
                 return val;
             }
         }
-
-        [SerializeField] private string createdDate;
-        public string CreatedDate
-        {
-            get { return createdDate; }
-        }
     }
 
     sealed class EnvironmentCache : ScriptObjectSingleton<EnvironmentCache>
@@ -83,15 +77,14 @@ namespace GitHub.Unity
         }
     }
 
-    [Location("cache/branches.yaml", LocationAttribute.Location.UserFolder)]
+    [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class BranchCache : ScriptObjectSingleton<BranchCache>, IBranchCache
     {
         [SerializeField] private List<GitBranch> localBranches;
         [SerializeField] private List<GitBranch> remoteBranches;
-        [SerializeField] private List<GitBranch> test;
+
         public BranchCache()
         {
-            test = new List<GitBranch>() { new GitBranch("name", "tracking", false) };
         }
 
         public List<GitBranch> LocalBranches
@@ -104,7 +97,6 @@ namespace GitHub.Unity
             }
             set
             {
-                Logging.GetLogger().Debug("Saving branches {0}", value.Join(","));
                 localBranches = value;
                 Save(true);
             }
@@ -125,7 +117,7 @@ namespace GitHub.Unity
         }
     }
 
-    [Location("views/branches.yaml", LocationAttribute.Location.UserFolder)]
+    [Location("views/branches.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class Favourites : ScriptObjectSingleton<Favourites>
     {
         [SerializeField] private List<string> favouriteBranches;
@@ -172,6 +164,29 @@ namespace GitHub.Unity
         public bool IsFavourite(string branchName)
         {
             return FavouriteBranches.Contains(branchName);
+        }
+    }
+
+    [Location("cache/gitlog.yaml", LocationAttribute.Location.LibraryFolder)]
+    sealed class GitLogCache : ScriptObjectSingleton<GitLogCache>
+    {
+        [SerializeField] private List<GitLogEntry> log;
+        public GitLogCache()
+        {}
+
+        public List<GitLogEntry> Log
+        {
+            get
+            {
+                if (log == null)
+                    log = new List<GitLogEntry>();
+                return log;
+            }
+            set
+            {
+                log = value;
+                Save(true);
+            }
         }
     }
 }
