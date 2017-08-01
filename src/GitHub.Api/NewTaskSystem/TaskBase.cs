@@ -10,7 +10,7 @@ namespace GitHub.Unity
         ITask Catch(Action<Exception> handler);
         ITask Catch(Func<Exception, bool> handler);
         ITask Finally(Action handler);
-        ITask Finally(Action<bool, Exception> continuation, TaskAffinity affinity = TaskAffinity.Concurrent);
+        ITask Finally(Action<bool, Exception> actionToContinueWith, TaskAffinity affinity = TaskAffinity.Concurrent);
         ITask Defer<T>(Func<T, Task> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false);
         ITask Start();
         ITask Start(TaskScheduler scheduler);
@@ -157,22 +157,22 @@ namespace GitHub.Unity
             return this;
         }
 
-        public ITask Finally(Action<bool, Exception> continuation, TaskAffinity affinity = TaskAffinity.Concurrent)
+        public ITask Finally(Action<bool, Exception> actionToContinueWith, TaskAffinity affinity = TaskAffinity.Concurrent)
         {
-            Guard.ArgumentNotNull(continuation, "continuation");
-            var ret = Then(new ActionTask(Token, continuation) { Affinity = affinity, Name = "Finally" }, true);
+            Guard.ArgumentNotNull(actionToContinueWith, nameof(actionToContinueWith));
+            var ret = Then(new ActionTask(Token, actionToContinueWith) { Affinity = affinity, Name = "Finally" }, true);
             DependsOn?.SetFaultHandler(ret);
             ret.ContinuationIsFinally = true;
             return ret;
         }
 
-        internal virtual ITask Finally<T>(T continuation)
+        internal virtual ITask Finally<T>(T taskToContinueWith)
             where T : TaskBase
         {
-            Guard.ArgumentNotNull(continuation, "continuation");
+            Guard.ArgumentNotNull(taskToContinueWith, nameof(taskToContinueWith));
+            continuation = (TaskBase)(object)taskToContinueWith;
+            continuationAlways = true;
             continuation.SetDependsOn(this);
-            this.continuation = (TaskBase)(object)continuation;
-            this.continuationAlways = true;
             DependsOn?.SetFaultHandler((TaskBase)(object)continuation);
             return continuation;
         }
@@ -413,7 +413,6 @@ namespace GitHub.Unity
         public TaskBase(Task<TResult> task)
             : base()
         {
-            var scheduler = TaskManager.GetScheduler(Affinity);
             Task = new Task<TResult>(t =>
             {
                 TResult ret = default(TResult);

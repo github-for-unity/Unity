@@ -66,7 +66,7 @@ namespace GitHub.Unity
                                 }
                                 else
                                 {
-                                    throw new Exception("Unexpected deltaComponent in o");
+                                    throw new InvalidOperationException("Unexpected deltaComponent in o");
                                 }
                             }
                         }

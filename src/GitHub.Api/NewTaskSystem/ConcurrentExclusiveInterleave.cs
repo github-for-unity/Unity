@@ -391,8 +391,8 @@ namespace GitHub.Unity
             /// <param name="task">The task to be executed.</param>
             internal void ExecuteTask(Task task)
             {
-                var processingTaskOnCurrentThread = this.processingTaskOnCurrentThread.Value;
-                if (!processingTaskOnCurrentThread) this.processingTaskOnCurrentThread.Value = true;
+                var isProcessingTaskOnCurrentThread = this.processingTaskOnCurrentThread.Value;
+                if (!isProcessingTaskOnCurrentThread) this.processingTaskOnCurrentThread.Value = true;
                 //try
                 //{
                     TryExecuteTask(task);
@@ -403,7 +403,7 @@ namespace GitHub.Unity
                 //    throw;
                 //}
 
-                if (!processingTaskOnCurrentThread) this.processingTaskOnCurrentThread.Value = false;
+                if (!isProcessingTaskOnCurrentThread) this.processingTaskOnCurrentThread.Value = false;
             }
 
             /// <summary>Gets the maximum concurrency level this scheduler is able to support.</summary>
