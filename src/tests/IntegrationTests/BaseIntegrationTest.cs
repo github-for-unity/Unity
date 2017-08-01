@@ -40,7 +40,7 @@ namespace IntegrationTests
         [TearDown]
         public virtual void OnTearDown()
         {
-            TaskManager.Instance?.Stop();
+            TaskManager.Instance?.Dispose();
             Logger.Debug("Deleting TestBasePath: {0}", TestBasePath.ToString());
             for (var i = 0; i < 5; i++)
             {

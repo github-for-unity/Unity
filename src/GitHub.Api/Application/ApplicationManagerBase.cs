@@ -212,7 +212,7 @@ namespace GitHub.Unity
             {
                 if (disposed) return;
                 disposed = true;
-                if (TaskManager != null) TaskManager.Stop();
+                if (TaskManager != null) TaskManager.Dispose();
                 if (repositoryManager != null) repositoryManager.Dispose();
             }
         }
