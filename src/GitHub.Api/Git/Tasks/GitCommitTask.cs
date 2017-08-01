@@ -5,6 +5,7 @@ namespace GitHub.Unity
 {
     class GitCommitTask : ProcessTask<string>
     {
+        private const string TaskName = "git commit";
         private readonly string arguments;
 
         public GitCommitTask(string message, string body,
@@ -13,6 +14,7 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNullOrWhiteSpace(message, "message");
 
+            Name = TaskName;
             arguments = "commit ";
             arguments += String.Format(" -m \"{0}", message);
             if (!String.IsNullOrEmpty(body))
@@ -20,7 +22,6 @@ namespace GitHub.Unity
             arguments += "\"";
         }
 
-        public override string Name { get { return "git commit"; } }
         public override string ProcessArguments { get { return arguments; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Exclusive; } }
     }

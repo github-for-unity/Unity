@@ -4,6 +4,7 @@ namespace GitHub.Unity
 {
     class GitRevertTask : ProcessTask<string>
     {
+        private const string TaskName = "git revert";
         private readonly string arguments;
 
         public GitRevertTask(string changeset,
@@ -11,11 +12,10 @@ namespace GitHub.Unity
             : base(token, processor ?? new SimpleOutputProcessor())
         {
             Guard.ArgumentNotNull(changeset, "changeset");
-
+            Name = TaskName;
             arguments = $"revert --no-edit {changeset}";
         }
 
-        public override string Name { get { return "git revert"; } }
         public override string ProcessArguments { get { return arguments; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Exclusive; } }
     }

@@ -195,6 +195,7 @@ namespace GitHub.Unity
         public EvaluateProjectConfigurationTask(CancellationToken token)
             : base(token)
         {
+            Name = "Project evaluation";
         }
 
         protected override List<ProjectConfigurationIssue> RunWithReturn(bool success)
