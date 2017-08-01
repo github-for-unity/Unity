@@ -166,4 +166,27 @@ namespace GitHub.Unity
             return FavouriteBranches.Contains(branchName);
         }
     }
+
+    [Location("cache/gitlog.yaml", LocationAttribute.Location.LibraryFolder)]
+    sealed class GitLogCache : ScriptObjectSingleton<GitLogCache>
+    {
+        [SerializeField] private List<GitLogEntry> log;
+        public GitLogCache()
+        {}
+
+        public List<GitLogEntry> Log
+        {
+            get
+            {
+                if (log == null)
+                    log = new List<GitLogEntry>();
+                return log;
+            }
+            set
+            {
+                log = value;
+                Save(true);
+            }
+        }
+    }
 }
