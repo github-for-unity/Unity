@@ -16,7 +16,7 @@ namespace GitHub.Unity
         public abstract void Unset(string key);
 
         protected virtual string SettingsFileName { get; set; }
-        protected virtual NPath SettingsPath { get; set; }
+        protected NPath SettingsPath { get; set; }
     }
 
     class JsonBackedSettings : BaseSettings
