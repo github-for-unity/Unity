@@ -416,7 +416,6 @@ namespace UnitTests
 
             const string username = "SomeUser";
             const string password = "SomePassword";
-            const string token = "SomeToken";
 
             var hostUri = new UriString("https://github.com/");
 
