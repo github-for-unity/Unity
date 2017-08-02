@@ -57,12 +57,10 @@ namespace GitHub.Unity
         private readonly Action<Exception, string> onError;
         private readonly CancellationToken token;
         private readonly List<string> errors = new List<string>();
-#if (!NET_4_6)
         private byte[] outputBuffer;
         private byte[] errorBuffer;
         // buffer size refers to https://github.com/Unity-Technologies/mono/blob/unity-5.6-staging/mcs/class/System/System.Diagnostics/Process.cs#L1149-L1157
         const int BufferSize = 8192;
-#endif
 
         public Process Process { get; }
         public StreamWriter Input { get; private set; }
@@ -80,30 +78,19 @@ namespace GitHub.Unity
             this.onError = onError;
             this.token = token;
             this.Process = process;
-#if (!NET_4_6)
             this.outputBuffer = new Byte[BufferSize];
             this.errorBuffer = new Byte[BufferSize];
-#endif
         }
 
         public void Run()
         {
-#if (!NET_4_6)
             AsyncCallback outputCallback = null;
             AsyncCallback errorCallback = null;
             var outputReset = new ManualResetEvent(false);
             var errorReset = new ManualResetEvent(false);
-#endif
+
             if (Process.StartInfo.RedirectStandardOutput)
             {
-#if NET_4_6
-                Process.OutputDataReceived += (s, e) =>
-                {
-                    //Logger.Trace("OutputData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
-
-                    outputProcessor.LineReceived(line);
-                }
-#else
                 /*
                  * Process.OutputDataReceived in .NET3.5 has encoding bug
                  * refer: https://github.com/github-for-unity/Unity/issues/124
@@ -135,23 +122,8 @@ namespace GitHub.Unity
                     }
                 };
             }
-#endif
             if (Process.StartInfo.RedirectStandardError)
             {
-#if NET_4_6
-                Process.ErrorDataReceived += (s, e) =>
-                {
-                    //if (e.Data != null)
-                    //{
-                    //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
-                    //}
-
-                    if (e.Data != null)
-                    {
-                        errors.Add(e.Data);
-                    }
-                };
-#else
                 var errorContents = new StringBuilder();
                 var errorEncoding = Process.StartInfo.StandardErrorEncoding ?? Console.Out.Encoding;
                 errorCallback = (r) =>
@@ -176,7 +148,6 @@ namespace GitHub.Unity
                         errorReset.Set();
                     }
                 };
-#endif
             }
 
             try
@@ -202,9 +173,6 @@ namespace GitHub.Unity
             }
 
             if (Process.StartInfo.RedirectStandardOutput)
-#if NET_4_6
-                Process.BeginOutputReadLine();
-#else
             {
                 outputReset.Reset();
                 Process.StandardOutput.BaseStream.BeginRead(
@@ -215,11 +183,7 @@ namespace GitHub.Unity
                     Process.StandardOutput
                     );
             }
-#endif
             if (Process.StartInfo.RedirectStandardError)
-#if NET_4_6
-                Process.BeginErrorReadLine();
-#else
             {
                 errorReset.Reset();
                 Process.StandardError.BaseStream.BeginRead(
@@ -230,18 +194,16 @@ namespace GitHub.Unity
                     Process.StandardError
                     );
             }
-#endif
             if (Process.StartInfo.RedirectStandardInput)
                 Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
 
             onStart?.Invoke();
 
-#if (!NET_4_6)
             if (Process.StartInfo.RedirectStandardOutput)
                 outputReset.WaitOne();
             if (Process.StartInfo.RedirectStandardError)
                 errorReset.WaitOne();
-#endif
+
             if (Process.StartInfo.CreateNoWindow)
             {
                 while (!WaitForExit(500))
