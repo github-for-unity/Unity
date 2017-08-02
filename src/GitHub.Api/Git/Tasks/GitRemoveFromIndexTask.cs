@@ -5,6 +5,7 @@ namespace GitHub.Unity
 {
     class GitRemoveFromIndexTask : ProcessTask<string>
     {
+        private const string TaskName = "git reset HEAD";
         private readonly string arguments;
 
         public GitRemoveFromIndexTask(IEnumerable<string> files,
@@ -13,6 +14,7 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(files, "files");
 
+            Name = TaskName;
             arguments = "reset HEAD";
             arguments += " -- ";
 
@@ -22,7 +24,6 @@ namespace GitHub.Unity
             }
         }
 
-        public override string Name { get { return "git add"; } }
         public override string ProcessArguments { get { return arguments; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Exclusive; } }
     }

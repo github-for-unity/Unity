@@ -8,7 +8,7 @@ namespace GitHub.Unity
     {
         private static readonly ILogging logger = Logging.GetLogger<TaskManager>();
 
-        private readonly CancellationTokenSource cts;
+        private CancellationTokenSource cts;
         private readonly ConcurrentExclusiveInterleave manager;
         public TaskScheduler UIScheduler { get; set; }
         public TaskScheduler ConcurrentScheduler { get { return manager.ConcurrentTaskScheduler; } }
@@ -31,12 +31,6 @@ namespace GitHub.Unity
             this.UIScheduler = uiScheduler;
         }
 
-        public void Stop()
-        {
-            cts.Cancel();
-            Wait();
-        }
-
         public Task Wait()
         {
             return manager.Wait();
@@ -55,7 +49,6 @@ namespace GitHub.Unity
                     return Instance.ConcurrentScheduler;
             }
         }
-
 
         public void Schedule(params ITask[] tasks)
         {
@@ -156,6 +149,31 @@ namespace GitHub.Unity
                 );
             }
             return (T)task.Start(manager.ConcurrentTaskScheduler);
+        }
+
+        private void Stop()
+        {
+            if (cts == null)
+                throw new ObjectDisposedException(nameof(TaskManager));
+            cts.Cancel();
+            Wait();
+            cts = null;
+        }
+
+        private bool disposed = false;
+        private void Dispose(bool disposing)
+        {
+            if (disposed) return;
+            disposed = true;
+            if (disposing)
+            {
+                Stop();
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
         }
     }
 }

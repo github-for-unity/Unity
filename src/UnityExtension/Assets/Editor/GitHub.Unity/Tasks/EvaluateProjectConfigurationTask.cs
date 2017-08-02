@@ -195,6 +195,7 @@ namespace GitHub.Unity
         public EvaluateProjectConfigurationTask(CancellationToken token)
             : base(token)
         {
+            Name = "Project evaluation";
         }
 
         protected override List<ProjectConfigurationIssue> RunWithReturn(bool success)
@@ -320,8 +321,6 @@ namespace GitHub.Unity
                 }
             }
         }
-
-        public override string Name { get { return "Project Evaluation"; } }
 
         private enum SerializationSetting
         {

@@ -5,6 +5,7 @@ namespace GitHub.Unity
 {
     class GitUnlockTask : ProcessTask<string>
     {
+        private const string TaskName = "git lfs unlock";
         private readonly string arguments;
 
         public GitUnlockTask(string path, bool force,
@@ -13,6 +14,7 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNullOrWhiteSpace(path, "path");
 
+            Name = TaskName;
             var stringBuilder = new StringBuilder("lfs unlock ");
 
             if (force)
@@ -27,7 +29,6 @@ namespace GitHub.Unity
             arguments = stringBuilder.ToString();
         }
 
-        public override string Name { get; set; } = "git lfs unlock";
         public override string ProcessArguments => arguments;
         public override TaskAffinity Affinity { get { return TaskAffinity.Exclusive; } }
 

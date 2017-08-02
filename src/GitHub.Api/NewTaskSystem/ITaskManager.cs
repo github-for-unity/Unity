@@ -1,9 +1,10 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface ITaskManager
+    interface ITaskManager : IDisposable
     {
         TaskScheduler ConcurrentScheduler { get; }
         TaskScheduler ExclusiveScheduler { get; }
@@ -15,7 +16,6 @@ namespace GitHub.Unity
         T ScheduleConcurrent<T>(T task) where T : ITask;
         T ScheduleExclusive<T>(T task) where T : ITask;
         T ScheduleUI<T>(T task) where T : ITask;
-        void Stop();
         Task Wait();
     }
 }

@@ -23,20 +23,16 @@ namespace GitHub.Unity
 
         protected override void SetupMetrics()
         {
-
-            new ActionTask(CancellationToken,
-                    () => SetupMetrics(Environment.UnityVersion, ApplicationCache.Instance.FirstRun))
-                { Affinity = TaskAffinity.UI }
-                .Start();
+            SetupMetrics(Environment.UnityVersion, ApplicationCache.Instance.FirstRun);
         }
 
         protected override void InitializeUI()
         {
             Logger.Trace("Restarted {0}", Environment.Repository);
             ProjectWindowInterface.Initialize(Environment.Repository);
-            var view = Window.GetWindow();
-            if (view != null)
-                view.Initialize(this);
+            var window = Window.GetWindow();
+            if (window != null)
+                window.Initialize(this);
         }
 
         protected override void SetProjectToTextSerialization()

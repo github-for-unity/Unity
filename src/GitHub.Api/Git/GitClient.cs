@@ -122,7 +122,7 @@ namespace GitHub.Unity
             var searchPath = "PortableGit_";
 
             var portableGitPath = gitHubLocalAppDataPath.Directories()
-                .Where(s => s.FileName.StartsWith(searchPath, StringComparison.InvariantCultureIgnoreCase))
+                .Where(s => s.FileName.StartsWith(searchPath, StringComparison.OrdinalIgnoreCase))
                 .FirstOrDefault();
 
             if (portableGitPath != null)
