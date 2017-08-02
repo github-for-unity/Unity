@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -8,9 +9,8 @@ namespace GitHub.Unity
         private const string TaskName = "git add";
         private readonly string arguments;
 
-        public GitAddTask(IEnumerable<string> files,
-            CancellationToken token, IOutputProcessor<string> processor = null)
-            : base(token, processor ?? new SimpleOutputProcessor())
+        public GitAddTask(IEnumerable<string> files, CancellationToken token, 
+            IOutputProcessor<string> processor = null) : base(token, processor ?? new SimpleOutputProcessor())
         {
             Guard.ArgumentNotNull(files, "files");
             Name = TaskName;
@@ -22,6 +22,12 @@ namespace GitHub.Unity
             {
                 arguments += " \"" + file.ToNPath().ToString(SlashMode.Forward) + "\"";
             }
+        }
+
+        public GitAddTask(CancellationToken token,
+            IOutputProcessor<string> processor = null) : base(token, processor ?? new SimpleOutputProcessor())
+        {
+            arguments = "add -A";
         }
 
         public override string ProcessArguments { get { return arguments; } }
