@@ -198,7 +198,7 @@ namespace GitHub.Unity
 
             if (files.Length == tree.Entries.Count)
             {
-                addTask = GitClient.Add(GitAddTask.AddFileOption.All);
+                addTask = GitClient.AddAll();
             }
             else
             {
