@@ -6,12 +6,6 @@ namespace GitHub.Unity
 {
     class GitAddTask : ProcessTask<string>
     {
-        public enum AddFileOption
-        {
-            All,
-            CurrentDirectory
-        }
-
         private const string TaskName = "git add";
         private readonly string arguments;
 
@@ -30,23 +24,10 @@ namespace GitHub.Unity
             }
         }
 
-        public GitAddTask(AddFileOption addFileOption, CancellationToken token,
+        public GitAddTask(CancellationToken token,
             IOutputProcessor<string> processor = null) : base(token, processor ?? new SimpleOutputProcessor())
         {
-            arguments = "add ";
-
-            switch (addFileOption)
-            {
-                case AddFileOption.All:
-                    arguments += "-A";
-                    break;
-
-                case AddFileOption.CurrentDirectory:
-                    arguments += ".";
-                    break;
-
-                default: throw new ArgumentOutOfRangeException(nameof(addFileOption), addFileOption, null);
-            }
+            arguments = "add -A";
         }
 
         public override string ProcessArguments { get { return arguments; } }
