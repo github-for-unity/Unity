@@ -52,7 +52,7 @@ namespace GitHub.Unity
             repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;
             repositoryManager.OnCommitChanged += RepositoryManager_OnHeadChanged;
             repositoryManager.OnLocksUpdated += RepositoryManager_OnLocksUpdated;
-            repositoryManager.OnStatusUpdated += RepositoryManager_OnStatusUpdated();
+            repositoryManager.OnStatusUpdated += RepositoryManager_OnStatusUpdated;
             repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
             repositoryManager.OnActiveRemoteChanged += RepositoryManager_OnActiveRemoteChanged;
         }
@@ -121,15 +121,15 @@ namespace GitHub.Unity
             OnRepositoryInfoChanged?.Invoke();
         }
 
-        private Action<GitStatus> RepositoryManager_OnStatusUpdated()
+        private void RepositoryManager_OnStatusUpdated(GitStatus status)
         {
-            return status => CurrentStatus = status;
+            CurrentStatus = status;
+            OnStatusUpdated?.Invoke(CurrentStatus);
         }
 
         private void RepositoryManager_OnActiveRemoteChanged(ConfigRemote? remote)
         {
             CurrentRemote = remote;
-            SetCloneUrl();
             OnActiveRemoteChanged?.Invoke(CurrentRemote.HasValue ? CurrentRemote.Value.Name : null);
         }
 
@@ -195,7 +195,6 @@ namespace GitHub.Unity
                 {
                     currentBranch = value;
                     Logger.Trace("OnActiveBranchChanged: {0}", value?.ToString() ?? "NULL");
-                    OnActiveBranchChanged?.Invoke(currentBranch?.Name);
                 }
             }
         }
@@ -217,7 +216,7 @@ namespace GitHub.Unity
                 {
                     currentRemote = value;
                     Logger.Trace("OnActiveRemoteChanged: {0}", value?.ToString() ?? "NULL");
-                    OnActiveRemoteChanged?.Invoke(value?.Name);
+                    SetCloneUrl();
                 }
             }
         }
@@ -249,7 +248,6 @@ namespace GitHub.Unity
             {
                 Logger.Trace("OnStatusUpdated: {0}", value.ToString());
                 currentStatus = value;
-                OnStatusUpdated?.Invoke(value);
             }
         }
 
