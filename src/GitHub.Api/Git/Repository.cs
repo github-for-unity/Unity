@@ -124,19 +124,16 @@ namespace GitHub.Unity
         private void RepositoryManager_OnStatusUpdated(GitStatus status)
         {
             CurrentStatus = status;
-            OnStatusUpdated?.Invoke(CurrentStatus);
         }
 
         private void RepositoryManager_OnActiveRemoteChanged(ConfigRemote? remote)
         {
             CurrentRemote = remote;
-            OnActiveRemoteChanged?.Invoke(CurrentRemote.HasValue ? CurrentRemote.Value.Name : null);
         }
 
         private void RepositoryManager_OnActiveBranchChanged(ConfigBranch? branch)
         {
             CurrentBranch = branch;
-            OnActiveBranchChanged?.Invoke(CurrentBranch.HasValue ? CurrentBranch.Value.Name : null);
         }
 
         private void RepositoryManager_OnHeadChanged()
@@ -195,6 +192,7 @@ namespace GitHub.Unity
                 {
                     currentBranch = value;
                     Logger.Trace("OnActiveBranchChanged: {0}", value?.ToString() ?? "NULL");
+                    OnActiveBranchChanged?.Invoke(CurrentBranch.HasValue ? CurrentBranch.Value.Name : null);
                 }
             }
         }
@@ -215,8 +213,9 @@ namespace GitHub.Unity
                 if (currentRemote.HasValue != value.HasValue || (currentRemote.HasValue && !currentRemote.Value.Equals(value.Value)))
                 {
                     currentRemote = value;
-                    Logger.Trace("OnActiveRemoteChanged: {0}", value?.ToString() ?? "NULL");
                     SetCloneUrl();
+                    Logger.Trace("OnActiveRemoteChanged: {0}", value?.ToString() ?? "NULL");
+                    OnActiveRemoteChanged?.Invoke(CurrentRemote.HasValue ? CurrentRemote.Value.Name : null);
                 }
             }
         }
@@ -248,6 +247,7 @@ namespace GitHub.Unity
             {
                 Logger.Trace("OnStatusUpdated: {0}", value.ToString());
                 currentStatus = value;
+                OnStatusUpdated?.Invoke(CurrentStatus);
             }
         }
 
