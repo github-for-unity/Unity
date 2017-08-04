@@ -147,7 +147,6 @@ namespace GitHub.Unity
             this.watcher = repositoryWatcher;
             this.config = gitConfig;
 
-            SetupConfig(repositoryPaths);
             SetupWatcher();
         }
 
@@ -160,6 +159,10 @@ namespace GitHub.Unity
         public void Start()
         {
             Logger.Trace("Start");
+
+            ReadHead();
+            RefreshConfigData();
+
             watcher.Start();
         }
 
@@ -225,7 +228,9 @@ namespace GitHub.Unity
             HookupHandlers(task);
             if (!platform.Environment.IsWindows)
             {
-                task.Then(_ => UpdateConfigData());
+                task.Then(_ => {
+                    RefreshConfigData(true);
+                });
             }
             return task;
         }
@@ -236,7 +241,9 @@ namespace GitHub.Unity
             HookupHandlers(task);
             if (!platform.Environment.IsWindows)
             {
-                task.Then(_ => UpdateConfigData());
+                task.Then(_ => {
+                    RefreshConfigData(true);
+                });
             }
             return task;
         }
@@ -310,10 +317,9 @@ namespace GitHub.Unity
             watcher.RemoteBranchDeleted += Watcher_OnRemoteBranchDeleted;
         }
 
-        private void SetupConfig(IRepositoryPathConfiguration repositoryPaths)
+        private void ReadHead()
         {
-            this.head = repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
-            RefreshConfigData();
+            head = repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
         }
 
         private ITask HookupHandlers(ITask task, bool disableWatcher = false)
@@ -376,13 +382,7 @@ namespace GitHub.Unity
 
         private void Watcher_OnConfigChanged()
         {
-            UpdateConfigData();
-        }
-
-        private void UpdateConfigData()
-        {
-            config.Reset();
-            RefreshConfigData();
+            RefreshConfigData(true);
         }
 
         private void Watcher_OnHeadChanged(string contents)
@@ -390,7 +390,7 @@ namespace GitHub.Unity
             Logger.Trace("Watcher_OnHeadChanged");
             head = contents;
             OnActiveBranchChanged?.Invoke(GetActiveBranch());
-            OnActiveRemoteChanged.Invoke(GetActiveRemote());
+            OnActiveRemoteChanged?.Invoke(GetActiveRemote());
             UpdateGitStatus();
         }
 
@@ -417,9 +417,15 @@ namespace GitHub.Unity
             }
         }
 
-        private void RefreshConfigData()
+        private void RefreshConfigData(bool resetConfig = false)
         {
+            if (resetConfig)
+            {
+                config.Reset();
+            }
+
             Logger.Trace("RefreshConfigData");
+
             LoadBranchesFromConfig();
             LoadRemotesFromConfig();
 
@@ -435,6 +441,8 @@ namespace GitHub.Unity
 
         private void LoadBranchesFromConfig(NPath path, IEnumerable<ConfigBranch> configBranches, string prefix)
         {
+            Logger.Trace("LoadBranchesFromConfig");
+
             foreach (var file in path.Files())
             {
                 var branchName = prefix + file.FileName;
@@ -455,6 +463,8 @@ namespace GitHub.Unity
 
         private void LoadRemotesFromConfig()
         {
+            Logger.Trace("LoadRemotesFromConfig");
+
             remotes = config.GetRemotes().ToDictionary(x => x.Name, x => x);
             remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
 
