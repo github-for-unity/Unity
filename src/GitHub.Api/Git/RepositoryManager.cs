@@ -424,7 +424,7 @@ namespace GitHub.Unity
             LoadRemotesFromConfig();
 
             OnActiveBranchChanged?.Invoke(GetActiveBranch());
-            OnActiveRemoteChanged.Invoke(GetActiveRemote());
+            OnActiveRemoteChanged?.Invoke(GetActiveRemote());
         }
 
         private void LoadBranchesFromConfig()
