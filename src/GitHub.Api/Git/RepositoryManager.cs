@@ -41,6 +41,7 @@ namespace GitHub.Unity
         ITask ListLocks(bool local);
         ITask LockFile(string file);
         ITask UnlockFile(string file, bool force);
+        int WaitForEvents();
     }
 
     interface IRepositoryPathConfiguration
