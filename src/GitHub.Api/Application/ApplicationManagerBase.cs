@@ -109,13 +109,11 @@ namespace GitHub.Unity
 
         public void RestartRepository()
         {
-            Environment.InitializeRepository();
             if (Environment.RepositoryPath != null)
             {
                 repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, UsageTracker, GitClient, Environment.RepositoryPath);
-                Environment.Repository = new Repository(GitClient, repositoryManager, Environment.RepositoryPath);
                 repositoryManager.Initialize();
-                Environment.Repository.Initialize();
+                Environment.Repository.Initialize(repositoryManager);
                 repositoryManager.Start();
                 Logger.Trace($"Got a repository? {Environment.Repository}");
             }

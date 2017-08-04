@@ -89,6 +89,7 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
             MaybeUpdateData();
+            // TODO: this shouldn't be updated here, it should be updated whenever the active remote changes
         }
 
         public override void OnRepositoryChanged(IRepository oldRepository)

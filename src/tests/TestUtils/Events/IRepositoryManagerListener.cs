@@ -8,13 +8,12 @@ namespace TestUtils.Events
 {
     interface IRepositoryManagerListener
     {
-        void OnRepositoryChanged(GitStatus status);
-        void OnActiveBranchChanged(string branch);
-        void OnActiveRemoteChanged(ConfigRemote? remote);
+        void OnStatusUpdate(GitStatus status);
+        void OnActiveBranchChanged();
+        void OnActiveRemoteChanged();
         void OnHeadChanged();
         void OnLocalBranchListChanged();
         void OnRemoteBranchListChanged();
-        void OnRemoteOrTrackingChanged();
         void OnIsBusyChanged(bool busy);
         void OnLocksUpdated(IEnumerable<GitLock> locks);
     }
@@ -23,13 +22,12 @@ namespace TestUtils.Events
     {
         public EventWaitHandle OnIsBusy { get; } = new ManualResetEvent(false);
         public EventWaitHandle OnIsNotBusy { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnRepositoryChanged { get; } = new ManualResetEvent(false);
+        public AutoResetEvent OnStatusUpdate { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnActiveBranchChanged { get; } = new ManualResetEvent(false);
         public EventWaitHandle OnActiveRemoteChanged { get; } = new ManualResetEvent(false);
         public EventWaitHandle OnHeadChanged { get; } = new ManualResetEvent(false);
         public EventWaitHandle OnLocalBranchListChanged { get; } = new ManualResetEvent(false);
         public EventWaitHandle OnRemoteBranchListChanged { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnRemoteOrTrackingChanged { get; } = new ManualResetEvent(false);
         public EventWaitHandle OnLocksUpdated { get; } = new ManualResetEvent(false);
 
         public void Reset()
@@ -63,19 +61,19 @@ namespace TestUtils.Events
                     managerEvents?.OnIsNotBusy.Set();
             };
 
-            repositoryManager.OnStatusUpdated += status => {
+            repositoryManager.Repository.OnStatusUpdated += status => {
                 logger?.Debug("OnStatusUpdated: {0}", status);
-                listener.OnRepositoryChanged(status);
-                managerEvents?.OnRepositoryChanged.Set();
+                listener.OnStatusUpdate(status);
+                managerAutoResetEvent?.OnRepositoryChanged.Set();
             };
 
-            repositoryManager.OnActiveBranchChanged += branch => {
+            repositoryManager.OnActiveBranchChanged += () => {
                 logger?.Trace($"OnActiveBranchChanged {branch}");
                 listener.OnActiveBranchChanged(branch);
                 managerEvents?.OnActiveBranchChanged.Set();
             };
 
-            repositoryManager.OnActiveRemoteChanged += remote => {
+            repositoryManager.OnActiveRemoteChanged += () => {
                 logger?.Trace($"OnActiveRemoteChanged {(remote.HasValue ? remote.Value.Name : null)}");
                 listener.OnActiveRemoteChanged(remote);
                 managerEvents?.OnActiveRemoteChanged.Set();
@@ -115,13 +113,12 @@ namespace TestUtils.Events
 
         public static void AssertDidNotReceiveAnyCalls(this IRepositoryManagerListener repositoryManagerListener)
         {
-            repositoryManagerListener.DidNotReceive().OnRepositoryChanged(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().OnStatusUpdate(Args.GitStatus);
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Args.String);
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-            repositoryManagerListener.DidNotReceive().OnRemoteOrTrackingChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
     }

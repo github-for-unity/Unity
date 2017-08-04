@@ -47,30 +47,33 @@ namespace GitHub.Unity
 
         public void InitializeRepository(NPath expectedRepositoryPath = null)
         {
-            if (RepositoryPath != null && RepositoryPath.DirectoryExists(".git"))
+            Guard.NotNull(this, FileSystem, nameof(FileSystem));
+
+            if (RepositoryPath == null)
             {
-                FileSystem.SetCurrentDirectory(RepositoryPath);
-                return;
+                Guard.NotNull(this, UnityProjectPath, nameof(UnityProjectPath));
+
+                if (expectedRepositoryPath == null)
+                    expectedRepositoryPath = UnityProjectPath;
+
+                if (!expectedRepositoryPath.DirectoryExists(".git"))
+                {
+                    var reporoot = UnityProjectPath.RecursiveParents.FirstOrDefault(d => d.DirectoryExists(".git"));
+                    if (reporoot != null)
+                        expectedRepositoryPath = reporoot;
+                }
+            }
+            else
+            {
+                expectedRepositoryPath = RepositoryPath;
             }
 
-            Guard.NotNull(this, UnityProjectPath, nameof(UnityProjectPath));
-
-            if (expectedRepositoryPath == null)
-                expectedRepositoryPath = UnityProjectPath;
-
-            Guard.NotNull(this, FileSystem, nameof(FileSystem));
-            if (expectedRepositoryPath != null && expectedRepositoryPath.DirectoryExists(".git"))
+            FileSystem.SetCurrentDirectory(expectedRepositoryPath);
+            if (expectedRepositoryPath.DirectoryExists(".git"))
             {
                 RepositoryPath = expectedRepositoryPath;
-                FileSystem.SetCurrentDirectory(RepositoryPath);
-                return;
+                Repository = new Repository(RepositoryPath.FileName, RepositoryPath);
             }
-
-            RepositoryPath = UnityProjectPath.RecursiveParents.FirstOrDefault(d => d.DirectoryExists(".git"));
-            if (RepositoryPath == null)
-                FileSystem.SetCurrentDirectory(UnityProjectPath);
-            else
-                FileSystem.SetCurrentDirectory(RepositoryPath);
         }
 
         public string GetSpecialFolder(Environment.SpecialFolder folder)
