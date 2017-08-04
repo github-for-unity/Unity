@@ -52,9 +52,9 @@ namespace GitHub.Unity
             repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;
             repositoryManager.OnCommitChanged += RepositoryManager_OnHeadChanged;
             repositoryManager.OnLocksUpdated += RepositoryManager_OnLocksUpdated;
-            repositoryManager.OnStatusUpdated += status => CurrentStatus = status;
-            repositoryManager.OnActiveBranchChanged += branch => CurrentBranch = branch;
-            repositoryManager.OnActiveRemoteChanged += remote => CurrentRemote = remote;
+            repositoryManager.OnStatusUpdated += RepositoryManager_OnStatusUpdated();
+            repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
+            repositoryManager.OnActiveRemoteChanged += RepositoryManager_OnActiveRemoteChanged;
         }
 
         public void Refresh()
@@ -121,6 +121,11 @@ namespace GitHub.Unity
             OnRepositoryInfoChanged?.Invoke();
         }
 
+        private Action<GitStatus> RepositoryManager_OnStatusUpdated()
+        {
+            return status => CurrentStatus = status;
+        }
+
         private void RepositoryManager_OnActiveRemoteChanged(ConfigRemote? remote)
         {
             CurrentRemote = remote;
@@ -128,10 +133,10 @@ namespace GitHub.Unity
             OnActiveRemoteChanged?.Invoke(CurrentRemote.HasValue ? CurrentRemote.Value.Name : null);
         }
 
-        private void RepositoryManager_OnActiveBranchChanged(string branch)
+        private void RepositoryManager_OnActiveBranchChanged(ConfigBranch? branch)
         {
             CurrentBranch = branch;
-            OnActiveBranchChanged?.Invoke(CurrentBranch);
+            OnActiveBranchChanged?.Invoke(CurrentBranch.HasValue ? CurrentBranch.Value.Name : null);
         }
 
         private void RepositoryManager_OnHeadChanged()
