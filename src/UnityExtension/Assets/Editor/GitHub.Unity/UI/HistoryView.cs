@@ -214,7 +214,7 @@ namespace GitHub.Unity
         private void OnLogUpdate(List<GitLogEntry> entries)
         {
             Logger.Trace("OnLogUpdate");
-            LogCache.Instance.Log = entries;
+            GitLogCache.Instance.Log = entries;
             updated = true;
             Redraw();
         }
@@ -225,7 +225,7 @@ namespace GitHub.Unity
                 return;
             updated = false;
 
-            history = LogCache.Instance.Log;
+            history = GitLogCache.Instance.Log;
 
             if (history.Any())
             {
