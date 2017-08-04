@@ -205,9 +205,12 @@ namespace GitHub.Unity
         {
             if (GitClient != null)
             {
-                GitClient.Log()
-                    .ThenInUI((success, log) => { if (success) OnLogUpdate(log); })
-                    .Start();
+                if (Repository != null && Repository.CurrentRemote.HasValue)
+                {
+                    GitClient.Log().ThenInUI((success, log) => {
+                        if (success) OnLogUpdate(log);
+                    }).Start();
+                }
             }
         }
 
