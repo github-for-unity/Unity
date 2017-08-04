@@ -151,7 +151,6 @@ namespace IntegrationTests
             RepositoryManager.WaitForEvents();
             WaitForNotBusy(repositoryManagerEvents, 5);
 
-            //TODO: Understand why this test does not pass consistently
             repositoryManagerListener.Received().OnStatusUpdate(Args.GitStatus);
             repositoryManagerListener.Received(1).OnActiveBranchChanged(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
