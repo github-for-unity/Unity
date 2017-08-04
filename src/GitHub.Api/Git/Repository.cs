@@ -222,21 +222,14 @@ namespace GitHub.Unity
             }
         }
 
-        public UriString CloneUrl
-        {
-            get
-            {
-                if (CurrentRemote.HasValue && CurrentRemote.Value.Url != null)
-                    return new UriString(CurrentRemote.Value.Url).ToRepositoryUrl();
-
-                return null;
-            }
-        }
-
+        public UriString CloneUrl { get; private set; }
 
         public string Name { get; private set; }
+
         public NPath LocalPath { get; private set; }
+
         public string Owner => CloneUrl?.Owner ?? null;
+
         public bool IsGitHub { get { return HostAddress.IsGitHubDotCom(CloneUrl); } }
 
         internal string DebuggerDisplay => String.Format(
