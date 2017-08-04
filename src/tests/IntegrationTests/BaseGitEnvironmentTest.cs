@@ -33,7 +33,7 @@ namespace IntegrationTests
             RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, usageTracker, GitClient, repoPath);
             RepositoryManager.Initialize();
 
-            Environment.Repository = new Repository(GitClient, RepositoryManager, repoPath);
+            Environment.Repository = new Repository("TestRepo", repoPath);
 
             RepositoryManager.Start();
 
