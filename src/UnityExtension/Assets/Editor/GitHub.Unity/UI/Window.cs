@@ -192,17 +192,21 @@ namespace GitHub.Unity
             bool repoDataChanged = false;
             if (Repository != null)
             {
-                if (repoBranch != Repository.CurrentBranch)
+                var currentBranchString = (Repository.CurrentBranch.HasValue ? Repository.CurrentBranch.Value.Name : null);
+                if (repoBranch != currentBranchString)
                 {
-                    repoBranch = Repository.CurrentBranch;
+                    repoBranch = currentBranchString;
                     repoDataChanged = true;
                 }
+
                 var url = Repository.CloneUrl != null ? Repository.CloneUrl.ToString() : DefaultRepoUrl;
                 if (repoUrl != url)
                 {
                     repoUrl = url;
                     repoDataChanged = true;
                 }
+
+
                 repoRemote = Repository.CurrentRemote.Value.Name;
             }
             else if (!HasRepository)
