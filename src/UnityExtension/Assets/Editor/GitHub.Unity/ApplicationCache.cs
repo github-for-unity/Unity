@@ -2,23 +2,32 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using Debug = System.Diagnostics.Debug;
 
 namespace GitHub.Unity
 {
     sealed class ApplicationCache : ScriptObjectSingleton<ApplicationCache>
     {
         [SerializeField] private bool firstRun = true;
+
+        [NonSerialized] private bool? val;
+
         public bool FirstRun
         {
             get
             {
-                var val = firstRun;
+                if (!val.HasValue)
+                {
+                    val = firstRun;
+                }
+
                 if (firstRun)
                 {
                     firstRun = false;
                     Save(true);
                 }
-                return val;
+
+                return val.Value;
             }
         }
     }
