@@ -80,7 +80,9 @@ namespace GitHub.Unity
             var targetPath = NPath.CurrentDirectory;
 
             var unityYamlMergeExec = Environment.UnityApplication.Parent.Combine("Tools", "UnityYAMLMerge");
-            var yamlMergeCommand = $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED""";
+            var yamlMergeCommand = Environment.IsWindows
+                ? $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED"""
+                : $@"'{unityYamlMergeExec}' merge -p '$BASE' '$REMOTE' '$LOCAL' '$MERGED'";
 
             var gitignore = targetPath.Combine(".gitignore");
             var gitAttrs = targetPath.Combine(".gitattributes");
