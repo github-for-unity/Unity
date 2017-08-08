@@ -62,7 +62,7 @@ namespace IntegrationTests
             result.AssertEqual(expected);
         }
 
-        [Test]
+        [Test, Category("TimeSensitive")]
         public async Task ShouldAddAndCommitFiles()
         {
             await Initialize(TestRepoMasterCleanSynchronized);
