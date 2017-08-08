@@ -129,7 +129,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
 
-        [Test]
+        [Test, Category("TimeSensitive")]
         public async Task ShouldDetectBranchChange()
         {
             await Initialize(TestRepoMasterCleanSynchronized);
@@ -282,7 +282,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
 
-        [Test]
+        [Test, Category("TimeSensitive")]
         public async Task ShouldDetectChangesToRemotesWhenSwitchingBranches()
         {
             var expectedCloneUrl = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git";
@@ -396,7 +396,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
 
-        [Test]
+        [Test, Category("TimeSensitive")]
         public async Task ShouldDetectGitPull()
         {
             await Initialize(TestRepoMasterCleanSynchronized);
