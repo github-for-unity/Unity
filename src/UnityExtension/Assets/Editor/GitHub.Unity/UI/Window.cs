@@ -206,8 +206,8 @@ namespace GitHub.Unity
                     repoDataChanged = true;
                 }
 
-
-                repoRemote = Repository.CurrentRemote.Value.Name;
+                if (Repository.CurrentRemote.HasValue)
+                    repoRemote = Repository.CurrentRemote.Value.Name;
             }
             else if (!HasRepository)
             {
