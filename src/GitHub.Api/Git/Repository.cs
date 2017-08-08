@@ -100,6 +100,8 @@ namespace GitHub.Unity
 
         public ITask ListLocks()
         {
+            if (repositoryManager == null)
+                return new ActionTask(TaskExtensions.CompletedTask);
             return repositoryManager.ListLocks(false);
         }
 
@@ -264,9 +266,16 @@ namespace GitHub.Unity
         string Name { get; set; }
         string Email { get; set; }
     }
+
+    [Serializable]
     class User : IUser
     {
         public string Name { get; set; }
         public string Email { get; set; }
+
+        public override string ToString()
+        {
+            return String.Format("Name: {0} Email: {1}", Name, Email);
+        }
     }
 }
