@@ -220,7 +220,7 @@ namespace GitHub.Unity
                         }
 
                         GitClient.RemoteAdd("origin", repository.CloneUrl)
-                                 .Then(GitClient.Push("origin", Repository.CurrentBranch))
+                                 .Then(GitClient.Push("origin", Repository.CurrentBranch.Value.Name))
                                  .ThenInUI(Parent.Finish)
                                  .Start();
                     }, owners[selectedOwner] == username ? null : owners[selectedOwner]);
