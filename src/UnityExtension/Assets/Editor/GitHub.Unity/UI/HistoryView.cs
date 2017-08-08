@@ -89,7 +89,6 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
             MaybeUpdateData();
-            // TODO: this shouldn't be updated here, it should be updated whenever the active remote changes
         }
 
         public override void OnRepositoryChanged(IRepository oldRepository)
@@ -205,7 +204,7 @@ namespace GitHub.Unity
         {
             if (GitClient != null)
             {
-                if (Repository != null && Repository.CurrentRemote.HasValue)
+                if (Repository != null)
                 {
                     GitClient.Log().ThenInUI((success, log) => {
                         if (success) OnLogUpdate(log);
