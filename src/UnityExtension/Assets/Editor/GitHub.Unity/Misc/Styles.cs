@@ -22,6 +22,7 @@ namespace GitHub.Unity
                            CommitAreaDefaultRatio = .4f,
                            CommitAreaMaxHeight = 12 * 15f,
                            CommitAreaPadding = 5f,
+                           PublishViewSpacingHeight = 5f,
                            MinCommitTreePadding = 20f,
                            FoldoutWidth = 11f,
                            FoldoutIndentation = -2f,

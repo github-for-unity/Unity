@@ -30,6 +30,7 @@ namespace GitHub.Unity
         private const string ClearSelectionButton = "×";
         private const string NoRepoTitle = "No Git repository found for this project";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
+        private const string PublishButton = "Publish";
         private const string FetchActionTitle = "Fetch Changes";
         private const string FetchButtonText = "Fetch";
         private const string FetchFailureDescription = "Could not fetch changes";
@@ -346,40 +347,57 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-                GUI.enabled = currentRemote != null;
-                var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
-                GUI.enabled = true;
-                if (fetchClicked)
-                {
-                    Fetch();
-                }
 
-                var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
-                GUI.enabled = currentRemote != null;
-                var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
-                GUI.enabled = true;
-                if (pullClicked &&
-                    EditorUtility.DisplayDialog(PullConfirmTitle,
-                        String.Format(PullConfirmDescription, currentRemote),
-                        PullConfirmYes,
-                        PullConfirmCancel)
-                )
+                var isPublished = Repository.CurrentRemote.HasValue;
+                if (isPublished)
                 {
-                    Pull();
-                }
+                    GUI.enabled = currentRemote != null;
+                    var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
+                    GUI.enabled = true;
+                    if (fetchClicked)
+                    {
+                        Fetch();
+                    }
 
-                var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
-                GUI.enabled = currentRemote != null && statusBehind == 0;
-                var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
-                GUI.enabled = true;
-                if (pushClicked &&
-                    EditorUtility.DisplayDialog(PushConfirmTitle,
-                        String.Format(PushConfirmDescription, currentRemote),
-                        PushConfirmYes,
-                        PushConfirmCancel)
-                )
+                    // Pull / Push buttons
+                    var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
+                    GUI.enabled = currentRemote != null;
+                    var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
+                    GUI.enabled = true;
+                    if (pullClicked &&
+                        EditorUtility.DisplayDialog(PullConfirmTitle,
+                            String.Format(PullConfirmDescription, currentRemote),
+                            PullConfirmYes,
+                            PullConfirmCancel)
+                    )
+                    {
+                        Pull();
+                    }
+
+                    var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
+                    GUI.enabled = currentRemote != null && statusBehind == 0;
+                    var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
+                    GUI.enabled = true;
+                    if (pushClicked &&
+                        EditorUtility.DisplayDialog(PushConfirmTitle,
+                            String.Format(PushConfirmDescription, currentRemote),
+                            PushConfirmYes,
+                            PushConfirmCancel)
+                    )
+                    {
+                        Push();
+                    }
+                }
+                else
                 {
-                    Push();
+                    // Publishing a repo
+                    GUI.enabled = Platform.Keychain.Connections.Any();
+                    var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
+                    if (publishedClicked)
+                    {
+                        PublishWindow.Open();
+                    }
+                    GUI.enabled = true;
                 }
             }
             GUILayout.EndHorizontal();
