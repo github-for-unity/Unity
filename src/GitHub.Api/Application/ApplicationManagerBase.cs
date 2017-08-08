@@ -104,7 +104,11 @@ namespace GitHub.Unity
                 }))
                 .Then(GitClient.Add(filesForInitialCommit))
                 .Then(GitClient.Commit("Initial commit", null))
-                .Then(RestartRepository)
+                .Then(_ =>
+                {
+                    Environment.InitializeRepository();
+                    RestartRepository();
+                })
                 .ThenInUI(InitializeUI);
             return task;
         }
