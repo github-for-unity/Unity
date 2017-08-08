@@ -5,6 +5,7 @@ namespace GitHub.Unity
 {
     class GitBranchCreateTask : ProcessTask<string>
     {
+        private const string TaskName = "git branch";
         private readonly string arguments;
 
         public GitBranchCreateTask(string newBranch, string baseBranch,
@@ -14,10 +15,10 @@ namespace GitHub.Unity
             Guard.ArgumentNotNullOrWhiteSpace(newBranch, "newBranch");
             Guard.ArgumentNotNullOrWhiteSpace(baseBranch, "baseBranch");
 
+            Name = TaskName;
             arguments = String.Format("branch {0} {1}", newBranch, baseBranch);
         }
 
-        public override string Name { get { return "git branch"; } }
         public override string ProcessArguments { get { return arguments; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Exclusive; } }
     }

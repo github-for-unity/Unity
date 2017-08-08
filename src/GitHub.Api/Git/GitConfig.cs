@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
 {
+    [Serializable]
     public struct ConfigRemote
     {
-        public string Name { get; set; }
-        public string Url { get; set; }
+        public string Name;
+        public string Url;
 
         public override string ToString()
         {
@@ -18,10 +18,11 @@ namespace GitHub.Unity
         }
     }
 
+    [Serializable]
     public struct ConfigBranch
     {
-        public string Name { get; set; }
-        public ConfigRemote? Remote { get; set; }
+        public string Name;
+        public ConfigRemote? Remote;
         public bool IsTracking => Remote.HasValue;
 
         public override string ToString()

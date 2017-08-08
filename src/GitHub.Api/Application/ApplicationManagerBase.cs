@@ -11,7 +11,6 @@ namespace GitHub.Unity
     {
         protected static ILogging Logger { get; } = Logging.GetLogger<IApplicationManager>();
 
-        private IEnvironment environment;
         private RepositoryManager repositoryManager;
 
         public ApplicationManagerBase(SynchronizationContext synchronizationContext)
@@ -40,17 +39,18 @@ namespace GitHub.Unity
             Logging.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
+            if (Environment.GitExecutablePath != null)
+            {
+                GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
+            }
+            SetupMetrics();
         }
 
         public virtual async Task Run(bool firstRun)
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
-            if (Environment.GitExecutablePath != null)
-            {
-                GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
-            }
-            else
+            if (Environment.GitExecutablePath == null)
             {
                 GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
                 Environment.GitExecutablePath = await DetermineGitExecutablePath();
@@ -70,9 +70,7 @@ namespace GitHub.Unity
             RestartRepository();
             InitializeUI();
 
-            new ActionTask(CancellationToken, SetupMetrics).Start();
             new ActionTask(new Task(() => LoadKeychain().Start())).Start();
-            new ActionTask(CancellationToken, RunRepositoryManager).Start();
         }
 
         public ITask InitializeRepository()
@@ -82,7 +80,9 @@ namespace GitHub.Unity
             var targetPath = NPath.CurrentDirectory;
 
             var unityYamlMergeExec = Environment.UnityApplication.Parent.Combine("Tools", "UnityYAMLMerge");
-            var yamlMergeCommand = $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED""";
+            var yamlMergeCommand = Environment.IsWindows
+                ? $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED"""
+                : $@"'{unityYamlMergeExec}' merge -p '$BASE' '$REMOTE' '$LOCAL' '$MERGED'";
 
             var gitignore = targetPath.Combine(".gitignore");
             var gitAttrs = targetPath.Combine(".gitattributes");
@@ -104,37 +104,24 @@ namespace GitHub.Unity
                 }))
                 .Then(GitClient.Add(filesForInitialCommit))
                 .Then(GitClient.Commit("Initial commit", null))
-                .Then(RestartRepository)
-                .ThenInUI(InitializeUI)
-                .Then(RunRepositoryManager);
+                .Then(_ =>
+                {
+                    Environment.InitializeRepository();
+                    RestartRepository();
+                })
+                .ThenInUI(InitializeUI);
             return task;
         }
 
         public void RestartRepository()
         {
-            Environment.InitializeRepository();
             if (Environment.RepositoryPath != null)
             {
-                var repositoryPathConfiguration = new RepositoryPathConfiguration(Environment.RepositoryPath);
-                var gitConfig = new GitConfig(repositoryPathConfiguration.DotGitConfig);
-
-                var repositoryWatcher = new RepositoryWatcher(Platform, repositoryPathConfiguration, TaskManager.Token);
-                repositoryManager = new RepositoryManager(Platform, TaskManager, UsageTracker, gitConfig, repositoryWatcher,
-                        GitClient, repositoryPathConfiguration, TaskManager.Token);
-                Environment.Repository = repositoryManager.Repository;
+                repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, UsageTracker, GitClient, Environment.RepositoryPath);
+                repositoryManager.Initialize();
+                Environment.Repository.Initialize(repositoryManager);
+                repositoryManager.Start();
                 Logger.Trace($"Got a repository? {Environment.Repository}");
-            }
-        }
-
-        private void RunRepositoryManager()
-        {
-            Logger.Trace("RunRepositoryManager");
-
-            if (Environment.RepositoryPath != null)
-            {
-                new ActionTask(repositoryManager.Initialize())
-                    .Then(repositoryManager.Start)
-                    .Start();;
             }
         }
 
@@ -212,7 +199,7 @@ namespace GitHub.Unity
             {
                 if (disposed) return;
                 disposed = true;
-                if (TaskManager != null) TaskManager.Stop();
+                if (TaskManager != null) TaskManager.Dispose();
                 if (repositoryManager != null) repositoryManager.Dispose();
             }
         }

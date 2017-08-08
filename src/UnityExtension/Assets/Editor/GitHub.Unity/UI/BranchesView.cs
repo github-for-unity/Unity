@@ -50,23 +50,39 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            if (Repository != null)
-            {
-                Repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
-                Repository.OnActiveBranchChanged += HandleRepositoryBranchChangeEvent;
-                Repository.OnActiveRemoteChanged += HandleRepositoryBranchChangeEvent;
-            }
+            AttachHandlers(Repository);
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
-            if (Repository != null)
-            {
-                Repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
-                Repository.OnActiveBranchChanged -= HandleRepositoryBranchChangeEvent;
-                Repository.OnActiveRemoteChanged -= HandleRepositoryBranchChangeEvent;
-            }
+            DetachHandlers(Repository);
+        }
+
+        public override void OnRepositoryChanged(IRepository oldRepository)
+        {
+            base.OnRepositoryChanged(oldRepository);
+            DetachHandlers(oldRepository);
+            AttachHandlers(Repository);
+        }
+
+        private void AttachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+
+            repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
+            repository.OnActiveBranchChanged += HandleRepositoryBranchChangeEvent;
+            repository.OnActiveRemoteChanged += HandleRepositoryBranchChangeEvent;
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+            repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
+            repository.OnActiveBranchChanged -= HandleRepositoryBranchChangeEvent;
+            repository.OnActiveRemoteChanged -= HandleRepositoryBranchChangeEvent;
         }
 
         private void RunRefreshEmbeddedOnMainThread()
@@ -440,6 +456,23 @@ namespace GitHub.Unity
             // Create button
             if (mode == BranchesMode.Default)
             {
+                // If the current branch is selected, then do not enable the Delete button
+                var disableDelete = activeBranchNode == selectedNode;
+                EditorGUI.BeginDisabledGroup(disableDelete);
+                {
+                    if (GUILayout.Button("Delete", EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                    {
+                        var selectedBranchName = selectedNode.Name;
+                        var dialogTitle = "Delete Branch: " + selectedBranchName;
+                        var dialogMessage = "Are you sure you want to delete the branch: " + selectedBranchName + "?";
+                        if (EditorUtility.DisplayDialog("Delete Branch?", dialogMessage, "Delete", "Cancel"))
+                        {
+                            GitClient.DeleteBranch(selectedBranchName, true).Start();
+                        }
+                    }
+                }
+                EditorGUI.EndDisabledGroup();
+
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button(CreateBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                 {

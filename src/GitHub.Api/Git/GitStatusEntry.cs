@@ -5,12 +5,12 @@ namespace GitHub.Unity
     [Serializable]
     struct GitStatusEntry
     {
-        public readonly string Path;
-        public readonly string FullPath;
-        public readonly string ProjectPath;
-        public readonly string OriginalPath;
-        public readonly GitFileStatus Status;
-        public readonly bool Staged;
+        public string Path;
+        public string FullPath;
+        public string ProjectPath;
+        public string OriginalPath;
+        public GitFileStatus Status;
+        public bool Staged;
 
         public GitStatusEntry(string path, string fullPath, string projectPath,
             GitFileStatus status,

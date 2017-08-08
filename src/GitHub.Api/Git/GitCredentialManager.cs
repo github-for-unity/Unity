@@ -97,11 +97,11 @@ namespace GitHub.Unity
             return credential;
         }
 
-        public async Task Save(ICredential credential)
+        public async Task Save(ICredential cred)
         {
-            Logger.Trace("Save: {0}", credential.Host);
+            this.credential = cred;
 
-            this.credential = credential;
+            Logger.Trace("Save: {0}", credential.Host);
 
             if (!await LoadCredentialHelper())
                 return;

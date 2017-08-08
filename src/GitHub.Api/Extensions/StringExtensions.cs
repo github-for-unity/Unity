@@ -151,16 +151,6 @@ namespace GitHub.Unity
         }
     }
 
-    public static class ListExtensions
-    {
-        public static string Join<T>(this IEnumerable<T> list, string separator)
-        {
-            if (list == null)
-                return null;
-            return String.Join(separator, list.Select(x => x?.ToString()).ToArray());
-        }
-    }
-
     public struct StringResult
     {
         public string Chunk;

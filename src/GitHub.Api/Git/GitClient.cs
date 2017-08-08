@@ -62,6 +62,8 @@ namespace GitHub.Unity
         ITask<string> Add(IList<string> files,
             IOutputProcessor<string> processor = null);
 
+        ITask<string> AddAll(IOutputProcessor<string> processor = null);
+
         ITask<string> Remove(IList<string> files,
             IOutputProcessor<string> processor = null);
 
@@ -119,7 +121,7 @@ namespace GitHub.Unity
             var searchPath = "PortableGit_";
 
             var portableGitPath = gitHubLocalAppDataPath.Directories()
-                .Where(s => s.FileName.StartsWith(searchPath, StringComparison.InvariantCultureIgnoreCase))
+                .Where(s => s.FileName.StartsWith(searchPath, StringComparison.OrdinalIgnoreCase))
                 .FirstOrDefault();
 
             if (portableGitPath != null)
@@ -296,13 +298,35 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
+        public ITask<string> AddAll(IOutputProcessor<string> processor = null)
+        {
+            Logger.Trace("Add all files");
+
+            return new GitAddTask(cancellationToken, processor)
+                .Configure(processManager);
+        }
+
         public ITask<string> Add(IList<string> files,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("Add");
+            Logger.Trace("Add Files");
 
-            return new GitAddTask(files, cancellationToken, processor)
-                .Configure(processManager);
+            GitAddTask last = null;
+            foreach (var batch in files.Spool(5000))
+            {
+                var current = new GitAddTask(batch, cancellationToken, processor).Configure(processManager);
+                if (last == null)
+                {
+                    last = current;
+                }
+                else
+                {
+                    last.Then(current);
+                    last = current;
+                }
+            }
+
+            return last;
         }
 
         public ITask<string> Remove(IList<string> files,

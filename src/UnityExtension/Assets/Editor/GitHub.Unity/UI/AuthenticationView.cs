@@ -23,7 +23,7 @@ namespace GitHub.Unity
 
         [NonSerialized] private bool need2fa;
         [NonSerialized] private bool busy;
-        [NonSerialized] private string message;
+        [NonSerialized] private string errorMessage;
         [NonSerialized] private bool enterPressed;
         [NonSerialized] private string password = "";
 
@@ -148,7 +148,7 @@ namespace GitHub.Unity
             }
             GUILayout.EndHorizontal();
 
-            ShowMessage(message, Styles.ErrorLabel);
+            ShowErrorMessage();
 
             GUILayout.Space(Styles.BaseSpacing + 3);
 
@@ -182,7 +182,7 @@ namespace GitHub.Unity
             GUILayout.EndHorizontal();
             GUILayout.Space(Styles.BaseSpacing);
 
-            ShowMessage(message, Styles.ErrorLabel);
+            ShowErrorMessage();
 
             GUILayout.Space(Styles.BaseSpacing);
 
@@ -214,7 +214,7 @@ namespace GitHub.Unity
             Logger.Trace("Strating 2FA - Message:\"{0}\"", msg);
 
             need2fa = true;
-            message = msg;
+            errorMessage = msg;
             busy = false;
             Redraw();
         }
@@ -223,7 +223,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("DoResult - Success:{0} Message:\"{1}\"", success, msg);
 
-            message = msg;
+            errorMessage = msg;
             busy = false;
 
             if (success == true)
@@ -236,11 +236,11 @@ namespace GitHub.Unity
             }
         }
 
-        private void ShowMessage(string message, GUIStyle style)
+        private void ShowErrorMessage()
         {
-            if (message != null)
+            if (errorMessage != null)
             {
-                GUILayout.Label(message, style);
+                GUILayout.Label(errorMessage, Styles.ErrorLabel);
             }
         }
     }
