@@ -16,6 +16,7 @@ namespace GitHub.Unity
         event Action<GitStatus> OnStatusUpdated;
         event Action<ConfigBranch?> OnActiveBranchChanged;
         event Action<ConfigRemote?> OnActiveRemoteChanged;
+        event Action<IUser> OnGitUserLoaded;
 
         event Action<IEnumerable<GitLock>> OnLocksUpdated;
         Dictionary<string, ConfigBranch> LocalBranches { get; }
@@ -120,6 +121,7 @@ namespace GitHub.Unity
         public event Action<GitStatus> OnStatusUpdated;
         public event Action<ConfigBranch?> OnActiveBranchChanged;
         public event Action<ConfigRemote?> OnActiveRemoteChanged;
+        public event Action<IUser> OnGitUserLoaded;
 
         public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker,
             IGitClient gitClient, NPath repositoryRoot)
@@ -162,7 +164,7 @@ namespace GitHub.Unity
 
             ReadHead();
             RefreshConfigData();
-
+            LoadGitUser();
             watcher.Start();
         }
 
@@ -302,6 +304,16 @@ namespace GitHub.Unity
             HookupHandlers(task).Schedule(taskManager);
             ListLocks(false);
             return task;
+        }
+
+        private void LoadGitUser()
+        {
+            var user = new User();
+            GitClient.GetConfig("user.name", GitConfigSource.User)
+                .Then((success, value) => user.Name = value).Then(
+            GitClient.GetConfig("user.email", GitConfigSource.User)
+                .Then((success, value) => user.Email = value))
+            .Then(() => OnGitUserLoaded?.Invoke(user));
         }
 
         private void SetupWatcher()

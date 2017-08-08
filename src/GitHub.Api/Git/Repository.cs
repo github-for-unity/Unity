@@ -42,6 +42,7 @@ namespace GitHub.Unity
 
             Name = name;
             LocalPath = localPath;
+            this.User = new User();
         }
 
         public void Initialize(IRepositoryManager repositoryManager)
@@ -55,6 +56,7 @@ namespace GitHub.Unity
             repositoryManager.OnStatusUpdated += RepositoryManager_OnStatusUpdated;
             repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
             repositoryManager.OnActiveRemoteChanged += RepositoryManager_OnActiveRemoteChanged;
+            repositoryManager.OnGitUserLoaded += user => User = user;
         }
 
         public void Refresh()
