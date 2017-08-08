@@ -102,10 +102,10 @@ namespace TestUtils
 
         public static void AssertEqual(this GitStatus gitStatus, GitStatus other)
         {
-            gitStatus.Ahead.Should().Be(other.Ahead);
-            gitStatus.Behind.Should().Be(other.Behind);
-            gitStatus.LocalBranch.Should().Be(other.LocalBranch);
-            gitStatus.RemoteBranch.Should().Be(other.RemoteBranch);
+            gitStatus.Ahead.Should().Be(other.Ahead, "Ahead should be equal");
+            gitStatus.Behind.Should().Be(other.Behind, "Behind should be equal");
+            gitStatus.LocalBranch.Should().Be(other.LocalBranch, "LocalBranch should be equal");
+            gitStatus.RemoteBranch.Should().Be(other.RemoteBranch, "RemoteBranch should be equal");
             gitStatus.Entries.AssertEqual(other.Entries);
         }
 
