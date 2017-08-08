@@ -50,23 +50,39 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            if (Repository != null)
-            {
-                Repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
-                Repository.OnActiveBranchChanged += HandleRepositoryBranchChangeEvent;
-                Repository.OnActiveRemoteChanged += HandleRepositoryBranchChangeEvent;
-            }
+            AttachHandlers(Repository);
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
-            if (Repository != null)
-            {
-                Repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
-                Repository.OnActiveBranchChanged -= HandleRepositoryBranchChangeEvent;
-                Repository.OnActiveRemoteChanged -= HandleRepositoryBranchChangeEvent;
-            }
+            DetachHandlers(Repository);
+        }
+
+        public override void OnRepositoryChanged(IRepository oldRepository)
+        {
+            base.OnRepositoryChanged(oldRepository);
+            DetachHandlers(oldRepository);
+            AttachHandlers(Repository);
+        }
+
+        private void AttachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+
+            repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
+            repository.OnActiveBranchChanged += HandleRepositoryBranchChangeEvent;
+            repository.OnActiveRemoteChanged += HandleRepositoryBranchChangeEvent;
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+            repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
+            repository.OnActiveBranchChanged -= HandleRepositoryBranchChangeEvent;
+            repository.OnActiveRemoteChanged -= HandleRepositoryBranchChangeEvent;
         }
 
         private void RunRefreshEmbeddedOnMainThread()

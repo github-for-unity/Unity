@@ -45,8 +45,6 @@ namespace GitHub.Unity
         [NonSerialized] private float scrollOffset;
         [NonSerialized] private DateTimeOffset scrollTime = DateTimeOffset.Now;
         [NonSerialized] private int selectionIndex;
-        [NonSerialized] private int statusAhead;
-        [NonSerialized] private int statusBehind;
         [NonSerialized] private bool updated = true;
         [NonSerialized] private bool useScrollTime;
 
@@ -57,6 +55,8 @@ namespace GitHub.Unity
         [SerializeField] private Object historyTarget;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string selectionID;
+        [SerializeField] private int statusAhead;
+        [SerializeField] private int statusBehind;
 
         [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
         [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
@@ -66,81 +66,38 @@ namespace GitHub.Unity
         {
             base.InitializeView(parent);
 
-            if (Manager != null)
-            {
-                UpdateLog();
-            }
-
             lastWidth = Position.width;
             selectionIndex = newSelectionIndex = -1;
 
             changesetTree.InitializeView(this);
             changesetTree.Readonly = true;
-            
-            if (Repository != null)
-            {
-                Repository.OnActiveBranchChanged += s => Refresh();
-                Repository.OnActiveRemoteChanged += s => Refresh();
-            }
         }
 
         public override void OnEnable()
         {
             base.OnEnable();
-            if (Repository != null)
-            {
-                Repository.OnHeadChanged += UpdateLogOnMainThread;
-                Repository.OnStatusUpdated += UpdateStatusOnMainThread;
-            }
-            UpdateLog();
+            AttachHandlers(Repository);
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
-            if (Repository != null)
-            {
-                Repository.OnHeadChanged -= UpdateLogOnMainThread;
-                Repository.OnStatusUpdated -= UpdateStatusOnMainThread;
-            }
+            DetachHandlers(Repository);
         }
 
-        private void UpdateStatusOnMainThread(GitStatus status)
+        public override void OnDataUpdate()
         {
-            new ActionTask(TaskManager.Token, _ => UpdateStatus(status))
-                .ScheduleUI(TaskManager);
+            base.OnDataUpdate();
+            MaybeUpdateData();
         }
 
-        private void UpdateStatus(GitStatus status)
+        public override void OnRepositoryChanged(IRepository oldRepository)
         {
-            currentRemote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : null;
-            statusAhead = status.Ahead;
-            statusBehind = status.Behind;
-        }
+            base.OnRepositoryChanged(oldRepository);
 
-        private void UpdateLogOnMainThread()
-        {
-            new ActionTask(TaskManager.Token, _ => UpdateLog())
-                .ScheduleUI(TaskManager);
-        }
-
-        private void UpdateLog()
-        {
-            if (Repository == null)
-                return;
-
-            UpdateStatus(Repository.CurrentStatus);
+            DetachHandlers(oldRepository);
+            AttachHandlers(Repository);
             Refresh();
-        }
-
-        private void RefreshLog()
-        {
-            if (Environment.Repository != null && GitClient != null)
-            {
-                GitClient.Log()
-                    .ThenInUI((success, log) => { if (success) OnLogUpdate(log); })
-                    .Start();
-            }
         }
 
         public override void Refresh()
@@ -164,39 +121,9 @@ namespace GitHub.Unity
             }
         }
 
-#if ENABLE_BROADMODE
-        public bool EvaluateBroadMode()
-        {
-            var past = broadMode;
-
-            // Flip when the limits are breached
-            if (Position.width > Styles.BroadModeLimit)
-            {
-                broadMode = true;
-            }
-            else if (Position.width < Styles.NarrowModeLimit)
-            {
-                broadMode = false;
-            }
-
-            // Show the layout notification while scaling
-            var window = (Window)Parent;
-            var scaled = Position.width != lastWidth;
-            lastWidth = Position.width;
-
-            if (scaled)
-            {
-                window.ShowNotification(new GUIContent(Styles.FolderIcon), Styles.ModeNotificationDelay);
-            }
-
-            // Return whether we flipped
-            return broadMode != past;
-        }
-#endif
-
         public override void OnGUI()
         {
-            if (Repository == null)
+            if (!HasRepository)
             {
                 DoOfferToInitializeRepositoryGUI();
                 return;
@@ -239,6 +166,105 @@ namespace GitHub.Unity
             GUILayout.EndHorizontal();
         }
 #endif
+
+        private void AttachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+            repository.OnHeadChanged += Refresh;
+            repository.OnStatusUpdated += UpdateStatusOnMainThread;
+            repository.OnActiveBranchChanged += s => Refresh();
+            repository.OnActiveRemoteChanged += s => Refresh();
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+            repository.OnHeadChanged -= Refresh;
+            repository.OnStatusUpdated -= UpdateStatusOnMainThread;
+            repository.OnActiveBranchChanged -= s => Refresh();
+            repository.OnActiveRemoteChanged -= s => Refresh();
+        }
+
+        private void UpdateStatusOnMainThread(GitStatus status)
+        {
+            new ActionTask(TaskManager.Token, _ => UpdateStatus(status))
+                .ScheduleUI(TaskManager);
+        }
+
+        private void UpdateStatus(GitStatus status)
+        {
+            currentRemote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : null;
+            statusAhead = status.Ahead;
+            statusBehind = status.Behind;
+        }
+
+        private void RefreshLog()
+        {
+            if (GitClient != null)
+            {
+                if (Repository != null)
+                {
+                    GitClient.Log().ThenInUI((success, log) => {
+                        if (success) OnLogUpdate(log);
+                    }).Start();
+                }
+            }
+        }
+
+        private void OnLogUpdate(List<GitLogEntry> entries)
+        {
+            Logger.Trace("OnLogUpdate");
+            GitLogCache.Instance.Log = entries;
+            updated = true;
+            Redraw();
+        }
+
+        private void MaybeUpdateData()
+        {
+            if (!updated)
+                return;
+            updated = false;
+
+            history = GitLogCache.Instance.Log;
+
+            if (history.Any())
+            {
+                // Make sure that scroll as much as possible focuses the same time period in the new entry list
+                if (useScrollTime)
+                {
+                    var closestIndex = -1;
+                    double closestDifference = Mathf.Infinity;
+                    for (var index = 0; index < history.Count; ++index)
+                    {
+                        var diff = Math.Abs((history[index].Time - scrollTime).TotalSeconds);
+                        if (diff < closestDifference)
+                        {
+                            closestDifference = diff;
+                            closestIndex = index;
+                        }
+                    }
+
+                    ScrollTo(closestIndex, scrollOffset);
+                }
+
+                CullHistory();
+            }
+
+            // Restore selection index or clear it
+            newSelectionIndex = -1;
+            if (!string.IsNullOrEmpty(selectionID))
+            {
+                selectionIndex =
+                    Enumerable.Range(1, history.Count + 1).FirstOrDefault(index => history[index - 1].CommitID.Equals(selectionID)) - 1;
+
+                if (selectionIndex < 0)
+                {
+                    selectionID = string.Empty;
+                }
+            }
+        }
 
         private void DoOfferToInitializeRepositoryGUI()
         {
@@ -490,54 +516,6 @@ namespace GitHub.Unity
             }
         }
 
-        private void OnLogUpdate(IEnumerable<GitLogEntry> entries)
-        {
-            Logger.Trace("OnLogUpdate");
-
-            updated = true;
-
-            history.Clear();
-            history.AddRange(entries);
-
-            if (history.Any())
-            {
-                // Make sure that scroll as much as possible focuses the same time period in the new entry list
-                if (useScrollTime)
-                {
-                    var closestIndex = -1;
-                    double closestDifference = Mathf.Infinity;
-                    for (var index = 0; index < history.Count; ++index)
-                    {
-                        var diff = Math.Abs((history[index].Time - scrollTime).TotalSeconds);
-                        if (diff < closestDifference)
-                        {
-                            closestDifference = diff;
-                            closestIndex = index;
-                        }
-                    }
-
-                    ScrollTo(closestIndex, scrollOffset);
-                }
-
-                CullHistory();
-            }
-
-            // Restore selection index or clear it
-            newSelectionIndex = -1;
-            if (!string.IsNullOrEmpty(selectionID))
-            {
-                selectionIndex =
-                    Enumerable.Range(1, history.Count + 1).FirstOrDefault(index => history[index - 1].CommitID.Equals(selectionID)) - 1;
-
-                if (selectionIndex < 0)
-                {
-                    selectionID = string.Empty;
-                }
-            }
-
-            Redraw();
-        }
-
         private void ScrollTo(int index, float offset = 0f)
         {
             scroll.Set(scroll.x, EntryHeight * index + offset);
@@ -615,7 +593,7 @@ namespace GitHub.Unity
 
                     GUI.DrawTexture(mergeIndicatorRect, Styles.MergeIcon);
 
-                    drawTimelineRectAroundIconRect(entryRect, mergeIndicatorRect);
+                    DrawTimelineRectAroundIconRect(entryRect, mergeIndicatorRect);
 
                     summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorWidth, summaryRect.height);
                 }
@@ -625,7 +603,7 @@ namespace GitHub.Unity
                     const float LocalIndicatorSize = 6f;
                     var localIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2), summaryRect.y + 5, LocalIndicatorSize, LocalIndicatorSize);
 
-                    drawTimelineRectAroundIconRect(entryRect, localIndicatorRect);
+                    DrawTimelineRectAroundIconRect(entryRect, localIndicatorRect);
 
                     GUI.DrawTexture(localIndicatorRect, Styles.LocalCommitIcon);
 
@@ -642,7 +620,7 @@ namespace GitHub.Unity
                         NormalIndicatorWidth,
                         NormalIndicatorHeight);
 
-                    drawTimelineRectAroundIconRect(entryRect, normalIndicatorRect);
+                    DrawTimelineRectAroundIconRect(entryRect, normalIndicatorRect);
 
                     GUI.DrawTexture(normalIndicatorRect, Styles.DotIcon);
                 }
@@ -758,7 +736,7 @@ namespace GitHub.Unity
                 .Start();
         }
 
-        void drawTimelineRectAroundIconRect(Rect parentRect, Rect iconRect)
+        private void DrawTimelineRectAroundIconRect(Rect parentRect, Rect iconRect)
         {
             Color timelineBarColor = new Color(0.51F, 0.51F, 0.51F, 0.2F);
 
@@ -788,6 +766,35 @@ namespace GitHub.Unity
             EditorGUI.DrawRect(bottomTimelineRect, timelineBarColor);
         }
 
+#if ENABLE_BROADMODE
+        private bool EvaluateBroadMode()
+        {
+            var past = broadMode;
+
+            // Flip when the limits are breached
+            if (Position.width > Styles.BroadModeLimit)
+            {
+                broadMode = true;
+            }
+            else if (Position.width < Styles.NarrowModeLimit)
+            {
+                broadMode = false;
+            }
+
+            // Show the layout notification while scaling
+            var window = (Window)Parent;
+            var scaled = Position.width != lastWidth;
+            lastWidth = Position.width;
+
+            if (scaled)
+            {
+                window.ShowNotification(new GUIContent(Styles.FolderIcon), Styles.ModeNotificationDelay);
+            }
+
+            // Return whether we flipped
+            return broadMode != past;
+        }
+#endif
 
 #if ENABLE_BROADMODE
         public bool BroadMode

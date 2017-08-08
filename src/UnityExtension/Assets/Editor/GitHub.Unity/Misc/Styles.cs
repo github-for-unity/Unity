@@ -57,6 +57,7 @@ namespace GitHub.Unity
                                 longMessageStyle,
                                 headerBoxStyle,
                                 headerBranchLabelStyle,
+                                headerUrlLabelStyle,
                                 headerRepoLabelStyle,
                                 headerTitleStyle,
                                 headerDescriptionStyle,
@@ -245,6 +246,21 @@ namespace GitHub.Unity
                     headerRepoLabelStyle.margin = new RectOffset(0, 0, 0, 0);
                 }
                 return headerRepoLabelStyle;
+            }
+        }
+
+        public static GUIStyle HeaderUrlLabelStyle
+        {
+            get
+            {
+                if (headerUrlLabelStyle == null)
+                {
+                    headerUrlLabelStyle = new GUIStyle(EditorStyles.label);
+                    headerUrlLabelStyle.name = "HeaderUrlLabelStyle";
+                    headerUrlLabelStyle.margin = new RectOffset(0, 0, 0, 0);
+                    headerUrlLabelStyle.fontStyle = FontStyle.Italic;
+                }
+                return headerUrlLabelStyle;
             }
         }
 
