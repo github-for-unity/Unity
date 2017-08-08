@@ -644,13 +644,13 @@ namespace GitHub.Unity
 
         private void OnPrivacyGui()
         {
-            var service = Manager != null && Manager.UsageTracker != null ? Manager.UsageTracker : null;
+            var service = Manager != null ? Manager.UsageTracker : null;
 
             GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
 
             GUI.enabled = !busy && service != null;
 
-            var metricsEnabled = service != null ? service.Enabled : false;
+            var metricsEnabled = service != null && service.Enabled;
             EditorGUI.BeginChangeCheck();
             {
                 metricsEnabled = GUILayout.Toggle(metricsEnabled, MetricsOptInLabel);
