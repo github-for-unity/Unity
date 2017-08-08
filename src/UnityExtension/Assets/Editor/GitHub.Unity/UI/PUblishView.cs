@@ -71,6 +71,7 @@ namespace GitHub.Unity
                         }
 
                         owners = new[] { user.Login };
+                        username = user.Login;
 
                         Logger.Trace("GetOrganizations");
 
@@ -198,6 +199,8 @@ namespace GitHub.Unity
                 {
                     isBusy = true;
 
+                    var organization = owners[selectedOwner] == username ? null : owners[selectedOwner];
+
                     Client.CreateRepository(new NewRepository(repoName)
                     {
                         Private = togglePrivate,
@@ -223,7 +226,7 @@ namespace GitHub.Unity
                                  .Then(GitClient.Push("origin", Repository.CurrentBranch.Value.Name))
                                  .ThenInUI(Parent.Finish)
                                  .Start();
-                    }, owners[selectedOwner] == username ? null : owners[selectedOwner]);
+                    }, organization);
                 }
                 GUI.enabled = true;
             }
