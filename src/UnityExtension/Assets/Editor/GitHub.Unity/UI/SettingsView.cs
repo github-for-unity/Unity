@@ -172,10 +172,10 @@ namespace GitHub.Unity
             if (lockedFiles == null)
                 lockedFiles = new List<GitLock>();
 
-            userDataHasChanged = Repository == null || (Repository.User.Name == gitName && Repository.User.Email == gitEmail);
-
             if (Repository == null)
                 return;
+
+            userDataHasChanged = !(Repository.User.Name == gitName && Repository.User.Email == gitEmail);
 
             if (!remoteHasChanged && !userDataHasChanged)
                 return;
@@ -196,7 +196,7 @@ namespace GitHub.Unity
                 }
             }
 
-            if (userDataHasChanged && Repository != null)
+            if (userDataHasChanged)
             {
                 gitName = Repository.User.Name;
                 gitEmail = Repository.User.Email;
@@ -243,8 +243,8 @@ namespace GitHub.Unity
 
             EditorGUI.BeginDisabledGroup(isBusy);
             {
-                newGitName = EditorGUILayout.TextField(GitConfigNameLabel, newGitName);
-                newGitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, newGitEmail);
+                newGitName = EditorGUILayout.TextField(GitConfigNameLabel, gitName);
+                newGitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, gitEmail);
 
                 var needsSaving = newGitName != gitName || newGitEmail != gitEmail;
                 EditorGUI.BeginDisabledGroup(needsSaving);
