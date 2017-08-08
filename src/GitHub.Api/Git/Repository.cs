@@ -240,7 +240,8 @@ namespace GitHub.Unity
             Name,
             CloneUrl,
             LocalPath,
-            GetHashCode());
+            CurrentBranch,
+            CurrentRemote);
 
         public GitStatus CurrentStatus
         {
