@@ -145,7 +145,7 @@ namespace GitHub.Unity
                     }
                     catch (Exception ex)
                     {
-                        Logger.Warning(ex, "Error Sending Usage");
+                        Logger.Warning("Error Sending Usage Exception Type:{0} Message:{1}", ex.GetType().ToString(), ex.Message);
                     }
                 }
 
