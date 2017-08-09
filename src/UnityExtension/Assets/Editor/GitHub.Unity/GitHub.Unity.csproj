@@ -84,6 +84,7 @@
     <Compile Include="Logging\UnityLogAdapter.cs" />
     <Compile Include="EntryPoint.cs" />
     <Compile Include="Misc\Installer.cs" />
+    <Compile Include="UI\BaseWindow.cs" />
     <Compile Include="UI\PublishWindow.cs" />
     <Compile Include="UI\ProjectWindowInterface.cs" />
     <Compile Include="Misc\Styles.cs" />
