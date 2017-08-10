@@ -30,12 +30,13 @@ namespace IntegrationTests
 
             var usageTracker = new NullUsageTracker();
 
-            var repositoryManagerFactory = new RepositoryManagerFactory();
-            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, usageTracker, GitClient, repoPath);
-            await RepositoryManager.Initialize();
-            RepositoryManager.Start();
+            RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, usageTracker, GitClient, repoPath);
+            RepositoryManager.Initialize();
 
-            Environment.Repository = RepositoryManager.Repository;
+            Environment.Repository = new Repository("TestRepo", repoPath);
+            Environment.Repository.Initialize(RepositoryManager);
+
+            RepositoryManager.Start();
 
             DotGitPath = repoPath.Combine(".git");
 

@@ -6,6 +6,20 @@ namespace GitHub.Unity
 {
     static class TaskExtensions
     {
+        private static Task completedTask;
+
+        public static Task CompletedTask
+        {
+            get
+            {
+                if (completedTask == null)
+                {
+                    completedTask = TaskEx.FromResult(true);
+                }
+                return completedTask;
+            }
+        }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "task")]
         public static void Forget(this Task task)
         {

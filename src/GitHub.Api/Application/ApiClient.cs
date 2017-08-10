@@ -221,15 +221,17 @@ namespace GitHub.Unity
         {
             try
             {
-                logger.Trace("Creating Repository");
-
                 Octokit.Repository repository;
-                if (organization != null)
+                if (!string.IsNullOrEmpty(organization))
                 {
+                    logger.Trace("Creating repository for organization");
+
                     repository = await githubClient.Repository.Create(organization, newRepository);
                 }
                 else
                 {
+                    logger.Trace("Creating repository for user");
+
                     repository = await githubClient.Repository.Create(newRepository);
                 }
 
