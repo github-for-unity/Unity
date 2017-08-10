@@ -57,10 +57,6 @@ namespace GitHub.Unity
         private readonly Action<Exception, string> onError;
         private readonly CancellationToken token;
         private readonly List<string> errors = new List<string>();
-        private byte[] outputBuffer;
-        private byte[] errorBuffer;
-        // buffer size refers to https://github.com/Unity-Technologies/mono/blob/unity-5.6-staging/mcs/class/System/System.Diagnostics/Process.cs#L1149-L1157
-        const int BufferSize = 8192;
 
         public Process Process { get; }
         public StreamWriter Input { get; private set; }
@@ -78,76 +74,23 @@ namespace GitHub.Unity
             this.onError = onError;
             this.token = token;
             this.Process = process;
-            this.outputBuffer = new Byte[BufferSize];
-            this.errorBuffer = new Byte[BufferSize];
         }
 
         public void Run()
         {
-            AsyncCallback outputCallback = null;
-            AsyncCallback errorCallback = null;
-            var outputReset = new ManualResetEvent(false);
-            var errorReset = new ManualResetEvent(false);
-
-            if (Process.StartInfo.RedirectStandardOutput)
+            if (!Process.StartInfo.RedirectStandardOutput)
             {
-                /*
-                 * Process.OutputDataReceived in .NET3.5 has encoding bug
-                 * refer: https://github.com/github-for-unity/Unity/issues/124
-                 */
-                var outputContents = new StringBuilder();
-                var outputEncoding = Process.StartInfo.StandardOutputEncoding ?? Console.Out.Encoding;
-                outputCallback = (r) =>
-                {
-                    int bytesRead = Process.StandardOutput.BaseStream.EndRead(r);
-                    if (bytesRead > 0)
-                    {
-                        var encoded = outputEncoding.GetString(outputBuffer, 0, bytesRead);
-                        outputContents.Append(encoded);
-                        Process.StandardOutput.BaseStream.BeginRead(outputBuffer, 0, outputBuffer.Length, outputCallback, Process.StandardOutput);
-                    }
-                    else
-                    {
-                        using (var reader = new StringReader(outputContents.ToString()))
-                        {
-                            string line;
-                            while ((line = reader.ReadLine()) != null)
-                            {
-                                outputProcessor.LineReceived(line);
-                            }
-                        }
-                        // null is terminator
-                        outputProcessor.LineReceived(null);
-                        outputReset.Set();
-                    }
-                };
+                throw new ArgumentException("Process must RedirectStandardOutput");
             }
-            if (Process.StartInfo.RedirectStandardError)
+
+            if (!Process.StartInfo.RedirectStandardError)
             {
-                var errorContents = new StringBuilder();
-                var errorEncoding = Process.StartInfo.StandardErrorEncoding ?? Console.Out.Encoding;
-                errorCallback = (r) =>
-                {
-                    int bytesRead = Process.StandardError.BaseStream.EndRead(r);
-                    if (bytesRead > 0)
-                    {
-                        var encoded = errorEncoding.GetString(errorBuffer, 0, bytesRead);
-                        errorContents.Append(encoded);
-                        Process.StandardError.BaseStream.BeginRead(errorBuffer, 0, errorBuffer.Length, errorCallback, Process.StandardError);
-                    }
-                    else
-                    {
-                        using (var reader = new StringReader(errorContents.ToString()))
-                        {
-                            string line;
-                            while ((line = reader.ReadLine()) != null)
-                            {
-                                errors.Add(line);
-                            }
-                        }
-                        errorReset.Set();
-                    }
-                };
+                throw new ArgumentException("Process must RedirectStandardError");
+            }
+
+            if (!Process.StartInfo.CreateNoWindow)
+            {
+                throw new ArgumentException("Process must CreateNoWindow");
             }
 
             try
@@ -172,56 +115,53 @@ namespace GitHub.Unity
                 return;
             }
 
-            if (Process.StartInfo.RedirectStandardOutput)
-            {
-                outputReset.Reset();
-                Process.StandardOutput.BaseStream.BeginRead(
-                    outputBuffer,
-                    0,
-                    outputBuffer.Length,
-                    outputCallback,
-                    Process.StandardOutput
-                    );
-            }
-            if (Process.StartInfo.RedirectStandardError)
-            {
-                errorReset.Reset();
-                Process.StandardError.BaseStream.BeginRead(
-                    errorBuffer,
-                    0,
-                    errorBuffer.Length,
-                    errorCallback,
-                    Process.StandardError
-                    );
-            }
             if (Process.StartInfo.RedirectStandardInput)
                 Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
 
             onStart?.Invoke();
 
-            if (Process.StartInfo.RedirectStandardOutput)
-                outputReset.WaitOne();
-            if (Process.StartInfo.RedirectStandardError)
-                errorReset.WaitOne();
-
-            if (Process.StartInfo.CreateNoWindow)
+            var outputStream = Process.StandardOutput;
+            var line = outputStream.ReadLine();
+            while (line != null)
             {
-                while (!WaitForExit(500))
+                outputProcessor.LineReceived(line);
+
+                if (token.IsCancellationRequested)
                 {
-                    if (token.IsCancellationRequested)
-                    {
-                        if (!Process.HasExited)
-                            Process.Kill();
-                        Process.Close();
-                        onEnd?.Invoke();
-                        token.ThrowIfCancellationRequested();
-                    }
+                    if (!Process.HasExited)
+                        Process.Kill();
+
+                    Process.Close();
+                    onEnd?.Invoke();
+                    token.ThrowIfCancellationRequested();
                 }
 
-                if (Process.ExitCode != 0 && errors.Count > 0)
+                line = outputStream.ReadLine();
+            }
+            outputProcessor.LineReceived(null);
+
+            var errorStream = Process.StandardError;
+            var errorLine = errorStream.ReadLine();
+            while (errorLine != null)
+            {
+                errors.Add(errorLine);
+
+                if (token.IsCancellationRequested)
                 {
-                    onError?.Invoke(null, String.Join(Environment.NewLine, errors.ToArray()));
+                    if (!Process.HasExited)
+                        Process.Kill();
+
+                    Process.Close();
+                    onEnd?.Invoke();
+                    token.ThrowIfCancellationRequested();
                 }
+
+                errorLine = errorStream.ReadLine();
+            }
+
+            if (Process.ExitCode != 0 && errors.Count > 0)
+            {
+                onError?.Invoke(null, string.Join(Environment.NewLine, errors.ToArray()));
             }
 
             onEnd?.Invoke();
