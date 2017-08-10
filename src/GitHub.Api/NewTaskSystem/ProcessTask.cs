@@ -78,37 +78,19 @@ namespace GitHub.Unity
 
         public void Run()
         {
-            if (Process.StartInfo.RedirectStandardOutput)
+            if (!Process.StartInfo.RedirectStandardOutput)
             {
-                Process.OutputDataReceived += (s, e) =>
-                {
-                    //Logger.Trace("OutputData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
-
-                    string encodedData = null;
-                    if (e.Data != null)
-                    {
-                        encodedData = Encoding.UTF8.GetString(Encoding.Default.GetBytes(e.Data));
-                    }
-                    outputProcessor.LineReceived(encodedData);
-                };
+                throw new ArgumentException("Process must RedirectStandardOutput");
             }
 
-            if (Process.StartInfo.RedirectStandardError)
+            if (!Process.StartInfo.RedirectStandardError)
             {
-                Process.ErrorDataReceived += (s, e) =>
-                {
-                    //if (e.Data != null)
-                    //{
-                    //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
-                    //}
+                throw new ArgumentException("Process must RedirectStandardError");
+            }
 
-                    string encodedData = null;
-                    if (e.Data != null)
-                    {
-                        encodedData = Encoding.UTF8.GetString(Encoding.Default.GetBytes(e.Data));
-                        errors.Add(encodedData);
-                    }
-                };
+            if (!Process.StartInfo.CreateNoWindow)
+            {
+                throw new ArgumentException("Process must CreateNoWindow");
             }
 
             try
@@ -133,34 +115,55 @@ namespace GitHub.Unity
                 return;
             }
 
-            if (Process.StartInfo.RedirectStandardOutput)
-                Process.BeginOutputReadLine();
-            if (Process.StartInfo.RedirectStandardError)
-                Process.BeginErrorReadLine();
             if (Process.StartInfo.RedirectStandardInput)
                 Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
 
             onStart?.Invoke();
 
-            if (Process.StartInfo.CreateNoWindow)
+            var outputStream = Process.StandardOutput;
+            var line = outputStream.ReadLine();
+            while (line != null)
             {
-                while (!WaitForExit(500))
+                outputProcessor.LineReceived(line);
+
+                if (token.IsCancellationRequested)
                 {
-                    if (token.IsCancellationRequested)
-                    {
-                        if (!Process.HasExited)
-                            Process.Kill();
-                        Process.Close();
-                        onEnd?.Invoke();
-                        token.ThrowIfCancellationRequested();
-                    }
+                    if (!Process.HasExited)
+                        Process.Kill();
+
+                    Process.Close();
+                    onEnd?.Invoke();
+                    token.ThrowIfCancellationRequested();
                 }
 
-                if (Process.ExitCode != 0 && errors.Count > 0)
-                {
-                    onError?.Invoke(null, String.Join(Environment.NewLine, errors.ToArray()));
-                }
+                line = outputStream.ReadLine();
             }
+            outputProcessor.LineReceived(null);
+
+            var errorStream = Process.StandardError;
+            var errorLine = errorStream.ReadLine();
+            while (errorLine != null)
+            {
+                errors.Add(errorLine);
+
+                if (token.IsCancellationRequested)
+                {
+                    if (!Process.HasExited)
+                        Process.Kill();
+
+                    Process.Close();
+                    onEnd?.Invoke();
+                    token.ThrowIfCancellationRequested();
+                }
+
+                errorLine = errorStream.ReadLine();
+            }
+
+            if (Process.ExitCode != 0 && errors.Count > 0)
+            {
+                onError?.Invoke(null, string.Join(Environment.NewLine, errors.ToArray()));
+            }
+
             onEnd?.Invoke();
         }
 
