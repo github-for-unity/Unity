@@ -147,7 +147,7 @@ namespace GitHub.Unity
                 bytesRead = outputStream.Read(outputBuffer, 0, bufferSize);
             }
 
-            var lines = outputStringBuilder.ToString().Split(new[] { "\n" }, StringSplitOptions.None);
+            var lines = outputStringBuilder.ToString().Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             //All but the last line, which will always be empty
             for (var index = 0; index < lines.Length - 1; index++)
             {
@@ -159,13 +159,13 @@ namespace GitHub.Unity
 
             var errorStream = Process.StandardError.BaseStream;
             var errorBuffer = new byte[bufferSize];
-            var errorEncoding = Process.StartInfo.StandardOutputEncoding ?? Console.Out.Encoding;
+            var errorEncoding = Process.StartInfo.StandardErrorEncoding ?? Console.Error.Encoding;
             var errorStringBuilder = new StringBuilder();
 
             bytesRead = errorStream.Read(errorBuffer, 0, bufferSize);
             while (bytesRead > 0)
             {
-                var encoded = errorEncoding.GetString(outputBuffer, 0, bytesRead);
+                var encoded = errorEncoding.GetString(errorBuffer, 0, bytesRead);
                 errorStringBuilder.Append(encoded);
 
                 if (token.IsCancellationRequested)
@@ -181,7 +181,7 @@ namespace GitHub.Unity
                 bytesRead = errorStream.Read(errorBuffer, 0, bufferSize);
             }
 
-            var errors = errorStringBuilder.ToString().Split(new[] { "\n" }, StringSplitOptions.None).ToArray();
+            var errors = errorStringBuilder.ToString().Split(new[] { "\r\n", "\n" }, StringSplitOptions.None).ToArray();
             if (errors.Length > 1)
             {
                 //All but the last line, which will always be empty
