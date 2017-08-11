@@ -104,8 +104,6 @@ namespace GitHub.Unity
             if (Process.StartInfo.RedirectStandardInput)
                 Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
 
-            var errors = new List<string>();
-
             onStart?.Invoke();
             if (Process.StartInfo.CreateNoWindow)
             {
