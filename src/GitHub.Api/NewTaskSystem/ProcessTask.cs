@@ -79,21 +79,6 @@ namespace GitHub.Unity
 
         public void Run()
         {
-            if (!Process.StartInfo.RedirectStandardOutput)
-            {
-                throw new ArgumentException("Process must RedirectStandardOutput");
-            }
-
-            if (!Process.StartInfo.RedirectStandardError)
-            {
-                throw new ArgumentException("Process must RedirectStandardError");
-            }
-
-            if (!Process.StartInfo.CreateNoWindow)
-            {
-                throw new ArgumentException("Process must CreateNoWindow");
-            }
-
             try
             {
                 Process.Start();
@@ -121,82 +106,91 @@ namespace GitHub.Unity
 
             onStart?.Invoke();
 
-            // buffer size refers to https://github.com/Unity-Technologies/mono/blob/unity-5.6-staging/mcs/class/System/System.Diagnostics/Process.cs#L1149-L1157
-            const int bufferSize = 8182;
-
-            var outputStream = Process.StandardOutput.BaseStream;
-            var outputBuffer = new byte[bufferSize];
-            var outputEncoding = Process.StartInfo.StandardOutputEncoding ?? Console.Out.Encoding;
-            var splitStringbuilder = new NewlineSplitStringBuilder();
-            string[] splitLines = null;
-
-            var bytesRead = outputStream.Read(outputBuffer, 0, bufferSize);
-            while (bytesRead > 0)
+            if (Process.StartInfo.CreateNoWindow)
             {
-                var encoded = outputEncoding.GetString(outputBuffer, 0, bytesRead);
-                splitLines = splitStringbuilder.Append(encoded);
-                foreach (var splitLine in splitLines)
+                // buffer size refers to https://github.com/Unity-Technologies/mono/blob/unity-5.6-staging/mcs/class/System/System.Diagnostics/Process.cs#L1149-L1157
+                const int bufferSize = 8182;
+
+                if (Process.StartInfo.RedirectStandardOutput)
                 {
-                    outputProcessor.LineReceived(splitLine);
+                    var outputStream = Process.StandardOutput.BaseStream;
+                    var outputBuffer = new byte[bufferSize];
+                    var outputEncoding = Process.StartInfo.StandardOutputEncoding ?? Console.Out.Encoding;
+                    var splitStringbuilder = new NewlineSplitStringBuilder();
+                    string[] splitLines = null;
+
+                    var bytesRead = outputStream.Read(outputBuffer, 0, bufferSize);
+                    while (bytesRead > 0)
+                    {
+                        var encoded = outputEncoding.GetString(outputBuffer, 0, bytesRead);
+                        splitLines = splitStringbuilder.Append(encoded);
+                        foreach (var splitLine in splitLines)
+                        {
+                            outputProcessor.LineReceived(splitLine);
+                        }
+
+                        if (token.IsCancellationRequested)
+                        {
+                            if (!Process.HasExited)
+                                Process.Kill();
+
+                            Process.Close();
+                            onEnd?.Invoke();
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        bytesRead = outputStream.Read(outputBuffer, 0, bufferSize);
+                    }
+
+                    splitLines = splitStringbuilder.Append(null);
+                    //All but the last line, which will always be empty
+                    for (var index = 0; index < splitLines.Length - 1; index++)
+                    {
+                        var splitLine = splitLines[index];
+                        outputProcessor.LineReceived(splitLine);
+                    }
+
+                    outputProcessor.LineReceived(null);
                 }
 
-                if (token.IsCancellationRequested)
+                if (!Process.StartInfo.RedirectStandardError)
                 {
-                    if (!Process.HasExited)
-                        Process.Kill();
+                    var errorStream = Process.StandardError.BaseStream;
+                    var errorBuffer = new byte[bufferSize];
+                    var errorEncoding = Process.StartInfo.StandardErrorEncoding ?? Console.Error.Encoding;
+                    var errorStringBuilder = new StringBuilder();
 
-                    Process.Close();
-                    onEnd?.Invoke();
-                    token.ThrowIfCancellationRequested();
+                    var bytesRead = errorStream.Read(errorBuffer, 0, bufferSize);
+                    while (bytesRead > 0)
+                    {
+                        var encoded = errorEncoding.GetString(errorBuffer, 0, bytesRead);
+                        errorStringBuilder.Append(encoded);
+
+                        if (token.IsCancellationRequested)
+                        {
+                            if (!Process.HasExited)
+                                Process.Kill();
+
+                            Process.Close();
+                            onEnd?.Invoke();
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        bytesRead = errorStream.Read(errorBuffer, 0, bufferSize);
+                    }
+
+                    var errors = errorStringBuilder.ToString().Split(new[] { "\r\n", "\n" }, StringSplitOptions.None).ToArray();
+                    if (errors.Length > 1)
+                    {
+                        //All but the last line, which will always be empty
+                        errors = errors.Take(errors.Length - 1).ToArray();
+                    }
+
+                    if (Process.ExitCode != 0 && errors.Length > 0)
+                    {
+                        onError?.Invoke(null, string.Join(Environment.NewLine, errors));
+                    }
                 }
-
-                bytesRead = outputStream.Read(outputBuffer, 0, bufferSize);
-            }
-
-            splitLines = splitStringbuilder.Append(null);
-            //All but the last line, which will always be empty
-            for (var index = 0; index < splitLines.Length - 1; index++)
-            {
-                var splitLine = splitLines[index];
-                outputProcessor.LineReceived(splitLine);
-            }
-
-            outputProcessor.LineReceived(null);
-
-            var errorStream = Process.StandardError.BaseStream;
-            var errorBuffer = new byte[bufferSize];
-            var errorEncoding = Process.StartInfo.StandardErrorEncoding ?? Console.Error.Encoding;
-            var errorStringBuilder = new StringBuilder();
-
-            bytesRead = errorStream.Read(errorBuffer, 0, bufferSize);
-            while (bytesRead > 0)
-            {
-                var encoded = errorEncoding.GetString(errorBuffer, 0, bytesRead);
-                errorStringBuilder.Append(encoded);
-
-                if (token.IsCancellationRequested)
-                {
-                    if (!Process.HasExited)
-                        Process.Kill();
-
-                    Process.Close();
-                    onEnd?.Invoke();
-                    token.ThrowIfCancellationRequested();
-                }
-
-                bytesRead = errorStream.Read(errorBuffer, 0, bufferSize);
-            }
-
-            var errors = errorStringBuilder.ToString().Split(new[] { "\r\n", "\n" }, StringSplitOptions.None).ToArray();
-            if (errors.Length > 1)
-            {
-                //All but the last line, which will always be empty
-                errors = errors.Take(errors.Length - 1).ToArray();
-            }
-
-            if (Process.ExitCode != 0 && errors.Length > 0)
-            {
-                onError?.Invoke(null, string.Join(Environment.NewLine, errors));
             }
 
             onEnd?.Invoke();
