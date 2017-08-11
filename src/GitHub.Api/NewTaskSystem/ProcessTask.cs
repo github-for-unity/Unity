@@ -78,21 +78,6 @@ namespace GitHub.Unity
 
         public void Run()
         {
-            if (!Process.StartInfo.RedirectStandardOutput)
-            {
-                throw new ArgumentException("Process must RedirectStandardOutput");
-            }
-
-            if (!Process.StartInfo.RedirectStandardError)
-            {
-                throw new ArgumentException("Process must RedirectStandardError");
-            }
-
-            if (!Process.StartInfo.CreateNoWindow)
-            {
-                throw new ArgumentException("Process must CreateNoWindow");
-            }
-
             try
             {
                 Process.Start();
@@ -120,48 +105,57 @@ namespace GitHub.Unity
 
             onStart?.Invoke();
 
-            var outputStream = Process.StandardOutput;
-            var line = outputStream.ReadLine();
-            while (line != null)
+            if (Process.StartInfo.CreateNoWindow)
             {
-                outputProcessor.LineReceived(line);
-
-                if (token.IsCancellationRequested)
+                if (Process.StartInfo.RedirectStandardOutput)
                 {
-                    if (!Process.HasExited)
-                        Process.Kill();
+                    var outputStream = Process.StandardOutput;
+                    var line = outputStream.ReadLine();
+                    while (line != null)
+                    {
+                        outputProcessor.LineReceived(line);
 
-                    Process.Close();
-                    onEnd?.Invoke();
-                    token.ThrowIfCancellationRequested();
+                        if (token.IsCancellationRequested)
+                        {
+                            if (!Process.HasExited)
+                                Process.Kill();
+
+                            Process.Close();
+                            onEnd?.Invoke();
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        line = outputStream.ReadLine();
+                    }
+                    outputProcessor.LineReceived(null);
                 }
 
-                line = outputStream.ReadLine();
-            }
-            outputProcessor.LineReceived(null);
-
-            var errorStream = Process.StandardError;
-            var errorLine = errorStream.ReadLine();
-            while (errorLine != null)
-            {
-                errors.Add(errorLine);
-
-                if (token.IsCancellationRequested)
+                if (!Process.StartInfo.RedirectStandardError)
                 {
-                    if (!Process.HasExited)
-                        Process.Kill();
+                    var errorStream = Process.StandardError;
+                    var errorLine = errorStream.ReadLine();
+                    while (errorLine != null)
+                    {
+                        errors.Add(errorLine);
 
-                    Process.Close();
-                    onEnd?.Invoke();
-                    token.ThrowIfCancellationRequested();
+                        if (token.IsCancellationRequested)
+                        {
+                            if (!Process.HasExited)
+                                Process.Kill();
+
+                            Process.Close();
+                            onEnd?.Invoke();
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        errorLine = errorStream.ReadLine();
+                    }
+
+                    if (Process.ExitCode != 0 && errors.Count > 0)
+                    {
+                        onError?.Invoke(null, string.Join(Environment.NewLine, errors.ToArray()));
+                    }
                 }
-
-                errorLine = errorStream.ReadLine();
-            }
-
-            if (Process.ExitCode != 0 && errors.Count > 0)
-            {
-                onError?.Invoke(null, string.Join(Environment.NewLine, errors.ToArray()));
             }
 
             onEnd?.Invoke();
