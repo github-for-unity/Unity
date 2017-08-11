@@ -56,7 +56,6 @@ namespace GitHub.Unity
         private readonly Action onEnd;
         private readonly Action<Exception, string> onError;
         private readonly CancellationToken token;
-        private readonly List<string> errors = new List<string>();
 
         public Process Process { get; }
         public StreamWriter Input { get; private set; }
@@ -103,8 +102,9 @@ namespace GitHub.Unity
             if (Process.StartInfo.RedirectStandardInput)
                 Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
 
-            onStart?.Invoke();
+            var errors = new List<string>();
 
+            onStart?.Invoke();
             if (Process.StartInfo.CreateNoWindow)
             {
                 if (Process.StartInfo.RedirectStandardOutput)
@@ -130,7 +130,7 @@ namespace GitHub.Unity
                     outputProcessor.LineReceived(null);
                 }
 
-                if (!Process.StartInfo.RedirectStandardError)
+                if (Process.StartInfo.RedirectStandardError)
                 {
                     var errorStream = Process.StandardError;
                     var errorLine = errorStream.ReadLine();
