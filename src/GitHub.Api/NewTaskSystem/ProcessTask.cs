@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GitHub.Unity.Helpers;
 
 namespace GitHub.Unity
 {
@@ -126,13 +127,18 @@ namespace GitHub.Unity
             var outputStream = Process.StandardOutput.BaseStream;
             var outputBuffer = new byte[bufferSize];
             var outputEncoding = Process.StartInfo.StandardOutputEncoding ?? Console.Out.Encoding;
-            var outputStringBuilder = new StringBuilder();
+            var splitStringbuilder = new NewlineSplitStringBuilder();
+            string[] splitLines = null;
 
             var bytesRead = outputStream.Read(outputBuffer, 0, bufferSize);
             while (bytesRead > 0)
             {
                 var encoded = outputEncoding.GetString(outputBuffer, 0, bytesRead);
-                outputStringBuilder.Append(encoded);
+                splitLines = splitStringbuilder.Append(encoded);
+                foreach (var splitLine in splitLines)
+                {
+                    outputProcessor.LineReceived(splitLine);
+                }
 
                 if (token.IsCancellationRequested)
                 {
@@ -147,12 +153,12 @@ namespace GitHub.Unity
                 bytesRead = outputStream.Read(outputBuffer, 0, bufferSize);
             }
 
-            var lines = outputStringBuilder.ToString().Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            splitLines = splitStringbuilder.Append(null);
             //All but the last line, which will always be empty
-            for (var index = 0; index < lines.Length - 1; index++)
+            for (var index = 0; index < splitLines.Length - 1; index++)
             {
-                var line = lines[index];
-                outputProcessor.LineReceived(line);
+                var splitLine = splitLines[index];
+                outputProcessor.LineReceived(splitLine);
             }
 
             outputProcessor.LineReceived(null);
