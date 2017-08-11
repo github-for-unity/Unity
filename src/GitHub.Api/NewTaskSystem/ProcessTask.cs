@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,7 +57,6 @@ namespace GitHub.Unity
         private readonly Action onEnd;
         private readonly Action<Exception, string> onError;
         private readonly CancellationToken token;
-        private readonly List<string> errors = new List<string>();
 
         public Process Process { get; }
         public StreamWriter Input { get; private set; }
@@ -110,7 +110,7 @@ namespace GitHub.Unity
                     sb.AppendFormat("{0}:{1}", env, Process.StartInfo.EnvironmentVariables[env]);
                     sb.AppendLine();
                 }
-                onError?.Invoke(ex, String.Format("{0} {1}", ex.Message, sb.ToString()));
+                onError?.Invoke(ex, $"{ex.Message} {sb}");
                 onEnd?.Invoke();
                 return;
             }
@@ -120,11 +120,19 @@ namespace GitHub.Unity
 
             onStart?.Invoke();
 
-            var outputStream = Process.StandardOutput;
-            var line = outputStream.ReadLine();
-            while (line != null)
+            // buffer size refers to https://github.com/Unity-Technologies/mono/blob/unity-5.6-staging/mcs/class/System/System.Diagnostics/Process.cs#L1149-L1157
+            const int bufferSize = 8182;
+
+            var outputStream = Process.StandardOutput.BaseStream;
+            var outputBuffer = new byte[bufferSize];
+            var outputEncoding = Process.StartInfo.StandardOutputEncoding ?? Console.Out.Encoding;
+            var outputStringBuilder = new StringBuilder();
+
+            var bytesRead = outputStream.Read(outputBuffer, 0, bufferSize);
+            while (bytesRead > 0)
             {
-                outputProcessor.LineReceived(line);
+                var encoded = outputEncoding.GetString(outputBuffer, 0, bytesRead);
+                outputStringBuilder.Append(encoded);
 
                 if (token.IsCancellationRequested)
                 {
@@ -136,15 +144,29 @@ namespace GitHub.Unity
                     token.ThrowIfCancellationRequested();
                 }
 
-                line = outputStream.ReadLine();
+                bytesRead = outputStream.Read(outputBuffer, 0, bufferSize);
             }
+
+            var lines = outputStringBuilder.ToString().Split(new[] { "\n" }, StringSplitOptions.None);
+            //All but the last line, which will always be empty
+            for (var index = 0; index < lines.Length - 1; index++)
+            {
+                var line = lines[index];
+                outputProcessor.LineReceived(line);
+            }
+
             outputProcessor.LineReceived(null);
 
-            var errorStream = Process.StandardError;
-            var errorLine = errorStream.ReadLine();
-            while (errorLine != null)
+            var errorStream = Process.StandardError.BaseStream;
+            var errorBuffer = new byte[bufferSize];
+            var errorEncoding = Process.StartInfo.StandardOutputEncoding ?? Console.Out.Encoding;
+            var errorStringBuilder = new StringBuilder();
+
+            bytesRead = errorStream.Read(errorBuffer, 0, bufferSize);
+            while (bytesRead > 0)
             {
-                errors.Add(errorLine);
+                var encoded = errorEncoding.GetString(outputBuffer, 0, bytesRead);
+                errorStringBuilder.Append(encoded);
 
                 if (token.IsCancellationRequested)
                 {
@@ -156,12 +178,19 @@ namespace GitHub.Unity
                     token.ThrowIfCancellationRequested();
                 }
 
-                errorLine = errorStream.ReadLine();
+                bytesRead = errorStream.Read(errorBuffer, 0, bufferSize);
             }
 
-            if (Process.ExitCode != 0 && errors.Count > 0)
+            var errors = errorStringBuilder.ToString().Split(new[] { "\n" }, StringSplitOptions.None).ToArray();
+            if (errors.Length > 1)
             {
-                onError?.Invoke(null, string.Join(Environment.NewLine, errors.ToArray()));
+                //All but the last line, which will always be empty
+                errors = errors.Take(errors.Length - 1).ToArray();
+            }
+
+            if (Process.ExitCode != 0 && errors.Length > 0)
+            {
+                onError?.Invoke(null, string.Join(Environment.NewLine, errors));
             }
 
             onEnd?.Invoke();
