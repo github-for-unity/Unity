@@ -104,8 +104,9 @@ namespace GitHub.Unity
             if (Process.StartInfo.RedirectStandardInput)
                 Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
 
-            onStart?.Invoke();
+            var errors = new List<string>();
 
+            onStart?.Invoke();
             if (Process.StartInfo.CreateNoWindow)
             {
                 // buffer size refers to https://github.com/Unity-Technologies/mono/blob/unity-5.6-staging/mcs/class/System/System.Diagnostics/Process.cs#L1149-L1157
@@ -153,7 +154,7 @@ namespace GitHub.Unity
                     outputProcessor.LineReceived(null);
                 }
 
-                if (!Process.StartInfo.RedirectStandardError)
+                if (Process.StartInfo.RedirectStandardError)
                 {
                     var errorStream = Process.StandardError.BaseStream;
                     var errorBuffer = new byte[bufferSize];
