@@ -195,20 +195,6 @@ namespace GitHub.Unity
 
             onEnd?.Invoke();
         }
-
-        private bool WaitForExit(int milliseconds)
-        {
-            //Logger.Debug("WaitForExit - time: {0}ms", milliseconds);
-
-            // Workaround for a bug in which some data may still be processed AFTER this method returns true, thus losing the data.
-            // http://connect.microsoft.com/VisualStudio/feedback/details/272125/waitforexit-and-waitforexit-int32-provide-different-and-undocumented-implementations
-            bool waitSucceeded = Process.WaitForExit(milliseconds);
-            if (waitSucceeded)
-            {
-                Process.WaitForExit();
-            }
-            return waitSucceeded;
-        }
     }
 
     /// <summary>
