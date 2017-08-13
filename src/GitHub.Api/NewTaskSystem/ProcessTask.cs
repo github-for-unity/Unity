@@ -114,7 +114,7 @@ namespace GitHub.Unity
                 {
                     var outputStream = Process.StandardOutput.BaseStream;
                     var outputBuffer = new byte[bufferSize];
-                    var outputEncoding = Process.StartInfo.StandardOutputEncoding ?? Console.Out.Encoding;
+                    var outputEncoding = Process.StartInfo.StandardOutputEncoding;
                     var splitStringbuilder = new NewlineSplitStringBuilder();
                     string[] splitLines = null;
 
@@ -156,7 +156,7 @@ namespace GitHub.Unity
                 {
                     var errorStream = Process.StandardError.BaseStream;
                     var errorBuffer = new byte[bufferSize];
-                    var errorEncoding = Process.StartInfo.StandardErrorEncoding ?? Console.Error.Encoding;
+                    var errorEncoding = Process.StartInfo.StandardErrorEncoding;
                     var errorStringBuilder = new StringBuilder();
 
                     var bytesRead = errorStream.Read(errorBuffer, 0, bufferSize);
