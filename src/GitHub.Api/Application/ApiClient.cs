@@ -29,7 +29,6 @@ namespace GitHub.Unity
         private readonly ILoginManager loginManager;
         private static readonly SemaphoreSlim sem = new SemaphoreSlim(1);
 
-        Octokit.Repository repositoryCache = new Octokit.Repository();
         IList<Organization> organizationsCache;
         Octokit.User userCache;
 
@@ -47,13 +46,6 @@ namespace GitHub.Unity
             this.keychain = keychain;
             this.githubClient = githubClient;
             loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
-        }
-
-        public async Task GetRepository(Action<Octokit.Repository> callback)
-        {
-            Guard.ArgumentNotNull(callback, "callback");
-            var repo = await GetRepositoryInternal();
-            callback(repo);
         }
 
         public async Task Logout(UriString host)
@@ -182,45 +174,18 @@ namespace GitHub.Unity
             return result.Code == LoginResultCodes.Success;
         }
 
-        private async Task<Octokit.Repository> GetRepositoryInternal()
-        {
-            try
-            {
-                if (owner == null)
-                {
-                    var ownerLogin = OriginalUrl.Owner;
-                    var repositoryName = OriginalUrl.RepositoryName;
-
-                    if (ownerLogin != null && repositoryName != null)
-                    {
-                        var repo = await githubClient.Repository.Get(ownerLogin, repositoryName);
-                        if (repo != null)
-                        {
-                            repositoryCache = repo;
-                        }
-                        owner = ownerLogin;
-                    }
-                }
-            }
-            // it'll throw if it's private or an enterprise instance requiring authentication
-            catch (ApiException apiex)
-            {
-                if (!HostAddress.IsGitHubDotCom(OriginalUrl.ToRepositoryUri()))
-                    isEnterprise = apiex.IsGitHubApiException();
-            }
-            catch {}
-            finally
-            {
-                sem.Release();
-            }
-
-            return repositoryCache;
-        }
-
         private async Task CreateRepositoryInternal(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization)
         {
             try
             {
+                logger.Trace("Creating repository");
+
+                if (!await EnsureKeychainLoaded())
+                {
+                    callback(null, new Exception("Keychain Not Loaded"));
+                    return;
+                }
+
                 Octokit.Repository repository;
                 if (!string.IsNullOrEmpty(organization))
                 {
@@ -252,6 +217,11 @@ namespace GitHub.Unity
             {
                 logger.Trace("Getting Organizations");
 
+                if (!await EnsureKeychainLoaded())
+                {
+                    return null;
+                }
+
                 var organizations = await githubClient.Organization.GetAllForCurrent();
 
                 logger.Trace("Obtained {0} Organizations", organizations?.Count.ToString() ?? "NULL");
@@ -276,6 +246,11 @@ namespace GitHub.Unity
             {
                 logger.Trace("Getting Organizations");
 
+                if (!await EnsureKeychainLoaded())
+                {
+                    return null;
+                }
+
                 userCache = await githubClient.User.Current();
             }
             catch(Exception ex)
@@ -285,6 +260,31 @@ namespace GitHub.Unity
             }
 
             return userCache;
+        }
+
+        private async Task<bool> EnsureKeychainLoaded()
+        {
+            logger.Trace("EnsureKeychainLoaded");
+
+            if (keychain.HasKeys)
+            {
+                if (!keychain.NeedsLoad)
+                {
+                    logger.Trace("EnsureKeychainLoaded: Has keys does not need load");
+                    return true;
+                }
+
+                logger.Trace("EnsureKeychainLoaded: Loading");
+
+                var uriString = keychain.Connections.First().Host;
+                var keychainAdapter = await keychain.Load(uriString);
+
+                return keychainAdapter.OctokitCredentials != Credentials.Anonymous;
+            }
+
+            logger.Trace("EnsureKeychainLoaded: No keys to load");
+
+            return false;
         }
 
         public async Task<bool> ValidateCredentials()
