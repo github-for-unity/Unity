@@ -222,9 +222,7 @@ namespace GitHub.Unity
                             return;
                         }
 
-                        var repositoryCloneUrl = Environment.IsWindows ? repository.CloneUrl : repository.SshUrl;
-
-                        GitClient.RemoteAdd("origin", repositoryCloneUrl)
+                        GitClient.RemoteAdd("origin", repository.CloneUrl)
                                  .Then(GitClient.Push("origin", Repository.CurrentBranch.Value.Name))
                                  .ThenInUI(Parent.Finish)
                                  .Start();
