@@ -230,5 +230,7 @@ namespace GitHub.Unity
         public IList<UriString> Hosts => connectionCache.Keys.ToArray();
 
         public bool HasKeys => connectionCache.Any();
+
+        public bool NeedsLoad => HasKeys && FindOrCreateAdapter(connectionCache.First().Value.Host).OctokitCredentials == Credentials.Anonymous;
     }
 }

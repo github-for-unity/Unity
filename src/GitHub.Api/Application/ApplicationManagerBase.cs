@@ -69,8 +69,6 @@ namespace GitHub.Unity
 
             RestartRepository();
             InitializeUI();
-
-            new ActionTask(new Task(() => LoadKeychain().Start())).Start();
         }
 
         public ITask InitializeRepository()
@@ -122,22 +120,6 @@ namespace GitHub.Unity
                 Environment.Repository.Initialize(repositoryManager);
                 repositoryManager.Start();
                 Logger.Trace($"Got a repository? {Environment.Repository}");
-            }
-        }
-
-        private async Task LoadKeychain()
-        {
-            Logger.Trace("Loading Keychain");
-
-            var firstConnection = Platform.Keychain.Hosts.FirstOrDefault();
-            if (firstConnection == null)
-            {
-                Logger.Trace("No Host Found");
-            }
-            else
-            {
-                Logger.Trace("Loading Connection to Host:\"{0}\"", firstConnection);
-                await Platform.Keychain.Load(firstConnection).SafeAwait();
             }
         }
 
