@@ -57,10 +57,9 @@ namespace GitHub.Unity
             return processTask;
         }
 
-        public IProcess RunCommandLineWindow(NPath workingDirectory)
+        public void RunCommandLineWindow(NPath workingDirectory)
         {
-            var shell = environment.IsWindows ? "cmd" : environment.IsMac ? "xterm" : "sh";
-            var startInfo = new ProcessStartInfo(shell)
+            var startInfo = new ProcessStartInfo
             {
                 RedirectStandardInput = false,
                 RedirectStandardOutput = false,
@@ -69,11 +68,22 @@ namespace GitHub.Unity
                 CreateNoWindow = false
             };
 
+            if (environment.IsWindows)
+            {
+                startInfo.FileName = "cmd";
+            }
+            else if (environment.IsMac)
+            {
+                startInfo.FileName = "open";
+                startInfo.Arguments = $"-a Terminal {workingDirectory}";
+            }
+            else
+            {
+                startInfo.FileName = "sh";
+            }
+
             gitEnvironment.Configure(startInfo, workingDirectory);
-            var p = new ProcessTask<string>(cancellationToken, new SimpleOutputProcessor());
-            p.Configure(startInfo);
-            p.Start();
-            return p;
+            Process.Start(startInfo);
         }
 
         public IProcess Reconnect(IProcess processTask, int pid)
