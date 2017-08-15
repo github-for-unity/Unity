@@ -117,35 +117,14 @@ namespace GitHub.Unity
             set
             {
                 gitExecutablePath = value;
-                gitInstallPath = null;
+                if (String.IsNullOrEmpty(gitExecutablePath))
+                    GitInstallPath = null;
+                else
+                    GitInstallPath = GitExecutablePath.Parent.Parent;
             }
         }
 
-        private NPath gitInstallPath;
-        public NPath GitInstallPath
-        {
-            get
-            {
-                if (gitInstallPath == null)
-                {
-
-                    if (!String.IsNullOrEmpty(GitExecutablePath))
-                    {
-                        if (IsWindows)
-                        {
-                            gitInstallPath = GitExecutablePath.Parent.Parent;
-                        }
-                        else
-                        {
-                            gitInstallPath = GitExecutablePath.Parent;
-                        }
-                    }
-                    else
-                        gitInstallPath = GitExecutablePath;
-                }
-                return gitInstallPath;
-            }
-        }
+        public NPath GitInstallPath { get; private set; }
 
         public NPath RepositoryPath { get; private set; }
         public IRepository Repository { get; set; }

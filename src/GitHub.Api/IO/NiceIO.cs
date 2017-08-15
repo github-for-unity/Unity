@@ -283,6 +283,8 @@ GitHub.Unity
 
         public bool DirectoryExists(NPath append)
         {
+            if (append == null)
+                return FileSystem.DirectoryExists(ToString());
             return FileSystem.DirectoryExists(Combine(append).ToString());
         }
 
@@ -295,6 +297,8 @@ GitHub.Unity
 
         public bool FileExists(NPath append)
         {
+            if (append == null)
+                return FileSystem.FileExists(ToString());
             return FileSystem.FileExists(Combine(append).ToString());
         }
 
@@ -1017,6 +1021,14 @@ GitHub.Unity
             if (path == null)
                 return null;
             return new NPath(path);
+        }
+
+        public static NPath Resolve(this NPath path)
+        {
+            if (path == null || DefaultEnvironment.OnWindows || path.IsRelative || !path.FileExists())
+                return path;
+
+            return new NPath(Mono.Unix.UnixPath.GetCompleteRealPath(path.ToString()));
         }
     }
 
