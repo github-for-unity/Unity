@@ -8,7 +8,10 @@ namespace GitHub.Unity
 {
     class PublishView : Subview
     {
-        private const string Title = "Publish this repository to GitHub";
+        private static readonly Vector2 PublishViewSize = new Vector2(300, 250);
+
+        private const string WindowTitle = "Publish";
+        private const string Header = "Publish this repository to GitHub";
         private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
         private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
         private const string PublishViewCreateButton = "Create";
@@ -234,6 +237,16 @@ namespace GitHub.Unity
             }
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
+        }
+
+        public override string Title
+        {
+            get { return WindowTitle; }
+        }
+
+        public override Vector2 Size
+        {
+            get { return PublishViewSize; }
         }
     }
 }

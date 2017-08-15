@@ -53,6 +53,10 @@ namespace GitHub.Unity
         public virtual void OnRepositoryChanged(IRepository oldRepository)
         {}
 
+        public virtual string Title { get { return null; } }
+
+        public virtual Vector2 Size { get {return Vector2.zero;} }
+
         protected IView Parent { get; private set; }
         public IApplicationManager Manager { get { return Parent.Manager; } }
         public IRepository Repository { get { return Parent.Repository; } }

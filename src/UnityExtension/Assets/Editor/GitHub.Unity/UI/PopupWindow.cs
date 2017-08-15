@@ -13,36 +13,6 @@ namespace GitHub.Unity
             AuthenticationView
         }
 
-        public static string Title(PopupView popupView)
-        {
-            switch (popupView)
-            {
-                case PopupView.PublishView:
-                    return "Publish";
-
-                case PopupView.AuthenticationView:
-                    return "Authenticate";
-
-                default:
-                    throw new ArgumentOutOfRangeException("popupView", popupView, null);
-            }
-        }
-
-        public static Vector2 PopupSize(PopupView popupView)
-        {
-            switch (popupView)
-            {
-                case PopupView.PublishView:
-                    return new Vector2(300, 250);
-
-                case PopupView.AuthenticationView:
-                    return new Vector2(290, 290);
-
-                default:
-                    throw new ArgumentOutOfRangeException("popupView", popupView, null);
-            }
-        }
-
         [MenuItem("GitHub/Authenticate")]
         public static void Launch()
         {
@@ -101,7 +71,7 @@ namespace GitHub.Unity
                 popupWindow.OnClose += onClose;
 
             popupWindow.ActivePopupView = popupView;
-            popupWindow.titleContent = new GUIContent(Title(popupView), Styles.SmallLogo);
+            popupWindow.titleContent = new GUIContent(popupWindow.ActiveSubview.Title, Styles.SmallLogo);
 
             popupWindow.Show();
             return popupWindow;
@@ -122,7 +92,7 @@ namespace GitHub.Unity
         {
             base.OnEnable();
 
-            minSize = maxSize = PopupSize(activePopupView);
+            minSize = maxSize = ActiveSubview.Size;
 
             ActiveSubview.OnEnable();
         }
