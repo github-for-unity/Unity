@@ -120,7 +120,7 @@ namespace GitHub.Unity
                 if (String.IsNullOrEmpty(gitExecutablePath))
                     GitInstallPath = null;
                 else
-                    GitInstallPath = GitExecutablePath.Parent.Parent;
+                    GitInstallPath = GitExecutablePath.Resolve().Parent.Parent;
             }
         }
 

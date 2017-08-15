@@ -145,7 +145,7 @@ namespace GitHub.Unity
             if (path == null)
                 path = await new FindExecTask("git", taskManager.Token).StartAwait();
 
-            return path.Resolve();
+            return path;
         }
 
         public bool ValidateGitInstall(NPath path)
