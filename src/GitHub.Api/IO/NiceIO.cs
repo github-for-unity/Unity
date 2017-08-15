@@ -753,11 +753,14 @@ GitHub.Unity
             }
         }
 
+        private static NPath systemTemp;
         public static NPath SystemTemp
         {
             get
             {
-                return new NPath(FileSystem.GetTempPath());
+                if (systemTemp == null)
+                    systemTemp = new NPath(FileSystem.GetTempPath());
+                return systemTemp;
             }
         }
 
