@@ -9,6 +9,6 @@ namespace GitHub.Unity
             where T : IProcess;
         IProcess Reconnect(IProcess processTask, int i);
         CancellationToken CancellationToken { get; }
-        IProcess RunCommandLineWindow(NPath workingDirectory);
+        void RunCommandLineWindow(NPath workingDirectory);
     }
 }
