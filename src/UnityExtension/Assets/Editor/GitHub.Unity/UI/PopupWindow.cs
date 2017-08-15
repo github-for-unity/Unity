@@ -10,7 +10,8 @@ namespace GitHub.Unity
         [MenuItem("GitHub/Authenticate")]
         public static void Launch()
         {
-            Open(new AuthenticationView(), "Authentication");
+            var popupWindow = (PopupWindow) Open(new AuthenticationView(), "Authentication");
+            popupWindow.Initialize(EntryPoint.ApplicationManager);
         }
 
         [SerializeField]
