@@ -13,58 +13,26 @@ namespace GitHub.Unity
             AuthenticationView
         }
 
-        [MenuItem("GitHub/Authenticate")]
-        public static void Launch()
-        {
-            var popupWindow = (PopupWindow) Open(PopupView.AuthenticationView);
-            popupWindow.Initialize(EntryPoint.ApplicationManager);
-        }
+        [NonSerialized] private Subview activeSubview;
 
         [SerializeField] private PopupView activePopupView;
         [SerializeField] private AuthenticationView authenticationView;
         [SerializeField] private PublishView publishView;
 
-        [NonSerialized] private Subview activeSubview;
-
-        public Subview ActiveSubview
+        [MenuItem("GitHub/Authenticate")]
+        public static void Launch()
         {
-            get
-            {
-                return activeSubview;
-            }
-        }
-
-        public PopupView ActivePopupView
-        {
-            get { return activePopupView; }
-            set
-            {
-                if (activePopupView != value)
-                {
-                    activePopupView = value;
-
-                    switch (activePopupView)
-                    {
-                        case PopupView.PublishView:
-                            activeSubview = publishView;
-                            break;
-
-                        case PopupView.AuthenticationView:
-                            activeSubview = authenticationView;
-                            break;
-
-                        default:
-                            throw new ArgumentOutOfRangeException("selectedPopupView", activePopupView, null);
-                    }
-                }
-            }
+            var popupWindow = (PopupWindow)Open(PopupView.AuthenticationView);
+            popupWindow.Initialize(EntryPoint.ApplicationManager);
         }
 
         public static IView Open(PopupView popupView, Action<bool> onClose = null)
         {
             var popupWindow = GetWindow<PopupWindow>(true);
             if (onClose != null)
+            {
                 popupWindow.OnClose += onClose;
+            }
 
             popupWindow.ActivePopupView = popupView;
             popupWindow.titleContent = new GUIContent(popupWindow.ActiveSubview.Title, Styles.SmallLogo);
@@ -121,6 +89,36 @@ namespace GitHub.Unity
         {
             Close();
             base.Finish(result);
+        }
+
+        public Subview ActiveSubview
+        {
+            get { return activeSubview; }
+        }
+
+        public PopupView ActivePopupView
+        {
+            get { return activePopupView; }
+            set
+            {
+                if (activePopupView != value)
+                {
+                    activePopupView = value;
+
+                    switch (activePopupView)
+                    {
+                        case PopupView.PublishView:
+                            activeSubview = publishView;
+                            break;
+
+                        case PopupView.AuthenticationView:
+                            activeSubview = authenticationView;
+                            break;
+
+                        default: throw new ArgumentOutOfRangeException("value", value, null);
+                    }
+                }
+            }
         }
     }
 }
