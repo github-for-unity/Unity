@@ -22,11 +22,11 @@ namespace GitHub.Unity
         [MenuItem("GitHub/Authenticate")]
         public static void Launch()
         {
-            var popupWindow = (PopupWindow)Open(PopupView.AuthenticationView);
-            popupWindow.Initialize(EntryPoint.ApplicationManager);
+            var popupWindow = Open(PopupView.AuthenticationView);
+            popupWindow.InitializeWindow(EntryPoint.ApplicationManager);
         }
 
-        public static IView Open(PopupView popupView, Action<bool> onClose = null)
+        public static PopupWindow Open(PopupView popupView, Action<bool> onClose = null)
         {
             var popupWindow = GetWindow<PopupWindow>(true);
             if (onClose != null)
