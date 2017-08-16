@@ -30,8 +30,19 @@ namespace GitHub.Unity
         {
             get
             {
-                if (activeSubview == null)
+                return activeSubview;
+            }
+        }
+
+        public PopupView ActivePopupView
+        {
+            get { return activePopupView; }
+            set
+            {
+                if (activePopupView != value)
                 {
+                    activePopupView = value;
+
                     switch (activePopupView)
                     {
                         case PopupView.PublishView:
@@ -45,21 +56,6 @@ namespace GitHub.Unity
                         default:
                             throw new ArgumentOutOfRangeException("selectedPopupView", activePopupView, null);
                     }
-                }
-
-                return activeSubview;
-            }
-        }
-
-        public PopupView ActivePopupView
-        {
-            get { return activePopupView; }
-            set
-            {
-                if (activePopupView != value)
-                {
-                    activeSubview = null;
-                    activePopupView = value;
                 }
             }
         }
