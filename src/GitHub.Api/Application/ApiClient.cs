@@ -78,6 +78,12 @@ namespace GitHub.Unity
             callback(user);
         }
 
+        public async Task GetCurrentUserAndOrganizations(Action<Octokit.User, IList<Organization>> callback)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            await GetUsersAndOrganizationInternal(callback);
+        }
+
         public async Task Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result)
         {
             Guard.ArgumentNotNull(need2faCode, "need2faCode");
@@ -260,6 +266,23 @@ namespace GitHub.Unity
             }
 
             return userCache;
+        }
+
+        private async Task GetUsersAndOrganizationInternal(Action<Octokit.User, IList<Organization>> callback)
+        {
+            if (!await EnsureKeychainLoaded())
+            {
+                callback(null, null);
+                return;
+            }
+
+            var currentUserInternal = GetCurrentUserInternal();
+            var organizationInternal = GetOrganizationInternal();
+
+            currentUserInternal.Start(TaskScheduler.Current);
+            organizationInternal.Start(TaskScheduler.Current);
+
+            callback(await currentUserInternal,await organizationInternal);
         }
 
         private async Task<bool> EnsureKeychainLoaded()

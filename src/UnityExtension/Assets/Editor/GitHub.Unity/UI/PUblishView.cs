@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Octokit;
 using Rackspace.Threading;
 using UnityEditor;
@@ -67,34 +68,19 @@ namespace GitHub.Unity
 
                     isLoading = true;
 
-                    Client.GetCurrentUser(user => {
+                    Client.GetCurrentUserAndOrganizations((user, organizations) => {
                         if (user == null)
                         {
-                            Logger.Warning("Unable to get current user");
                             return;
                         }
 
-                        owners = new[] { user.Login };
                         username = user.Login;
 
-                        Logger.Trace("GetOrganizations");
+                        var organizationLogins = (organizations ?? Enumerable.Empty<Organization>())
+                            .OrderBy(organization => organization.Login)
+                            .Select(organization => organization.Login);
 
-                        Client.GetOrganizations(organizations =>
-                        {
-                            if (organizations == null)
-                            {
-                                Logger.Warning("Unable to get list of organizations");
-                                return;
-                            }
-
-                            Logger.Trace("Loaded {0} organizations", organizations.Count);
-
-                            var organizationLogins = organizations
-                                .OrderBy(organization => organization.Login)
-                                .Select(organization => organization.Login);
-
-                            owners = owners.Union(organizationLogins).ToArray();
-                        });
+                        owners = new[] { user.Login }.Union(organizationLogins).ToArray();
                     }).Finally(task => {
                         isLoading = false;
                     });
