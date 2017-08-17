@@ -71,17 +71,18 @@ namespace GitHub.Unity
             callback(organizations);
         }
 
+        public async Task LoadKeychain(Action<bool> callback)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            var hasLoadedKeys = await LoadKeychainInternal();
+            callback(hasLoadedKeys);
+        }
+
         public async Task GetCurrentUser(Action<Octokit.User> callback)
         {
             Guard.ArgumentNotNull(callback, "callback");
             var user = await GetCurrentUserInternal();
             callback(user);
-        }
-
-        public async Task GetCurrentUserAndOrganizations(Action<Octokit.User, IList<Organization>> callback)
-        {
-            Guard.ArgumentNotNull(callback, "callback");
-            await GetUsersAndOrganizationInternal(callback);
         }
 
         public async Task Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result)
@@ -186,7 +187,7 @@ namespace GitHub.Unity
             {
                 logger.Trace("Creating repository");
 
-                if (!await EnsureKeychainLoaded())
+                if (!await LoadKeychainInternal())
                 {
                     callback(null, new Exception("Keychain Not Loaded"));
                     return;
@@ -223,7 +224,7 @@ namespace GitHub.Unity
             {
                 logger.Trace("Getting Organizations");
 
-                if (!await EnsureKeychainLoaded())
+                if (!await LoadKeychainInternal())
                 {
                     return null;
                 }
@@ -252,7 +253,7 @@ namespace GitHub.Unity
             {
                 logger.Trace("Getting Organizations");
 
-                if (!await EnsureKeychainLoaded())
+                if (!await LoadKeychainInternal())
                 {
                     return null;
                 }
@@ -268,36 +269,19 @@ namespace GitHub.Unity
             return userCache;
         }
 
-        private async Task GetUsersAndOrganizationInternal(Action<Octokit.User, IList<Organization>> callback)
+        private async Task<bool> LoadKeychainInternal()
         {
-            if (!await EnsureKeychainLoaded())
-            {
-                callback(null, null);
-                return;
-            }
-
-            var currentUserInternal = GetCurrentUserInternal();
-            var organizationInternal = GetOrganizationInternal();
-
-            currentUserInternal.Start(TaskScheduler.Current);
-            organizationInternal.Start(TaskScheduler.Current);
-
-            callback(await currentUserInternal,await organizationInternal);
-        }
-
-        private async Task<bool> EnsureKeychainLoaded()
-        {
-            logger.Trace("EnsureKeychainLoaded");
+            logger.Trace("LoadKeychainInternal");
 
             if (keychain.HasKeys)
             {
                 if (!keychain.NeedsLoad)
                 {
-                    logger.Trace("EnsureKeychainLoaded: Has keys does not need load");
+                    logger.Trace("LoadKeychainInternal: Has keys does not need load");
                     return true;
                 }
 
-                logger.Trace("EnsureKeychainLoaded: Loading");
+                logger.Trace("LoadKeychainInternal: Loading");
 
                 var uriString = keychain.Connections.First().Host;
                 var keychainAdapter = await keychain.Load(uriString);
@@ -305,7 +289,7 @@ namespace GitHub.Unity
                 return keychainAdapter.OctokitCredentials != Credentials.Anonymous;
             }
 
-            logger.Trace("EnsureKeychainLoaded: No keys to load");
+            logger.Trace("LoadKeychainInternal: No keys to load");
 
             return false;
         }

@@ -68,19 +68,22 @@ namespace GitHub.Unity
 
                     isLoading = true;
 
-                    Client.GetCurrentUserAndOrganizations((user, organizations) => {
-                        if (user == null)
+                    Client.LoadKeychain(hasKeys => {
+                        if (!hasKeys)
                         {
                             return;
                         }
 
-                        username = user.Login;
+                        username = keychainConnections.First().Username;
 
-                        var organizationLogins = (organizations ?? Enumerable.Empty<Organization>())
-                            .OrderBy(organization => organization.Login)
-                            .Select(organization => organization.Login);
+                        Client.GetOrganizations(organizations => {
 
-                        owners = new[] { user.Login }.Union(organizationLogins).ToArray();
+                            var organizationLogins = (organizations ?? Enumerable.Empty<Organization>())
+                                .OrderBy(organization => organization.Login)
+                                .Select(organization => organization.Login);
+
+                            owners = new[] { username }.Union(organizationLogins).ToArray();
+                        });
                     }).Finally(task => {
                         isLoading = false;
                     });

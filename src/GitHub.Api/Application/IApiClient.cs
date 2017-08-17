@@ -17,6 +17,6 @@ namespace GitHub.Unity
         Task<bool> ValidateCredentials();
         Task Logout(UriString host);
         Task GetCurrentUser(Action<Octokit.User> callback);
-        Task GetCurrentUserAndOrganizations(Action<Octokit.User, IList<Organization>> callback);
+        Task LoadKeychain(Action<bool> callback);
     }
 }
