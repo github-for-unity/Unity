@@ -52,12 +52,15 @@ namespace GitHub.Unity
         {
             finishCalled = true;
             RaiseOnClose(result);
-            OnClose = null;
         }
 
-        protected void RaiseOnClose(bool result)
+        protected virtual void RaiseOnClose(bool result)
         {
             OnClose.SafeInvoke(result);
+        }
+
+        protected void ClearOnClose()
+        {
             OnClose = null;
         }
 

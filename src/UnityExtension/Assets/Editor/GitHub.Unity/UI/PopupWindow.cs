@@ -83,6 +83,12 @@ namespace GitHub.Unity
             ActiveView.Refresh();
         }
 
+        protected override void RaiseOnClose(bool result)
+        {
+            base.RaiseOnClose(result);
+            ClearOnClose();
+        }
+
         public override void OnSelectionChange()
         {
             base.OnSelectionChange();
