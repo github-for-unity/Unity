@@ -22,8 +22,7 @@ namespace GitHub.Unity
         [MenuItem("GitHub/Authenticate")]
         public static void Launch()
         {
-            var popupWindow = Open(PopupViewType.AuthenticationView);
-            popupWindow.InitializeWindow(EntryPoint.ApplicationManager);
+            Open(PopupViewType.AuthenticationView);
         }
 
         public static PopupWindow Open(PopupViewType popupViewType, Action<bool> onClose = null)
@@ -41,6 +40,7 @@ namespace GitHub.Unity
             popupWindow.titleContent = new GUIContent(popupWindow.ActiveView.Title, Styles.SmallLogo);
 
             popupWindow.Show();
+            popupWindow.InitializeWindow(EntryPoint.ApplicationManager);
             return popupWindow;
         }
 
