@@ -134,13 +134,18 @@ namespace GitHub.Unity
 
         private async Task<NPath> LookForSystemGit()
         {
-            if (environment.IsMac)
+            NPath path = null;
+            if (!environment.IsWindows)
             {
-                var path = "/usr/local/bin/git".ToNPath();
-                if (path.FileExists())
-                    return path;
+                var p = new NPath("/usr/local/bin/git");
+                if (p.FileExists())
+                    path = p;
             }
-            return await new FindExecTask("git", taskManager.Token).StartAwait();
+
+            if (path == null)
+                path = await new FindExecTask("git", taskManager.Token).StartAwait();
+
+            return path;
         }
 
         public bool ValidateGitInstall(NPath path)
