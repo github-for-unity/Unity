@@ -22,7 +22,6 @@ namespace GitHub.Unity
         [SerializeField] private bool togglePrivate;
 
         [NonSerialized] private IApiClient client;
-        [NonSerialized] private bool isLoading;
         [NonSerialized] private bool isBusy;
         [NonSerialized] private string error;
 
@@ -65,7 +64,7 @@ namespace GitHub.Unity
                 {
                     Logger.Trace("GetCurrentUser");
 
-                    isLoading = true;
+                    isBusy = true;
 
                     Client.GetCurrentUser(user => {
                         if (user == null)
@@ -96,7 +95,7 @@ namespace GitHub.Unity
                             owners = owners.Union(organizationLogins).ToArray();
                         });
                     }).Finally(task => {
-                        isLoading = false;
+                        isBusy = false;
                     });
                 }
                 else
@@ -133,7 +132,7 @@ namespace GitHub.Unity
 
             GUILayout.Space(Styles.PublishViewSpacingHeight);
 
-            EditorGUI.BeginDisabledGroup(isLoading || isBusy);
+            EditorGUI.BeginDisabledGroup(isBusy);
             {
                 GUILayout.BeginHorizontal();
                 {
