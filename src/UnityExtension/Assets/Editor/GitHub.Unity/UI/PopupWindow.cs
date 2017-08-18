@@ -29,6 +29,9 @@ namespace GitHub.Unity
         public static PopupWindow Open(PopupViewType popupViewType, Action<bool> onClose = null)
         {
             var popupWindow = GetWindow<PopupWindow>(true);
+
+            popupWindow.RaiseOnClose(false);
+
             if (onClose != null)
             {
                 popupWindow.OnClose += onClose;

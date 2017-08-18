@@ -52,11 +52,13 @@ namespace GitHub.Unity
         {
             finishCalled = true;
             RaiseOnClose(result);
+            OnClose = null;
         }
 
         protected void RaiseOnClose(bool result)
         {
             OnClose.SafeInvoke(result);
+            OnClose = null;
         }
 
         public virtual void Awake()
