@@ -55,7 +55,7 @@ namespace GitHub.Unity
 
         public virtual string Title { get { return null; } }
 
-        public virtual Vector2 Size { get {return Vector2.zero;} }
+        public virtual Vector2 Size { get { return Vector2.zero; } }
 
         protected IView Parent { get; private set; }
         public IApplicationManager Manager { get { return Parent.Manager; } }
