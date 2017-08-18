@@ -225,7 +225,7 @@ namespace GitHub.Unity
 
                             GitClient.RemoteAdd("origin", repository.CloneUrl)
                                      .Then(GitClient.Push("origin", Repository.CurrentBranch.Value.Name))
-                                     .ThenInUI(Parent.Finish)
+                                     .ThenInUI(Finish)
                                      .Start();
                         }, organization);
                     }
