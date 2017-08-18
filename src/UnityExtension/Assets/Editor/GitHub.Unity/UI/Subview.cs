@@ -53,10 +53,6 @@ namespace GitHub.Unity
         public virtual void OnRepositoryChanged(IRepository oldRepository)
         {}
 
-        public virtual string Title { get { return null; } }
-
-        public virtual Vector2 Size { get { return Vector2.zero; } }
-
         protected IView Parent { get; private set; }
         public IApplicationManager Manager { get { return Parent.Manager; } }
         public IRepository Repository { get { return Parent.Repository; } }
@@ -66,7 +62,9 @@ namespace GitHub.Unity
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }
         protected IPlatform Platform { get { return Manager.Platform; } }
-        public virtual Rect Position { get { return Parent.Position; } }
+        public Rect Position { get { return Parent.Position; } }
+        public string Title { get; protected set; }
+        public Vector2 Size { get; protected set; }
 
         private ILogging logger;
         protected ILogging Logger

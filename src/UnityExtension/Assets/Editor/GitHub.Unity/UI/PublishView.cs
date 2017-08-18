@@ -8,7 +8,7 @@ namespace GitHub.Unity
 {
     class PublishView : Subview
     {
-        private static readonly Vector2 PublishViewSize = new Vector2(300, 250);
+        private static readonly Vector2 viewSize = new Vector2(300, 250);
 
         private const string WindowTitle = "Publish";
         private const string Header = "Publish this repository to GitHub";
@@ -54,6 +54,8 @@ namespace GitHub.Unity
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
+            Title = WindowTitle;
+            Size = viewSize;
             PopulateView();
         }
 
@@ -235,16 +237,6 @@ namespace GitHub.Unity
             }
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
-        }
-
-        public override string Title
-        {
-            get { return WindowTitle; }
-        }
-
-        public override Vector2 Size
-        {
-            get { return PublishViewSize; }
         }
     }
 }

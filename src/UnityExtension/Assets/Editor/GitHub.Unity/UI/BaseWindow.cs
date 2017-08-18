@@ -124,7 +124,7 @@ namespace GitHub.Unity
         public virtual void OnSelectionChange()
         {}
 
-        public virtual Rect Position { get { return position; } }
+        public Rect Position { get { return position; } }
         public IApplicationManager Manager { get; private set; }
         public IRepository Repository { get { return inLayout ? cachedRepository : Environment.Repository; } }
         public bool HasRepository { get { return Environment.RepositoryPath != null; } }

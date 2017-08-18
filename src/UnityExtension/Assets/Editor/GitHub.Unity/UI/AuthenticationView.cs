@@ -7,18 +7,18 @@ namespace GitHub.Unity
     [Serializable]
     class AuthenticationView : Subview
     {
-        private static readonly Vector2 PublishViewSize = new Vector2(290, 290);
+        private static readonly Vector2 viewSize = new Vector2(290, 290);
 
-        const string WindowTitle = "Authenticate";
-        const string UsernameLabel = "Username";
-        const string PasswordLabel = "Password";
-        const string TwofaLabel = "2FA Code";
-        const string LoginButton = "Sign in";
-        const string BackButton = "Back";
-        const string AuthTitle = "Sign in to GitHub";
-        const string TwofaTitle = "Two-Factor Authentication";
-        const string TwofaDescription = "Open the two-factor authentication app on your device to view your 2FA code and verify your identity.";
-        const string TwofaButton = "Verify";
+        private const string WindowTitle = "Authenticate";
+        private const string UsernameLabel = "Username";
+        private const string PasswordLabel = "Password";
+        private const string TwofaLabel = "2FA Code";
+        private const string LoginButton = "Sign in";
+        private const string BackButton = "Back";
+        private const string AuthTitle = "Sign in to GitHub";
+        private const string TwofaTitle = "Two-Factor Authentication";
+        private const string TwofaDescription = "Open the two-factor authentication app on your device to view your 2FA code and verify your identity.";
+        private const string TwofaButton = "Verify";
 
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string username = "";
@@ -62,6 +62,8 @@ namespace GitHub.Unity
         {
             base.InitializeView(parent);
             need2fa = busy = false;
+            Title = WindowTitle;
+            Size = viewSize;
         }
 
         public override void OnEnable()
@@ -245,16 +247,6 @@ namespace GitHub.Unity
             {
                 GUILayout.Label(errorMessage, Styles.ErrorLabel);
             }
-        }
-
-        public override string Title
-        {
-            get { return WindowTitle; }
-        }
-
-        public override Vector2 Size
-        {
-            get { return PublishViewSize; }
         }
     }
 }
