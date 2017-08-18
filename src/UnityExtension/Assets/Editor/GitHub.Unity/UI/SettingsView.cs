@@ -67,7 +67,6 @@ namespace GitHub.Unity
         private const string DefaultRepositoryRemoteName = "origin";
 
         [NonSerialized] private int newGitIgnoreRulesSelection = -1;
-        [NonSerialized] private ConfigRemote? activeRemote;
 
         [SerializeField] private string gitName;
         [SerializeField] private string gitEmail;
@@ -94,6 +93,8 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             AttachHandlers(Repository);
+
+            remoteHasChanged = true;
         }
 
         public override void OnDisable()
@@ -114,8 +115,9 @@ namespace GitHub.Unity
 
             DetachHandlers(oldRepository);
             AttachHandlers(Repository);
-            activeRemote = Repository.CurrentRemote;
+
             remoteHasChanged = true;
+
             Refresh();
         }
 
@@ -178,7 +180,7 @@ namespace GitHub.Unity
 
             if (Repository == null)
             {
-                if (cachedUser == null || String.IsNullOrEmpty(cachedUser.Name))
+                if ((cachedUser == null || String.IsNullOrEmpty(cachedUser.Name)) && GitClient != null)
                 {
                     var user = new User();
                     GitClient.GetConfig("user.name", GitConfigSource.User)
@@ -221,6 +223,7 @@ namespace GitHub.Unity
             if (remoteHasChanged)
             {
                 remoteHasChanged = false;
+                var activeRemote = Repository.CurrentRemote;
                 hasRemote = activeRemote.HasValue && !String.IsNullOrEmpty(activeRemote.Value.Url);
                 if (!hasRemote)
                 {
@@ -245,7 +248,6 @@ namespace GitHub.Unity
 
         private void Repository_OnActiveRemoteChanged(string remote)
         {
-            activeRemote = Repository.CurrentRemote;
             remoteHasChanged = true;
         }
 
