@@ -283,6 +283,7 @@ namespace GitHub.Unity
 
                 logger.Trace("LoadKeychainInternal: Loading");
 
+                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
                 var uriString = keychain.Connections.First().Host;
                 var keychainAdapter = await keychain.Load(uriString);
 

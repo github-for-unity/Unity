@@ -65,6 +65,7 @@ namespace GitHub.Unity
             try
             {
                 var keychainConnections = Platform.Keychain.Connections;
+                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
                 if (keychainConnections.Any())
                 {
                     Logger.Trace("GetCurrentUser");
@@ -77,6 +78,7 @@ namespace GitHub.Unity
                             return;
                         }
 
+                        //TODO: ONE_USER_LOGIN This assumes only ever one user can login
                         username = keychainConnections.First().Username;
 
                         Client.GetOrganizations(organizations => {
