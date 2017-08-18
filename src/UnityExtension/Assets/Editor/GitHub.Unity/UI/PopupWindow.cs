@@ -39,8 +39,9 @@ namespace GitHub.Unity
             popupWindow.ActiveViewType = popupViewType;
             popupWindow.titleContent = new GUIContent(popupWindow.ActiveView.Title, Styles.SmallLogo);
 
-            popupWindow.Show();
             popupWindow.InitializeWindow(EntryPoint.ApplicationManager);
+            popupWindow.Show();
+
             return popupWindow;
         }
 
