@@ -81,7 +81,7 @@ namespace GitHub.Unity
 
                         Client.GetOrganizations(organizations => {
 
-                            var organizationLogins = (organizations ?? Enumerable.Empty<Organization>())
+                            var organizationLogins = organizations
                                 .OrderBy(organization => organization.Login)
                                 .Select(organization => organization.Login);
 

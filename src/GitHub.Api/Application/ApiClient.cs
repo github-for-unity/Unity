@@ -226,7 +226,7 @@ namespace GitHub.Unity
 
                 if (!await LoadKeychainInternal())
                 {
-                    return null;
+                    return new List<Organization>();
                 }
 
                 var organizations = await githubClient.Organization.GetAllForCurrent();
