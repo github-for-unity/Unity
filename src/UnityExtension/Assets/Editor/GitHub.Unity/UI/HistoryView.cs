@@ -395,7 +395,7 @@ namespace GitHub.Unity
                     var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
                     if (publishedClicked)
                     {
-                        var popupWindow = PopupWindow.Open(PopupWindow.PopupView.PublishView);
+                        var popupWindow = PopupWindow.Open(PopupWindow.PopupViewType.PublishView);
                         popupWindow.InitializeWindow(EntryPoint.ApplicationManager);
                     }
                     GUI.enabled = true;

@@ -7,26 +7,26 @@ namespace GitHub.Unity
     [Serializable]
     class PopupWindow : BaseWindow
     {
-        public enum PopupView
+        public enum PopupViewType
         {
             PublishView,
             AuthenticationView
         }
 
-        [NonSerialized] private Subview activeSubview;
+        [NonSerialized] private Subview activeView;
 
-        [SerializeField] private PopupView activePopupView;
+        [SerializeField] private PopupViewType activeViewType;
         [SerializeField] private AuthenticationView authenticationView;
         [SerializeField] private PublishView publishView;
 
         [MenuItem("GitHub/Authenticate")]
         public static void Launch()
         {
-            var popupWindow = Open(PopupView.AuthenticationView);
+            var popupWindow = Open(PopupViewType.AuthenticationView);
             popupWindow.InitializeWindow(EntryPoint.ApplicationManager);
         }
 
-        public static PopupWindow Open(PopupView popupView, Action<bool> onClose = null)
+        public static PopupWindow Open(PopupViewType popupViewType, Action<bool> onClose = null)
         {
             var popupWindow = GetWindow<PopupWindow>(true);
             if (onClose != null)
@@ -34,8 +34,8 @@ namespace GitHub.Unity
                 popupWindow.OnClose += onClose;
             }
 
-            popupWindow.ActivePopupView = popupView;
-            popupWindow.titleContent = new GUIContent(popupWindow.ActiveSubview.Title, Styles.SmallLogo);
+            popupWindow.ActiveViewType = popupViewType;
+            popupWindow.titleContent = new GUIContent(popupWindow.ActiveView.Title, Styles.SmallLogo);
 
             popupWindow.Show();
             return popupWindow;
@@ -56,33 +56,33 @@ namespace GitHub.Unity
         {
             base.OnEnable();
 
-            minSize = maxSize = ActiveSubview.Size;
+            minSize = maxSize = ActiveView.Size;
 
-            ActiveSubview.OnEnable();
+            ActiveView.OnEnable();
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
-            ActiveSubview.OnDisable();
+            ActiveView.OnDisable();
         }
 
         public override void OnUI()
         {
             base.OnUI();
-            ActiveSubview.OnGUI();
+            ActiveView.OnGUI();
         }
 
         public override void Refresh()
         {
             base.Refresh();
-            ActiveSubview.Refresh();
+            ActiveView.Refresh();
         }
 
         public override void OnSelectionChange()
         {
             base.OnSelectionChange();
-            ActiveSubview.OnSelectionChange();
+            ActiveView.OnSelectionChange();
         }
 
         public override void Finish(bool result)
@@ -91,28 +91,28 @@ namespace GitHub.Unity
             base.Finish(result);
         }
 
-        public Subview ActiveSubview
+        private Subview ActiveView
         {
-            get { return activeSubview; }
+            get { return activeView; }
         }
 
-        public PopupView ActivePopupView
+        private PopupViewType ActiveViewType
         {
-            get { return activePopupView; }
+            get { return activeViewType; }
             set
             {
-                if (activePopupView != value)
+                if (activeViewType != value)
                 {
-                    activePopupView = value;
+                    activeViewType = value;
 
-                    switch (activePopupView)
+                    switch (activeViewType)
                     {
-                        case PopupView.PublishView:
-                            activeSubview = publishView;
+                        case PopupViewType.PublishView:
+                            activeView = publishView;
                             break;
 
-                        case PopupView.AuthenticationView:
-                            activeSubview = authenticationView;
+                        case PopupViewType.AuthenticationView:
+                            activeView = authenticationView;
                             break;
 
                         default: throw new ArgumentOutOfRangeException("value", value, null);
