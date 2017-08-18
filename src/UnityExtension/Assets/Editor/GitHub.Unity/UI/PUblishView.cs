@@ -14,6 +14,10 @@ namespace GitHub.Unity
         private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
         private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
         private const string PublishViewCreateButton = "Create";
+        private const string SelectedOwnerLabel = "Owner";
+        private const string RepositoryNameLabel = "Repository Name";
+        private const string DescriptionLabel = "Description";
+        private const string CreatePrivateRepositoryLabel = "Create as a private repository";
 
         [SerializeField] private string username;
         [SerializeField] private string[] owners = { };
@@ -23,7 +27,6 @@ namespace GitHub.Unity
         [SerializeField] private bool togglePrivate;
 
         [NonSerialized] private IApiClient client;
-        [NonSerialized] private bool isLoading;
         [NonSerialized] private bool isBusy;
         [NonSerialized] private string error;
 
@@ -66,7 +69,7 @@ namespace GitHub.Unity
                 {
                     Logger.Trace("GetCurrentUser");
 
-                    isLoading = true;
+                    isBusy = true;
 
                     Client.LoadKeychain(hasKeys => {
                         if (!hasKeys)
@@ -85,7 +88,7 @@ namespace GitHub.Unity
                             owners = new[] { username }.Union(organizationLogins).ToArray();
                         });
                     }).Finally(task => {
-                        isLoading = false;
+                        isBusy = false;
                     });
                 }
                 else
@@ -122,13 +125,13 @@ namespace GitHub.Unity
 
             GUILayout.Space(Styles.PublishViewSpacingHeight);
 
-            EditorGUI.BeginDisabledGroup(isLoading || isBusy);
+            EditorGUI.BeginDisabledGroup(isBusy);
             {
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.BeginVertical();
                     {
-                        GUILayout.Label("Owner");
+                        GUILayout.Label(SelectedOwnerLabel);
 
                         selectedOwner = EditorGUILayout.Popup(0, owners);
                     }
@@ -143,14 +146,14 @@ namespace GitHub.Unity
 
                     GUILayout.BeginVertical();
                     {
-                        GUILayout.Label("Repository Name");
+                        GUILayout.Label(RepositoryNameLabel);
                         repoName = EditorGUILayout.TextField(repoName);
                     }
                     GUILayout.EndVertical();
                 }
                 GUILayout.EndHorizontal();
 
-                GUILayout.Label("Description");
+                GUILayout.Label(DescriptionLabel);
                 repoDescription = EditorGUILayout.TextField(repoDescription);
                 GUILayout.Space(Styles.PublishViewSpacingHeight);
 
@@ -158,7 +161,7 @@ namespace GitHub.Unity
                 {
                     GUILayout.BeginHorizontal();
                     {
-                        togglePrivate = GUILayout.Toggle(togglePrivate, "Create as a private repository");
+                        togglePrivate = GUILayout.Toggle(togglePrivate, CreatePrivateRepositoryLabel);
                     }
                     GUILayout.EndHorizontal();
 
