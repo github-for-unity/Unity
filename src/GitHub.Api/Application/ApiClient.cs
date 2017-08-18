@@ -61,7 +61,15 @@ namespace GitHub.Unity
         public async Task CreateRepository(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization = null)
         {
             Guard.ArgumentNotNull(callback, "callback");
-            await CreateRepositoryInternal(newRepository, callback, organization);
+            try
+            {
+                var repository = await CreateRepositoryInternal(newRepository, organization);
+                callback(repository, null);
+            }
+            catch (Exception e)
+            {
+                callback(null, e);
+            }
         }
 
         public async Task GetOrganizations(Action<IList<Organization>> callback)
@@ -181,7 +189,7 @@ namespace GitHub.Unity
             return result.Code == LoginResultCodes.Success;
         }
 
-        private async Task CreateRepositoryInternal(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization)
+        private async Task<Octokit.Repository> CreateRepositoryInternal(NewRepository newRepository, string organization)
         {
             try
             {
@@ -189,8 +197,7 @@ namespace GitHub.Unity
 
                 if (!await LoadKeychainInternal())
                 {
-                    callback(null, new Exception("Keychain Not Loaded"));
-                    return;
+                    return null;
                 }
 
                 Octokit.Repository repository;
@@ -208,13 +215,12 @@ namespace GitHub.Unity
                 }
 
                 logger.Trace("Created Repository");
-
-                callback(repository, null);
+                return repository;
             }
             catch (Exception ex)
             {
                 logger.Error(ex, "Error Creating Repository");
-                callback(null, ex);
+                throw;
             }
         }
 

@@ -75,6 +75,8 @@ namespace GitHub.Unity
                     Client.LoadKeychain(hasKeys => {
                         if (!hasKeys)
                         {
+                            Logger.Warning("Unable to get current user");
+                            isBusy = false;
                             return;
                         }
 
@@ -82,15 +84,16 @@ namespace GitHub.Unity
                         username = keychainConnections.First().Username;
 
                         Client.GetOrganizations(organizations => {
+                            Logger.Trace("Loaded {0} organizations", organizations.Count);
 
                             var organizationLogins = organizations
                                 .OrderBy(organization => organization.Login)
                                 .Select(organization => organization.Login);
 
                             owners = new[] { username }.Union(organizationLogins).ToArray();
+
+                            isBusy = false;
                         });
-                    }).Finally(task => {
-                        isBusy = false;
                     });
                 }
                 else
@@ -217,7 +220,7 @@ namespace GitHub.Unity
 
                             GitClient.RemoteAdd("origin", repository.CloneUrl)
                                      .Then(GitClient.Push("origin", Repository.CurrentBranch.Value.Name))
-                                     .ThenInUI(Parent.Finish)
+                                     .ThenInUI(Finish)
                                      .Start();
                         }, organization);
                     }

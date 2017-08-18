@@ -37,7 +37,7 @@ namespace GitHub.Unity
 
             if (ApplicationCache.Instance.FirstRun)
             {
-                Debug.Log("Initializing GitHub for Unity version " + ApplicationInfo.Version);
+                Debug.Log("Initialized GitHub for Unity version " + ApplicationInfo.Version);
 
                 var oldLogPath = logPath.Parent.Combine(logPath.FileNameWithoutExtension + "-old" + logPath.ExtensionWithDot);
                 try
@@ -53,7 +53,7 @@ namespace GitHub.Unity
                     Logging.Error(ex, "Error rotating log files");
                 }
 
-                Debug.Log("Initializing GitHub for Unity log file: " + logPath);
+                Debug.Log("Initialized GitHub for Unity log file: " + logPath);
             }
             Logging.LogAdapter = new FileLogAdapter(logPath);
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
