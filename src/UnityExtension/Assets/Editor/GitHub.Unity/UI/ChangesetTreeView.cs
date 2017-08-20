@@ -118,6 +118,12 @@ namespace GitHub.Unity
             var target = node.Target;
             var isFolder = node.Children.Any();
 
+            var isFolderForMeta = false;
+            if (node.Children.Count() == 1)
+            {
+                isFolderForMeta = node.Children.First().Label.Substring(node.Label.Length).Equals(".meta");
+            }
+
             GUILayout.BeginHorizontal();
             {
                 if (!Readonly)
@@ -186,7 +192,19 @@ namespace GitHub.Unity
 
                     if (Event.current.type == EventType.Repaint)
                     {
-                        var icon = (Texture) node.Icon ?? (isFolder ? Styles.FolderIcon : Styles.DefaultAssetIcon);
+                        var icon = (Texture) node.Icon;
+                        if (icon == null)
+                        {
+                            if (isFolderForMeta || !isFolder)
+                            {
+                                icon = Styles.DefaultAssetIcon;
+                            }
+                            else
+                            {
+                                icon = Styles.FolderIcon;
+                            }
+                        }
+
                         if (icon != null)
                         {
                             GUI.DrawTexture(iconRect,
