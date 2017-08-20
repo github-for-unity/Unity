@@ -16,10 +16,9 @@ namespace GitHub.Unity
 
             Name = TaskName;
             arguments = "commit ";
-            arguments += String.Format(" -m \"{0}", message);
+            arguments += String.Format(" -m \"{0}\"", message);
             if (!String.IsNullOrEmpty(body))
-                arguments += String.Format("{0}{1}", Environment.NewLine, body);
-            arguments += "\"";
+                arguments += String.Format(" -m \"{0}\"", body);
         }
 
         public override string ProcessArguments { get { return arguments; } }
