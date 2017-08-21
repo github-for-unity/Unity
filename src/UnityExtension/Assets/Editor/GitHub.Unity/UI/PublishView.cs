@@ -132,10 +132,11 @@ namespace GitHub.Unity
                 GUILayout.BeginVertical();
                 {
                     GUILayout.Label("Owner");
-
-                    GUI.enabled = !isBusy;
-                    selectedOwner = EditorGUILayout.Popup(0, owners);
-                    GUI.enabled = true;
+                    EditorGUI.BeginDisabledGroup(isBusy);
+                    {
+                        selectedOwner = EditorGUILayout.Popup(0, owners);
+                    }
+                    EditorGUI.EndDisabledGroup();
                 }
                 GUILayout.EndVertical();
 
@@ -149,27 +150,34 @@ namespace GitHub.Unity
                 GUILayout.BeginVertical();
                 {
                     GUILayout.Label("Repository Name");
-                    GUI.enabled = !isBusy;
-                    repoName = EditorGUILayout.TextField(repoName);
-                    GUI.enabled = true;
+                    EditorGUI.BeginDisabledGroup(isBusy);
+                    {
+                        repoName = EditorGUILayout.TextField(repoName);
+                    }
+                    EditorGUI.EndDisabledGroup();
                 }
                 GUILayout.EndVertical();
             }
             GUILayout.EndHorizontal();
 
             GUILayout.Label("Description");
-            GUI.enabled = !isBusy;
-            repoDescription = EditorGUILayout.TextField(repoDescription);
-            GUI.enabled = true;
+            EditorGUI.BeginDisabledGroup(isBusy);
+            {
+                repoDescription = EditorGUILayout.TextField(repoDescription);
+            }
+            EditorGUI.EndDisabledGroup();
+
             GUILayout.Space(Styles.PublishViewSpacingHeight);
 
             GUILayout.BeginVertical();
             {
                 GUILayout.BeginHorizontal();
                 {
-                    GUI.enabled = !isBusy;
-                    togglePrivate = GUILayout.Toggle(togglePrivate, "Create as a private repository");
-                    GUI.enabled = true;
+                    EditorGUI.BeginDisabledGroup(isBusy);
+                    {
+                        togglePrivate = GUILayout.Toggle(togglePrivate, "Create as a private repository");
+                    }
+                    EditorGUI.EndDisabledGroup();
                 }
                 GUILayout.EndHorizontal();
 
@@ -194,33 +202,27 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal();
             {
                 GUILayout.FlexibleSpace();
-                GUI.enabled = !string.IsNullOrEmpty(repoName) && !isBusy;
-                if (GUILayout.Button(PublishViewCreateButton))
+                EditorGUI.BeginDisabledGroup(isBusy || string.IsNullOrEmpty(repoName));
                 {
-                    isBusy = true;
-
-                    var organization = owners[selectedOwner] == username ? null : owners[selectedOwner];
-
-                    Client.CreateRepository(new NewRepository(repoName)
+                    if (GUILayout.Button(PublishViewCreateButton))
                     {
-                        Private = togglePrivate,
-                    }, (repository, ex) =>
-                    {
-                        Logger.Trace("Create Repository Callback");
+                        isBusy = true;
 
-                        if (ex != null)
-                        {
-                            error = ex.Message;
-                            isBusy = false;
-                            return;
-                        }
+                        var organization = owners[selectedOwner] == username ? null : owners[selectedOwner];
 
-                        if (repository == null)
+                        Client.CreateRepository(new NewRepository(repoName)
                         {
-                            Logger.Warning("Returned Repository is null");
-                            isBusy = false;
-                            return;
-                        }
+                            Private = togglePrivate,
+                        }, (repository, ex) =>
+                        {
+                            Logger.Trace("Create Repository Callback");
+
+                            if (ex != null)
+                            {
+                                error = ex.Message;
+                                isBusy = false;
+                                return;
+                            }
 
                         GitClient.RemoteAdd("origin", repository.CloneUrl)
                                  .Then(GitClient.Push("origin", Repository.CurrentBranch.Value.Name))
@@ -228,7 +230,7 @@ namespace GitHub.Unity
                                  .Start();
                     }, organization);
                 }
-                GUI.enabled = true;
+                EditorGUI.EndDisabledGroup();
             }
             GUILayout.EndHorizontal();
             GUILayout.Space(10);

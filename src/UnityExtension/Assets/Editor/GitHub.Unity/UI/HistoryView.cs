@@ -135,7 +135,7 @@ namespace GitHub.Unity
                 OnBroadGUI();
             else
 #endif
-                OnEmbeddedGUI();
+            OnEmbeddedGUI();
 
 #if ENABLE_BROADMODE
             if (Event.current.type == EventType.Repaint && EvaluateBroadMode())
@@ -207,7 +207,8 @@ namespace GitHub.Unity
             {
                 if (Repository != null)
                 {
-                    GitClient.Log().ThenInUI((success, log) => {
+                    GitClient.Log().ThenInUI((success, log) =>
+                    {
                         if (success) OnLogUpdate(log);
                     }).Start();
                 }
@@ -308,16 +309,19 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
 
                 var enabled = GUI.enabled;
-                GUI.enabled = !isBusy;
-
-                if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
+                EditorGUI.BeginDisabledGroup(isBusy);
                 {
-                    isBusy = true;
-                    Manager.InitializeRepository()
-                        .FinallyInUI(() => isBusy = false)
-                        .Start();
+                    if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
+                    {
+                        isBusy = true;
+                        Manager.InitializeRepository()
+                            .FinallyInUI(() => isBusy = false)
+                            .Start();
+                    }
                 }
+                EditorGUI.EndDisabledGroup();
                 GUI.enabled = enabled;
+
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 
@@ -335,8 +339,8 @@ namespace GitHub.Unity
                 EditorGUI.BeginDisabledGroup(historyTarget == null);
                 {
                     if (GUILayout.Button(
-                            historyTarget == null ? HistoryFocusAll : String.Format(HistoryFocusSingle, historyTarget.name),
-                            Styles.HistoryToolbarButtonStyle)
+                        historyTarget == null ? HistoryFocusAll : String.Format(HistoryFocusSingle, historyTarget.name),
+                        Styles.HistoryToolbarButtonStyle)
                     )
                     {
                         historyTarget = null;
@@ -351,53 +355,65 @@ namespace GitHub.Unity
                 var isPublished = Repository.CurrentRemote.HasValue;
                 if (isPublished)
                 {
-                    GUI.enabled = currentRemote != null;
-                    var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
-                    GUI.enabled = true;
-                    if (fetchClicked)
+                    // Fetch button
+                    EditorGUI.BeginDisabledGroup(currentRemote == null);
                     {
-                        Fetch();
+                        var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
+                        if (fetchClicked)
+                        {
+                            Fetch();
+                        }
                     }
+                    EditorGUI.EndDisabledGroup();
 
-                    // Pull / Push buttons
-                    var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
-                    GUI.enabled = currentRemote != null;
-                    var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
-                    GUI.enabled = true;
-                    if (pullClicked &&
-                        EditorUtility.DisplayDialog(PullConfirmTitle,
-                            String.Format(PullConfirmDescription, currentRemote),
-                            PullConfirmYes,
-                            PullConfirmCancel)
-                    )
+                    // Pull button
+                    EditorGUI.BeginDisabledGroup(currentRemote == null);
                     {
-                        Pull();
-                    }
+                        var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
+                        var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
 
-                    var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
-                    GUI.enabled = currentRemote != null && statusBehind == 0;
-                    var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
-                    GUI.enabled = true;
-                    if (pushClicked &&
-                        EditorUtility.DisplayDialog(PushConfirmTitle,
-                            String.Format(PushConfirmDescription, currentRemote),
-                            PushConfirmYes,
-                            PushConfirmCancel)
-                    )
-                    {
-                        Push();
+                        if (pullClicked &&
+                            EditorUtility.DisplayDialog(PullConfirmTitle,
+                                String.Format(PullConfirmDescription, currentRemote),
+                                PullConfirmYes,
+                                PullConfirmCancel)
+                        )
+                        {
+                            Pull();
+                        }
                     }
+                    EditorGUI.EndDisabledGroup();
+
+                    // Push button
+                    EditorGUI.BeginDisabledGroup(currentRemote == null || statusBehind != 0);
+                    {
+                        var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
+                        var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
+
+                        if (pushClicked &&
+                            EditorUtility.DisplayDialog(PushConfirmTitle,
+                                String.Format(PushConfirmDescription, currentRemote),
+                                PushConfirmYes,
+                                PushConfirmCancel)
+                        )
+                        {
+                            Push();
+                        }
+                    }
+                    EditorGUI.EndDisabledGroup();
                 }
                 else
                 {
                     // Publishing a repo
-                    GUI.enabled = Platform.Keychain.Connections.Any();
-                    var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
-                    if (publishedClicked)
+                    EditorGUI.BeginDisabledGroup(!Platform.Keychain.Connections.Any());
                     {
-                        PublishWindow.Open();
+                        var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
+                        if (publishedClicked)
+                        {
+                            PublishWindow.Open();
+                        }
                     }
-                    GUI.enabled = true;
+                    EditorGUI.EndDisabledGroup();
                 }
             }
             GUILayout.EndHorizontal();
@@ -569,7 +585,8 @@ namespace GitHub.Unity
             {
                 Repository
                     .Revert(selection.CommitID)
-                    .FinallyInUI((success, e) => {
+                    .FinallyInUI((success, e) =>
+                    {
                         if (!success)
                         {
                             EditorUtility.DisplayDialog(dialogTitle,
@@ -699,7 +716,8 @@ namespace GitHub.Unity
                             // (either git rebase --abort or git merge --abort)
                         }
                     }, true)
-                    .FinallyInUI((success, e) => {
+                    .FinallyInUI((success, e) =>
+                    {
                         if (success)
                         {
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
@@ -722,7 +740,8 @@ namespace GitHub.Unity
             var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
             Repository
                 .Push()
-                .FinallyInUI((success, e) => {
+                .FinallyInUI((success, e) =>
+                {
                     if (success)
                     {
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
@@ -744,7 +763,8 @@ namespace GitHub.Unity
             var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
             Repository
                 .Fetch()
-                .FinallyInUI((success, e) => {
+                .FinallyInUI((success, e) =>
+                {
                     if (!success)
                     {
                         EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
