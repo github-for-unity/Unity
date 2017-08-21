@@ -12,9 +12,10 @@ namespace GitHub.Unity
         private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
         private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
         private const string PublishViewCreateButton = "Create";
+        private const string OwnersDefaultText = "Select a user or organization";
 
         [SerializeField] private string username;
-        [SerializeField] private string[] owners = { };
+        [SerializeField] private string[] owners = { OwnersDefaultText };
         [SerializeField] private int selectedOwner;
         [SerializeField] private string repoName = String.Empty;
         [SerializeField] private string repoDescription = "";
@@ -70,7 +71,7 @@ namespace GitHub.Unity
                             return;
                         }
 
-                        owners = new[] { user.Login };
+                        owners = owners.Union(new[] { user.Login }).ToArray();
                         username = user.Login;
 
                         Logger.Trace("GetOrganizations");
