@@ -37,7 +37,6 @@ namespace GitHub.Unity
         private const int HistoryExtraItemCount = 10;
         private const float MaxChangelistHeightRatio = .2f;
 
-        [NonSerialized] private string currentRemote = "placeholder";
         [NonSerialized] private int historyStartIndex;
         [NonSerialized] private int historyStopIndex;
         [NonSerialized] private float lastWidth;
@@ -196,7 +195,6 @@ namespace GitHub.Unity
 
         private void UpdateStatus(GitStatus status)
         {
-            currentRemote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : null;
             statusAhead = status.Ahead;
             statusBehind = status.Behind;
         }
@@ -351,6 +349,7 @@ namespace GitHub.Unity
                 var isPublished = Repository.CurrentRemote.HasValue;
                 if (isPublished)
                 {
+                    var currentRemote = Repository.CurrentRemote.Value.Name;
                     GUI.enabled = currentRemote != null;
                     var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
                     GUI.enabled = true;
