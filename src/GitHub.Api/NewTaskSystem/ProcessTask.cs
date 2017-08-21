@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GitHub.Unity.Helpers;
 
 namespace GitHub.Unity
 {
@@ -56,7 +58,6 @@ namespace GitHub.Unity
         private readonly Action onEnd;
         private readonly Action<Exception, string> onError;
         private readonly CancellationToken token;
-        private readonly List<string> errors = new List<string>();
 
         public Process Process { get; }
         public StreamWriter Input { get; private set; }
@@ -78,39 +79,6 @@ namespace GitHub.Unity
 
         public void Run()
         {
-            if (Process.StartInfo.RedirectStandardOutput)
-            {
-                Process.OutputDataReceived += (s, e) =>
-                {
-                    //Logger.Trace("OutputData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
-
-                    string encodedData = null;
-                    if (e.Data != null)
-                    {
-                        encodedData = Encoding.UTF8.GetString(Encoding.Default.GetBytes(e.Data));
-                    }
-                    outputProcessor.LineReceived(encodedData);
-                };
-            }
-
-            if (Process.StartInfo.RedirectStandardError)
-            {
-                Process.ErrorDataReceived += (s, e) =>
-                {
-                    //if (e.Data != null)
-                    //{
-                    //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
-                    //}
-
-                    string encodedData = null;
-                    if (e.Data != null)
-                    {
-                        encodedData = Encoding.UTF8.GetString(Encoding.Default.GetBytes(e.Data));
-                        errors.Add(encodedData);
-                    }
-                };
-            }
-
             try
             {
                 Process.Start();
@@ -128,54 +96,103 @@ namespace GitHub.Unity
                     sb.AppendFormat("{0}:{1}", env, Process.StartInfo.EnvironmentVariables[env]);
                     sb.AppendLine();
                 }
-                onError?.Invoke(ex, String.Format("{0} {1}", ex.Message, sb.ToString()));
+                onError?.Invoke(ex, $"{ex.Message} {sb}");
                 onEnd?.Invoke();
                 return;
             }
 
-            if (Process.StartInfo.RedirectStandardOutput)
-                Process.BeginOutputReadLine();
-            if (Process.StartInfo.RedirectStandardError)
-                Process.BeginErrorReadLine();
             if (Process.StartInfo.RedirectStandardInput)
                 Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
 
             onStart?.Invoke();
-
             if (Process.StartInfo.CreateNoWindow)
             {
-                while (!WaitForExit(500))
+                // buffer size refers to https://github.com/Unity-Technologies/mono/blob/unity-5.6-staging/mcs/class/System/System.Diagnostics/Process.cs#L1149-L1157
+                const int bufferSize = 8182;
+
+                if (Process.StartInfo.RedirectStandardOutput)
                 {
-                    if (token.IsCancellationRequested)
+                    var outputStream = Process.StandardOutput.BaseStream;
+                    var outputBuffer = new byte[bufferSize];
+                    var outputEncoding = Process.StartInfo.StandardOutputEncoding;
+                    var splitStringbuilder = new NewlineSplitStringBuilder();
+                    string[] splitLines = null;
+
+                    var bytesRead = outputStream.Read(outputBuffer, 0, bufferSize);
+                    while (bytesRead > 0)
                     {
-                        if (!Process.HasExited)
-                            Process.Kill();
-                        Process.Close();
-                        onEnd?.Invoke();
-                        token.ThrowIfCancellationRequested();
+                        var encoded = outputEncoding.GetString(outputBuffer, 0, bytesRead);
+                        splitLines = splitStringbuilder.Append(encoded);
+                        foreach (var splitLine in splitLines)
+                        {
+                            outputProcessor.LineReceived(splitLine);
+                        }
+
+                        if (token.IsCancellationRequested)
+                        {
+                            if (!Process.HasExited)
+                                Process.Kill();
+
+                            Process.Close();
+                            onEnd?.Invoke();
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        bytesRead = outputStream.Read(outputBuffer, 0, bufferSize);
+                    }
+
+                    splitLines = splitStringbuilder.Append(null);
+                    //All but the last line, which will always be empty
+                    for (var index = 0; index < splitLines.Length - 1; index++)
+                    {
+                        var splitLine = splitLines[index];
+                        outputProcessor.LineReceived(splitLine);
+                    }
+
+                    outputProcessor.LineReceived(null);
+                }
+
+                if (Process.StartInfo.RedirectStandardError)
+                {
+                    var errorStream = Process.StandardError.BaseStream;
+                    var errorBuffer = new byte[bufferSize];
+                    var errorEncoding = Process.StartInfo.StandardErrorEncoding;
+                    var errorStringBuilder = new StringBuilder();
+
+                    var bytesRead = errorStream.Read(errorBuffer, 0, bufferSize);
+                    while (bytesRead > 0)
+                    {
+                        var encoded = errorEncoding.GetString(errorBuffer, 0, bytesRead);
+                        errorStringBuilder.Append(encoded);
+
+                        if (token.IsCancellationRequested)
+                        {
+                            if (!Process.HasExited)
+                                Process.Kill();
+
+                            Process.Close();
+                            onEnd?.Invoke();
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        bytesRead = errorStream.Read(errorBuffer, 0, bufferSize);
+                    }
+
+                    var errors = errorStringBuilder.ToString().Split(new[] { "\r\n", "\n" }, StringSplitOptions.None).ToArray();
+                    if (errors.Length > 1)
+                    {
+                        //All but the last line, which will always be empty
+                        errors = errors.Take(errors.Length - 1).ToArray();
+                    }
+
+                    if (Process.ExitCode != 0 && errors.Length > 0)
+                    {
+                        onError?.Invoke(null, string.Join(Environment.NewLine, errors));
                     }
                 }
-
-                if (Process.ExitCode != 0 && errors.Count > 0)
-                {
-                    onError?.Invoke(null, String.Join(Environment.NewLine, errors.ToArray()));
-                }
             }
+
             onEnd?.Invoke();
-        }
-
-        private bool WaitForExit(int milliseconds)
-        {
-            //Logger.Debug("WaitForExit - time: {0}ms", milliseconds);
-
-            // Workaround for a bug in which some data may still be processed AFTER this method returns true, thus losing the data.
-            // http://connect.microsoft.com/VisualStudio/feedback/details/272125/waitforexit-and-waitforexit-int32-provide-different-and-undocumented-implementations
-            bool waitSucceeded = Process.WaitForExit(milliseconds);
-            if (waitSucceeded)
-            {
-                Process.WaitForExit();
-            }
-            return waitSucceeded;
         }
     }
 

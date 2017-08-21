@@ -15,7 +15,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNullOrWhiteSpace(message, "message");
 
             Name = TaskName;
-            arguments = "commit ";
+            arguments = "-c i18n.commitencoding=utf8 commit ";
             arguments += String.Format(" -m \"{0}\"", message);
             if (!String.IsNullOrEmpty(body))
                 arguments += String.Format(" -m \"{0}\"", body);

@@ -80,6 +80,7 @@
     <Compile Include="Extensions\ListExtensionTests.cs" />
     <Compile Include="Git\ValidationTests.cs" />
     <Compile Include="Git\GitConfigTests.cs" />
+    <Compile Include="Helpers\NewlineSplitStringBuilderTests.cs" />
     <Compile Include="IO\BranchListOutputProcessorTests.cs" />
     <Compile Include="Extensions\EnvironmentExtensionTests.cs" />
     <Compile Include="IO\LockOutputProcessorTests.cs" />
