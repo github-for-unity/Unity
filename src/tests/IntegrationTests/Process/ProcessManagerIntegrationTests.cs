@@ -81,7 +81,7 @@ namespace IntegrationTests
             });
         }
 
-        [Test, Category("DoNotRunOnAppVeyor")]
+        [Test]
         public async Task RussianLogEntriesTest()
         {
             await Initialize(TestRepoMasterCleanUnsynchronizedRussianLanguage);
