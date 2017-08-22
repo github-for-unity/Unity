@@ -61,6 +61,8 @@ namespace GitHub.Unity
         [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
         [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
         [SerializeField] private bool isBusy;
+        [SerializeField] private string currentRemote;
+        [SerializeField] private bool isPublished;
 
         public override void InitializeView(IView parent)
         {
@@ -222,6 +224,9 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
+            isPublished = Repository.CurrentRemote.HasValue;
+            currentRemote = isPublished ? Repository.CurrentRemote.Value.Name : "placeholder";
+
             if (!updated)
                 return;
             updated = false;
@@ -345,11 +350,8 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-
-                var isPublished = Repository.CurrentRemote.HasValue;
                 if (isPublished)
                 {
-                    var currentRemote = Repository.CurrentRemote.Value.Name;
                     GUI.enabled = currentRemote != null;
                     var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
                     GUI.enabled = true;
