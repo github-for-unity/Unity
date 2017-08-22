@@ -197,7 +197,7 @@ namespace GitHub.Unity
 
                 if (!await LoadKeychainInternal())
                 {
-                    return null;
+                    throw new InvalidOperationException("The keychain did not load");
                 }
 
                 Octokit.Repository repository;
