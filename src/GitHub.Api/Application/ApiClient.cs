@@ -61,7 +61,15 @@ namespace GitHub.Unity
         public async Task CreateRepository(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization = null)
         {
             Guard.ArgumentNotNull(callback, "callback");
-            await CreateRepositoryInternal(newRepository, callback, organization);
+            try
+            {
+                var repository = await CreateRepositoryInternal(newRepository, organization);
+                callback(repository, null);
+            }
+            catch (Exception e)
+            {
+                callback(null, e);
+            }
         }
 
         public async Task GetOrganizations(Action<IList<Organization>> callback)
@@ -69,6 +77,13 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(callback, "callback");
             var organizations = await GetOrganizationInternal();
             callback(organizations);
+        }
+
+        public async Task LoadKeychain(Action<bool> callback)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            var hasLoadedKeys = await LoadKeychainInternal();
+            callback(hasLoadedKeys);
         }
 
         public async Task GetCurrentUser(Action<Octokit.User> callback)
@@ -174,16 +189,15 @@ namespace GitHub.Unity
             return result.Code == LoginResultCodes.Success;
         }
 
-        private async Task CreateRepositoryInternal(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization)
+        private async Task<Octokit.Repository> CreateRepositoryInternal(NewRepository newRepository, string organization)
         {
             try
             {
                 logger.Trace("Creating repository");
 
-                if (!await EnsureKeychainLoaded())
+                if (!await LoadKeychainInternal())
                 {
-                    callback(null, new Exception("Keychain Not Loaded"));
-                    return;
+                    throw new InvalidOperationException("The keychain did not load");
                 }
 
                 Octokit.Repository repository;
@@ -201,13 +215,12 @@ namespace GitHub.Unity
                 }
 
                 logger.Trace("Created Repository");
-
-                callback(repository, null);
+                return repository;
             }
             catch (Exception ex)
             {
                 logger.Error(ex, "Error Creating Repository");
-                callback(null, ex);
+                throw;
             }
         }
 
@@ -217,9 +230,9 @@ namespace GitHub.Unity
             {
                 logger.Trace("Getting Organizations");
 
-                if (!await EnsureKeychainLoaded())
+                if (!await LoadKeychainInternal())
                 {
-                    return null;
+                    return new List<Organization>();
                 }
 
                 var organizations = await githubClient.Organization.GetAllForCurrent();
@@ -246,7 +259,7 @@ namespace GitHub.Unity
             {
                 logger.Trace("Getting Organizations");
 
-                if (!await EnsureKeychainLoaded())
+                if (!await LoadKeychainInternal())
                 {
                     return null;
                 }
@@ -262,27 +275,28 @@ namespace GitHub.Unity
             return userCache;
         }
 
-        private async Task<bool> EnsureKeychainLoaded()
+        private async Task<bool> LoadKeychainInternal()
         {
-            logger.Trace("EnsureKeychainLoaded");
+            logger.Trace("LoadKeychainInternal");
 
             if (keychain.HasKeys)
             {
                 if (!keychain.NeedsLoad)
                 {
-                    logger.Trace("EnsureKeychainLoaded: Has keys does not need load");
+                    logger.Trace("LoadKeychainInternal: Has keys does not need load");
                     return true;
                 }
 
-                logger.Trace("EnsureKeychainLoaded: Loading");
+                logger.Trace("LoadKeychainInternal: Loading");
 
+                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
                 var uriString = keychain.Connections.First().Host;
                 var keychainAdapter = await keychain.Load(uriString);
 
                 return keychainAdapter.OctokitCredentials != Credentials.Anonymous;
             }
 
-            logger.Trace("EnsureKeychainLoaded: No keys to load");
+            logger.Trace("LoadKeychainInternal: No keys to load");
 
             return false;
         }
