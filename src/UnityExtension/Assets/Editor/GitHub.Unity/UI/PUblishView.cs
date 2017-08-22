@@ -94,7 +94,8 @@ namespace GitHub.Unity
                             Logger.Trace("Loaded {0} organizations", organizations.Count);
 
                             var organizationLogins = organizations
-                                .OrderBy(organization => organization.Login).Select(organization => organization.Login);
+                                .OrderBy(organization => organization.Login)
+                                .Select(organization => organization.Login);
 
                             owners = owners.Union(organizationLogins).ToArray();
                             isBusy = false;
