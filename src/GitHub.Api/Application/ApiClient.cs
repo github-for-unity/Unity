@@ -79,6 +79,13 @@ namespace GitHub.Unity
             callback(organizations);
         }
 
+        public async Task LoadKeychain(Action<bool> callback)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            var hasLoadedKeys = await LoadKeychainInternal();
+            callback(hasLoadedKeys);
+        }
+
         public async Task GetCurrentUser(Action<Octokit.User> callback)
         {
             Guard.ArgumentNotNull(callback, "callback");
@@ -188,7 +195,7 @@ namespace GitHub.Unity
             {
                 logger.Trace("Creating repository");
 
-                if (!await EnsureKeychainLoaded())
+                if (!await LoadKeychainInternal())
                 {
                     throw new InvalidOperationException("The keychain did not load");
                 }
@@ -223,9 +230,9 @@ namespace GitHub.Unity
             {
                 logger.Trace("Getting Organizations");
 
-                if (!await EnsureKeychainLoaded())
+                if (!await LoadKeychainInternal())
                 {
-                    return null;
+                    return new List<Organization>();
                 }
 
                 var organizations = await githubClient.Organization.GetAllForCurrent();
@@ -252,7 +259,7 @@ namespace GitHub.Unity
             {
                 logger.Trace("Getting Organizations");
 
-                if (!await EnsureKeychainLoaded())
+                if (!await LoadKeychainInternal())
                 {
                     return null;
                 }
@@ -268,27 +275,28 @@ namespace GitHub.Unity
             return userCache;
         }
 
-        private async Task<bool> EnsureKeychainLoaded()
+        private async Task<bool> LoadKeychainInternal()
         {
-            logger.Trace("EnsureKeychainLoaded");
+            logger.Trace("LoadKeychainInternal");
 
             if (keychain.HasKeys)
             {
                 if (!keychain.NeedsLoad)
                 {
-                    logger.Trace("EnsureKeychainLoaded: Has keys does not need load");
+                    logger.Trace("LoadKeychainInternal: Has keys does not need load");
                     return true;
                 }
 
-                logger.Trace("EnsureKeychainLoaded: Loading");
+                logger.Trace("LoadKeychainInternal: Loading");
 
+                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
                 var uriString = keychain.Connections.First().Host;
                 var keychainAdapter = await keychain.Load(uriString);
 
                 return keychainAdapter.OctokitCredentials != Credentials.Anonymous;
             }
 
-            logger.Trace("EnsureKeychainLoaded: No keys to load");
+            logger.Trace("LoadKeychainInternal: No keys to load");
 
             return false;
         }

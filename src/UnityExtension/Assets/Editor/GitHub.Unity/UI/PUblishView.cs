@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Octokit;
 using Rackspace.Threading;
 using UnityEditor;
@@ -65,40 +66,33 @@ namespace GitHub.Unity
             try
             {
                 var keychainConnections = Platform.Keychain.Connections;
+                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
                 if (keychainConnections.Any())
                 {
                     Logger.Trace("GetCurrentUser");
 
                     isBusy = true;
 
-                    Client.GetCurrentUser(user => {
-                        if (user == null)
+                    Client.LoadKeychain(hasKeys => {
+                        if (!hasKeys)
                         {
                             Logger.Warning("Unable to get current user");
                             isBusy = false;
                             return;
                         }
 
-                        owners = owners.Union(new[] { user.Login }).ToArray();
-                        username = user.Login;
-
-                        Logger.Trace("GetOrganizations");
+                        //TODO: ONE_USER_LOGIN This assumes only ever one user can login
+                        username = keychainConnections.First().Username;
 
                         Client.GetOrganizations(organizations => {
-                            if (organizations == null)
-                            {
-                                Logger.Warning("Unable to get list of organizations");
-                                isBusy = false;
-                                return;
-                            }
-
                             Logger.Trace("Loaded {0} organizations", organizations.Count);
 
                             var organizationLogins = organizations
                                 .OrderBy(organization => organization.Login)
                                 .Select(organization => organization.Login);
 
-                            owners = owners.Union(organizationLogins).ToArray();
+                            owners = new[] { username }.Union(organizationLogins).ToArray();
+
                             isBusy = false;
                         });
                     });
