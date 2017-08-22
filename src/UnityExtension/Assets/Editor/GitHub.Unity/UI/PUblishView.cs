@@ -11,7 +11,7 @@ namespace GitHub.Unity
         private const string Title = "Publish this repository to GitHub";
         private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
         private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
-        private const string PublishViewCreateButton = "Create";
+        private const string PublishViewCreateButton = "Publish";
         private const string OwnersDefaultText = "Select a user or org";
 
         [SerializeField] private string username;
