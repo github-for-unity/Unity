@@ -37,7 +37,6 @@ namespace GitHub.Unity
         private const int HistoryExtraItemCount = 10;
         private const float MaxChangelistHeightRatio = .2f;
 
-        [NonSerialized] private string currentRemote = "placeholder";
         [NonSerialized] private int historyStartIndex;
         [NonSerialized] private int historyStopIndex;
         [NonSerialized] private float lastWidth;
@@ -62,6 +61,8 @@ namespace GitHub.Unity
         [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
         [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
         [SerializeField] private bool isBusy;
+        [SerializeField] private string currentRemote;
+        [SerializeField] private bool isPublished;
 
         public override void InitializeView(IView parent)
         {
@@ -196,7 +197,6 @@ namespace GitHub.Unity
 
         private void UpdateStatus(GitStatus status)
         {
-            currentRemote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : null;
             statusAhead = status.Ahead;
             statusBehind = status.Behind;
         }
@@ -224,6 +224,9 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
+            isPublished = Repository.CurrentRemote.HasValue;
+            currentRemote = isPublished ? Repository.CurrentRemote.Value.Name : "placeholder";
+
             if (!updated)
                 return;
             updated = false;
@@ -347,8 +350,6 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-
-                var isPublished = Repository.CurrentRemote.HasValue;
                 if (isPublished)
                 {
                     GUI.enabled = currentRemote != null;
