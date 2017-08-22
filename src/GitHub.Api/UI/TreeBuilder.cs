@@ -119,7 +119,6 @@ namespace GitHub.Unity
                 }
             }
 
-            // TODO: Filter .meta files - consider adding them as children of the asset or folder they're supporting
             // TODO: In stead of completely rebuilding the tree structure, figure out a way to migrate open/closed states from the old tree to the new
             // Build tree structure
 
