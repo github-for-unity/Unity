@@ -11,10 +11,11 @@ namespace GitHub.Unity
         private const string Title = "Publish this repository to GitHub";
         private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
         private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
-        private const string PublishViewCreateButton = "Create";
+        private const string PublishViewCreateButton = "Publish";
+        private const string OwnersDefaultText = "Select a user or org";
 
         [SerializeField] private string username;
-        [SerializeField] private string[] owners = { };
+        [SerializeField] private string[] owners = { OwnersDefaultText };
         [SerializeField] private int selectedOwner;
         [SerializeField] private string repoName = String.Empty;
         [SerializeField] private string repoDescription = "";
@@ -70,7 +71,7 @@ namespace GitHub.Unity
                             return;
                         }
 
-                        owners = new[] { user.Login };
+                        owners = owners.Union(new[] { user.Login }).ToArray();
                         username = user.Login;
 
                         Logger.Trace("GetOrganizations");
@@ -134,7 +135,7 @@ namespace GitHub.Unity
                     GUILayout.Label("Owner");
 
                     GUI.enabled = !isBusy;
-                    selectedOwner = EditorGUILayout.Popup(0, owners);
+                    selectedOwner = EditorGUILayout.Popup(selectedOwner, owners);
                     GUI.enabled = true;
                 }
                 GUILayout.EndVertical();
@@ -194,7 +195,7 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal();
             {
                 GUILayout.FlexibleSpace();
-                GUI.enabled = !string.IsNullOrEmpty(repoName) && !isBusy;
+                GUI.enabled = !string.IsNullOrEmpty(repoName) && !isBusy && selectedOwner != 0;
                 if (GUILayout.Button(PublishViewCreateButton))
                 {
                     isBusy = true;
