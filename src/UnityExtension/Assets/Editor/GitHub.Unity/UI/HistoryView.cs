@@ -207,8 +207,7 @@ namespace GitHub.Unity
             {
                 if (Repository != null)
                 {
-                    GitClient.Log().ThenInUI((success, log) =>
-                    {
+                    GitClient.Log().ThenInUI((success, log) => {
                         if (success) OnLogUpdate(log);
                     }).Start();
                 }
@@ -586,8 +585,7 @@ namespace GitHub.Unity
             {
                 Repository
                     .Revert(selection.CommitID)
-                    .FinallyInUI((success, e) =>
-                    {
+                    .FinallyInUI((success, e) => {
                         if (!success)
                         {
                             EditorUtility.DisplayDialog(dialogTitle,
@@ -708,8 +706,7 @@ namespace GitHub.Unity
                 Repository
                     .Pull()
                     // we need the error propagated from the original git command to handle things appropriately
-                    .Then(success =>
-                    {
+                    .Then(success => {
                         if (!success)
                         {
                             // if Pull fails we need to parse the output of the command, figure out
@@ -717,8 +714,7 @@ namespace GitHub.Unity
                             // (either git rebase --abort or git merge --abort)
                         }
                     }, true)
-                    .FinallyInUI((success, e) =>
-                    {
+                    .FinallyInUI((success, e) => {
                         if (success)
                         {
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
@@ -741,8 +737,7 @@ namespace GitHub.Unity
             var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
             Repository
                 .Push()
-                .FinallyInUI((success, e) =>
-                {
+                .FinallyInUI((success, e) => {
                     if (success)
                     {
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
@@ -764,8 +759,7 @@ namespace GitHub.Unity
             var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
             Repository
                 .Fetch()
-                .FinallyInUI((success, e) =>
-                {
+                .FinallyInUI((success, e) => {
                     if (!success)
                     {
                         EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
