@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Octokit;
+using Rackspace.Threading;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,10 +13,15 @@ namespace GitHub.Unity
         private const string Title = "Publish this repository to GitHub";
         private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
         private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
-        private const string PublishViewCreateButton = "Create";
+        private const string PublishViewCreateButton = "Publish";
+        private const string OwnersDefaultText = "Select a user or org";
+        private const string SelectedOwnerLabel = "Owner";
+        private const string RepositoryNameLabel = "Repository Name";
+        private const string DescriptionLabel = "Description";
+        private const string CreatePrivateRepositoryLabel = "Create as a private repository";
 
         [SerializeField] private string username;
-        [SerializeField] private string[] owners = { };
+        [SerializeField] private string[] owners = { OwnersDefaultText };
         [SerializeField] private int selectedOwner;
         [SerializeField] private string repoName = String.Empty;
         [SerializeField] private string repoDescription = "";
@@ -59,37 +66,34 @@ namespace GitHub.Unity
             try
             {
                 var keychainConnections = Platform.Keychain.Connections;
+                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
                 if (keychainConnections.Any())
                 {
                     Logger.Trace("GetCurrentUser");
 
-                    Client.GetCurrentUser(user => {
-                        if (user == null)
+                    isBusy = true;
+
+                    Client.LoadKeychain(hasKeys => {
+                        if (!hasKeys)
                         {
                             Logger.Warning("Unable to get current user");
+                            isBusy = false;
                             return;
                         }
 
-                        owners = new[] { user.Login };
-                        username = user.Login;
+                        //TODO: ONE_USER_LOGIN This assumes only ever one user can login
+                        username = keychainConnections.First().Username;
 
-                        Logger.Trace("GetOrganizations");
-
-                        Client.GetOrganizations(organizations =>
-                        {
-                            if (organizations == null)
-                            {
-                                Logger.Warning("Unable to get list of organizations");
-                                return;
-                            }
-
+                        Client.GetOrganizations(organizations => {
                             Logger.Trace("Loaded {0} organizations", organizations.Count);
 
                             var organizationLogins = organizations
                                 .OrderBy(organization => organization.Login)
                                 .Select(organization => organization.Login);
 
-                            owners = owners.Union(organizationLogins).ToArray();
+                            owners = new[] { username }.Union(organizationLogins).ToArray();
+
+                            isBusy = false;
                         });
                     });
                 }
@@ -127,83 +131,67 @@ namespace GitHub.Unity
 
             GUILayout.Space(Styles.PublishViewSpacingHeight);
 
-            GUILayout.BeginHorizontal();
-            {
-                GUILayout.BeginVertical();
-                {
-                    GUILayout.Label("Owner");
-                    EditorGUI.BeginDisabledGroup(isBusy);
-                    {
-                        selectedOwner = EditorGUILayout.Popup(0, owners);
-                    }
-                    EditorGUI.EndDisabledGroup();
-                }
-                GUILayout.EndVertical();
-
-                GUILayout.BeginVertical(GUILayout.Width(8));
-                {
-                    GUILayout.Space(20);
-                    GUILayout.Label("/");
-                }
-                GUILayout.EndVertical();
-
-                GUILayout.BeginVertical();
-                {
-                    GUILayout.Label("Repository Name");
-                    EditorGUI.BeginDisabledGroup(isBusy);
-                    {
-                        repoName = EditorGUILayout.TextField(repoName);
-                    }
-                    EditorGUI.EndDisabledGroup();
-                }
-                GUILayout.EndVertical();
-            }
-            GUILayout.EndHorizontal();
-
-            GUILayout.Label("Description");
             EditorGUI.BeginDisabledGroup(isBusy);
             {
-                repoDescription = EditorGUILayout.TextField(repoDescription);
-            }
-            EditorGUI.EndDisabledGroup();
-
-            GUILayout.Space(Styles.PublishViewSpacingHeight);
-
-            GUILayout.BeginVertical();
-            {
                 GUILayout.BeginHorizontal();
                 {
-                    EditorGUI.BeginDisabledGroup(isBusy);
+                    GUILayout.BeginVertical();
                     {
-                        togglePrivate = GUILayout.Toggle(togglePrivate, "Create as a private repository");
+                        GUILayout.Label(SelectedOwnerLabel);
+
+                        selectedOwner = EditorGUILayout.Popup(selectedOwner, owners);
                     }
-                    EditorGUI.EndDisabledGroup();
+                    GUILayout.EndVertical();
+
+                    GUILayout.BeginVertical(GUILayout.Width(8));
+                    {
+                        GUILayout.Space(20);
+                        GUILayout.Label("/");
+                    }
+                    GUILayout.EndVertical();
+
+                    GUILayout.BeginVertical();
+                    {
+                        GUILayout.Label(RepositoryNameLabel);
+                        repoName = EditorGUILayout.TextField(repoName);
+                    }
+                    GUILayout.EndVertical();
                 }
                 GUILayout.EndHorizontal();
+
+                GUILayout.Label(DescriptionLabel);
+                repoDescription = EditorGUILayout.TextField(repoDescription);
+                GUILayout.Space(Styles.PublishViewSpacingHeight);
+
+                GUILayout.BeginVertical();
+                {
+                    GUILayout.BeginHorizontal();
+                    {
+                        togglePrivate = GUILayout.Toggle(togglePrivate, CreatePrivateRepositoryLabel);
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Space(Styles.PublishViewSpacingHeight);
+                        var repoPrivacyExplanation = togglePrivate ? PrivateRepoMessage : PublicRepoMessage;
+                        GUILayout.Label(repoPrivacyExplanation, Styles.LongMessageStyle);
+                    }
+                    GUILayout.EndHorizontal();
+                }
+                GUILayout.EndVertical();;
+
+                GUILayout.Space(Styles.PublishViewSpacingHeight);
+
+                if (error != null)
+                    GUILayout.Label(error, Styles.ErrorLabel);
+
+                GUILayout.FlexibleSpace();
 
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Space(Styles.PublishViewSpacingHeight);
-                    var repoPrivacyExplanation = togglePrivate ? PrivateRepoMessage : PublicRepoMessage;
-                    GUILayout.Label(repoPrivacyExplanation, Styles.LongMessageStyle);
-                }
-                GUILayout.EndHorizontal();
-            }
-            GUILayout.EndVertical();
-
-
-            GUILayout.Space(Styles.PublishViewSpacingHeight);
-
-            if (error != null)
-                GUILayout.Label(error, Styles.ErrorLabel);
-
-            GUILayout.FlexibleSpace();
-
-            GUILayout.BeginHorizontal();
-            {
-                GUILayout.FlexibleSpace();
-                EditorGUI.BeginDisabledGroup(isBusy || string.IsNullOrEmpty(repoName));
-                {
+                    GUILayout.FlexibleSpace();
+                    EditorGUI.BeginDisabledGroup(!IsFormValid);
                     if (GUILayout.Button(PublishViewCreateButton))
                     {
                         isBusy = true;
@@ -224,16 +212,30 @@ namespace GitHub.Unity
                                 return;
                             }
 
-                        GitClient.RemoteAdd("origin", repository.CloneUrl)
-                                 .Then(GitClient.Push("origin", Repository.CurrentBranch.Value.Name))
-                                 .ThenInUI(Parent.Finish)
-                                 .Start();
-                    }, organization);
+                            if (repository == null)
+                            {
+                                Logger.Warning("Returned Repository is null");
+                                isBusy = false;
+                                return;
+                            }
+
+                            GitClient.RemoteAdd("origin", repository.CloneUrl)
+                                     .Then(GitClient.Push("origin", Repository.CurrentBranch.Value.Name))
+                                     .ThenInUI(Finish)
+                                     .Start();
+                        }, organization);
+                    }
+                    EditorGUI.EndDisabledGroup();
                 }
-                EditorGUI.EndDisabledGroup();
+                GUILayout.EndHorizontal();
+                GUILayout.Space(10);
             }
-            GUILayout.EndHorizontal();
-            GUILayout.Space(10);
+            EditorGUI.EndDisabledGroup();
+        }
+
+        private bool IsFormValid
+        {
+            get { return !string.IsNullOrEmpty(repoName) && !isBusy && selectedOwner != 0; }
         }
     }
 }

@@ -124,8 +124,10 @@ namespace GitHub.Unity
         public override void Refresh()
         {
             base.Refresh();
-            if (Repository != null)
+            if (Repository != null && Repository.CurrentRemote.HasValue)
+            {
                 Repository.ListLocks().Start();
+            }
         }
 
         private void AttachHandlers(IRepository repository)
