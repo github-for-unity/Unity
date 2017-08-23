@@ -355,20 +355,16 @@ namespace GitHub.Unity
 
                 if (isPublished)
                 {
-                    // Fetch button
                     EditorGUI.BeginDisabledGroup(currentRemote == null);
                     {
+                        // Fetch button
                         var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
                         if (fetchClicked)
                         {
                             Fetch();
                         }
-                    }
-                    EditorGUI.EndDisabledGroup();
 
-                    // Pull button
-                    EditorGUI.BeginDisabledGroup(currentRemote == null);
-                    {
+                        // Pull button
                         var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
                         var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
 

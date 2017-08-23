@@ -131,41 +131,34 @@ namespace GitHub.Unity
 
         private void OnGUILogin()
         {
-            GUILayout.Space(3);
-            GUILayout.BeginHorizontal();
+            EditorGUI.BeginDisabledGroup(isBusy);
             {
-                EditorGUI.BeginDisabledGroup(isBusy);
+                GUILayout.Space(3);
+                GUILayout.BeginHorizontal();
                 {
                     username = EditorGUILayout.TextField(usernameLabel, username, Styles.TextFieldStyle);
                 }
-                EditorGUI.EndDisabledGroup();
-            }
-            GUILayout.EndHorizontal();
-            GUILayout.Space(Styles.BaseSpacing);
-            GUILayout.BeginHorizontal();
-            {
-                EditorGUI.BeginDisabledGroup(isBusy);
+                GUILayout.EndHorizontal();
+
+                GUILayout.Space(Styles.BaseSpacing);
+                GUILayout.BeginHorizontal();
                 {
                     password = EditorGUILayout.PasswordField(passwordLabel, password, Styles.TextFieldStyle);
                 }
-                EditorGUI.EndDisabledGroup();
-            }
-            GUILayout.EndHorizontal();
+                GUILayout.EndHorizontal();
 
-            ShowErrorMessage();
+                ShowErrorMessage();
 
-            GUILayout.Space(Styles.BaseSpacing + 3);
-
-
-            EditorGUI.BeginDisabledGroup(isBusy);
-            {
+                GUILayout.Space(Styles.BaseSpacing + 3);
                 GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button(loginButton) || (GUI.enabled && enterPressed))
                 {
-                    GUI.FocusControl(null);
-                    isBusy = true;
-                    AuthenticationService.Login(username, password, DoRequire2fa, DoResult);
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button(loginButton) || (GUI.enabled && enterPressed))
+                    {
+                        GUI.FocusControl(null);
+                        isBusy = true;
+                        AuthenticationService.Login(username, password, DoRequire2fa, DoResult);
+                    }
                 }
                 GUILayout.EndHorizontal();
             }
@@ -175,48 +168,46 @@ namespace GitHub.Unity
         private void OnGUI2FA()
         {
             GUILayout.BeginVertical();
-            GUILayout.Label(twofaTitle, EditorStyles.boldLabel);
-            GUILayout.Label(twofaDescription, EditorStyles.wordWrappedLabel);
-
-            GUILayout.Space(Styles.BaseSpacing);
-
-            GUILayout.BeginHorizontal();
             {
+                GUILayout.Label(twofaTitle, EditorStyles.boldLabel);
+                GUILayout.Label(twofaDescription, EditorStyles.wordWrappedLabel);
+
                 EditorGUI.BeginDisabledGroup(isBusy);
                 {
-                    two2fa = EditorGUILayout.TextField(twofaLabel, two2fa, Styles.TextFieldStyle);
+                    GUILayout.Space(Styles.BaseSpacing);
+                    GUILayout.BeginHorizontal();
+                    {
+                        two2fa = EditorGUILayout.TextField(twofaLabel, two2fa, Styles.TextFieldStyle);
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Space(Styles.BaseSpacing);
+                    ShowErrorMessage();
+
+                    GUILayout.Space(Styles.BaseSpacing);
+                    GUILayout.BeginHorizontal();
+                    {
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button(backButton))
+                        {
+                            GUI.FocusControl(null);
+                            need2fa = false;
+                            Redraw();
+                        }
+
+                        if (GUILayout.Button(twofaButton) || (GUI.enabled && enterPressed))
+                        {
+                            GUI.FocusControl(null);
+                            isBusy = true;
+                            AuthenticationService.LoginWith2fa(two2fa);
+                        }
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Space(Styles.BaseSpacing);
                 }
                 EditorGUI.EndDisabledGroup();
             }
-            GUILayout.EndHorizontal();
-            GUILayout.Space(Styles.BaseSpacing);
-
-            ShowErrorMessage();
-
-            GUILayout.Space(Styles.BaseSpacing);
-
-            EditorGUI.BeginDisabledGroup(isBusy);
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button(backButton))
-                {
-                    GUI.FocusControl(null);
-                    need2fa = false;
-                    Redraw();
-                }
-
-                if (GUILayout.Button(twofaButton) || (GUI.enabled && enterPressed))
-                {
-                    GUI.FocusControl(null);
-                    isBusy = true;
-                    AuthenticationService.LoginWith2fa(two2fa);
-                }
-                GUILayout.EndHorizontal();
-            }
-            EditorGUI.EndDisabledGroup();
-
-            GUILayout.Space(Styles.BaseSpacing);
             GUILayout.EndVertical();
         }
 
