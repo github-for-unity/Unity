@@ -28,6 +28,7 @@ namespace GitHub.Unity
         void Start();
         void Stop();
         void Refresh();
+        ITask CommitAllFiles(string message, string body);
         ITask CommitFiles(List<string> files, string message, string body);
         ITask Fetch(string remote);
         ITask Pull(string remote, string branch);
@@ -189,6 +190,15 @@ namespace GitHub.Unity
         {
             Logger.Trace("Refresh");
             UpdateGitStatus();
+        }
+
+        public ITask CommitAllFiles(string message, string body)
+        {
+            var add = GitClient.AddAll();
+            add.OnStart += t => IsBusy = true;
+            return add
+                .Then(GitClient.Commit(message, body))
+                .Finally(() => IsBusy = false);
         }
 
         public ITask CommitFiles(List<string> files, string message, string body)
