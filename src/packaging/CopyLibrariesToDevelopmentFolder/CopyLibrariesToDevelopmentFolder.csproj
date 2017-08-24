@@ -54,9 +54,9 @@
     <Compile Include="Class1.cs" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Content Include="$(SolutionDir)\lib\sfw.net\osx\libsfw.dylib">
+    <Content Include="$(SolutionDir)\lib\sfw.net\mac\libsfw.bundle">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content -->
+    </Content>
     <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw_x64.dll">
       <Link>x64\sfw_x64.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

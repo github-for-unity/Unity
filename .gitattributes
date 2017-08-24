@@ -11,3 +11,4 @@
 *.meta -text
 *.asset -text
 *.unity -text
+*.bundle filter=lfs diff=lfs merge=lfs -text

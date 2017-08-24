@@ -126,9 +126,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <!-- Content Include="$(SolutionDir)\lib\sfw.net\osx\libsfw.dylib">
+    <Content Include="$(SolutionDir)\lib\sfw.net\mac\libsfw.bundle">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content -->
+    </Content>
     <Content Include="$(SolutionDir)\lib\sfw.net\win\x86\$(BuildConfig)\sfw_x86.dll">
       <Link>x86\sfw_x86.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

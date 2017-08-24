@@ -130,9 +130,9 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Content Include="$(SolutionDir)\lib\sfw.net\osx\libsfw.dylib">
+    <Content Include="$(SolutionDir)\lib\sfw.net\mac\libsfw.bundle">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content -->
+    </Content>
     <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw_x64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
