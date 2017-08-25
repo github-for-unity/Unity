@@ -19,6 +19,8 @@ namespace GitHub.Unity
         [SerializeField] private AuthenticationView authenticationView;
         [SerializeField] private PublishView publishView;
 
+        public event Action<bool> OnClose;
+
         [MenuItem("GitHub/Authenticate")]
         public static void Launch()
         {
@@ -29,7 +31,7 @@ namespace GitHub.Unity
         {
             var popupWindow = GetWindow<PopupWindow>(true);
 
-            popupWindow.RaiseOnClose(false);
+            popupWindow.OnClose.SafeInvoke(false);
 
             if (onClose != null)
             {
@@ -83,12 +85,6 @@ namespace GitHub.Unity
             ActiveView.Refresh();
         }
 
-        protected override void RaiseOnClose(bool result)
-        {
-            base.RaiseOnClose(result);
-            ClearOnClose();
-        }
-
         public override void OnSelectionChange()
         {
             base.OnSelectionChange();
@@ -97,8 +93,17 @@ namespace GitHub.Unity
 
         public override void Finish(bool result)
         {
+            OnClose.SafeInvoke(result);
+            OnClose = null;
             Close();
             base.Finish(result);
+        }
+
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            OnClose.SafeInvoke(false);
+            OnClose = null;
         }
 
         private Subview ActiveView

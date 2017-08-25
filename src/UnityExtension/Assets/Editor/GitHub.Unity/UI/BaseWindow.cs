@@ -6,15 +6,12 @@ namespace GitHub.Unity
 {
     abstract class BaseWindow :  EditorWindow, IView
     {
-        [NonSerialized] private bool finishCalled = false;
         [NonSerialized] private bool initialized = false;
 
         [NonSerialized] private IApplicationManager cachedManager;
         [NonSerialized] private IRepository cachedRepository;
         [NonSerialized] private bool initializeWasCalled;
         [NonSerialized] private bool inLayout;
-
-        public event Action<bool> OnClose;
 
         public virtual void Initialize(IApplicationManager applicationManager)
         {
@@ -50,18 +47,6 @@ namespace GitHub.Unity
 
         public virtual void Finish(bool result)
         {
-            finishCalled = true;
-            RaiseOnClose(result);
-        }
-
-        protected virtual void RaiseOnClose(bool result)
-        {
-            OnClose.SafeInvoke(result);
-        }
-
-        protected void ClearOnClose()
-        {
-            OnClose = null;
         }
 
         public virtual void Awake()
@@ -120,10 +105,7 @@ namespace GitHub.Unity
 
         public virtual void OnDestroy()
         {
-            if (!finishCalled)
-            {
-                RaiseOnClose(false);
-            }
+           
         }
 
         public virtual void OnSelectionChange()

@@ -5,8 +5,6 @@ namespace GitHub.Unity
 {
     abstract class Subview : IView
     {
-        public event Action<bool> OnClose;
-
         private const string NullParentError = "Subview parent is null";
 
         public virtual void InitializeView(IView parent)
