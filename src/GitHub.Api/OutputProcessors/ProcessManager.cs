@@ -76,7 +76,8 @@ namespace GitHub.Unity
             {
                 // we need to create a temp bash script to set up the environment properly, because
                 // osx terminal app doesn't inherit the PATH env var and there's no way to pass it in
-                var envVarFile = environment.FileSystem.GetRandomFileName();
+
+                var envVarFile = NPath.GetTempFilename();
                 environment.FileSystem.WriteAllLines(envVarFile, new string[] { "cd $GHU_WORKINGDIR", "PATH=$GHU_FULLPATH:$PATH /bin/bash" });
                 Mono.Unix.Native.Syscall.chmod(envVarFile, (Mono.Unix.Native.FilePermissions)493); // -rwxr-xr-x mode (0755)
                 startInfo.FileName = "open";
