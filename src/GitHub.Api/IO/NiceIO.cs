@@ -697,6 +697,18 @@ GitHub.Unity
             }
         }
 
+        public static NPath GetTempFilename(string myprefix = "")
+        {
+            var random = new Random();
+            var prefix = FileSystem.GetTempPath() + "/" + (String.IsNullOrEmpty(myprefix) ? "" : myprefix + "_");
+            while (true)
+            {
+                var candidate = new NPath(prefix + random.Next());
+                if (!candidate.Exists())
+                    return candidate;
+            }
+        }
+
         public NPath Move(string dest)
         {
             return Move(new NPath(dest));
