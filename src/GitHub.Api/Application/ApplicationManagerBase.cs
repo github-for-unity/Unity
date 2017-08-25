@@ -39,20 +39,24 @@ namespace GitHub.Unity
             Logging.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
-            if (Environment.GitExecutablePath != null)
-            {
-                GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
-            }
+            GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
             SetupMetrics();
         }
 
-        public virtual async Task Run(bool firstRun)
+        public void Run(bool firstRun)
+        {
+            new ActionTask(SetupGit())
+                .Then(RestartRepository)
+                .ThenInUI(InitializeUI)
+                .Start();
+        }
+
+        private async Task SetupGit()
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
             if (Environment.GitExecutablePath == null)
             {
-                GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
                 Environment.GitExecutablePath = await DetermineGitExecutablePath();
 
                 Logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", Environment.GitExecutablePath, Environment.GitExecutablePath.FileExists());
@@ -67,8 +71,6 @@ namespace GitHub.Unity
                 }
             }
 
-            RestartRepository();
-            InitializeUI();
         }
 
         public ITask InitializeRepository()
