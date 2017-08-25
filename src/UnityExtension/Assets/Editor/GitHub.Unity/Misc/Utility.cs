@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -151,6 +152,34 @@ namespace GitHub.Unity
 
     static class StreamExtensions
     {
+        private static MethodInfo loadImage;
+        private static Func<Texture2D, MemoryStream, Texture2D> invokeLoadImage;
+
+        static StreamExtensions()
+        {
+            var t = typeof(Texture2D).Assembly.GetType("UnityEngine.ImageConversion", false, false);
+            if (t != null)
+            {
+                // looking for ImageConversion.LoadImage(this Texture2D tex, byte[] data)
+                loadImage = t.GetMethods().FirstOrDefault(x => x.Name == "LoadImage" && x.GetParameters().Length == 2);
+                invokeLoadImage = (tex, ms) =>
+                {
+                    loadImage.Invoke(null, new object[] { tex, ms.ToArray() });
+                    return tex;
+                };
+            }
+            else
+            {
+                // looking for Texture2D.LoadImage(byte[] data)
+                loadImage = typeof(Texture2D).GetMethods().FirstOrDefault(x => x.Name == "LoadImage" && x.GetParameters().Length == 1);
+                invokeLoadImage = (tex, ms) =>
+                {
+                    loadImage.Invoke(tex, new object[] { ms.ToArray() });
+                    return tex;
+                };
+            }
+        }
+
         public static Texture2D ToTexture2D(this Stream input)
         {
             var buffer = new byte[16 * 1024];
@@ -163,7 +192,7 @@ namespace GitHub.Unity
                 }
 
                 var tex = new Texture2D(1, 1);
-                tex.LoadImage(ms.ToArray());
+                tex = invokeLoadImage(tex, ms);
                 return tex;
             }
         }

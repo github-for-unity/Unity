@@ -54,6 +54,7 @@ namespace GitHub.Unity
 
             var gitPathRoot = Environment.GitInstallPath;
             var gitLfsPath = Environment.GitInstallPath;
+            var gitExecutableDir = Environment.GitExecutablePath.Parent; // original path to git (might be different from install path if it's a symlink)
 
             // Paths to developer tools such as msbuild.exe
             //var developerPaths = StringExtensions.JoinForAppending(";", developerEnvironment.GetPaths());
@@ -78,19 +79,17 @@ namespace GitHub.Unity
             if (Environment.IsWindows)
             {
                 var userPath = @"C:\windows\system32;C:\windows";
-                path = String.Format(CultureInfo.InvariantCulture, @"{0}\cmd;{0}\usr\bin;{1};{2};{0}\usr\share\git-tfs;{3};{4}{5}",
-                    gitPathRoot, execPath, binPath,
-                    gitLfsPath, userPath, developerPaths);
+                path = $"{gitPathRoot}\\cmd;{gitPathRoot}\\usr\\bin;{execPath};{binPath};{gitLfsPath};{userPath}{developerPaths}";
             }
             else
             {
-                var userPath = Environment.Path;
-                path = String.Format(CultureInfo.InvariantCulture, @"{0}:{1}:{2}:{3}{4}",
-                    binPath, execPath, gitLfsPath, userPath, developerPaths);
+                path = $"{gitExecutableDir}:{binPath}:{execPath}:{gitLfsPath}:{Environment.Path}:{developerPaths}";
             }
             psi.EnvironmentVariables["GIT_EXEC_PATH"] = execPath.ToString();
 
             psi.EnvironmentVariables["PATH"] = path;
+            psi.EnvironmentVariables["GHU_FULLPATH"] = path;
+            psi.EnvironmentVariables["GHU_WORKINGDIR"] = workingDirectory;
 
             psi.EnvironmentVariables["PLINK_PROTOCOL"] = "ssh";
             psi.EnvironmentVariables["TERM"] = "msys";

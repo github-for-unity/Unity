@@ -39,20 +39,24 @@ namespace GitHub.Unity
             Logging.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
-            if (Environment.GitExecutablePath != null)
-            {
-                GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
-            }
+            GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
             SetupMetrics();
         }
 
-        public virtual async Task Run(bool firstRun)
+        public void Run(bool firstRun)
+        {
+            new ActionTask(SetupGit())
+                .Then(RestartRepository)
+                .ThenInUI(InitializeUI)
+                .Start();
+        }
+
+        private async Task SetupGit()
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
             if (Environment.GitExecutablePath == null)
             {
-                GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
                 Environment.GitExecutablePath = await DetermineGitExecutablePath();
 
                 Logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", Environment.GitExecutablePath, Environment.GitExecutablePath.FileExists());
@@ -67,10 +71,6 @@ namespace GitHub.Unity
                 }
             }
 
-            RestartRepository();
-            InitializeUI();
-
-            new ActionTask(new Task(() => LoadKeychain().Start())).Start();
         }
 
         public ITask InitializeRepository()
@@ -79,7 +79,10 @@ namespace GitHub.Unity
 
             var targetPath = NPath.CurrentDirectory;
 
-            var unityYamlMergeExec = Environment.UnityApplication.Parent.Combine("Tools", "UnityYAMLMerge");
+            var unityYamlMergeExec = Environment.IsWindows
+                ? Environment.UnityApplication.Parent.Combine("Data", "Tools", "UnityYAMLMerge.exe")
+                : Environment.UnityApplication.Combine("Contents", "Tools", "UnityYAMLMerge");
+
             var yamlMergeCommand = Environment.IsWindows
                 ? $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED"""
                 : $@"'{unityYamlMergeExec}' merge -p '$BASE' '$REMOTE' '$LOCAL' '$MERGED'";
@@ -104,38 +107,24 @@ namespace GitHub.Unity
                 }))
                 .Then(GitClient.Add(filesForInitialCommit))
                 .Then(GitClient.Commit("Initial commit", null))
-                .Then(RestartRepository)
+                .Then(_ =>
+                {
+                    Environment.InitializeRepository();
+                    RestartRepository();
+                })
                 .ThenInUI(InitializeUI);
             return task;
         }
 
         public void RestartRepository()
         {
-            Environment.InitializeRepository();
             if (Environment.RepositoryPath != null)
             {
                 repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, UsageTracker, GitClient, Environment.RepositoryPath);
-                Environment.Repository = new Repository(GitClient, repositoryManager, Environment.RepositoryPath);
                 repositoryManager.Initialize();
-                Environment.Repository.Initialize();
+                Environment.Repository.Initialize(repositoryManager);
                 repositoryManager.Start();
                 Logger.Trace($"Got a repository? {Environment.Repository}");
-            }
-        }
-
-        private async Task LoadKeychain()
-        {
-            Logger.Trace("Loading Keychain");
-
-            var firstConnection = Platform.Keychain.Hosts.FirstOrDefault();
-            if (firstConnection == null)
-            {
-                Logger.Trace("No Host Found");
-            }
-            else
-            {
-                Logger.Trace("Loading Connection to Host:\"{0}\"", firstConnection);
-                await Platform.Keychain.Load(firstConnection).SafeAwait();
             }
         }
 

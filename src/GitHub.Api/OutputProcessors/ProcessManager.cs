@@ -57,10 +57,9 @@ namespace GitHub.Unity
             return processTask;
         }
 
-        public IProcess RunCommandLineWindow(NPath workingDirectory)
+        public void RunCommandLineWindow(NPath workingDirectory)
         {
-            var shell = environment.IsWindows ? "cmd" : environment.IsMac ? "xterm" : "sh";
-            var startInfo = new ProcessStartInfo(shell)
+            var startInfo = new ProcessStartInfo
             {
                 RedirectStandardInput = false,
                 RedirectStandardOutput = false,
@@ -69,11 +68,28 @@ namespace GitHub.Unity
                 CreateNoWindow = false
             };
 
+            if (environment.IsWindows)
+            {
+                startInfo.FileName = "cmd";
+            }
+            else if (environment.IsMac)
+            {
+                // we need to create a temp bash script to set up the environment properly, because
+                // osx terminal app doesn't inherit the PATH env var and there's no way to pass it in
+
+                var envVarFile = NPath.GetTempFilename();
+                environment.FileSystem.WriteAllLines(envVarFile, new string[] { "cd $GHU_WORKINGDIR", "PATH=$GHU_FULLPATH:$PATH /bin/bash" });
+                Mono.Unix.Native.Syscall.chmod(envVarFile, (Mono.Unix.Native.FilePermissions)493); // -rwxr-xr-x mode (0755)
+                startInfo.FileName = "open";
+                startInfo.Arguments = $"-a Terminal {envVarFile}";
+            }
+            else
+            {
+                startInfo.FileName = "sh";
+            }
+
             gitEnvironment.Configure(startInfo, workingDirectory);
-            var p = new ProcessTask<string>(cancellationToken, new SimpleOutputProcessor());
-            p.Configure(startInfo);
-            p.Start();
-            return p;
+            Process.Start(startInfo);
         }
 
         public IProcess Reconnect(IProcess processTask, int pid)

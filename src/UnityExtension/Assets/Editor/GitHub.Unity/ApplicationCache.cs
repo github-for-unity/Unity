@@ -57,8 +57,7 @@ namespace GitHub.Unity
                         unityVersion = Application.unityVersion;
                     }
                     environment.Initialize(unityVersion, extensionInstallPath.ToNPath(), unityApplication.ToNPath(), unityAssetsPath.ToNPath());
-                    if (repositoryPath != null)
-                        environment.InitializeRepository(repositoryPath.ToNPath());
+                    environment.InitializeRepository(!String.IsNullOrEmpty(repositoryPath) ? repositoryPath.ToNPath() : null);
                     Flush();
                 }
                 return environment;

@@ -9,7 +9,6 @@ namespace GitHub.Unity
     {
         HostAddress HostAddress { get; }
         UriString OriginalUrl { get; }
-        Task GetRepository(Action<Octokit.Repository> callback);
         Task CreateRepository(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization = null);
         Task GetOrganizations(Action<IList<Organization>> callback);
         Task Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result);
@@ -18,5 +17,6 @@ namespace GitHub.Unity
         Task<bool> ValidateCredentials();
         Task Logout(UriString host);
         Task GetCurrentUser(Action<Octokit.User> callback);
+        Task LoadKeychain(Action<bool> callback);
     }
 }

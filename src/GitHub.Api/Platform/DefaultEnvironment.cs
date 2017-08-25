@@ -47,30 +47,41 @@ namespace GitHub.Unity
 
         public void InitializeRepository(NPath expectedRepositoryPath = null)
         {
-            if (RepositoryPath != null && RepositoryPath.DirectoryExists(".git"))
-            {
-                FileSystem.SetCurrentDirectory(RepositoryPath);
-                return;
-            }
-
-            Guard.NotNull(this, UnityProjectPath, nameof(UnityProjectPath));
-
-            if (expectedRepositoryPath == null)
-                expectedRepositoryPath = UnityProjectPath;
-
             Guard.NotNull(this, FileSystem, nameof(FileSystem));
-            if (expectedRepositoryPath != null && expectedRepositoryPath.DirectoryExists(".git"))
+
+            Logger.Trace("InitializeRepository expectedRepositoryPath:{0}", expectedRepositoryPath);
+
+            if (RepositoryPath == null)
             {
-                RepositoryPath = expectedRepositoryPath;
-                FileSystem.SetCurrentDirectory(RepositoryPath);
-                return;
+                Guard.NotNull(this, UnityProjectPath, nameof(UnityProjectPath));
+
+                Logger.Trace("RepositoryPath is null");
+
+                if (expectedRepositoryPath == null)
+                    expectedRepositoryPath = UnityProjectPath;
+
+                if (!expectedRepositoryPath.DirectoryExists(".git"))
+                {
+                    Logger.Trace(".git folder exists");
+
+                    var reporoot = UnityProjectPath.RecursiveParents.FirstOrDefault(d => d.DirectoryExists(".git"));
+                    if (reporoot != null)
+                        expectedRepositoryPath = reporoot;
+                }
+            }
+            else
+            {
+                Logger.Trace("Set to RepositoryPath");
+                expectedRepositoryPath = RepositoryPath;
             }
 
-            RepositoryPath = UnityProjectPath.RecursiveParents.FirstOrDefault(d => d.DirectoryExists(".git"));
-            if (RepositoryPath == null)
-                FileSystem.SetCurrentDirectory(UnityProjectPath);
-            else
-                FileSystem.SetCurrentDirectory(RepositoryPath);
+            FileSystem.SetCurrentDirectory(expectedRepositoryPath);
+            if (expectedRepositoryPath.DirectoryExists(".git"))
+            {
+                Logger.Trace("Determined expectedRepositoryPath:{0}", expectedRepositoryPath);
+                RepositoryPath = expectedRepositoryPath;
+                Repository = new Repository(RepositoryPath.FileName, RepositoryPath);
+            }
         }
 
         public string GetSpecialFolder(Environment.SpecialFolder folder)
@@ -106,35 +117,14 @@ namespace GitHub.Unity
             set
             {
                 gitExecutablePath = value;
-                gitInstallPath = null;
+                if (String.IsNullOrEmpty(gitExecutablePath))
+                    GitInstallPath = null;
+                else
+                    GitInstallPath = GitExecutablePath.Resolve().Parent.Parent;
             }
         }
 
-        private NPath gitInstallPath;
-        public NPath GitInstallPath
-        {
-            get
-            {
-                if (gitInstallPath == null)
-                {
-
-                    if (!String.IsNullOrEmpty(GitExecutablePath))
-                    {
-                        if (IsWindows)
-                        {
-                            gitInstallPath = GitExecutablePath.Parent.Parent;
-                        }
-                        else
-                        {
-                            gitInstallPath = GitExecutablePath.Parent;
-                        }
-                    }
-                    else
-                        gitInstallPath = GitExecutablePath;
-                }
-                return gitInstallPath;
-            }
-        }
+        public NPath GitInstallPath { get; private set; }
 
         public NPath RepositoryPath { get; private set; }
         public IRepository Repository { get; set; }
@@ -191,5 +181,6 @@ namespace GitHub.Unity
             set { onMac = value; }
         }
         public string ExecutableExtension { get { return IsWindows ? ".exe" : null; } }
+        protected static ILogging Logger { get; } = Logging.GetLogger<DefaultEnvironment>();
     }
 }

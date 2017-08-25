@@ -78,29 +78,14 @@ namespace GitHub.Unity
 
         public void Run()
         {
-            if (Process.StartInfo.RedirectStandardOutput)
-            {
-                Process.OutputDataReceived += (s, e) =>
-                {
-                    //Logger.Trace("OutputData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
-
-                    string encodedData = null;
-                    if (e.Data != null)
-                    {
-                        encodedData = Encoding.UTF8.GetString(Encoding.Default.GetBytes(e.Data));
-                    }
-                    outputProcessor.LineReceived(encodedData);
-                };
-            }
-
             if (Process.StartInfo.RedirectStandardError)
             {
                 Process.ErrorDataReceived += (s, e) =>
                 {
-                    //if (e.Data != null)
-                    //{
-                    //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
-                    //}
+                    //if (e.Data != null)        
+                    //{        
+                    //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");        
+                    //}        
 
                     string encodedData = null;
                     if (e.Data != null)
@@ -133,34 +118,53 @@ namespace GitHub.Unity
                 return;
             }
 
-            if (Process.StartInfo.RedirectStandardOutput)
-                Process.BeginOutputReadLine();
-            if (Process.StartInfo.RedirectStandardError)
-                Process.BeginErrorReadLine();
             if (Process.StartInfo.RedirectStandardInput)
                 Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
+            if (Process.StartInfo.RedirectStandardError)
+                Process.BeginErrorReadLine();
 
             onStart?.Invoke();
+
+            if (Process.StartInfo.RedirectStandardOutput)
+            {
+                var outputStream = Process.StandardOutput;
+                var line = outputStream.ReadLine();
+                while (line != null)
+                {
+                    outputProcessor.LineReceived(line);
+
+                    if (token.IsCancellationRequested)
+                    {
+                        if (!Process.HasExited)
+                            Process.Kill();
+
+                        Process.Close();
+                        onEnd?.Invoke();
+                        token.ThrowIfCancellationRequested();
+                    }
+
+                    line = outputStream.ReadLine();
+                }
+                outputProcessor.LineReceived(null);
+            }
 
             if (Process.StartInfo.CreateNoWindow)
             {
                 while (!WaitForExit(500))
                 {
                     if (token.IsCancellationRequested)
-                    {
-                        if (!Process.HasExited)
-                            Process.Kill();
-                        Process.Close();
-                        onEnd?.Invoke();
-                        token.ThrowIfCancellationRequested();
-                    }
+                        Process.Kill();
+                    Process.Close();
+                    onEnd?.Invoke();
+                    token.ThrowIfCancellationRequested();
                 }
 
                 if (Process.ExitCode != 0 && errors.Count > 0)
                 {
-                    onError?.Invoke(null, String.Join(Environment.NewLine, errors.ToArray()));
+                    onError?.Invoke(null, string.Join(Environment.NewLine, errors.ToArray()));
                 }
             }
+
             onEnd?.Invoke();
         }
 
