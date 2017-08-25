@@ -72,19 +72,31 @@ namespace GitHub.Unity
         public override void OnDisable()
         {
             base.OnDisable();
-            ActiveView.OnDisable();
+
+            if (ActiveView != null)
+            {
+                ActiveView.OnDisable();
+            }
         }
 
         public override void OnUI()
         {
             base.OnUI();
-            ActiveView.OnGUI();
+
+            if (ActiveView != null)
+            {
+                ActiveView.OnGUI();
+            }
         }
 
         public override void Refresh()
         {
             base.Refresh();
-            ActiveView.Refresh();
+
+            if (ActiveView != null)
+            {
+                ActiveView.Refresh();
+            }
         }
 
         public override void OnSelectionChange()
@@ -118,10 +130,15 @@ namespace GitHub.Unity
             get { return activeViewType; }
             set
             {
+                var valueChanged = false;
                 if (activeViewType != value)
                 {
+                    valueChanged = true;
                     activeViewType = value;
+                }
 
+                if (activeView == null || valueChanged)
+                {
                     switch (activeViewType)
                     {
                         case PopupViewType.PublishView:
