@@ -82,7 +82,7 @@ namespace GitHub.Unity
         public ITask<List<GitLogEntry>> Log()
         {
             if (repositoryManager == null)
-                return new FuncListTask<GitLogEntry>(CancellationToken.None,_ => new List<GitLogEntry>());
+                return new FuncListTask<GitLogEntry>(TaskHelpers.GetCompletedTask(new List<GitLogEntry>()));
 
             return repositoryManager.Log();
         }
