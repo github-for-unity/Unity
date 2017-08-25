@@ -62,9 +62,11 @@ namespace GitHub.Unity
         {
             base.OnEnable();
 
-            minSize = maxSize = ActiveView.Size;
-
-            ActiveView.OnEnable();
+            if (ActiveView != null)
+            {
+                minSize = maxSize = ActiveView.Size;
+                ActiveView.OnEnable();
+            }
         }
 
         public override void OnDisable()
