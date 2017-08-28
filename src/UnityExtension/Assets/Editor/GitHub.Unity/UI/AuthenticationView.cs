@@ -153,7 +153,7 @@ namespace GitHub.Unity
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.FlexibleSpace();
-                    if (GUILayout.Button(loginButton) || (GUI.enabled && enterPressed))
+                    if (GUILayout.Button(loginButton) || (!isBusy && enterPressed))
                     {
                         GUI.FocusControl(null);
                         isBusy = true;
@@ -195,7 +195,7 @@ namespace GitHub.Unity
                             Redraw();
                         }
 
-                        if (GUILayout.Button(twofaButton) || (GUI.enabled && enterPressed))
+                        if (GUILayout.Button(twofaButton) || (!isBusy && enterPressed))
                         {
                             GUI.FocusControl(null);
                             isBusy = true;

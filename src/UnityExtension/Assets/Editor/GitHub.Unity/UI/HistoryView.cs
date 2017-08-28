@@ -310,7 +310,6 @@ namespace GitHub.Unity
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
 
-                var enabled = GUI.enabled;
                 EditorGUI.BeginDisabledGroup(isBusy);
                 {
                     if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
@@ -322,7 +321,6 @@ namespace GitHub.Unity
                     }
                 }
                 EditorGUI.EndDisabledGroup();
-                GUI.enabled = enabled;
 
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
