@@ -15,6 +15,10 @@ namespace GitHub.Unity
         private const string ConfirmSwitchMessage = "Switch branch to {0}?";
         private const string ConfirmSwitchOK = "Switch";
         private const string ConfirmSwitchCancel = "Cancel";
+        private const string ConfirmCheckoutBranchTitle = "Confirm branch checkout";
+        private const string ConfirmCheckoutBranchMessage = "Checkout branch {0}?";
+        private const string ConfirmCheckoutBranchOK = "Checkout";
+        private const string ConfirmCheckoutBranchCancel = "Cancel";
         private const string NewBranchCancelButton = "x";
         private const string NewBranchConfirmButton = "Create";
         private const string FavoritesSetting = "Favorites";
@@ -649,37 +653,41 @@ namespace GitHub.Unity
 
                 if (Event.current.clickCount > 1 && mode == BranchesMode.Default)
                 {
-                    if (node.Type == NodeType.LocalBranch &&
-                        EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, node.Name), ConfirmSwitchOK,
-                            ConfirmSwitchCancel))
+                    if (node.Type == NodeType.LocalBranch)
                     {
-                        GitClient.SwitchBranch(node.Name)
-                            .FinallyInUI((success, e) =>
-                            {
-                                if (success)
-                                    Refresh();
-                                else
+                        if (EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, node.Name), ConfirmSwitchOK, ConfirmSwitchCancel))
+                        {
+                            GitClient.SwitchBranch(node.Name)
+                                .FinallyInUI((success, e) =>
                                 {
-                                    EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
-                                        String.Format(Localization.SwitchBranchFailedDescription, node.Name),
-                                    Localization.Ok);
-                                }
-                            }).Start();
+                                    if (success)
+                                        Refresh();
+                                    else
+                                    {
+                                        EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
+                                            String.Format(Localization.SwitchBranchFailedDescription, node.Name),
+                                        Localization.Ok);
+                                    }
+                                }).Start();
+                        }
                     }
                     else if (node.Type == NodeType.RemoteBranch)
                     {
-                        GitClient.CreateBranch(selectedNode.Name.Substring(selectedNode.Name.IndexOf('/') + 1), selectedNode.Name)
-                            .FinallyInUI((success, e) =>
-                            {
-                                if (success)
-                                    Refresh();
-                                else
+                        if (EditorUtility.DisplayDialog(ConfirmCheckoutBranchTitle, String.Format(ConfirmCheckoutBranchMessage, node.Name), ConfirmCheckoutBranchOK, ConfirmCheckoutBranchCancel))
+                        {
+                            GitClient.CreateBranch(selectedNode.Name.Substring(selectedNode.Name.IndexOf('/') + 1), selectedNode.Name)
+                                .FinallyInUI((success, e) =>
                                 {
-                                    EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
-                                        String.Format(Localization.SwitchBranchFailedDescription, node.Name),
-                                    Localization.Ok);
-                                }
-                            }).Start();
+                                    if (success)
+                                        Refresh();
+                                    else
+                                    {
+                                        EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
+                                            String.Format(Localization.SwitchBranchFailedDescription, node.Name),
+                                        Localization.Ok);
+                                    }
+                                }).Start();
+                        }
                     }
                 }
             }
