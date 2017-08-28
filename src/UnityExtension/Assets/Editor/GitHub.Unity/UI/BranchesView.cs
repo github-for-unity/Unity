@@ -147,7 +147,7 @@ namespace GitHub.Unity
 
                 GUILayout.BeginHorizontal();
                 {
-                    OnCreateGUI();
+                    OnButtonBarGUI();
                 }
                 GUILayout.EndHorizontal();
 
@@ -451,11 +451,11 @@ namespace GitHub.Unity
             }
         }
 
-        private void OnCreateGUI()
+        private void OnButtonBarGUI()
         {
-            // Create button
             if (mode == BranchesMode.Default)
             {
+                // Delete button
                 // If the current branch is selected, then do not enable the Delete button
                 var disableDelete = activeBranchNode == selectedNode;
                 EditorGUI.BeginDisabledGroup(disableDelete);
@@ -473,6 +473,7 @@ namespace GitHub.Unity
                 }
                 EditorGUI.EndDisabledGroup();
 
+                // Create button
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button(CreateBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                 {
