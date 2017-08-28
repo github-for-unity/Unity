@@ -53,7 +53,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="sfw.net">
-      <HintPath>$(SolutionDir)\lib\sfw.net\$(BuildConfiguration)\sfw.net.dll</HintPath>
+      <HintPath>$(SolutionDir)\lib\sfw\sfw.net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Threading, Version=1.0.3333.0, Culture=neutral, PublicKeyToken=402899b480e6f383, processorArchitecture=MSIL">
@@ -71,27 +71,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(SolutionDir)\lib\sfw.net\mac\libsfw.bundle">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x86\$(BuildConfiguration)\sfw_x86.dll">
-      <Link>x86\sfw_x86.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x86\$(BuildConfiguration)\pthreadVC2.dll">
-      <Link>x86\pthreadVC2.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(BuildConfiguration)\sfw_x64.dll">
-      <Link>x64\sfw_x64.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(BuildConfiguration)\pthreadVC2.dll">
-      <Link>x64\pthreadVC2.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="$(SolutionDir)EULA.txt">
       <Link>EULA.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -101,6 +80,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <Import Project="..\..\..\common\nativelibraries.props" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\..\common\packaging.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
