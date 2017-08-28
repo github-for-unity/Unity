@@ -14,7 +14,7 @@ namespace GitHub.Unity
         private const string ConfirmSwitchTitle = "Confirm branch switch";
         private const string ConfirmSwitchMessage = "Switch branch to {0}?";
         private const string ConfirmSwitchOK = "Switch";
-        private const string ConfirmSwitchCancel = "Cancel";
+        private const string ConfirmSwitchCancel = CancelButtonLabel;
         private const string NewBranchCancelButton = "x";
         private const string NewBranchConfirmButton = "Create";
         private const string FavoritesSetting = "Favorites";
@@ -23,6 +23,10 @@ namespace GitHub.Unity
         private const string LocalTitle = "Local branches";
         private const string RemoteTitle = "Remote branches";
         private const string CreateBranchButton = "New Branch";
+        private const string DeleteBranchMessageFormatString = "Are you sure you want to delete the branch: {0}?";
+        private const string DeleteBranchTitle = "Delete Branch?";
+        private const string DeleteBranchButton = "Delete";
+        private const string CancelButtonLabel = "Cancel";
 
         private bool showLocalBranches = true;
         private bool showRemoteBranches = true;
@@ -460,12 +464,11 @@ namespace GitHub.Unity
                 var disableDelete = activeBranchNode == selectedNode;
                 EditorGUI.BeginDisabledGroup(disableDelete);
                 {
-                    if (GUILayout.Button("Delete", EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(DeleteBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                     {
                         var selectedBranchName = selectedNode.Name;
-                        var dialogTitle = "Delete Branch: " + selectedBranchName;
-                        var dialogMessage = "Are you sure you want to delete the branch: " + selectedBranchName + "?";
-                        if (EditorUtility.DisplayDialog("Delete Branch?", dialogMessage, "Delete", "Cancel"))
+                        var dialogMessage = string.Format(DeleteBranchMessageFormatString, selectedBranchName);
+                        if (EditorUtility.DisplayDialog(DeleteBranchTitle, dialogMessage, DeleteBranchButton, CancelButtonLabel))
                         {
                             GitClient.DeleteBranch(selectedBranchName, true).Start();
                         }
