@@ -464,7 +464,7 @@ namespace GitHub.Unity
             {
                 // Delete button
                 // If the current branch is selected, then do not enable the Delete button
-                var disableDelete = selectedNode == null || activeBranchNode == selectedNode;
+                var disableDelete = selectedNode == null || selectedNode.Type == NodeType.Folder || activeBranchNode == selectedNode;
                 EditorGUI.BeginDisabledGroup(disableDelete);
                 {
                     if (GUILayout.Button(DeleteBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
