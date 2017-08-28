@@ -58,7 +58,7 @@ namespace GitHub.Unity
             Logging.LogAdapter = new FileLogAdapter(logPath);
             Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
-            ((ApplicationManager)ApplicationManager).Run(ApplicationCache.Instance.FirstRun).Forget();
+            ApplicationManager.Run(ApplicationCache.Instance.FirstRun);
         }
 
         private static bool ServerCertificateValidationCallback(object sender, X509Certificate certificate,
