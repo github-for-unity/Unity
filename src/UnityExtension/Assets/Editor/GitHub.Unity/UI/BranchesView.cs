@@ -27,6 +27,10 @@ namespace GitHub.Unity
         private const string LocalTitle = "Local branches";
         private const string RemoteTitle = "Remote branches";
         private const string CreateBranchButton = "New Branch";
+        private const string DeleteBranchMessageFormatString = "Are you sure you want to delete the branch: {0}?";
+        private const string DeleteBranchTitle = "Delete Branch?";
+        private const string DeleteBranchButton = "Delete";
+        private const string CancelButtonLabel = "Cancel";
 
         private bool showLocalBranches = true;
         private bool showRemoteBranches = true;
@@ -151,7 +155,7 @@ namespace GitHub.Unity
 
                 GUILayout.BeginHorizontal();
                 {
-                    OnCreateGUI();
+                    OnButtonBarGUI();
                 }
                 GUILayout.EndHorizontal();
 
@@ -312,6 +316,9 @@ namespace GitHub.Unity
 
         private void BuildTree(IEnumerable<GitBranch> local, IEnumerable<GitBranch> remote)
         {
+            //Clear the selected node
+            selectedNode = null;
+ 
             // Sort
             var localBranches = new List<GitBranch>(local);
             var remoteBranches = new List<GitBranch>(remote);
@@ -455,21 +462,20 @@ namespace GitHub.Unity
             }
         }
 
-        private void OnCreateGUI()
+        private void OnButtonBarGUI()
         {
-            // Create button
             if (mode == BranchesMode.Default)
             {
+                // Delete button
                 // If the current branch is selected, then do not enable the Delete button
-                var disableDelete = activeBranchNode == selectedNode;
+                var disableDelete = selectedNode == null || selectedNode.Type == NodeType.Folder || activeBranchNode == selectedNode;
                 EditorGUI.BeginDisabledGroup(disableDelete);
                 {
-                    if (GUILayout.Button("Delete", EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(DeleteBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                     {
                         var selectedBranchName = selectedNode.Name;
-                        var dialogTitle = "Delete Branch: " + selectedBranchName;
-                        var dialogMessage = "Are you sure you want to delete the branch: " + selectedBranchName + "?";
-                        if (EditorUtility.DisplayDialog("Delete Branch?", dialogMessage, "Delete", "Cancel"))
+                        var dialogMessage = string.Format(DeleteBranchMessageFormatString, selectedBranchName);
+                        if (EditorUtility.DisplayDialog(DeleteBranchTitle, dialogMessage, DeleteBranchButton, CancelButtonLabel))
                         {
                             GitClient.DeleteBranch(selectedBranchName, true).Start();
                         }
@@ -477,6 +483,7 @@ namespace GitHub.Unity
                 }
                 EditorGUI.EndDisabledGroup();
 
+                // Create button
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button(CreateBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                 {
