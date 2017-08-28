@@ -61,6 +61,7 @@ namespace GitHub.Unity
         {
             base.OnDisable();
             DetachHandlers(Repository);
+            selectedNode = null;
         }
 
         public override void OnRepositoryChanged(IRepository oldRepository)
@@ -461,7 +462,7 @@ namespace GitHub.Unity
             {
                 // Delete button
                 // If the current branch is selected, then do not enable the Delete button
-                var disableDelete = activeBranchNode == selectedNode;
+                var disableDelete = selectedNode == null || activeBranchNode == selectedNode;
                 EditorGUI.BeginDisabledGroup(disableDelete);
                 {
                     if (GUILayout.Button(DeleteBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
