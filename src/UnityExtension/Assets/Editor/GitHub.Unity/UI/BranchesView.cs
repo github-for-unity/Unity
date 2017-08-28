@@ -14,7 +14,7 @@ namespace GitHub.Unity
         private const string ConfirmSwitchTitle = "Confirm branch switch";
         private const string ConfirmSwitchMessage = "Switch branch to {0}?";
         private const string ConfirmSwitchOK = "Switch";
-        private const string ConfirmSwitchCancel = CancelButtonLabel;
+        private const string ConfirmSwitchCancel = "Cancel";
         private const string NewBranchCancelButton = "x";
         private const string NewBranchConfirmButton = "Create";
         private const string FavoritesSetting = "Favorites";
