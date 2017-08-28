@@ -61,7 +61,6 @@ namespace GitHub.Unity
         {
             base.OnDisable();
             DetachHandlers(Repository);
-            selectedNode = null;
         }
 
         public override void OnRepositoryChanged(IRepository oldRepository)
@@ -313,6 +312,9 @@ namespace GitHub.Unity
 
         private void BuildTree(IEnumerable<GitBranch> local, IEnumerable<GitBranch> remote)
         {
+            //Clear the selected node
+            selectedNode = null;
+ 
             // Sort
             var localBranches = new List<GitBranch>(local);
             var remoteBranches = new List<GitBranch>(remote);
