@@ -224,7 +224,7 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            isPublished = Repository.CurrentRemote.HasValue;
+            isPublished = Repository != null && Repository.CurrentRemote.HasValue;
             currentRemote = isPublished ? Repository.CurrentRemote.Value.Name : "placeholder";
 
             if (!updated)

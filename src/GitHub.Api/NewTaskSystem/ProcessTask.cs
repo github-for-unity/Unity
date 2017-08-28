@@ -56,6 +56,7 @@ namespace GitHub.Unity
         private readonly Action onEnd;
         private readonly Action<Exception, string> onError;
         private readonly CancellationToken token;
+        private readonly List<string> errors = new List<string>();
 
         public Process Process { get; }
         public StreamWriter Input { get; private set; }
@@ -77,6 +78,24 @@ namespace GitHub.Unity
 
         public void Run()
         {
+            if (Process.StartInfo.RedirectStandardError)
+            {
+                Process.ErrorDataReceived += (s, e) =>
+                {
+                    //if (e.Data != null)        
+                    //{        
+                    //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");        
+                    //}        
+
+                    string encodedData = null;
+                    if (e.Data != null)
+                    {
+                        encodedData = Encoding.UTF8.GetString(Encoding.Default.GetBytes(e.Data));
+                        errors.Add(encodedData);
+                    }
+                };
+            }
+
             try
             {
                 Process.Start();
@@ -101,60 +120,48 @@ namespace GitHub.Unity
 
             if (Process.StartInfo.RedirectStandardInput)
                 Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
-
-            var errors = new List<string>();
+            if (Process.StartInfo.RedirectStandardError)
+                Process.BeginErrorReadLine();
 
             onStart?.Invoke();
+
+            if (Process.StartInfo.RedirectStandardOutput)
+            {
+                var outputStream = Process.StandardOutput;
+                var line = outputStream.ReadLine();
+                while (line != null)
+                {
+                    outputProcessor.LineReceived(line);
+
+                    if (token.IsCancellationRequested)
+                    {
+                        if (!Process.HasExited)
+                            Process.Kill();
+
+                        Process.Close();
+                        onEnd?.Invoke();
+                        token.ThrowIfCancellationRequested();
+                    }
+
+                    line = outputStream.ReadLine();
+                }
+                outputProcessor.LineReceived(null);
+            }
+
             if (Process.StartInfo.CreateNoWindow)
             {
-                if (Process.StartInfo.RedirectStandardOutput)
+                while (!WaitForExit(500))
                 {
-                    var outputStream = Process.StandardOutput;
-                    var line = outputStream.ReadLine();
-                    while (line != null)
-                    {
-                        outputProcessor.LineReceived(line);
-
-                        if (token.IsCancellationRequested)
-                        {
-                            if (!Process.HasExited)
-                                Process.Kill();
-
-                            Process.Close();
-                            onEnd?.Invoke();
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        line = outputStream.ReadLine();
-                    }
-                    outputProcessor.LineReceived(null);
+                    if (token.IsCancellationRequested)
+                        Process.Kill();
+                    Process.Close();
+                    onEnd?.Invoke();
+                    token.ThrowIfCancellationRequested();
                 }
 
-                if (Process.StartInfo.RedirectStandardError)
+                if (Process.ExitCode != 0 && errors.Count > 0)
                 {
-                    var errorStream = Process.StandardError;
-                    var errorLine = errorStream.ReadLine();
-                    while (errorLine != null)
-                    {
-                        errors.Add(errorLine);
-
-                        if (token.IsCancellationRequested)
-                        {
-                            if (!Process.HasExited)
-                                Process.Kill();
-
-                            Process.Close();
-                            onEnd?.Invoke();
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        errorLine = errorStream.ReadLine();
-                    }
-
-                    if (Process.ExitCode != 0 && errors.Count > 0)
-                    {
-                        onError?.Invoke(null, string.Join(Environment.NewLine, errors.ToArray()));
-                    }
+                    onError?.Invoke(null, string.Join(Environment.NewLine, errors.ToArray()));
                 }
             }
 

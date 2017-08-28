@@ -91,7 +91,7 @@ namespace GitHub.Unity
                                 .OrderBy(organization => organization.Login)
                                 .Select(organization => organization.Login);
 
-                            owners = new[] { username }.Union(organizationLogins).ToArray();
+                            owners = new[] { OwnersDefaultText, username }.Union(organizationLogins).ToArray();
 
                             isBusy = false;
                         });

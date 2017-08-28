@@ -17,6 +17,8 @@ namespace GitHub.Unity
         ITaskManager TaskManager { get; }
         IGitClient GitClient { get; }
         IUsageTracker UsageTracker { get; }
+
+        void Run(bool firstRun);
         void RestartRepository();
         ITask InitializeRepository();
     }
