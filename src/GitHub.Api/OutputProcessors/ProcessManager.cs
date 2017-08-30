@@ -71,6 +71,7 @@ namespace GitHub.Unity
             if (environment.IsWindows)
             {
                 startInfo.FileName = "cmd";
+                gitEnvironment.Configure(startInfo, workingDirectory);
             }
             else if (environment.IsMac)
             {
@@ -78,17 +79,24 @@ namespace GitHub.Unity
                 // osx terminal app doesn't inherit the PATH env var and there's no way to pass it in
 
                 var envVarFile = NPath.GetTempFilename();
-                environment.FileSystem.WriteAllLines(envVarFile, new string[] { "cd $GHU_WORKINGDIR", "PATH=$GHU_FULLPATH:$PATH /bin/bash" });
-                Mono.Unix.Native.Syscall.chmod(envVarFile, (Mono.Unix.Native.FilePermissions)493); // -rwxr-xr-x mode (0755)
                 startInfo.FileName = "open";
                 startInfo.Arguments = $"-a Terminal {envVarFile}";
+                gitEnvironment.Configure(startInfo, workingDirectory);
+
+                var envVars = startInfo.EnvironmentVariables;
+                var scriptContents = new[] {
+                    $"cd {envVars["GHU_WORKINGDIR"]}",
+                    $"PATH={envVars["GHU_FULLPATH"]}:$PATH /bin/bash"
+                };
+                environment.FileSystem.WriteAllLines(envVarFile, scriptContents);
+                Mono.Unix.Native.Syscall.chmod(envVarFile, (Mono.Unix.Native.FilePermissions)493); // -rwxr-xr-x mode (0755)
             }
             else
             {
                 startInfo.FileName = "sh";
+                gitEnvironment.Configure(startInfo, workingDirectory);
             }
 
-            gitEnvironment.Configure(startInfo, workingDirectory);
             Process.Start(startInfo);
         }
 
