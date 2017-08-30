@@ -29,6 +29,7 @@ namespace GitHub.Unity
         [NonSerialized] private double notificationClearTime = -1;
 
         [SerializeField] private SubTab activeTab = SubTab.History;
+        [SerializeField] private InitProjectView initProjectTab = new InitProjectView();
         [SerializeField] private BranchesView branchesTab = new BranchesView();
         [SerializeField] private ChangesView changesTab = new ChangesView();
         [SerializeField] private HistoryView historyTab = new HistoryView();
