@@ -32,16 +32,6 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            DoOfferToInitializeRepositoryGUI();
-        }
-
-        private void MaybeUpdateData()
-        {
-            isPublished = Repository != null && Repository.CurrentRemote.HasValue;
-        }
-
-        private void DoOfferToInitializeRepositoryGUI()
-        {
             var headerRect = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
             {
                 GUILayout.Space(5);
@@ -98,6 +88,11 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
+        }
+
+        private void MaybeUpdateData()
+        {
+            isPublished = Repository != null && Repository.CurrentRemote.HasValue;
         }
     }
 }

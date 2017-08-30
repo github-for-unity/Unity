@@ -109,7 +109,7 @@ namespace GitHub.Unity
 #if ENABLE_BROADMODE
             if (broadMode)
             {
-                ((Window)Parent).BranchesTab.RefreshEmbedded();
+                ((Window)Parent).Branches.RefreshEmbedded();
             }
 #endif
         }
@@ -125,12 +125,6 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            if (!HasRepository)
-            {
-                DoOfferToInitializeRepositoryGUI();
-                return;
-            }
-
 #if ENABLE_BROADMODE
             if (broadMode)
                 OnBroadGUI();
@@ -156,7 +150,7 @@ namespace GitHub.Unity
                     GUILayout.MaxWidth(Mathf.Max(Styles.BroadModeBranchesMinWidth, Position.width * Styles.BroadModeBranchesRatio))
                 );
                 {
-                    ((Window)Parent).BranchesTab.OnEmbeddedGUI();
+                    ((Window)Parent).Branches.OnEmbeddedGUI();
                 }
                 GUILayout.EndVertical();
                 GUILayout.BeginVertical();
@@ -268,66 +262,6 @@ namespace GitHub.Unity
                     selectionID = string.Empty;
                 }
             }
-        }
-
-        private void DoOfferToInitializeRepositoryGUI()
-        {
-            var headerRect = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
-            {
-                GUILayout.Space(5);
-                GUILayout.BeginVertical(GUILayout.Width(16));
-                {
-                    GUILayout.Space(5);
-
-                    var iconRect = GUILayoutUtility.GetRect(new GUIContent(Styles.BigLogo), GUIStyle.none, GUILayout.Height(20), GUILayout.Width(20));
-                    iconRect.y = headerRect.center.y - (iconRect.height / 2);
-                    GUI.DrawTexture(iconRect, Styles.BigLogo, ScaleMode.ScaleToFit);
-
-                    GUILayout.Space(5);
-                }
-                GUILayout.EndVertical();
-
-                GUILayout.Space(5);
-
-                GUILayout.BeginVertical();
-                {
-                    var headerContent = new GUIContent(NoRepoTitle);
-                    var headerTitleRect = GUILayoutUtility.GetRect(headerContent, Styles.HeaderTitleStyle);
-                    headerTitleRect.y = headerRect.center.y - (headerTitleRect.height / 2);
-
-                    GUI.Label(headerTitleRect, headerContent, Styles.HeaderTitleStyle);
-                }
-                GUILayout.EndVertical();
-            }
-            EditorGUILayout.EndHorizontal();
-
-            GUILayout.BeginVertical(Styles.GenericBoxStyle);
-            {
-                GUILayout.FlexibleSpace();
-
-                GUILayout.Label(NoRepoDescription, Styles.CenteredLabel);
-
-                GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-
-                EditorGUI.BeginDisabledGroup(isBusy);
-                {
-                    if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
-                    {
-                        isBusy = true;
-                        Manager.InitializeRepository()
-                            .FinallyInUI(() => isBusy = false)
-                            .Start();
-                    }
-                }
-                EditorGUI.EndDisabledGroup();
-
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
-
-                GUILayout.FlexibleSpace();
-            }
-            GUILayout.EndVertical();
         }
 
         public void OnEmbeddedGUI()
