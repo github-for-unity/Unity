@@ -618,68 +618,71 @@ namespace GitHub.Unity
 
         private void OnGitLfsLocksGUI()
         {
-            GUI.enabled = !isBusy && Repository != null;
-            GUILayout.BeginVertical();
+            EditorGUI.BeginDisabledGroup(isBusy || Repository == null);
             {
-                GUILayout.Label("Locked files", EditorStyles.boldLabel);
-
-                lockScrollPos = EditorGUILayout.BeginScrollView(lockScrollPos, Styles.GenericTableBoxStyle,
-                    GUILayout.Height(125));
+                GUILayout.BeginVertical();
                 {
-                    GUILayout.BeginVertical();
+                    GUILayout.Label("Locked files", EditorStyles.boldLabel);
+
+                    lockScrollPos = EditorGUILayout.BeginScrollView(lockScrollPos, Styles.GenericTableBoxStyle,
+                        GUILayout.Height(125));
                     {
-                        var lockedFilesCount = lockedFiles.Count;
-                        for (var index = 0; index < lockedFilesCount; ++index)
+                        GUILayout.BeginVertical();
                         {
-                            GUIStyle rowStyle = (lockedFileSelection == index)
-                                ? Styles.LockedFileRowSelectedStyle
-                                : Styles.LockedFileRowStyle;
-                            GUILayout.Box(lockedFiles[index].Path, rowStyle);
-
-                            if (Event.current.type == EventType.MouseDown &&
-                                GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
+                            var lockedFilesCount = lockedFiles.Count;
+                            for (var index = 0; index < lockedFilesCount; ++index)
                             {
-                                var currentEvent = Event.current;
+                                GUIStyle rowStyle = (lockedFileSelection == index)
+                                    ? Styles.LockedFileRowSelectedStyle
+                                    : Styles.LockedFileRowStyle;
+                                GUILayout.Box(lockedFiles[index].Path, rowStyle);
 
-                                if (currentEvent.button == 0)
+                                if (Event.current.type == EventType.MouseDown &&
+                                    GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
                                 {
-                                    lockedFileSelection = index;
+                                    var currentEvent = Event.current;
+
+                                    if (currentEvent.button == 0)
+                                    {
+                                        lockedFileSelection = index;
+                                    }
+
+                                    Event.current.Use();
                                 }
-
-                                Event.current.Use();
                             }
                         }
+
+                        GUILayout.EndVertical();
                     }
 
-                    GUILayout.EndVertical();
-                }
+                    EditorGUILayout.EndScrollView();
 
-                EditorGUILayout.EndScrollView();
-
-                if (lockedFileSelection > -1)
-                {
-                    GUILayout.BeginVertical();
+                    if (lockedFileSelection > -1)
                     {
-                        var lck = lockedFiles[lockedFileSelection];
-                        GUILayout.Label(lck.Path, EditorStyles.boldLabel);
-
-                        GUILayout.BeginHorizontal();
+                        GUILayout.BeginVertical();
                         {
-                            GUILayout.Label("Locked by " + lck.User);
-                            GUILayout.FlexibleSpace();
-                            if (GUILayout.Button("Unlock"))
-                            {
-                                Repository.ReleaseLock(lck.Path, false).Start();
-                            }
-                        }
-                        GUILayout.EndHorizontal();
-                    }
-                    GUILayout.EndVertical();
-                }
-           }
+                            var lck = lockedFiles[lockedFileSelection];
+                            GUILayout.Label(lck.Path, EditorStyles.boldLabel);
 
-            GUILayout.EndVertical();
-            GUI.enabled = true;
+                            GUILayout.BeginHorizontal();
+                            {
+                                GUILayout.Label("Locked by " + lck.User);
+                                GUILayout.FlexibleSpace();
+                                if (GUILayout.Button("Unlock"))
+                                {
+                                    Repository.ReleaseLock(lck.Path, false).Start();
+                                }
+                            }
+                            GUILayout.EndHorizontal();
+                        }
+                        GUILayout.EndVertical();
+                    }
+                }
+
+                GUILayout.EndVertical();
+
+            }
+            EditorGUI.EndDisabledGroup();
         }
 
         private void OnInstallPathGUI()
@@ -704,47 +707,47 @@ namespace GitHub.Unity
             // Install path
             GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
 
-            GUI.enabled = !isBusy && gitExecPath != null;
-
-            // Install path field
-            EditorGUI.BeginChangeCheck();
+            EditorGUI.BeginDisabledGroup(isBusy || gitExecPath == null);
             {
-                //TODO: Verify necessary value for a non Windows OS
-                Styles.PathField(ref gitExecPath,
-                    () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
-                        gitInstallPath,
-                        extension), ValidateGitInstall);
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                Logger.Trace("Setting GitExecPath: " + gitExecPath);
-
-                Manager.SystemSettings.Set(Constants.GitInstallPathKey, gitExecPath);
-                Environment.GitExecutablePath = gitExecPath.ToNPath();
-            }
-
-            GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-            GUILayout.BeginHorizontal();
-            {
-                // Find button - for attempting to locate a new install
-                if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
+                // Install path field
+                EditorGUI.BeginChangeCheck();
                 {
-                    var task = new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
-                        .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
-                        .FinallyInUI((success, ex, path) =>
-                        {
-                            if (success && !string.IsNullOrEmpty(path))
-                            {
-                                Environment.GitExecutablePath = path;
-                                GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
-                            }
-                        });
+                    //TODO: Verify necessary value for a non Windows OS
+                    Styles.PathField(ref gitExecPath,
+                        () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
+                            gitInstallPath,
+                            extension), ValidateGitInstall);
                 }
-            }
-            GUILayout.EndHorizontal();
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Logger.Trace("Setting GitExecPath: " + gitExecPath);
 
-            GUI.enabled = true;
+                    Manager.SystemSettings.Set(Constants.GitInstallPathKey, gitExecPath);
+                    Environment.GitExecutablePath = gitExecPath.ToNPath();
+                }
+
+                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+                GUILayout.BeginHorizontal();
+                {
+                    // Find button - for attempting to locate a new install
+                    if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
+                    {
+                        var task = new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
+                            .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
+                            .FinallyInUI((success, ex, path) =>
+                            {
+                                if (success && !string.IsNullOrEmpty(path))
+                                {
+                                    Environment.GitExecutablePath = path;
+                                    GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+                                }
+                            });
+                    }
+                }
+                GUILayout.EndHorizontal();
+            }
+            EditorGUI.EndDisabledGroup();
         }
 
         private void OnPrivacyGui()
@@ -753,40 +756,41 @@ namespace GitHub.Unity
 
             GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
 
-            GUI.enabled = !isBusy && service != null;
-
-            var metricsEnabled = service != null ? service.Enabled : false;
-            EditorGUI.BeginChangeCheck();
+            EditorGUI.BeginDisabledGroup(isBusy || service == null);
             {
-                metricsEnabled = GUILayout.Toggle(metricsEnabled, MetricsOptInLabel);
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                Manager.UsageTracker.Enabled = metricsEnabled;
-            }
+                var metricsEnabled = service != null ? service.Enabled : false;
+                EditorGUI.BeginChangeCheck();
+                {
+                    metricsEnabled = GUILayout.Toggle(metricsEnabled, MetricsOptInLabel);
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Manager.UsageTracker.Enabled = metricsEnabled;
+                }
 
-            GUI.enabled = true;
+            }
+            EditorGUI.EndDisabledGroup();
         }
 
         private void OnLoggingSettingsGui()
         {
             GUILayout.Label(DebugSettingsTitle, EditorStyles.boldLabel);
 
-            GUI.enabled = !isBusy;
-
-            var traceLogging = Logging.TracingEnabled;
-
-            EditorGUI.BeginChangeCheck();
+            EditorGUI.BeginDisabledGroup(isBusy);
             {
-                traceLogging = GUILayout.Toggle(traceLogging, EnableTraceLoggingLabel);
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                Logging.TracingEnabled = traceLogging;
-                Manager.UserSettings.Set(Constants.TraceLoggingKey, traceLogging);
-            }
+                var traceLogging = Logging.TracingEnabled;
 
-            GUI.enabled = true;
+                EditorGUI.BeginChangeCheck();
+                {
+                    traceLogging = GUILayout.Toggle(traceLogging, EnableTraceLoggingLabel);
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Logging.TracingEnabled = traceLogging;
+                    Manager.UserSettings.Set(Constants.TraceLoggingKey, traceLogging);
+                }
+            }
+            EditorGUI.EndDisabledGroup();
         }
 
         private void ResetInitDirectory()
