@@ -15,10 +15,8 @@ namespace GitHub.Unity
         private const string NoRepoTitle = "No Git repository found for this project";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
 
-        [SerializeField]
-        private bool isBusy;
-        [SerializeField]
-        private bool isPublished;
+        [SerializeField] private bool isBusy;
+        [SerializeField] private bool isPublished;
 
         public override void OnDataUpdate()
         {
