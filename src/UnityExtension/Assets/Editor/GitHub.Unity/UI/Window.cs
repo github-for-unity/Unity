@@ -29,10 +29,10 @@ namespace GitHub.Unity
         [NonSerialized] private double notificationClearTime = -1;
 
         [SerializeField] private SubTab activeTab = SubTab.History;
-        [SerializeField] private BranchesView branchesTab = new BranchesView();
-        [SerializeField] private ChangesView changesTab = new ChangesView();
-        [SerializeField] private HistoryView historyTab = new HistoryView();
-        [SerializeField] private SettingsView settingsTab = new SettingsView();
+        [SerializeField] private BranchesView branchesView = new BranchesView();
+        [SerializeField] private ChangesView changesView = new ChangesView();
+        [SerializeField] private HistoryView historyView = new HistoryView();
+        [SerializeField] private SettingsView settingsView = new SettingsView();
 
         [SerializeField] private string repoBranch;
         [SerializeField] private string repoUrl;
@@ -74,10 +74,10 @@ namespace GitHub.Unity
         {
             base.Initialize(applicationManager);
 
-            HistoryTab.InitializeView(this);
-            ChangesTab.InitializeView(this);
-            BranchesTab.InitializeView(this);
-            SettingsTab.InitializeView(this);
+            HistoryView.InitializeView(this);
+            ChangesView.InitializeView(this);
+            BranchesView.InitializeView(this);
+            SettingsView.InitializeView(this);
         }
 
         public override void OnEnable()
@@ -91,15 +91,15 @@ namespace GitHub.Unity
             // Set window title
             titleContent = new GUIContent(Title, Styles.SmallLogo);
 
-            if (ActiveTab != null)
-                ActiveTab.OnEnable();
+            if (ActiveView != null)
+                ActiveView.OnEnable();
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
-            if (ActiveTab != null)
-                ActiveTab.OnDisable();
+            if (ActiveView != null)
+                ActiveView.OnDisable();
         }
 
         public override void OnDataUpdate()
@@ -120,8 +120,8 @@ namespace GitHub.Unity
                 }
             }
 
-            if (ActiveTab != null)
-                ActiveTab.OnDataUpdate();
+            if (ActiveView != null)
+                ActiveView.OnDataUpdate();
         }
 
         public override void OnRepositoryChanged(IRepository oldRepository)
@@ -131,22 +131,22 @@ namespace GitHub.Unity
             DetachHandlers(oldRepository);
             AttachHandlers(Repository);
 
-            if (ActiveTab != null)
-                ActiveTab.OnRepositoryChanged(oldRepository);
+            if (ActiveView != null)
+                ActiveView.OnRepositoryChanged(oldRepository);
         }
 
         public override void OnSelectionChange()
         {
             base.OnSelectionChange();
-            if (ActiveTab != null)
-                ActiveTab.OnSelectionChange();
+            if (ActiveView != null)
+                ActiveView.OnSelectionChange();
         }
 
         public override void Refresh()
         {
             base.Refresh();
-            if (ActiveTab != null)
-                ActiveTab.Refresh();
+            if (ActiveView != null)
+                ActiveView.Refresh();
             Repaint();
         }
 
@@ -162,9 +162,9 @@ namespace GitHub.Unity
             DoToolbarGUI();
 
             // GUI for the active tab
-            if (ActiveTab != null)
+            if (ActiveView != null)
             {
-                ActiveTab.OnGUI();
+                ActiveView.OnGUI();
             }
         }
 
@@ -294,9 +294,9 @@ namespace GitHub.Unity
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
-                    var from = ActiveTab;
+                    var from = ActiveView;
                     activeTab = tab;
-                    SwitchView(from, ActiveTab);
+                    SwitchView(from, ActiveView);
                 }
 
                 GUILayout.FlexibleSpace();
@@ -384,27 +384,27 @@ namespace GitHub.Unity
             return GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
         }
 
-        public HistoryView HistoryTab
+        public HistoryView HistoryView
         {
-            get { return historyTab; }
+            get { return historyView; }
         }
 
-        public ChangesView ChangesTab
+        public ChangesView ChangesView
         {
-            get { return changesTab; }
+            get { return changesView; }
         }
 
-        public BranchesView BranchesTab
+        public BranchesView BranchesView
         {
-            get { return branchesTab; }
+            get { return branchesView; }
         }
 
-        public SettingsView SettingsTab
+        public SettingsView SettingsView
         {
-            get { return settingsTab; }
+            get { return settingsView; }
         }
 
-        private Subview ActiveTab
+        private Subview ActiveView
         {
             get
             {
@@ -417,14 +417,14 @@ namespace GitHub.Unity
             switch (tab)
             {
                 case SubTab.History:
-                    return historyTab;
+                    return historyView;
                 case SubTab.Changes:
-                    return changesTab;
+                    return changesView;
                 case SubTab.Branches:
-                    return branchesTab;
+                    return branchesView;
                 case SubTab.Settings:
                 default:
-                    return settingsTab;
+                    return settingsView;
             }
         }
 
