@@ -124,4 +124,7 @@
   </Target>
   -->
   <Import Project="..\..\..\common\build.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy $(OutDir)x64\* $(OutDir)</PostBuildEvent>
+  </PropertyGroup>
 </Project>
