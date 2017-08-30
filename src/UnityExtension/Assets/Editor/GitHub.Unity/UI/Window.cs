@@ -351,22 +351,6 @@ namespace GitHub.Unity
             apiClient.Logout(host);
         }
 
-        private bool ValidateSettings()
-        {
-            var settingsIssues = Utility.Issues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
-
-            // Initial state
-            if (!Utility.ActiveRepository || !Utility.GitFound ||
-                (settingsIssues != null &&
-                    (settingsIssues.WasCaught(ProjectSettingsEvaluation.EditorSettingsMissing) ||
-                        settingsIssues.WasCaught(ProjectSettingsEvaluation.BadVCSSettings))))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         public new void ShowNotification(GUIContent content)
         {
             ShowNotification(content, DefaultNotificationTimeout);
