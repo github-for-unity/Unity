@@ -136,7 +136,7 @@ namespace GitHub.Unity
                 OnBroadGUI();
             else
 #endif
-                OnEmbeddedGUI();
+            OnEmbeddedGUI();
 
 #if ENABLE_BROADMODE
             if (Event.current.type == EventType.Repaint && EvaluateBroadMode())
@@ -307,17 +307,18 @@ namespace GitHub.Unity
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
 
-                var enabled = GUI.enabled;
-                GUI.enabled = !isBusy;
-
-                if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
+                EditorGUI.BeginDisabledGroup(isBusy);
                 {
-                    isBusy = true;
-                    Manager.InitializeRepository()
-                        .FinallyInUI(() => isBusy = false)
-                        .Start();
+                    if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
+                    {
+                        isBusy = true;
+                        Manager.InitializeRepository()
+                            .FinallyInUI(() => isBusy = false)
+                            .Start();
+                    }
                 }
-                GUI.enabled = enabled;
+                EditorGUI.EndDisabledGroup();
+
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 
@@ -335,8 +336,8 @@ namespace GitHub.Unity
                 EditorGUI.BeginDisabledGroup(historyTarget == null);
                 {
                     if (GUILayout.Button(
-                            historyTarget == null ? HistoryFocusAll : String.Format(HistoryFocusSingle, historyTarget.name),
-                            Styles.HistoryToolbarButtonStyle)
+                        historyTarget == null ? HistoryFocusAll : String.Format(HistoryFocusSingle, historyTarget.name),
+                        Styles.HistoryToolbarButtonStyle)
                     )
                     {
                         historyTarget = null;
@@ -349,53 +350,61 @@ namespace GitHub.Unity
 
                 if (isPublished)
                 {
-                    GUI.enabled = currentRemote != null;
-                    var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
-                    GUI.enabled = true;
-                    if (fetchClicked)
+                    EditorGUI.BeginDisabledGroup(currentRemote == null);
                     {
-                        Fetch();
-                    }
+                        // Fetch button
+                        var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
+                        if (fetchClicked)
+                        {
+                            Fetch();
+                        }
 
-                    // Pull / Push buttons
-                    var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
-                    GUI.enabled = currentRemote != null;
-                    var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
-                    GUI.enabled = true;
-                    if (pullClicked &&
-                        EditorUtility.DisplayDialog(PullConfirmTitle,
-                            String.Format(PullConfirmDescription, currentRemote),
-                            PullConfirmYes,
-                            PullConfirmCancel)
-                    )
-                    {
-                        Pull();
-                    }
+                        // Pull button
+                        var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
+                        var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
 
-                    var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
-                    GUI.enabled = currentRemote != null && statusBehind == 0;
-                    var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
-                    GUI.enabled = true;
-                    if (pushClicked &&
-                        EditorUtility.DisplayDialog(PushConfirmTitle,
-                            String.Format(PushConfirmDescription, currentRemote),
-                            PushConfirmYes,
-                            PushConfirmCancel)
-                    )
-                    {
-                        Push();
+                        if (pullClicked &&
+                            EditorUtility.DisplayDialog(PullConfirmTitle,
+                                String.Format(PullConfirmDescription, currentRemote),
+                                PullConfirmYes,
+                                PullConfirmCancel)
+                        )
+                        {
+                            Pull();
+                        }
                     }
+                    EditorGUI.EndDisabledGroup();
+
+                    // Push button
+                    EditorGUI.BeginDisabledGroup(currentRemote == null || statusBehind != 0);
+                    {
+                        var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
+                        var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
+
+                        if (pushClicked &&
+                            EditorUtility.DisplayDialog(PushConfirmTitle,
+                                String.Format(PushConfirmDescription, currentRemote),
+                                PushConfirmYes,
+                                PushConfirmCancel)
+                        )
+                        {
+                            Push();
+                        }
+                    }
+                    EditorGUI.EndDisabledGroup();
                 }
                 else
                 {
                     // Publishing a repo
-                    GUI.enabled = Platform.Keychain.Connections.Any();
-                    var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
-                    if (publishedClicked)
+                    EditorGUI.BeginDisabledGroup(!Platform.Keychain.Connections.Any());
                     {
-                        PublishWindow.Open();
+                        var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
+                        if (publishedClicked)
+                        {
+                            PublishWindow.Open();
+                        }
                     }
-                    GUI.enabled = true;
+                    EditorGUI.EndDisabledGroup();
                 }
             }
             GUILayout.EndHorizontal();
@@ -688,8 +697,7 @@ namespace GitHub.Unity
                 Repository
                     .Pull()
                     // we need the error propagated from the original git command to handle things appropriately
-                    .Then(success =>
-                    {
+                    .Then(success => {
                         if (!success)
                         {
                             // if Pull fails we need to parse the output of the command, figure out

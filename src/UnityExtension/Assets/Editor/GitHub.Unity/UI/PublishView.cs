@@ -138,7 +138,6 @@ namespace GitHub.Unity
                     GUILayout.BeginVertical();
                     {
                         GUILayout.Label(SelectedOwnerLabel);
-
                         selectedOwner = EditorGUILayout.Popup(selectedOwner, owners);
                     }
                     GUILayout.EndVertical();
@@ -179,7 +178,7 @@ namespace GitHub.Unity
                     }
                     GUILayout.EndHorizontal();
                 }
-                GUILayout.EndVertical();;
+                GUILayout.EndVertical();
 
                 GUILayout.Space(Styles.PublishViewSpacingHeight);
 
