@@ -13,14 +13,11 @@ namespace GitHub.Unity
         private const float DefaultNotificationTimeout = 4f;
         private const string Title = "GitHub";
         private const string LaunchMenu = "Window/GitHub";
-        private const string RefreshButton = "Refresh";
-        private const string UnknownSubTabError = "Unsupported view mode: {0}";
         private const string BadNotificationDelayError = "A delay of {0} is shorter than the default delay and thus would get pre-empted.";
         private const string HistoryTitle = "History";
         private const string ChangesTitle = "Changes";
         private const string BranchesTitle = "Branches";
         private const string SettingsTitle = "Settings";
-        private const string AuthenticationTitle = "Auth";
         private const string DefaultRepoUrl = "No remote configured";
         private const string Window_RepoUrlTooltip = "Url of the {0} remote";
         private const string Window_RepoNoUrlTooltip = "Add a remote in the Settings tab";
