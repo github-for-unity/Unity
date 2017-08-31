@@ -60,5 +60,5 @@ test:
 artifacts:
 - path: unity\PackageProject
   type: zip
-  name: github-for-unity-package-{version}
+  name: github-for-unity-packageproject
 - path: build\*.log
