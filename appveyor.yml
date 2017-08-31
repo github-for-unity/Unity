@@ -42,6 +42,13 @@ install:
     git submodule update
 
     nuget restore GitHub.Unity.sln
+
+assembly_info:
+  patch: true
+  file: common\SolutionInfo.cs
+  assembly_informational_version: "{version}"
+
+configuration: Release
 build:
   project: GitHub.Unity.sln
   verbosity: minimal
@@ -53,4 +60,5 @@ test:
 artifacts:
 - path: unity\PackageProject
   type: zip
+  name: github-for-unity-package-{version}
 - path: build\*.log
