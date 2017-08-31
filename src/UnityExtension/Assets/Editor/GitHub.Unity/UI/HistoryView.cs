@@ -28,8 +28,6 @@ namespace GitHub.Unity
         private const string PushConfirmCancel = "Cancel";
         private const string CommitDetailsTitle = "Commit details";
         private const string ClearSelectionButton = "×";
-        private const string NoRepoTitle = "No Git repository found for this project";
-        private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
         private const string PublishButton = "Publish";
         private const string FetchActionTitle = "Fetch Changes";
         private const string FetchButtonText = "Fetch";
