@@ -115,6 +115,16 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="..\..\..\common\nativelibraries.props" />
+  <ItemGroup>
+    <None Include="$(SolutionDir)\lib\sfw\win\x64\sfw_x64.dll">
+      <Link>sfw_x64.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(SolutionDir)\lib\sfw\win\x64\sfw_x64.dll.meta">
+      <Link>sfw_x64.dll.meta</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -124,7 +134,4 @@
   </Target>
   -->
   <Import Project="..\..\..\common\build.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>copy $(OutDir)x64\* $(OutDir)</PostBuildEvent>
-  </PropertyGroup>
 </Project>
