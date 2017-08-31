@@ -24,6 +24,7 @@ namespace GitHub.Unity
         private const string Window_RepoBranchTooltip = "Active branch";
 
         [NonSerialized] private double notificationClearTime = -1;
+        [SerializeField] private SubTab? nextTab;
 
         [SerializeField] private SubTab activeTab = SubTab.History;
         [SerializeField] private InitProjectView initProjectView = new InitProjectView();
@@ -159,6 +160,12 @@ namespace GitHub.Unity
                 DoToolbarGUI();
             }
 
+            if (nextTab.HasValue)
+            {
+                SetActiveTab(nextTab.Value);
+                nextTab = null;
+            }
+
             // GUI for the active tab
             if (ActiveView != null)
             {
@@ -209,8 +216,7 @@ namespace GitHub.Unity
             }
             else
             {
-
-                activeTab = SubTab.InitProject;
+                nextTab = SubTab.InitProject;
                 repoBranch = null;
                 repoUrl = null;
             }
@@ -277,7 +283,7 @@ namespace GitHub.Unity
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    SetActiveTab(changeTab);
+                    nextTab = changeTab;
                 }
 
                 GUILayout.FlexibleSpace();
@@ -393,7 +399,7 @@ namespace GitHub.Unity
 
         public InitProjectView InitProjectView
         {
-            get { return InitProjectView; }
+            get { return initProjectView; }
         }
 
         private Subview ActiveView
