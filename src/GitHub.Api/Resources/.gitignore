@@ -5,8 +5,8 @@
 /[Bb]uilds/
 
 /Assets/AssetStoreTools*
-/Assets/Editor/GitHub.meta
-/Assets/Editor/GitHub/
+/Assets/GitHub.meta
+/Assets/GitHub/
 
 # Visual Studio 2015 cache directory
 /.vs/

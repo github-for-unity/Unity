@@ -2,8 +2,8 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <PublishTo Condition="'$(PublishTo)' == '' ">$(SolutionDir)\unity\PackageProject\Assets\Editor\GitHub</PublishTo>
-    <ExternalPublishTo>$(SolutionDir)..\github-unity-test\GitHubExtensionProject\Assets\Editor\GitHub</ExternalPublishTo>
+    <PublishTo Condition="'$(PublishTo)' == '' ">$(SolutionDir)\unity\PackageProject\Assets\GitHub\Editor</PublishTo>
+    <ExternalPublishTo>$(SolutionDir)..\github-unity-test\GitHubExtensionProject\Assets\GitHub\Editor</ExternalPublishTo>
   </PropertyGroup>
 
   <!-- After the build is done, we copy all the artifacts into two locations:

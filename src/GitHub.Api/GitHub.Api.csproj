@@ -81,7 +81,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="sfw.net">
-      <HintPath>$(SolutionDir)\lib\sfw.net\$(BuildConfig)\sfw.net.dll</HintPath>
+      <HintPath>$(SolutionDir)\lib\sfw\sfw.net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

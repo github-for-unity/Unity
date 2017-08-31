@@ -5,6 +5,9 @@
 *.xml
 *.local.json
 *.zip
+*.dylib
+*.so
+*.bundle
 ProjectVersion.txt
 
 Library/

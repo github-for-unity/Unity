@@ -50,14 +50,14 @@ if [ x"$OS" == x"Windows" ]; then
 else
 	nuget restore GitHub.Unity.sln
 fi
+
 xbuild GitHub.Unity.sln /property:Configuration=$Configuration
 
-
-rm -f unity/PackageProject/Assets/Editor/GitHub/deleteme*
-rm -f unity/PackageProject/Assets/Editor/GitHub/*.pdb
-rm -f unity/PackageProject/Assets/Editor/GitHub/*.pdb.meta
-rm -f unity/PackageProject/Assets/Editor/GitHub/*.xml
+rm -f unity/PackageProject/Assets/GitHub/Editor/deleteme*
+rm -f unity/PackageProject/Assets/GitHub/Editor/*.pdb
+rm -f unity/PackageProject/Assets/GitHub/Editor/*.pdb.meta
+rm -f unity/PackageProject/Assets/GitHub/Editor/*.xml
 
 Version=`sed -En 's,.*Version = "(.*)".*,\1,p' common/SolutionInfo.cs`
 export GITHUB_UNITY_DISABLE=1
-"$Unity" -batchmode -projectPath "`pwd`/unity/PackageProject" -exportPackage Assets/Editor/GitHub github-for-unity-$Version-alpha.unitypackage -force-free -quit
+"$Unity" -batchmode -projectPath "`pwd`/unity/PackageProject" -exportPackage Assets/GitHub/Editor github-for-unity-$Version-alpha.unitypackage -force-free -quit
