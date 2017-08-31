@@ -121,7 +121,9 @@ namespace GitHub.Unity
             var isFolderForMeta = false;
             if (node.Children.Count() == 1)
             {
-                isFolderForMeta = node.Children.First().Label.Substring(node.Label.Length).Equals(".meta");
+                var parentLabel = node.Label;
+                var childLabel = node.Children.First().Label;
+                isFolderForMeta = childLabel.EndsWith(".meta");
             }
 
             GUILayout.BeginHorizontal();
