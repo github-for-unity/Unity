@@ -48,9 +48,7 @@ namespace GitHub.Unity
         [NonSerialized] private bool updated = true;
         [NonSerialized] private bool useScrollTime;
 
-#if ENABLE_BROADMODE
         [SerializeField] private bool broadMode;
-#endif
         [SerializeField] private Vector2 detailsScroll;
         [SerializeField] private Object historyTarget;
         [SerializeField] private Vector2 scroll;
@@ -106,12 +104,10 @@ namespace GitHub.Unity
         {
             base.Refresh();
             RefreshLog();
-#if ENABLE_BROADMODE
             if (broadMode)
             {
                 ((Window)Parent).BranchesTab.RefreshEmbedded();
             }
-#endif
         }
 
         public override void OnSelectionChange()
@@ -131,22 +127,17 @@ namespace GitHub.Unity
                 return;
             }
 
-#if ENABLE_BROADMODE
             if (broadMode)
                 OnBroadGUI();
             else
-#endif
-            OnEmbeddedGUI();
+                OnEmbeddedGUI();
 
-#if ENABLE_BROADMODE
             if (Event.current.type == EventType.Repaint && EvaluateBroadMode())
             {
                 Refresh();
             }
-#endif
         }
 
-#if ENABLE_BROADMODE
         public void OnBroadGUI()
         {
             GUILayout.BeginHorizontal();
@@ -167,7 +158,6 @@ namespace GitHub.Unity
             }
             GUILayout.EndHorizontal();
         }
-#endif
 
         private void AttachHandlers(IRepository repository)
         {
@@ -793,7 +783,6 @@ namespace GitHub.Unity
             EditorGUI.DrawRect(bottomTimelineRect, timelineBarColor);
         }
 
-#if ENABLE_BROADMODE
         private bool EvaluateBroadMode()
         {
             var past = broadMode;
@@ -821,14 +810,11 @@ namespace GitHub.Unity
             // Return whether we flipped
             return broadMode != past;
         }
-#endif
 
-#if ENABLE_BROADMODE
         public bool BroadMode
         {
             get { return broadMode; }
         }
-#endif
 
         private float EntryHeight
         {
