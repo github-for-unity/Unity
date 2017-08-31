@@ -300,9 +300,9 @@ namespace GitHub.Unity
         {
             if (changeTab != activeTab)
             {
-                var from = ActiveView;
+                var fromView = ActiveView;
                 activeTab = changeTab;
-                SwitchView(@from, ActiveView);
+                SwitchView(fromView, ActiveView);
             }
         }
 
