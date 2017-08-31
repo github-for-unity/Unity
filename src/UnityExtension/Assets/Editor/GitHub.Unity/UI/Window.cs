@@ -197,6 +197,15 @@ namespace GitHub.Unity
             bool repoDataChanged = false;
             if (Repository != null)
             {
+                if (activeTab == SubTab.InitProject)
+                {
+                    if (!nextTab.HasValue || nextTab.Value == SubTab.InitProject)
+                    {
+                        nextTab = SubTab.History;
+                        repoDataChanged = true;
+                    }
+                }
+
                 var currentBranchString = (Repository.CurrentBranch.HasValue ? Repository.CurrentBranch.Value.Name : null);
                 if (repoBranch != currentBranchString)
                 {
@@ -216,7 +225,14 @@ namespace GitHub.Unity
             }
             else
             {
-                nextTab = SubTab.InitProject;
+                if (activeTab != SubTab.InitProject)
+                {
+                    if (!nextTab.HasValue || nextTab.Value != SubTab.InitProject)
+                    {
+                        nextTab = SubTab.InitProject;
+                        repoDataChanged = true;
+                    }
+                }
 
                 if (repoBranch != null)
                 {
