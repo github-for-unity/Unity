@@ -51,6 +51,6 @@ test:
     - DoNotRunOnAppVeyor
     - TimeSensitive
 artifacts:
-- path: unity\TestProject\Assets\Editor\*.dll
-- path: unity\TestProject\Assets\Editor\*.pdb
+- path: unity\PackageProject
+  type: zip
 - path: build\*.log
