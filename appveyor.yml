@@ -44,7 +44,7 @@ install:
     nuget restore GitHub.Unity.sln
 
 assembly_info:
-  patch: true
+  patch: false
   file: common\SolutionInfo.cs
   assembly_informational_version: "{version}"
 
