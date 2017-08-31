@@ -21,14 +21,6 @@
       <Link>x64\sfw_x64.dll.meta</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="$(SolutionDir)\lib\sfw\win\x64\sfw_x64.pdb">
-      <Link>x64\sfw_x64.pdb</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(SolutionDir)\lib\sfw\win\x64\sfw_x64.pdb.meta">
-      <Link>x64\sfw_x64.pdb.meta</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="$(SolutionDir)\lib\sfw\win\x64\pthreadVC2.dll">
       <Link>x64\pthreadVC2.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -43,14 +35,6 @@
     </Content>
     <Content Include="$(SolutionDir)\lib\sfw\win\x86\sfw_x86.dll.meta">
       <Link>x86\sfw_x86.dll.meta</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(SolutionDir)\lib\sfw\win\x86\sfw_x86.pdb">
-      <Link>x86\sfw_x86.pdb</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(SolutionDir)\lib\sfw\win\x86\sfw_x86.pdb.meta">
-      <Link>x86\sfw_x86.pdb.meta</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="$(SolutionDir)\lib\sfw\win\x86\pthreadVC2.dll">
