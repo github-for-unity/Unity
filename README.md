@@ -1,11 +1,16 @@
 # [GitHub for Unity](https://unity.github.com)
 
+## Notices
+
+From version 0.19 onwards, the location of the plugin has moved to `Assets/Plugins/GitHub`. If you have version 0.18 or lower, you need to delete the `Assets/Editor/GitHub` folder before you install newer versions. You should exit Unity and delete the folder from Explorer/Finder, as Unity will not unload native libraries while it's running.
+
 ![Build Status](https://ci.appveyor.com/api/projects/status/github/github-for-unity/Unity?branch=master&svg=true)
 
 [![Join the chat at https://gitter.im/github-for-unity/Unity](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/github-for-unity/Unity?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Join the chat at https://discord.gg/5zH8hVx](https://img.shields.io/badge/discord-join%20chat-7289DA.svg)](https://discord.gg/5zH8hVx)
 [![GitHub for Unity live coding on Twitch](https://img.shields.io/badge/twitch-live%20coding-6441A4.svg)](https://www.twitch.tv/sh4na)
 
+## About
 
 The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub into [Unity](https://unity3d.com/), integrating source control into your work with friendly and accessible tools and workflows.
 

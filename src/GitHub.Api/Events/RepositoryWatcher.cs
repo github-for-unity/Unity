@@ -59,16 +59,22 @@ namespace GitHub.Unity
             };
 
             pauseEvent = new ManualResetEventSlim();
-            disableNative = !platform.Environment.IsWindows;
+            //disableNative = !platform.Environment.IsWindows;
         }
 
         public void Initialize()
         {
             var pathsRepositoryPath = paths.RepositoryPath.ToString();
-            Logger.Trace("Watching Path: \"{0}\"", pathsRepositoryPath);
 
-            if (!disableNative)
-                nativeInterface = new NativeInterface(pathsRepositoryPath);
+            try
+            {
+                if (!disableNative)
+                    nativeInterface = new NativeInterface(pathsRepositoryPath);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+            }
         }
 
         public void Start()
@@ -84,6 +90,8 @@ namespace GitHub.Unity
                 Logger.Warning("NativeInterface is null");
                 throw new InvalidOperationException("NativeInterface is null");
             }
+
+            Logger.Trace("Watching Path: \"{0}\"", paths.RepositoryPath.ToString());
 
             running = true;
             pauseEvent.Reset();
