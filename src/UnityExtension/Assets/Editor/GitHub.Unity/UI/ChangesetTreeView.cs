@@ -123,7 +123,7 @@ namespace GitHub.Unity
             {
                 var parentLabel = node.Label;
                 var childLabel = node.Children.First().Label;
-                isFolderForMeta = childLabel.EndsWith(".meta");
+                isFolderForMeta = childLabel.StartsWith(parentLabel) && childLabel.EndsWith(".meta");
             }
 
             GUILayout.BeginHorizontal();
