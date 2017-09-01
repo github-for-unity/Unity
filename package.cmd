@@ -42,10 +42,10 @@ if not exist "%Unity%" (
 	echo xbuild GitHub.Unity.sln /property:Configuration=%Configuration%
 	call xbuild GitHub.Unity.sln /property:Configuration=%Configuration%
 	
-	del /Q unity\PackageProject\Assets\GitHub\Editor\deleteme*
-	del /Q unity\PackageProject\Assets\GitHub\Editor\*.pdb
-	del /Q unity\PackageProject\Assets\GitHub\Editor\*.pdb.meta
-	del /Q unity\PackageProject\Assets\GitHub\Editor\*.xml
+	del /Q unity\PackageProject\Assets\Plugins\GitHub\Editor\deleteme*
+	del /Q unity\PackageProject\Assets\Plugins\GitHub\Editor\*.pdb
+	del /Q unity\PackageProject\Assets\Plugins\GitHub\Editor\*.pdb.meta
+	del /Q unity\PackageProject\Assets\Plugins\GitHub\Editor\*.xml
 	
 	for /f tokens^=^2^ usebackq^ delims^=^" %%G in (`find "const string Version" common\SolutionInfo.cs`) do call :Package %%G
 	

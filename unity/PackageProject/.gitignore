@@ -13,7 +13,7 @@ ProjectVersion.txt
 Library/
 
 // These files come from lib/
-Assets/GitHub/Editor/libsfw.bundle.meta
-Assets/GitHub/Editor/libsfw.so.meta
-Assets/GitHub/Editor/x64/
-Assets/GitHub/Editor/x86/
+Assets/Plugins/GitHub/Editor/libsfw.bundle.meta
+Assets/Plugins/GitHub/Editor/libsfw.so.meta
+Assets/Plugins/GitHub/Editor/x64/
+Assets/Plugins/GitHub/Editor/x86/
