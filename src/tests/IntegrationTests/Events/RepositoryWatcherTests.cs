@@ -14,7 +14,7 @@ namespace IntegrationTests
     {
         private const int ThreadSleepTimeout = 2000;
 
-        [Test]
+        [Test, Category("TimeSensitive")]
         public async Task ShouldDetectFileChanges()
         {
             await Initialize(TestRepoMasterCleanSynchronized);
