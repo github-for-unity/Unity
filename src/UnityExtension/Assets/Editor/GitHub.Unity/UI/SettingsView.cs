@@ -52,11 +52,6 @@ namespace GitHub.Unity
         private const string GitIgnoreRulesDescription = "Description";
         private const string NewGitIgnoreRuleButton = "New";
         private const string DeleteGitIgnoreRuleButton = "Delete";
-        private const string GitConfigTitle = "Git Configuration";
-        private const string GitConfigNameLabel = "Name";
-        private const string GitConfigEmailLabel = "Email";
-        private const string GitConfigUserSave = "Save User";
-        private const string GitConfigUserSaved = "Saved";
         private const string GitRepositoryTitle = "Repository Configuration";
         private const string GitRepositoryRemoteLabel = "Remote";
         private const string GitRepositorySave = "Save Repository";
@@ -67,9 +62,6 @@ namespace GitHub.Unity
         private const string DefaultRepositoryRemoteName = "origin";
 
         [NonSerialized] private int newGitIgnoreRulesSelection = -1;
-
-        [SerializeField] private string gitName;
-        [SerializeField] private string gitEmail;
 
         [SerializeField] private int gitIgnoreRulesSelection = 0;
         [SerializeField] private string initDirectory;
@@ -82,16 +74,23 @@ namespace GitHub.Unity
         [SerializeField] private int lockedFileSelection = -1;
         [SerializeField] private bool hasRemote;
         [SerializeField] private bool remoteHasChanged;
-        [NonSerialized] private bool userDataHasChanged;
 
         [SerializeField] private string newGitName;
         [SerializeField] private string newGitEmail;
         [SerializeField] private string newRepositoryRemoteUrl;
         [SerializeField] private User cachedUser;
+        [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
+
+        public override void InitializeView(IView parent)
+        {
+            base.InitializeView(parent);
+            userSettingsView.InitializeView(this);
+        }
 
         public override void OnEnable()
         {
             base.OnEnable();
+            userSettingsView.OnEnable();
             AttachHandlers(Repository);
 
             remoteHasChanged = true;
@@ -100,6 +99,7 @@ namespace GitHub.Unity
         public override void OnDisable()
         {
             base.OnDisable();
+            userSettingsView.OnDisable();
             DetachHandlers(Repository);
         }
 
@@ -112,6 +112,7 @@ namespace GitHub.Unity
         public override void OnRepositoryChanged(IRepository oldRepository)
         {
             base.OnRepositoryChanged(oldRepository);
+            userSettingsView.OnRepositoryChanged(oldRepository);
 
             DetachHandlers(oldRepository);
             AttachHandlers(Repository);
@@ -152,7 +153,7 @@ namespace GitHub.Unity
         {
             scroll = GUILayout.BeginScrollView(scroll);
             {
-                OnUserSettingsGUI();
+                userSettingsView.OnGUI();
 
                 GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
@@ -182,70 +183,25 @@ namespace GitHub.Unity
 
             if (Repository == null)
             {
-                if ((cachedUser == null || String.IsNullOrEmpty(cachedUser.Name)) && GitClient != null)
-                {
-                    var user = new User();
-                    GitClient.GetConfig("user.name", GitConfigSource.User)
-                        .Then((success, value) => user.Name = value).Then(
-                    GitClient.GetConfig("user.email", GitConfigSource.User)
-                        .Then((success, value) => user.Email = value))
-                    .FinallyInUI((success, ex) =>
-                    {
-                        if (success && !String.IsNullOrEmpty(user.Name))
-                        {
-                            cachedUser = user;
-                            userDataHasChanged = true;
-                            Redraw();
-                        }
-                    })
-                    .Start();
-                }
-
-                if (userDataHasChanged)
-                {
-                    newGitName = gitName = cachedUser.Name;
-                    newGitEmail = gitEmail = cachedUser.Email;
-                    userDataHasChanged = false;
-                }
                 return;
             }
 
-            userDataHasChanged = Repository.User.Name != gitName || Repository.User.Email != gitEmail;
-
-            if (!remoteHasChanged && !userDataHasChanged)
+            if (!remoteHasChanged)
                 return;
 
-            if (userDataHasChanged)
+            remoteHasChanged = false;
+            var activeRemote = Repository.CurrentRemote;
+            hasRemote = activeRemote.HasValue && !String.IsNullOrEmpty(activeRemote.Value.Url);
+            if (!hasRemote)
             {
-                userDataHasChanged = false;
-                newGitName = gitName = Repository.User.Name;
-                newGitEmail = gitEmail = Repository.User.Email;
+                repositoryRemoteName = DefaultRepositoryRemoteName;
+                newRepositoryRemoteUrl = repositoryRemoteUrl = string.Empty;
             }
-
-            if (remoteHasChanged)
+            else
             {
-                remoteHasChanged = false;
-                var activeRemote = Repository.CurrentRemote;
-                hasRemote = activeRemote.HasValue && !String.IsNullOrEmpty(activeRemote.Value.Url);
-                if (!hasRemote)
-                {
-                    repositoryRemoteName = DefaultRepositoryRemoteName;
-                    newRepositoryRemoteUrl = repositoryRemoteUrl = string.Empty;
-                }
-                else
-                {
-                    repositoryRemoteName = activeRemote.Value.Name;
-                    newRepositoryRemoteUrl = repositoryRemoteUrl = activeRemote.Value.Url;
-                }
+                repositoryRemoteName = activeRemote.Value.Name;
+                newRepositoryRemoteUrl = repositoryRemoteUrl = activeRemote.Value.Url;
             }
-        }
-
-        private void ResetToDefaults()
-        {
-            gitName = Repository != null ? Repository.User.Name : String.Empty;
-            gitEmail = Repository != null ? Repository.User.Email : String.Empty;
-            repositoryRemoteName = DefaultRepositoryRemoteName;
-            repositoryRemoteUrl = string.Empty;
         }
 
         private void Repository_OnActiveRemoteChanged(string remote)
@@ -271,70 +227,6 @@ namespace GitHub.Unity
                 lockedFileSelection = -1;
             }
             Redraw();
-        }
-
-        private void OnUserSettingsGUI()
-        {
-            GUILayout.Label(GitConfigTitle, EditorStyles.boldLabel);
-
-            EditorGUI.BeginDisabledGroup(isBusy);
-            {
-                newGitName = EditorGUILayout.TextField(GitConfigNameLabel, newGitName);
-                newGitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, newGitEmail);
-
-                var needsSaving = newGitName != gitName || newGitEmail != gitEmail;
-                EditorGUI.BeginDisabledGroup(!needsSaving);
-                {
-                    if (GUILayout.Button(GitConfigUserSave, GUILayout.ExpandWidth(false)))
-                    {
-                        GitClient.SetConfig("user.name", newGitName, GitConfigSource.User)
-                            .Then((success, value) =>
-                            {
-                                if (success)
-                                {
-                                    if (Repository != null)
-                                    {
-                                        Repository.User.Name = value;
-                                    }
-                                    else
-                                    {
-                                        if (cachedUser == null)
-                                        {
-                                            cachedUser = new User();
-                                        }
-                                        cachedUser.Name = value;
-                                    }
-                                }
-                            })
-                            .Then(
-                        GitClient.SetConfig("user.email", newGitEmail, GitConfigSource.User)
-                            .Then((success, value) =>
-                            {
-                                if (success)
-                                {
-                                    if (Repository != null)
-                                    {
-                                        Repository.User.Email = value;
-                                    }
-                                    else
-                                    {
-                                        cachedUser.Email = value;
-                                        userDataHasChanged = true;
-                                    }
-                                }
-                            }))
-                        .FinallyInUI((_, __) =>
-                        {
-                            isBusy = false;
-                            Redraw();
-                        })
-                        .Start();
-                        isBusy = true;
-                    }
-                }
-                EditorGUI.EndDisabledGroup();
-            }
-            EditorGUI.EndDisabledGroup();
         }
 
         private void OnRepositorySettingsGUI()
