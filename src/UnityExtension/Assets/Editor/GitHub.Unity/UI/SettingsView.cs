@@ -106,6 +106,11 @@ namespace GitHub.Unity
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
+            if (userSettingsView != null)
+            {
+                userSettingsView.OnDataUpdate();
+            }
+
             MaybeUpdateData();
         }
 
@@ -125,6 +130,7 @@ namespace GitHub.Unity
         public override void Refresh()
         {
             base.Refresh();
+            userSettingsView.Refresh();
             if (Repository != null && Repository.CurrentRemote.HasValue)
             {
                 Repository.ListLocks().Start();

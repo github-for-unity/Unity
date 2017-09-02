@@ -112,7 +112,7 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (Repository != null)
+            if (Repository == null)
             {
                 if ((cachedUser == null || String.IsNullOrEmpty(cachedUser.Name)) && GitClient != null)
                 {
