@@ -188,9 +188,7 @@ namespace GitHub.Unity
                 lockedFiles = new List<GitLock>();
 
             if (Repository == null)
-            {
                 return;
-            }
 
             if (!remoteHasChanged)
                 return;
