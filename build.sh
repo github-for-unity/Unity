@@ -10,14 +10,14 @@ if [ $# -gt 1 ]; then
 fi
 
 if [ x"$Target" == x"Rebuild" ]; then
-	rm -f unity/PackageProject/Assets/Editor/GitHub/*.dll
-	rm -f unity/PackageProject/Assets/Editor/GitHub/*.mdb
-	rm -f unity/PackageProject/Assets/Editor/GitHub/*.pdb
+	rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/*.dll
+	rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/*.mdb
+	rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/*.pdb
 
-	if [ -e ../github-unity-test/GitHubExtensionProject/Assets/Editor/GitHub ]; then
-		rm -f ../github-unity-test/GitHubExtensionProject/Assets/Editor/GitHub/*.dll
-		rm -f ../github-unity-test/GitHubExtensionProject/Assets/Editor/GitHub/*.mdb
-		rm -f ../github-unity-test/GitHubExtensionProject/Assets/Editor/GitHub/*.pdb
+	if [ -e ../github-unity-test/GitHubExtensionProject/Assets/Plugins/GitHub/Editor ]; then
+		rm -f ../github-unity-test/GitHubExtensionProject/Assets/Plugins/GitHub/Editor/*.dll
+		rm -f ../github-unity-test/GitHubExtensionProject/Assets/Plugins/GitHub/Editor/*.mdb
+		rm -f ../github-unity-test/GitHubExtensionProject/Assets/Plugins/GitHub/Editor/*.pdb
 	fi
 fi
 
@@ -34,14 +34,16 @@ fi
 
 xbuild GitHub.Unity.sln /verbosity:normal /property:Configuration=$Configuration /target:$Target || true
 
-cp -r unity/PackageProject/Assets/Editor/GitHub ../github-unity-test/GitHubExtensionProject/Assets/Editor || true
+rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/deleteme*
+rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/deleteme*
+rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/*.xml
 
-rm -f unity/PackageProject/Assets/Editor/GitHub/deleteme*
-rm -f unity/PackageProject/Assets/Editor/GitHub/deleteme*
-rm -f unity/PackageProject/Assets/Editor/GitHub/*.xml
+cp -r unity/PackageProject/Assets/Plugins/GitHub ../github-unity-test/GitHubExtensionProject/Assets/Plugins/ || true
+cp -r unity/PackageProject/Assets/Plugins/GitHub.meta ../github-unity-test/GitHubExtensionProject/Assets/Plugins/ || true
 
-if [ -e ../github-unity-test/GitHubExtensionProject/Assets/Editor/GitHub ]; then
-	rm -f ../github-unity-test/GitHubExtensionProject/Assets/Editor/GitHub/deleteme*
-	rm -f ../github-unity-test/GitHubExtensionProject/Assets/Editor/GitHub/deleteme*
-	rm -f ../github-unity-test/GitHubExtensionProject/Assets/Editor/GitHub/*.xml
+
+if [ -e ../github-unity-test/GitHubExtensionProject/Assets/Plugins/GitHub/Editor ]; then
+	rm -f ../github-unity-test/GitHubExtensionProject/Assets/Plugins/GitHub/Editor/deleteme*
+	rm -f ../github-unity-test/GitHubExtensionProject/Assets/Plugins/GitHub/Editor/deleteme*
+	rm -f ../github-unity-test/GitHubExtensionProject/Assets/Plugins/GitHub/Editor/*.xml
 fi
