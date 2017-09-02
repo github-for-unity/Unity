@@ -42,7 +42,7 @@
       <HintPath>$(SolutionDir)\lib\Mono.Security.dll</HintPath>
     </Reference>
     <Reference Include="sfw.net">
-      <HintPath>$(SolutionDir)\lib\sfw.net\$(Configuration)\sfw.net.dll</HintPath>
+      <HintPath>$(SolutionDir)\lib\sfw\sfw.net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -53,23 +53,7 @@
   <ItemGroup>
     <Compile Include="Class1.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <!-- Content Include="$(SolutionDir)\lib\sfw.net\osx\libsfw.dylib">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content -->
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw_x64.dll">
-      <Link>x64\sfw_x64.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\sfw_x64.pdb">
-      <Link>x64\sfw_x64.pdb</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(SolutionDir)\lib\sfw.net\win\x64\$(Configuration)\pthreadVC2.dll">
-      <Link>x64\pthreadVC2.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+  <Import Project="..\..\..\common\nativelibraries.props" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">
     <Delete Files="$(OutputPath)\$(AssemblyName).dll;$(OutputPath)\$(AssemblyName).pdb;$(OutputPath)\$(AssemblyName).dll.mdb" TreatErrorsAsWarnings="true" />
