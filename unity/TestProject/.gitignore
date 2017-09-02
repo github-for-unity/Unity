@@ -5,6 +5,9 @@
 *.local.json
 *.zip
 *.png
+*.dylib
+*.so
+*.bundle
 
 # ignoring this for now
 *.meta
