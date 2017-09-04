@@ -83,7 +83,7 @@ Once the extension is installed, you can open a command line with the same Git a
 
 This extensions needs to be installed (and updated) for each Unity project that you want to version control. 
 First step is to download the latest package from [the releases page](https://github.com/github-for-unity/Unity/releases);
-it will be savead as a file with the extension `.unitypackage`.
+it will be saved as a file with the extension `.unitypackage`.
 To install it, open Unity, then open the project you want to version control, and then double click on the downloaded package.
 Alternatively, import the package by clicking Assets, Import Package, Custom Package, then select the downloaded package.
 
