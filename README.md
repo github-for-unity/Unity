@@ -2,7 +2,7 @@
 
 ## Notices
 
-From version 0.19 onwards, the location of the plugin has moved to `Assets/Plugins/GitHub`. If you have version 0.18 or lower, you need to delete the `Assets/Editor/GitHub` folder before you install newer versions. You should exit Unity and delete the folder from Explorer/Finder, as Unity will not unload native libraries while it's running.
+From version 0.19 onwards, the location of the plugin has moved to `Assets/Plugins/GitHub`. If you have version 0.18 or lower, you need to delete the `Assets/Editor/GitHub` folder before you install newer versions. You should exit Unity and delete the folder from Explorer/Finder, as Unity will not unload native libraries while it's running. Also, remember to update your `.gitignore` file.
 
 ![Build Status](https://ci.appveyor.com/api/projects/status/github/github-for-unity/Unity?branch=master&svg=true)
 
@@ -81,7 +81,11 @@ Once the extension is installed, you can open a command line with the same Git a
 
 ### Installation
 
-To install the extension, download the latest package from [the releases page](https://github.com/github-for-unity/Unity/releases) and double click on it.
+This extensions needs to be installed (and updated) for each Unity project that you want to version control. 
+First step is to download the latest package from [the releases page](https://github.com/github-for-unity/Unity/releases);
+it will be savead as a file with the extension `.unitypackage`.
+To install it, open Unity, then open the project you want to version control, and then double click on the downloaded package.
+Alternatively, import the package by clicking Assets, Import Package, Custom Package, then select the downloaded package.
 
 #### Log files
 
