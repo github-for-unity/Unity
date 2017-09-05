@@ -39,12 +39,6 @@ namespace GitHub.Unity
         private const string GitInstallTitle = "Git installation";
         private const string GitInstallMissingMessage =
             "GitHub was unable to locate a valid Git install. Please specify install location or install git.";
-        private const string GitInstallBrowseTitle = "Select git binary";
-        private const string GitInstallPickInvalidTitle = "Invalid Git install";
-        private const string GitInstallPickInvalidMessage = "The selected file is not a valid Git install. {0}";
-        private const string GitInstallPickInvalidOK = "OK";
-        private const string GitInstallFindButton = "Find install";
-        private const string GitInstallURL = "http://desktop.github.com";
         private const string GitIgnoreRulesTitle = "gitignore rules";
         private const string GitIgnoreRulesEffect = "Effect";
         private const string GitIgnoreRulesFile = "File";
@@ -88,10 +82,19 @@ namespace GitHub.Unity
         [SerializeField] private string newGitEmail;
         [SerializeField] private string newRepositoryRemoteUrl;
         [SerializeField] private User cachedUser;
+        [SerializeField] private GitPathView gitPathView = new GitPathView();
+
+        public override void InitializeView(IView parent)
+        {
+            base.InitializeView(parent);
+            gitPathView.InitializeView(this);
+        }
+
 
         public override void OnEnable()
         {
             base.OnEnable();
+            gitPathView.OnEnable();
             AttachHandlers(Repository);
 
             remoteHasChanged = true;
@@ -100,18 +103,25 @@ namespace GitHub.Unity
         public override void OnDisable()
         {
             base.OnDisable();
+            gitPathView.OnDisable();
             DetachHandlers(Repository);
         }
 
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
+
+            if (gitPathView != null)
+            {
+                gitPathView.OnDataUpdate();
+            }
             MaybeUpdateData();
         }
 
         public override void OnRepositoryChanged(IRepository oldRepository)
         {
             base.OnRepositoryChanged(oldRepository);
+            gitPathView.OnRepositoryChanged(oldRepository);
 
             DetachHandlers(oldRepository);
             AttachHandlers(Repository);
@@ -167,7 +177,7 @@ namespace GitHub.Unity
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
                 }
 
-                OnInstallPathGUI();
+                gitPathView.OnGUI();
                 OnPrivacyGui();
                 OnLoggingSettingsGui();
             }
@@ -371,20 +381,6 @@ namespace GitHub.Unity
             EditorGUI.EndDisabledGroup();
         }
 
-        private bool ValidateGitInstall(string path)
-        {
-            if (String.IsNullOrEmpty(path))
-                return false;
-            if (!GitClient.ValidateGitInstall(path.ToNPath()))
-            {
-                EditorUtility.DisplayDialog(GitInstallPickInvalidTitle, String.Format(GitInstallPickInvalidMessage, path),
-                    GitInstallPickInvalidOK);
-                return false;
-            }
-
-            return true;
-        }
-
         private bool OnIssuesGUI()
         {
             IList<ProjectConfigurationIssue> projectConfigurationIssues;
@@ -431,7 +427,8 @@ namespace GitHub.Unity
             {
                 Styles.BeginInitialStateArea(GitInstallTitle, GitInstallMissingMessage);
                 {
-                    OnInstallPathGUI();
+                    //TODO: This is removed in another branch anyway
+                    //OnInstallPathGUI();
                 }
                 Styles.EndInitialStateArea();
 
@@ -681,71 +678,6 @@ namespace GitHub.Unity
 
                 GUILayout.EndVertical();
 
-            }
-            EditorGUI.EndDisabledGroup();
-        }
-
-        private void OnInstallPathGUI()
-        {
-            string gitExecPath = null;
-            string extension = null;
-            string gitInstallPath = null;
-            if (Environment != null)
-            {
-                extension = Environment.ExecutableExtension;
-                if (Environment.IsWindows)
-                {
-                    extension = extension.TrimStart('.');
-                }
-
-                gitInstallPath = Environment.GitInstallPath;
-
-                if (Environment.GitExecutablePath != null)
-                    gitExecPath = Environment.GitExecutablePath.ToString();
-            }
-
-            // Install path
-            GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
-
-            EditorGUI.BeginDisabledGroup(isBusy || gitExecPath == null);
-            {
-                // Install path field
-                EditorGUI.BeginChangeCheck();
-                {
-                    //TODO: Verify necessary value for a non Windows OS
-                    Styles.PathField(ref gitExecPath,
-                        () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
-                            gitInstallPath,
-                            extension), ValidateGitInstall);
-                }
-                if (EditorGUI.EndChangeCheck())
-                {
-                    Logger.Trace("Setting GitExecPath: " + gitExecPath);
-
-                    Manager.SystemSettings.Set(Constants.GitInstallPathKey, gitExecPath);
-                    Environment.GitExecutablePath = gitExecPath.ToNPath();
-                }
-
-                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                GUILayout.BeginHorizontal();
-                {
-                    // Find button - for attempting to locate a new install
-                    if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
-                    {
-                        var task = new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
-                            .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
-                            .FinallyInUI((success, ex, path) =>
-                            {
-                                if (success && !string.IsNullOrEmpty(path))
-                                {
-                                    Environment.GitExecutablePath = path;
-                                    GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
-                                }
-                            });
-                    }
-                }
-                GUILayout.EndHorizontal();
             }
             EditorGUI.EndDisabledGroup();
         }
