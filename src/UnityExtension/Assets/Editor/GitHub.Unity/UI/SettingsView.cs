@@ -129,7 +129,7 @@ namespace GitHub.Unity
 
         public override bool IsBusy
         {
-            get { return isBusy; }
+            get { return isBusy || userSettingsView.IsBusy; }
         }
 
         public override void Refresh()
