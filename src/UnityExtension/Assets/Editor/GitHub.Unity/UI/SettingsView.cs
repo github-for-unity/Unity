@@ -81,8 +81,6 @@ namespace GitHub.Unity
         [SerializeField] private bool isBusy;
         [SerializeField] private int lockedFileSelection = -1;
         [SerializeField] private bool hasRemote;
-        [SerializeField] private bool metricsEnabled;
-        [NonSerialized] private bool metricsHasChanged;
         [NonSerialized] private bool remoteHasChanged;
         [NonSerialized] private bool userDataHasChanged;
 
@@ -90,7 +88,9 @@ namespace GitHub.Unity
         [SerializeField] private string newGitEmail;
         [SerializeField] private string newRepositoryRemoteUrl;
         [SerializeField] private User cachedUser;
-
+        
+        [SerializeField] private bool metricsEnabled;
+        [NonSerialized] private bool metricsHasChanged;
         [NonSerialized] private IUsageTracker usageTracker;
 
         public override void OnEnable()
