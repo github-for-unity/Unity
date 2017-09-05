@@ -9,7 +9,8 @@ namespace GitHub.Unity
     interface IGitClient
     {
         Task<NPath> FindGitInstallation();
-        bool ValidateGitInstall(NPath path);
+
+        ITask<bool> ValidateGitInstall(NPath path);
 
         ITask Init(IOutputProcessor<string> processor = null);
 
@@ -152,9 +153,40 @@ namespace GitHub.Unity
             return path;
         }
 
-        public bool ValidateGitInstall(NPath path)
+        public ITask<bool> ValidateGitInstall(NPath path)
         {
-            return path.FileExists();
+            if (!path.FileExists())
+            {
+                return new FuncTask<bool>(cancellationToken, () => false);
+            }
+
+            SoftwareVersion? gitVersion = null;
+            SoftwareVersion? gitLfsVersion = null;
+
+            var gitVersionTask = new GitVersionTask(cancellationToken);
+            gitVersionTask.Configure(processManager, path.ToString(), 
+                gitVersionTask.ProcessArguments, environment.RepositoryPath);
+
+            var gitLfsVersionTask = new GitLfsVersionTask(cancellationToken);
+            gitLfsVersionTask.Configure(processManager, path.ToString(),
+                gitLfsVersionTask.ProcessArguments, environment.RepositoryPath);
+
+            return gitVersionTask
+                .Then((result, version) => { gitVersion = version; })
+                .Then(gitLfsVersionTask)
+                .Then((result, version) => {
+                    gitLfsVersion = version;
+                }).Then(result => {
+                    if (result)
+                    {
+                        return gitVersion.HasValue &&
+                            gitVersion.Value >= new SoftwareVersion(2, 1, 0) &&
+                            gitLfsVersion.HasValue &&
+                            gitLfsVersion.Value >= new SoftwareVersion(2, 1, 0);
+                    }
+
+                    return false;
+                });
         }
 
         public ITask Init(IOutputProcessor<string> processor = null)
