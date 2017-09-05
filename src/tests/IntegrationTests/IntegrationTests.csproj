@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -77,6 +78,7 @@
     <Compile Include="BaseGitEnvironmentTest.cs" />
     <Compile Include="BaseGitRepoTest.cs" />
     <Compile Include="BaseIntegrationTest.cs" />
+    <Compile Include="GitClientTests.cs" />
     <Compile Include="Git\GitSetupTests.cs" />
     <Compile Include="Git\IntegrationTestEnvironment.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />

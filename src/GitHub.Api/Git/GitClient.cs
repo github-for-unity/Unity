@@ -77,6 +77,10 @@ namespace GitHub.Unity
             IOutputProcessor<string> processor = null);
 
         ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null);
+
+        ITask<SoftwareVersion> Version(IOutputProcessor<SoftwareVersion> processor = null);
+
+        ITask<SoftwareVersion> LfsVersion(IOutputProcessor<SoftwareVersion> processor = null);
     }
 
     class GitClient : IGitClient
@@ -180,6 +184,22 @@ namespace GitHub.Unity
             Logger.Trace("Log");
 
             return new GitLogTask(new GitObjectFactory(environment), cancellationToken, processor)
+                .Configure(processManager);
+        }
+
+        public ITask<SoftwareVersion> Version(IOutputProcessor<SoftwareVersion> processor = null)
+        {
+            Logger.Trace("Version");
+
+            return new GitVersionTask(cancellationToken, processor)
+                .Configure(processManager);
+        }
+
+        public ITask<SoftwareVersion> LfsVersion(IOutputProcessor<SoftwareVersion> processor = null)
+        {
+            Logger.Trace("LfsVersion");
+
+            return new GitLfsVersionTask(cancellationToken, processor)
                 .Configure(processManager);
         }
 
