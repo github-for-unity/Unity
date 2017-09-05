@@ -86,6 +86,11 @@ namespace GitHub.Unity
             GUILayout.EndVertical();
         }
 
+        public override bool IsBusy
+        {
+            get { return false; }
+        }
+
         private void OnCommitTreeChange()
         {
             Height = 0f;
@@ -276,6 +281,7 @@ namespace GitHub.Unity
         }
 
         public float Height { get; protected set; }
+
         public bool Readonly { get; set; }
 
         public IList<GitStatusEntry> Entries

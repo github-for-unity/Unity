@@ -47,6 +47,7 @@ namespace GitHub.Unity
         [NonSerialized] private int selectionIndex;
         [NonSerialized] private bool updated = true;
         [NonSerialized] private bool useScrollTime;
+        [NonSerialized] private bool isBusy;
 
 #if ENABLE_BROADMODE
         [SerializeField] private bool broadMode;
@@ -60,7 +61,6 @@ namespace GitHub.Unity
 
         [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
         [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
-        [SerializeField] private bool isBusy;
         [SerializeField] private string currentRemote;
         [SerializeField] private bool isPublished;
 
@@ -144,6 +144,11 @@ namespace GitHub.Unity
                 Refresh();
             }
 #endif
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy; }
         }
 
 #if ENABLE_BROADMODE
