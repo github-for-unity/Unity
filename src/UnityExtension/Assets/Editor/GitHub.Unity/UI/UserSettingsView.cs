@@ -16,22 +16,15 @@ namespace GitHub.Unity
         private const string GitConfigEmailLabel = "Email";
         private const string GitConfigUserSave = "Save User";
 
-        [SerializeField]
-        private string gitName;
-        [SerializeField]
-        private string gitEmail;
+        [NonSerialized] private bool isBusy;
+        [NonSerialized] private bool userDataHasChanged;
 
-        [SerializeField]
-        private bool isBusy;
-        [NonSerialized]
-        private bool userDataHasChanged;
+        [SerializeField] private string gitName;
+        [SerializeField] private string gitEmail;
 
-        [SerializeField]
-        private string newGitName;
-        [SerializeField]
-        private string newGitEmail;
-        [SerializeField]
-        private User cachedUser;
+        [SerializeField] private string newGitName;
+        [SerializeField] private string newGitEmail;
+        [SerializeField] private User cachedUser;
 
         public override void OnDataUpdate()
         {
@@ -108,6 +101,11 @@ namespace GitHub.Unity
                 EditorGUI.EndDisabledGroup();
             }
             EditorGUI.EndDisabledGroup();
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy; }
         }
 
         private void MaybeUpdateData()
