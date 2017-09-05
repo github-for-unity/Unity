@@ -375,14 +375,8 @@ namespace GitHub.Unity
         {
             if (String.IsNullOrEmpty(path))
                 return false;
-            if (!GitClient.ValidateGitInstall(path.ToNPath()))
-            {
-                EditorUtility.DisplayDialog(GitInstallPickInvalidTitle, String.Format(GitInstallPickInvalidMessage, path),
-                    GitInstallPickInvalidOK);
-                return false;
-            }
 
-            return true;
+            return path.ToNPath().FileExists();
         }
 
         private bool OnIssuesGUI()
