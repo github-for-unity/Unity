@@ -142,6 +142,11 @@ namespace GitHub.Unity
                 ActiveTab.OnSelectionChange();
         }
 
+        public override bool IsBusy
+        {
+            get { return false; }
+        }
+
         public override void Refresh()
         {
             base.Refresh();
