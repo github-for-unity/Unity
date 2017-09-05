@@ -100,6 +100,8 @@
     <Compile Include="Application\LoginResult.cs" />
     <Compile Include="Application\AppConfiguration.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
+    <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />
+    <Compile Include="Git\Tasks\GitVersionTask.cs" />
     <Compile Include="Helpers\AssemblyResources.cs" />
     <Compile Include="Authentication\IKeychain.cs" />
     <Compile Include="Authentication\Keychain.cs" />
@@ -109,6 +111,9 @@
     <Compile Include="Helpers\Constants.cs" />
     <Compile Include="Cache\IBranchCache.cs" />
     <Compile Include="Helpers\Validation.cs" />
+    <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
+    <Compile Include="OutputProcessors\SoftwareVersion.cs" />
+    <Compile Include="OutputProcessors\VersionOutputProcessor.cs" />
     <Compile Include="Platform\DefaultEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Extensions\FileEventExtensions.cs" />
