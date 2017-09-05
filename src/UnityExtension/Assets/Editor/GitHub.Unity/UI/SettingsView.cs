@@ -81,7 +81,9 @@ namespace GitHub.Unity
         [SerializeField] private bool isBusy;
         [SerializeField] private int lockedFileSelection = -1;
         [SerializeField] private bool hasRemote;
-        [SerializeField] private bool remoteHasChanged;
+        [SerializeField] private bool metricsEnabled;
+        [NonSerialized] private bool metricsHasChanged;
+        [NonSerialized] private bool remoteHasChanged;
         [NonSerialized] private bool userDataHasChanged;
 
         [SerializeField] private string newGitName;
@@ -89,12 +91,15 @@ namespace GitHub.Unity
         [SerializeField] private string newRepositoryRemoteUrl;
         [SerializeField] private User cachedUser;
 
+        [NonSerialized] private IUsageTracker usageTracker;
+
         public override void OnEnable()
         {
             base.OnEnable();
             AttachHandlers(Repository);
 
             remoteHasChanged = true;
+            metricsHasChanged = true;
         }
 
         public override void OnDisable()
@@ -175,8 +180,20 @@ namespace GitHub.Unity
             GUILayout.EndScrollView();
         }
 
+        public override void InitializeView(IView parent)
+        {
+            base.InitializeView(parent);
+            usageTracker = Manager != null && Manager.UsageTracker != null ? Manager.UsageTracker : null;
+        }
+
         private void MaybeUpdateData()
         {
+            if (metricsHasChanged)
+            {
+                metricsEnabled = usageTracker != null && usageTracker.Enabled;
+                metricsHasChanged = false;
+            }
+
             if (lockedFiles == null)
                 lockedFiles = new List<GitLock>();
 
@@ -752,13 +769,10 @@ namespace GitHub.Unity
 
         private void OnPrivacyGui()
         {
-            var service = Manager != null && Manager.UsageTracker != null ? Manager.UsageTracker : null;
-
             GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(isBusy || service == null);
+            EditorGUI.BeginDisabledGroup(isBusy || usageTracker == null);
             {
-                var metricsEnabled = service != null ? service.Enabled : false;
                 EditorGUI.BeginChangeCheck();
                 {
                     metricsEnabled = GUILayout.Toggle(metricsEnabled, MetricsOptInLabel);
