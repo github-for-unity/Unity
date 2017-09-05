@@ -61,6 +61,7 @@ namespace GitHub.Unity
         private const string DefaultRepositoryRemoteName = "origin";
 
         [NonSerialized] private int newGitIgnoreRulesSelection = -1;
+        [NonSerialized] private bool isBusy;
 
         [SerializeField] private string gitName;
         [SerializeField] private string gitEmail;
@@ -72,7 +73,6 @@ namespace GitHub.Unity
         [SerializeField] private string repositoryRemoteName;
         [SerializeField] private string repositoryRemoteUrl;
         [SerializeField] private Vector2 scroll;
-        [SerializeField] private bool isBusy;
         [SerializeField] private int lockedFileSelection = -1;
         [SerializeField] private bool hasRemote;
         [SerializeField] private bool remoteHasChanged;
@@ -129,6 +129,11 @@ namespace GitHub.Unity
             remoteHasChanged = true;
 
             Refresh();
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy; }
         }
 
         public override void Refresh()

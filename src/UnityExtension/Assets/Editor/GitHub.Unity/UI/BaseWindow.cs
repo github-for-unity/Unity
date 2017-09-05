@@ -126,6 +126,7 @@ namespace GitHub.Unity
 
         public virtual Rect Position { get { return position; } }
         public IApplicationManager Manager { get; private set; }
+        public abstract bool IsBusy { get; }
         public IRepository Repository { get { return inLayout ? cachedRepository : Environment.Repository; } }
         public bool HasRepository { get { return Environment.RepositoryPath != null; } }
 

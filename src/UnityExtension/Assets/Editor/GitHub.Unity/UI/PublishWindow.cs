@@ -64,5 +64,10 @@ namespace GitHub.Unity
             Close();
             base.Finish(result);
         }
+
+        public override bool IsBusy
+        {
+            get { return publishView.IsBusy; }
+        }
     }
 }
