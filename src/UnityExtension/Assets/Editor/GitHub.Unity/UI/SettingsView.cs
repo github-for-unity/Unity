@@ -133,12 +133,13 @@ namespace GitHub.Unity
 
         public override bool IsBusy
         {
-            get { return isBusy; }
+            get { return isBusy || gitPathView.IsBusy; }
         }
 
         public override void Refresh()
         {
             base.Refresh();
+            gitPathView.Refresh();
             if (Repository != null && Repository.CurrentRemote.HasValue)
             {
                 Repository.ListLocks().Start();
@@ -356,7 +357,7 @@ namespace GitHub.Unity
         {
             GUILayout.Label(GitRepositoryTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(isBusy);
+            EditorGUI.BeginDisabledGroup(IsBusy);
             {
                 newRepositoryRemoteUrl = EditorGUILayout.TextField(GitRepositoryRemoteLabel + ": " + repositoryRemoteName, newRepositoryRemoteUrl);
                 var needsSaving = newRepositoryRemoteUrl != repositoryRemoteUrl && !String.IsNullOrEmpty(newRepositoryRemoteUrl);
@@ -593,7 +594,7 @@ namespace GitHub.Unity
 
         private void OnGitLfsLocksGUI()
         {
-            EditorGUI.BeginDisabledGroup(isBusy || Repository == null);
+            EditorGUI.BeginDisabledGroup(IsBusy || Repository == null);
             {
                 GUILayout.BeginVertical();
                 {
@@ -666,7 +667,7 @@ namespace GitHub.Unity
 
             GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(isBusy || service == null);
+            EditorGUI.BeginDisabledGroup(IsBusy || service == null);
             {
                 var metricsEnabled = service != null ? service.Enabled : false;
                 EditorGUI.BeginChangeCheck();
@@ -686,7 +687,7 @@ namespace GitHub.Unity
         {
             GUILayout.Label(DebugSettingsTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(isBusy);
+            EditorGUI.BeginDisabledGroup(IsBusy);
             {
                 var traceLogging = Logging.TracingEnabled;
 
