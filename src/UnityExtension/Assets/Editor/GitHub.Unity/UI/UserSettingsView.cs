@@ -43,7 +43,7 @@ namespace GitHub.Unity
         {
             GUILayout.Label(GitConfigTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(isBusy);
+            EditorGUI.BeginDisabledGroup(IsBusy || Parent.IsBusy);
             {
                 newGitName = EditorGUILayout.TextField(GitConfigNameLabel, newGitName);
                 newGitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, newGitEmail);

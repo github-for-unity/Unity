@@ -242,7 +242,7 @@ namespace GitHub.Unity
         {
             GUILayout.Label(GitRepositoryTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(isBusy);
+            EditorGUI.BeginDisabledGroup(IsBusy);
             {
                 newRepositoryRemoteUrl = EditorGUILayout.TextField(GitRepositoryRemoteLabel + ": " + repositoryRemoteName, newRepositoryRemoteUrl);
                 var needsSaving = newRepositoryRemoteUrl != repositoryRemoteUrl && !String.IsNullOrEmpty(newRepositoryRemoteUrl);
@@ -519,7 +519,7 @@ namespace GitHub.Unity
 
         private void OnGitLfsLocksGUI()
         {
-            EditorGUI.BeginDisabledGroup(isBusy || Repository == null);
+            EditorGUI.BeginDisabledGroup(IsBusy || Repository == null);
             {
                 GUILayout.BeginVertical();
                 {
@@ -608,7 +608,7 @@ namespace GitHub.Unity
             // Install path
             GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(isBusy || gitExecPath == null);
+            EditorGUI.BeginDisabledGroup(IsBusy || gitExecPath == null);
             {
                 // Install path field
                 EditorGUI.BeginChangeCheck();
@@ -657,7 +657,7 @@ namespace GitHub.Unity
 
             GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(isBusy || service == null);
+            EditorGUI.BeginDisabledGroup(IsBusy || service == null);
             {
                 var metricsEnabled = service != null ? service.Enabled : false;
                 EditorGUI.BeginChangeCheck();
@@ -677,7 +677,7 @@ namespace GitHub.Unity
         {
             GUILayout.Label(DebugSettingsTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(isBusy);
+            EditorGUI.BeginDisabledGroup(IsBusy);
             {
                 var traceLogging = Logging.TracingEnabled;
 
