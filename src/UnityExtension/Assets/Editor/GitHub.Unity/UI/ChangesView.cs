@@ -19,9 +19,9 @@ namespace GitHub.Unity
         private const string OneChangedFileLabel = "1 changed file";
         private const string NoChangedFilesLabel = "No changed files";
 
-        [NonSerialized] private bool busy = true;
-        [SerializeField] private string commitBody = "";
+        [NonSerialized] private bool isBusy = true;
 
+        [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
         [SerializeField] private Vector2 horizontalScroll;
@@ -52,6 +52,11 @@ namespace GitHub.Unity
             Repository.OnStatusUpdated -= RunStatusUpdateOnMainThread;
         }
 
+        public override bool IsBusy
+        {
+            get { return isBusy; }
+        }
+
         private void RunStatusUpdateOnMainThread(GitStatus status)
         {
             new ActionTask(TaskManager.Token, _ => OnStatusUpdate(status))
@@ -72,9 +77,8 @@ namespace GitHub.Unity
             // (Re)build tree
             tree.UpdateEntries(update.Entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
 
-            busy = false;
+            isBusy = false;
         }
-
 
         public override void OnGUI()
         {
@@ -144,7 +148,7 @@ namespace GitHub.Unity
                     GUILayout.Space(Styles.CommitAreaPadding);
 
                     // Disable committing when already committing or if we don't have all the data needed
-                    EditorGUI.BeginDisabledGroup(busy || string.IsNullOrEmpty(commitMessage) || !tree.CommitTargets.Any(t => t.Any));
+                    EditorGUI.BeginDisabledGroup(isBusy || string.IsNullOrEmpty(commitMessage) || !tree.CommitTargets.Any(t => t.Any));
                     {
                         GUILayout.BeginHorizontal();
                         {
@@ -187,7 +191,7 @@ namespace GitHub.Unity
         private void Commit()
         {
             // Do not allow new commits before we have received one successful update
-            busy = true;
+            isBusy = true;
 
             var files = Enumerable.Range(0, tree.Entries.Count)
                 .Where(i => tree.CommitTargets[i].All)
@@ -212,7 +216,7 @@ namespace GitHub.Unity
                     {
                         commitMessage = "";
                         commitBody = "";
-                        busy = false;
+                        isBusy = false;
                     }).Start();
         }
     }
