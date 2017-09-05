@@ -64,14 +64,17 @@ namespace GitHub.Unity
                             isBusy = true;
 
                             var validateGitInstall = !string.IsNullOrEmpty(newValue);
-
-                            if (validateGitInstall && !GitClient.ValidateGitInstall(newValue.ToNPath()))
+                            if (validateGitInstall)
                             {
-                                EditorUtility.DisplayDialog(GitInstallPickInvalidTitle, 
-                                    String.Format(GitInstallPickInvalidMessage, newValue),
-                                    GitInstallPickInvalidOK);
+                                var nPath = newValue.ToNPath();
+                                if (!nPath.FileExists())
+                                {
+                                    EditorUtility.DisplayDialog(GitInstallPickInvalidTitle,
+                                        String.Format(GitInstallPickInvalidMessage, newValue),
+                                        GitInstallPickInvalidOK);
 
-                                validateGitInstall = false;
+                                    validateGitInstall = false;
+                                }
                             }
 
                             if (validateGitInstall)
