@@ -60,7 +60,7 @@ namespace GitHub.Unity
                                      {
                                          if (Repository != null)
                                          {
-                                             Repository.User.Name = value;
+                                             Repository.User.Name = newGitName;
                                          }
                                          else
                                          {
@@ -68,7 +68,7 @@ namespace GitHub.Unity
                                              {
                                                  cachedUser = new User();
                                              }
-                                             cachedUser.Name = value;
+                                             cachedUser.Name = newGitName;
                                          }
                                      }
                                  })
@@ -80,13 +80,14 @@ namespace GitHub.Unity
                                                   {
                                                       if (Repository != null)
                                                       {
-                                                          Repository.User.Email = value;
+                                                          Repository.User.Email = newGitEmail;
                                                       }
                                                       else
                                                       {
-                                                          cachedUser.Email = value;
-                                                          userDataHasChanged = true;
+                                                          cachedUser.Email = newGitEmail;
                                                       }
+
+                                                      userDataHasChanged = true;
                                                   }
                                               }))
                                  .FinallyInUI((_, __) =>
