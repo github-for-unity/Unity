@@ -11,6 +11,7 @@ namespace GitHub.Unity
         void Initialize(IRepositoryManager repositoryManager);
         void Refresh();
         ITask SetupRemote(string remoteName, string remoteUrl);
+        ITask<List<GitLogEntry>> Log();
         ITask Pull();
         ITask Push();
         ITask Fetch();
