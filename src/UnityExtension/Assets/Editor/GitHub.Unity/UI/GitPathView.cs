@@ -142,9 +142,24 @@ namespace GitHub.Unity
 
         private void ValidateAndSetGitInstallPath(string value)
         {
-            Manager.SystemSettings.Set(Constants.GitInstallPathKey, value);
-            Environment.GitExecutablePath = value.ToNPath();
-            gitExecHasChanged = true;
+            GitClient.ValidateGitInstall(value).Then((sucess, result) => {
+                if (!sucess)
+                {
+                    Logger.Trace("Error getting software versions");
+                    return;
+                }
+
+                if (!result.IsValid)
+                {
+                    Logger.Warning("Software versions do not meet minimums Git:{0} GitLfs:{1}", result.GitVersionTask, result.GitLfsVersionTask);
+                    return;
+                }
+
+                Manager.SystemSettings.Set(Constants.GitInstallPathKey, value);
+                Environment.GitExecutablePath = value.ToNPath();
+
+                gitExecHasChanged = true;
+            });
         }
 
         private void MaybeUpdateData()
