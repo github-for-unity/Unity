@@ -132,6 +132,7 @@ namespace GitHub.Unity
                                 {
                                     Manager.SystemSettings.Set(Constants.GitInstallPathKey, path);
                                     Environment.GitExecutablePath = path;
+                                    gitExecHasChanged = true;
                                 }
 
                                 isBusy = false;
