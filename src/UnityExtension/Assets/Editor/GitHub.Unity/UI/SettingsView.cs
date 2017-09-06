@@ -688,20 +688,29 @@ namespace GitHub.Unity
         private void OnInstallPathGUI()
         {
             string gitExecPath = null;
+            string gitExecParentPath = null;
+
             string extension = null;
-            string gitInstallPath = null;
+
             if (Environment != null)
             {
                 extension = Environment.ExecutableExtension;
+
                 if (Environment.IsWindows)
                 {
                     extension = extension.TrimStart('.');
                 }
 
-                gitInstallPath = Environment.GitInstallPath;
-
                 if (Environment.GitExecutablePath != null)
+                {
                     gitExecPath = Environment.GitExecutablePath.ToString();
+                    gitExecParentPath = Environment.GitExecutablePath.Parent.ToString();
+                }
+
+                if (gitExecParentPath == null)
+                {
+                    gitExecParentPath = Environment.GitInstallPath;
+                }
             }
 
             // Install path
@@ -715,7 +724,7 @@ namespace GitHub.Unity
                     //TODO: Verify necessary value for a non Windows OS
                     Styles.PathField(ref gitExecPath,
                         () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
-                            gitInstallPath,
+                            gitExecParentPath,
                             extension), ValidateGitInstall);
                 }
                 if (EditorGUI.EndChangeCheck())
