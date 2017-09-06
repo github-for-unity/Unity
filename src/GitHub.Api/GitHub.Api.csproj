@@ -114,6 +114,7 @@
     <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
     <Compile Include="OutputProcessors\SoftwareVersion.cs" />
     <Compile Include="OutputProcessors\VersionOutputProcessor.cs" />
+    <Compile Include="Helpers\TaskHelpers.cs" />
     <Compile Include="Platform\DefaultEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Extensions\FileEventExtensions.cs" />
