@@ -437,33 +437,6 @@ namespace GitHub.Unity
 
                 return false;
             }
-            else if (!Utility.ActiveRepository)
-            {
-                Styles.BeginInitialStateArea(NoActiveRepositoryTitle, NoActiveRepositoryMessage);
-                {
-                    // Init directory path field
-                    Styles.PathField(ref initDirectory, () => EditorUtility.OpenFolderPanel(GitInitBrowseTitle, initDirectory, ""),
-                        ValidateInitDirectory);
-
-                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                    // Git init, which starts the config flow
-                    if (Styles.InitialStateActionButton(GitInitButton))
-                    {
-                        if (ValidateInitDirectory(initDirectory))
-                        {
-                            Init();
-                        }
-                        else
-                        {
-                            ResetInitDirectory();
-                        }
-                    }
-                }
-                Styles.EndInitialStateArea();
-
-                return false;
-            }
 
             if (settingsIssues != null && !Manager.LocalSettings.Get(IgnoreSerialisationIssuesSetting, "0").Equals("1"))
             {
