@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Octokit;
-using Rackspace.Threading;
 using UnityEditor;
 using UnityEngine;
 
