@@ -91,8 +91,6 @@ namespace GitHub.Unity
                     {
                         if (GUILayout.Button(GitPathSaveButton, GUILayout.ExpandWidth(false)))
                         {
-                            Logger.Trace("Saving Git Path:{0}", newGitExec);
-
                             GUI.FocusControl(null);
 
                             ValidateAndSetGitInstallPath(newGitExec);
@@ -130,8 +128,6 @@ namespace GitHub.Unity
                                 {
                                     ValidateAndSetGitInstallPath(path);
                                 }
-
-                                isBusy = false;
                             }).Start();
                     }
                 }
@@ -142,16 +138,20 @@ namespace GitHub.Unity
 
         private void ValidateAndSetGitInstallPath(string value)
         {
-            GitClient.ValidateGitInstall(value).Then((sucess, result) => {
+            Logger.Trace("Validating Git Path:{0}", value);
+
+            GitClient.ValidateGitInstall(value).ThenInUI((sucess, result) => {
                 if (!sucess)
                 {
                     Logger.Trace("Error getting software versions");
+                    isBusy = false;
                     return;
                 }
 
                 if (!result.IsValid)
                 {
                     Logger.Warning("Software versions do not meet minimums Git:{0} GitLfs:{1}", result.GitVersionTask, result.GitLfsVersionTask);
+                    isBusy = false;
                     return;
                 }
 
@@ -159,7 +159,9 @@ namespace GitHub.Unity
                 Environment.GitExecutablePath = value.ToNPath();
 
                 gitExecHasChanged = true;
-            });
+                isBusy = false;
+
+            }).Start();
         }
 
         private void MaybeUpdateData()
