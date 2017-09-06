@@ -74,6 +74,12 @@ namespace GitHub.Unity
                         if (!string.IsNullOrEmpty(newValue))
                         {
                             newGitExec = newValue;
+                                
+                            if(Environment.IsWindows)
+                            {
+                                //Normalizing the path separator in windows
+                                newGitExec = newGitExec.ToNPath().ToString();
+                            }
                         }
                     }
                 }
