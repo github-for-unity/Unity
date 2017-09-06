@@ -53,6 +53,9 @@ namespace GitHub.Unity
                 {
                     if (GUILayout.Button(GitConfigUserSave, GUILayout.ExpandWidth(false)))
                     {
+                        GUI.FocusControl(null);
+                        isBusy = true;
+
                         GitClient.SetConfig("user.name", newGitName, GitConfigSource.User)
                                  .Then((success, value) =>
                                  {
@@ -96,7 +99,6 @@ namespace GitHub.Unity
                                      Redraw();
                                  })
                                  .Start();
-                        isBusy = true;
                     }
                 }
                 EditorGUI.EndDisabledGroup();
