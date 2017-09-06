@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 
 namespace GitHub.Unity
 {
@@ -76,6 +77,24 @@ namespace GitHub.Unity
             {
                 return repositoryManager.RemoteChange(remote, remoteUrl);
             }
+        }
+
+        public ITask<List<GitLogEntry>> Log()
+        {
+            if (repositoryManager == null)
+                return new FuncListTask<GitLogEntry>(TaskHelpers.GetCompletedTask(new List<GitLogEntry>()));
+
+            return repositoryManager.Log();
+        }
+
+        public ITask CommitAllFiles(string message, string body)
+        {
+            return repositoryManager.CommitAllFiles(message, body);
+        }
+
+        public ITask CommitFiles(List<string> files, string message, string body)
+        {
+            return repositoryManager.CommitFiles(files, message, body);
         }
 
         public ITask Pull()
