@@ -29,20 +29,29 @@ namespace GitHub.Unity
         public override void OnGUI()
         {
             string gitExecPath = null;
+            string gitExecParentPath = null;
+
             string extension = null;
-            string gitInstallPath = null;
+
             if (Environment != null)
             {
                 extension = Environment.ExecutableExtension;
+
                 if (Environment.IsWindows)
                 {
                     extension = extension.TrimStart('.');
                 }
 
-                gitInstallPath = Environment.GitInstallPath;
-
                 if (Environment.GitExecutablePath != null)
+                {
                     gitExecPath = Environment.GitExecutablePath.ToString();
+                    gitExecParentPath = Environment.GitExecutablePath.Parent.ToString();
+                }
+
+                if (gitExecParentPath == null)
+                {
+                    gitExecParentPath = Environment.GitInstallPath;
+                }
             }
 
             // Install path
@@ -57,7 +66,7 @@ namespace GitHub.Unity
                     gitExecPath = EditorGUILayout.TextField("Path to Git", gitExecPath);
                     if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(25)))
                     {
-                        var newValue = EditorUtility.OpenFilePanel(GitInstallBrowseTitle, gitInstallPath, extension);
+                        var newValue = EditorUtility.OpenFilePanel(GitInstallBrowseTitle, gitExecParentPath, extension);
 
                         if (!string.IsNullOrEmpty(newValue))
                         {
