@@ -95,9 +95,7 @@ namespace GitHub.Unity
 
                             GUI.FocusControl(null);
 
-                            Manager.SystemSettings.Set(Constants.GitInstallPathKey, newGitExec);
-                            Environment.GitExecutablePath = newGitExec.ToNPath();
-                            gitExecHasChanged = true;
+                            ValidateAndSetGitInstallPath(newGitExec);
                         }
                     }
                     EditorGUI.EndDisabledGroup();
@@ -130,9 +128,7 @@ namespace GitHub.Unity
 
                                 if (success)
                                 {
-                                    Manager.SystemSettings.Set(Constants.GitInstallPathKey, path);
-                                    Environment.GitExecutablePath = path;
-                                    gitExecHasChanged = true;
+                                    ValidateAndSetGitInstallPath(path);
                                 }
 
                                 isBusy = false;
@@ -142,6 +138,13 @@ namespace GitHub.Unity
                 GUILayout.EndHorizontal();
             }
             EditorGUI.EndDisabledGroup();
+        }
+
+        private void ValidateAndSetGitInstallPath(string value)
+        {
+            Manager.SystemSettings.Set(Constants.GitInstallPathKey, value);
+            Environment.GitExecutablePath = value.ToNPath();
+            gitExecHasChanged = true;
         }
 
         private void MaybeUpdateData()
