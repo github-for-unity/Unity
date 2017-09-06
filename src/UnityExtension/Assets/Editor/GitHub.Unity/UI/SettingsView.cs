@@ -737,12 +737,30 @@ namespace GitHub.Unity
                             .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
                             .FinallyInUI((success, ex, path) =>
                             {
+                                if (success)
+                                {
+                                    Logger.Trace("FindProcess Completed Path:{1}", success, path);
+                                }
+                                else
+                                {
+                                    if (ex != null)
+                                    {
+                                        Logger.Error(ex, "FindProcess Error Path:{1}", success, path);
+                                    }
+                                    else
+                                    {
+                                        Logger.Error("FindProcess Failed Path:{1}", success, path);
+                                    }
+                                }
+
                                 if (success && !string.IsNullOrEmpty(path))
                                 {
-                                    Environment.GitExecutablePath = path;
                                     GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+
+                                    Manager.SystemSettings.Set(Constants.GitInstallPathKey, gitExecPath);
+                                    Environment.GitExecutablePath = gitExecPath.ToNPath();
                                 }
-                            });
+                            }).Start();
                     }
                 }
                 GUILayout.EndHorizontal();
