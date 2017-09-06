@@ -106,6 +106,7 @@ namespace GitHub.Unity
                     if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
                     {
                         GUI.FocusControl(null);
+                        isBusy = true;
 
                         new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
                             .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
@@ -132,6 +133,8 @@ namespace GitHub.Unity
                                     Manager.SystemSettings.Set(Constants.GitInstallPathKey, path);
                                     Environment.GitExecutablePath = path;
                                 }
+
+                                isBusy = false;
                             }).Start();
                     }
                 }
