@@ -150,10 +150,19 @@ namespace GitHub.Unity
 
                 if (!result.IsValid)
                 {
-                    Logger.Warning("Software versions do not meet minimums Git:{0} GitLfs:{1}", result.GitVersionTask, result.GitLfsVersionTask);
+                    Logger.Warning("Software versions do not meet minimums Git:{0} (Minimum:{1}) GitLfs:{2} (Minimum:{3})",
+                        result.GitVersionTask,
+                        Constants.MinimumGitVersion,
+                        result.GitLfsVersionTask,
+                        Constants.MinimumGitLfsVersion);
+
                     isBusy = false;
                     return;
                 }
+
+                Logger.Trace("Software versions meet minimums Git:{0} GitLfs:{1}",
+                    result.GitVersionTask,
+                    result.GitLfsVersionTask);
 
                 Manager.SystemSettings.Set(Constants.GitInstallPathKey, value);
                 Environment.GitExecutablePath = value.ToNPath();
