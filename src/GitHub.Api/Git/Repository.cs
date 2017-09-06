@@ -87,6 +87,16 @@ namespace GitHub.Unity
             return repositoryManager.Log();
         }
 
+        public ITask CommitAllFiles(string message, string body)
+        {
+            return repositoryManager.CommitAllFiles(message, body);
+        }
+
+        public ITask CommitFiles(List<string> files, string message, string body)
+        {
+            return repositoryManager.CommitFiles(files, message, body);
+        }
+
         public ITask Pull()
         {
             return repositoryManager.Pull(CurrentRemote.Value.Name, CurrentBranch?.Name);
