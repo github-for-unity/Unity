@@ -15,7 +15,7 @@ namespace GitHub.Unity
 
         public override string ProcessArguments
         {
-            get { return "-c i18n.logoutputencoding=utf8 -c core.quotepath=false status -b -u --ignored --porcelain"; }
+            get { return "-c i18n.logoutputencoding=utf8 -c core.quotepath=false status -b -u --porcelain"; }
         }
         public override TaskAffinity Affinity { get { return TaskAffinity.Exclusive; } }
     }

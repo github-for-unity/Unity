@@ -326,7 +326,7 @@ namespace GitHub.Unity
 
         private void SignIn(object obj)
         {
-            AuthenticationWindow.Open();
+            PopupWindow.Open(PopupWindow.PopupViewType.AuthenticationView);
         }
 
         private void GoToProfile(object obj)
