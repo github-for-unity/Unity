@@ -9,15 +9,16 @@ namespace GitHub.Unity
     {
         public enum PopupViewType
         {
+            None,
             PublishView,
             AuthenticationView
         }
 
-        [NonSerialized] private Subview activeView;
-
         [SerializeField] private PopupViewType activeViewType;
+
         [SerializeField] private AuthenticationView authenticationView;
         [SerializeField] private PublishView publishView;
+        [SerializeField] private LoadingView loadingView;
 
         public event Action<bool> OnClose;
 
@@ -53,50 +54,37 @@ namespace GitHub.Unity
 
             publishView = publishView ?? new PublishView();
             authenticationView = authenticationView ?? new AuthenticationView();
+            loadingView = loadingView ?? new LoadingView();
 
             publishView.InitializeView(this);
             authenticationView.InitializeView(this);
+            loadingView.InitializeView(this);
         }
 
         public override void OnEnable()
         {
             base.OnEnable();
 
-            if (ActiveView != null)
-            {
-                minSize = maxSize = ActiveView.Size;
-                ActiveView.OnEnable();
-            }
+            minSize = maxSize = ActiveView.Size;
+            ActiveView.OnEnable();
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
-
-            if (ActiveView != null)
-            {
-                ActiveView.OnDisable();
-            }
+            ActiveView.OnDisable();
         }
 
         public override void OnUI()
         {
             base.OnUI();
-
-            if (ActiveView != null)
-            {
-                ActiveView.OnGUI();
-            }
+            ActiveView.OnGUI();
         }
 
         public override void Refresh()
         {
             base.Refresh();
-
-            if (ActiveView != null)
-            {
-                ActiveView.Refresh();
-            }
+            ActiveView.Refresh();
         }
 
         public override void OnSelectionChange()
@@ -122,37 +110,24 @@ namespace GitHub.Unity
 
         private Subview ActiveView
         {
-            get { return activeView; }
+            get
+            {
+                switch (activeViewType)
+                {
+                    case PopupViewType.PublishView:
+                        return publishView;
+                    case PopupViewType.AuthenticationView:
+                        return authenticationView;
+                    default:
+                        return loadingView;
+                }
+            }
         }
 
         private PopupViewType ActiveViewType
         {
             get { return activeViewType; }
-            set
-            {
-                var valueChanged = false;
-                if (activeViewType != value)
-                {
-                    valueChanged = true;
-                    activeViewType = value;
-                }
-
-                if (activeView == null || valueChanged)
-                {
-                    switch (activeViewType)
-                    {
-                        case PopupViewType.PublishView:
-                            activeView = publishView;
-                            break;
-
-                        case PopupViewType.AuthenticationView:
-                            activeView = authenticationView;
-                            break;
-
-                        default: throw new ArgumentOutOfRangeException("value", value, null);
-                    }
-                }
-            }
+            set { activeViewType = value; }
         }
     }
 }
