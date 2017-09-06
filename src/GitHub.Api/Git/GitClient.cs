@@ -10,7 +10,7 @@ namespace GitHub.Unity
     {
         Task<NPath> FindGitInstallation();
 
-        ITask<bool> ValidateGitInstall(NPath path);
+        ITask<bool> ValidateGitInstall(string path);
 
         ITask Init(IOutputProcessor<string> processor = null);
 
@@ -153,9 +153,9 @@ namespace GitHub.Unity
             return path;
         }
 
-        public ITask<bool> ValidateGitInstall(NPath path)
+        public ITask<bool> ValidateGitInstall(string path)
         {
-            if (!path.FileExists())
+            if (!path.ToNPath().FileExists())
             {
                 return new FuncTask<bool>(cancellationToken, () => false);
             }
@@ -164,11 +164,11 @@ namespace GitHub.Unity
             SoftwareVersion? gitLfsVersion = null;
 
             var gitVersionTask = new GitVersionTask(cancellationToken);
-            gitVersionTask.Configure(processManager, path.ToString(), 
+            gitVersionTask.Configure(processManager, path, 
                 gitVersionTask.ProcessArguments, environment.RepositoryPath);
 
             var gitLfsVersionTask = new GitLfsVersionTask(cancellationToken);
-            gitLfsVersionTask.Configure(processManager, path.ToString(),
+            gitLfsVersionTask.Configure(processManager, path,
                 gitLfsVersionTask.ProcessArguments, environment.RepositoryPath);
 
             return gitVersionTask
@@ -176,17 +176,11 @@ namespace GitHub.Unity
                 .Then(gitLfsVersionTask)
                 .Then((result, version) => {
                     gitLfsVersion = version;
-                }).Then(result => {
-                    if (result)
-                    {
-                        return gitVersion.HasValue &&
-                            gitVersion.Value >= new SoftwareVersion(2, 1, 0) &&
-                            gitLfsVersion.HasValue &&
-                            gitLfsVersion.Value >= new SoftwareVersion(2, 1, 0);
-                    }
-
-                    return false;
-                });
+                }).Then(result => result &&
+                    gitVersion.HasValue &&
+                    gitVersion.Value >= new SoftwareVersion(2, 1, 0) &&
+                    gitLfsVersion.HasValue &&
+                    gitLfsVersion.Value >= new SoftwareVersion(2, 1, 0));
         }
 
         public ITask Init(IOutputProcessor<string> processor = null)
