@@ -130,6 +130,73 @@ namespace IntegrationTests
         }
 
         [Test, Category("TimeSensitive")]
+        public async Task ShouldAddAndCommitAllFiles()
+        {
+            await Initialize(TestRepoMasterCleanSynchronized);
+
+            var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
+            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            var expectedAfterChanges = new GitStatus {
+                Behind = 1,
+                LocalBranch = "master",
+                RemoteBranch = "origin/master",
+                Entries =
+                    new List<GitStatusEntry> {
+                        new GitStatusEntry("Assets\\TestDocument.txt",
+                            TestRepoMasterCleanSynchronized.Combine("Assets", "TestDocument.txt"),
+                            "Assets\\TestDocument.txt", GitFileStatus.Modified),
+                        new GitStatusEntry("foobar.txt", TestRepoMasterCleanSynchronized.Combine("foobar.txt"),
+                            "foobar.txt", GitFileStatus.Untracked)
+                    }
+            };
+
+            var result = new GitStatus();
+            RepositoryManager.OnStatusUpdated += status => { result = status; };
+
+            var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
+            foobarTxt.WriteAllText("foobar");
+
+            var testDocumentTxt = TestRepoMasterCleanSynchronized.Combine("Assets", "TestDocument.txt");
+            testDocumentTxt.WriteAllText("foobar");
+            await TaskManager.Wait();
+            WaitForNotBusy(repositoryManagerEvents, 1);
+            RepositoryManager.WaitForEvents();
+            WaitForNotBusy(repositoryManagerEvents, 1);
+
+            repositoryManagerListener.Received().OnStatusUpdate(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Arg.Any<ConfigBranch?>());
+            repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
+            repositoryManagerListener.DidNotReceive().OnHeadChanged();
+            repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
+            repositoryManagerListener.ReceivedWithAnyArgs().OnIsBusyChanged(Args.Bool);
+            repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
+
+            result.AssertEqual(expectedAfterChanges);
+
+            repositoryManagerListener.ClearReceivedCalls();
+            repositoryManagerEvents.Reset();
+
+            await RepositoryManager
+                .CommitAllFiles("IntegrationTest Commit", string.Empty)
+                .StartAsAsync();
+
+            await TaskManager.Wait();
+            RepositoryManager.WaitForEvents();
+            WaitForNotBusy(repositoryManagerEvents, 1);
+
+            repositoryManagerListener.DidNotReceive().OnStatusUpdate(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Arg.Any<ConfigBranch?>());
+            repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
+            repositoryManagerListener.DidNotReceive().OnHeadChanged();
+            repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
+            repositoryManagerListener.Received(2).OnIsBusyChanged(Args.Bool);
+            repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
+        }
+
+        [Test, Category("TimeSensitive")]
         public async Task ShouldDetectBranchChange()
         {
             await Initialize(TestRepoMasterCleanSynchronized);

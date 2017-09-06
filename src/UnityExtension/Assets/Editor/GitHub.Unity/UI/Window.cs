@@ -13,14 +13,11 @@ namespace GitHub.Unity
         private const float DefaultNotificationTimeout = 4f;
         private const string Title = "GitHub";
         private const string LaunchMenu = "Window/GitHub";
-        private const string RefreshButton = "Refresh";
-        private const string UnknownSubTabError = "Unsupported view mode: {0}";
         private const string BadNotificationDelayError = "A delay of {0} is shorter than the default delay and thus would get pre-empted.";
         private const string HistoryTitle = "History";
         private const string ChangesTitle = "Changes";
         private const string BranchesTitle = "Branches";
         private const string SettingsTitle = "Settings";
-        private const string AuthenticationTitle = "Auth";
         private const string DefaultRepoUrl = "No remote configured";
         private const string Window_RepoUrlTooltip = "Url of the {0} remote";
         private const string Window_RepoNoUrlTooltip = "Add a remote in the Settings tab";
@@ -29,10 +26,10 @@ namespace GitHub.Unity
         [NonSerialized] private double notificationClearTime = -1;
 
         [SerializeField] private SubTab activeTab = SubTab.History;
-        [SerializeField] private BranchesView branchesTab = new BranchesView();
-        [SerializeField] private ChangesView changesTab = new ChangesView();
-        [SerializeField] private HistoryView historyTab = new HistoryView();
-        [SerializeField] private SettingsView settingsTab = new SettingsView();
+        [SerializeField] private BranchesView branchesView = new BranchesView();
+        [SerializeField] private ChangesView changesView = new ChangesView();
+        [SerializeField] private HistoryView historyView = new HistoryView();
+        [SerializeField] private SettingsView settingsView = new SettingsView();
 
         [SerializeField] private string repoBranch;
         [SerializeField] private string repoUrl;
@@ -74,10 +71,10 @@ namespace GitHub.Unity
         {
             base.Initialize(applicationManager);
 
-            HistoryTab.InitializeView(this);
-            ChangesTab.InitializeView(this);
-            BranchesTab.InitializeView(this);
-            SettingsTab.InitializeView(this);
+            HistoryView.InitializeView(this);
+            ChangesView.InitializeView(this);
+            BranchesView.InitializeView(this);
+            SettingsView.InitializeView(this);
         }
 
         public override void OnEnable()
@@ -91,15 +88,15 @@ namespace GitHub.Unity
             // Set window title
             titleContent = new GUIContent(Title, Styles.SmallLogo);
 
-            if (ActiveTab != null)
-                ActiveTab.OnEnable();
+            if (ActiveView != null)
+                ActiveView.OnEnable();
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
-            if (ActiveTab != null)
-                ActiveTab.OnDisable();
+            if (ActiveView != null)
+                ActiveView.OnDisable();
         }
 
         public override void OnDataUpdate()
@@ -120,8 +117,8 @@ namespace GitHub.Unity
                 }
             }
 
-            if (ActiveTab != null)
-                ActiveTab.OnDataUpdate();
+            if (ActiveView != null)
+                ActiveView.OnDataUpdate();
         }
 
         public override void OnRepositoryChanged(IRepository oldRepository)
@@ -131,22 +128,22 @@ namespace GitHub.Unity
             DetachHandlers(oldRepository);
             AttachHandlers(Repository);
 
-            if (ActiveTab != null)
-                ActiveTab.OnRepositoryChanged(oldRepository);
+            if (ActiveView != null)
+                ActiveView.OnRepositoryChanged(oldRepository);
         }
 
         public override void OnSelectionChange()
         {
             base.OnSelectionChange();
-            if (ActiveTab != null)
-                ActiveTab.OnSelectionChange();
+            if (ActiveView != null)
+                ActiveView.OnSelectionChange();
         }
 
         public override void Refresh()
         {
             base.Refresh();
-            if (ActiveTab != null)
-                ActiveTab.Refresh();
+            if (ActiveView != null)
+                ActiveView.Refresh();
             Repaint();
         }
 
@@ -162,9 +159,9 @@ namespace GitHub.Unity
             DoToolbarGUI();
 
             // GUI for the active tab
-            if (ActiveTab != null)
+            if (ActiveView != null)
             {
-                ActiveTab.OnGUI();
+                ActiveView.OnGUI();
             }
         }
 
@@ -237,16 +234,6 @@ namespace GitHub.Unity
             repository.OnRepositoryInfoChanged -= RefreshOnMainThread;
         }
 
-
-        private void SwitchView(Subview from, Subview to)
-        {
-            GUI.FocusControl(null);
-            if (from != null)
-                from.OnDisable();
-            to.OnEnable();
-            Refresh();
-        }
-
         private void DoHeaderGUI()
         {
             GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
@@ -277,26 +264,25 @@ namespace GitHub.Unity
             // Subtabs & toolbar
             Rect mainNavRect = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
-                SubTab tab = activeTab;
+                SubTab changeTab = activeTab;
                 EditorGUI.BeginChangeCheck();
                 {
                     if (HasRepository)
                     {
-                        tab = TabButton(SubTab.Changes, ChangesTitle, tab);
-                        tab = TabButton(SubTab.History, HistoryTitle, tab);
-                        tab = TabButton(SubTab.Branches, BranchesTitle, tab);
+                        changeTab = TabButton(SubTab.Changes, ChangesTitle, changeTab);
+                        changeTab = TabButton(SubTab.History, HistoryTitle, changeTab);
+                        changeTab = TabButton(SubTab.Branches, BranchesTitle, changeTab);
                     }
                     else
                     {
-                        tab = TabButton(SubTab.History, HistoryTitle, tab);
+                        changeTab = TabButton(SubTab.History, HistoryTitle, changeTab);
                     }
-                    tab = TabButton(SubTab.Settings, SettingsTitle, tab);
+                    changeTab = TabButton(SubTab.Settings, SettingsTitle, changeTab);
                 }
+
                 if (EditorGUI.EndChangeCheck())
                 {
-                    var from = ActiveTab;
-                    activeTab = tab;
-                    SwitchView(from, ActiveTab);
+                    SetActiveTab(changeTab);
                 }
 
                 GUILayout.FlexibleSpace();
@@ -305,6 +291,28 @@ namespace GitHub.Unity
                     DoAccountDropdown();
             }
             EditorGUILayout.EndHorizontal();
+        }
+
+        private void SetActiveTab(SubTab changeTab)
+        {
+            if (changeTab != activeTab)
+            {
+                var fromView = ActiveView;
+                activeTab = changeTab;
+                SwitchView(fromView, ActiveView);
+            }
+        }
+
+        private void SwitchView(Subview fromView, Subview toView)
+        {
+            GUI.FocusControl(null);
+
+            if (fromView != null)
+                fromView.OnDisable();
+
+            toView.OnEnable();
+
+            Refresh();
         }
 
         private void DoAccountDropdown()
@@ -326,7 +334,7 @@ namespace GitHub.Unity
 
         private void SignIn(object obj)
         {
-            AuthenticationWindow.Open();
+            PopupWindow.Open(PopupWindow.PopupViewType.AuthenticationView);
         }
 
         private void GoToProfile(object obj)
@@ -350,22 +358,6 @@ namespace GitHub.Unity
             apiClient.Logout(host);
         }
 
-        private bool ValidateSettings()
-        {
-            var settingsIssues = Utility.Issues.Select(i => i as ProjectSettingsIssue).FirstOrDefault(i => i != null);
-
-            // Initial state
-            if (!Utility.ActiveRepository || !Utility.GitFound ||
-                (settingsIssues != null &&
-                    (settingsIssues.WasCaught(ProjectSettingsEvaluation.EditorSettingsMissing) ||
-                        settingsIssues.WasCaught(ProjectSettingsEvaluation.BadVCSSettings))))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         public new void ShowNotification(GUIContent content)
         {
             ShowNotification(content, DefaultNotificationTimeout);
@@ -384,27 +376,27 @@ namespace GitHub.Unity
             return GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
         }
 
-        public HistoryView HistoryTab
+        public HistoryView HistoryView
         {
-            get { return historyTab; }
+            get { return historyView; }
         }
 
-        public ChangesView ChangesTab
+        public ChangesView ChangesView
         {
-            get { return changesTab; }
+            get { return changesView; }
         }
 
-        public BranchesView BranchesTab
+        public BranchesView BranchesView
         {
-            get { return branchesTab; }
+            get { return branchesView; }
         }
 
-        public SettingsView SettingsTab
+        public SettingsView SettingsView
         {
-            get { return settingsTab; }
+            get { return settingsView; }
         }
 
-        private Subview ActiveTab
+        private Subview ActiveView
         {
             get
             {
@@ -417,14 +409,14 @@ namespace GitHub.Unity
             switch (tab)
             {
                 case SubTab.History:
-                    return historyTab;
+                    return historyView;
                 case SubTab.Changes:
-                    return changesTab;
+                    return changesView;
                 case SubTab.Branches:
-                    return branchesTab;
+                    return branchesView;
                 case SubTab.Settings:
                 default:
-                    return settingsTab;
+                    return settingsView;
             }
         }
 
