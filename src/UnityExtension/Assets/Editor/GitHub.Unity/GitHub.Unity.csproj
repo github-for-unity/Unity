@@ -100,6 +100,7 @@
     <Compile Include="UI\ChangesView.cs" />
     <Compile Include="UI\HistoryView.cs" />
     <Compile Include="UI\IView.cs" />
+    <Compile Include="UI\LoadingView.cs" />
     <Compile Include="UI\PublishView.cs" />
     <Compile Include="UI\SettingsView.cs" />
     <Compile Include="UI\Subview.cs" />

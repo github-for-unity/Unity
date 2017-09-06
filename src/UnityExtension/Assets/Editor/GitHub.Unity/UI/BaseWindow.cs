@@ -7,7 +7,6 @@ namespace GitHub.Unity
     abstract class BaseWindow :  EditorWindow, IView
     {
         [NonSerialized] private bool initialized = false;
-
         [NonSerialized] private IApplicationManager cachedManager;
         [NonSerialized] private IRepository cachedRepository;
         [NonSerialized] private bool initializeWasCalled;
@@ -46,8 +45,7 @@ namespace GitHub.Unity
         }
 
         public virtual void Finish(bool result)
-        {
-        }
+        {}
 
         public virtual void Awake()
         {
@@ -63,9 +61,11 @@ namespace GitHub.Unity
                 InitializeWindow(EntryPoint.ApplicationManager);
         }
 
-        public virtual void OnDisable() {}
+        public virtual void OnDisable()
+        {}
 
-        public virtual void Update() {}
+        public virtual void Update()
+        {}
 
         public virtual void OnDataUpdate()
         {}
@@ -104,9 +104,7 @@ namespace GitHub.Unity
         }
 
         public virtual void OnDestroy()
-        {
-           
-        }
+        {}
 
         public virtual void OnSelectionChange()
         {}
