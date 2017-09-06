@@ -2,9 +2,11 @@ namespace GitHub.Unity
 {
     public struct SoftwareVersion
     {
-        public int Major;
-        public int Minor;
-        public int Build;
+        public static SoftwareVersion Undefined = new SoftwareVersion(-1, -1, -1);
+
+        public readonly int Major;
+        public readonly int Minor;
+        public readonly int Build;
 
         public SoftwareVersion(int major, int minor, int build)
         {
@@ -17,6 +19,18 @@ namespace GitHub.Unity
             this(int.Parse(major), int.Parse(minor), int.Parse(build))
         {
 
+        }
+
+        public static bool operator ==(SoftwareVersion lhs, SoftwareVersion rhs)
+        {
+            return lhs.Major == rhs.Major
+                && lhs.Minor == rhs.Minor
+                && lhs.Build == rhs.Build;
+        }
+
+        public static bool operator !=(SoftwareVersion lhs, SoftwareVersion rhs)
+        {
+            return !(lhs == rhs);
         }
 
         public static bool operator <(SoftwareVersion lhs, SoftwareVersion rhs)

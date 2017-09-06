@@ -102,6 +102,7 @@
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />
     <Compile Include="Git\Tasks\GitVersionTask.cs" />
+    <Compile Include="Git\ValidateGitInstallResult.cs" />
     <Compile Include="Helpers\AssemblyResources.cs" />
     <Compile Include="Authentication\IKeychain.cs" />
     <Compile Include="Authentication\Keychain.cs" />
