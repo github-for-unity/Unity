@@ -94,5 +94,12 @@ namespace GitHub.Unity
         {
             return lhs.Equals(rhs) || lhs > rhs;
         }
+
+        public override string ToString()
+        {
+            return this == Undefined 
+                ? "Undefined"
+                : $"{Major}.{Minor}.{Build}";
+        }
     }
 }
