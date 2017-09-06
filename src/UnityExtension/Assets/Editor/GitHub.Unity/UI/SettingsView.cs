@@ -692,28 +692,25 @@ namespace GitHub.Unity
             EditorGUI.BeginDisabledGroup(isBusy);
             {
                 // Install path field
-                //EditorGUI.BeginChangeCheck();
-                {
-                    GUILayout.BeginHorizontal();
-                    { 
-                        newGitExec = EditorGUILayout.TextField(PathToGit, newGitExec);
+                GUILayout.BeginHorizontal();
+                { 
+                    newGitExec = EditorGUILayout.TextField(PathToGit, newGitExec);
 
-                        if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(25)))
+                    if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(25)))
+                    {
+                        GUI.FocusControl(null);
+
+                        var newValue = EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
+                            gitExecParent,
+                            gitExecExtension);
+
+                        if (!string.IsNullOrEmpty(newValue))
                         {
-                            GUI.FocusControl(null);
-
-                            var newValue = EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
-                                gitExecParent,
-                                gitExecExtension);
-
-                            if (!string.IsNullOrEmpty(newValue))
-                            {
-                                newGitExec = newValue;
-                            }
+                            newGitExec = newValue;
                         }
                     }
-                    GUILayout.EndHorizontal();
                 }
+                GUILayout.EndHorizontal();
 
                 GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
