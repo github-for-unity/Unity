@@ -65,6 +65,9 @@ namespace GitHub.Unity
         private const string EnableTraceLoggingLabel = "Enable Trace Logging";
         private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
         private const string DefaultRepositoryRemoteName = "origin";
+        private const string BrowseButton = "...";
+        private const string PathToGit = "Path to Git";
+        private const string GitPathSaveButton = "Save Path";
 
         [NonSerialized] private int newGitIgnoreRulesSelection = -1;
 
@@ -89,12 +92,19 @@ namespace GitHub.Unity
         [SerializeField] private string newRepositoryRemoteUrl;
         [SerializeField] private User cachedUser;
 
+        [SerializeField] private string gitExec;
+        [SerializeField] private string gitExecParent;
+        [SerializeField] private string gitExecExtension;
+        [SerializeField] private string newGitExec;
+        [NonSerialized] private bool gitExecHasChanged;
+
         public override void OnEnable()
         {
             base.OnEnable();
             AttachHandlers(Repository);
 
             remoteHasChanged = true;
+            gitExecHasChanged = true;
         }
 
         public override void OnDisable()
@@ -180,6 +190,35 @@ namespace GitHub.Unity
             if (lockedFiles == null)
                 lockedFiles = new List<GitLock>();
 
+            if (gitExecHasChanged)
+            {
+                if (Environment != null)
+                {
+                    if (gitExecExtension == null)
+                    {
+                        gitExecExtension = Environment.ExecutableExtension;
+
+                        if (Environment.IsWindows)
+                        {
+                            gitExecExtension = gitExecExtension.TrimStart('.');
+                        }
+                    }
+
+                    if (Environment.GitExecutablePath != null)
+                    {
+                        newGitExec = gitExec = Environment.GitExecutablePath.ToString();
+                        gitExecParent = Environment.GitExecutablePath.Parent.ToString();
+                    }
+
+                    if (gitExecParent == null)
+                    {
+                        gitExecParent = Environment.GitInstallPath;
+                    }
+                }
+
+                gitExecHasChanged = false;
+            }
+
             if (Repository == null)
             {
                 if ((cachedUser == null || String.IsNullOrEmpty(cachedUser.Name)) && GitClient != null)
@@ -207,6 +246,7 @@ namespace GitHub.Unity
                     newGitEmail = gitEmail = cachedUser.Email;
                     userDataHasChanged = false;
                 }
+
                 return;
             }
 
@@ -369,20 +409,6 @@ namespace GitHub.Unity
                 EditorGUI.EndDisabledGroup();
             }
             EditorGUI.EndDisabledGroup();
-        }
-
-        private bool ValidateGitInstall(string path)
-        {
-            if (String.IsNullOrEmpty(path))
-                return false;
-            if (!GitClient.ValidateGitInstall(path.ToNPath()))
-            {
-                EditorUtility.DisplayDialog(GitInstallPickInvalidTitle, String.Format(GitInstallPickInvalidMessage, path),
-                    GitInstallPickInvalidOK);
-                return false;
-            }
-
-            return true;
         }
 
         private bool OnIssuesGUI()
@@ -660,69 +686,74 @@ namespace GitHub.Unity
 
         private void OnInstallPathGUI()
         {
-            string gitExecPath = null;
-            string gitExecParentPath = null;
-
-            string extension = null;
-
-            if (Environment != null)
-            {
-                extension = Environment.ExecutableExtension;
-
-                if (Environment.IsWindows)
-                {
-                    extension = extension.TrimStart('.');
-                }
-
-                if (Environment.GitExecutablePath != null)
-                {
-                    gitExecPath = Environment.GitExecutablePath.ToString();
-                    gitExecParentPath = Environment.GitExecutablePath.Parent.ToString();
-                }
-
-                if (gitExecParentPath == null)
-                {
-                    gitExecParentPath = Environment.GitInstallPath;
-                }
-            }
-
             // Install path
             GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(isBusy || gitExecPath == null);
+            EditorGUI.BeginDisabledGroup(isBusy);
             {
                 // Install path field
-                EditorGUI.BeginChangeCheck();
+                //EditorGUI.BeginChangeCheck();
                 {
-                    //TODO: Verify necessary value for a non Windows OS
-                    Styles.PathField(ref gitExecPath,
-                        () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
-                            gitExecParentPath,
-                            extension), ValidateGitInstall);
-                }
-                if (EditorGUI.EndChangeCheck())
-                {
-                    Logger.Trace("Setting GitExecPath: " + gitExecPath);
+                    GUILayout.BeginHorizontal();
+                    { 
+                        newGitExec = EditorGUILayout.TextField(PathToGit, newGitExec);
 
-                    Manager.SystemSettings.Set(Constants.GitInstallPathKey, gitExecPath);
-                    Environment.GitExecutablePath = gitExecPath.ToNPath();
+                        if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(25)))
+                        {
+                            GUI.FocusControl(null);
+
+                            var newValue = EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
+                                gitExecParent,
+                                gitExecExtension);
+
+                            if (!string.IsNullOrEmpty(newValue))
+                            {
+                                newGitExec = newValue;
+                            }
+                        }
+                    }
+                    GUILayout.EndHorizontal();
                 }
 
                 GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
                 GUILayout.BeginHorizontal();
                 {
-                    // Find button - for attempting to locate a new install
+                    var needsSaving = !string.IsNullOrEmpty(newGitExec)
+                        && newGitExec != gitExec
+                        && newGitExec.ToNPath().FileExists();
+
+                    EditorGUI.BeginDisabledGroup(!needsSaving);
+                    { 
+                        if (GUILayout.Button(GitPathSaveButton, GUILayout.ExpandWidth(false)))
+                        {
+                            Logger.Trace("Saving Git Path:{0}", newGitExec);
+
+                            GUI.FocusControl(null);
+
+                            Manager.SystemSettings.Set(Constants.GitInstallPathKey, newGitExec);
+                            Environment.GitExecutablePath = newGitExec.ToNPath();
+                            gitExecHasChanged = true;
+                        }
+                    }
+                    EditorGUI.EndDisabledGroup();
+
+                    //Find button - for attempting to locate a new install
                     if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
                     {
+                        GUI.FocusControl(null);
+
                         var task = new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
                             .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
                             .FinallyInUI((success, ex, path) =>
                             {
+                                Logger.Trace("Find Git Completed Success:{0} Path:{1}", success, path);
+
                                 if (success && !string.IsNullOrEmpty(path))
                                 {
+                                    Manager.SystemSettings.Set(Constants.GitInstallPathKey, path);
                                     Environment.GitExecutablePath = path;
-                                    GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+                                    gitExecHasChanged = true;
                                 }
                             });
                     }

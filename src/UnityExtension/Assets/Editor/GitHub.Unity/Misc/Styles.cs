@@ -46,7 +46,6 @@ namespace GitHub.Unity
 
         public const int HalfSpacing = (int)(BaseSpacing / 2);
 
-        private const string BrowseButton = "...";
         private const string WarningLabel = "<b>Warning:</b> {0}";
 
         private static Color headerGreyColor = new Color(0.878f, 0.878f, 0.878f, 1.0f);
@@ -167,23 +166,6 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal(EditorStyles.helpBox);
             GUILayout.Label(string.Format(WarningLabel, message), LongMessageStyle);
             GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-        }
-
-        public static void PathField(ref string path, Func<string> browseFunction, Func<string, bool> validationFunction)
-        {
-            GUILayout.BeginHorizontal();
-            path = EditorGUILayout.TextField("Path to Git", path);
-            if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(25)))
-            {
-                var newValue = browseFunction();
-                if (!string.IsNullOrEmpty(newValue) && validationFunction(newValue))
-                {
-                    path = newValue;
-                    GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
-                    GUI.changed = true;
-                }
-            }
             GUILayout.EndHorizontal();
         }
 
