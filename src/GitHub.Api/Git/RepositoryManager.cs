@@ -28,7 +28,9 @@ namespace GitHub.Unity
         void Start();
         void Stop();
         void Refresh();
+        ITask CommitAllFiles(string message, string body);
         ITask CommitFiles(List<string> files, string message, string body);
+        ITask<List<GitLogEntry>> Log();
         ITask Fetch(string remote);
         ITask Pull(string remote, string branch);
         ITask Push(string remote, string branch);
@@ -191,6 +193,15 @@ namespace GitHub.Unity
             UpdateGitStatus();
         }
 
+        public ITask CommitAllFiles(string message, string body)
+        {
+            var add = GitClient.AddAll();
+            add.OnStart += t => IsBusy = true;
+            return add
+                .Then(GitClient.Commit(message, body))
+                .Finally(() => IsBusy = false);
+        }
+
         public ITask CommitFiles(List<string> files, string message, string body)
         {
             var add = GitClient.Add(files);
@@ -198,6 +209,13 @@ namespace GitHub.Unity
             return add
                 .Then(GitClient.Commit(message, body))
                 .Finally(() => IsBusy = false);
+        }
+
+        public ITask<List<GitLogEntry>> Log()
+        {
+            var task = GitClient.Log();
+            HookupHandlers(task);
+            return task;
         }
 
         public ITask Fetch(string remote)

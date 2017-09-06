@@ -86,10 +86,11 @@ namespace GitHub.Unity
             return groups
                 .Where(x => x.Key == "remote")
                 .SelectMany(x => x.Value)
+                .Where(x => x.Value.TryGetString("url") != null)
                 .Select(x => new ConfigRemote
                 {
                     Name = x.Key,
-                    Url = x.Value.GetString("url")
+                    Url = x.Value.TryGetString("url")
                 });
         }
 
@@ -98,7 +99,7 @@ namespace GitHub.Unity
             return groups
                 .Where(x => x.Key == "remote")
                 .SelectMany(x => x.Value)
-                .Where(x => x.Key == remote)
+                .Where(x => x.Key == remote && x.Value.TryGetString("url") != null)
                 .Select(x => new ConfigRemote
                 {
                     Name = x.Key,
