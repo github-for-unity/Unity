@@ -458,30 +458,30 @@ namespace GitHub.Unity
                     // Find button - for attempting to locate a new install
                     if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
                     {
-                        var task = new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
+                        GUI.FocusControl(null);
+
+                        new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
                             .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
                             .FinallyInUI((success, ex, path) =>
                             {
                                 if (success)
                                 {
-                                    Logger.Trace("FindProcess Completed Path:{1}", success, path);
+                                    Logger.Trace("FindGit Path:{0}", path);
                                 }
                                 else
                                 {
                                     if (ex != null)
                                     {
-                                        Logger.Error(ex, "FindProcess Error Path:{1}", success, path);
+                                        Logger.Error(ex, "FindGit Error Path:{0}", path);
                                     }
                                     else
                                     {
-                                        Logger.Error("FindProcess Failed Path:{1}", success, path);
+                                        Logger.Error("FindGit Failed Path:{0}", path);
                                     }
                                 }
 
                                 if (success && !string.IsNullOrEmpty(path))
                                 {
-                                    GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
-
                                     Manager.SystemSettings.Set(Constants.GitInstallPathKey, gitExecPath);
                                     Environment.GitExecutablePath = gitExecPath.ToNPath();
                                 }
