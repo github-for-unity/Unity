@@ -158,14 +158,11 @@ namespace GitHub.Unity
 
         private void RefreshLog()
         {
-            if (GitClient != null)
+            if (Repository != null)
             {
-                if (Repository != null)
-                {
-                    GitClient.Log().ThenInUI((success, log) => {
-                        if (success) OnLogUpdate(log);
-                    }).Start();
-                }
+                Repository.Log().ThenInUI((success, log) => {
+                    if (success) OnLogUpdate(log);
+                }).Start();
             }
         }
 
@@ -359,7 +356,7 @@ namespace GitHub.Unity
                         var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
                         if (publishedClicked)
                         {
-                            PublishWindow.Open();
+                            PopupWindow.Open(PopupWindow.PopupViewType.PublishView);
                         }
                     }
                     EditorGUI.EndDisabledGroup();
