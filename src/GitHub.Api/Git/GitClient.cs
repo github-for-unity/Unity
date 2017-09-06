@@ -10,7 +10,7 @@ namespace GitHub.Unity
     {
         Task<NPath> FindGitInstallation();
 
-        ITask<bool> ValidateGitInstall(string path);
+        ITask<ValidateGitInstallResult> ValidateGitInstall(string path);
 
         ITask Init(IOutputProcessor<string> processor = null);
 
@@ -92,7 +92,6 @@ namespace GitHub.Unity
         private readonly ITaskManager taskManager;
         private readonly CancellationToken cancellationToken;
 
-
         public GitClient(IEnvironment environment, IProcessManager processManager,
             ICredentialManager credentialManager, ITaskManager taskManager)
         {
@@ -153,15 +152,16 @@ namespace GitHub.Unity
             return path;
         }
 
-        public ITask<bool> ValidateGitInstall(string path)
+        public ITask<ValidateGitInstallResult> ValidateGitInstall(string path)
         {
             if (!path.ToNPath().FileExists())
             {
-                return new FuncTask<bool>(cancellationToken, () => false);
+                return new FuncTask<ValidateGitInstallResult>(cancellationToken, 
+                    () => new ValidateGitInstallResult(false, SoftwareVersion.Undefined, SoftwareVersion.Undefined));
             }
 
-            SoftwareVersion? gitVersion = null;
-            SoftwareVersion? gitLfsVersion = null;
+            var gitVersion = SoftwareVersion.Undefined;
+            var gitLfsVersion = SoftwareVersion.Undefined;
 
             var gitVersionTask = new GitVersionTask(cancellationToken);
             gitVersionTask.Configure(processManager, path, 
@@ -176,11 +176,15 @@ namespace GitHub.Unity
                 .Then(gitLfsVersionTask)
                 .Then((result, version) => {
                     gitLfsVersion = version;
-                }).Then(result => result &&
-                    gitVersion.HasValue &&
-                    gitVersion.Value >= new SoftwareVersion(2, 1, 0) &&
-                    gitLfsVersion.HasValue &&
-                    gitLfsVersion.Value >= new SoftwareVersion(2, 1, 0));
+                }).Then(result => {
+                    var b = result 
+                        && gitVersion != SoftwareVersion.Undefined
+                        && gitVersion >= Constants.MinimumGitVersion
+                        && gitLfsVersion != SoftwareVersion.Undefined
+                        && gitLfsVersion >= Constants.MinimumGitLfsVersion;
+
+                    return new ValidateGitInstallResult(b, gitVersion, gitLfsVersion);
+                });
         }
 
         public ITask Init(IOutputProcessor<string> processor = null)
