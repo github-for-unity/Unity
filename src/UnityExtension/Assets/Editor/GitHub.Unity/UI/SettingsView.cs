@@ -480,10 +480,10 @@ namespace GitHub.Unity
                                     }
                                 }
 
-                                if (success && !string.IsNullOrEmpty(path))
+                                if (success)
                                 {
-                                    Manager.SystemSettings.Set(Constants.GitInstallPathKey, gitExecPath);
-                                    Environment.GitExecutablePath = gitExecPath.ToNPath();
+                                    Manager.SystemSettings.Set(Constants.GitInstallPathKey, path);
+                                    Environment.GitExecutablePath = path;
                                 }
                             }).Start();
                     }
