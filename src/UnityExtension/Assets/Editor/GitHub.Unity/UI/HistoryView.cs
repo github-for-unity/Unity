@@ -401,7 +401,7 @@ namespace GitHub.Unity
                         var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
                         if (publishedClicked)
                         {
-                            PublishWindow.Open();
+                            PopupWindow.Open(PopupWindow.PopupViewType.PublishView);
                         }
                     }
                     EditorGUI.EndDisabledGroup();
