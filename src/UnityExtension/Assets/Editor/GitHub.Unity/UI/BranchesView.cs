@@ -110,9 +110,10 @@ namespace GitHub.Unity
         public override void Refresh()
         {
             base.Refresh();
-            var historyView = ((Window)Parent).HistoryView;
 
 #if ENABLE_BROADMODE
+            var historyView = ((Window)Parent).HistoryView;
+
             if (historyView.BroadMode)
                 historyView.Refresh();
             else
@@ -131,9 +132,9 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
+#if ENABLE_BROADMODE
             var historyView = ((Window)Parent).HistoryView;
 
-#if ENABLE_BROADMODE
             if (historyView.BroadMode)
                 historyView.OnGUI();
             else
