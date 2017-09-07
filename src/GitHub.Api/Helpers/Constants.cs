@@ -8,7 +8,7 @@ namespace GitHub.Unity
         public const string GitInstallPathKey = "GitInstallPath";
         public const string TraceLoggingKey = "EnableTraceLogging";
 
-        public static readonly SoftwareVersion MinimumGitVersion = new SoftwareVersion(2, 11, 1);
-        public static readonly SoftwareVersion MinimumGitLfsVersion = new SoftwareVersion(2, 0, 2);
+        public static readonly SoftwareVersion MinimumGitVersion = new SoftwareVersion(2, 11, 0);
+        public static readonly SoftwareVersion MinimumGitLfsVersion = new SoftwareVersion(2, 2, 0);
     }
 }
