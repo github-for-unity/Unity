@@ -3,14 +3,14 @@
     struct ValidateGitInstallResult
     {
         public bool IsValid;
-        public SoftwareVersion GitVersionTask;
-        public SoftwareVersion GitLfsVersionTask;
+        public SoftwareVersion GitVersion;
+        public SoftwareVersion GitLfsVersion;
 
-        public ValidateGitInstallResult(bool isValid, SoftwareVersion gitVersionTask, SoftwareVersion gitLfsVersionTask)
+        public ValidateGitInstallResult(bool isValid, SoftwareVersion gitVersion, SoftwareVersion gitLfsVersion)
         {
             IsValid = isValid;
-            GitVersionTask = gitVersionTask;
-            GitLfsVersionTask = gitLfsVersionTask;
+            GitVersion = gitVersion;
+            GitLfsVersion = gitLfsVersion;
         }
     }
 }
