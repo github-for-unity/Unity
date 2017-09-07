@@ -185,26 +185,26 @@ namespace GitHub.Unity
                 if (!result.IsValid)
                 {
                     Logger.Warning("Software versions do not meet minimums Git:{0} (Minimum:{1}) GitLfs:{2} (Minimum:{3})",
-                        result.GitVersionTask,
+                        result.GitVersion,
                         Constants.MinimumGitVersion,
-                        result.GitLfsVersionTask,
+                        result.GitLfsVersion,
                         Constants.MinimumGitLfsVersion);
 
                     var errorMessageStringBuilder = new StringBuilder();
 
-                    if (result.GitVersionTask < Constants.MinimumGitVersion)
+                    if (result.GitVersion < Constants.MinimumGitVersion)
                     {
-                        errorMessageStringBuilder.AppendFormat(ErrorMinimumGitVersionMessageFormat, result.GitVersionTask, Constants.MinimumGitVersion);
+                        errorMessageStringBuilder.AppendFormat(ErrorMinimumGitVersionMessageFormat, result.GitVersion, Constants.MinimumGitVersion);
                     }
 
-                    if (result.GitLfsVersionTask < Constants.MinimumGitLfsVersion)
+                    if (result.GitLfsVersion < Constants.MinimumGitLfsVersion)
                     {
                         if(errorMessageStringBuilder.Length > 0)
                         {
                             errorMessageStringBuilder.Append(Environment.NewLine);
                         }
 
-                        errorMessageStringBuilder.AppendFormat(ErrorMinimumGitLfsVersionMessageFormat, result.GitLfsVersionTask, Constants.MinimumGitLfsVersion);
+                        errorMessageStringBuilder.AppendFormat(ErrorMinimumGitLfsVersionMessageFormat, result.GitLfsVersion, Constants.MinimumGitLfsVersion);
                     }
 
                     gitVersionErrorMessage = errorMessageStringBuilder.ToString();
@@ -214,8 +214,8 @@ namespace GitHub.Unity
                 }
 
                 Logger.Trace("Software versions meet minimums Git:{0} GitLfs:{1}",
-                    result.GitVersionTask,
-                    result.GitLfsVersionTask);
+                    result.GitVersion,
+                    result.GitLfsVersion);
 
                 Manager.SystemSettings.Set(Constants.GitInstallPathKey, value);
                 Environment.GitExecutablePath = value.ToNPath();
