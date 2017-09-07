@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -11,33 +12,32 @@ namespace GitHub.Unity
     [Serializable]
     class GitPathView : Subview
     {
-        private const string BrowseButton = "...";
         private const string GitInstallTitle = "Git installation";
-        private const string GitInstallBrowseTitle = "Select git binary";
-        private const string GitInstallPickInvalidTitle = "Invalid Git install";
-        private const string GitInstallPickInvalidMessage = "The selected file is not a valid Git install. {0}";
-        private const string GitInstallFindButton = "Find install";
-        private const string GitInstallPickInvalidOK = "OK";
         private const string PathToGit = "Path to Git";
         private const string GitPathSaveButton = "Save Path";
+        private const string GitInstallFindButton = "Find install";
+        private const string BrowseButton = "...";
+        private const string GitInstallBrowseTitle = "Select git binary";
+        private const string ErrorInvalidPathMessage = "Invalid Path.";
+        private const string ErrorGettingSoftwareVersionMessage = "Error getting software versions.";
+        private const string ErrorMinimumGitVersionMessageFormat = "Git version {0} found. Git version {1} is required.";
+        private const string ErrorMinimumGitLfsVersionMessageFormat = "Git LFS version {0} found. Git LFS version {1} is required.";
 
         [SerializeField] private string gitExec;
         [SerializeField] private string gitExecParent;
         [SerializeField] private string gitExecExtension;
         [SerializeField] private string newGitExec;
-        [NonSerialized] private bool gitExecHasChanged;
 
         [NonSerialized] private bool isBusy;
+        [NonSerialized] private string gitFileErrorMessage;
+        [NonSerialized] private string gitVersionErrorMessage;
+        [NonSerialized] private bool gitExecHasChanged;
+
         public override void OnEnable()
         {
             base.OnEnable();
 
             gitExecHasChanged = true;
-        }
-
-        public override void OnDisable()
-        {
-            base.OnDisable();
         }
 
         public override void OnDataUpdate()
@@ -89,11 +89,16 @@ namespace GitHub.Unity
 
                 GUILayout.BeginHorizontal();
                 {
-                    var needsSaving = !string.IsNullOrEmpty(newGitExec)
-                        && newGitExec != gitExec
-                        && newGitExec.ToNPath().FileExists();
+                    var isValueChanged = !string.IsNullOrEmpty(newGitExec)
+                        && newGitExec != gitExec;
 
-                    EditorGUI.BeginDisabledGroup(!needsSaving);
+                    var isValueChangedAndFileExists = isValueChanged && newGitExec.ToNPath().FileExists();
+
+                    gitFileErrorMessage = isValueChanged && !isValueChangedAndFileExists
+                        ? ErrorInvalidPathMessage
+                        : null;
+
+                    EditorGUI.BeginDisabledGroup(!isValueChangedAndFileExists);
                     {
                         if (GUILayout.Button(GitPathSaveButton, GUILayout.ExpandWidth(false)))
                         {
@@ -138,6 +143,24 @@ namespace GitHub.Unity
                     }
                 }
                 GUILayout.EndHorizontal();
+
+                if (gitFileErrorMessage != null)
+                {
+                    GUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label(gitFileErrorMessage, Styles.ErrorLabel);
+                    }
+                    GUILayout.EndHorizontal();
+                }
+
+                if (gitVersionErrorMessage != null)
+                {
+                    GUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label(gitVersionErrorMessage, Styles.ErrorLabel);
+                    }
+                    GUILayout.EndHorizontal();
+                }
             }
             EditorGUI.EndDisabledGroup();
         }
@@ -146,11 +169,16 @@ namespace GitHub.Unity
         {
             Logger.Trace("Validating Git Path:{0}", value);
 
+            gitVersionErrorMessage = null;
+
             GitClient.ValidateGitInstall(value).ThenInUI((sucess, result) => {
                 if (!sucess)
                 {
-                    Logger.Trace("Error getting software versions");
+                    Logger.Trace(ErrorGettingSoftwareVersionMessage);
+                    gitVersionErrorMessage = ErrorGettingSoftwareVersionMessage;
+
                     isBusy = false;
+
                     return;
                 }
 
@@ -161,6 +189,25 @@ namespace GitHub.Unity
                         Constants.MinimumGitVersion,
                         result.GitLfsVersionTask,
                         Constants.MinimumGitLfsVersion);
+
+                    var errorMessageStringBuilder = new StringBuilder();
+
+                    if (result.GitVersionTask < Constants.MinimumGitVersion)
+                    {
+                        errorMessageStringBuilder.AppendFormat(ErrorMinimumGitVersionMessageFormat, result.GitVersionTask, Constants.MinimumGitVersion);
+                    }
+
+                    if (result.GitLfsVersionTask < Constants.MinimumGitLfsVersion)
+                    {
+                        if(errorMessageStringBuilder.Length > 0)
+                        {
+                            errorMessageStringBuilder.Append(Environment.NewLine);
+                        }
+
+                        errorMessageStringBuilder.AppendFormat(ErrorMinimumGitLfsVersionMessageFormat, result.GitLfsVersionTask, Constants.MinimumGitLfsVersion);
+                    }
+
+                    gitVersionErrorMessage = errorMessageStringBuilder.ToString();
 
                     isBusy = false;
                     return;
