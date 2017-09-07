@@ -1,5 +1,3 @@
-#pragma warning disable 649
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +12,9 @@ namespace GitHub.Unity
     {
         private const string NoRepoTitle = "No Git repository found for this project";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
-
+        
+        [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
+        [SerializeField] private GitPathView gitPathView = new GitPathView();
         [SerializeField] private bool isBusy;
         [SerializeField] private bool isPublished;
 
@@ -24,15 +24,63 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
+        public override void InitializeView(IView parent)
+        {
+            base.InitializeView(parent);
+            userSettingsView.InitializeView(this);
+            gitPathView.InitializeView(this);
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            userSettingsView.OnEnable();
+            gitPathView.OnEnable();
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            userSettingsView.OnDisable();
+            gitPathView.OnDisable();
+        }
+
+        public override void OnDataUpdate()
+        {
+            base.OnDataUpdate();
+
+            if (userSettingsView != null)
+            {
+                userSettingsView.OnDataUpdate();
+            }
+
+            if (gitPathView != null)
+            {
+                gitPathView.OnDataUpdate();
+            }
+        }
+
         public override void OnRepositoryChanged(IRepository oldRepository)
         {
             base.OnRepositoryChanged(oldRepository);
+
+            userSettingsView.OnRepositoryChanged(oldRepository);
+            gitPathView.OnRepositoryChanged(oldRepository);
+
             Refresh();
         }
 
         public override bool IsBusy
         {
-            get { return isBusy; }
+            get { return isBusy || userSettingsView.IsBusy || gitPathView.IsBusy; }
+        }
+
+        public override void Refresh()
+        {
+            base.Refresh();
+
+            userSettingsView.Refresh();
+            gitPathView.Refresh();
         }
 
         public override void OnGUI()
@@ -66,6 +114,10 @@ namespace GitHub.Unity
             }
             EditorGUILayout.EndHorizontal();
 
+            gitPathView.OnGUI();
+
+            userSettingsView.OnGUI();
+
             GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {
                 GUILayout.FlexibleSpace();
@@ -75,7 +127,7 @@ namespace GitHub.Unity
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
 
-                EditorGUI.BeginDisabledGroup(isBusy);
+                EditorGUI.BeginDisabledGroup(IsBusy);
                 {
                     if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
                     {
