@@ -27,10 +27,12 @@ namespace GitHub.Unity
         [SerializeField] private string gitExecParent;
         [SerializeField] private string gitExecExtension;
         [SerializeField] private string newGitExec;
+        [SerializeField] private bool isValueChanged;
+        [SerializeField] private bool isValueChangedAndFileExists;
+        [SerializeField] private string gitFileErrorMessage;
+        [SerializeField] private string gitVersionErrorMessage;
 
         [NonSerialized] private bool isBusy;
-        [NonSerialized] private string gitFileErrorMessage;
-        [NonSerialized] private string gitVersionErrorMessage;
         [NonSerialized] private bool gitExecHasChanged;
 
         public override void OnEnable()
@@ -61,7 +63,15 @@ namespace GitHub.Unity
                 // Install path field
                 GUILayout.BeginHorizontal();
                 {
-                    newGitExec = EditorGUILayout.TextField(PathToGit, newGitExec);
+                    EditorGUI.BeginChangeCheck();
+                    {
+                        newGitExec = EditorGUILayout.TextField(PathToGit, newGitExec);
+                    }
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        CheckEnteredGitPath();
+                    }
 
                     if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(25)))
                     {
@@ -89,20 +99,12 @@ namespace GitHub.Unity
 
                 GUILayout.BeginHorizontal();
                 {
-                    var isValueChanged = !string.IsNullOrEmpty(newGitExec)
-                        && newGitExec != gitExec;
-
-                    var isValueChangedAndFileExists = isValueChanged && newGitExec.ToNPath().FileExists();
-
-                    gitFileErrorMessage = isValueChanged && !isValueChangedAndFileExists
-                        ? ErrorInvalidPathMessage
-                        : null;
-
                     EditorGUI.BeginDisabledGroup(!isValueChangedAndFileExists);
                     {
                         if (GUILayout.Button(GitPathSaveButton, GUILayout.ExpandWidth(false)))
                         {
                             GUI.FocusControl(null);
+                            isBusy = true;
 
                             ValidateAndSetGitInstallPath(newGitExec);
                         }
@@ -114,6 +116,9 @@ namespace GitHub.Unity
                     {
                         GUI.FocusControl(null);
                         isBusy = true;
+
+                        newGitExec = gitExec;
+                        CheckEnteredGitPath();
 
                         new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
                             .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
@@ -137,8 +142,11 @@ namespace GitHub.Unity
 
                                 if (success)
                                 {
-                                    ValidateAndSetGitInstallPath(path);
+                                    newGitExec = path;
+                                    CheckEnteredGitPath();
                                 }
+
+                                isBusy = false;
                             }).Start();
                     }
                 }
@@ -163,6 +171,49 @@ namespace GitHub.Unity
                 }
             }
             EditorGUI.EndDisabledGroup();
+        }
+
+        private void MaybeUpdateData()
+        {
+            if (gitExecHasChanged)
+            {
+                if (Environment != null)
+                {
+                    if (gitExecExtension == null)
+                    {
+                        gitExecExtension = Environment.ExecutableExtension;
+
+                        if (Environment.IsWindows)
+                        {
+                            gitExecExtension = gitExecExtension.TrimStart('.');
+                        }
+                    }
+
+                    if (Environment.GitExecutablePath != null)
+                    {
+                        newGitExec = gitExec = Environment.GitExecutablePath.ToString();
+                        gitExecParent = Environment.GitExecutablePath.Parent.ToString();
+                    }
+
+                    if (gitExecParent == null)
+                    {
+                        gitExecParent = Environment.GitInstallPath;
+                    }
+                }
+
+                gitExecHasChanged = false;
+            }
+        }
+
+        private void CheckEnteredGitPath()
+        {
+            isValueChanged = !string.IsNullOrEmpty(newGitExec) && newGitExec != gitExec;
+
+            isValueChangedAndFileExists = isValueChanged && newGitExec.ToNPath().FileExists();
+
+            gitFileErrorMessage = isValueChanged && !isValueChangedAndFileExists ? ErrorInvalidPathMessage : null;
+
+            gitVersionErrorMessage = null;
         }
 
         private void ValidateAndSetGitInstallPath(string value)
@@ -224,38 +275,6 @@ namespace GitHub.Unity
                 isBusy = false;
 
             }).Start();
-        }
-
-        private void MaybeUpdateData()
-        {
-            if (gitExecHasChanged)
-            {
-                if (Environment != null)
-                {
-                    if (gitExecExtension == null)
-                    {
-                        gitExecExtension = Environment.ExecutableExtension;
-
-                        if (Environment.IsWindows)
-                        {
-                            gitExecExtension = gitExecExtension.TrimStart('.');
-                        }
-                    }
-
-                    if (Environment.GitExecutablePath != null)
-                    {
-                        newGitExec = gitExec = Environment.GitExecutablePath.ToString();
-                        gitExecParent = Environment.GitExecutablePath.Parent.ToString();
-                    }
-
-                    if (gitExecParent == null)
-                    {
-                        gitExecParent = Environment.GitInstallPath;
-                    }
-                }
-
-                gitExecHasChanged = false;
-            }
         }
     }
 }
