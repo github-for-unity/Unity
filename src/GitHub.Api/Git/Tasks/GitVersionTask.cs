@@ -1,12 +1,13 @@
+using System;
 using System.Threading;
 
 namespace GitHub.Unity
 {
-    class GitVersionTask : ProcessTask<SoftwareVersion>
+    class GitVersionTask : ProcessTask<Version>
     {
         private const string TaskName = "git --version";
 
-        public GitVersionTask(CancellationToken token, IOutputProcessor<SoftwareVersion> processor = null)
+        public GitVersionTask(CancellationToken token, IOutputProcessor<Version> processor = null)
             : base(token, processor ?? new VersionOutputProcessor())
         {
             Name = TaskName;

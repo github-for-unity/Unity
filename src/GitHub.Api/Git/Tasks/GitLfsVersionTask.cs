@@ -1,12 +1,13 @@
+using System;
 using System.Threading;
 
 namespace GitHub.Unity
 {
-    class GitLfsVersionTask : ProcessTask<SoftwareVersion>
+    class GitLfsVersionTask : ProcessTask<Version>
     {
         private const string TaskName = "git lfs version";
 
-        public GitLfsVersionTask(CancellationToken token, IOutputProcessor<SoftwareVersion> processor = null)
+        public GitLfsVersionTask(CancellationToken token, IOutputProcessor<Version> processor = null)
             : base(token, processor ?? new LfsVersionOutputProcessor())
         {
             Name = TaskName;

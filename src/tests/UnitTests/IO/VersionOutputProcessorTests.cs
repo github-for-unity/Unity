@@ -17,23 +17,22 @@ namespace UnitTests
 
             testCase = new TestCaseData(
                 $"git version 2.11.1.windows.1{Environment.NewLine}",
-                new SoftwareVersion(2, 11, 1));
+                new Version(2, 11, 1));
 
             testCase.SetName("Windows 2.11.1");
             yield return testCase;
         }
 
         [TestCaseSource(nameof(ShouldParseVersionOutputs_TestCases))]
-        public void ShouldParseVersionOutputs(string line, SoftwareVersion expected)
+        public void ShouldParseVersionOutputs(string line, Version expected)
         {
-            SoftwareVersion? version = null;
+            Version version = null;
 
             var outputProcessor = new VersionOutputProcessor();
             outputProcessor.OnEntry += output => { version = output; };
             outputProcessor.LineReceived(line);
 
-            version.HasValue.Should().BeTrue();
-            version.Value.Should().Be(expected);
+            version.Should().Be(expected);
         }
     }
 }

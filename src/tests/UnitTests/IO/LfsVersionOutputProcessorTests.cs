@@ -15,23 +15,22 @@ namespace UnitTests
 
             testCase = new TestCaseData(
                 $"git-lfs/2.2.0 (GitHub; windows amd64; go 1.8.3; git a99f4b21){Environment.NewLine}", 
-                new SoftwareVersion(2, 2, 0));
+                new Version(2, 2, 0));
 
             testCase.SetName("Windows GitLFS 2.2.0");
             yield return testCase;
         }
 
         [TestCaseSource(nameof(ShouldParseVersionOutputs_TestCases))]
-        public void ShouldParseVersionOutputs(string line, SoftwareVersion expected)
+        public void ShouldParseVersionOutputs(string line, Version expected)
         {
-            SoftwareVersion? version = null;
+            Version version = null;
 
             var outputProcessor = new LfsVersionOutputProcessor();
             outputProcessor.OnEntry += output => { version = output; };
             outputProcessor.LineReceived(line);
 
-            version.HasValue.Should().BeTrue();
-            version.Value.Should().Be(expected);
+            version.Should().Be(expected);
         }
     }
 }

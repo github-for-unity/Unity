@@ -113,7 +113,6 @@
     <Compile Include="Cache\IBranchCache.cs" />
     <Compile Include="Helpers\Validation.cs" />
     <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
-    <Compile Include="OutputProcessors\SoftwareVersion.cs" />
     <Compile Include="OutputProcessors\VersionOutputProcessor.cs" />
     <Compile Include="Helpers\TaskHelpers.cs" />
     <Compile Include="Platform\DefaultEnvironment.cs" />
