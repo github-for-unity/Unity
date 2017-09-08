@@ -29,6 +29,7 @@ namespace GitHub.Unity
         [NonSerialized] private string errorMessage;
         [NonSerialized] private bool enterPressed;
         [NonSerialized] private string password = "";
+        [NonSerialized] private AuthenticationService authenticationService;
 
 
         public override void InitializeView(IView parent)
