@@ -84,8 +84,8 @@ namespace GitHub.Unity
         private static Texture2D branchIcon,
                                  activeBranchIcon,
                                  trackingBranchIcon,
-                                 favouriteIconOn,
-                                 favouriteIconOff,
+                                 favoriteIconOn,
+                                 favoriteIconOff,
                                  smallLogoIcon,
                                  bigLogoIcon,
                                  defaultAssetIcon,
@@ -663,29 +663,29 @@ namespace GitHub.Unity
             }
         }
 
-        public static Texture2D FavouriteIconOn
+        public static Texture2D FavoriteIconOn
         {
             get
             {
-                if (favouriteIconOn == null)
+                if (favoriteIconOn == null)
                 {
-                    favouriteIconOn = Utility.GetIcon("favorite-branch-indicator.png");
+                    favoriteIconOn = Utility.GetIcon("favorite-branch-indicator.png");
                 }
 
-                return favouriteIconOn;
+                return favoriteIconOn;
             }
         }
 
-        public static Texture2D FavouriteIconOff
+        public static Texture2D FavoriteIconOff
         {
             get
             {
-                if (favouriteIconOff == null)
+                if (favoriteIconOff == null)
                 {
-                    favouriteIconOff = FolderIcon;
+                    favoriteIconOff = FolderIcon;
                 }
 
-                return favouriteIconOff;
+                return favoriteIconOff;
             }
         }
 
