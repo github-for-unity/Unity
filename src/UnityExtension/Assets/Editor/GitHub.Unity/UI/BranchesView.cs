@@ -43,6 +43,7 @@ namespace GitHub.Unity
         [NonSerialized] private List<GitBranch> newLocalBranches;
         [NonSerialized] private BranchTreeNode newNodeSelection;
         [NonSerialized] private BranchesMode targetMode;
+        [NonSerialized] private bool favouritesHasChanged;
 
         [SerializeField] private BranchTreeNode activeBranchNode;
         [SerializeField] private BranchTreeNode localRoot;
@@ -51,6 +52,7 @@ namespace GitHub.Unity
         [SerializeField] private List<Remote> remotes = new List<Remote>();
         [SerializeField] private Vector2 scroll;
         [SerializeField] private BranchTreeNode selectedNode;
+        private List<string> favouritesList;
 
         public override void InitializeView(IView parent)
         {
@@ -62,12 +64,28 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             AttachHandlers(Repository);
+            favouritesHasChanged = true;
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
             DetachHandlers(Repository);
+        }
+
+        public override void OnDataUpdate()
+        {
+            base.OnDataUpdate();
+            MaybeUpdateData();
+        }
+
+        private void MaybeUpdateData()
+        {
+            if (favouritesHasChanged)
+            {
+                favouritesList = Manager.LocalSettings.Get(FavoritesSetting, new List<string>());
+                favouritesHasChanged = false;
+            }
         }
 
         public override void OnRepositoryChanged(IRepository oldRepository)
@@ -246,12 +264,12 @@ namespace GitHub.Unity
 
         private int CompareBranches(GitBranch a, GitBranch b)
         {
-            if (GetFavourite(a.Name))
+            if (IsFavourite(a.Name))
             {
                 return -1;
             }
 
-            if (GetFavourite(b.Name))
+            if (IsFavourite(b.Name))
             {
                 return 1;
             }
@@ -269,19 +287,9 @@ namespace GitHub.Unity
             return 0;
         }
 
-        private bool GetFavourite(BranchTreeNode branch)
+        private bool IsFavourite(string branchName)
         {
-            return GetFavourite(branch.Name);
-        }
-
-        private bool GetFavourite(string branchName)
-        {
-            if (string.IsNullOrEmpty(branchName))
-            {
-                return false;
-            }
-
-            return Manager.LocalSettings.Get(FavoritesSetting, new List<string>()).Contains(branchName);
+            return !String.IsNullOrEmpty(branchName) && favouritesList.Contains(branchName);
         }
 
         private void OnLocalBranchesUpdate(IEnumerable<GitBranch> list)
@@ -312,7 +320,6 @@ namespace GitHub.Unity
 
             // Prepare for updated favourites listing
             favourites.Clear();
-            var cachedFavs = Manager.LocalSettings.Get<List<string>>(FavoritesSetting, new List<string>());
 
             // Just build directly on the local root, keep track of active branch
             localRoot = new BranchTreeNode("", NodeType.Folder, false);
@@ -342,7 +349,7 @@ namespace GitHub.Unity
                 }
 
                 // Add to favourites
-                if (cachedFavs.Contains(branch.Name))
+                if (favouritesList.Contains(branch.Name))
                 {
                     favourites.Add(node);
                 }
@@ -386,7 +393,7 @@ namespace GitHub.Unity
                 }
 
                 // Add to favourites
-                if (cachedFavs.Contains(branch.Name))
+                if (favouritesList.Contains(branch.Name))
                 {
                     favourites.Add(node);
                 }
@@ -597,7 +604,7 @@ namespace GitHub.Unity
 
                 if (node.Type != NodeType.Folder)
                 {
-                    var favourite = GetFavourite(node);
+                    var favourite = IsFavourite(node.Name);
                     if (Event.current.type == EventType.Repaint)
                     {
                         GUI.DrawTexture(favouriteRect, favourite ? Styles.FavouriteIconOn : Styles.FavouriteIconOff);
@@ -610,7 +617,7 @@ namespace GitHub.Unity
                 }
             }
             // Favourite status
-            else if (Event.current.type == EventType.Repaint && node.Type != NodeType.Folder && GetFavourite(node.Name))
+            else if (Event.current.type == EventType.Repaint && node.Type != NodeType.Folder && IsFavourite(node.Name))
             {
                 GUI.DrawTexture(favouriteRect, Styles.FavouriteIconOn);
             }
