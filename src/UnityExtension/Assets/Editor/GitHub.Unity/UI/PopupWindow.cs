@@ -93,6 +93,11 @@ namespace GitHub.Unity
             ActiveView.OnSelectionChange();
         }
 
+        public override bool IsBusy
+        {
+            get { return ActiveView.IsBusy; }
+        }
+
         public override void Finish(bool result)
         {
             OnClose.SafeInvoke(result);
