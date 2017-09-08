@@ -55,7 +55,7 @@ namespace GitHub.Unity
         public IApplicationManager Manager { get { return Parent.Manager; } }
         public IRepository Repository { get { return Parent.Repository; } }
         public bool HasRepository { get { return Parent.HasRepository; } }
-
+        public abstract bool IsBusy { get; }
         protected ITaskManager TaskManager { get { return Manager.TaskManager; } }
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }

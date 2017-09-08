@@ -400,6 +400,11 @@ namespace GitHub.Unity
             get { return settingsView; }
         }
 
+        public override bool IsBusy
+        {
+            get { return false; }
+        }
+
         private Subview ActiveView
         {
             get
