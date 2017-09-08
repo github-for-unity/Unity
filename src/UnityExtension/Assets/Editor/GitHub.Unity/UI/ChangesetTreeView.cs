@@ -86,17 +86,6 @@ namespace GitHub.Unity
             GUILayout.EndVertical();
         }
 
-        public override bool IsBusy
-        {
-            get { return false; }
-        }
-
-        private void OnCommitTreeChange()
-        {
-            Height = 0f;
-            Redraw();
-        }
-
         public void UpdateEntries(IList<GitStatusEntry> newEntries)
         {
             // Handle the empty list scenario
@@ -115,6 +104,12 @@ namespace GitHub.Unity
             tree = TreeBuilder.BuildTreeRoot(newEntries, entries, entryCommitTargets, foldedTreeEntries, AssetDatabase.GetCachedIcon);
 
             OnCommitTreeChange();
+        }
+
+        private void OnCommitTreeChange()
+        {
+            Height = 0f;
+            Redraw();
         }
 
         private void TreeNode(FileTreeNode node)
@@ -278,6 +273,11 @@ namespace GitHub.Unity
             }
 
             GUILayout.EndHorizontal();
+        }
+
+        public override bool IsBusy
+        {
+            get { return false; }
         }
 
         public float Height { get; protected set; }

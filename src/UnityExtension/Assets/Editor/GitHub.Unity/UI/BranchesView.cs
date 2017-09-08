@@ -128,11 +128,6 @@ namespace GitHub.Unity
             OnEmbeddedGUI();
         }
 
-        public override bool IsBusy
-        {
-            get { return false; }
-        }
-
         public void OnEmbeddedGUI()
         {
             scroll = GUILayout.BeginScrollView(scroll);
@@ -747,6 +742,11 @@ namespace GitHub.Unity
                     }
                 }
             }
+        }
+
+        public override bool IsBusy
+        {
+            get { return false; }
         }
 
         private enum NodeType

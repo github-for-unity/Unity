@@ -93,11 +93,6 @@ namespace GitHub.Unity
             ActiveView.OnSelectionChange();
         }
 
-        public override bool IsBusy
-        {
-            get { return ActiveView.IsBusy; }
-        }
-
         public override void Finish(bool result)
         {
             OnClose.SafeInvoke(result);
@@ -111,6 +106,11 @@ namespace GitHub.Unity
             base.OnDestroy();
             OnClose.SafeInvoke(false);
             OnClose = null;
+        }
+
+        public override bool IsBusy
+        {
+            get { return ActiveView.IsBusy; }
         }
 
         private Subview ActiveView

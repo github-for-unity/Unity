@@ -139,11 +139,6 @@ namespace GitHub.Unity
                 ActiveView.OnSelectionChange();
         }
 
-        public override bool IsBusy
-        {
-            get { return false; }
-        }
-
         public override void Refresh()
         {
             base.Refresh();
@@ -399,6 +394,11 @@ namespace GitHub.Unity
         public SettingsView SettingsView
         {
             get { return settingsView; }
+        }
+
+        public override bool IsBusy
+        {
+            get { return false; }
         }
 
         private Subview ActiveView
