@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GitHub.Unity
 {
-    class VersionOutputProcessor : BaseOutputProcessor<SoftwareVersion>
+    class VersionOutputProcessor : BaseOutputProcessor<Version>
     {
         public override void LineReceived(string line)
         {
@@ -16,7 +16,7 @@ namespace GitHub.Unity
                 line = line.Substring(gitVersion.Length);
                 var strings = line.Split(new[] { "." }, StringSplitOptions.None);
 
-                RaiseOnEntry(new SoftwareVersion(strings[0], strings[1], strings[2]));
+                RaiseOnEntry(new Version(Int32.Parse(strings[0]), Int32.Parse(strings[1]), Int32.Parse(strings[2])));
             }
         }
     }

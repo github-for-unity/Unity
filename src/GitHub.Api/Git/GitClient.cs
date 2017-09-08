@@ -79,9 +79,9 @@ namespace GitHub.Unity
 
         ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null);
 
-        ITask<SoftwareVersion> Version(IOutputProcessor<SoftwareVersion> processor = null);
+        ITask<Version> Version(IOutputProcessor<Version> processor = null);
 
-        ITask<SoftwareVersion> LfsVersion(IOutputProcessor<SoftwareVersion> processor = null);
+        ITask<Version> LfsVersion(IOutputProcessor<Version> processor = null);
     }
 
     class GitClient : IGitClient
@@ -157,11 +157,11 @@ namespace GitHub.Unity
             if (!path.ToNPath().FileExists())
             {
                 return new FuncTask<ValidateGitInstallResult>(cancellationToken, 
-                    () => new ValidateGitInstallResult(false, SoftwareVersion.Undefined, SoftwareVersion.Undefined));
+                    () => new ValidateGitInstallResult(false, null, null));
             }
 
-            var gitVersion = SoftwareVersion.Undefined;
-            var gitLfsVersion = SoftwareVersion.Undefined;
+            Version gitVersion = null;
+            Version gitLfsVersion = null;
 
             var gitVersionTask = new GitVersionTask(cancellationToken);
             gitVersionTask.Configure(processManager, path, 
@@ -178,9 +178,9 @@ namespace GitHub.Unity
                     gitLfsVersion = version;
                 }).Then(result => {
                     var b = result 
-                        && gitVersion != SoftwareVersion.Undefined
+                        && gitVersion != null
                         && gitVersion >= Constants.MinimumGitVersion
-                        && gitLfsVersion != SoftwareVersion.Undefined
+                        && gitLfsVersion != null
                         && gitLfsVersion >= Constants.MinimumGitLfsVersion;
 
                     return new ValidateGitInstallResult(b, gitVersion, gitLfsVersion);
@@ -217,7 +217,7 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<SoftwareVersion> Version(IOutputProcessor<SoftwareVersion> processor = null)
+        public ITask<Version> Version(IOutputProcessor<Version> processor = null)
         {
             Logger.Trace("Version");
 
@@ -225,7 +225,7 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<SoftwareVersion> LfsVersion(IOutputProcessor<SoftwareVersion> processor = null)
+        public ITask<Version> LfsVersion(IOutputProcessor<Version> processor = null)
         {
             Logger.Trace("LfsVersion");
 

@@ -1,12 +1,14 @@
-﻿namespace GitHub.Unity
+﻿using System;
+
+namespace GitHub.Unity
 {
     struct ValidateGitInstallResult
     {
         public bool IsValid;
-        public SoftwareVersion GitVersion;
-        public SoftwareVersion GitLfsVersion;
+        public Version GitVersion;
+        public Version GitLfsVersion;
 
-        public ValidateGitInstallResult(bool isValid, SoftwareVersion gitVersion, SoftwareVersion gitLfsVersion)
+        public ValidateGitInstallResult(bool isValid, Version gitVersion, Version gitLfsVersion)
         {
             IsValid = isValid;
             GitVersion = gitVersion;

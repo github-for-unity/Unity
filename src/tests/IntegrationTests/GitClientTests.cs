@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using GitHub.Unity;
@@ -19,11 +20,11 @@ namespace IntegrationTests
             var versionResult = version.Result;
             if (Environment.IsWindows)
             {
-                versionResult.Should().Be($"2.11.1");
+                versionResult.Should().Be(new Version(2,11,1));
             }
             else
             {
-                versionResult.Should().NotBe(string.Empty);
+                versionResult.Should().NotBeNull();
             }
         }
 
@@ -38,11 +39,11 @@ namespace IntegrationTests
             var versionResult = version.Result;
             if (Environment.IsWindows)
             {
-                versionResult.Should().Be("2.2.0");
+                versionResult.Should().Be(new Version(2, 2, 0));
             }
             else
             {
-                versionResult.Should().NotBe(string.Empty);
+                versionResult.Should().NotBeNull();
             }
         }
     }

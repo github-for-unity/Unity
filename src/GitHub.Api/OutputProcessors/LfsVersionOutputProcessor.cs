@@ -2,7 +2,7 @@ using System;
 
 namespace GitHub.Unity
 {
-    class LfsVersionOutputProcessor : BaseOutputProcessor<SoftwareVersion>
+    class LfsVersionOutputProcessor : BaseOutputProcessor<Version>
     {
         public override void LineReceived(string line)
         {
@@ -15,7 +15,7 @@ namespace GitHub.Unity
                 line = line.Substring(gitVersion.Length, line.IndexOf(" ", StringComparison.InvariantCultureIgnoreCase) - gitVersion.Length);
                 var strings = line.Split(new[] { "." }, StringSplitOptions.None);
 
-                RaiseOnEntry(new SoftwareVersion(strings[0], strings[1], strings[2]));
+                RaiseOnEntry(new Version(Int32.Parse(strings[0]), Int32.Parse(strings[1]), Int32.Parse(strings[2])));
             }
         }
     }
