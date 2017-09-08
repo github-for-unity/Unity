@@ -43,13 +43,17 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private int lockedFileSelection = -1;
         [SerializeField] private bool hasRemote;
-        [SerializeField] private bool remoteHasChanged;
+        [NonSerialized] private bool remoteHasChanged;
         [NonSerialized] private bool userDataHasChanged;
 
         [SerializeField] private string newGitName;
         [SerializeField] private string newGitEmail;
         [SerializeField] private string newRepositoryRemoteUrl;
         [SerializeField] private User cachedUser;
+        
+        [SerializeField] private bool metricsEnabled;
+        [NonSerialized] private bool metricsHasChanged;
+        
         [SerializeField] private GitPathView gitPathView = new GitPathView();
 
         public override void InitializeView(IView parent)
@@ -66,6 +70,7 @@ namespace GitHub.Unity
             AttachHandlers(Repository);
 
             remoteHasChanged = true;
+            metricsHasChanged = true;
         }
 
         public override void OnDisable()
@@ -161,6 +166,12 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
+            if (metricsHasChanged)
+            {
+                metricsEnabled = Manager.UsageTracker.Enabled;
+                metricsHasChanged = false;
+            }
+
             if (lockedFiles == null)
                 lockedFiles = new List<GitLock>();
 
@@ -271,7 +282,7 @@ namespace GitHub.Unity
                                 {
                                     if (Repository != null)
                                     {
-                                        Repository.User.Name = value;
+                                        Repository.User.Name = newGitName;
                                     }
                                     else
                                     {
@@ -279,7 +290,7 @@ namespace GitHub.Unity
                                         {
                                             cachedUser = new User();
                                         }
-                                        cachedUser.Name = value;
+                                        cachedUser.Name = newGitName;
                                     }
                                 }
                             })
@@ -291,13 +302,14 @@ namespace GitHub.Unity
                                 {
                                     if (Repository != null)
                                     {
-                                        Repository.User.Email = value;
+                                        Repository.User.Email = newGitEmail;
                                     }
                                     else
                                     {
-                                        cachedUser.Email = value;
-                                        userDataHasChanged = true;
+                                        cachedUser.Email = newGitEmail;
                                     }
+
+                                    userDataHasChanged = true;
                                 }
                             }))
                         .FinallyInUI((_, __) =>
@@ -419,13 +431,10 @@ namespace GitHub.Unity
 
         private void OnPrivacyGui()
         {
-            var service = Manager != null ? Manager.UsageTracker : null;
-
             GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(IsBusy || service == null);
+            EditorGUI.BeginDisabledGroup(IsBusy);
             {
-                var metricsEnabled = service != null && service.Enabled;
                 
                 EditorGUI.BeginChangeCheck();
                 {
@@ -435,7 +444,6 @@ namespace GitHub.Unity
                 {
                     Manager.UsageTracker.Enabled = metricsEnabled;
                 }
-
             }
             EditorGUI.EndDisabledGroup();
         }
