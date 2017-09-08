@@ -20,7 +20,7 @@ namespace IntegrationTests
             var versionResult = version.Result;
             if (Environment.IsWindows)
             {
-                versionResult.Should().Be(new Version(2,1,1));
+                versionResult.Should().Be(new Version(2,11,1));
             }
             else
             {
