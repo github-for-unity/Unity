@@ -309,19 +309,9 @@ namespace GitHub.Unity
             return 0;
         }
 
-        private bool IsFavourite(BranchTreeNode branch)
-        {
-            return IsFavourite(branch.Name);
-        }
-
         private bool IsFavourite(string branchName)
         {
-            if (string.IsNullOrEmpty(branchName))
-            {
-                return false;
-            }
-
-            return favouritesList.Contains(branchName);
+            return !String.IsNullOrEmpty(branchName) && favouritesList.Contains(branchName);
         }
 
         private void OnLocalBranchesUpdate(IEnumerable<GitBranch> list)
@@ -636,7 +626,7 @@ namespace GitHub.Unity
 
                 if (node.Type != NodeType.Folder)
                 {
-                    var favourite = IsFavourite(node);
+                    var favourite = IsFavourite(node.Name);
                     if (Event.current.type == EventType.Repaint)
                     {
                         GUI.DrawTexture(favouriteRect, favourite ? Styles.FavouriteIconOn : Styles.FavouriteIconOff);
