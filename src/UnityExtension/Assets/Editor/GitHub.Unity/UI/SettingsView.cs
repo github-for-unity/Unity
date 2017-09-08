@@ -478,16 +478,37 @@ namespace GitHub.Unity
                     // Find button - for attempting to locate a new install
                     if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
                     {
-                        var task = new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
+                        GUI.FocusControl(null);
+                        isBusy = true;
+
+                        new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
                             .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
                             .FinallyInUI((success, ex, path) =>
                             {
-                                if (success && !string.IsNullOrEmpty(path))
+                                if (success)
                                 {
-                                    Environment.GitExecutablePath = path;
-                                    GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+                                    Logger.Trace("FindGit Path:{0}", path);
                                 }
-                            });
+                                else
+                                {
+                                    if (ex != null)
+                                    {
+                                        Logger.Error(ex, "FindGit Error Path:{0}", path);
+                                    }
+                                    else
+                                    {
+                                        Logger.Error("FindGit Failed Path:{0}", path);
+                                    }
+                                }
+
+                                if (success)
+                                {
+                                    Manager.SystemSettings.Set(Constants.GitInstallPathKey, path);
+                                    Environment.GitExecutablePath = path;
+                                }
+
+                                isBusy = false;
+                            }).Start();
                     }
                 }
                 GUILayout.EndHorizontal();
