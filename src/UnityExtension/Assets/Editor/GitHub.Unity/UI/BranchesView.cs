@@ -24,8 +24,8 @@ namespace GitHub.Unity
         private const string WarningCheckoutBranchExistsOK = "Ok";
         private const string NewBranchCancelButton = "x";
         private const string NewBranchConfirmButton = "Create";
-        private const string FavoritesSetting = "Favourites";
-        private const string FavoritesTitle = "Favourites";
+        private const string FavoritesSetting = "Favorites";
+        private const string FavoritesTitle = "Favorites";
         private const string CreateBranchTitle = "Create Branch";
         private const string LocalTitle = "Local branches";
         private const string RemoteTitle = "Remote branches";
