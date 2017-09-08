@@ -45,13 +45,16 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private int lockedFileSelection = -1;
         [SerializeField] private bool hasRemote;
-        [SerializeField] private bool remoteHasChanged;
+        [NonSerialized] private bool remoteHasChanged;
         [NonSerialized] private bool userDataHasChanged;
 
         [SerializeField] private string newGitName;
         [SerializeField] private string newGitEmail;
         [SerializeField] private string newRepositoryRemoteUrl;
         [SerializeField] private User cachedUser;
+        
+        [SerializeField] private bool metricsEnabled;
+        [NonSerialized] private bool metricsHasChanged;
 
         public override void OnEnable()
         {
@@ -59,6 +62,7 @@ namespace GitHub.Unity
             AttachHandlers(Repository);
 
             remoteHasChanged = true;
+            metricsHasChanged = true;
         }
 
         public override void OnDisable()
@@ -141,6 +145,12 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
+            if (metricsHasChanged)
+            {
+                metricsEnabled = Manager.UsageTracker.Enabled;
+                metricsHasChanged = false;
+            }
+
             if (lockedFiles == null)
                 lockedFiles = new List<GitLock>();
 
@@ -250,7 +260,7 @@ namespace GitHub.Unity
                                 {
                                     if (Repository != null)
                                     {
-                                        Repository.User.Name = value;
+                                        Repository.User.Name = newGitName;
                                     }
                                     else
                                     {
@@ -258,7 +268,7 @@ namespace GitHub.Unity
                                         {
                                             cachedUser = new User();
                                         }
-                                        cachedUser.Name = value;
+                                        cachedUser.Name = newGitName;
                                     }
                                 }
                             })
@@ -270,13 +280,14 @@ namespace GitHub.Unity
                                 {
                                     if (Repository != null)
                                     {
-                                        Repository.User.Email = value;
+                                        Repository.User.Email = newGitEmail;
                                     }
                                     else
                                     {
-                                        cachedUser.Email = value;
-                                        userDataHasChanged = true;
+                                        cachedUser.Email = newGitEmail;
                                     }
+
+                                    userDataHasChanged = true;
                                 }
                             }))
                         .FinallyInUI((_, __) =>
@@ -413,20 +424,29 @@ namespace GitHub.Unity
         private void OnInstallPathGUI()
         {
             string gitExecPath = null;
+            string gitExecParentPath = null;
+
             string extension = null;
-            string gitInstallPath = null;
+
             if (Environment != null)
             {
                 extension = Environment.ExecutableExtension;
+
                 if (Environment.IsWindows)
                 {
                     extension = extension.TrimStart('.');
                 }
 
-                gitInstallPath = Environment.GitInstallPath;
-
                 if (Environment.GitExecutablePath != null)
+                {
                     gitExecPath = Environment.GitExecutablePath.ToString();
+                    gitExecParentPath = Environment.GitExecutablePath.Parent.ToString();
+                }
+
+                if (gitExecParentPath == null)
+                {
+                    gitExecParentPath = Environment.GitInstallPath;
+                }
             }
 
             // Install path
@@ -440,7 +460,7 @@ namespace GitHub.Unity
                     //TODO: Verify necessary value for a non Windows OS
                     Styles.PathField(ref gitExecPath,
                         () => EditorUtility.OpenFilePanel(GitInstallBrowseTitle,
-                            gitInstallPath,
+                            gitExecParentPath,
                             extension), ValidateGitInstall);
                 }
                 if (EditorGUI.EndChangeCheck())
@@ -458,16 +478,37 @@ namespace GitHub.Unity
                     // Find button - for attempting to locate a new install
                     if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
                     {
-                        var task = new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
+                        GUI.FocusControl(null);
+                        isBusy = true;
+
+                        new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
                             .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
                             .FinallyInUI((success, ex, path) =>
                             {
-                                if (success && !string.IsNullOrEmpty(path))
+                                if (success)
                                 {
-                                    Environment.GitExecutablePath = path;
-                                    GUIUtility.keyboardControl = GUIUtility.hotControl = 0;
+                                    Logger.Trace("FindGit Path:{0}", path);
                                 }
-                            });
+                                else
+                                {
+                                    if (ex != null)
+                                    {
+                                        Logger.Error(ex, "FindGit Error Path:{0}", path);
+                                    }
+                                    else
+                                    {
+                                        Logger.Error("FindGit Failed Path:{0}", path);
+                                    }
+                                }
+
+                                if (success)
+                                {
+                                    Manager.SystemSettings.Set(Constants.GitInstallPathKey, path);
+                                    Environment.GitExecutablePath = path;
+                                }
+
+                                isBusy = false;
+                            }).Start();
                     }
                 }
                 GUILayout.EndHorizontal();
@@ -477,13 +518,10 @@ namespace GitHub.Unity
 
         private void OnPrivacyGui()
         {
-            var service = Manager != null ? Manager.UsageTracker : null;
-
             GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(isBusy || service == null);
+            EditorGUI.BeginDisabledGroup(isBusy);
             {
-                var metricsEnabled = service != null && service.Enabled;
                 EditorGUI.BeginChangeCheck();
                 {
                     metricsEnabled = GUILayout.Toggle(metricsEnabled, MetricsOptInLabel);
@@ -492,7 +530,6 @@ namespace GitHub.Unity
                 {
                     Manager.UsageTracker.Enabled = metricsEnabled;
                 }
-
             }
             EditorGUI.EndDisabledGroup();
         }

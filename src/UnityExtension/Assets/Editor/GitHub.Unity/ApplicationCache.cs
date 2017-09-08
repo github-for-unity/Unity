@@ -126,52 +126,52 @@ namespace GitHub.Unity
     }
 
     [Location("views/branches.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class Favourites : ScriptObjectSingleton<Favourites>
+    sealed class Favorites : ScriptObjectSingleton<Favorites>
     {
-        [SerializeField] private List<string> favouriteBranches;
-        public List<string> FavouriteBranches
+        [SerializeField] private List<string> favoriteBranches;
+        public List<string> FavoriteBranches
         {
             get
             {
-                if (favouriteBranches == null)
-                    FavouriteBranches = new List<string>();
-                return favouriteBranches;
+                if (favoriteBranches == null)
+                    FavoriteBranches = new List<string>();
+                return favoriteBranches;
             }
             set
             {
-                favouriteBranches = value;
+                favoriteBranches = value;
                 Save(true);
             }
         }
 
-        public void SetFavourite(string branchName)
+        public void SetFavorite(string branchName)
         {
-            if (FavouriteBranches.Contains(branchName))
+            if (FavoriteBranches.Contains(branchName))
                 return;
-            FavouriteBranches.Add(branchName);
+            FavoriteBranches.Add(branchName);
             Save(true);
         }
 
-        public void UnsetFavourite(string branchName)
+        public void UnsetFavorite(string branchName)
         {
-            if (!FavouriteBranches.Contains(branchName))
+            if (!FavoriteBranches.Contains(branchName))
                 return;
-            FavouriteBranches.Remove(branchName);
+            FavoriteBranches.Remove(branchName);
             Save(true);
         }
 
-        public void ToggleFavourite(string branchName)
+        public void ToggleFavorite(string branchName)
         {
-            if (FavouriteBranches.Contains(branchName))
-                FavouriteBranches.Remove(branchName);
+            if (FavoriteBranches.Contains(branchName))
+                FavoriteBranches.Remove(branchName);
             else
-                FavouriteBranches.Add(branchName);
+                FavoriteBranches.Add(branchName);
             Save(true);
         }
 
-        public bool IsFavourite(string branchName)
+        public bool IsFavorite(string branchName)
         {
-            return FavouriteBranches.Contains(branchName);
+            return FavoriteBranches.Contains(branchName);
         }
     }
 
