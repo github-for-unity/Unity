@@ -55,7 +55,6 @@ namespace GitHub.Unity
         
         [SerializeField] private bool metricsEnabled;
         [NonSerialized] private bool metricsHasChanged;
-        [NonSerialized] private IUsageTracker usageTracker;
 
         public override void OnEnable()
         {
@@ -144,17 +143,11 @@ namespace GitHub.Unity
             GUILayout.EndScrollView();
         }
 
-        public override void InitializeView(IView parent)
-        {
-            base.InitializeView(parent);
-            usageTracker = Manager != null && Manager.UsageTracker != null ? Manager.UsageTracker : null;
-        }
-
         private void MaybeUpdateData()
         {
             if (metricsHasChanged)
             {
-                metricsEnabled = usageTracker != null && usageTracker.Enabled;
+                metricsEnabled = Manager.UsageTracker.Enabled;
                 metricsHasChanged = false;
             }
 
@@ -496,7 +489,7 @@ namespace GitHub.Unity
         {
             GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(isBusy || usageTracker == null);
+            EditorGUI.BeginDisabledGroup(isBusy);
             {
                 EditorGUI.BeginChangeCheck();
                 {
@@ -506,7 +499,6 @@ namespace GitHub.Unity
                 {
                     Manager.UsageTracker.Enabled = metricsEnabled;
                 }
-
             }
             EditorGUI.EndDisabledGroup();
         }
