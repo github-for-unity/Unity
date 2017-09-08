@@ -196,22 +196,20 @@ namespace GitHub.Unity
             var files = Enumerable.Range(0, tree.Entries.Count)
                 .Where(i => tree.CommitTargets[i].All)
                 .Select(i => tree.Entries[i].Path)
-                .ToArray();
+                .ToList();
 
-            ITask<string> addTask;
+            ITask addTask;
 
-            if (files.Length == tree.Entries.Count)
+            if (files.Count == tree.Entries.Count)
             {
-                addTask = GitClient.AddAll();
+                addTask = Repository.CommitAllFiles(commitMessage, commitBody);
             }
             else
             {
-                addTask = GitClient.Add(files);
+                addTask = Repository.CommitFiles(files, commitMessage, commitBody);
             }
 
             addTask
-                .Then(GitClient.Commit(commitMessage, commitBody))
-                .Then(GitClient.Status())
                 .FinallyInUI((b, exception) => 
                     {
                         commitMessage = "";

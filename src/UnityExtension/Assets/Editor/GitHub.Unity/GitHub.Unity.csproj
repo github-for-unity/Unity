@@ -85,7 +85,7 @@
     <Compile Include="EntryPoint.cs" />
     <Compile Include="Misc\Installer.cs" />
     <Compile Include="UI\BaseWindow.cs" />
-    <Compile Include="UI\PublishWindow.cs" />
+    <Compile Include="UI\PopupWindow.cs" />
     <Compile Include="UI\ProjectWindowInterface.cs" />
     <Compile Include="Misc\Styles.cs" />
     <Compile Include="Misc\Utility.cs" />
@@ -95,12 +95,12 @@
     <Compile Include="Tasks\TaskException.cs" />
     <Compile Include="Tools\MozRoots.cs" />
     <Compile Include="UI\AuthenticationView.cs" />
-    <Compile Include="UI\AuthenticationWindow.cs" />
     <Compile Include="UI\BranchesView.cs" />
     <Compile Include="UI\ChangesetTreeView.cs" />
     <Compile Include="UI\ChangesView.cs" />
     <Compile Include="UI\HistoryView.cs" />
     <Compile Include="UI\IView.cs" />
+    <Compile Include="UI\LoadingView.cs" />
     <Compile Include="UI\PublishView.cs" />
     <Compile Include="UI\UserSettingsView.cs" />
     <Compile Include="UI\SettingsView.cs" />

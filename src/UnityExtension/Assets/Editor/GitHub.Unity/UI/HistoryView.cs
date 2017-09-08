@@ -49,9 +49,6 @@ namespace GitHub.Unity
         [NonSerialized] private bool useScrollTime;
         [NonSerialized] private bool isBusy;
 
-#if ENABLE_BROADMODE
-        [SerializeField] private bool broadMode;
-#endif
         [SerializeField] private Vector2 detailsScroll;
         [SerializeField] private Object historyTarget;
         [SerializeField] private Vector2 scroll;
@@ -106,12 +103,6 @@ namespace GitHub.Unity
         {
             base.Refresh();
             RefreshLog();
-#if ENABLE_BROADMODE
-            if (broadMode)
-            {
-                ((Window)Parent).BranchesTab.RefreshEmbedded();
-            }
-#endif
         }
 
         public override void OnSelectionChange()
@@ -131,49 +122,13 @@ namespace GitHub.Unity
                 return;
             }
 
-#if ENABLE_BROADMODE
-            if (broadMode)
-                OnBroadGUI();
-            else
-#endif
             OnEmbeddedGUI();
-
-#if ENABLE_BROADMODE
-            if (Event.current.type == EventType.Repaint && EvaluateBroadMode())
-            {
-                Refresh();
-            }
-#endif
         }
 
         public override bool IsBusy
         {
             get { return isBusy; }
         }
-
-#if ENABLE_BROADMODE
-        public void OnBroadGUI()
-        {
-            GUILayout.BeginHorizontal();
-            {
-                GUILayout.BeginVertical(
-                    GUILayout.MinWidth(Styles.BroadModeBranchesMinWidth),
-                    GUILayout.MaxWidth(Mathf.Max(Styles.BroadModeBranchesMinWidth, Position.width * Styles.BroadModeBranchesRatio))
-                );
-                {
-                    ((Window)Parent).BranchesTab.OnEmbeddedGUI();
-                }
-                GUILayout.EndVertical();
-                GUILayout.BeginVertical();
-                {
-                    OnEmbeddedGUI();
-                }
-                GUILayout.EndVertical();
-            }
-            GUILayout.EndHorizontal();
-        }
-#endif
-
         private void AttachHandlers(IRepository repository)
         {
             if (repository == null)
@@ -208,14 +163,11 @@ namespace GitHub.Unity
 
         private void RefreshLog()
         {
-            if (GitClient != null)
+            if (Repository != null)
             {
-                if (Repository != null)
-                {
-                    GitClient.Log().ThenInUI((success, log) => {
-                        if (success) OnLogUpdate(log);
-                    }).Start();
-                }
+                Repository.Log().ThenInUI((success, log) => {
+                    if (success) OnLogUpdate(log);
+                }).Start();
             }
         }
 
@@ -409,7 +361,7 @@ namespace GitHub.Unity
                         var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
                         if (publishedClicked)
                         {
-                            PublishWindow.Open();
+                            PopupWindow.Open(PopupWindow.PopupViewType.PublishView);
                         }
                     }
                     EditorGUI.EndDisabledGroup();
@@ -797,43 +749,6 @@ namespace GitHub.Unity
                 bottomTimelineRectHeight);
             EditorGUI.DrawRect(bottomTimelineRect, timelineBarColor);
         }
-
-#if ENABLE_BROADMODE
-        private bool EvaluateBroadMode()
-        {
-            var past = broadMode;
-
-            // Flip when the limits are breached
-            if (Position.width > Styles.BroadModeLimit)
-            {
-                broadMode = true;
-            }
-            else if (Position.width < Styles.NarrowModeLimit)
-            {
-                broadMode = false;
-            }
-
-            // Show the layout notification while scaling
-            var window = (Window)Parent;
-            var scaled = Position.width != lastWidth;
-            lastWidth = Position.width;
-
-            if (scaled)
-            {
-                window.ShowNotification(new GUIContent(Styles.FolderIcon), Styles.ModeNotificationDelay);
-            }
-
-            // Return whether we flipped
-            return broadMode != past;
-        }
-#endif
-
-#if ENABLE_BROADMODE
-        public bool BroadMode
-        {
-            get { return broadMode; }
-        }
-#endif
 
         private float EntryHeight
         {
