@@ -128,14 +128,8 @@ namespace GitHub.Unity
         public override void Refresh()
         {
             base.Refresh();
-            var historyView = ((Window)Parent).HistoryTab;
 
-#if ENABLE_BROADMODE
-            if (historyView.BroadMode)
-                historyView.Refresh();
-            else
-#endif
-                RefreshEmbedded();
+            RefreshEmbedded();
         }
 
         public void RefreshEmbedded()
@@ -149,23 +143,7 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            var historyView = ((Window)Parent).HistoryTab;
-
-#if ENABLE_BROADMODE
-            if (historyView.BroadMode)
-                historyView.OnGUI();
-            else
-#endif
-            {
-                OnEmbeddedGUI();
-
-#if ENABLE_BROADMODE
-                if (Event.current.type == EventType.Repaint && historyView.EvaluateBroadMode())
-                {
-                    Refresh();
-                }
-#endif
-            }
+            OnEmbeddedGUI();
         }
 
         public void OnEmbeddedGUI()
@@ -309,19 +287,9 @@ namespace GitHub.Unity
             return 0;
         }
 
-        private bool IsFavorite(BranchTreeNode branch)
-        {
-            return IsFavorite(branch.Name);
-        }
-
         private bool IsFavorite(string branchName)
         {
-            if (string.IsNullOrEmpty(branchName))
-            {
-                return false;
-            }
-
-            return favoritesList.Contains(branchName);
+            return !String.IsNullOrEmpty(branchName) && favoritesList.Contains(branchName);
         }
 
         private void OnLocalBranchesUpdate(IEnumerable<GitBranch> list)
@@ -636,7 +604,7 @@ namespace GitHub.Unity
 
                 if (node.Type != NodeType.Folder)
                 {
-                    var favorite = IsFavorite(node);
+                    var favorite = IsFavorite(node.Name);
                     if (Event.current.type == EventType.Repaint)
                     {
                         GUI.DrawTexture(favoriteRect, favorite ? Styles.FavoriteIconOn : Styles.FavoriteIconOff);
