@@ -172,11 +172,10 @@ namespace GitHub.Unity
                 gitLfsVersionTask.ProcessArguments, environment.RepositoryPath);
 
             return gitVersionTask
-                .Then((result, version) => { gitVersion = version; })
+                .Then((result, version) => gitVersion = version)
                 .Then(gitLfsVersionTask)
-                .Then((result, version) => {
-                    gitLfsVersion = version;
-                }).Then(result => {
+                .Then((result, version) => gitLfsVersion = version)
+                .Then(result => {
                     var b = result 
                         && gitVersion != null
                         && gitVersion >= Constants.MinimumGitVersion
