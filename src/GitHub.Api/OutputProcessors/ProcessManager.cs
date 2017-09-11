@@ -57,10 +57,9 @@ namespace GitHub.Unity
             return processTask;
         }
 
-        public IProcess RunCommandLineWindow(NPath workingDirectory)
+        public void RunCommandLineWindow(NPath workingDirectory)
         {
-            var shell = environment.IsWindows ? "cmd" : environment.IsMac ? "xterm" : "sh";
-            var startInfo = new ProcessStartInfo(shell)
+            var startInfo = new ProcessStartInfo
             {
                 RedirectStandardInput = false,
                 RedirectStandardOutput = false,
@@ -69,10 +68,36 @@ namespace GitHub.Unity
                 CreateNoWindow = false
             };
 
-            gitEnvironment.Configure(startInfo, workingDirectory);
-            var p = new ProcessTask<string>(cancellationToken);
-            p.Configure(startInfo);
-            return p;
+            if (environment.IsWindows)
+            {
+                startInfo.FileName = "cmd";
+                gitEnvironment.Configure(startInfo, workingDirectory);
+            }
+            else if (environment.IsMac)
+            {
+                // we need to create a temp bash script to set up the environment properly, because
+                // osx terminal app doesn't inherit the PATH env var and there's no way to pass it in
+
+                var envVarFile = NPath.GetTempFilename();
+                startInfo.FileName = "open";
+                startInfo.Arguments = $"-a Terminal {envVarFile}";
+                gitEnvironment.Configure(startInfo, workingDirectory);
+
+                var envVars = startInfo.EnvironmentVariables;
+                var scriptContents = new[] {
+                    $"cd {envVars["GHU_WORKINGDIR"]}",
+                    $"PATH={envVars["GHU_FULLPATH"]}:$PATH /bin/bash"
+                };
+                environment.FileSystem.WriteAllLines(envVarFile, scriptContents);
+                Mono.Unix.Native.Syscall.chmod(envVarFile, (Mono.Unix.Native.FilePermissions)493); // -rwxr-xr-x mode (0755)
+            }
+            else
+            {
+                startInfo.FileName = "sh";
+                gitEnvironment.Configure(startInfo, workingDirectory);
+            }
+
+            Process.Start(startInfo);
         }
 
         public IProcess Reconnect(IProcess processTask, int pid)

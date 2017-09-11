@@ -4,14 +4,14 @@ namespace GitHub.Unity
 {
     class GitListLocalBranchesTask : ProcessTaskWithListOutput<GitBranch>
     {
+        private const string TaskName = "git list local branches";
         private const string Arguments = "branch -vv";
 
         public GitListLocalBranchesTask(CancellationToken token, BaseOutputListProcessor<GitBranch> processor = null)
             : base(token, processor ?? new BranchListOutputProcessor())
         {
+            Name = TaskName;
         }
-
-        public override string Name { get { return "git list branch"; } }
 
         public override string ProcessArguments
         {
@@ -22,14 +22,14 @@ namespace GitHub.Unity
 
     class GitListRemoteBranchesTask : ProcessTaskWithListOutput<GitBranch>
     {
+        private const string TaskName = "git list remote branches";
         private const string Arguments = "branch -vvr";
 
         public GitListRemoteBranchesTask(CancellationToken token)
             : base(token, new BranchListOutputProcessor())
         {
+            Name = TaskName;
         }
-
-        public override string Name { get { return "git list branch"; } }
 
         public override string ProcessArguments
         {

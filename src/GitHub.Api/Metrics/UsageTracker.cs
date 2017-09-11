@@ -145,7 +145,7 @@ namespace GitHub.Unity
                     }
                     catch (Exception ex)
                     {
-                        Logger.Warning(ex, "Error Sending Usage");
+                        Logger.Warning(@"Error Sending Usage Exception Type:""{0}"" Message:""{1}""", ex.GetType().ToString(), ex.Message);
                     }
                 }
 
@@ -175,7 +175,7 @@ namespace GitHub.Unity
 
         public static void SetMetricsService(IMetricsService instance)
         {
-            Logger.Trace("SetMetricsService instance:{1}", instance?.ToString() ?? "Null");
+            Logger.Trace("SetMetricsService instance:{0}", instance?.ToString() ?? "Null");
             metricsService = instance;
         }
 

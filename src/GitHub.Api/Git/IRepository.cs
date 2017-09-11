@@ -8,10 +8,16 @@ namespace GitHub.Unity
     /// </summary>
     interface IRepository : IEquatable<IRepository>
     {
+        void Initialize(IRepositoryManager repositoryManager);
         void Refresh();
+        ITask CommitAllFiles(string message, string body);
+        ITask CommitFiles(List<string> files, string message, string body);
         ITask SetupRemote(string remoteName, string remoteUrl);
+        ITask<List<GitLogEntry>> Log();
         ITask Pull();
         ITask Push();
+        ITask Fetch();
+        ITask Revert(string changeset);
         ITask ListLocks();
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
@@ -39,22 +45,24 @@ namespace GitHub.Unity
         /// <summary>
         /// Gets the current remote of the repository.
         /// </summary>
-        ConfigRemote? CurrentRemote { get; }
+        ConfigRemote? CurrentRemote { get; set; }
         /// <summary>
         /// Gets the current branch of the repository.
         /// </summary>
-        string CurrentBranch { get; }
-        GitStatus CurrentStatus { get; }
+        ConfigBranch? CurrentBranch { get; set; }
+        GitStatus CurrentStatus { get; set; }
         IEnumerable<GitBranch> LocalBranches { get; }
         IEnumerable<GitBranch> RemoteBranches { get; }
         IUser User { get; set; }
         IEnumerable<GitLock> CurrentLocks { get; }
+        string CurrentBranchName { get; }
 
-        event Action<GitStatus> OnRepositoryChanged;
+        event Action<GitStatus> OnStatusUpdated;
         event Action<string> OnActiveBranchChanged;
         event Action<string> OnActiveRemoteChanged;
         event Action OnLocalBranchListChanged;
-        event Action OnCommitChanged;
+        event Action OnHeadChanged;
         event Action<IEnumerable<GitLock>> OnLocksUpdated;
+        event Action OnRepositoryInfoChanged;
     }
 }

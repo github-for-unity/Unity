@@ -19,9 +19,9 @@ namespace GitHub.Unity
         private const string OneChangedFileLabel = "1 changed file";
         private const string NoChangedFilesLabel = "No changed files";
 
-        [NonSerialized] private bool busy = true;
-        [SerializeField] private string commitBody = "";
+        [NonSerialized] private bool isBusy = true;
 
+        [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
         [SerializeField] private Vector2 horizontalScroll;
@@ -33,23 +33,23 @@ namespace GitHub.Unity
             tree.InitializeView(this);
         }
 
-        public override void OnShow()
+        public override void OnEnable()
         {
-            base.OnShow();
+            base.OnEnable();
             if (Repository == null)
                 return;
 
             OnStatusUpdate(Repository.CurrentStatus);
-            Repository.OnRepositoryChanged += RunStatusUpdateOnMainThread;
+            Repository.OnStatusUpdated += RunStatusUpdateOnMainThread;
             Repository.Refresh();
         }
 
-        public override void OnHide()
+        public override void OnDisable()
         {
-            base.OnHide();
+            base.OnDisable();
             if (Repository == null)
                 return;
-            Repository.OnRepositoryChanged -= RunStatusUpdateOnMainThread;
+            Repository.OnStatusUpdated -= RunStatusUpdateOnMainThread;
         }
 
         private void RunStatusUpdateOnMainThread(GitStatus status)
@@ -72,9 +72,8 @@ namespace GitHub.Unity
             // (Re)build tree
             tree.UpdateEntries(update.Entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
 
-            busy = false;
+            isBusy = false;
         }
-
 
         public override void OnGUI()
         {
@@ -144,7 +143,7 @@ namespace GitHub.Unity
                     GUILayout.Space(Styles.CommitAreaPadding);
 
                     // Disable committing when already committing or if we don't have all the data needed
-                    EditorGUI.BeginDisabledGroup(busy || string.IsNullOrEmpty(commitMessage) || !tree.CommitTargets.Any(t => t.Any));
+                    EditorGUI.BeginDisabledGroup(isBusy || string.IsNullOrEmpty(commitMessage) || !tree.CommitTargets.Any(t => t.Any));
                     {
                         GUILayout.BeginHorizontal();
                         {
@@ -187,19 +186,36 @@ namespace GitHub.Unity
         private void Commit()
         {
             // Do not allow new commits before we have received one successful update
-            busy = true;
+            isBusy = true;
 
-            var files = Enumerable.Range(0, tree.Entries.Count).Where(i => tree.CommitTargets[i].All).Select(i => tree.Entries[i].Path).ToArray();
+            var files = Enumerable.Range(0, tree.Entries.Count)
+                .Where(i => tree.CommitTargets[i].All)
+                .Select(i => tree.Entries[i].Path)
+                .ToList();
 
-            GitClient.Add(files)
-                .Then(GitClient.Commit(commitMessage, commitBody))
-                .Then(GitClient.Status())
+            ITask addTask;
+
+            if (files.Count == tree.Entries.Count)
+            {
+                addTask = Repository.CommitAllFiles(commitMessage, commitBody);
+            }
+            else
+            {
+                addTask = Repository.CommitFiles(files, commitMessage, commitBody);
+            }
+
+            addTask
                 .FinallyInUI((b, exception) => 
                     {
                         commitMessage = "";
                         commitBody = "";
-                        busy = false;
+                        isBusy = false;
                     }).Start();
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy; }
         }
     }
 }

@@ -11,7 +11,6 @@
     <AssemblyName>GitHub.Api</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <BuildType Condition="Exists('$(SolutionDir)\script\src\MetricsService.cs')">Internal</BuildType>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <TargetFrameworkProfile />
     <LangVersion>6</LangVersion>
@@ -19,6 +18,7 @@
     </NuGetPackageImportStamp>
     <OutputPath>..\UnityExtension\Assets\Editor\build\</OutputPath>
   </PropertyGroup>
+  <Import Project="..\..\common\properties.props" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -27,7 +27,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>false</RunCodeAnalysis>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\common\codeanalysis-small.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
@@ -59,8 +59,8 @@
     <BuildConfig Condition=" '$(BuildConfig)' == '' ">Debug</BuildConfig>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AsyncBridge.Net35, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\AsyncBridge.Net35.0.2.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
+    <Reference Include="AsyncBridge.Net35, Version=0.2.3333.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\AsyncBridge.Net35.0.2.3333.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
@@ -69,8 +69,11 @@
     <Reference Include="Mono.Security">
       <HintPath>$(SolutionDir)lib\Mono.Security.dll</HintPath>
     </Reference>
+    <Reference Include="Mono.Posix">
+      <HintPath>$(SolutionDir)lib\Mono.Posix.dll</HintPath>
+    </Reference>
     <Reference Include="Rackspace.Threading, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bb62785d398726f0, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\Rackspace.Threading.2.0.0-alpha001\lib\net35-client\Rackspace.Threading.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\TunnelVisionLabs.Threading.2.0.0-unity\lib\net35-client\Rackspace.Threading.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ReadOnlyCollectionsInterfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -78,13 +81,13 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="sfw.net">
-      <HintPath>$(SolutionDir)\lib\sfw.net\$(BuildConfig)\sfw.net.dll</HintPath>
+      <HintPath>$(SolutionDir)\lib\sfw\sfw.net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Threading, Version=1.0.2856.102, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\TaskParallelLibrary.1.0.2856.0\lib\Net35\System.Threading.dll</HintPath>
+    <Reference Include="System.Threading, Version=1.0.3333.0, Culture=neutral, PublicKeyToken=402899b480e6f383, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir).\packages\TaskParallelLibrary.1.0.3333.0\lib\Net35\System.Threading.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Xml.Linq" />
@@ -96,6 +99,7 @@
     <Compile Include="Application\ApplicationInfo.cs" />
     <Compile Include="Application\LoginResult.cs" />
     <Compile Include="Application\AppConfiguration.cs" />
+    <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Helpers\AssemblyResources.cs" />
     <Compile Include="Authentication\IKeychain.cs" />
     <Compile Include="Authentication\Keychain.cs" />
@@ -103,18 +107,21 @@
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="Application\ApplicationManagerBase.cs" />
     <Compile Include="Helpers\Constants.cs" />
+    <Compile Include="Cache\IBranchCache.cs" />
+    <Compile Include="Helpers\Validation.cs" />
+    <Compile Include="Helpers\TaskHelpers.cs" />
     <Compile Include="Platform\DefaultEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Extensions\FileEventExtensions.cs" />
     <Compile Include="Events\RepositoryWatcher.cs" />
     <Compile Include="Extensions\FileSystemExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
-    <Compile Include="Git\GitSetup.cs" />
     <Compile Include="Git\GitFileStatus.cs" />
     <Compile Include="Git\GitLock.cs" />
     <Compile Include="Git\GitObjectFactory.cs" />
     <Compile Include="Git\GitStatusEntry.cs" />
     <Compile Include="Git\IGitObjectFactory.cs" />
+    <Compile Include="Git\Tasks\GitRevertTask.cs" />
     <Compile Include="IO\FileSystemHelpers.cs" />
     <Compile Include="Application\IApplicationManager.cs" />
     <Compile Include="NewTaskSystem\ActionTask.cs" />
@@ -143,13 +150,12 @@
     <Compile Include="Installer\GitInstaller.cs" />
     <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
-    <Compile Include="Platform\LocalSettings.cs" />
+    <Compile Include="Platform\Settings.cs" />
     <Compile Include="OutputProcessors\BranchListOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LockOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LogEntryOutputProcessor.cs" />
     <Compile Include="OutputProcessors\ProcessManager.cs" />
     <Compile Include="OutputProcessors\StatusOutputProcessor.cs" />
-    <Compile Include="Git\RepositoryLocator.cs" />
     <Compile Include="Git\GitConfig.cs" />
     <Compile Include="OutputProcessors\LineProcessor.cs" />
     <Compile Include="IO\FileSystem.cs" />
@@ -203,8 +209,6 @@
     <Compile Include="Threading\IAwaitable.cs" />
     <Compile Include="Threading\IAwaiter.cs" />
     <Compile Include="Threading\ThreadingHelper.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Application\IApiClient.cs" />
     <Compile Include="Application\ApiClient.cs" />
     <Compile Include="Authentication\AuthenticationResult.cs" />
@@ -222,38 +226,33 @@
     <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="Platform\Platform.cs" />
     <Compile Include="Git\GitCredentialManager.cs" />
+    <Compile Include="UI\FileTreeNode.cs" />
+    <Compile Include="UI\GitCommitTarget.cs" />
+    <Compile Include="UI\TreeBuilder.cs" />
   </ItemGroup>
+  <Choose>
+    <When Condition="$(Buildtype) == 'Internal'">
+      <ItemGroup>
+        <Compile Include="$(SolutionDir)\script\src\MetricsService.cs">
+          <Link>Metrics\MetricsService.cs</Link>
+        </Compile>
+        <Compile Include="$(SolutionDir)\script\src\ApplicationInfo_Local.cs">
+          <Link>Properties\ApplicationInfo_Local.cs</Link>
+        </Compile>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <None Include="$(SolutionDir)\common\ApplicationInfo_Local.cs-example" Condition="!Exists('$(SolutionDir)\common\ApplicationInfo_Local.cs')">
+          <Link>Properties\ApplicationInfo_Local.cs-example</Link>
+        </None>
+        <Compile Include="$(SolutionDir)\common\ApplicationInfo_Local.cs" Condition="Exists('$(SolutionDir)\common\ApplicationInfo_Local.cs')">
+          <Link>Properties\ApplicationInfo_Local.cs</Link>
+        </Compile>
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
   <ItemGroup>
-    <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
-      <Link>Properties\SolutionInfo.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup Condition="$(Buildtype) != 'Internal'">
-    <None Include="$(SolutionDir)\common\ApplicationInfo_Local.cs-example" Condition="!Exists('$(SolutionDir)\common\ApplicationInfo_Local.cs')">
-      <Link>Properties\ApplicationInfo_Local.cs-example</Link>
-    </None>
-    <Compile Include="$(SolutionDir)\common\ApplicationInfo_Local.cs" Condition="Exists('$(SolutionDir)\common\ApplicationInfo_Local.cs')">
-      <Link>Properties\ApplicationInfo_Local.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup Condition="$(Buildtype) == 'Internal'">
-    <Compile Include="$(SolutionDir)\script\src\MetricsService.cs">
-      <Link>Metrics\MetricsService.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\submodules\dotnet-httpClient35\System.Net.Http\System.Net.Http-net_3_5.csproj">
-      <Project>{9862694D-E4FA-418B-8692-A0280FEDDF36}</Project>
-      <Name>System.Net.Http-net_3_5</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\submodules\octokit.net\Octokit-Extensions35\Octokit-Extensions35.csproj">
-      <Project>{eb4b074e-62a7-4f1d-8f95-e64b7aea0236}</Project>
-      <Name>Octokit-Extensions35</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\submodules\octokit.net\Octokit\Octokit-35.csproj">
-      <Project>{49ef16a2-5ed1-480f-80a1-d1d05d6c1be4}</Project>
-      <Name>Octokit-35</Name>
-    </ProjectReference>
     <ProjectReference Include="..\GitHub.Logging\GitHub.Logging.csproj">
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
@@ -294,4 +293,5 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Import Project="..\..\common\build.targets" />
 </Project>

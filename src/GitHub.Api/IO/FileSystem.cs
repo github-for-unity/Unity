@@ -1,5 +1,6 @@
 using GitHub.Unity;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -13,14 +14,19 @@ namespace GitHub.Unity
         {
         }
 
-        public FileSystem(string currentDirectory)
+        /// <summary>
+        /// Initialize the filesystem object with the path passed in set as the current directory
+        /// </summary>
+        /// <param name="directory">Current directory</param>
+        public FileSystem(string directory)
         {
-            this.currentDirectory = currentDirectory;
+            this.currentDirectory = directory;
         }
 
-        public void SetCurrentDirectory(string currentDirectory)
+        public void SetCurrentDirectory(string directory)
         {
-            this.currentDirectory = currentDirectory;
+            Debug.Assert(Path.IsPathRooted(directory));
+            this.currentDirectory = directory;
         }
 
         public bool FileExists(string filename)

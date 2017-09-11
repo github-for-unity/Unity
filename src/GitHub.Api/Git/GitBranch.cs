@@ -1,21 +1,35 @@
-using GitHub.Unity;
+using System;
 
 namespace GitHub.Unity
 {
-    struct GitBranch
+    interface ITreeData
     {
-        public string Name { get; private set; }
-        public string Tracking { get; private set; }
-        public bool Active { get; private set; }
+        string Name { get; }
+        bool IsActive { get; }
+    }
+
+    [Serializable]
+    struct GitBranch : ITreeData
+    {
+        private string name;
+        private string tracking;
+        private bool active;
+        public string Name { get { return name; } }
+        public string Tracking { get { return tracking; } }
+        public bool IsActive { get { return active; } }
 
         public GitBranch(string name, string tracking, bool active)
         {
             Guard.ArgumentNotNullOrWhiteSpace(name, "name");
-            Guard.ArgumentNotNull(tracking, "tracking");
 
-            Name = name;
-            Tracking = tracking;
-            Active = active;
+            this.name = name;
+            this.tracking = tracking;
+            this.active = active;
+        }
+
+        public override string ToString()
+        {
+            return $"{Name} Tracking? {Tracking} Active? {IsActive}";
         }
     }
 }

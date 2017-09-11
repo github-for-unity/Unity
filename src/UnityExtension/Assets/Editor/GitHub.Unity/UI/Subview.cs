@@ -1,133 +1,42 @@
 using System;
-using UnityEditor;
 using UnityEngine;
 
 namespace GitHub.Unity
 {
-    abstract class BaseWindow :  EditorWindow, IView
-    {
-        private bool finishCalled = false;
-
-        public event Action<bool> OnClose;
-
-        public virtual void Initialize(IApplicationManager applicationManager)
-        {
-            Manager = applicationManager;
-        }
-
-        public virtual void Redraw()
-        {
-            Repaint();
-        }
-
-        public virtual void Refresh()
-        {
-        }
-        public virtual void Finish(bool result)
-        {
-            finishCalled = true;
-            RaiseOnClose(result);
-        }
-
-        protected void RaiseOnClose(bool result)
-        {
-            OnClose.SafeInvoke(result);
-        }
-
-        public virtual void Awake()
-        {
-        }
-
-        public virtual void OnEnable()
-        {
-        }
-
-        public virtual void OnDisable()
-        {
-        }
-
-        public virtual void Update() {}
-        public virtual void OnGUI() {}
-        public virtual void OnDestroy()
-        {
-            if (!finishCalled)
-            {
-                RaiseOnClose(false);
-            }
-
-        }
-        public virtual void OnSelectionChange()
-        {}
-
-        public virtual Rect Position { get { return position; } }
-        public IApplicationManager Manager { get; private set; }
-        public IRepository Repository { get { return Manager != null ? Manager.Environment.Repository : null; } }
-        public ITaskManager TaskManager { get { return Manager != null ? Manager.TaskManager : null; } }
-        protected IGitClient GitClient { get { return Manager != null ? Manager.GitClient : null; } }
-        protected IEnvironment Environment { get { return Manager != null ? Manager.Environment : null; } }
-        protected IPlatform Platform { get { return Manager != null ? Manager.Platform : null; } }
-
-
-        private ILogging logger;
-        protected ILogging Logger
-        {
-            get
-            {
-                if (logger == null)
-                    logger = Logging.GetLogger(GetType());
-                return logger;
-            }
-        }
-    }
-
     abstract class Subview : IView
     {
-        public event Action<bool> OnClose;
-
         private const string NullParentError = "Subview parent is null";
-        protected IView Parent { get; private set; }
-        public IApplicationManager Manager { get; private set; }
-        public IRepository Repository { get { return Manager != null ? Manager.Environment.Repository : null; } }
-        public ITaskManager TaskManager { get { return Manager != null ? Manager.TaskManager : null; } }
-        protected IGitClient GitClient { get { return Manager != null ? Manager.GitClient : null; } }
-        protected IEnvironment Environment { get { return Manager != null ? Manager.Environment : null; } }
-        protected IPlatform Platform { get { return Manager != null ? Manager.Platform : null; } }
-
-        public virtual void Initialize(IApplicationManager applicationManager)
-        {
-            Logger.Trace("Initialize(IApplicationManager: {0})", applicationManager != null);
-            Manager = applicationManager;
-        }
 
         public virtual void InitializeView(IView parent)
         {
             Debug.Assert(parent != null, NullParentError);
+            Logger.Trace("InitializeView");
             Parent = parent;
-            ((IView)this).Initialize(parent.Manager);
         }
 
-        public virtual void OnShow()
+        public virtual void OnEnable()
         {
+            Logger.Trace("OnEnable");
         }
 
-        public virtual void OnHide()
+        public virtual void OnDisable()
         {
+            Logger.Trace("OnDisable");
         }
 
-        public virtual void OnUpdate()
+        public virtual void OnDataUpdate()
         {}
 
         public virtual void OnGUI()
         {}
 
-        public virtual void OnDestroy()
-        {}
-
         public virtual void OnSelectionChange()
         {}
 
         public virtual void Refresh()
-        {}
+        {
+            Logger.Trace("Refresh");
+        }
 
         public virtual void Redraw()
         {
@@ -139,7 +48,21 @@ namespace GitHub.Unity
             Parent.Finish(result);
         }
 
-        public virtual Rect Position { get { return Parent.Position; } }
+        public virtual void OnRepositoryChanged(IRepository oldRepository)
+        {}
+
+        protected IView Parent { get; private set; }
+        public IApplicationManager Manager { get { return Parent.Manager; } }
+        public IRepository Repository { get { return Parent.Repository; } }
+        public bool HasRepository { get { return Parent.HasRepository; } }
+        public abstract bool IsBusy { get; }
+        protected ITaskManager TaskManager { get { return Manager.TaskManager; } }
+        protected IGitClient GitClient { get { return Manager.GitClient; } }
+        protected IEnvironment Environment { get { return Manager.Environment; } }
+        protected IPlatform Platform { get { return Manager.Platform; } }
+        public Rect Position { get { return Parent.Position; } }
+        public string Title { get; protected set; }
+        public Vector2 Size { get; protected set; }
 
         private ILogging logger;
         protected ILogging Logger

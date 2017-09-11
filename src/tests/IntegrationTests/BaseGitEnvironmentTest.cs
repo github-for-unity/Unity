@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using GitHub.Unity;
 using System.Threading.Tasks;
 
@@ -10,12 +11,12 @@ namespace IntegrationTests
             bool enableEnvironmentTrace = false)
         {
             TaskManager = new TaskManager();
-            var sc = new ThreadSynchronizationContext(TaskManager.Token);
-            TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(sc);
+            SyncContext = new ThreadSynchronizationContext(TaskManager.Token);
+            TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(SyncContext);
 
             Environment = new IntegrationTestEnvironment(repoPath, SolutionDirectory, environmentPath, enableEnvironmentTrace);
 
-            var gitSetup = new GitSetup(Environment, TaskManager.Token);
+            var gitSetup = new GitInstaller(Environment, TaskManager.Token);
             await gitSetup.SetupIfNeeded();
             Environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
@@ -25,17 +26,17 @@ namespace IntegrationTests
 
             Platform.Initialize(ProcessManager, TaskManager);
 
-
             GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
 
             var usageTracker = new NullUsageTracker();
 
-            var repositoryManagerFactory = new RepositoryManagerFactory();
-            RepositoryManager = repositoryManagerFactory.CreateRepositoryManager(Platform, TaskManager, usageTracker, GitClient, repoPath);
-            await RepositoryManager.Initialize();
-            RepositoryManager.Start();
+            RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, usageTracker, GitClient, repoPath);
+            RepositoryManager.Initialize();
 
-            Environment.Repository = RepositoryManager.Repository;
+            Environment.Repository = new Repository("TestRepo", repoPath);
+            Environment.Repository.Initialize(RepositoryManager);
+
+            RepositoryManager.Start();
 
             DotGitPath = repoPath.Combine(".git");
 
@@ -67,12 +68,13 @@ namespace IntegrationTests
         public IRepositoryManager RepositoryManager { get; private set; }
 
         protected IPlatform Platform { get; private set; }
-
+        protected IApplicationManager ApplicationManager { get; set; }
         protected IProcessManager ProcessManager { get; private set; }
         protected ITaskManager TaskManager { get; private set; }
 
         protected IProcessEnvironment GitEnvironment { get; private set; }
         protected IGitClient GitClient { get; set; }
+        protected SynchronizationContext SyncContext { get; set; }
 
         protected NPath DotGitConfig { get; private set; }
 

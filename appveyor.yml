@@ -5,10 +5,10 @@ environment:
 clone_script:
 - ps: >-
     if(-not $env:appveyor_pull_request_number) {
-      git lfs clone -q -n --branch=$env:appveyor_repo_branch git@github.com:$env:appveyor_repo_name.git $env:appveyor_build_folder
+      git lfs clone -q -n --branch=$env:appveyor_repo_branch https://github.com/$env:appveyor_repo_name.git $env:appveyor_build_folder
       git checkout -qf $env:appveyor_repo_commit
     } else {
-      git lfs clone -q -n git@github.com:$env:appveyor_repo_name.git $env:appveyor_build_folder
+      git lfs clone -q -n https://github.com/$env:appveyor_repo_name.git $env:appveyor_build_folder
       git fetch -q origin +refs/pull/$env:appveyor_pull_request_number/merge:
       git lfs fetch origin FETCH_HEAD
       git checkout -qf FETCH_HEAD
@@ -42,6 +42,13 @@ install:
     git submodule update
 
     nuget restore GitHub.Unity.sln
+
+assembly_info:
+  patch: false
+  file: common\SolutionInfo.cs
+  assembly_informational_version: "{version}"
+
+configuration: Release
 build:
   project: GitHub.Unity.sln
   verbosity: minimal
@@ -51,6 +58,7 @@ test:
     - DoNotRunOnAppVeyor
     - TimeSensitive
 artifacts:
-- path: unity\TestProject\Assets\Editor\*.dll
-- path: unity\TestProject\Assets\Editor\*.pdb
+- path: unity\PackageProject
+  type: zip
+  name: github-for-unity-packageproject
 - path: build\*.log

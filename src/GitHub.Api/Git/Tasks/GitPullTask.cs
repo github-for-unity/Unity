@@ -6,12 +6,14 @@ namespace GitHub.Unity
 {
     class GitPullTask : ProcessTask<string>
     {
+        private const string TaskName = "git pull";
         private readonly string arguments;
 
         public GitPullTask(string remote, string branch,
             CancellationToken token, IOutputProcessor<string> processor = null)
             : base(token, processor ?? new SimpleOutputProcessor())
         {
+            Name = TaskName;
             var stringBuilder = new StringBuilder();
             stringBuilder.Append("pull");
 
@@ -30,7 +32,6 @@ namespace GitHub.Unity
             arguments = stringBuilder.ToString();
         }
 
-        public override string Name { get { return "git pull"; } }
         public override string ProcessArguments { get { return arguments; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Exclusive; } }
     }

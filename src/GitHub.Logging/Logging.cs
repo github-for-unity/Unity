@@ -56,7 +56,7 @@ namespace GitHub.Unity
 
         private static ILogging instance;
 
-        private static ILogging Instance
+        public static ILogging Instance
         {
             get {
                 if (instance == null)

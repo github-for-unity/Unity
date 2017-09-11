@@ -4,8 +4,8 @@ namespace GitHub.Unity
 {
     interface IEnvironment
     {
-        void Initialize(NPath extensionInstallPath, NPath unityPath, NPath assetsPath);
-        void Initialize();
+        void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityPath, NPath assetsPath);
+        void InitializeRepository(NPath expectedRepositoryPath = null);
         string ExpandEnvironmentVariables(string name);
         string GetEnvironmentVariable(string v);
         string GetSpecialFolder(Environment.SpecialFolder folder);
@@ -16,6 +16,7 @@ namespace GitHub.Unity
         bool IsWindows { get; }
         bool IsLinux { get; }
         bool IsMac { get; }
+        string UnityVersion { get; }
         NPath UnityApplication { get; }
         NPath UnityAssetsPath { get; }
         NPath UnityProjectPath { get; }

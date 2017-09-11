@@ -29,7 +29,7 @@ namespace GitHub.Unity
             {
                 return;
             }
-            Logger.Debug(line);
+            Logger.Trace(line);
             var path = proc.ReadUntil('\t').Trim();
             var user = proc.ReadUntilLast("ID:").Trim();
             proc.MoveToAfter("ID:");

@@ -21,6 +21,7 @@ namespace GitHub.Unity
         event Action<string, string> RemoteBranchCreated;
         event Action<string, string> RemoteBranchDeleted;
         void Initialize();
+        int CheckAndProcessEvents();
     }
 
     class RepositoryWatcher : IRepositoryWatcher
@@ -33,6 +34,9 @@ namespace GitHub.Unity
         private NativeInterface nativeInterface;
         private bool running;
         private Task task;
+        private int lastCountOfProcessedEvents = 0;
+        private bool processingEvents;
+        private readonly ManualResetEventSlim signalProcessingEventsDone = new ManualResetEventSlim(false);
 
         public event Action<string> HeadChanged;
         public event Action IndexChanged;
@@ -55,31 +59,39 @@ namespace GitHub.Unity
             };
 
             pauseEvent = new ManualResetEventSlim();
-            disableNative = !platform.Environment.IsWindows;
+            //disableNative = !platform.Environment.IsWindows;
         }
 
         public void Initialize()
         {
             var pathsRepositoryPath = paths.RepositoryPath.ToString();
-            Logger.Trace("Watching Path: \"{0}\"", pathsRepositoryPath);
 
-            if (!disableNative)
-                nativeInterface = new NativeInterface(pathsRepositoryPath);
+            try
+            {
+                if (!disableNative)
+                    nativeInterface = new NativeInterface(pathsRepositoryPath);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+            }
         }
 
         public void Start()
         {
             if (disableNative)
             {
-                Logger.Debug("Native interface is disabled");
+                Logger.Trace("Native interface is disabled");
                 return;
             }
 
             if (nativeInterface == null)
             {
                 Logger.Warning("NativeInterface is null");
-                throw new Exception("Not initialized");
+                throw new InvalidOperationException("NativeInterface is null");
             }
+
+            Logger.Trace("Watching Path: \"{0}\"", paths.RepositoryPath.ToString());
 
             running = true;
             pauseEvent.Reset();
@@ -112,66 +124,85 @@ namespace GitHub.Unity
                     break;
                 }
 
-                var fileEvents = nativeInterface.GetEvents();
+                CheckAndProcessEvents();
 
-                if (fileEvents.Any())
-                {
-                    Logger.Trace("Processing {0} Events", fileEvents.Length);
-                }
-
-                var repositoryChanged = false;
-
-                foreach (var fileEvent in fileEvents)
-                {
-                    if (!running)
-                    {
-                        break;
-                    }
-
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        Stop();
-                        break;
-                    }
-
-                    //Logger.Trace(fileEvent.Describe());
-
-                    var eventDirectory = new NPath(fileEvent.Directory);
-                    var fileA = eventDirectory.Combine(fileEvent.FileA);
-
-                    NPath fileB = null;
-                    if (fileEvent.FileB != null)
-                    {
-                        fileB = eventDirectory.Combine(fileEvent.FileB);
-                    }
-
-                    // handling events in .git/*
-                    if (fileA.IsChildOf(paths.DotGitPath))
-                    {
-                        HandleEventInDotGit(fileEvent, fileA, fileB);
-                    }
-                    else
-                    {
-                        if (repositoryChanged || ignoredPaths.Any(ignoredPath => fileA.IsChildOf(ignoredPath)))
-                        {
-                            continue;
-                        }
-
-                        repositoryChanged = true;
-                    }
-                }
-
-                if (repositoryChanged)
-                {
-                    Logger.Trace("RepositoryChanged");
-                    RepositoryChanged?.Invoke();
-                }
-
-                if (pauseEvent.Wait(200))
+                if (pauseEvent.Wait(1000))
                 {
                     break;
                 }
             }
+        }
+
+        public int CheckAndProcessEvents()
+        {
+            if (processingEvents)
+            {
+                signalProcessingEventsDone.Wait(cancellationToken);
+                return lastCountOfProcessedEvents;
+            }
+
+            signalProcessingEventsDone.Reset();
+            processingEvents = true;
+            lastCountOfProcessedEvents = 0;
+            var fileEvents = nativeInterface.GetEvents();
+
+            if (fileEvents.Length > 0)
+            {
+                Logger.Trace("Processing {0} Events", fileEvents.Length);
+            }
+
+            var repositoryChanged = false;
+
+            foreach (var fileEvent in fileEvents)
+            {
+                if (!running)
+                {
+                    break;
+                }
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    Stop();
+                    break;
+                }
+
+                //Logger.Trace(fileEvent.Describe());
+
+                var eventDirectory = new NPath(fileEvent.Directory);
+                var fileA = eventDirectory.Combine(fileEvent.FileA);
+
+                NPath fileB = null;
+                if (fileEvent.FileB != null)
+                {
+                    fileB = eventDirectory.Combine(fileEvent.FileB);
+                }
+
+                // handling events in .git/*
+                if (fileA.IsChildOf(paths.DotGitPath))
+                {
+                    HandleEventInDotGit(fileEvent, fileA, fileB);
+                }
+                else
+                {
+                    if (repositoryChanged || ignoredPaths.Any(ignoredPath => fileA.IsChildOf(ignoredPath)))
+                    {
+                        continue;
+                    }
+
+                    repositoryChanged = true;
+                }
+                lastCountOfProcessedEvents++;
+            }
+
+            if (repositoryChanged)
+            {
+                Logger.Trace("RepositoryChanged");
+                RepositoryChanged?.Invoke();
+            }
+
+            processingEvents = false;
+            signalProcessingEventsDone.Set();
+            return lastCountOfProcessedEvents;
         }
 
         private void HandleEventInDotGit(Event fileEvent, NPath fileA, NPath fileB = null)

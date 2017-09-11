@@ -31,7 +31,7 @@ namespace GitHub.Unity
         {
             try
             {
-                logger.Debug("Installer move from '{0}'", path);
+                logger.Trace("Installer move from '{0}'", path);
                 // TODO: Create the necessary structure and perform the actual move of files into it from the given install path
             }
             catch (Exception e)

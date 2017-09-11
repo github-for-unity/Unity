@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Octokit;
@@ -9,6 +11,8 @@ namespace GitHub.Unity
     {
         public static IApiClient Create(UriString repositoryUrl, IKeychain keychain)
         {
+            logger.Trace("Creating ApiClient: {0}", repositoryUrl);
+
             var credentialStore = keychain.Connect(repositoryUrl);
             var hostAddress = HostAddress.Create(repositoryUrl);
 
@@ -25,7 +29,9 @@ namespace GitHub.Unity
         private readonly ILoginManager loginManager;
         private static readonly SemaphoreSlim sem = new SemaphoreSlim(1);
 
-        Octokit.Repository repositoryCache = new Octokit.Repository();
+        IList<Organization> organizationsCache;
+        Octokit.User userCache;
+
         string owner;
         bool? isEnterprise;
 
@@ -42,14 +48,7 @@ namespace GitHub.Unity
             loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
         }
 
-        public async void GetRepository(Action<Octokit.Repository> callback)
-        {
-            Guard.ArgumentNotNull(callback, "callback");
-            var repo = await GetRepositoryInternal();
-            callback(repo);
-        }
-
-        public async void Logout(UriString host)
+        public async Task Logout(UriString host)
         {
             await LogoutInternal(host);
         }
@@ -57,6 +56,41 @@ namespace GitHub.Unity
         private async Task LogoutInternal(UriString host)
         {
             await loginManager.Logout(host);
+        }
+
+        public async Task CreateRepository(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization = null)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            try
+            {
+                var repository = await CreateRepositoryInternal(newRepository, organization);
+                callback(repository, null);
+            }
+            catch (Exception e)
+            {
+                callback(null, e);
+            }
+        }
+
+        public async Task GetOrganizations(Action<IList<Organization>> callback)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            var organizations = await GetOrganizationInternal();
+            callback(organizations);
+        }
+
+        public async Task LoadKeychain(Action<bool> callback)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            var hasLoadedKeys = await LoadKeychainInternal();
+            callback(hasLoadedKeys);
+        }
+
+        public async Task GetCurrentUser(Action<Octokit.User> callback)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            var user = await GetCurrentUserInternal();
+            callback(user);
         }
 
         public async Task Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result)
@@ -155,39 +189,116 @@ namespace GitHub.Unity
             return result.Code == LoginResultCodes.Success;
         }
 
-        private async Task<Octokit.Repository> GetRepositoryInternal()
+        private async Task<Octokit.Repository> CreateRepositoryInternal(NewRepository newRepository, string organization)
         {
             try
             {
-                if (owner == null)
-                {
-                    var ownerLogin = OriginalUrl.Owner;
-                    var repositoryName = OriginalUrl.RepositoryName;
+                logger.Trace("Creating repository");
 
-                    if (ownerLogin != null && repositoryName != null)
-                    {
-                        var repo = await githubClient.Repository.Get(ownerLogin, repositoryName);
-                        if (repo != null)
-                        {
-                            repositoryCache = repo;
-                        }
-                        owner = ownerLogin;
-                    }
+                if (!await LoadKeychainInternal())
+                {
+                    throw new InvalidOperationException("The keychain did not load");
+                }
+
+                Octokit.Repository repository;
+                if (!string.IsNullOrEmpty(organization))
+                {
+                    logger.Trace("Creating repository for organization");
+
+                    repository = await githubClient.Repository.Create(organization, newRepository);
+                }
+                else
+                {
+                    logger.Trace("Creating repository for user");
+
+                    repository = await githubClient.Repository.Create(newRepository);
+                }
+
+                logger.Trace("Created Repository");
+                return repository;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error Creating Repository");
+                throw;
+            }
+        }
+
+        private async Task<IList<Organization>> GetOrganizationInternal()
+        {
+            try
+            {
+                logger.Trace("Getting Organizations");
+
+                if (!await LoadKeychainInternal())
+                {
+                    return new List<Organization>();
+                }
+
+                var organizations = await githubClient.Organization.GetAllForCurrent();
+
+                logger.Trace("Obtained {0} Organizations", organizations?.Count.ToString() ?? "NULL");
+
+                if (organizations != null)
+                {
+                    organizationsCache = organizations.ToArray();
                 }
             }
-            // it'll throw if it's private or an enterprise instance requiring authentication
-            catch (ApiException apiex)
+            catch(Exception ex)
             {
-                if (!HostAddress.IsGitHubDotComUri(OriginalUrl.ToRepositoryUri()))
-                    isEnterprise = apiex.IsGitHubApiException();
-            }
-            catch {}
-            finally
-            {
-                sem.Release();
+                logger.Error(ex, "Error Getting Organizations");
+                throw;
             }
 
-            return repositoryCache;
+            return organizationsCache;
+        }
+
+        private async Task<Octokit.User> GetCurrentUserInternal()
+        {
+            try
+            {
+                logger.Trace("Getting Organizations");
+
+                if (!await LoadKeychainInternal())
+                {
+                    return null;
+                }
+
+                userCache = await githubClient.User.Current();
+            }
+            catch(Exception ex)
+            {
+                logger.Error(ex, "Error Getting Current User");
+                throw;
+            }
+
+            return userCache;
+        }
+
+        private async Task<bool> LoadKeychainInternal()
+        {
+            logger.Trace("LoadKeychainInternal");
+
+            if (keychain.HasKeys)
+            {
+                if (!keychain.NeedsLoad)
+                {
+                    logger.Trace("LoadKeychainInternal: Has keys does not need load");
+                    return true;
+                }
+
+                logger.Trace("LoadKeychainInternal: Loading");
+
+                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
+                var uriString = keychain.Connections.First().Host;
+                var keychainAdapter = await keychain.Load(uriString);
+
+                return keychainAdapter.OctokitCredentials != Credentials.Anonymous;
+            }
+
+            logger.Trace("LoadKeychainInternal: No keys to load");
+
+            return false;
         }
 
         public async Task<bool> ValidateCredentials()

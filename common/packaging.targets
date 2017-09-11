@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <PublishTo Condition="'$(PublishTo)' == '' ">$(SolutionDir)\unity\PackageProject\Assets\Plugins\GitHub\Editor</PublishTo>
+    <ExternalPublishTo>$(SolutionDir)..\github-unity-test\GitHubExtensionProject\Assets\Plugins\GitHub\Editor</ExternalPublishTo>
+  </PropertyGroup>
+
+  <!-- After the build is done, we copy all the artifacts into two locations:
+   ..\github-unity-test\GitHubExtensionProject - an empty unity project for testing
+   unity\PackageProject - the project we use for packaging
+  -->
+  <Target Name="AfterBuild">
+
+    <Delete Files="$(OutputPath)\$(AssemblyName).dll;$(OutputPath)\$(AssemblyName).pdb;$(OutputPath)\$(AssemblyName).dll.mdb" TreatErrorsAsWarnings="true" />
+
+    <CreateItem Include="$(OutputPath)\**\*.*">
+      <Output TaskParameter="Include" ItemName="ToCopy" />
+    </CreateItem>
+
+    <!-- Copy all the DLLs to the unity\PackageProject folder for later packaging -->
+    <Copy
+      SourceFiles="@(ToCopy)"
+      DestinationFiles="@(ToCopy->'$(PublishTo)\%(RecursiveDir)%(Filename)%(Extension)')"
+      Condition="!$([System.String]::Copy('%(Filename)').Contains('deleteme')) and !$([System.String]::Copy('%(Extension)').Contains('xml')) and !$([System.String]::Copy('%(Extension)').Contains('pdb')) and !$([System.String]::Copy('%(Extension)').Contains('dll.mdb'))" />
+
+    <CreateItem Include="$(PublishTo)\**\*.*">
+      <Output TaskParameter="Include" ItemName="ToMoreCopy" />
+    </CreateItem>
+
+    <!-- Copy all the DLLs to the ..\github-unity-test folder, creating an empty Unity project with the extension ready for testing -->
+    <Copy
+      SourceFiles="@(ToMoreCopy)"
+      DestinationFiles="@(ToMoreCopy->'$(ExternalPublishTo)\%(RecursiveDir)%(Filename)%(Extension)')"
+      Retries="0"
+      ContinueOnError="WarnAndContinue" />
+
+  </Target>
+
+  <Target Name="CopyMainAssembly" DependsOnTargets="DetectMainAssembly">
+
+    <Copy
+      Condition="'%(IndirectDependency.FullPath)'!=''"
+      SourceFiles="%(IndirectDependency.FullPath)"
+      DestinationFolder="$(OutputPath)"
+      SkipUnchangedFiles="true">
+      <Output TaskParameter="CopiedFiles" ItemName="IndirectDependencyCopied" />
+    </Copy>
+
+    <Message Importance="high"
+      Condition="'%(IndirectDependencyCopied.FullPath)'!='' and '%(IndirectDependencyCopied.Extension)'!='.pdb' and '%(IndirectDependencyCopied.Extension)'!='.xml'"
+      Text="Dependency copied: %(IndirectDependencyCopied.FullPath)" />
+
+  </Target>
+
+  <Target Name="DetectMainAssembly" DependsOnTargets="ResolveAssemblyReferences">
+
+    <Message Importance="low" Text="Dependency: %(ReferencePath.Filename)%(ReferencePath.Extension) %(ReferencePath.CopyLocal)" />
+
+    <!-- Creating indirect dependency list -->
+    <CreateItem Include="%(ReferencePath.FullPath)" Condition="$([System.String]::Copy('%(ReferencePath.Filename)').Contains('GitHub.Unity'))">
+      <Output TaskParameter="Include" ItemName="IndirectDependency" />
+    </CreateItem>
+  </Target>
+
+  <PropertyGroup>
+    <CoreBuildDependsOn>
+      $(CoreBuildDependsOn);
+      CopyMainAssembly
+    </CoreBuildDependsOn>
+  </PropertyGroup>
+</Project>
