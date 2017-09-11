@@ -113,6 +113,11 @@ namespace GitHub.Unity
             OnClose = null;
         }
 
+        public override bool IsBusy
+        {
+            get { return ActiveView.IsBusy; }
+        }
+
         private Subview ActiveView
         {
             get

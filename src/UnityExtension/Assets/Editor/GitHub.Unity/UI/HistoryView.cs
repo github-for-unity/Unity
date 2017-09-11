@@ -125,10 +125,6 @@ namespace GitHub.Unity
             OnEmbeddedGUI();
         }
 
-        public override bool IsBusy
-        {
-            get { return isBusy; }
-        }
         private void AttachHandlers(IRepository repository)
         {
             if (repository == null)
@@ -748,6 +744,11 @@ namespace GitHub.Unity
                 2,
                 bottomTimelineRectHeight);
             EditorGUI.DrawRect(bottomTimelineRect, timelineBarColor);
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy; }
         }
 
         private float EntryHeight
