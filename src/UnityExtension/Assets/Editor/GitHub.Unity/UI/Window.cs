@@ -208,15 +208,19 @@ namespace GitHub.Unity
             }
             else if (!HasRepository)
             {
-                repoBranch = null;
-                repoUrl = null;
+                if (repoBranch != null)
+                {
+                    repoBranch = null;
+                    repoDataChanged = true;
+                }
+
+                if (repoUrl != DefaultRepoUrl)
+                {
+                    repoUrl = DefaultRepoUrl;
+                    repoDataChanged = true;
+                }
             }
 
-            if (repoUrl == null)
-            {
-                repoUrl = DefaultRepoUrl;
-                repoDataChanged = true;
-            }
             return repoDataChanged;
         }
 
@@ -394,6 +398,11 @@ namespace GitHub.Unity
         public SettingsView SettingsView
         {
             get { return settingsView; }
+        }
+
+        public override bool IsBusy
+        {
+            get { return false; }
         }
 
         private Subview ActiveView

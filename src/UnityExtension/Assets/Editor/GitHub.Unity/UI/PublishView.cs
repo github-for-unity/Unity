@@ -235,6 +235,11 @@ namespace GitHub.Unity
             EditorGUI.EndDisabledGroup();
         }
 
+        public override bool IsBusy
+        {
+            get { return isBusy; }
+        }
+
         private bool IsFormValid
         {
             get { return !string.IsNullOrEmpty(repoName) && !isBusy && selectedOwner != 0; }
