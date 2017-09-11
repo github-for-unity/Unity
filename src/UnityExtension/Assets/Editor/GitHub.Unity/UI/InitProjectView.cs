@@ -30,6 +30,11 @@ namespace GitHub.Unity
             Refresh();
         }
 
+        public override bool IsBusy
+        {
+            get { return isBusy; }
+        }
+
         public override void OnGUI()
         {
             var headerRect = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
