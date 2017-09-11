@@ -52,11 +52,6 @@ namespace GitHub.Unity
             Repository.OnStatusUpdated -= RunStatusUpdateOnMainThread;
         }
 
-        public override bool IsBusy
-        {
-            get { return isBusy; }
-        }
-
         private void RunStatusUpdateOnMainThread(GitStatus status)
         {
             new ActionTask(TaskManager.Token, _ => OnStatusUpdate(status))
@@ -216,6 +211,11 @@ namespace GitHub.Unity
                         commitBody = "";
                         isBusy = false;
                     }).Start();
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy; }
         }
     }
 }

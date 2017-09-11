@@ -29,34 +29,8 @@ namespace GitHub.Unity
         [NonSerialized] private string errorMessage;
         [NonSerialized] private bool enterPressed;
         [NonSerialized] private string password = "";
-
         [NonSerialized] private AuthenticationService authenticationService;
-        private AuthenticationService AuthenticationService
-        {
-            get
-            {
-                if (authenticationService == null)
-                {
-                    UriString host;
-                    if (Repository != null && Repository.CloneUrl != null && Repository.CloneUrl.IsValidUri)
-                    {
-                        host = new UriString(Repository.CloneUrl.ToRepositoryUri()
-                            .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
-                    }
-                    else
-                    {
-                        host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
-                    }
 
-                    AuthenticationService = new AuthenticationService(host, Platform.Keychain);
-                }
-                return authenticationService;
-            }
-            set
-            {
-                authenticationService = value;
-            }
-        }
 
         public override void InitializeView(IView parent)
         {
@@ -122,11 +96,6 @@ namespace GitHub.Unity
                 GUILayout.EndVertical();
             }
             GUILayout.EndScrollView();
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy; }
         }
 
         private void HandleEnterPressed()
@@ -254,6 +223,38 @@ namespace GitHub.Unity
             {
                 GUILayout.Label(errorMessage, Styles.ErrorLabel);
             }
+        }
+
+        private AuthenticationService AuthenticationService
+        {
+            get
+            {
+                if (authenticationService == null)
+                {
+                    UriString host;
+                    if (Repository != null && Repository.CloneUrl != null && Repository.CloneUrl.IsValidUri)
+                    {
+                        host = new UriString(Repository.CloneUrl.ToRepositoryUri()
+                            .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
+                    }
+                    else
+                    {
+                        host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
+                    }
+
+                    AuthenticationService = new AuthenticationService(host, Platform.Keychain);
+                }
+                return authenticationService;
+            }
+            set
+            {
+                authenticationService = value;
+            }
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy; }
         }
     }
 }

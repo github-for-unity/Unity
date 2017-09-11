@@ -468,5 +468,10 @@ namespace GitHub.Unity
             }
             EditorGUI.EndDisabledGroup();
         }
+
+        public override bool IsBusy
+        {
+            get { return isBusy; }
+        }
     }
 }

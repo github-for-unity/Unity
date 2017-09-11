@@ -11,7 +11,6 @@ namespace GitHub.Unity
     class LoadingView : Subview
     {
         private static readonly Vector2 viewSize = new Vector2(300, 250);
-        private bool isBusy;
 
         private const string WindowTitle = "Loading...";
         private const string Header = "";
