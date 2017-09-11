@@ -76,10 +76,7 @@ namespace GitHub.Unity
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
-            if (userSettingsView != null)
-            {
-                userSettingsView.OnDataUpdate();
-            }
+            userSettingsView.OnDataUpdate();
 
             MaybeUpdateData();
         }
