@@ -27,7 +27,6 @@ namespace GitHub.Unity
         private readonly IKeychain keychain;
         private readonly IGitHubClient githubClient;
         private readonly ILoginManager loginManager;
-        private static readonly SemaphoreSlim sem = new SemaphoreSlim(1);
 
         IList<Organization> organizationsCache;
         Octokit.User userCache;
@@ -72,11 +71,10 @@ namespace GitHub.Unity
             }
         }
 
-        public async Task GetOrganizations(Action<IList<Organization>> callback)
+        public async Task GetOrganizations(Action<IList<Organization>> onSuccess, Action onNeedsAuth = null, Action<Exception> onError = null)
         {
-            Guard.ArgumentNotNull(callback, "callback");
-            var organizations = await GetOrganizationInternal();
-            callback(organizations);
+            Guard.ArgumentNotNull(onSuccess, "callback");
+            await GetOrganizationInternal(onSuccess, onNeedsAuth, onError);
         }
 
         public async Task LoadKeychain(Action<bool> callback)
@@ -224,7 +222,7 @@ namespace GitHub.Unity
             }
         }
 
-        private async Task<IList<Organization>> GetOrganizationInternal()
+        private async Task GetOrganizationInternal(Action<IList<Organization>> onSuccess, Action onNeedsAuth = null, Action<Exception> onError = null)
         {
             try
             {
@@ -232,7 +230,8 @@ namespace GitHub.Unity
 
                 if (!await LoadKeychainInternal())
                 {
-                    return new List<Organization>();
+                    onSuccess(new List<Organization>());
+                    return;
                 }
 
                 var organizations = await githubClient.Organization.GetAllForCurrent();
@@ -244,13 +243,22 @@ namespace GitHub.Unity
                     organizationsCache = organizations.ToArray();
                 }
             }
-            catch(Exception ex)
+            catch (LoginAttemptsExceededException)
             {
-                logger.Error(ex, "Error Getting Organizations");
-                throw;
+                logger.Warning("Authentication Failed; Clearing Keychain");
+
+                var uriString = keychain.Hosts.First();
+                await keychain.Clear(uriString, false);
+
+                onNeedsAuth?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error Getting Organizations: {0}", ex.GetType().Name);
+                onError?.Invoke(ex);
             }
 
-            return organizationsCache;
+            onSuccess(organizationsCache);
         }
 
         private async Task<Octokit.User> GetCurrentUserInternal()

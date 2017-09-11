@@ -122,6 +122,10 @@ namespace GitHub.Unity
                             owners = new[] { OwnersDefaultText, username }.Union(organizationLogins).ToArray();
 
                             isBusy = false;
+                        }, () => {
+                            PopupWindow.Open(PopupWindow.PopupViewType.AuthenticationView);
+                        }, exception => {
+                            
                         });
                     });
                 }
