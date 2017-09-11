@@ -453,6 +453,11 @@ namespace GitHub.Unity
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
+            public override bool IsBusy
+            {
+                get { return false; }
+            }
         }
 
         private enum SubTab
