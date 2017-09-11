@@ -423,6 +423,11 @@ namespace GitHub.Unity
             get { return initProjectView; }
         }
 
+        public override bool IsBusy
+        {
+            get { return false; }
+        }
+
         private Subview ActiveView
         {
             get
