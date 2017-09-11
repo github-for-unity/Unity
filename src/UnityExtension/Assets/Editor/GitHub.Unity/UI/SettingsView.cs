@@ -97,11 +97,6 @@ namespace GitHub.Unity
             Refresh();
         }
 
-        public override bool IsBusy
-        {
-            get { return isBusy || userSettingsView.IsBusy; }
-        }
-
         public override void Refresh()
         {
             base.Refresh();
@@ -463,6 +458,11 @@ namespace GitHub.Unity
                 }
             }
             EditorGUI.EndDisabledGroup();
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy || userSettingsView.IsBusy; }
         }
     }
 }
