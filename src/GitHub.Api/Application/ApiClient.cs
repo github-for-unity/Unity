@@ -243,9 +243,18 @@ namespace GitHub.Unity
                     organizationsCache = organizations.ToArray();
                 }
             }
-            catch (LoginAttemptsExceededException)
+            catch (AuthorizationException ex)
             {
-                logger.Warning("Authentication Failed; Clearing Keychain");
+                logger.Warning("Authentication Failed; {0}; Clearing Keychain", ex.GetType().Name);
+
+                var uriString = keychain.Hosts.First();
+                await keychain.Clear(uriString, false);
+
+                onNeedsAuth?.Invoke();
+            }
+            catch (LoginAttemptsExceededException ex)
+            {
+                logger.Warning("Authentication Failed; {0}; Clearing Keychain", ex.GetType().Name);
 
                 var uriString = keychain.Hosts.First();
                 await keychain.Clear(uriString, false);
