@@ -15,5 +15,6 @@ namespace GitHub.Unity
         IRepository Repository { get; }
         bool HasRepository { get; }
         IApplicationManager Manager { get; }
+        bool IsBusy { get; }
     }
 }

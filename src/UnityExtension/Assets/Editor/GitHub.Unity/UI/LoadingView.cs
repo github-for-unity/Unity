@@ -25,5 +25,10 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {}
+
+        public override bool IsBusy
+        {
+            get { return false; }
+        }
     }
 }

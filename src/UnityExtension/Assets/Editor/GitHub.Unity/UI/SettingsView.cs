@@ -34,6 +34,7 @@ namespace GitHub.Unity
         private const string GitPathSaveButton = "Save Path";
 
         [NonSerialized] private int newGitIgnoreRulesSelection = -1;
+        [NonSerialized] private bool isBusy;
 
         [SerializeField] private string gitName;
         [SerializeField] private string gitEmail;
@@ -45,7 +46,6 @@ namespace GitHub.Unity
         [SerializeField] private string repositoryRemoteName;
         [SerializeField] private string repositoryRemoteUrl;
         [SerializeField] private Vector2 scroll;
-        [SerializeField] private bool isBusy;
         [SerializeField] private int lockedFileSelection = -1;
         [SerializeField] private bool hasRemote;
         [NonSerialized] private bool remoteHasChanged;
@@ -577,6 +577,11 @@ namespace GitHub.Unity
                 }
             }
             EditorGUI.EndDisabledGroup();
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy; }
         }
     }
 }
