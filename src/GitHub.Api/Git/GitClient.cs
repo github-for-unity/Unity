@@ -143,7 +143,10 @@ namespace GitHub.Unity
             }
 
             if (path == null)
-                path = await new FindExecTask("git", taskManager.Token).StartAwait();
+            {
+                path = await new FindExecTask("git", taskManager.Token)
+                    .Configure(processManager).StartAwait();
+            }
 
             return path;
         }
