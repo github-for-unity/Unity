@@ -94,7 +94,8 @@ namespace GitHub.Unity
                                  localCommitIcon,
                                  repoIcon,
                                  lockIcon,
-                                 dropdownListIcon;
+                                 dropdownListIcon,
+                                 xRedIcon;
 
         private static Color timelineBarColor;
 
@@ -796,6 +797,18 @@ namespace GitHub.Unity
                 }
                 return dropdownListIcon;
             }
+        }
+
+        public static Texture2D XRedIcon
+        {
+          get
+          {
+            if (xRedIcon == null)
+            {
+                xRedIcon = Utility.GetIcon("x-red.png", "x-red@2x.png");
+            }
+            return xRedIcon;
+          }
         }
     }
 }

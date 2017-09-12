@@ -169,6 +169,10 @@ namespace GitHub.Unity
             {
                 GUILayout.BeginHorizontal();
                 {
+                    var iconRect = GUILayoutUtility.GetRect(16, 16, GUILayout.ExpandWidth(false));
+                    iconRect.x += 4;
+                    iconRect.y += 1;
+                    GUI.DrawTexture(iconRect, Styles.XRedIcon, ScaleMode.ScaleToFit);
                     GUILayout.Label(gitFileErrorMessage, Styles.ErrorLabel);
                 }
                 GUILayout.EndHorizontal();

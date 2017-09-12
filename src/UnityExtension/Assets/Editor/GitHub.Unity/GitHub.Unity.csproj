@@ -178,6 +178,8 @@
     <EmbeddedResource Include="IconsAndLogos\moved.png" />
     <EmbeddedResource Include="IconsAndLogos\removed%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\removed.png" />
+    <EmbeddedResource Include="IconsAndLogos\x-red.png" />
+    <EmbeddedResource Include="IconsAndLogos\x-red%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\repo%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\repo-light%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\repo-light.png" />
@@ -203,7 +205,7 @@
   </ItemGroup>
   <Import Project="..\..\..\..\..\common\nativelibraries.props" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
