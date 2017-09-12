@@ -164,29 +164,33 @@ namespace GitHub.Unity
 
         private void gitErrorMessagesGUI()
         {
-            gitFileErrorMessage = "Invalid path for Git";
-            if (gitFileErrorMessage != null)
+            GUILayout.BeginHorizontal();
             {
-                GUILayout.BeginHorizontal();
+                gitFileErrorMessage = "Invalid path for Git";
+                if (gitFileErrorMessage != null)
                 {
                     var iconRect = GUILayoutUtility.GetRect(16, 16, GUILayout.ExpandWidth(false));
                     iconRect.x += 4;
                     iconRect.y += 1;
                     GUI.DrawTexture(iconRect, Styles.XRedIcon, ScaleMode.ScaleToFit);
-                    GUILayout.Label(gitFileErrorMessage, Styles.ErrorLabel);
-                }
-                GUILayout.EndHorizontal();
-            }
 
-            gitVersionErrorMessage  = "Git 3.11.0 required (2.11.1 found)";
-            if (gitVersionErrorMessage != null)
-            {
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.Label(gitVersionErrorMessage, Styles.ErrorLabel);
+                    GUILayout.Label(gitFileErrorMessage, Styles.ErrorLabel, GUILayout.ExpandHeight(false));
                 }
-                GUILayout.EndHorizontal();
+
+                gitVersionErrorMessage  = "Git 3.11.0 required (2.11.1 found)";
+                if (gitVersionErrorMessage != null)
+                {
+                    var iconRect = GUILayoutUtility.GetRect(16, 16, GUILayout.ExpandWidth(false));
+                    iconRect.x += 4;
+                    iconRect.y += 1;
+                    GUI.DrawTexture(iconRect, Styles.XRedIcon, ScaleMode.ScaleToFit);
+
+                    GUILayout.Label(gitVersionErrorMessage, Styles.ErrorLabel, GUILayout.ExpandHeight(false));
+                }
+
+                GUILayout.FlexibleSpace();
             }
+            GUILayout.EndHorizontal();
         }
 
         private void MaybeUpdateData()
