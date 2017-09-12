@@ -12,9 +12,9 @@ namespace GitHub.Unity
         Rect Position { get; }
 
         void Finish(bool result);
-        event Action<bool> OnClose;
         IRepository Repository { get; }
         bool HasRepository { get; }
         IApplicationManager Manager { get; }
+        bool IsBusy { get; }
     }
 }

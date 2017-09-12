@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Octokit;
-using Rackspace.Threading;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,7 +8,10 @@ namespace GitHub.Unity
 {
     class PublishView : Subview
     {
-        private const string Title = "Publish this repository to GitHub";
+        private static readonly Vector2 viewSize = new Vector2(300, 250);
+
+        private const string WindowTitle = "Publish";
+        private const string Header = "Publish this repository to GitHub";
         private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
         private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
         private const string PublishViewCreateButton = "Publish";
@@ -58,6 +59,8 @@ namespace GitHub.Unity
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
+            Title = WindowTitle;
+            Size = viewSize;
             PopulateView();
         }
 
@@ -230,6 +233,11 @@ namespace GitHub.Unity
                 GUILayout.Space(10);
             }
             EditorGUI.EndDisabledGroup();
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy; }
         }
 
         private bool IsFormValid

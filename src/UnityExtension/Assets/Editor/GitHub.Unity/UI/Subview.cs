@@ -5,8 +5,6 @@ namespace GitHub.Unity
 {
     abstract class Subview : IView
     {
-        public event Action<bool> OnClose;
-
         private const string NullParentError = "Subview parent is null";
 
         public virtual void InitializeView(IView parent)
@@ -57,12 +55,14 @@ namespace GitHub.Unity
         public IApplicationManager Manager { get { return Parent.Manager; } }
         public IRepository Repository { get { return Parent.Repository; } }
         public bool HasRepository { get { return Parent.HasRepository; } }
-
+        public abstract bool IsBusy { get; }
         protected ITaskManager TaskManager { get { return Manager.TaskManager; } }
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }
         protected IPlatform Platform { get { return Manager.Platform; } }
-        public virtual Rect Position { get { return Parent.Position; } }
+        public Rect Position { get { return Parent.Position; } }
+        public string Title { get; protected set; }
+        public Vector2 Size { get; protected set; }
 
         private ILogging logger;
         protected ILogging Logger
