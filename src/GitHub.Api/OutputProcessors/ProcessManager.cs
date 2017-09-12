@@ -28,12 +28,12 @@ namespace GitHub.Unity
             if (processTask.ProcessName?.ToNPath() != null)
             {
                 executableFileName = processTask.ProcessName.ToNPath();
-                logger.Trace("Configuring Task:{0} with Exec:{1}", processTask.GetType().Name, executableFileName);
+                //logger.Trace("Configuring Task:{0} with Exec:{1}", processTask.GetType().Name, executableFileName);
             }
             else
             {
                 executableFileName = environment.GitExecutablePath;
-                logger.Trace("Configuring Task:{0} with Git", processTask.GetType().Name);
+                //logger.Trace("Configuring Task:{0} with Git", processTask.GetType().Name);
             }
 
             return Configure(processTask,
