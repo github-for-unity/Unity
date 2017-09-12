@@ -101,17 +101,7 @@ namespace GitHub.Unity
 
                 GUILayout.BeginHorizontal();
                 {
-                    EditorGUI.BeginDisabledGroup(!isValueChangedAndFileExists);
-                    {
-                        if (GUILayout.Button(GitPathSaveButton, GUILayout.ExpandWidth(false)))
-                        {
-                            GUI.FocusControl(null);
-                            isBusy = true;
-
-                            ValidateAndSetGitInstallPath(newGitExec);
-                        }
-                    }
-                    EditorGUI.EndDisabledGroup();
+                    GUILayout.FlexibleSpace();
 
                     //Find button - for attempting to locate a new install
                     if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
@@ -151,8 +141,24 @@ namespace GitHub.Unity
                                 isBusy = false;
                             }).Start();
                     }
+
+                    EditorGUI.BeginDisabledGroup(!isValueChangedAndFileExists);
+                    {
+                        if (GUILayout.Button(GitPathSaveButton, GUILayout.ExpandWidth(false)))
+                        {
+                            GUI.FocusControl(null);
+                            isBusy = true;
+
+                            ValidateAndSetGitInstallPath(newGitExec);
+                        }
+                    }
+                    EditorGUI.EndDisabledGroup();
+
                 }
                 GUILayout.EndHorizontal();
+            }
+            EditorGUI.EndDisabledGroup();
+        }
 
                 if (gitFileErrorMessage != null)
                 {
