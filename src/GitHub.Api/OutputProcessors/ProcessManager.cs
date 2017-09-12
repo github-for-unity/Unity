@@ -25,7 +25,7 @@ namespace GitHub.Unity
         public T Configure<T>(T processTask, bool withInput = false) where T : IProcess
         {
             NPath executableFileName;
-            if (processTask.ProcessName?.ToNPath() != null)
+            if (processTask.ProcessName != null)
             {
                 executableFileName = processTask.ProcessName.ToNPath();
                 //logger.Trace("Configuring Task:{0} with Exec:{1}", processTask.GetType().Name, executableFileName);
