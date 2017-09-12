@@ -24,8 +24,20 @@ namespace GitHub.Unity
 
         public T Configure<T>(T processTask, bool withInput = false) where T : IProcess
         {
+            NPath executableFileName;
+            if (processTask.ProcessName?.ToNPath() != null)
+            {
+                executableFileName = processTask.ProcessName.ToNPath();
+                logger.Trace("Configuring Task:{0} with Exec:{1}", processTask.GetType().Name, executableFileName);
+            }
+            else
+            {
+                executableFileName = environment.GitExecutablePath;
+                logger.Trace("Configuring Task:{0} with Git", processTask.GetType().Name);
+            }
+
             return Configure(processTask,
-                processTask.ProcessName?.ToNPath() ?? environment.GitExecutablePath,
+                executableFileName,
                 processTask.ProcessArguments,
                 environment.RepositoryPath, withInput);
         }
