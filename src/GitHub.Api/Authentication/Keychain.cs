@@ -64,14 +64,15 @@ namespace GitHub.Unity
                 logger.Warning("Cannot load host from Credential Manager; removing from cache");
                 await Clear(host, false);
             }
-            else if (keychainItem.Username != cachedConnection.Username)
-            {
-                logger.Warning("Item loaded from credential manager does not match connection cache ; removing from cache");
-                await Clear(host, false);
-            }
             else
             {
-                logger.Trace($@"Loaded from Credential Manager Host:""{keychainItem.Host}"" Username:""{keychainItem.Username}""");
+                if (keychainItem.Username != cachedConnection.Username)
+                {
+                    logger.Warning("Keychain Username: {0} does not match; Hopefully it works", keychainItem.Username);
+                }
+
+                logger.Trace("Loaded from Credential Manager Host:\"{0}\" Username:\"{1}\"", keychainItem.Host, keychainItem.Username); 
+
                 keychainAdapter.Set(keychainItem);
             }
 
