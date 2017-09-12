@@ -166,7 +166,6 @@ namespace GitHub.Unity
         {
             GUILayout.BeginHorizontal();
             {
-                gitFileErrorMessage = "Invalid path for Git";
                 if (gitFileErrorMessage != null)
                 {
                     var iconRect = GUILayoutUtility.GetRect(16, 16, GUILayout.ExpandWidth(false));
@@ -177,7 +176,6 @@ namespace GitHub.Unity
                     GUILayout.Label(gitFileErrorMessage, Styles.ErrorLabel, GUILayout.ExpandHeight(false));
                 }
 
-                gitVersionErrorMessage  = "Git 3.11.0 required (2.11.1 found)";
                 if (gitVersionErrorMessage != null)
                 {
                     var iconRect = GUILayoutUtility.GetRect(16, 16, GUILayout.ExpandWidth(false));
