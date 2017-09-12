@@ -24,8 +24,20 @@ namespace GitHub.Unity
 
         public T Configure<T>(T processTask, bool withInput = false) where T : IProcess
         {
+            NPath executableFileName;
+            if (processTask.ProcessName != null)
+            {
+                executableFileName = processTask.ProcessName.ToNPath();
+                //logger.Trace("Configuring Task:{0} with Exec:{1}", processTask.GetType().Name, executableFileName);
+            }
+            else
+            {
+                executableFileName = environment.GitExecutablePath;
+                //logger.Trace("Configuring Task:{0} with Git", processTask.GetType().Name);
+            }
+
             return Configure(processTask,
-                processTask.ProcessName?.ToNPath() ?? environment.GitExecutablePath,
+                executableFileName,
                 processTask.ProcessArguments,
                 environment.RepositoryPath, withInput);
         }
@@ -33,6 +45,7 @@ namespace GitHub.Unity
         public T Configure<T>(T processTask, string executableFileName, string arguments, NPath workingDirectory = null, bool withInput = false)
              where T : IProcess
         {
+            //If this null check fails, be sure you called Configure() on your task
             Guard.ArgumentNotNull(executableFileName, nameof(executableFileName));
 
             var startInfo = new ProcessStartInfo
