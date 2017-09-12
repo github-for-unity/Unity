@@ -169,6 +169,8 @@ namespace GitHub.Unity
                 var g = AssetDatabase.AssetPathToGUID(assetPath);
                 guidsLocks.Add(g);
             }
+
+            EditorApplication.RepaintProjectWindow();
         }
 
         private static void RunStatusUpdateOnMainThread(GitStatus update)
