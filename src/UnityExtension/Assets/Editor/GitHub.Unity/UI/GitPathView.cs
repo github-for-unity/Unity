@@ -60,6 +60,8 @@ namespace GitHub.Unity
 
             EditorGUI.BeginDisabledGroup(IsBusy || Parent.IsBusy);
             {
+                gitErrorMessagesGUI();
+
                 // Install path field
                 GUILayout.BeginHorizontal();
                 {
@@ -160,25 +162,25 @@ namespace GitHub.Unity
             EditorGUI.EndDisabledGroup();
         }
 
-                if (gitFileErrorMessage != null)
+        private void gitErrorMessagesGUI()
+        {
+            if (gitFileErrorMessage != null)
+            {
+                GUILayout.BeginHorizontal();
                 {
-                    GUILayout.BeginHorizontal();
-                    {
-                        GUILayout.Label(gitFileErrorMessage, Styles.ErrorLabel);
-                    }
-                    GUILayout.EndHorizontal();
+                    GUILayout.Label(gitFileErrorMessage, Styles.ErrorLabel);
                 }
-
-                if (gitVersionErrorMessage != null)
-                {
-                    GUILayout.BeginHorizontal();
-                    {
-                        GUILayout.Label(gitVersionErrorMessage, Styles.ErrorLabel);
-                    }
-                    GUILayout.EndHorizontal();
-                }
+                GUILayout.EndHorizontal();
             }
-            EditorGUI.EndDisabledGroup();
+
+            if (gitVersionErrorMessage != null)
+            {
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label(gitVersionErrorMessage, Styles.ErrorLabel);
+                }
+                GUILayout.EndHorizontal();
+            }
         }
 
         private void MaybeUpdateData()
