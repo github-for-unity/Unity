@@ -52,7 +52,7 @@ namespace GitHub.Unity
         [SerializeField] private List<Remote> remotes = new List<Remote>();
         [SerializeField] private Vector2 scroll;
         [SerializeField] private BranchTreeNode selectedNode;
-        private List<string> favoritesList;
+        [SerializeField] private List<string> favoritesList = new List<string>();
 
         public override void InitializeView(IView parent)
         {
