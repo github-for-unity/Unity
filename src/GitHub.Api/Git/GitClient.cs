@@ -111,13 +111,22 @@ namespace GitHub.Unity
             if (path == null)
                 path = await LookForSystemGit();
 
-            Logger.Trace("Git Installation folder {0} discovered: '{1}'", path == null ? "not" : "", path);
+            if (path == null)
+            {
+                Logger.Trace("Git Installation not discovered");
+            }
+            else
+            {
+                Logger.Trace("Git Installation discovered: '{0}'", path);
+            }
 
             return path;
         }
 
         private Task<NPath> LookForPortableGit()
         {
+            Logger.Trace("LookForPortableGit");
+
             var gitHubLocalAppDataPath = environment.UserCachePath;
             if (!gitHubLocalAppDataPath.DirectoryExists())
                 return null;
@@ -138,10 +147,13 @@ namespace GitHub.Unity
 
         private async Task<NPath> LookForSystemGit()
         {
+            Logger.Trace("LookForSystemGit");
+
             NPath path = null;
             if (!environment.IsWindows)
             {
                 var p = new NPath("/usr/local/bin/git");
+
                 if (p.FileExists())
                     path = p;
             }
