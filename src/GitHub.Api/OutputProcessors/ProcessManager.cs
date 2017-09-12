@@ -33,6 +33,7 @@ namespace GitHub.Unity
         public T Configure<T>(T processTask, string executableFileName, string arguments, NPath workingDirectory = null, bool withInput = false)
              where T : IProcess
         {
+            //If this null check fails, be sure you called Configure() on your task
             Guard.ArgumentNotNull(executableFileName, nameof(executableFileName));
 
             var startInfo = new ProcessStartInfo
