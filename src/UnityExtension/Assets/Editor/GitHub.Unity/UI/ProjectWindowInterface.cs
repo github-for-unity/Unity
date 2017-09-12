@@ -151,7 +151,9 @@ namespace GitHub.Unity
         private static void RunLocksUpdateOnMainThread(IEnumerable<GitLock> update)
         {
             new ActionTask(EntryPoint.ApplicationManager.TaskManager.Token, _ => OnLocksUpdate(update))
-                .ScheduleUI(EntryPoint.ApplicationManager.TaskManager);
+            {
+                Affinity = TaskAffinity.UI
+            }.Start();
         }
 
         private static void OnLocksUpdate(IEnumerable<GitLock> update)
@@ -178,7 +180,9 @@ namespace GitHub.Unity
         private static void RunStatusUpdateOnMainThread(GitStatus update)
         {
             new ActionTask(EntryPoint.ApplicationManager.TaskManager.Token, _ => OnStatusUpdate(update))
-                .ScheduleUI(EntryPoint.ApplicationManager.TaskManager);
+            {
+                Affinity = TaskAffinity.UI
+            }.Start();
         }
 
         private static void OnStatusUpdate(GitStatus update)
