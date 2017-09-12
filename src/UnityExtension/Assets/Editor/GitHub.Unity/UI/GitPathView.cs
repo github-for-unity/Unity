@@ -60,8 +60,6 @@ namespace GitHub.Unity
 
             EditorGUI.BeginDisabledGroup(IsBusy || Parent.IsBusy);
             {
-                gitErrorMessagesGUI();
-
                 // Install path field
                 GUILayout.BeginHorizontal();
                 {
@@ -98,6 +96,8 @@ namespace GitHub.Unity
                     }
                 }
                 GUILayout.EndHorizontal();
+
+                gitErrorMessagesGUI();
 
                 GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
