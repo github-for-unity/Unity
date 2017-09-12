@@ -177,7 +177,8 @@ namespace GitHub.Unity
 
         private static void RunStatusUpdateOnMainThread(GitStatus update)
         {
-            EntryPoint.ApplicationManager.TaskManager.ScheduleUI(new ActionTask(EntryPoint.ApplicationManager.TaskManager.Token, _ => OnStatusUpdate(update)));
+            new ActionTask(EntryPoint.ApplicationManager.TaskManager.Token, _ => OnStatusUpdate(update))
+                .ScheduleUI(EntryPoint.ApplicationManager.TaskManager);
         }
 
         private static void OnStatusUpdate(GitStatus update)
