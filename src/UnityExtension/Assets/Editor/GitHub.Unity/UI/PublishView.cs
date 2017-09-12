@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Octokit;
 using UnityEditor;
@@ -23,6 +24,7 @@ namespace GitHub.Unity
 
         [SerializeField] private string username;
         [SerializeField] private string[] owners = { OwnersDefaultText };
+        [SerializeField] private IList<Organization> organizations;
         [SerializeField] private int selectedOwner;
         [SerializeField] private string repoName = String.Empty;
         [SerializeField] private string repoDescription = "";
@@ -31,6 +33,7 @@ namespace GitHub.Unity
         [NonSerialized] private IApiClient client;
         [NonSerialized] private bool isBusy;
         [NonSerialized] private string error;
+        [NonSerialized] private bool organizationsNeedLoading;
 
         public IApiClient Client
         {
@@ -56,23 +59,43 @@ namespace GitHub.Unity
             }
         }
 
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            organizationsNeedLoading = organizations == null && !isBusy;
+        }
+
+        public override void OnDataUpdate()
+        {
+            base.OnDataUpdate();
+            MaybeUpdateData();
+        }
+
+        private void MaybeUpdateData()
+        {
+            if (organizationsNeedLoading)
+            {
+                organizationsNeedLoading = false;
+                LoadOrganizations();
+            }
+        }
+
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
             Title = WindowTitle;
             Size = viewSize;
-            PopulateView();
         }
 
-        private void PopulateView()
+        private void LoadOrganizations()
         {
-            try
+            var keychainConnections = Platform.Keychain.Connections;
+            //TODO: ONE_USER_LOGIN This assumes only ever one user can login
+            if (keychainConnections.Any())
             {
-                var keychainConnections = Platform.Keychain.Connections;
-                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-                if (keychainConnections.Any())
+                try
                 {
-                    Logger.Trace("GetCurrentUser");
+                    Logger.Trace("Loading Keychain");
 
                     isBusy = true;
 
@@ -87,12 +110,14 @@ namespace GitHub.Unity
                         //TODO: ONE_USER_LOGIN This assumes only ever one user can login
                         username = keychainConnections.First().Username;
 
-                        Client.GetOrganizations(organizations => {
+                        Logger.Trace("Loading Organizations");
+
+                        Client.GetOrganizations(orgs => {
+                            organizations = orgs;
                             Logger.Trace("Loaded {0} organizations", organizations.Count);
 
                             var organizationLogins = organizations
-                                .OrderBy(organization => organization.Login)
-                                .Select(organization => organization.Login);
+                                .OrderBy(organization => organization.Login).Select(organization => organization.Login);
 
                             owners = new[] { OwnersDefaultText, username }.Union(organizationLogins).ToArray();
 
@@ -100,15 +125,15 @@ namespace GitHub.Unity
                         });
                     });
                 }
-                else
+                catch (Exception e)
                 {
-                    Logger.Warning("No Keychain connections to use");
+                    Logger.Error(e, "Error PopulateView & GetOrganizations");
+                    isBusy = false;
                 }
             }
-            catch (Exception e)
+            else
             {
-                Logger.Error(e, "Error PopulateView & GetOrganizations");
-                throw;
+                Logger.Warning("No Keychain connections to use");
             }
         }
 
@@ -196,6 +221,7 @@ namespace GitHub.Unity
                     EditorGUI.BeginDisabledGroup(!IsFormValid);
                     if (GUILayout.Button(PublishViewCreateButton))
                     {
+                        GUI.FocusControl(null);
                         isBusy = true;
 
                         var organization = owners[selectedOwner] == username ? null : owners[selectedOwner];
