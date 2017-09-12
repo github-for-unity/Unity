@@ -103,7 +103,11 @@ namespace GitHub.Unity
             if (!String.IsNullOrEmpty(environment.GitExecutablePath))
                 return environment.GitExecutablePath;
 
-            var path = await LookForPortableGit();
+            NPath path = null;
+
+            if (environment.IsWindows)
+                path = await LookForPortableGit();
+
             if (path == null)
                 path = await LookForSystemGit();
 
