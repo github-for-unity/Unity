@@ -24,7 +24,7 @@ namespace GitHub.Unity
             IOutputProcessor<string> processor = null);
 
         ITask<List<GitLock>> ListLocks(bool local,
-            BaseOutputListProcessor<GitLock> processor = null);
+            IOutputProcessor<GitLock, List<GitLock>> processor = null);
 
         ITask<string> Pull(string remote, string branch,
             IOutputProcessor<string> processor = null);
@@ -76,7 +76,7 @@ namespace GitHub.Unity
         ITask<string> Unlock(string file, bool force,
             IOutputProcessor<string> processor = null);
 
-        ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null);
+        ITask<List<GitLogEntry>> Log(IOutputProcessor<GitLogEntry, List<GitLogEntry>> processor = null);
     }
 
     class GitClient : IGitClient
@@ -194,7 +194,7 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null)
+        public ITask<List<GitLogEntry>> Log(IOutputProcessor<GitLogEntry, List<GitLogEntry>> processor = null)
         {
             Logger.Trace("Log");
 
@@ -218,7 +218,7 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null)
+        public ITask<List<GitLock>> ListLocks(bool local, IOutputProcessor<GitLock, List<GitLock>> processor = null)
         {
             Logger.Trace("ListLocks");
 

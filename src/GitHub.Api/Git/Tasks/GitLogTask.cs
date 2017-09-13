@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 
 namespace GitHub.Unity
@@ -7,7 +8,7 @@ namespace GitHub.Unity
         private const string TaskName = "git log";
 
         public GitLogTask(IGitObjectFactory gitObjectFactory,
-            CancellationToken token, BaseOutputListProcessor<GitLogEntry> processor = null)
+            CancellationToken token, IOutputProcessor<GitLogEntry, List<GitLogEntry>> processor = null)
             : base(token, processor ?? new LogEntryOutputProcessor(gitObjectFactory))
         {
             Name = TaskName;

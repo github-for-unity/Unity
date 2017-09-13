@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 
 namespace GitHub.Unity
@@ -8,7 +9,7 @@ namespace GitHub.Unity
         private readonly string args;
 
         public GitListLocksTask(IGitObjectFactory gitObjectFactory, bool local,
-            CancellationToken token, BaseOutputListProcessor<GitLock> processor = null)
+            CancellationToken token, IOutputProcessor<GitLock, List<GitLock>> processor = null)
             : base(token, processor ?? new LockOutputProcessor(gitObjectFactory))
         {
             Name = TaskName;

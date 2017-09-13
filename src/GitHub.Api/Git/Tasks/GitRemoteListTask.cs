@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 
 namespace GitHub.Unity
@@ -6,7 +7,7 @@ namespace GitHub.Unity
     {
         private const string TaskName = "git remote";
 
-        public GitRemoteListTask(CancellationToken token, BaseOutputListProcessor<GitRemote> processor = null)
+        public GitRemoteListTask(CancellationToken token, IOutputProcessor<GitRemote, List<GitRemote>> processor = null)
             : base(token, processor ?? new RemoteListOutputProcessor())
         {
             Name = TaskName;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace GitHub.Unity
@@ -9,7 +10,7 @@ namespace GitHub.Unity
         private readonly string arguments;
 
         public GitConfigGetAllTask(string key, GitConfigSource configSource,
-            CancellationToken token, BaseOutputListProcessor<string> processor = null)
+            CancellationToken token, IOutputProcessor<string, List<string>> processor = null)
             : base(token, processor ?? new SimpleListOutputProcessor())
         {
             Guard.ArgumentNotNullOrWhiteSpace(key, nameof(key));

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 
 namespace GitHub.Unity
@@ -7,7 +8,7 @@ namespace GitHub.Unity
         private const string TaskName = "git list local branches";
         private const string Arguments = "branch -vv";
 
-        public GitListLocalBranchesTask(CancellationToken token, BaseOutputListProcessor<GitBranch> processor = null)
+        public GitListLocalBranchesTask(CancellationToken token, IOutputProcessor<GitBranch, List<GitBranch>> processor = null)
             : base(token, processor ?? new BranchListOutputProcessor())
         {
             Name = TaskName;
