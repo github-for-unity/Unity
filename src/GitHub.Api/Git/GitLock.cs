@@ -3,7 +3,7 @@ using System;
 namespace GitHub.Unity
 {
     [Serializable]
-    struct GitLock
+    public struct GitLock
     {
         public static GitLock Default = new GitLock(null, null, null, -1);
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface IRepositoryManager : IDisposable
+    public interface IRepositoryManager : IDisposable
     {
         event Action<bool> OnIsBusyChanged;
 
