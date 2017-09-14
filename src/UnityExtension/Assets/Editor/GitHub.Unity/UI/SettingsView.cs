@@ -45,6 +45,7 @@ namespace GitHub.Unity
         [SerializeField] private bool hasRemote;
         [NonSerialized] private bool remoteHasChanged;
         [NonSerialized] private bool userDataHasChanged;
+        [NonSerialized] private bool locksHaveChanged;
 
         [SerializeField] private string newGitName;
         [SerializeField] private string newGitEmail;
@@ -71,6 +72,7 @@ namespace GitHub.Unity
 
             remoteHasChanged = true;
             metricsHasChanged = true;
+            locksHaveChanged = true;
         }
 
         public override void OnDisable()
@@ -208,7 +210,7 @@ namespace GitHub.Unity
 
             userDataHasChanged = Repository.User.Name != gitName || Repository.User.Email != gitEmail;
 
-            if (!remoteHasChanged && !userDataHasChanged)
+            if (!remoteHasChanged && !userDataHasChanged && !locksHaveChanged)
                 return;
 
             if (userDataHasChanged)
@@ -233,6 +235,12 @@ namespace GitHub.Unity
                     repositoryRemoteName = activeRemote.Value.Name;
                     newRepositoryRemoteUrl = repositoryRemoteUrl = activeRemote.Value.Url;
                 }
+            }
+
+            if (locksHaveChanged)
+            {
+                locksHaveChanged = false;
+                lockedFiles = Repository.CurrentLocks.ToList();
             }
         }
 
