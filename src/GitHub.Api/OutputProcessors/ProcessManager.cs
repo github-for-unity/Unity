@@ -44,8 +44,11 @@ namespace GitHub.Unity
             gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath);
 
             if (executable.IsRelative)
+            {
+                executable = executable.FileName.ToNPath();
                 executable = FindExecutableInPath(executable, startInfo.EnvironmentVariables["PATH"]) ?? executable;
-            startInfo.FileName = executable.FileName;
+            }
+            startInfo.FileName = executable;
             startInfo.Arguments = arguments ?? processTask.ProcessArguments;
             processTask.Configure(startInfo);
             return processTask;
