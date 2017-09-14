@@ -41,9 +41,9 @@ namespace GitHub.Unity
 
             popupWindow.ActiveViewType = popupViewType;
             popupWindow.titleContent = new GUIContent(popupWindow.ActiveView.Title, Styles.SmallLogo);
-
-            popupWindow.InitializeWindow(EntryPoint.ApplicationManager);
+            popupWindow.OnEnable();
             popupWindow.Show();
+            popupWindow.Refresh();
 
             return popupWindow;
         }
@@ -64,7 +64,6 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-
             minSize = maxSize = ActiveView.Size;
             ActiveView.OnEnable();
         }
@@ -73,6 +72,12 @@ namespace GitHub.Unity
         {
             base.OnDisable();
             ActiveView.OnDisable();
+        }
+
+        public override void OnDataUpdate()
+        {
+            base.OnDataUpdate();
+            ActiveView.OnDataUpdate();
         }
 
         public override void OnUI()
@@ -127,7 +132,14 @@ namespace GitHub.Unity
         private PopupViewType ActiveViewType
         {
             get { return activeViewType; }
-            set { activeViewType = value; }
+            set
+            {
+                if (activeViewType != value)
+                {
+                    ActiveView.OnDisable();
+                    activeViewType = value;
+                }
+            }
         }
 
         public override bool IsBusy

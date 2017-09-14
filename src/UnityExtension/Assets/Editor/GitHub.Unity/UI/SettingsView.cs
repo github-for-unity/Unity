@@ -39,6 +39,7 @@ namespace GitHub.Unity
         [SerializeField] private int lockedFileSelection = -1;
         [SerializeField] private bool hasRemote;
         [NonSerialized] private bool remoteHasChanged;
+        [NonSerialized] private bool locksHaveChanged;
 
         [SerializeField] private string newGitName;
         [SerializeField] private string newGitEmail;
@@ -64,6 +65,7 @@ namespace GitHub.Unity
 
             remoteHasChanged = true;
             metricsHasChanged = true;
+            locksHaveChanged = true;
         }
 
         public override void OnDisable()
@@ -163,21 +165,30 @@ namespace GitHub.Unity
             if (Repository == null)
                 return;
 
-            if (!remoteHasChanged)
+            if (!remoteHasChanged && !locksHaveChanged)
                 return;
 
-            remoteHasChanged = false;
-            var activeRemote = Repository.CurrentRemote;
-            hasRemote = activeRemote.HasValue && !String.IsNullOrEmpty(activeRemote.Value.Url);
-            if (!hasRemote)
+            if (remoteHasChanged)
             {
-                repositoryRemoteName = DefaultRepositoryRemoteName;
-                newRepositoryRemoteUrl = repositoryRemoteUrl = string.Empty;
+                remoteHasChanged = false;
+                var activeRemote = Repository.CurrentRemote;
+                hasRemote = activeRemote.HasValue && !String.IsNullOrEmpty(activeRemote.Value.Url);
+                if (!hasRemote)
+                {
+                    repositoryRemoteName = DefaultRepositoryRemoteName;
+                    newRepositoryRemoteUrl = repositoryRemoteUrl = string.Empty;
+                }
+                else
+                {
+                    repositoryRemoteName = activeRemote.Value.Name;
+                    newRepositoryRemoteUrl = repositoryRemoteUrl = activeRemote.Value.Url;
+                }
             }
-            else
+
+            if (locksHaveChanged)
             {
-                repositoryRemoteName = activeRemote.Value.Name;
-                newRepositoryRemoteUrl = repositoryRemoteUrl = activeRemote.Value.Url;
+                locksHaveChanged = false;
+                lockedFiles = Repository.CurrentLocks.ToList();
             }
         }
 
