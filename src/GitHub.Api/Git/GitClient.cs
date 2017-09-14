@@ -175,8 +175,7 @@ namespace GitHub.Unity
         {
             if (!path.ToNPath().FileExists())
             {
-                return new FuncTask<ValidateGitInstallResult>(cancellationToken, 
-                    () => new ValidateGitInstallResult(false, null, null));
+                return new FuncTask<ValidateGitInstallResult>(TaskEx.FromResult(new ValidateGitInstallResult(false, null, null)));
             }
 
             Version gitVersion = null;
