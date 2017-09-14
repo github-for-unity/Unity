@@ -9,7 +9,8 @@ namespace GitHub.Unity
     interface IGitClient
     {
         Task<NPath> FindGitInstallation();
-        bool ValidateGitInstall(NPath path);
+
+        ITask<ValidateGitInstallResult> ValidateGitInstall(string path);
 
         ITask Init(IOutputProcessor<string> processor = null);
 
@@ -77,6 +78,10 @@ namespace GitHub.Unity
             IOutputProcessor<string> processor = null);
 
         ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null);
+
+        ITask<Version> Version(IOutputProcessor<Version> processor = null);
+
+        ITask<Version> LfsVersion(IOutputProcessor<Version> processor = null);
     }
 
     class GitClient : IGitClient
@@ -86,7 +91,6 @@ namespace GitHub.Unity
         private readonly ICredentialManager credentialManager;
         private readonly ITaskManager taskManager;
         private readonly CancellationToken cancellationToken;
-
 
         public GitClient(IEnvironment environment, IProcessManager processManager,
             ICredentialManager credentialManager, ITaskManager taskManager)
@@ -167,9 +171,38 @@ namespace GitHub.Unity
             return path;
         }
 
-        public bool ValidateGitInstall(NPath path)
+        public ITask<ValidateGitInstallResult> ValidateGitInstall(string path)
         {
-            return path.FileExists();
+            if (!path.ToNPath().FileExists())
+            {
+                return new FuncTask<ValidateGitInstallResult>(cancellationToken, 
+                    () => new ValidateGitInstallResult(false, null, null));
+            }
+
+            Version gitVersion = null;
+            Version gitLfsVersion = null;
+
+            var gitVersionTask = new GitVersionTask(cancellationToken);
+            gitVersionTask.Configure(processManager, path, 
+                gitVersionTask.ProcessArguments, environment.RepositoryPath);
+
+            var gitLfsVersionTask = new GitLfsVersionTask(cancellationToken);
+            gitLfsVersionTask.Configure(processManager, path,
+                gitLfsVersionTask.ProcessArguments, environment.RepositoryPath);
+
+            return gitVersionTask
+                .Then((result, version) => gitVersion = version)
+                .Then(gitLfsVersionTask)
+                .Then((result, version) => gitLfsVersion = version)
+                .Then(result => {
+                    var b = result 
+                        && gitVersion != null
+                        && gitVersion >= Constants.MinimumGitVersion
+                        && gitLfsVersion != null
+                        && gitLfsVersion >= Constants.MinimumGitLfsVersion;
+
+                    return new ValidateGitInstallResult(b, gitVersion, gitLfsVersion);
+                });
         }
 
         public ITask Init(IOutputProcessor<string> processor = null)
@@ -199,6 +232,22 @@ namespace GitHub.Unity
             Logger.Trace("Log");
 
             return new GitLogTask(new GitObjectFactory(environment), cancellationToken, processor)
+                .Configure(processManager);
+        }
+
+        public ITask<Version> Version(IOutputProcessor<Version> processor = null)
+        {
+            Logger.Trace("Version");
+
+            return new GitVersionTask(cancellationToken, processor)
+                .Configure(processManager);
+        }
+
+        public ITask<Version> LfsVersion(IOutputProcessor<Version> processor = null)
+        {
+            Logger.Trace("LfsVersion");
+
+            return new GitLfsVersionTask(cancellationToken, processor)
                 .Configure(processManager);
         }
 
