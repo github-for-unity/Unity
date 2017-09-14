@@ -105,7 +105,7 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.OnActiveRemoteChanged += Repository_OnActiveRemoteChanged;
+            repository.OnCurrentRemoteChanged += Repository_OnActiveRemoteChanged;
             repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
         }
 
@@ -114,7 +114,7 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.OnActiveRemoteChanged -= Repository_OnActiveRemoteChanged;
+            repository.OnCurrentRemoteChanged -= Repository_OnActiveRemoteChanged;
             repository.OnLocksUpdated -= RunLocksUpdateOnMainThread;
         }
 

@@ -58,8 +58,8 @@ namespace GitHub.Unity
         string CurrentBranchName { get; }
 
         event Action<GitStatus> OnStatusUpdated;
-        event Action<string> OnActiveBranchChanged;
-        event Action<string> OnActiveRemoteChanged;
+        event Action<string> OnCurrentBranchChanged;
+        event Action<string> OnCurrentRemoteChanged;
         event Action OnLocalBranchListChanged;
         event Action OnHeadChanged;
         event Action<IEnumerable<GitLock>> OnLocksUpdated;

@@ -14,20 +14,42 @@ namespace GitHub.Unity
         private ConfigBranch? currentBranch;
         private ConfigRemote? currentRemote;
         private GitStatus currentStatus;
+        private string head;
+
+        private Dictionary<string, ConfigBranch> localBranches = new Dictionary<string, ConfigBranch>();
+
+        private IEnumerable<GitLock> locks;
+        private Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
+        private Dictionary<string, ConfigRemote> remotes;
 
         public event Action<GitStatus> OnStatusUpdated;
-        public event Action<string> OnActiveBranchChanged;
-        public event Action<string> OnActiveRemoteChanged;
+        public event Action<string> OnCurrentBranchChanged;
+        public event Action<string> OnCurrentRemoteChanged;
         public event Action OnLocalBranchListChanged;
+        public event Action OnRemoteBranchListChanged;
         public event Action OnHeadChanged;
         public event Action<IEnumerable<GitLock>> OnLocksUpdated;
         public event Action OnRepositoryInfoChanged;
 
-        public IEnumerable<GitBranch> LocalBranches => repositoryManager.LocalBranches.Values.Select(
-            x => new GitBranch(x.Name, (x.IsTracking ? (x.Remote.Value.Name + "/" + x.Name) : "[None]"), x.Name == CurrentBranch?.Name));
+        public IEnumerable<GitBranch> LocalBranches
+        {
+            get
+            {
+                throw new NotImplementedException();
+//                return repositoryManager.LocalBranches.Values.Select(x => new GitBranch(x.Name,
+//                    (x.IsTracking ? (x.Remote.Value.Name + "/" + x.Name) : "[None]"), x.Name == CurrentBranch?.Name));
+            }
+        }
 
-        public IEnumerable<GitBranch> RemoteBranches => repositoryManager.RemoteBranches.Values.SelectMany(
-            x => x.Values).Select(x => new GitBranch(x.Remote.Value.Name + "/" + x.Name, "[None]", false));
+        public IEnumerable<GitBranch> RemoteBranches
+        {
+            get
+            {
+                throw new NotImplementedException();
+//                return repositoryManager.RemoteBranches.Values.SelectMany(x => x.Values).Select(x =>
+//                    new GitBranch(x.Remote.Value.Name + "/" + x.Name, "[None]", false));
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
@@ -51,12 +73,15 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
 
             this.repositoryManager = repositoryManager;
-            repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;
-            repositoryManager.OnCommitChanged += RepositoryManager_OnHeadChanged;
-            repositoryManager.OnLocksUpdated += RepositoryManager_OnLocksUpdated;
+
+            repositoryManager.OnHeadUpdated += RepositoryManager_OnHeadUpdated;
             repositoryManager.OnStatusUpdated += RepositoryManager_OnStatusUpdated;
-            repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
-            repositoryManager.OnActiveRemoteChanged += RepositoryManager_OnActiveRemoteChanged;
+            repositoryManager.OnLocksUpdated += RepositoryManager_OnLocksUpdated;
+            repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
+            repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
+            repositoryManager.OnUpdateLocalBranch += RepositoryManager_OnUpdateLocalBranch;
+            repositoryManager.OnAddLocalBranch += RepositoryManager_OnAddLocalBranch;
+            repositoryManager.OnRemoveLocalBranch += RepositoryManager_OnRemoveLocalBranch;
             repositoryManager.OnGitUserLoaded += user => User = user;
         }
 
@@ -149,30 +174,151 @@ namespace GitHub.Unity
             CurrentStatus = status;
         }
 
-        private void RepositoryManager_OnActiveRemoteChanged(ConfigRemote? remote)
-        {
-            CurrentRemote = remote;
-        }
-
-        private void RepositoryManager_OnActiveBranchChanged(ConfigBranch? branch)
-        {
-            CurrentBranch = branch;
-        }
-
-        private void RepositoryManager_OnHeadChanged()
-        {
-            OnHeadChanged?.Invoke();
-        }
-
-        private void RepositoryManager_OnLocalBranchListChanged()
-        {
-            OnLocalBranchListChanged?.Invoke();
-        }
-
         private void RepositoryManager_OnLocksUpdated(IEnumerable<GitLock> locks)
         {
             CurrentLocks = locks;
             OnLocksUpdated?.Invoke(CurrentLocks);
+        }
+
+        private void RepositoryManager_OnHeadUpdated(string h)
+        {
+            if (head != h)
+            {
+                head = h;
+                var branch = GetCurrentBranch();
+                var remote = GetCurrentRemote();
+
+                if (!Nullable.Equals(currentBranch, branch))
+                {
+                    currentBranch = branch;
+                    OnCurrentBranchChanged?.Invoke(currentBranch.HasValue ? currentBranch.Value.Name : null);
+                }
+
+                if (!Nullable.Equals(currentRemote, remote))
+                {
+                    currentRemote = remote;
+                    OnCurrentRemoteChanged?.Invoke(currentRemote.HasValue ? currentRemote.Value.Name : null);
+                }
+            }
+        }
+
+        private void RepositoryManager_OnRemoteBranchListUpdated(Dictionary<string, Dictionary<string, ConfigBranch>> branches)
+        {
+            remoteBranches = branches;
+            OnRemoteBranchListChanged?.Invoke();
+        }
+
+        private void RepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> obj)
+        {
+            localBranches = obj;
+        }
+
+        private void RepositoryManager_OnRemoveLocalBranch(string name)
+        {
+            if (localBranches.ContainsKey(name))
+            {
+                localBranches.Remove(name);
+                OnLocalBranchListChanged?.Invoke();
+            }
+        }
+
+        private void RepositoryManager_OnAddLocalBranch(string name)
+        {
+            if (!localBranches.ContainsKey(name))
+            {
+                var branch = repositoryManager.Config.GetBranch(name);
+                if (!branch.HasValue)
+                {
+                    branch = new ConfigBranch { Name = name };
+                }
+                localBranches.Add(name, branch.Value);
+                OnLocalBranchListChanged?.Invoke();
+            }
+        }
+
+        private void RepositoryManager_OnUpdateLocalBranch(string name)
+        {
+            if (name == currentBranch?.Name)
+            {
+                // commit of current branch changed, trigger OnHeadChanged
+                OnHeadChanged?.Invoke();
+                repositoryManager.Refresh();
+            }
+        }       
+        
+        
+        private void AddRemoteBranch(string remote, string name)
+        {
+            Dictionary<string, ConfigBranch> branchList = null;
+            if (remoteBranches.TryGetValue(remote, out branchList))
+            {
+                if (!branchList.ContainsKey(name))
+                {
+                    branchList.Add(name, new ConfigBranch { Name = name, Remote = remotes[remote] });
+                    OnRemoteBranchListChanged?.Invoke();
+                }
+            }
+        }
+        
+        private void RemoveRemoteBranch(string remote, string name)
+        {
+            Dictionary<string, ConfigBranch> branchList = null;
+            if (remoteBranches.TryGetValue(remote, out branchList))
+            {
+                if (localBranches.ContainsKey(name))
+                {
+                    localBranches.Remove(name);
+                    OnRemoteBranchListChanged?.Invoke();
+                }
+            }
+        }
+
+        private ConfigBranch? GetCurrentBranch()
+        {
+            if (head.StartsWith("ref:"))
+            {
+                var branch = head.Substring(head.IndexOf("refs/heads/") + "refs/heads/".Length);
+                currentBranch = GetBranch(branch);
+            }
+            else
+            {
+                currentBranch = null;
+            }
+            return currentBranch;
+        }
+        
+        private ConfigBranch? GetBranch(string name)
+        {
+            if (localBranches.ContainsKey(name))
+            {
+                return localBranches[name];
+            }
+        
+            return null;
+        }
+
+        private ConfigRemote? GetCurrentRemote(string defaultRemote = "origin")
+        {
+            if (currentBranch.HasValue && currentBranch.Value.IsTracking)
+            {
+                return currentBranch.Value.Remote;
+            }
+        
+            var remote = repositoryManager.Config.GetRemote(defaultRemote);
+            if (remote.HasValue)
+            {
+                return remote;
+            }
+        
+            using (var remoteEnumerator = repositoryManager.Config.GetRemotes().GetEnumerator())
+            {
+                if (remoteEnumerator.MoveNext())
+                {
+                    return remoteEnumerator.Current;
+                }
+            }
+        
+            return null;
         }
 
         /// <summary>
@@ -215,7 +361,7 @@ namespace GitHub.Unity
                 {
                     currentBranch = value;
                     Logger.Trace("OnActiveBranchChanged: {0}", value?.ToString() ?? "NULL");
-                    OnActiveBranchChanged?.Invoke(CurrentBranch.HasValue ? CurrentBranch.Value.Name : null);
+                    OnCurrentBranchChanged?.Invoke(CurrentBranch.HasValue ? CurrentBranch.Value.Name : null);
                 }
             }
         }
@@ -238,7 +384,7 @@ namespace GitHub.Unity
                     currentRemote = value;
                     SetCloneUrl();
                     Logger.Trace("OnActiveRemoteChanged: {0}", value?.ToString() ?? "NULL");
-                    OnActiveRemoteChanged?.Invoke(CurrentRemote.HasValue ? CurrentRemote.Value.Name : null);
+                    OnCurrentRemoteChanged?.Invoke(CurrentRemote.HasValue ? CurrentRemote.Value.Name : null);
                 }
             }
         }

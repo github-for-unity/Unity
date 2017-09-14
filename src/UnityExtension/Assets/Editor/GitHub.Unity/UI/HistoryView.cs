@@ -131,8 +131,8 @@ namespace GitHub.Unity
                 return;
             repository.OnHeadChanged += Refresh;
             repository.OnStatusUpdated += UpdateStatusOnMainThread;
-            repository.OnActiveBranchChanged += s => Refresh();
-            repository.OnActiveRemoteChanged += s => Refresh();
+            repository.OnCurrentBranchChanged += s => Refresh();
+            repository.OnCurrentRemoteChanged += s => Refresh();
         }
 
         private void DetachHandlers(IRepository repository)
@@ -141,8 +141,8 @@ namespace GitHub.Unity
                 return;
             repository.OnHeadChanged -= Refresh;
             repository.OnStatusUpdated -= UpdateStatusOnMainThread;
-            repository.OnActiveBranchChanged -= s => Refresh();
-            repository.OnActiveRemoteChanged -= s => Refresh();
+            repository.OnCurrentBranchChanged -= s => Refresh();
+            repository.OnCurrentRemoteChanged -= s => Refresh();
         }
 
         private void UpdateStatusOnMainThread(GitStatus status)

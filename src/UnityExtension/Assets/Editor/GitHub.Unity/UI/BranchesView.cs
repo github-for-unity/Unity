@@ -101,8 +101,8 @@ namespace GitHub.Unity
                 return;
 
             repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
-            repository.OnActiveBranchChanged += HandleRepositoryBranchChangeEvent;
-            repository.OnActiveRemoteChanged += HandleRepositoryBranchChangeEvent;
+            repository.OnCurrentBranchChanged += HandleRepositoryBranchChangeEvent;
+            repository.OnCurrentRemoteChanged += HandleRepositoryBranchChangeEvent;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -110,8 +110,8 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
             repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
-            repository.OnActiveBranchChanged -= HandleRepositoryBranchChangeEvent;
-            repository.OnActiveRemoteChanged -= HandleRepositoryBranchChangeEvent;
+            repository.OnCurrentBranchChanged -= HandleRepositoryBranchChangeEvent;
+            repository.OnCurrentRemoteChanged -= HandleRepositoryBranchChangeEvent;
         }
 
         private void RunRefreshEmbeddedOnMainThread()
