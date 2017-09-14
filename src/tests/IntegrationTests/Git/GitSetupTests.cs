@@ -69,7 +69,7 @@ namespace IntegrationTests
 
 
         [Test]
-        public void VerifyGitLfsBundle()
+        public void VerifyWindowsGitLfsBundle()
         {
             var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
 
@@ -85,6 +85,26 @@ namespace IntegrationTests
 
             var calculateMd5 = NPath.FileSystem.CalculateMD5(gitLfsPath);
             Assert.Equals(calculateMd5.ToUpper(), GitInstaller.WindowsGitLfsExecutableMD5.ToUpper());
+        }
+
+
+        [Test]
+        public void VerifyMacGitLfsBundle()
+        {
+            var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
+
+            var gitLfsPath = environmentPath.Combine("git-lfs");
+            gitLfsPath.Exists().Should().BeFalse();
+
+            var inputZipFile = SolutionDirectory.Combine("PlatformResources", "mac", "git-lfs.zip");
+
+            var fastZip = new FastZip();
+            fastZip.ExtractZip(inputZipFile, environmentPath, null);
+
+            gitLfsPath.Exists().Should().BeTrue();
+
+            var calculateMd5 = NPath.FileSystem.CalculateMD5(gitLfsPath);
+            Assert.Equals(calculateMd5.ToUpper(), GitInstaller.MacGitLfsExecutableMD5.ToUpper());
         }
     }
 }
