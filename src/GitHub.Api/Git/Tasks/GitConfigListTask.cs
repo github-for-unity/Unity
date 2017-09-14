@@ -9,7 +9,7 @@ namespace GitHub.Unity
         private const string TaskName = "git config list";
         private readonly string arguments;
 
-        public GitConfigListTask(GitConfigSource configSource, CancellationToken token, BaseOutputListProcessor<KeyValuePair<string, string>> processor = null)
+        public GitConfigListTask(GitConfigSource configSource, CancellationToken token, IOutputProcessor<KeyValuePair<string, string>, List<KeyValuePair<string, string>>> processor = null)
             : base(token, processor ?? new ConfigOutputProcessor())
         {
             Name = TaskName;
