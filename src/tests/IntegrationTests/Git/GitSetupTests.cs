@@ -84,7 +84,7 @@ namespace IntegrationTests
             gitLfsPath.Exists().Should().BeTrue();
 
             var calculateMd5 = NPath.FileSystem.CalculateMD5(gitLfsPath);
-            calculateMd5.ToUpper().Should().Be(GitInstaller.WindowsGitLfsExecutableMD5.ToUpper());
+            calculateMd5.ToLower().Should().Be(GitInstaller.WindowsGitLfsExecutableMD5.ToLower());
         }
 
 
@@ -104,7 +104,7 @@ namespace IntegrationTests
             gitLfsPath.Exists().Should().BeTrue();
 
             var calculateMd5 = NPath.FileSystem.CalculateMD5(gitLfsPath);
-            calculateMd5.ToUpper().Should().Be(GitInstaller.MacGitLfsExecutableMD5.ToUpper());
+            calculateMd5.ToLower().Should().Be(GitInstaller.MacGitLfsExecutableMD5.ToLower());
         }
     }
 }
