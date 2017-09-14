@@ -58,7 +58,9 @@ namespace GitHub.Unity
                 newGitName = EditorGUILayout.TextField(GitConfigNameLabel, newGitName);
                 newGitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, newGitEmail);
 
-                var needsSaving = newGitName != gitName || newGitEmail != gitEmail;
+                var needsSaving = (newGitName != gitName || newGitEmail != gitEmail)
+                    && !(string.IsNullOrEmpty(newGitName) || string.IsNullOrEmpty(newGitEmail));
+
                 EditorGUI.BeginDisabledGroup(!needsSaving);
                 {
                     if (GUILayout.Button(GitConfigUserSave, GUILayout.ExpandWidth(false)))
