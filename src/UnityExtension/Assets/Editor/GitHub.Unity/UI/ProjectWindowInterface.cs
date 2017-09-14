@@ -22,6 +22,8 @@ namespace GitHub.Unity
 
         public static void Initialize(IRepository repo)
         {
+            Logger.Trace("Initialize HasRepository:{0}", repo != null);
+
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
             initialized = true;
@@ -149,7 +151,9 @@ namespace GitHub.Unity
         private static void RunLocksUpdateOnMainThread(IEnumerable<GitLock> update)
         {
             new ActionTask(EntryPoint.ApplicationManager.TaskManager.Token, _ => OnLocksUpdate(update))
-                .ScheduleUI(EntryPoint.ApplicationManager.TaskManager);
+            {
+                Affinity = TaskAffinity.UI
+            }.Start();
         }
 
         private static void OnLocksUpdate(IEnumerable<GitLock> update)
@@ -169,11 +173,16 @@ namespace GitHub.Unity
                 var g = AssetDatabase.AssetPathToGUID(assetPath);
                 guidsLocks.Add(g);
             }
+
+            EditorApplication.RepaintProjectWindow();
         }
 
         private static void RunStatusUpdateOnMainThread(GitStatus update)
         {
-            EntryPoint.ApplicationManager.TaskManager.ScheduleUI(new ActionTask(EntryPoint.ApplicationManager.TaskManager.Token, _ => OnStatusUpdate(update)));
+            new ActionTask(EntryPoint.ApplicationManager.TaskManager.Token, _ => OnStatusUpdate(update))
+            {
+                Affinity = TaskAffinity.UI
+            }.Start();
         }
 
         private static void OnStatusUpdate(GitStatus update)

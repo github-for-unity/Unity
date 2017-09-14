@@ -13,14 +13,13 @@ namespace UnitTests
     {
         public static IEnumerable<TestCaseData> ShouldParseVersionOutputs_TestCases()
         {
-            TestCaseData testCase;
-
-            testCase = new TestCaseData(
+            yield return new TestCaseData(
                 $"git version 2.11.1.windows.1{Environment.NewLine}",
-                new Version(2, 11, 1));
+                new Version(2, 11, 1)).SetName("Windows 2.11.1");
 
-            testCase.SetName("Windows 2.11.1");
-            yield return testCase;
+            yield return new TestCaseData(
+                $"git version 2.12.2{Environment.NewLine}",
+                new Version(2, 12, 2)).SetName("Mac 2.12.2");
         }
 
         [TestCaseSource(nameof(ShouldParseVersionOutputs_TestCases))]

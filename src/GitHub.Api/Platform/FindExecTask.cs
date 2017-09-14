@@ -13,6 +13,7 @@ namespace GitHub.Unity
             arguments = executable;
         }
 
+        public override string ProcessName { get { return Name; } }
         public override string ProcessArguments { get { return arguments; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Concurrent; } }
     }

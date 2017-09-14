@@ -11,14 +11,13 @@ namespace UnitTests
     {
         public static IEnumerable<TestCaseData> ShouldParseVersionOutputs_TestCases()
         {
-            TestCaseData testCase;
-
-            testCase = new TestCaseData(
+            yield return new TestCaseData(
                 $"git-lfs/2.2.0 (GitHub; windows amd64; go 1.8.3; git a99f4b21){Environment.NewLine}", 
-                new Version(2, 2, 0));
+                new Version(2, 2, 0)).SetName("Windows GitLFS 2.2.0");
 
-            testCase.SetName("Windows GitLFS 2.2.0");
-            yield return testCase;
+            yield return new TestCaseData(
+                $"git-lfs/2.2.0 (GitHub; darwin amd64; go 1.8.3){Environment.NewLine}",
+                new Version(2, 2, 0)).SetName("Mac GitLFS 2.2.0");
         }
 
         [TestCaseSource(nameof(ShouldParseVersionOutputs_TestCases))]

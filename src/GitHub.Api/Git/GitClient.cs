@@ -107,17 +107,30 @@ namespace GitHub.Unity
             if (!String.IsNullOrEmpty(environment.GitExecutablePath))
                 return environment.GitExecutablePath;
 
-            var path = await LookForPortableGit();
+            NPath path = null;
+
+            if (environment.IsWindows)
+                path = await LookForPortableGit();
+
             if (path == null)
                 path = await LookForSystemGit();
 
-            Logger.Trace("Git Installation folder {0} discovered: '{1}'", path == null ? "not" : "", path);
+            if (path == null)
+            {
+                Logger.Trace("Git Installation not discovered");
+            }
+            else
+            {
+                Logger.Trace("Git Installation discovered: '{0}'", path);
+            }
 
             return path;
         }
 
         private Task<NPath> LookForPortableGit()
         {
+            Logger.Trace("LookForPortableGit");
+
             var gitHubLocalAppDataPath = environment.UserCachePath;
             if (!gitHubLocalAppDataPath.DirectoryExists())
                 return null;
@@ -138,16 +151,22 @@ namespace GitHub.Unity
 
         private async Task<NPath> LookForSystemGit()
         {
+            Logger.Trace("LookForSystemGit");
+
             NPath path = null;
             if (!environment.IsWindows)
             {
                 var p = new NPath("/usr/local/bin/git");
+
                 if (p.FileExists())
                     path = p;
             }
 
             if (path == null)
-                path = await new FindExecTask("git", taskManager.Token).StartAwait();
+            {
+                path = await new FindExecTask("git", taskManager.Token)
+                    .Configure(processManager).StartAwait();
+            }
 
             return path;
         }
@@ -172,11 +191,10 @@ namespace GitHub.Unity
                 gitLfsVersionTask.ProcessArguments, environment.RepositoryPath);
 
             return gitVersionTask
-                .Then((result, version) => { gitVersion = version; })
+                .Then((result, version) => gitVersion = version)
                 .Then(gitLfsVersionTask)
-                .Then((result, version) => {
-                    gitLfsVersion = version;
-                }).Then(result => {
+                .Then((result, version) => gitLfsVersion = version)
+                .Then(result => {
                     var b = result 
                         && gitVersion != null
                         && gitVersion >= Constants.MinimumGitVersion
