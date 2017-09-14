@@ -14,6 +14,7 @@ namespace GitHub.Unity
         private const string Title = "GitHub";
         private const string LaunchMenu = "Window/GitHub";
         private const string BadNotificationDelayError = "A delay of {0} is shorter than the default delay and thus would get pre-empted.";
+        private const string InitializeTitle = "Initialize";
         private const string HistoryTitle = "History";
         private const string ChangesTitle = "Changes";
         private const string BranchesTitle = "Branches";
@@ -157,8 +158,9 @@ namespace GitHub.Unity
             if (HasRepository)
             {
                 DoHeaderGUI();
-                DoToolbarGUI();
             }
+
+            DoToolbarGUI();
 
             if (nextTab.HasValue)
             {
@@ -225,7 +227,7 @@ namespace GitHub.Unity
             }
             else
             {
-                if (activeTab != SubTab.InitProject)
+                if (!(activeTab == SubTab.InitProject || activeTab ==  SubTab.Settings))
                 {
                     if (!nextTab.HasValue || nextTab.Value != SubTab.InitProject)
                     {
@@ -296,9 +298,16 @@ namespace GitHub.Unity
                 SubTab changeTab = activeTab;
                 EditorGUI.BeginChangeCheck();
                 {
-                    changeTab = TabButton(SubTab.Changes, ChangesTitle, changeTab);
-                    changeTab = TabButton(SubTab.History, HistoryTitle, changeTab);
-                    changeTab = TabButton(SubTab.Branches, BranchesTitle, changeTab);
+                    if (HasRepository)
+                    {
+                        changeTab = TabButton(SubTab.Changes, ChangesTitle, changeTab);
+                        changeTab = TabButton(SubTab.History, HistoryTitle, changeTab);
+                        changeTab = TabButton(SubTab.Branches, BranchesTitle, changeTab);
+                    }
+                    else
+                    {
+                        changeTab = TabButton(SubTab.InitProject, InitializeTitle, changeTab);
+                    }
                     changeTab = TabButton(SubTab.Settings, SettingsTitle, changeTab);
                 }
 
