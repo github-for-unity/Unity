@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace GitHub.Unity
 {
-    class DefaultEnvironment : IEnvironment
+    public class DefaultEnvironment : IEnvironment
     {
         private const string logFile = "github-unity.log";
 

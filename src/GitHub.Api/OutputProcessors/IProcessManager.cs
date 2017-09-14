@@ -2,7 +2,7 @@
 
 namespace GitHub.Unity
 {
-    interface IProcessManager
+    public interface IProcessManager
     {
         T Configure<T>(T processTask, bool withInput = false) where T : IProcess;
         T Configure<T>(T processTask, string executableFileName, string arguments, NPath workingDirectory = null, bool withInput = false)

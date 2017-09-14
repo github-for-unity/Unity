@@ -1,6 +1,6 @@
 namespace GitHub.Unity
 {
-    abstract class LogAdapterBase
+    public abstract class LogAdapterBase
     {
         public abstract void Info(string context, string message);
 

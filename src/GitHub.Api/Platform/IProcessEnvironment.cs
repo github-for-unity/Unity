@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace GitHub.Unity
 {
-    interface IProcessEnvironment
+    public interface IProcessEnvironment
     {
         void Configure(ProcessStartInfo psi, NPath workingDirectory);
 

@@ -40,7 +40,7 @@ GitHub.Unity
 #if NICEIO
     public
 #endif
-    class NPath : IEquatable<NPath>, IComparable
+    public class NPath : IEquatable<NPath>, IComparable
     {
         private static StringComparison? pathStringComparison;
         private static StringComparison PathStringComparison
