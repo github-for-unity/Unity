@@ -20,7 +20,7 @@ namespace GitHub.Unity
         new event Action<TData> OnEntry;
     }
 
-    abstract class BaseOutputProcessor<T> : IOutputProcessor<T>
+    public abstract class BaseOutputProcessor<T> : IOutputProcessor<T>
     {
         public event Action<T> OnEntry;
 
@@ -36,7 +36,7 @@ namespace GitHub.Unity
         protected ILogging Logger { get { return logger = logger ?? Logging.GetLogger(GetType()); } }
     }
 
-    abstract class BaseOutputProcessor<TData, T> : BaseOutputProcessor<T>, IOutputProcessor<TData, T>
+    public abstract class BaseOutputProcessor<TData, T> : BaseOutputProcessor<T>, IOutputProcessor<TData, T>
     {
         public new event Action<TData> OnEntry;
 
@@ -46,7 +46,7 @@ namespace GitHub.Unity
         }
     }
 
-    abstract class BaseOutputListProcessor<T> : BaseOutputProcessor<T, List<T>>
+    public abstract class BaseOutputListProcessor<T> : BaseOutputProcessor<T, List<T>>
     {
         protected override void RaiseOnEntry(T entry)
         {
