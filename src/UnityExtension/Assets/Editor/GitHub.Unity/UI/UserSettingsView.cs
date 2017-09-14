@@ -11,6 +11,9 @@ namespace GitHub.Unity
     [Serializable]
     class UserSettingsView : Subview
     {
+        private static readonly Vector2 viewSize = new Vector2(325, 125);
+        private const string WindowTitle = "User Settings";
+
         private const string GitConfigTitle = "Git Configuration";
         private const string GitConfigNameLabel = "Name";
         private const string GitConfigEmailLabel = "Email";
@@ -25,6 +28,13 @@ namespace GitHub.Unity
         [SerializeField] private string newGitName;
         [SerializeField] private string newGitEmail;
         [SerializeField] private User cachedUser;
+
+        public override void InitializeView(IView parent)
+        {
+            base.InitializeView(parent);
+            Title = WindowTitle;
+            Size = viewSize;
+        }
 
         public override void OnDataUpdate()
         {
@@ -99,6 +109,7 @@ namespace GitHub.Unity
                                  {
                                      isBusy = false;
                                      Redraw();
+                                     Finish(true);
                                  })
                                  .Start();
                     }
@@ -117,23 +128,26 @@ namespace GitHub.Unity
         {
             if (Repository == null)
             {
-                if ((cachedUser == null || String.IsNullOrEmpty(cachedUser.Name)) && GitClient != null)
+                if (!String.IsNullOrEmpty(EntryPoint.Environment.GitExecutablePath))
                 {
-                    var user = new User();
-                    GitClient.GetConfig("user.name", GitConfigSource.User)
-                        .Then((success, value) => user.Name = value).Then(
-                    GitClient.GetConfig("user.email", GitConfigSource.User)
-                        .Then((success, value) => user.Email = value))
-                    .FinallyInUI((success, ex) =>
+                    if ((cachedUser == null || String.IsNullOrEmpty(cachedUser.Name)) && GitClient != null)
                     {
-                        if (success && !String.IsNullOrEmpty(user.Name))
-                        {
-                            cachedUser = user;
-                            userDataHasChanged = true;
-                            Redraw();
-                        }
-                    })
-                    .Start();
+                        var user = new User();
+                        GitClient.GetConfig("user.name", GitConfigSource.User)
+                            .Then((success, value) => user.Name = value).Then(
+                        GitClient.GetConfig("user.email", GitConfigSource.User)
+                            .Then((success, value) => user.Email = value))
+                            .FinallyInUI((success, ex) =>
+                            {
+                                if (success && !String.IsNullOrEmpty(user.Name))
+                                {
+                                    cachedUser = user;
+                                    userDataHasChanged = true;
+                                    Redraw();
+                                }
+                            })
+                            .Start();
+                    }
                 }
 
                 if (userDataHasChanged)
