@@ -1,11 +1,6 @@
-#pragma warning disable 649
-
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
@@ -16,7 +11,25 @@ namespace GitHub.Unity
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
 
         [SerializeField] private bool isBusy;
-        [SerializeField] private bool isPublished;
+        [SerializeField] private bool isUserDataPresent = true;
+
+        [NonSerialized] private bool userDataHasChanged;
+
+        public override void InitializeView(IView parent)
+        {
+            base.InitializeView(parent);
+
+            if (!string.IsNullOrEmpty(Environment.GitExecutablePath))
+            {
+                CheckForUser();
+            }
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            userDataHasChanged = Environment.GitExecutablePath != null;
+        }
 
         public override void OnDataUpdate()
         {
@@ -68,6 +81,25 @@ namespace GitHub.Unity
 
             GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {
+                if (!isUserDataPresent)
+                {
+                    GUILayout.FlexibleSpace();
+
+                    EditorGUI.BeginDisabledGroup(isBusy);
+                    {
+                        if (GUILayout.Button("Finish Git Configuration", "Button"))
+                        {
+                            PopupWindow.Open(PopupWindow.PopupViewType.UserSettingsView, completed => {
+                                if (completed)
+                                {
+                                    userDataHasChanged = true;
+                                }
+                            });
+                        }
+                    }
+                    EditorGUI.EndDisabledGroup();
+                }
+
                 GUILayout.FlexibleSpace();
 
                 GUILayout.Label(NoRepoDescription, Styles.CenteredLabel);
@@ -75,7 +107,7 @@ namespace GitHub.Unity
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
 
-                EditorGUI.BeginDisabledGroup(isBusy);
+                EditorGUI.BeginDisabledGroup(isBusy || !isUserDataPresent);
                 {
                     if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
                     {
@@ -97,7 +129,42 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            isPublished = Repository != null && Repository.CurrentRemote.HasValue;
+            if (userDataHasChanged)
+            {
+                userDataHasChanged = false;
+                CheckForUser();
+            }
+        }
+
+        private void CheckForUser()
+        {
+            isBusy = true;
+
+            string username = null;
+            string email = null;
+
+            GitClient.GetConfig("user.name", GitConfigSource.User).Then((success, value) => {
+                Logger.Trace("Return success:{0} user.name", success, value);
+                if (success)
+                {
+                    username = value;
+                }
+            }).Then(GitClient.GetConfig("user.email", GitConfigSource.User).Then((success, value) => {
+                Logger.Trace("Return success:{0} user.email", success, value);
+                if (success)
+                {
+                    email = value;
+                }
+            })).FinallyInUI((success, ex) => {
+                Logger.Trace("Return success:{0} name:{1} email:{2}", success, username, email);
+
+                isBusy = false;
+                isUserDataPresent = success && !String.IsNullOrEmpty(username) && !String.IsNullOrEmpty(email);
+
+                Logger.Trace("Finally: {0}", isUserDataPresent);
+
+                Redraw();
+            }).Start();
         }
     }
 }

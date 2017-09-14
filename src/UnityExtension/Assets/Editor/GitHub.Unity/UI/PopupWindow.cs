@@ -11,12 +11,14 @@ namespace GitHub.Unity
         {
             None,
             PublishView,
-            AuthenticationView
+            AuthenticationView,
+            UserSettingsView
         }
 
         [SerializeField] private PopupViewType activeViewType;
 
         [SerializeField] private AuthenticationView authenticationView;
+        [SerializeField] private UserSettingsView userSettingsView;
         [SerializeField] private PublishView publishView;
         [SerializeField] private LoadingView loadingView;
 
@@ -52,10 +54,12 @@ namespace GitHub.Unity
         {
             base.Initialize(applicationManager);
 
+            userSettingsView = userSettingsView ?? new UserSettingsView();
             publishView = publishView ?? new PublishView();
             authenticationView = authenticationView ?? new AuthenticationView();
             loadingView = loadingView ?? new LoadingView();
 
+            userSettingsView.InitializeView(this);
             publishView.InitializeView(this);
             authenticationView.InitializeView(this);
             loadingView.InitializeView(this);
@@ -123,6 +127,8 @@ namespace GitHub.Unity
                         return publishView;
                     case PopupViewType.AuthenticationView:
                         return authenticationView;
+                    case PopupViewType.UserSettingsView:
+                        return userSettingsView;
                     default:
                         return loadingView;
                 }
