@@ -450,6 +450,8 @@ namespace GitHub.Unity
 
         private void LoadBranchesFromConfig()
         {
+            Logger.Trace("LoadBranchesFromConfig");
+
             var branches = new Dictionary<string, ConfigBranch>();
             LoadBranchesFromConfig(branches, repositoryPaths.BranchesPath, config.GetBranches().Where(x => x.IsTracking), "");
             OnLocalBranchListUpdated?.Invoke(branches);
@@ -457,8 +459,6 @@ namespace GitHub.Unity
 
         private void LoadBranchesFromConfig(Dictionary<string, ConfigBranch> branches, NPath path, IEnumerable<ConfigBranch> configBranches, string prefix)
         {
-            Logger.Trace("LoadBranchesFromConfig");
-
             foreach (var file in path.Files())
             {
                 var branchName = prefix + file.FileName;
