@@ -41,7 +41,7 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            Environment.Repository.OnStatusUpdated += status => { result = status; };
+            Environment.Repository.OnStatusChanged += status => { result = status; };
 
             var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
             foobarTxt.WriteAllText("foobar");

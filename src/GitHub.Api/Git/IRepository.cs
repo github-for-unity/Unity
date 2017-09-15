@@ -57,12 +57,12 @@ namespace GitHub.Unity
         IEnumerable<GitLock> CurrentLocks { get; }
         string CurrentBranchName { get; }
 
-        event Action<GitStatus> OnStatusUpdated;
+        event Action<GitStatus> OnStatusChanged;
         event Action<string> OnCurrentBranchChanged;
         event Action<string> OnCurrentRemoteChanged;
         event Action OnLocalBranchListChanged;
         event Action OnHeadChanged;
-        event Action<IEnumerable<GitLock>> OnLocksUpdated;
+        event Action<IEnumerable<GitLock>> OnLocksChanged;
         event Action OnRepositoryInfoChanged;
     }
 }

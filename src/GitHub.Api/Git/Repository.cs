@@ -20,13 +20,13 @@ namespace GitHub.Unity
         private Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
         private Dictionary<string, ConfigRemote> remotes;
 
-        public event Action<GitStatus> OnStatusUpdated;
+        public event Action<GitStatus> OnStatusChanged;
         public event Action<string> OnCurrentBranchChanged;
         public event Action<string> OnCurrentRemoteChanged;
         public event Action OnLocalBranchListChanged;
         public event Action OnRemoteBranchListChanged;
         public event Action OnHeadChanged;
-        public event Action<IEnumerable<GitLock>> OnLocksUpdated;
+        public event Action<IEnumerable<GitLock>> OnLocksChanged;
         public event Action OnRepositoryInfoChanged;
 
         public IEnumerable<GitBranch> LocalBranches => localBranches.Values.Select(
@@ -163,7 +163,7 @@ namespace GitHub.Unity
         private void RepositoryManager_OnLocksUpdated(IEnumerable<GitLock> locks)
         {
             CurrentLocks = locks;
-            OnLocksUpdated?.Invoke(CurrentLocks);
+            OnLocksChanged?.Invoke(CurrentLocks);
         }
 
         private void RepositoryManager_OnHeadUpdated(string h)
@@ -403,7 +403,7 @@ namespace GitHub.Unity
             {
                 Logger.Trace("OnStatusUpdated: {0}", value.ToString());
                 currentStatus = value;
-                OnStatusUpdated?.Invoke(CurrentStatus);
+                OnStatusChanged?.Invoke(CurrentStatus);
             }
         }
 
