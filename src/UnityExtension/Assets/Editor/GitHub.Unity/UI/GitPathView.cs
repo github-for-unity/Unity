@@ -169,30 +169,27 @@ namespace GitHub.Unity
         {
             if (gitExecHasChanged)
             {
-                if (Environment != null)
+                if (gitExecExtension == null)
                 {
-                    if (gitExecExtension == null)
+                    gitExecExtension = Environment.ExecutableExtension;
+
+                    if (Environment.IsWindows)
                     {
-                        gitExecExtension = Environment.ExecutableExtension;
-
-                        if (Environment.IsWindows)
-                        {
-                            gitExecExtension = gitExecExtension.TrimStart('.');
-                        }
+                        gitExecExtension = gitExecExtension.TrimStart('.');
                     }
+                }
 
-                    if (Environment.GitExecutablePath != null)
-                    {
-                        newGitExec = gitExec = Environment.GitExecutablePath.ToString();
-                        gitExecParent = Environment.GitExecutablePath.Parent.ToString();
+                if (Environment.GitExecutablePath != null)
+                {
+                    newGitExec = gitExec = Environment.GitExecutablePath.ToString();
+                    gitExecParent = Environment.GitExecutablePath.Parent.ToString();
 
-                        CheckEnteredGitPath();
-                    }
+                    CheckEnteredGitPath();
+                }
 
-                    if (gitExecParent == null)
-                    {
-                        gitExecParent = Environment.GitInstallPath;
-                    }
+                if (gitExecParent == null)
+                {
+                    gitExecParent = Environment.GitInstallPath;
                 }
 
                 gitExecHasChanged = false;
