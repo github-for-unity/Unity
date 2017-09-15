@@ -233,7 +233,6 @@ namespace GitHub.Unity
             }
         }       
         
-        
         private void RepositoryManager_OnRemoteBranchAdded(string remote, string name)
         {
             Dictionary<string, ConfigBranch> branchList = null;
