@@ -290,12 +290,12 @@ namespace GitHub.Unity
         {
             var task = GitClient
                 .ListLocks(local)
-                .Then((s, t) =>
+                .Then((success, locks) =>
                 {
-                    if (s)
+                    if (success)
                     {
                         Logger.Trace("OnLocksUpdated");
-                        OnLocksUpdated?.Invoke(t);
+                        OnLocksUpdated?.Invoke(locks);
                     }
                 });
             return HookupHandlers(task);
