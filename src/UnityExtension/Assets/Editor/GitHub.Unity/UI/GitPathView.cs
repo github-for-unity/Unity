@@ -117,10 +117,9 @@ namespace GitHub.Unity
                         newGitExec = gitExec;
                         CheckEnteredGitPath();
 
-                        new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
-                            .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
-                            .FinallyInUI((success, ex, path) =>
-                            {
+                        new FindExecTask("git", Manager.CancellationToken)
+                            .Configure(Manager.ProcessManager)
+                            .FinallyInUI((success, ex, path) => {
                                 if (success)
                                 {
                                     Logger.Trace("FindGit Path:{0}", path);
