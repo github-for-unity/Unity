@@ -58,18 +58,6 @@ namespace TestUtils.Events
                 managerEvents?.OnStatusUpdate.Set();
             };
 
-            repositoryManager.OnLocalBranchListChanged += () => {
-                logger?.Trace("OnLocalBranchListChanged");
-                listener.OnLocalBranchListChanged();
-                managerEvents?.OnLocalBranchListChanged.Set();
-            };
-
-            repositoryManager.OnRemoteBranchListChanged += () => {
-                logger?.Trace("OnRemoteBranchListChanged");
-                listener.OnRemoteBranchListChanged();
-                managerEvents?.OnRemoteBranchListChanged.Set();
-            };
-
             repositoryManager.OnLocksUpdated += locks => {
                 var lockArray = locks.ToArray();
                 logger?.Trace("OnLocksUpdated Count:{0}", lockArray.Length);
