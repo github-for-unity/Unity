@@ -240,7 +240,10 @@ namespace GitHub.Unity
             if (locksHaveChanged)
             {
                 locksHaveChanged = false;
-                lockedFiles = Repository.CurrentLocks.ToList();
+                var repositoryCurrentLocks = Repository.CurrentLocks;
+                lockedFiles = repositoryCurrentLocks != null
+                    ? repositoryCurrentLocks.ToList()
+                    : new List<GitLock>();
             }
         }
 

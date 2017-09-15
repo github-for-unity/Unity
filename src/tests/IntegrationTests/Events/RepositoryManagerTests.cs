@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
-    [TestFixture/*, Category("TimeSensitive")*/]
+    [TestFixture]
     class RepositoryManagerTests : BaseGitEnvironmentTest
     {
         private RepositoryManagerEvents repositoryManagerEvents;
@@ -66,7 +66,7 @@ namespace IntegrationTests
             result.AssertEqual(expected);
         }
 
-        [Test, Category("TimeSensitive")]
+        [Test]
         public async Task ShouldAddAndCommitFiles()
         {
             await Initialize(TestRepoMasterCleanSynchronized);
@@ -98,7 +98,6 @@ namespace IntegrationTests
             var testDocumentTxt = TestRepoMasterCleanSynchronized.Combine("Assets", "TestDocument.txt");
             testDocumentTxt.WriteAllText("foobar");
             await TaskManager.Wait();
-            WaitForNotBusy(repositoryManagerEvents, 1);
             RepositoryManager.WaitForEvents();
             WaitForNotBusy(repositoryManagerEvents, 1);
 
@@ -142,7 +141,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnGitUserLoaded(Arg.Any<IUser>());
         }
 
-        [Test, Category("TimeSensitive")]
+        [Test]
         public async Task ShouldAddAndCommitAllFiles()
         {
             await Initialize(TestRepoMasterCleanSynchronized);
@@ -407,7 +406,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnGitUserLoaded(Arg.Any<IUser>());
         }
 
-        [Test, Category("TimeSensitive")]
+        [Test]
         public async Task ShouldDetectChangesToRemotesWhenSwitchingBranches()
         {
             var expectedCloneUrl = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git";
@@ -501,7 +500,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
         }
 
-        [Test, Category("TimeSensitive")]
+        [Test]
         public async Task ShouldDetectGitPull()
         {
             await Initialize(TestRepoMasterCleanSynchronized);
