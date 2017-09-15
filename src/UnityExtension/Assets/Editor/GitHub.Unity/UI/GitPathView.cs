@@ -123,6 +123,8 @@ namespace GitHub.Unity
                                 if (success)
                                 {
                                     Logger.Trace("FindGit Path:{0}", path);
+                                    newGitExec = path;
+                                    CheckEnteredGitPath();
                                 }
                                 else
                                 {
@@ -134,12 +136,6 @@ namespace GitHub.Unity
                                     {
                                         Logger.Error("FindGit Failed Path:{0}", path);
                                     }
-                                }
-
-                                if (success)
-                                {
-                                    newGitExec = path;
-                                    CheckEnteredGitPath();
                                 }
 
                                 isBusy = false;
