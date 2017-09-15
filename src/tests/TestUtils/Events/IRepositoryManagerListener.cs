@@ -24,19 +24,19 @@ namespace TestUtils.Events
 
     class RepositoryManagerEvents
     {
-        public EventWaitHandle OnIsBusy { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnIsNotBusy { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnStatusUpdated { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnLocksUpdated { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnHeadUpdated { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnLocalBranchListUpdated { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnRemoteBranchListUpdated { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnLocalBranchUpdated { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnLocalBranchAdded { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnLocalBranchRemoved { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnRemoteBranchAdded { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnRemoteBranchRemoved { get; } = new ManualResetEvent(false);
-        public EventWaitHandle OnGitUserLoaded { get; } = new ManualResetEvent(false);
+        public EventWaitHandle OnIsBusy { get; } = new AutoResetEvent(false);
+        public EventWaitHandle OnIsNotBusy { get; } = new AutoResetEvent(false);
+        public EventWaitHandle OnStatusUpdated { get; } = new AutoResetEvent(false);
+        public EventWaitHandle OnLocksUpdated { get; } = new AutoResetEvent(false);
+        public EventWaitHandle OnHeadUpdated { get; } = new AutoResetEvent(false);
+        public EventWaitHandle OnLocalBranchListUpdated { get; } = new AutoResetEvent(false);
+        public EventWaitHandle OnRemoteBranchListUpdated { get; } = new AutoResetEvent(false);
+        public EventWaitHandle OnLocalBranchUpdated { get; } = new AutoResetEvent(false);
+        public EventWaitHandle OnLocalBranchAdded { get; } = new AutoResetEvent(false);
+        public EventWaitHandle OnLocalBranchRemoved { get; } = new AutoResetEvent(false);
+        public EventWaitHandle OnRemoteBranchAdded { get; } = new AutoResetEvent(false);
+        public EventWaitHandle OnRemoteBranchRemoved { get; } = new AutoResetEvent(false);
+        public EventWaitHandle OnGitUserLoaded { get; } = new AutoResetEvent(false);
 
         public void Reset()
         {

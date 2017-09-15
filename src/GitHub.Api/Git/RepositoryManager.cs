@@ -324,7 +324,10 @@ namespace GitHub.Unity
                 .Then((success, value) => user.Name = value).Then(
             GitClient.GetConfig("user.email", GitConfigSource.User)
                 .Then((success, value) => user.Email = value))
-            .Then(() => OnGitUserLoaded?.Invoke(user))
+            .Then(() => {
+                        Logger.Trace("OnGitUserLoaded: {0}", user);
+                        OnGitUserLoaded?.Invoke(user);
+                     })
             .Start();
         }
 
