@@ -171,20 +171,25 @@ namespace GitHub.Unity
             if (head != h)
             {
                 head = h;
-                var branch = GetCurrentBranch();
-                var remote = GetCurrentRemote();
+                UpdateCurrentBranchAndRemote();
+            }
+        }
 
-                if (!Nullable.Equals(currentBranch, branch))
-                {
-                    currentBranch = branch;
-                    OnCurrentBranchChanged?.Invoke(currentBranch.HasValue ? currentBranch.Value.Name : null);
-                }
+        private void UpdateCurrentBranchAndRemote()
+        {
+            var branch = GetCurrentBranch();
+            var remote = GetCurrentRemote();
 
-                if (!Nullable.Equals(currentRemote, remote))
-                {
-                    CurrentRemote = remote;
-                    OnCurrentRemoteChanged?.Invoke(currentRemote.HasValue ? currentRemote.Value.Name : null);
-                }
+            if (!Nullable.Equals(currentBranch, branch))
+            {
+                currentBranch = branch;
+                OnCurrentBranchChanged?.Invoke(currentBranch.HasValue ? currentBranch.Value.Name : null);
+            }
+
+            if (!Nullable.Equals(currentRemote, remote))
+            {
+                CurrentRemote = remote;
+                OnCurrentRemoteChanged?.Invoke(currentRemote.HasValue ? currentRemote.Value.Name : null);
             }
         }
 
@@ -235,15 +240,15 @@ namespace GitHub.Unity
         
         private void RepositoryManager_OnRemoteBranchAdded(string remote, string name)
         {
-            Dictionary<string, ConfigBranch> branchList;
-            if (remoteBranches.TryGetValue(remote, out branchList))
-            {
-                if (!branchList.ContainsKey(name))
-                {
-                    branchList.Add(name, new ConfigBranch { Name = name, Remote = remotes[remote] });
-                    OnRemoteBranchListChanged?.Invoke();
-                }
-            }
+//            Dictionary<string, ConfigBranch> branchList;
+//            if (remoteBranches.TryGetValue(remote, out branchList))
+//            {
+//                if (!branchList.ContainsKey(name))
+//                {
+//                    branchList.Add(name, new ConfigBranch { Name = name, Remote = remotes[remote] });
+//                    OnRemoteBranchListChanged?.Invoke();
+//                }
+//            }
         }
         
         private void RepositoryManager_OnRemoteBranchRemoved(string remote, string name)

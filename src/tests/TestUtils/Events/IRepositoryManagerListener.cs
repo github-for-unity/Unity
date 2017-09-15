@@ -153,7 +153,6 @@ namespace TestUtils.Events
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnGitUserLoaded(Arg.Any<IUser>());
         }
     }
 };
