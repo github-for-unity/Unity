@@ -143,20 +143,21 @@ namespace GitHub.Unity
 
             signalProcessingEventsDone.Reset();
             processingEvents = true;
-            lastCountOfProcessedEvents = 0;
-            var fileEvents = nativeInterface.GetEvents();
+            var processedEventCount = 0;
 
+            var fileEvents = nativeInterface.GetEvents();
             if (fileEvents.Length > 0)
             {
                 Logger.Trace("Handling {0} Events", fileEvents.Length);
-                var processedEventCount = ProcessEvents(fileEvents);
-                lastCountOfProcessedEvents = processedEventCount;
+                processedEventCount = ProcessEvents(fileEvents);
                 Logger.Trace("Processed {0} Events", processedEventCount);
             }
 
+            lastCountOfProcessedEvents = processedEventCount;
             processingEvents = false;
             signalProcessingEventsDone.Set();
-            return lastCountOfProcessedEvents;
+
+            return processedEventCount;
         }
 
         private int ProcessEvents(Event[] fileEvents)
