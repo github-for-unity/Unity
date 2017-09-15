@@ -220,25 +220,20 @@ namespace GitHub.Unity
                     {
                         Logger.Trace(ErrorGettingSoftwareVersionMessage);
                         gitVersionErrorMessage = ErrorGettingSoftwareVersionMessage;
-
-                        isBusy = false;
-
-                        return;
                     }
-
-                    if (!result.IsValid)
+                    else if (!result.IsValid)
                     {
-                        Logger.Warning("Software versions do not meet minimums Git:{0} (Minimum:{1}) GitLfs:{2} (Minimum:{3})",
-                            result.GitVersion,
-                            Constants.MinimumGitVersion,
-                            result.GitLfsVersion,
+                        Logger.Warning(
+                            "Software versions do not meet minimums Git:{0} (Minimum:{1}) GitLfs:{2} (Minimum:{3})",
+                            result.GitVersion, Constants.MinimumGitVersion, result.GitLfsVersion,
                             Constants.MinimumGitLfsVersion);
 
                         var errorMessageStringBuilder = new StringBuilder();
 
                         if (result.GitVersion < Constants.MinimumGitVersion)
                         {
-                            errorMessageStringBuilder.AppendFormat(ErrorMinimumGitVersionMessageFormat, result.GitVersion, Constants.MinimumGitVersion);
+                            errorMessageStringBuilder.AppendFormat(ErrorMinimumGitVersionMessageFormat,
+                                result.GitVersion, Constants.MinimumGitVersion);
                         }
 
                         if (result.GitLfsVersion < Constants.MinimumGitLfsVersion)
@@ -248,23 +243,24 @@ namespace GitHub.Unity
                                 errorMessageStringBuilder.Append(Environment.NewLine);
                             }
 
-                            errorMessageStringBuilder.AppendFormat(ErrorMinimumGitLfsVersionMessageFormat, result.GitLfsVersion, Constants.MinimumGitLfsVersion);
+                            errorMessageStringBuilder.AppendFormat(ErrorMinimumGitLfsVersionMessageFormat,
+                                result.GitLfsVersion, Constants.MinimumGitLfsVersion);
                         }
 
                         gitVersionErrorMessage = errorMessageStringBuilder.ToString();
+                    }
+                    else
+                    {
+                        Logger.Trace("Software versions meet minimums Git:{0} GitLfs:{1}",
+                            result.GitVersion,
+                            result.GitLfsVersion);
 
-                        isBusy = false;
-                        return;
+                        Manager.SystemSettings.Set(Constants.GitInstallPathKey, value);
+                        Environment.GitExecutablePath = value.ToNPath();
+
+                        gitExecHasChanged = true;
                     }
 
-                    Logger.Trace("Software versions meet minimums Git:{0} GitLfs:{1}",
-                        result.GitVersion,
-                        result.GitLfsVersion);
-
-                    Manager.SystemSettings.Set(Constants.GitInstallPathKey, value);
-                    Environment.GitExecutablePath = value.ToNPath();
-
-                    gitExecHasChanged = true;
                     isBusy = false;
 
                 }).Start();
