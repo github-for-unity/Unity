@@ -15,9 +15,7 @@ namespace GitHub.Unity
         private ConfigRemote? currentRemote;
         private GitStatus currentStatus;
         private string head;
-
         private Dictionary<string, ConfigBranch> localBranches = new Dictionary<string, ConfigBranch>();
-
         private IEnumerable<GitLock> locks;
         private Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
         private Dictionary<string, ConfigRemote> remotes;
