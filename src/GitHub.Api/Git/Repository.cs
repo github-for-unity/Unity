@@ -194,9 +194,10 @@ namespace GitHub.Unity
             OnRemoteBranchListChanged?.Invoke();
         }
 
-        private void RepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> obj)
+        private void RepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branches)
         {
-            localBranches = obj;
+            localBranches = branches;
+            OnLocalBranchListChanged?.Invoke();
         }
 
         private void RepositoryManager_OnLocalBranchRemoved(string name)
