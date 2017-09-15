@@ -109,10 +109,7 @@ namespace GitHub.Unity
 
         public event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
         public event Action<Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
-
         public event Action<IEnumerable<GitLock>> OnLocksUpdated;
-
-//        public event Action OnCommitChanged;
         public event Action<GitStatus> OnStatusUpdated;
         public event Action<string> OnHeadUpdated;
         public event Action<string> OnUpdateLocalBranch;
