@@ -63,9 +63,11 @@ namespace GitHub.Unity
             repositoryManager.OnLocksUpdated += RepositoryManager_OnLocksUpdated;
             repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
             repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
-            repositoryManager.OnUpdateLocalBranch += RepositoryManager_OnUpdateLocalBranch;
-            repositoryManager.OnAddLocalBranch += RepositoryManager_OnAddLocalBranch;
-            repositoryManager.OnRemoveLocalBranch += RepositoryManager_OnRemoveLocalBranch;
+            repositoryManager.OnLocalBranchUpdated += RepositoryManager_OnLocalBranchUpdated;
+            repositoryManager.OnLocalBranchAdded += RepositoryManager_OnLocalBranchAdded;
+            repositoryManager.OnLocalBranchRemoved += RepositoryManager_OnLocalBranchRemoved;
+            repositoryManager.OnRemoteBranchAdded += RepositoryManager_OnRemoteBranchAdded;
+            repositoryManager.OnRemoteBranchRemoved += RepositoryManager_OnRemoteBranchRemoved;
             repositoryManager.OnGitUserLoaded += user => User = user;
         }
 
@@ -197,7 +199,7 @@ namespace GitHub.Unity
             localBranches = obj;
         }
 
-        private void RepositoryManager_OnRemoveLocalBranch(string name)
+        private void RepositoryManager_OnLocalBranchRemoved(string name)
         {
             if (localBranches.ContainsKey(name))
             {
@@ -206,7 +208,7 @@ namespace GitHub.Unity
             }
         }
 
-        private void RepositoryManager_OnAddLocalBranch(string name)
+        private void RepositoryManager_OnLocalBranchAdded(string name)
         {
             if (!localBranches.ContainsKey(name))
             {
@@ -220,7 +222,7 @@ namespace GitHub.Unity
             }
         }
 
-        private void RepositoryManager_OnUpdateLocalBranch(string name)
+        private void RepositoryManager_OnLocalBranchUpdated(string name)
         {
             if (name == currentBranch?.Name)
             {
@@ -231,7 +233,7 @@ namespace GitHub.Unity
         }       
         
         
-        private void AddRemoteBranch(string remote, string name)
+        private void RepositoryManager_OnRemoteBranchAdded(string remote, string name)
         {
             Dictionary<string, ConfigBranch> branchList = null;
             if (remoteBranches.TryGetValue(remote, out branchList))
@@ -244,7 +246,7 @@ namespace GitHub.Unity
             }
         }
         
-        private void RemoveRemoteBranch(string remote, string name)
+        private void RepositoryManager_OnRemoteBranchRemoved(string remote, string name)
         {
             Dictionary<string, ConfigBranch> branchList = null;
             if (remoteBranches.TryGetValue(remote, out branchList))

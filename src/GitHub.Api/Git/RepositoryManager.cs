@@ -14,11 +14,11 @@ namespace GitHub.Unity
         event Action<IEnumerable<GitLock>> OnLocksUpdated;
         event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
         event Action<Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
-        event Action<string> OnUpdateLocalBranch;
-        event Action<string> OnAddLocalBranch;
-        event Action<string> OnRemoveLocalBranch;
+        event Action<string> OnLocalBranchUpdated;
+        event Action<string> OnLocalBranchAdded;
+        event Action<string> OnLocalBranchRemoved;
         event Action<string, string> OnRemoteBranchAdded;
-        event Action<string, string> OnRemoteBranchDeleted;
+        event Action<string, string> OnRemoteBranchRemoved;
         event Action<IUser> OnGitUserLoaded;
 
         IGitConfig Config { get; }
@@ -112,12 +112,12 @@ namespace GitHub.Unity
         public event Action<IEnumerable<GitLock>> OnLocksUpdated;
         public event Action<GitStatus> OnStatusUpdated;
         public event Action<string> OnHeadUpdated;
-        public event Action<string> OnUpdateLocalBranch;
-        public event Action<string> OnAddLocalBranch;
-        public event Action<string> OnRemoveLocalBranch;
+        public event Action<string> OnLocalBranchUpdated;
+        public event Action<string> OnLocalBranchAdded;
+        public event Action<string> OnLocalBranchRemoved;
         public event Action<IUser> OnGitUserLoaded;
         public event Action<string, string> OnRemoteBranchAdded;
-        public event Action<string, string> OnRemoteBranchDeleted;
+        public event Action<string, string> OnRemoteBranchRemoved;
 
         public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker,
             IGitClient gitClient, NPath repositoryRoot)
@@ -374,7 +374,7 @@ namespace GitHub.Unity
 
         private void Watcher_OnRemoteBranchDeleted(string remote, string name)
         {
-            OnRemoteBranchDeleted?.Invoke(remote, name);
+            OnRemoteBranchRemoved?.Invoke(remote, name);
         }
 
         private void Watcher_OnRemoteBranchCreated(string remote, string name)
@@ -422,17 +422,17 @@ namespace GitHub.Unity
 
         private void Watcher_OnLocalBranchCreated(string name)
         {
-            OnAddLocalBranch?.Invoke(name);
+            OnLocalBranchAdded?.Invoke(name);
         }
 
         private void Watcher_OnLocalBranchDeleted(string name)
         {
-            OnRemoveLocalBranch?.Invoke(name);
+            OnLocalBranchRemoved?.Invoke(name);
         }
 
         private void Watcher_OnLocalBranchChanged(string name)
         {
-            OnUpdateLocalBranch?.Invoke(name);
+            OnLocalBranchUpdated?.Invoke(name);
         }
 
         private void UpdateConfigData(bool resetConfig = false)
