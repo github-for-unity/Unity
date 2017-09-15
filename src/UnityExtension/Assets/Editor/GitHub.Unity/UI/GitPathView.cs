@@ -48,11 +48,6 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        public override bool IsBusy
-        {
-            get { return isBusy; }
-        }
-
         public override void OnGUI()
         {
             // Install path
@@ -281,6 +276,11 @@ namespace GitHub.Unity
                     isBusy = false;
 
                 }).Start();
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy; }
         }
     }
 }
