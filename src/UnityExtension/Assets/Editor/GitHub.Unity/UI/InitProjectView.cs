@@ -50,77 +50,79 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            var headerRect = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
-            {
-                GUILayout.Space(5);
-                GUILayout.BeginVertical(GUILayout.Width(16));
-                {
-                    GUILayout.Space(5);
-
-                    var iconRect = GUILayoutUtility.GetRect(new GUIContent(Styles.BigLogo), GUIStyle.none, GUILayout.Height(20), GUILayout.Width(20));
-                    iconRect.y = headerRect.center.y - (iconRect.height / 2);
-                    GUI.DrawTexture(iconRect, Styles.BigLogo, ScaleMode.ScaleToFit);
-
-                    GUILayout.Space(5);
-                }
-                GUILayout.EndVertical();
-
-                GUILayout.Space(5);
-
-                GUILayout.BeginVertical();
-                {
-                    var headerContent = new GUIContent(NoRepoTitle);
-                    var headerTitleRect = GUILayoutUtility.GetRect(headerContent, Styles.HeaderTitleStyle);
-                    headerTitleRect.y = headerRect.center.y - (headerTitleRect.height / 2);
-
-                    GUI.Label(headerTitleRect, headerContent, Styles.HeaderTitleStyle);
-                }
-                GUILayout.EndVertical();
-            }
-            EditorGUILayout.EndHorizontal();
-
             GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {
                 if (!isUserDataPresent)
                 {
                     GUILayout.FlexibleSpace();
 
+
+                    var emptyTitleStyle = new GUIStyle(Styles.BoldLabel);
+                    emptyTitleStyle.alignment = TextAnchor.MiddleCenter;
+
+                    GUILayout.Label("Almost there", emptyTitleStyle);
+                    GUILayout.Label("There's a few more things that need attention first", Styles.CenteredLabel);
+
+                    GUILayout.Space(7);
+
+                    var missingGitConfigText = "Missing name and email in Git Configuration";
+                    var missingGitConfigContent = new GUIContent(missingGitConfigText);
+                    var missingGitConfigRect = GUILayoutUtility.GetRect(missingGitConfigContent, Styles.ErrorLabel);
+                    EditorGUI.DrawRect(missingGitConfigRect, Color.white);
+                    GUI.Label(missingGitConfigRect, missingGitConfigContent);
+
+                    GUILayout.Space(7);
+
                     EditorGUI.BeginDisabledGroup(isBusy);
                     {
-                        if (GUILayout.Button("Finish Git Configuration", "Button"))
+                        EditorGUILayout.BeginHorizontal();
+
                         {
-                            PopupWindow.Open(PopupWindow.PopupViewType.UserSettingsView, completed => {
-                                if (completed)
-                                {
-                                    userDataHasChanged = true;
-                                }
-                            });
+                          GUILayout.FlexibleSpace();
+
+                          if (GUILayout.Button("Finish Git Configuration", "Button"))
+                          {
+                              PopupWindow.Open(PopupWindow.PopupViewType.UserSettingsView, completed => {
+                                  if (completed)
+                                  {
+                                      userDataHasChanged = true;
+                                  }
+                              });
+                          }
+
+                          GUILayout.FlexibleSpace();
                         }
+                        EditorGUILayout.EndHorizontal();
                     }
                     EditorGUI.EndDisabledGroup();
                 }
 
                 GUILayout.FlexibleSpace();
 
-                GUILayout.Label(NoRepoDescription, Styles.CenteredLabel);
-
-                GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-
-                EditorGUI.BeginDisabledGroup(isBusy || !isUserDataPresent);
+                if (isUserDataPresent)
                 {
-                    if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
-                    {
-                        isBusy = true;
-                        Manager.InitializeRepository()
-                               .FinallyInUI(() => isBusy = false)
-                               .Start();
-                    }
-                }
-                EditorGUI.EndDisabledGroup();
 
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
+                  GUILayout.Label(NoRepoDescription, Styles.CenteredLabel);
+
+                  GUILayout.BeginHorizontal();
+                  GUILayout.FlexibleSpace();
+
+                  EditorGUI.BeginDisabledGroup(isBusy || !isUserDataPresent);
+                  {
+                      if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
+                      {
+                          isBusy = true;
+                          Manager.InitializeRepository()
+                                 .FinallyInUI(() => isBusy = false)
+                                 .Start();
+                      }
+                  }
+                  EditorGUI.EndDisabledGroup();
+
+                  GUILayout.FlexibleSpace();
+                  GUILayout.EndHorizontal();
+
+                }
 
                 GUILayout.FlexibleSpace();
             }
