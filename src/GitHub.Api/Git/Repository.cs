@@ -182,7 +182,7 @@ namespace GitHub.Unity
 
                 if (!Nullable.Equals(currentRemote, remote))
                 {
-                    currentRemote = remote;
+                    CurrentRemote = remote;
                     OnCurrentRemoteChanged?.Invoke(currentRemote.HasValue ? currentRemote.Value.Name : null);
                 }
             }
@@ -235,7 +235,7 @@ namespace GitHub.Unity
         
         private void RepositoryManager_OnRemoteBranchAdded(string remote, string name)
         {
-            Dictionary<string, ConfigBranch> branchList = null;
+            Dictionary<string, ConfigBranch> branchList;
             if (remoteBranches.TryGetValue(remote, out branchList))
             {
                 if (!branchList.ContainsKey(name))
@@ -248,7 +248,7 @@ namespace GitHub.Unity
         
         private void RepositoryManager_OnRemoteBranchRemoved(string remote, string name)
         {
-            Dictionary<string, ConfigBranch> branchList = null;
+            Dictionary<string, ConfigBranch> branchList;
             if (remoteBranches.TryGetValue(remote, out branchList))
             {
                 if (localBranches.ContainsKey(name))

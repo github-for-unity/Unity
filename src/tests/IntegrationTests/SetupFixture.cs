@@ -12,7 +12,10 @@ namespace IntegrationTests
         {
             Logging.TracingEnabled = true;
 
-            Logging.LogAdapter = new MultipleLogAdapter(new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-integration-tests.log"));
+            Logging.LogAdapter = new MultipleLogAdapter(
+                new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-integration-tests.log"),
+                new ConsoleLogAdapter()
+            );
         }
     }
 }
