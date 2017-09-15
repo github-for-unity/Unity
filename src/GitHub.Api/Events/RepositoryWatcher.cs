@@ -196,12 +196,11 @@ namespace GitHub.Unity
                 // handling events in .git/*
                 if (fileA.IsChildOf(paths.DotGitPath))
                 {
-                    if (fileA.Equals(paths.DotGitConfig))
+                    if (!configChanged && fileA.Equals(paths.DotGitConfig))
                     {
                         configChanged = true;
-                        eventsProcessed++;
                     }
-                    else if (fileA.Equals(paths.DotGitHead))
+                    else if (!headChanged && fileA.Equals(paths.DotGitHead))
                     {
                         if (fileEvent.Type != EventType.DELETED)
                         {
@@ -209,12 +208,10 @@ namespace GitHub.Unity
                         }
 
                         headChanged = true;
-                        eventsProcessed++;
                     }
-                    else if (fileA.Equals(paths.DotGitIndex))
+                    else if (!indexChanged && fileA.Equals(paths.DotGitIndex))
                     {
                         indexChanged = true;
-                        eventsProcessed++;
                     }
                     else if (fileA.IsChildOf(paths.RemotesPath))
                     {
@@ -351,7 +348,6 @@ namespace GitHub.Unity
                     }
 
                     repositoryChanged = true;
-                    eventsProcessed++;
                 }
             }
 
@@ -359,24 +355,28 @@ namespace GitHub.Unity
             {
                 Logger.Trace("ConfigChanged");
                 ConfigChanged?.Invoke();
+                eventsProcessed++;
             }
 
             if (headChanged)
             {
                 Logger.Trace("HeadChanged: {0}", headContent ?? "[null]");
                 HeadChanged?.Invoke(headContent);
+                eventsProcessed++;
             }
 
             if (indexChanged)
             {
                 Logger.Trace("IndexChanged");
                 IndexChanged?.Invoke();
+                eventsProcessed++;
             }
 
             if (repositoryChanged)
             {
                 Logger.Trace("RepositoryChanged");
                 RepositoryChanged?.Invoke();
+                eventsProcessed++;
             }
 
             return eventsProcessed;
