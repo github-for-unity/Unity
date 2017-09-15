@@ -7,6 +7,7 @@ namespace GitHub.Unity
     class Styles
     {
         public const float BaseSpacing = 10f,
+                           BrowseButtonWidth = 25f,
                            BroadModeLimit = 500f,
                            NarrowModeLimit = 300f,
                            ModeNotificationDelay = .5f,

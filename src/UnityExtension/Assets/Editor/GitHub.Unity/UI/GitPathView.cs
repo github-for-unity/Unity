@@ -68,7 +68,7 @@ namespace GitHub.Unity
                         CheckEnteredGitPath();
                     }
 
-                    if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(25)))
+                    if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(Styles.BrowseButtonWidth)))
                     {
                         GUI.FocusControl(null);
 
