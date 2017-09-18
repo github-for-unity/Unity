@@ -273,15 +273,15 @@ namespace GitHub.Unity
         
         private void RepositoryManager_OnRemoteBranchAdded(string remote, string name)
         {
-//            Dictionary<string, ConfigBranch> branchList;
-//            if (remoteBranches.TryGetValue(remote, out branchList))
-//            {
-//                if (!branchList.ContainsKey(name))
-//                {
-//                    branchList.Add(name, new ConfigBranch { Name = name, Remote = remotes[remote] });
-//                    OnRemoteBranchListChanged?.Invoke();
-//                }
-//            }
+            Dictionary<string, ConfigBranch> branchList;
+            if (remoteBranches.TryGetValue(remote, out branchList))
+            {
+                if (!branchList.ContainsKey(name))
+                {
+                    branchList.Add(name, new ConfigBranch { Name = name, Remote = remotes[remote] });
+                    OnRemoteBranchListChanged?.Invoke();
+                }
+            }
         }
         
         private void RepositoryManager_OnRemoteBranchRemoved(string remote, string name)
