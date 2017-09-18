@@ -85,11 +85,7 @@ namespace GitHub.Unity
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
-
-            if (gitPathView != null)
-            {
-                gitPathView.OnDataUpdate();
-            }
+            gitPathView.OnDataUpdate();
             MaybeUpdateData();
         }
 
@@ -240,7 +236,10 @@ namespace GitHub.Unity
             if (locksHaveChanged)
             {
                 locksHaveChanged = false;
-                lockedFiles = Repository.CurrentLocks.ToList();
+                var repositoryCurrentLocks = Repository.CurrentLocks;
+                lockedFiles = repositoryCurrentLocks != null
+                    ? repositoryCurrentLocks.ToList()
+                    : new List<GitLock>();
             }
         }
 
