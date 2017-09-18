@@ -227,7 +227,9 @@ namespace GitHub.Unity
             Logger.Trace("RemoteBranchListUpdated");
 
             remoteBranches = branches;
-            remotes = branches.ToDictionary(pair => pair.Key, pair => pair.Value.Values.First().Remote.Value);
+            remotes = branches
+                .Where(pair => pair.Value.Any())
+                .ToDictionary(pair => pair.Key, pair => pair.Value.First().Value.Remote.Value);
 
             OnRemoteBranchListChanged?.Invoke();
         }
