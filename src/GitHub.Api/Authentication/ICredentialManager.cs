@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface ICredential : IDisposable
+    public interface ICredential : IDisposable
     {
         UriString Host { get; }
         string Username { get; }
@@ -11,7 +11,7 @@ namespace GitHub.Unity
         void UpdateToken(string token);
     }
 
-    interface ICredentialManager
+    public interface ICredentialManager
     {
         Task<ICredential> Load(UriString host);
         Task Save(ICredential cred);

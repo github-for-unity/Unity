@@ -6,7 +6,7 @@ using Octokit;
 
 namespace GitHub.Unity
 {
-    struct Connection
+    public struct Connection
     {
         public UriString Host;
         public string Username;
