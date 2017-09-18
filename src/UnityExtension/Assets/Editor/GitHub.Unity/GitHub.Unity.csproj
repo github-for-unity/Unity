@@ -102,6 +102,7 @@
     <Compile Include="UI\IView.cs" />
     <Compile Include="UI\LoadingView.cs" />
     <Compile Include="UI\PublishView.cs" />
+    <Compile Include="UI\InitProjectView.cs" />
     <Compile Include="UI\GitPathView.cs" />
     <Compile Include="UI\SettingsView.cs" />
     <Compile Include="UI\Subview.cs" />
