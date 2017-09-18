@@ -90,7 +90,7 @@ namespace IntegrationTests
                     Logger.Trace("Continue test");
 
                     repositoryWatcherListener.DidNotReceive().ConfigChanged();
-                    repositoryWatcherListener.Received(1).HeadChanged("ref: refs/heads/feature/document");
+                    repositoryWatcherListener.Received().HeadChanged();
                     repositoryWatcherListener.Received().IndexChanged();
                     repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
                     repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
@@ -135,7 +135,7 @@ namespace IntegrationTests
                     Logger.Trace("Continue test");
 
                     repositoryWatcherListener.Received(1).ConfigChanged();
-                    repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+                    repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.DidNotReceive().IndexChanged();
                     repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
                     repositoryWatcherListener.Received(1).LocalBranchDeleted("feature/document");
@@ -179,7 +179,7 @@ namespace IntegrationTests
                     Logger.Trace("Continue test");
 
                     repositoryWatcherListener.DidNotReceive().ConfigChanged();
-                    repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+                    repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.DidNotReceive().IndexChanged();
                     repositoryWatcherListener.Received(1).LocalBranchCreated("feature/document2");
                     repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
@@ -201,7 +201,7 @@ namespace IntegrationTests
                     Logger.Trace("Continue test");
 
                     repositoryWatcherListener.DidNotReceive().ConfigChanged();
-                    repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+                    repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.DidNotReceive().IndexChanged();
                     repositoryWatcherListener.Received(1).LocalBranchCreated("feature2/document2");
                     repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
@@ -250,7 +250,7 @@ namespace IntegrationTests
                     Logger.Trace("Continue test");
 
                     repositoryWatcherListener.Received().ConfigChanged();
-                    repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+                    repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.DidNotReceive().IndexChanged();
                     repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
                     repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
@@ -275,7 +275,7 @@ namespace IntegrationTests
                     Logger.Trace("Continue 2nd test");
 
                     repositoryWatcherListener.Received().ConfigChanged();
-                    repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+                    repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.DidNotReceive().IndexChanged();
                     repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
                     repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
@@ -321,7 +321,7 @@ namespace IntegrationTests
                     Logger.Trace("Continue test");
 
                     repositoryWatcherListener.DidNotReceive().ConfigChanged();
-                    repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+                    repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.Received().IndexChanged();
                     repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
                     repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
@@ -366,7 +366,7 @@ namespace IntegrationTests
                     Logger.Trace("Continue test");
 
                     repositoryWatcherListener.DidNotReceive().ConfigChanged();
-                    repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+                    repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.DidNotReceive().IndexChanged();
                     repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
                     repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
@@ -485,7 +485,7 @@ namespace IntegrationTests
         public static void AssertDidNotReceiveAnyCalls(this IRepositoryWatcherListener repositoryWatcherListener)
         {
             repositoryWatcherListener.DidNotReceive().ConfigChanged();
-            repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+            repositoryWatcherListener.DidNotReceive().HeadChanged();
             repositoryWatcherListener.DidNotReceive().IndexChanged();
             repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
             repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
