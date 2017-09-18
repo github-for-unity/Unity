@@ -453,51 +453,6 @@ namespace IntegrationTests
         }
 
         [Test]
-        public async Task ShouldUpdateCloneUrlIfRemoteIsDeleted()
-        {
-            await Initialize(TestRepoMasterCleanSynchronized);
-
-            var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
-
-            await RepositoryManager.RemoteRemove("origin").StartAsAsync();
-            await TaskManager.Wait();
-            RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
-
-            repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().OnStatusUpdated(Args.GitStatus);
-            repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
-            repositoryManagerListener.DidNotReceive().OnHeadUpdated(Args.String);
-            repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.Received().OnRemoteBranchRemoved(Args.String, Args.String);
-
-            repositoryManagerListener.ClearReceivedCalls();
-            repositoryManagerEvents.Reset();
-
-            await RepositoryManager.RemoteAdd("origin", "https://github.com/EvilShana/IOTestsRepo.git").StartAsAsync();
-            await TaskManager.Wait();
-            RepositoryManager.WaitForEvents();
-
-            repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().OnStatusUpdated(Args.GitStatus);
-            repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
-            repositoryManagerListener.DidNotReceive().OnHeadUpdated(Args.String);
-            repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
-        }
-
-        [Test]
         public async Task ShouldDetectGitPull()
         {
             await Initialize(TestRepoMasterCleanSynchronized);
