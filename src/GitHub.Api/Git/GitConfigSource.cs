@@ -1,6 +1,6 @@
 namespace GitHub.Unity
 {
-    enum GitConfigSource
+    public enum GitConfigSource
     {
         NonSpecified,
         Local,

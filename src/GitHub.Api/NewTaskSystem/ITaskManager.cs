@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface ITaskManager : IDisposable
+    public interface ITaskManager : IDisposable
     {
         TaskScheduler ConcurrentScheduler { get; }
         TaskScheduler ExclusiveScheduler { get; }

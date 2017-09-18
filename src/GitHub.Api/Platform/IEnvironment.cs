@@ -2,7 +2,7 @@ using System;
 
 namespace GitHub.Unity
 {
-    interface IEnvironment
+    public interface IEnvironment
     {
         void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityPath, NPath assetsPath);
         void InitializeRepository(NPath expectedRepositoryPath = null);
