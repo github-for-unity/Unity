@@ -44,7 +44,7 @@ namespace IntegrationTests
                     Logger.Trace("Continue test");
 
                     repositoryWatcherListener.DidNotReceive().ConfigChanged();
-                    repositoryWatcherListener.DidNotReceive().HeadChanged(Args.String);
+                    repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.Received().IndexChanged();
                     repositoryWatcherListener.DidNotReceive().LocalBranchCreated(Args.String);
                     repositoryWatcherListener.DidNotReceive().LocalBranchDeleted(Args.String);
