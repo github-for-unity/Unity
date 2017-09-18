@@ -158,8 +158,8 @@ namespace GitHub.Unity
         {
             Logger.Trace("Start");
 
-            UpdateHead();
             UpdateConfigData();
+            UpdateHead();
             LoadGitUser();
             watcher.Start();
         }

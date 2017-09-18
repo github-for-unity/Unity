@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Events\IRepositoryListener.cs" />
     <Compile Include="Events\IRepositoryManagerListener.cs" />
     <Compile Include="Helpers\Args.cs" />
     <Compile Include="Helpers\AssertExtensions.cs" />

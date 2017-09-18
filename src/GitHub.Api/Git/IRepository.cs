@@ -64,5 +64,6 @@ namespace GitHub.Unity
         event Action OnHeadChanged;
         event Action<IEnumerable<GitLock>> OnLocksChanged;
         event Action OnRepositoryInfoChanged;
+        event Action OnRemoteBranchListChanged;
     }
 }
