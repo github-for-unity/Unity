@@ -224,9 +224,11 @@ namespace GitHub.Unity
 
         private void RepositoryManager_OnRemoteBranchListUpdated(Dictionary<string, Dictionary<string, ConfigBranch>> branches)
         {
-            Logger.Trace("RemoveBranchListUpdated");
+            Logger.Trace("RemoteBranchListUpdated");
 
             remoteBranches = branches;
+            remotes = branches.ToDictionary(pair => pair.Key, pair => pair.Value.Values.First().Remote.Value);
+
             OnRemoteBranchListChanged?.Invoke();
         }
 
