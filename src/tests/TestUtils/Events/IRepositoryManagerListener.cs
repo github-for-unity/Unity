@@ -11,7 +11,6 @@ namespace TestUtils.Events
         void OnStatusUpdate(GitStatus status);
         void OnActiveBranchChanged(ConfigBranch? branch);
         void OnActiveRemoteChanged(ConfigRemote? remote);
-        void OnHeadChanged();
         void OnLocalBranchListChanged();
         void OnRemoteBranchListChanged();
         void OnIsBusyChanged(bool busy);
@@ -101,7 +100,6 @@ namespace TestUtils.Events
             repositoryManagerListener.DidNotReceive().OnStatusUpdate(Args.GitStatus);
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
