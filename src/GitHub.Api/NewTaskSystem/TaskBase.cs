@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface ITask : IAsyncResult
+    public interface ITask : IAsyncResult
     {
         T Then<T>(T continuation, bool always = false) where T : ITask;
         ITask Catch(Action<Exception> handler);
@@ -28,7 +28,7 @@ namespace GitHub.Unity
         event Action<ITask> OnEnd;
     }
 
-    interface ITask<TResult> : ITask
+    public interface ITask<TResult> : ITask
     {
         new ITask<TResult> Catch(Action<Exception> handler);
         new ITask<TResult> Catch(Func<Exception, bool> handler);
@@ -51,7 +51,7 @@ namespace GitHub.Unity
 
     interface IStubTask { }
 
-    abstract class TaskBase : ITask
+    public abstract class TaskBase : ITask
     {
         protected const TaskContinuationOptions runAlwaysOptions = TaskContinuationOptions.None;
         protected const TaskContinuationOptions runOnSuccessOptions = TaskContinuationOptions.OnlyOnRanToCompletion;
@@ -677,7 +677,7 @@ namespace GitHub.Unity
         }
     }
 
-    enum TaskAffinity
+    public enum TaskAffinity
     {
         Concurrent,
         Exclusive,

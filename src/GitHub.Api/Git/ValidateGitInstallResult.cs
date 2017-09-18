@@ -2,7 +2,7 @@
 
 namespace GitHub.Unity
 {
-    struct ValidateGitInstallResult
+    public struct ValidateGitInstallResult
     {
         public bool IsValid;
         public Version GitVersion;
