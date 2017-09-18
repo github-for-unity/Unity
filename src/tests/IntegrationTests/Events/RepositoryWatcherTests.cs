@@ -394,7 +394,7 @@ namespace IntegrationTests
     public interface IRepositoryWatcherListener
     {
         void ConfigChanged();
-        void HeadChanged(string obj);
+        void HeadChanged();
         void IndexChanged();
         void LocalBranchCreated(string branch);
         void LocalBranchDeleted(string branch);
@@ -411,10 +411,10 @@ namespace IntegrationTests
         {
             var logger = trace ? Logging.GetLogger<IRepositoryWatcherListener>() : null;
 
-            repositoryWatcher.HeadChanged += s =>
+            repositoryWatcher.HeadChanged += () =>
             {
-                logger?.Trace("HeadChanged: {0}", s);
-                listener.HeadChanged(s);
+                logger?.Trace("HeadChanged");
+                listener.HeadChanged();
                 autoResetEvent?.HeadChanged.Set();
             };
 
