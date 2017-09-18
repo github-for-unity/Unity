@@ -365,6 +365,8 @@ namespace IntegrationTests
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
             WaitForNotBusy(repositoryManagerEvents);
+            repositoryManagerEvents.OnRemoteBranchListUpdated.WaitOne(TimeSpan.FromSeconds(1));
+            repositoryManagerEvents.OnLocalBranchListUpdated.WaitOne(TimeSpan.FromSeconds(1));
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnStatusUpdated(Args.GitStatus);
@@ -385,6 +387,8 @@ namespace IntegrationTests
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
             WaitForNotBusy(repositoryManagerEvents);
+            repositoryManagerEvents.OnRemoteBranchListUpdated.WaitOne(TimeSpan.FromSeconds(1));
+            repositoryManagerEvents.OnLocalBranchListUpdated.WaitOne(TimeSpan.FromSeconds(1));
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnStatusUpdated(Args.GitStatus);
