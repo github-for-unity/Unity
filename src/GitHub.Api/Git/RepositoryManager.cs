@@ -413,10 +413,10 @@ namespace GitHub.Unity
             UpdateConfigData(true);
         }
 
-        private void Watcher_OnHeadChanged(string contents)
+        private void Watcher_OnHeadChanged()
         {
             Logger.Trace("Watcher_OnHeadChanged");
-            OnHeadUpdated?.Invoke(contents);
+            UpdateHead();
             UpdateGitStatus();
         }
 
