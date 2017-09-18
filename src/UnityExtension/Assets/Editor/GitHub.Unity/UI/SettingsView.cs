@@ -85,11 +85,7 @@ namespace GitHub.Unity
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
-
-            if (gitPathView != null)
-            {
-                gitPathView.OnDataUpdate();
-            }
+            gitPathView.OnDataUpdate();
             MaybeUpdateData();
         }
 
