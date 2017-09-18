@@ -145,13 +145,21 @@ namespace GitHub.Unity
             return repositoryManager.UnlockFile(file, force);
         }
 
-        private void SetCloneUrl()
+        private void UpdateRepositoryInfo()
         {
             if (CurrentRemote.HasValue)
+            {
                 CloneUrl = new UriString(CurrentRemote.Value.Url);
+                Name = CloneUrl.RepositoryName;
+                Logger.Trace("CloneUrl: {0}", CloneUrl.ToString());
+            }
             else
+            {
                 CloneUrl = null;
-            Name = CloneUrl != null ? CloneUrl.RepositoryName : LocalPath.FileName;
+                Name = LocalPath.FileName;
+                Logger.Trace("CloneUrl: [NULL]");
+            }
+
             OnRepositoryInfoChanged?.Invoke();
         }
 
@@ -204,7 +212,11 @@ namespace GitHub.Unity
 
             if (!remote.HasValue)
             {
-                remote = repositoryManager.Config.GetRemotes().FirstOrDefault();
+                var configRemotes = repositoryManager.Config.GetRemotes().ToArray();
+                if (configRemotes.Any())
+                {
+                    remote = configRemotes.FirstOrDefault();
+                }
             }
 
             CurrentRemote = remote;
@@ -334,8 +346,8 @@ namespace GitHub.Unity
                 if (!Nullable.Equals(currentBranch, value))
                 {
                     currentBranch = value;
-                    Logger.Trace("OnCurrentBranchChanged: {0}", value?.ToString() ?? "NULL");
-                    OnCurrentBranchChanged?.Invoke(CurrentBranch.HasValue ? CurrentBranch.Value.Name : null);
+                    Logger.Trace("OnCurrentBranchChanged: {0}", currentBranch.HasValue ? currentBranch.ToString() : "[NULL]");
+                    OnCurrentBranchChanged?.Invoke(currentBranch.HasValue ? currentBranch.Value.Name : null);
                 }
             }
         }
@@ -356,9 +368,9 @@ namespace GitHub.Unity
                 if (!Nullable.Equals(currentRemote, value))
                 {
                     currentRemote = value;
-                    SetCloneUrl();
-                    Logger.Trace("OnCurrentRemoteChanged: {0}", value?.ToString() ?? "NULL");
-                    OnCurrentRemoteChanged?.Invoke(CurrentRemote.HasValue ? CurrentRemote.Value.Name : null);
+                    Logger.Trace("OnCurrentRemoteChanged: {0}", currentRemote.HasValue ? currentRemote.Value.ToString() : "[NULL]");
+                    OnCurrentRemoteChanged?.Invoke(currentRemote.HasValue ? currentRemote.Value.Name : null);
+                    UpdateRepositoryInfo();
                 }
             }
         }

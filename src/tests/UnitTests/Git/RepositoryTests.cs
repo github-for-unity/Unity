@@ -31,11 +31,13 @@ namespace UnitTests
         }
 
         private RepositoryEvents repositoryEvents;
+        private TimeSpan repositoryEventsTimeout;
 
         [SetUp]
         public void OnSetup()
         {
             repositoryEvents = new RepositoryEvents();
+            repositoryEventsTimeout = TimeSpan.FromSeconds(0.5);
         }
 
         [Test]
@@ -89,16 +91,17 @@ namespace UnitTests
 
             repositoryManager.OnLocalBranchListUpdated += Raise.Event<Action<Dictionary<string, ConfigBranch>>>(branchDictionary);
 
-            repositoryEvents.OnLocalBranchListChanged.WaitOne().Should().BeTrue();
+            repositoryEvents.OnLocalBranchListChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnLocalBranchListChanged not raised");
 
             repositoryManager.OnRemoteBranchListUpdated += Raise.Event<Action<Dictionary<string, Dictionary<string, ConfigBranch>>>>(remoteBranchDictionary);
 
-            repositoryEvents.OnRemoteBranchListChanged.WaitOne().Should().BeTrue();
+            repositoryEvents.OnRemoteBranchListChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnRemoteBranchListChanged not raised");
 
             repositoryManager.OnHeadUpdated += Raise.Event<Action<string>>("ref:refs/heads/master");
 
-            repositoryEvents.OnCurrentBranchChanged.WaitOne().Should().BeTrue();
-            repositoryEvents.OnCurrentRemoteChanged.WaitOne().Should().BeTrue();
+            repositoryEvents.OnCurrentBranchChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnCurrentBranchChanged not raised");
+            repositoryEvents.OnCurrentRemoteChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnCurrentRemoteChanged not raised");
+            repositoryEvents.OnRepositoryInfoChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnRepositoryInfoChanged not raised");
 
             expectedBranch.Should().Be("master");
             expectedRemote.Should().Be("origin");
