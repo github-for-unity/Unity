@@ -280,7 +280,7 @@ namespace GitHub.Unity
         protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
     }
 
-    interface IUser
+    public interface IUser
     {
         string Name { get; set; }
         string Email { get; set; }

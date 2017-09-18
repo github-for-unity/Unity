@@ -31,7 +31,7 @@ namespace GitHub.Unity
         }
     }
 
-    interface IGitConfig
+    public interface IGitConfig
     {
         void Reset();
         IEnumerable<ConfigBranch> GetBranches();

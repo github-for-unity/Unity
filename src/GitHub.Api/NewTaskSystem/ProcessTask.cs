@@ -27,7 +27,7 @@ namespace GitHub.Unity
         }
     }
 
-    interface IProcess
+    public interface IProcess
     {
         void Configure(Process existingProcess);
         void Configure(ProcessStartInfo psi);
