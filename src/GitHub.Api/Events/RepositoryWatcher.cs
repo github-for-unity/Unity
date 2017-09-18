@@ -11,7 +11,7 @@ namespace GitHub.Unity
     {
         void Start();
         void Stop();
-        event Action<string> HeadChanged;
+        event Action HeadChanged;
         event Action IndexChanged;
         event Action ConfigChanged;
         event Action<string> LocalBranchChanged;
@@ -38,7 +38,7 @@ namespace GitHub.Unity
         private bool processingEvents;
         private readonly ManualResetEventSlim signalProcessingEventsDone = new ManualResetEventSlim(false);
 
-        public event Action<string> HeadChanged;
+        public event Action HeadChanged;
         public event Action IndexChanged;
         public event Action ConfigChanged;
         public event Action<string> LocalBranchChanged;
@@ -168,8 +168,6 @@ namespace GitHub.Unity
             var repositoryChanged = false;
             var indexChanged = false;
 
-            string headContent = null;
-
             foreach (var fileEvent in fileEvents)
             {
                 if (!running)
@@ -200,19 +198,26 @@ namespace GitHub.Unity
                     if (!configChanged && fileA.Equals(paths.DotGitConfig))
                     {
                         configChanged = true;
+
+                        Logger.Trace("ConfigChanged");
+                        ConfigChanged?.Invoke();
+                        eventsProcessed++;
                     }
                     else if (!headChanged && fileA.Equals(paths.DotGitHead))
                     {
-                        if (fileEvent.Type != EventType.DELETED)
-                        {
-                            headContent = paths.DotGitHead.ReadAllLines().FirstOrDefault();
-                        }
-
                         headChanged = true;
+
+                        Logger.Trace("HeadChanged");
+                        HeadChanged?.Invoke();
+                        eventsProcessed++;
                     }
                     else if (!indexChanged && fileA.Equals(paths.DotGitIndex))
                     {
                         indexChanged = true;
+
+                        Logger.Trace("IndexChanged");
+                        IndexChanged?.Invoke();
+                        eventsProcessed++;
                     }
                     else if (fileA.IsChildOf(paths.RemotesPath))
                     {
@@ -349,35 +354,11 @@ namespace GitHub.Unity
                     }
 
                     repositoryChanged = true;
+
+                    Logger.Trace("RepositoryChanged");
+                    RepositoryChanged?.Invoke();
+                    eventsProcessed++;
                 }
-            }
-
-            if (configChanged)
-            {
-                Logger.Trace("ConfigChanged");
-                ConfigChanged?.Invoke();
-                eventsProcessed++;
-            }
-
-            if (headChanged)
-            {
-                Logger.Trace("HeadChanged: {0}", headContent ?? "[null]");
-                HeadChanged?.Invoke(headContent);
-                eventsProcessed++;
-            }
-
-            if (indexChanged)
-            {
-                Logger.Trace("IndexChanged");
-                IndexChanged?.Invoke();
-                eventsProcessed++;
-            }
-
-            if (repositoryChanged)
-            {
-                Logger.Trace("RepositoryChanged");
-                RepositoryChanged?.Invoke();
-                eventsProcessed++;
             }
 
             return eventsProcessed;
