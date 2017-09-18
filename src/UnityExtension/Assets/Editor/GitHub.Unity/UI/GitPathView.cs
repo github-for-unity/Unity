@@ -48,11 +48,6 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        public override bool IsBusy
-        {
-            get { return isBusy; }
-        }
-
         public override void OnGUI()
         {
             // Install path
@@ -73,7 +68,7 @@ namespace GitHub.Unity
                         CheckEnteredGitPath();
                     }
 
-                    if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(25)))
+                    if (GUILayout.Button(BrowseButton, EditorStyles.miniButton, GUILayout.Width(Styles.BrowseButtonWidth)))
                     {
                         GUI.FocusControl(null);
 
@@ -122,13 +117,14 @@ namespace GitHub.Unity
                         newGitExec = gitExec;
                         CheckEnteredGitPath();
 
-                        new ProcessTask<NPath>(Manager.CancellationToken, new FirstLineIsPathOutputProcessor())
-                            .Configure(Manager.ProcessManager, Environment.IsWindows ? "where" : "which", "git")
-                            .FinallyInUI((success, ex, path) =>
-                            {
+                        new FindExecTask("git", Manager.CancellationToken)
+                            .Configure(Manager.ProcessManager)
+                            .FinallyInUI((success, ex, path) => {
                                 if (success)
                                 {
                                     Logger.Trace("FindGit Path:{0}", path);
+                                    newGitExec = path;
+                                    CheckEnteredGitPath();
                                 }
                                 else
                                 {
@@ -140,12 +136,6 @@ namespace GitHub.Unity
                                     {
                                         Logger.Error("FindGit Failed Path:{0}", path);
                                     }
-                                }
-
-                                if (success)
-                                {
-                                    newGitExec = path;
-                                    CheckEnteredGitPath();
                                 }
 
                                 isBusy = false;
@@ -179,30 +169,27 @@ namespace GitHub.Unity
         {
             if (gitExecHasChanged)
             {
-                if (Environment != null)
+                if (gitExecExtension == null)
                 {
-                    if (gitExecExtension == null)
+                    gitExecExtension = Environment.ExecutableExtension;
+
+                    if (Environment.IsWindows)
                     {
-                        gitExecExtension = Environment.ExecutableExtension;
-
-                        if (Environment.IsWindows)
-                        {
-                            gitExecExtension = gitExecExtension.TrimStart('.');
-                        }
+                        gitExecExtension = gitExecExtension.TrimStart('.');
                     }
+                }
 
-                    if (Environment.GitExecutablePath != null)
-                    {
-                        newGitExec = gitExec = Environment.GitExecutablePath.ToString();
-                        gitExecParent = Environment.GitExecutablePath.Parent.ToString();
+                if (Environment.GitExecutablePath != null)
+                {
+                    newGitExec = gitExec = Environment.GitExecutablePath.ToString();
+                    gitExecParent = Environment.GitExecutablePath.Parent.ToString();
 
-                        CheckEnteredGitPath();
-                    }
+                    CheckEnteredGitPath();
+                }
 
-                    if (gitExecParent == null)
-                    {
-                        gitExecParent = Environment.GitInstallPath;
-                    }
+                if (gitExecParent == null)
+                {
+                    gitExecParent = Environment.GitInstallPath;
                 }
 
                 gitExecHasChanged = false;
@@ -233,25 +220,20 @@ namespace GitHub.Unity
                     {
                         Logger.Trace(ErrorGettingSoftwareVersionMessage);
                         gitVersionErrorMessage = ErrorGettingSoftwareVersionMessage;
-
-                        isBusy = false;
-
-                        return;
                     }
-
-                    if (!result.IsValid)
+                    else if (!result.IsValid)
                     {
-                        Logger.Warning("Software versions do not meet minimums Git:{0} (Minimum:{1}) GitLfs:{2} (Minimum:{3})",
-                            result.GitVersion,
-                            Constants.MinimumGitVersion,
-                            result.GitLfsVersion,
+                        Logger.Warning(
+                            "Software versions do not meet minimums Git:{0} (Minimum:{1}) GitLfs:{2} (Minimum:{3})",
+                            result.GitVersion, Constants.MinimumGitVersion, result.GitLfsVersion,
                             Constants.MinimumGitLfsVersion);
 
                         var errorMessageStringBuilder = new StringBuilder();
 
                         if (result.GitVersion < Constants.MinimumGitVersion)
                         {
-                            errorMessageStringBuilder.AppendFormat(ErrorMinimumGitVersionMessageFormat, result.GitVersion, Constants.MinimumGitVersion);
+                            errorMessageStringBuilder.AppendFormat(ErrorMinimumGitVersionMessageFormat,
+                                result.GitVersion, Constants.MinimumGitVersion);
                         }
 
                         if (result.GitLfsVersion < Constants.MinimumGitLfsVersion)
@@ -261,26 +243,32 @@ namespace GitHub.Unity
                                 errorMessageStringBuilder.Append(Environment.NewLine);
                             }
 
-                            errorMessageStringBuilder.AppendFormat(ErrorMinimumGitLfsVersionMessageFormat, result.GitLfsVersion, Constants.MinimumGitLfsVersion);
+                            errorMessageStringBuilder.AppendFormat(ErrorMinimumGitLfsVersionMessageFormat,
+                                result.GitLfsVersion, Constants.MinimumGitLfsVersion);
                         }
 
                         gitVersionErrorMessage = errorMessageStringBuilder.ToString();
+                    }
+                    else
+                    {
+                        Logger.Trace("Software versions meet minimums Git:{0} GitLfs:{1}",
+                            result.GitVersion,
+                            result.GitLfsVersion);
 
-                        isBusy = false;
-                        return;
+                        Manager.SystemSettings.Set(Constants.GitInstallPathKey, value);
+                        Environment.GitExecutablePath = value.ToNPath();
+
+                        gitExecHasChanged = true;
                     }
 
-                    Logger.Trace("Software versions meet minimums Git:{0} GitLfs:{1}",
-                        result.GitVersion,
-                        result.GitLfsVersion);
-
-                    Manager.SystemSettings.Set(Constants.GitInstallPathKey, value);
-                    Environment.GitExecutablePath = value.ToNPath();
-
-                    gitExecHasChanged = true;
                     isBusy = false;
 
                 }).Start();
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy; }
         }
     }
 }
