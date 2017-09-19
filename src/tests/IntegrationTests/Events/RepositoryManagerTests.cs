@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using GitHub.Unity;
 using NSubstitute;
@@ -33,6 +34,31 @@ namespace IntegrationTests
             WaitForNotBusy(repositoryManagerEvents, 2);
 
             repositoryManagerListener.AssertDidNotReceiveAnyCalls();
+
+            Repository.Name.Should().Be("IOTestsRepo");
+            Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Repository.LocalPath.Should().Be(TestRepoMasterCleanSynchronized);
+            Repository.IsGitHub.Should().BeTrue();
+            Repository.CurrentBranchName.Should().Be("master");
+            Repository.CurrentBranch.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Name.Should().Be("master");
+            Repository.CurrentBranch.Value.Remote.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Remote.Value.Name.Should().Be("origin");
+            Repository.CurrentBranch.Value.Remote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.CurrentRemote.HasValue.Should().BeTrue();
+            Repository.CurrentRemote.Value.Name.Should().Be("origin");
+            Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.LocalBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
+            });
+            Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
+            });
         }
 
         [Test]
@@ -276,6 +302,31 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
             result.AssertEqual(expected);
+
+            Repository.Name.Should().Be("IOTestsRepo");
+            Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Repository.LocalPath.Should().Be(TestRepoMasterCleanSynchronized);
+            Repository.IsGitHub.Should().BeTrue();
+            Repository.CurrentBranchName.Should().Be("feature/document");
+            Repository.CurrentBranch.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Name.Should().Be("feature/document");
+            Repository.CurrentBranch.Value.Remote.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Remote.Value.Name.Should().Be("origin");
+            Repository.CurrentBranch.Value.Remote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.CurrentRemote.HasValue.Should().BeTrue();
+            Repository.CurrentRemote.Value.Name.Should().Be("origin");
+            Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.LocalBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("master", "origin/master", false),
+                new GitBranch("feature/document", "origin/feature/document", true),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
+            });
+            Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
+            });
         }
 
         [Test]
@@ -303,6 +354,30 @@ namespace IntegrationTests
             repositoryManagerListener.Received().OnLocalBranchRemoved(deletedBranch);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
+
+            Repository.Name.Should().Be("IOTestsRepo");
+            Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Repository.LocalPath.Should().Be(TestRepoMasterCleanSynchronized);
+            Repository.IsGitHub.Should().BeTrue();
+            Repository.CurrentBranchName.Should().Be("master");
+            Repository.CurrentBranch.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Name.Should().Be("master");
+            Repository.CurrentBranch.Value.Remote.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Remote.Value.Name.Should().Be("origin");
+            Repository.CurrentBranch.Value.Remote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.CurrentRemote.HasValue.Should().BeTrue();
+            Repository.CurrentRemote.Value.Name.Should().Be("origin");
+            Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.LocalBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
+            });
+            Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
+            });
         }
 
         [Test]
@@ -331,6 +406,32 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
+            Repository.Name.Should().Be("IOTestsRepo");
+            Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Repository.LocalPath.Should().Be(TestRepoMasterCleanSynchronized);
+            Repository.IsGitHub.Should().BeTrue();
+            Repository.CurrentBranchName.Should().Be("master");
+            Repository.CurrentBranch.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Name.Should().Be("master");
+            Repository.CurrentBranch.Value.Remote.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Remote.Value.Name.Should().Be("origin");
+            Repository.CurrentBranch.Value.Remote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.CurrentRemote.HasValue.Should().BeTrue();
+            Repository.CurrentRemote.Value.Name.Should().Be("origin");
+            Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.LocalBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/document2", "[None]", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
+            });
+            Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
+            });
+
             repositoryManagerListener.ClearReceivedCalls();
             repositoryManagerEvents.Reset();
 
@@ -351,6 +452,33 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
+
+            Repository.Name.Should().Be("IOTestsRepo");
+            Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Repository.LocalPath.Should().Be(TestRepoMasterCleanSynchronized);
+            Repository.IsGitHub.Should().BeTrue();
+            Repository.CurrentBranchName.Should().Be("master");
+            Repository.CurrentBranch.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Name.Should().Be("master");
+            Repository.CurrentBranch.Value.Remote.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Remote.Value.Name.Should().Be("origin");
+            Repository.CurrentBranch.Value.Remote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.CurrentRemote.HasValue.Should().BeTrue();
+            Repository.CurrentRemote.Value.Name.Should().Be("origin");
+            Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.LocalBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/document2", "[None]", false),
+                new GitBranch("feature2/document2", "[None]", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
+            });
+            Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
+            });
         }
 
         [Test]
@@ -380,6 +508,27 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
             repositoryManagerListener.Received().OnRemoteBranchRemoved(Args.String, Args.String);
 
+            Repository.Name.Should().Be("IOTestsRepo");
+            Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Repository.LocalPath.Should().Be(TestRepoMasterCleanSynchronized);
+            Repository.IsGitHub.Should().BeTrue();
+            Repository.CurrentBranchName.Should().Be("master");
+            Repository.CurrentBranch.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Name.Should().Be("master");
+            Repository.CurrentBranch.Value.Remote.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Remote.Value.Name.Should().Be("origin");
+            Repository.CurrentBranch.Value.Remote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.CurrentRemote.HasValue.Should().BeTrue();
+            Repository.CurrentRemote.Value.Name.Should().Be("origin");
+            Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.LocalBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("master", "[None]", true),
+                new GitBranch("feature/document", "[None]", false),
+                new GitBranch("feature/other-feature", "[None]", false),
+            });
+            Repository.RemoteBranches.Should().BeEmpty();
+
             repositoryManagerListener.ClearReceivedCalls();
             repositoryManagerEvents.Reset();
 
@@ -401,6 +550,27 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
+
+            Repository.Name.Should().Be("IOTestsRepo");
+            Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Repository.LocalPath.Should().Be(TestRepoMasterCleanSynchronized);
+            Repository.IsGitHub.Should().BeTrue();
+            Repository.CurrentBranchName.Should().Be("master");
+            Repository.CurrentBranch.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Name.Should().Be("master");
+            Repository.CurrentBranch.Value.Remote.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Remote.Value.Name.Should().Be("origin");
+            Repository.CurrentBranch.Value.Remote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.CurrentRemote.HasValue.Should().BeTrue();
+            Repository.CurrentRemote.Value.Name.Should().Be("origin");
+            Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.LocalBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("master", "[None]", true),
+                new GitBranch("feature/document", "[None]", false),
+                new GitBranch("feature/other-feature", "[None]", false),
+            });
+            Repository.RemoteBranches.Should().BeEmpty();
         }
 
         [Test]
@@ -412,6 +582,34 @@ namespace IntegrationTests
 
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
             repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            Repository.Name.Should().Be("IOTestsRepo");
+            Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Repository.LocalPath.Should().Be(TestRepoMasterTwoRemotes);
+            Repository.IsGitHub.Should().BeTrue();
+            Repository.CurrentBranchName.Should().Be("master");
+            Repository.CurrentBranch.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Name.Should().Be("master");
+            Repository.CurrentBranch.Value.Remote.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Remote.Value.Name.Should().Be("origin");
+            Repository.CurrentBranch.Value.Remote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.CurrentRemote.HasValue.Should().BeTrue();
+            Repository.CurrentRemote.Value.Name.Should().Be("origin");
+            Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.LocalBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
+            });
+            Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
+                new GitBranch("another/master", "[None]", false),
+                new GitBranch("another/feature/document-2", "[None]", false),
+                new GitBranch("another/feature/other-feature", "[None]", false),
+            });
 
             await RepositoryManager.CreateBranch("branch2", "another/master")
                 .StartAsAsync();
@@ -431,6 +629,35 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
+
+            Repository.Name.Should().Be("IOTestsRepo");
+            Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Repository.LocalPath.Should().Be(TestRepoMasterTwoRemotes);
+            Repository.IsGitHub.Should().BeTrue();
+            Repository.CurrentBranchName.Should().Be("master");
+            Repository.CurrentBranch.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Name.Should().Be("master");
+            Repository.CurrentBranch.Value.Remote.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Remote.Value.Name.Should().Be("origin");
+            Repository.CurrentBranch.Value.Remote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.CurrentRemote.HasValue.Should().BeTrue();
+            Repository.CurrentRemote.Value.Name.Should().Be("origin");
+            Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.LocalBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("branch2", "another/branch2", false),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
+            });
+            Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
+                new GitBranch("another/master", "[None]", false),
+                new GitBranch("another/feature/document-2", "[None]", false),
+                new GitBranch("another/feature/other-feature", "[None]", false),
+            });
 
             repositoryManagerListener.ClearReceivedCalls();
             repositoryManagerEvents.Reset();
@@ -454,6 +681,35 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
+
+            Repository.Name.Should().Be("Url");
+            Repository.CloneUrl.ToString().Should().Be("https://another.remote/Owner/Url.git");
+            Repository.Owner.Should().Be("Owner");
+            Repository.LocalPath.Should().Be(TestRepoMasterTwoRemotes);
+            Repository.IsGitHub.Should().BeFalse();
+            Repository.CurrentBranchName.Should().Be("branch2");
+            Repository.CurrentBranch.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Name.Should().Be("branch2");
+            Repository.CurrentBranch.Value.Remote.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Remote.Value.Name.Should().Be("another");
+            Repository.CurrentBranch.Value.Remote.Value.Url.Should().Be("https://another.remote/Owner/Url.git");
+            Repository.CurrentRemote.HasValue.Should().BeTrue();
+            Repository.CurrentRemote.Value.Name.Should().Be("another");
+            Repository.CurrentRemote.Value.Url.Should().Be("https://another.remote/Owner/Url.git");
+            Repository.LocalBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("master", "origin/master", false),
+                new GitBranch("branch2", "another/branch2", true),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
+            });
+            Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
+                new GitBranch("another/master", "[None]", false),
+                new GitBranch("another/feature/document-2", "[None]", false),
+                new GitBranch("another/feature/other-feature", "[None]", false),
+            });
         }
 
         [Test]
@@ -493,6 +749,31 @@ namespace IntegrationTests
 
             result.AssertEqual(expected);
 
+            Repository.Name.Should().Be("IOTestsRepo");
+            Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Repository.LocalPath.Should().Be(TestRepoMasterCleanSynchronized);
+            Repository.IsGitHub.Should().BeTrue();
+            Repository.CurrentBranchName.Should().Be("master");
+            Repository.CurrentBranch.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Name.Should().Be("master");
+            Repository.CurrentBranch.Value.Remote.HasValue.Should().BeTrue();
+            Repository.CurrentBranch.Value.Remote.Value.Name.Should().Be("origin");
+            Repository.CurrentBranch.Value.Remote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.CurrentRemote.HasValue.Should().BeTrue();
+            Repository.CurrentRemote.Value.Name.Should().Be("origin");
+            Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.LocalBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
+            });
+            Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
+            });
+
             repositoryManagerEvents.Reset();
             WaitForNotBusy(repositoryManagerEvents);
         }
@@ -504,6 +785,30 @@ namespace IntegrationTests
 
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
             repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            RepositoryManager.WaitForEvents();
+            WaitForNotBusy(repositoryManagerEvents, 2);
+
+            repositoryManagerListener.AssertDidNotReceiveAnyCalls();
+
+            Repository.Name.Should().Be("IOTestsRepo");
+            Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Repository.LocalPath.Should().Be(TestRepoMasterCleanUnsynchronized);
+            Repository.IsGitHub.Should().BeTrue();
+            Repository.CurrentBranchName.Should().Be(null);
+            Repository.CurrentBranch.HasValue.Should().BeFalse();
+            Repository.CurrentRemote.HasValue.Should().BeTrue();
+            Repository.CurrentRemote.Value.Name.Should().Be("origin");
+            Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.LocalBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("feature/document", "origin/feature/document", false),
+            });
+            Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+            });
 
             await RepositoryManager.Fetch("origin").StartAsAsync();
             await TaskManager.Wait();
@@ -521,6 +826,27 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
             repositoryManagerListener.Received().OnRemoteBranchAdded(Args.String, Args.String);
             repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
+
+            Repository.Name.Should().Be("IOTestsRepo");
+            Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.Owner.Should().Be("EvilStanleyGoldman");
+            Repository.LocalPath.Should().Be(TestRepoMasterCleanUnsynchronized);
+            Repository.IsGitHub.Should().BeTrue();
+            Repository.CurrentBranchName.Should().Be(null);
+            Repository.CurrentBranch.HasValue.Should().BeFalse();
+            Repository.CurrentRemote.HasValue.Should().BeTrue();
+            Repository.CurrentRemote.Value.Name.Should().Be("origin");
+            Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
+            Repository.LocalBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("feature/document", "origin/feature/document", false),
+            });
+            Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/new-feature", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
+            });
         }
 
         private void WaitForNotBusy(RepositoryManagerEvents managerEvents, int seconds = 1)
