@@ -9,10 +9,12 @@ namespace GitHub.Unity
     {
         private const string NoRepoTitle = "No Git repository found for this project";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
+        private const string NoUserOrEmailError = "Name and Email must be configured in Settings";
 
         [SerializeField] private bool isBusy;
         [SerializeField] private bool isUserDataPresent = true;
 
+        [NonSerialized] private string errorMessage;
         [NonSerialized] private bool userDataHasChanged;
 
         public override void InitializeView(IView parent)
@@ -81,25 +83,6 @@ namespace GitHub.Unity
 
             GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {
-                if (!isUserDataPresent)
-                {
-                    GUILayout.FlexibleSpace();
-
-                    EditorGUI.BeginDisabledGroup(isBusy);
-                    {
-                        if (GUILayout.Button("Finish Git Configuration", "Button"))
-                        {
-                            PopupWindow.Open(PopupWindow.PopupViewType.UserSettingsView, completed => {
-                                if (completed)
-                                {
-                                    userDataHasChanged = true;
-                                }
-                            });
-                        }
-                    }
-                    EditorGUI.EndDisabledGroup();
-                }
-
                 GUILayout.FlexibleSpace();
 
                 GUILayout.Label(NoRepoDescription, Styles.CenteredLabel);
@@ -122,9 +105,24 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 
+                ShowErrorMessage();
+
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
+        }
+
+        private void ShowErrorMessage()
+        {
+            if (errorMessage != null)
+            {
+                GUILayout.Space(Styles.BaseSpacing);
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label(errorMessage, Styles.CenteredErrorLabel);
+                }
+                GUILayout.EndHorizontal();
+            }
         }
 
         private void MaybeUpdateData()
@@ -160,6 +158,7 @@ namespace GitHub.Unity
 
                 isBusy = false;
                 isUserDataPresent = success && !String.IsNullOrEmpty(username) && !String.IsNullOrEmpty(email);
+                errorMessage = isUserDataPresent ? null : NoUserOrEmailError;
 
                 Logger.Trace("Finally: {0}", isUserDataPresent);
 
