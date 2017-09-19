@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace IntegrationTests
 {
     [SetUpFixture]
-    public class SetupFixture
+    public class SetUpFixture
     {
         [SetUp]
         public void Setup()
