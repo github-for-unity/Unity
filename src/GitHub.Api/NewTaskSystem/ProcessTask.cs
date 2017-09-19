@@ -288,8 +288,8 @@ namespace GitHub.Unity
                     if (outputProcessor != null)
                         result = outputProcessor.Result;
 
-                    if (result == null && typeof(T) == typeof(string))
-                        result = (T)(object)(Process.StartInfo.CreateNoWindow ? "Process finished" : "Process running");
+                    if (result == null && !Process.StartInfo.CreateNoWindow && typeof(T) == typeof(string))
+                        result = (T)(object)"Process running";
 
                     RaiseOnEnd(result);
 
