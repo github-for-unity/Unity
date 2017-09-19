@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface IPlatform
+    public interface IPlatform
     {
         IPlatform Initialize(IProcessManager processManager, ITaskManager taskManager);
         IProcessEnvironment GitEnvironment { get; }

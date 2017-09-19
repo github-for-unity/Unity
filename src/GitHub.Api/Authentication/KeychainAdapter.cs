@@ -36,7 +36,7 @@ namespace GitHub.Unity
         }
     }
 
-    interface IKeychainAdapter: ICredentialStore
+    public interface IKeychainAdapter: ICredentialStore
     {
         Credentials OctokitCredentials { get; }
         ICredential Credential { get; }

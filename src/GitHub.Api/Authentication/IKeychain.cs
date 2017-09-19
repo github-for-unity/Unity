@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface IKeychain
+    public interface IKeychain
     {
         IKeychainAdapter Connect(UriString host);
         Task<IKeychainAdapter> Load(UriString host);

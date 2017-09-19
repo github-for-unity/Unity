@@ -9,7 +9,7 @@ using UnityEngine;
 namespace GitHub.Unity
 {
     [InitializeOnLoad]
-    class EntryPoint : ScriptableObject
+    public class EntryPoint : ScriptableObject
     {
         // this may run on the loader thread if it's an appdomain restart
         static EntryPoint()
