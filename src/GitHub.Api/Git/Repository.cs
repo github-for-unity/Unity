@@ -249,6 +249,10 @@ namespace GitHub.Unity
                 localBranches.Remove(name);
                 OnLocalBranchListChanged?.Invoke();
             }
+            else
+            {
+                Logger.Warning("Branch {0} is not found", name);
+            }
         }
 
         private void RepositoryManager_OnLocalBranchAdded(string name)
@@ -262,6 +266,10 @@ namespace GitHub.Unity
                 }
                 localBranches.Add(name, branch.Value);
                 OnLocalBranchListChanged?.Invoke();
+            }
+            else
+            {
+                Logger.Warning("Branch {0} is already present", name);
             }
         }
 
@@ -285,6 +293,14 @@ namespace GitHub.Unity
                     branchList.Add(name, new ConfigBranch { Name = name, Remote = remotes[remote] });
                     OnRemoteBranchListChanged?.Invoke();
                 }
+                else
+                {
+                    Logger.Warning("Branch {0} is already present in Remote {1}", name, remote);
+                }
+            }
+            else
+            {
+                Logger.Warning("Remote {0} is not found", remote);
             }
         }
         
@@ -298,6 +314,14 @@ namespace GitHub.Unity
                     localBranches.Remove(name);
                     OnRemoteBranchListChanged?.Invoke();
                 }
+                else
+                {
+                    Logger.Warning("Branch {0} is not found in Remote {1}", name, remote);
+                }
+            }
+            else
+            {
+                Logger.Warning("Remote {0} is not found", remote);
             }
         }
         
