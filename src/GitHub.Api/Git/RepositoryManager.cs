@@ -460,6 +460,9 @@ namespace GitHub.Unity
             LoadBranchesFromConfig();
             LoadRemotesFromConfig();
 
+            OnLocalBranchListChanged?.Invoke();
+            OnRemoteBranchListChanged?.Invoke();
+
             OnActiveBranchChanged?.Invoke(GetActiveBranch());
             OnActiveRemoteChanged?.Invoke(GetActiveRemote());
         }
