@@ -120,6 +120,21 @@ namespace GitHub.Unity
                 }
             }
 
+            if (nextTab != activeTab)
+            {
+                var fromView = ActiveView;
+                activeTab = nextTab;
+
+                GUI.FocusControl(null);
+
+                if (fromView != null)
+                    fromView.OnDisable();
+
+                ActiveView.OnEnable();
+
+                Refresh();
+            }
+
             if (ActiveView != null)
                 ActiveView.OnDataUpdate();
         }
@@ -160,12 +175,6 @@ namespace GitHub.Unity
             }
 
             DoToolbarGUI();
-
-            if (nextTab != activeTab)
-            {
-                SetActiveTab(nextTab);
-                nextTab = activeTab;
-            }
 
             // GUI for the active tab
             if (ActiveView != null)
@@ -321,28 +330,6 @@ namespace GitHub.Unity
                     DoAccountDropdown();
             }
             EditorGUILayout.EndHorizontal();
-        }
-
-        private void SetActiveTab(SubTab changeTab)
-        {
-            if (changeTab != activeTab)
-            {
-                var fromView = ActiveView;
-                activeTab = changeTab;
-                SwitchView(fromView, ActiveView);
-            }
-        }
-
-        private void SwitchView(Subview fromView, Subview toView)
-        {
-            GUI.FocusControl(null);
-
-            if (fromView != null)
-                fromView.OnDisable();
-
-            toView.OnEnable();
-
-            Refresh();
         }
 
         private void DoAccountDropdown()
