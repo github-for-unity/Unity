@@ -120,7 +120,7 @@ namespace GitHub.Unity
         public ITask ListLocks()
         {
             if (repositoryManager == null)
-                return new ActionTask(TaskExtensions.CompletedTask);
+                return new ActionTask(new NotReadyException().ToTask<bool>());
             return repositoryManager.ListLocks(false);
         }
 
