@@ -59,8 +59,10 @@ namespace UnitTests
 
             var remoteDictionary = remotes.ToDictionary(remote => remote.Name);
 
+            var masterOriginBranch = new ConfigBranch { Name = "master", Remote = origin };
+
             var branches = new[] {
-                new ConfigBranch { Name = "master", Remote = origin },
+                masterOriginBranch,
                 new ConfigBranch { Name = "features/feature-1", Remote = origin }
             };
 
@@ -97,7 +99,8 @@ namespace UnitTests
 
             repositoryEvents.OnRemoteBranchListChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnRemoteBranchListChanged not raised");
 
-            repositoryManager.OnHeadUpdated += Raise.Event<Action<string>>("ref:refs/heads/master");
+            repositoryManager.OnCurrentBranchUpdated += Raise.Event<Action<ConfigBranch?>>(masterOriginBranch);
+            repositoryManager.OnCurrentRemoteUpdated += Raise.Event<Action<ConfigRemote?>>(origin);
 
             repositoryEvents.OnCurrentBranchChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnCurrentBranchChanged not raised");
             repositoryEvents.OnCurrentRemoteChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnCurrentRemoteChanged not raised");
