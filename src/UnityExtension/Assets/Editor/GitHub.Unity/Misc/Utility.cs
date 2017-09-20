@@ -14,10 +14,6 @@ namespace GitHub.Unity
         private static readonly ILogging logger = Logging.GetLogger<Utility>();
 
         public const string StatusRenameDivider = "->";
-        public static readonly Regex ListBranchesRegex =
-            new Regex(@"^(?<active>\*)?\s+(?<name>[\w\d\/\-_]+)\s*(?:[a-z|0-9]{7} \[(?<tracking>[\w\d\/\-\_]+)\])?");
-        public static readonly Regex ListRemotesRegex =
-            new Regex(@"(?<name>[\w\d\-_]+)\s+(?<url>https?:\/\/(?<login>(?<user>[\w\d]+)(?::(?<token>[\w\d]+))?)@(?<host>[\w\d\.\/\%]+))\s+\((?<function>fetch|push)\)");
         public static readonly Regex LogCommitRegex = new Regex(@"commit\s(\S+)");
         public static readonly Regex LogMergeRegex = new Regex(@"Merge:\s+(\S+)\s+(\S+)");
         public static readonly Regex LogAuthorRegex = new Regex(@"Author:\s+(.+)\s<(.+)>");
