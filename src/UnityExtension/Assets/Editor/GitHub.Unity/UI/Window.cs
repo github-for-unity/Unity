@@ -446,19 +446,14 @@ namespace GitHub.Unity
             {
                 case SubTab.InitProject:
                     return initProjectView;
-
                 case SubTab.History:
                     return historyView;
-
                 case SubTab.Changes:
                     return changesView;
-
                 case SubTab.Branches:
                     return branchesView;
-
                 case SubTab.Settings:
                     return settingsView;
-
                 default:
                     throw new ArgumentOutOfRangeException();
             }
