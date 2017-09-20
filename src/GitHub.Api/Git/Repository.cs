@@ -14,7 +14,6 @@ namespace GitHub.Unity
         private ConfigBranch? currentBranch;
         private ConfigRemote? currentRemote;
         private GitStatus currentStatus;
-        private string head;
         private Dictionary<string, ConfigBranch> localBranches = new Dictionary<string, ConfigBranch>();
         private IEnumerable<GitLock> locks;
         private Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
@@ -58,7 +57,8 @@ namespace GitHub.Unity
 
             this.repositoryManager = repositoryManager;
 
-            repositoryManager.OnHeadUpdated += RepositoryManager_OnHeadUpdated;
+            repositoryManager.OnCurrentBranchUpdated += RepositoryManager_OnCurrentBranchUpdated;
+            repositoryManager.OnCurrentRemoteUpdated += RepositoryManager_OnCurrentRemoteUpdated;
             repositoryManager.OnStatusUpdated += RepositoryManager_OnStatusUpdated;
             repositoryManager.OnLocksUpdated += RepositoryManager_OnLocksUpdated;
             repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
@@ -174,51 +174,13 @@ namespace GitHub.Unity
             OnLocksChanged?.Invoke(CurrentLocks);
         }
 
-        private void RepositoryManager_OnHeadUpdated(string h)
+        private void RepositoryManager_OnCurrentBranchUpdated(ConfigBranch? branch)
         {
-            Logger.Trace("HeadUpdated");
-
-            if (head != h)
-            {
-                head = h;
-                UpdateCurrentBranchAndRemote();
-            }
+            CurrentBranch = branch;
         }
 
-        private void UpdateCurrentBranchAndRemote()
+        private void RepositoryManager_OnCurrentRemoteUpdated(ConfigRemote? remote)
         {
-            ConfigBranch? branch = null;
-
-            if (head.StartsWith("ref:"))
-            {
-                var branchName = head.Substring(head.IndexOf("refs/heads/") + "refs/heads/".Length);
-                branch = GetBranch(branchName);
-            }
-
-            CurrentBranch = branch;
-
-            var defaultRemote = "origin";
-            ConfigRemote? remote = null;
-
-            if (currentBranch.HasValue && currentBranch.Value.IsTracking)
-            {
-                remote = currentBranch.Value.Remote;
-            }
-
-            if (!remote.HasValue)
-            {
-                remote = repositoryManager.Config.GetRemote(defaultRemote);
-            }
-
-            if (!remote.HasValue)
-            {
-                var configRemotes = repositoryManager.Config.GetRemotes().ToArray();
-                if (configRemotes.Any())
-                {
-                    remote = configRemotes.FirstOrDefault();
-                }
-            }
-
             CurrentRemote = remote;
         }
 
@@ -323,16 +285,6 @@ namespace GitHub.Unity
             {
                 Logger.Warning("Remote {0} is not found", remote);
             }
-        }
-        
-        private ConfigBranch? GetBranch(string name)
-        {
-            if (localBranches.ContainsKey(name))
-            {
-                return localBranches[name];
-            }
-        
-            return null;
         }
 
         /// <summary>

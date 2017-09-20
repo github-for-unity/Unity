@@ -9,11 +9,12 @@ namespace GitHub.Unity
     public interface IRepositoryManager : IDisposable
     {
         event Action<bool> OnIsBusyChanged;
-        event Action<string> OnHeadUpdated;
         event Action<GitStatus> OnStatusUpdated;
         event Action<IEnumerable<GitLock>> OnLocksUpdated;
         event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
         event Action<Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
+        event Action<ConfigBranch?> OnCurrentBranchUpdated;
+        event Action<ConfigRemote?> OnCurrentRemoteUpdated;
         event Action<string> OnLocalBranchUpdated;
         event Action<string> OnLocalBranchAdded;
         event Action<string> OnLocalBranchRemoved;
@@ -111,13 +112,14 @@ namespace GitHub.Unity
         public event Action<Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         public event Action<IEnumerable<GitLock>> OnLocksUpdated;
         public event Action<GitStatus> OnStatusUpdated;
-        public event Action<string> OnHeadUpdated;
+        public event Action<ConfigBranch?> OnCurrentBranchUpdated;
+        public event Action<ConfigRemote?> OnCurrentRemoteUpdated;
         public event Action<string> OnLocalBranchUpdated;
         public event Action<string> OnLocalBranchAdded;
         public event Action<string> OnLocalBranchRemoved;
-        public event Action<IUser> OnGitUserLoaded;
         public event Action<string, string> OnRemoteBranchAdded;
         public event Action<string, string> OnRemoteBranchRemoved;
+        public event Action<IUser> OnGitUserLoaded;
 
         public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker,
             IGitClient gitClient, NPath repositoryRoot)
@@ -347,7 +349,7 @@ namespace GitHub.Unity
         private void UpdateHead()
         {
             var head = repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
-            OnHeadUpdated?.Invoke(head);
+            UpdateCurrentBranchAndRemote(head);
         }
 
         private ITask HookupHandlers(ITask task, bool disableWatcher = false)
@@ -387,6 +389,7 @@ namespace GitHub.Unity
 
         private void Watcher_OnRepositoryChanged()
         {
+            Logger.Trace("OnRepositoryChanged");
             UpdateGitStatus();
         }
 
@@ -418,6 +421,42 @@ namespace GitHub.Unity
             Logger.Trace("Watcher_OnHeadChanged");
             UpdateHead();
             UpdateGitStatus();
+        }
+
+        private void UpdateCurrentBranchAndRemote(string head)
+        {
+            ConfigBranch? branch = null;
+
+            if (head.StartsWith("ref:"))
+            {
+                var branchName = head.Substring(head.IndexOf("refs/heads/") + "refs/heads/".Length);
+                branch = config.GetBranch(branchName);
+            }
+
+            var defaultRemote = "origin";
+            ConfigRemote? remote = null;
+
+            if (branch.HasValue && branch.Value.IsTracking)
+            {
+                remote = branch.Value.Remote;
+            }
+
+            if (!remote.HasValue)
+            {
+                remote = config.GetRemote(defaultRemote);
+            }
+
+            if (!remote.HasValue)
+            {
+                var configRemotes = config.GetRemotes().ToArray();
+                if (configRemotes.Any())
+                {
+                    remote = configRemotes.FirstOrDefault();
+                }
+            }
+
+            OnCurrentBranchUpdated?.Invoke(branch);
+            OnCurrentRemoteUpdated?.Invoke(remote);
         }
 
         private void Watcher_OnIndexChanged()
