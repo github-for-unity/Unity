@@ -159,7 +159,6 @@ namespace GitHub.Unity
             Logger.Trace("Start");
 
             UpdateConfigData();
-            UpdateHead();
             LoadGitUser();
             watcher.Start();
         }
@@ -486,6 +485,7 @@ namespace GitHub.Unity
 
             LoadBranchesFromConfig();
             LoadRemotesFromConfig();
+            UpdateHead();
         }
 
         private void LoadBranchesFromConfig()
