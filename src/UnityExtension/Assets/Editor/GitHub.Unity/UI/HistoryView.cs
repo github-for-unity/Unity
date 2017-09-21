@@ -28,8 +28,6 @@ namespace GitHub.Unity
         private const string PushConfirmCancel = "Cancel";
         private const string CommitDetailsTitle = "Commit details";
         private const string ClearSelectionButton = "×";
-        private const string NoRepoTitle = "No Git repository found for this project";
-        private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
         private const string PublishButton = "Publish";
         private const string FetchActionTitle = "Fetch Changes";
         private const string FetchButtonText = "Fetch";
@@ -116,12 +114,6 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            if (!HasRepository)
-            {
-                DoOfferToInitializeRepositoryGUI();
-                return;
-            }
-
             OnEmbeddedGUI();
         }
 
@@ -221,66 +213,6 @@ namespace GitHub.Unity
                     selectionID = string.Empty;
                 }
             }
-        }
-
-        private void DoOfferToInitializeRepositoryGUI()
-        {
-            var headerRect = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
-            {
-                GUILayout.Space(5);
-                GUILayout.BeginVertical(GUILayout.Width(16));
-                {
-                    GUILayout.Space(5);
-
-                    var iconRect = GUILayoutUtility.GetRect(new GUIContent(Styles.BigLogo), GUIStyle.none, GUILayout.Height(20), GUILayout.Width(20));
-                    iconRect.y = headerRect.center.y - (iconRect.height / 2);
-                    GUI.DrawTexture(iconRect, Styles.BigLogo, ScaleMode.ScaleToFit);
-
-                    GUILayout.Space(5);
-                }
-                GUILayout.EndVertical();
-
-                GUILayout.Space(5);
-
-                GUILayout.BeginVertical();
-                {
-                    var headerContent = new GUIContent(NoRepoTitle);
-                    var headerTitleRect = GUILayoutUtility.GetRect(headerContent, Styles.HeaderTitleStyle);
-                    headerTitleRect.y = headerRect.center.y - (headerTitleRect.height / 2);
-
-                    GUI.Label(headerTitleRect, headerContent, Styles.HeaderTitleStyle);
-                }
-                GUILayout.EndVertical();
-            }
-            EditorGUILayout.EndHorizontal();
-
-            GUILayout.BeginVertical(Styles.GenericBoxStyle);
-            {
-                GUILayout.FlexibleSpace();
-
-                GUILayout.Label(NoRepoDescription, Styles.CenteredLabel);
-
-                GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-
-                EditorGUI.BeginDisabledGroup(isBusy);
-                {
-                    if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
-                    {
-                        isBusy = true;
-                        Manager.InitializeRepository()
-                            .FinallyInUI(() => isBusy = false)
-                            .Start();
-                    }
-                }
-                EditorGUI.EndDisabledGroup();
-
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
-
-                GUILayout.FlexibleSpace();
-            }
-            GUILayout.EndVertical();
         }
 
         public void OnEmbeddedGUI()
