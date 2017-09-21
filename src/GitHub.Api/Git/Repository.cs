@@ -313,7 +313,7 @@ namespace GitHub.Unity
         {
             var name = x.Name;
             var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + name : "[None]";
-            var isActive = name == CurrentBranch?.Name;
+            var isActive = name == currentBranch?.Name;
 
             return new GitBranch(name, trackingName, isActive);
         }
