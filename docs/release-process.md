@@ -4,19 +4,24 @@
 
 ### Tag name format
 
-#### Alpha releases
+***Alpha releases***: `v[major].[minor]-alpha`
 
-`v[major].[minor]-alpha`
+***Beta releases***: `v[major].[minor]-beta`
 
-#### Beta releases
-
-`v[major].[minor]-beta`
-
-#### Releases
-
-`v[major].[minor]`
+***Releases***: `v[major].[minor]`
 
 ## The process
+
+#### TL;DR
+
+1. Dev branches to a release branch every week, create draft release with release notes
+2. QA tests release branch for up to a week
+3. Dev continues work on master
+4. Dev fixes shipblockers on release branch and updates build on draft release page, and makes sure fixes are also sent to master
+5. QA publishes release by tagging the release branch and hitting "Publish"
+6. Goto 1
+
+#### The long explanation
 
 Every week:
 
