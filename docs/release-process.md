@@ -29,7 +29,7 @@ Every week:
 1. Bump the version on master
 1. Create a draft release with the release notes, following the format below
 1. Upload a build created from the release branch
-1. QA tests the release and logs any issues found in it. Issues are fixed on the next release unless they are related to the issues tjat are reported as fixed in the current release, and they are shipblockers.
+1. QA tests the release and logs any issues found in it. Issues are fixed on the next release unless they are related to the issues that are reported as fixed in the current release, and they are shipblockers.
 1. If the release requires fixes:
    1. If the fix is reverting a PR, that doesn't have to be done on master, only on the release branch. Otherwise:
    1. Create a branch from the release branch fork point (the commit that the release branch is based on)
@@ -51,18 +51,18 @@ The markdown format for release notes is below. This is what the project above g
 ```
 # Release notes
 
-[any special notes for the release go here, if needed]
+[any special notes and/or funny/relevant image for the release here, if needed]
 
 ## Features
 
-- #XXX - Title of issue (adjust for user comsumption if needed)
+- #XXX - Title of issue (adjust for user consumption if needed)
 
 ## Enhancements
 
-- #XXX - Title of issue (adjust for user comsumption if needed)
+- #XXX - Title of issue (adjust for user consumption if needed)
 
 ## Fixes
 
-- #XXX - Title of issue (adjust for user comsumption if needed)
+- #XXX - Title of issue (adjust for user consumption if needed)
 
 ```
