@@ -49,8 +49,8 @@ namespace GitHub.Unity
 
             this.repositoryManager = repositoryManager;
 
-            repositoryManager.OnCurrentBranchUpdated += branch => CurrentBranch = branch;
-            repositoryManager.OnCurrentRemoteUpdated += remote => CurrentRemote = remote;
+            repositoryManager.OnCurrentBranchUpdated += OnRepositoryManager_OnCurrentBranchUpdated;
+            repositoryManager.OnCurrentRemoteUpdated += OnRepositoryManager_OnCurrentRemoteUpdated;
             repositoryManager.OnStatusUpdated += status => CurrentStatus = status;
             repositoryManager.OnLocksUpdated += locks => CurrentLocks = locks;
             repositoryManager.OnLocalBranchListUpdated += OnRepositoryManager_OnLocalBranchListUpdated;
@@ -168,6 +168,27 @@ namespace GitHub.Unity
                 object.Equals(LocalPath, other.LocalPath);
         }
 
+        private void OnRepositoryManager_OnCurrentRemoteUpdated(ConfigRemote? remote)
+        {
+            if (!Nullable.Equals(currentRemote, remote))
+            {
+                currentRemote = remote;
+                Logger.Trace("OnCurrentRemoteChanged: {0}", currentRemote.HasValue ? currentRemote.Value.ToString() : "[NULL]");
+                OnCurrentRemoteChanged?.Invoke(currentRemote.HasValue ? currentRemote.Value.Name : null);
+                UpdateRepositoryInfo();
+            }
+        }
+
+        private void OnRepositoryManager_OnCurrentBranchUpdated(ConfigBranch? branch)
+        {
+            if (!Nullable.Equals(currentBranch, branch))
+            {
+                currentBranch = branch;
+                Logger.Trace("OnCurrentBranchChanged: {0}", currentBranch.HasValue ? currentBranch.ToString() : "[NULL]");
+                OnCurrentBranchChanged?.Invoke(currentBranch.HasValue ? currentBranch.Value.Name : null);
+            }
+        }
+
         private void OnRepositoryManager_OnLocalBranchUpdated(string name)
         {
             if (name == currentBranch?.Name)
@@ -181,10 +202,7 @@ namespace GitHub.Unity
         {
             remotes = updatedRemotes;
 
-            Remotes = remotes.Select(pair => new GitRemote {
-                Name = pair.Value.Name,
-                Url = pair.Value.Url
-            }).ToArray();
+            Remotes = remotes.Select(pair => GetGitRemote(pair.Value)).ToArray();
 
             remoteBranches = branches;
 
@@ -291,58 +309,59 @@ namespace GitHub.Unity
             }
         }
 
-        public IList<GitRemote> Remotes { get; private set; }
-
-        public IEnumerable<GitBranch> LocalBranches => localBranches.Values.Select(x => {
+        private GitBranch GetLocalGitBranch(ConfigBranch x)
+        {
             var name = x.Name;
             var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + name : "[None]";
             var isActive = name == CurrentBranch?.Name;
 
             return new GitBranch(name, trackingName, isActive);
-        });
+        }
 
-        public IEnumerable<GitBranch> RemoteBranches => remoteBranches.Values.SelectMany(x => x.Values).Select(x => {
+        private GitBranch GetRemoteGitBranch(ConfigBranch x)
+        {
             var name = x.Remote.Value.Name + "/" + x.Name;
             var trackingName = "[None]";
 
             return new GitBranch(name, trackingName, false);
-        });
+        }
 
-        public ConfigBranch? CurrentBranch
+        private GitRemote GetGitRemote(ConfigRemote configRemote)
         {
-            get { return currentBranch; }
-            set
+            return new GitRemote { Name = configRemote.Name, Url = configRemote.Url };
+        }
+
+        public IList<GitRemote> Remotes { get; private set; }
+
+        public IEnumerable<GitBranch> LocalBranches => localBranches.Values.Select(GetLocalGitBranch);
+
+        public IEnumerable<GitBranch> RemoteBranches => remoteBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch);
+
+        public GitBranch? CurrentBranch
+        {
+            get
             {
-                if (!Nullable.Equals(currentBranch, value))
+                if (currentBranch != null)
                 {
-                    currentBranch = value;
-                    Logger.Trace("OnCurrentBranchChanged: {0}", currentBranch.HasValue ? currentBranch.ToString() : "[NULL]");
-                    OnCurrentBranchChanged?.Invoke(currentBranch.HasValue ? currentBranch.Value.Name : null);
+                    return GetLocalGitBranch(currentBranch.Value);
                 }
+
+                return null;
             }
         }
 
-        /// <summary>
-        /// Gets the current branch of the repository.
-        /// </summary>
-
         public string CurrentBranchName => currentBranch?.Name;
 
-        /// <summary>
-        /// Gets the current remote of the repository.
-        /// </summary>
-        public ConfigRemote? CurrentRemote
+        public GitRemote? CurrentRemote
         {
-            get { return currentRemote; }
-            set
+            get
             {
-                if (!Nullable.Equals(currentRemote, value))
+                if (currentRemote != null)
                 {
-                    currentRemote = value;
-                    Logger.Trace("OnCurrentRemoteChanged: {0}", currentRemote.HasValue ? currentRemote.Value.ToString() : "[NULL]");
-                    OnCurrentRemoteChanged?.Invoke(currentRemote.HasValue ? currentRemote.Value.Name : null);
-                    UpdateRepositoryInfo();
+                    return GetGitRemote(currentRemote.Value);
                 }
+
+                return null;
             }
         }
 
@@ -370,7 +389,7 @@ namespace GitHub.Unity
         public GitStatus CurrentStatus
         {
             get { return currentStatus; }
-            set
+            private set
             {
                 currentStatus = value;
                 Logger.Trace("OnStatusChanged: {0}", value.ToString());
