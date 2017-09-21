@@ -8,23 +8,20 @@ namespace GitHub.Unity
 {
     public interface IRepositoryManager : IDisposable
     {
-        event Action<bool> OnIsBusyChanged;
-        event Action<GitStatus> OnStatusUpdated;
-        event Action<IList<GitLock>> OnLocksUpdated;
-        event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
-        event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         event Action<ConfigBranch?> OnCurrentBranchUpdated;
         event Action<ConfigRemote?> OnCurrentRemoteUpdated;
-        event Action<string> OnLocalBranchUpdated;
-        event Action<string> OnLocalBranchAdded;
-        event Action<string> OnLocalBranchRemoved;
-        event Action<string, string> OnRemoteBranchAdded;
-        event Action<string, string> OnRemoteBranchRemoved;
         event Action<IUser> OnGitUserLoaded;
+        event Action<bool> OnIsBusyChanged;
+        event Action<string> OnLocalBranchAdded;
+        event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
+        event Action<string> OnLocalBranchRemoved;
+        event Action<string> OnLocalBranchUpdated;
+        event Action<IList<GitLock>> OnLocksUpdated;
+        event Action<string, string> OnRemoteBranchAdded;
+        event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
+        event Action<string, string> OnRemoteBranchRemoved;
+        event Action<GitStatus> OnStatusUpdated;
 
-        IGitConfig Config { get; }
-        IGitClient GitClient { get; }
-        bool IsBusy { get; }
         void Initialize();
         void Start();
         void Stop();
@@ -46,6 +43,10 @@ namespace GitHub.Unity
         ITask LockFile(string file);
         ITask UnlockFile(string file, bool force);
         int WaitForEvents();
+
+        IGitConfig Config { get; }
+        IGitClient GitClient { get; }
+        bool IsBusy { get; }
     }
 
     interface IRepositoryPathConfiguration
@@ -103,36 +104,20 @@ namespace GitHub.Unity
         private readonly IRepositoryWatcher watcher;
 
         private bool isBusy;
-        private Action repositoryUpdateCallback;
 
-        // internal busy flag signal
-        public event Action<bool> OnIsBusyChanged;
-
-        public event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
-        public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
-        public event Action<IList<GitLock>> OnLocksUpdated;
-        public event Action<GitStatus> OnStatusUpdated;
         public event Action<ConfigBranch?> OnCurrentBranchUpdated;
         public event Action<ConfigRemote?> OnCurrentRemoteUpdated;
-        public event Action<string> OnLocalBranchUpdated;
-        public event Action<string> OnLocalBranchAdded;
-        public event Action<string> OnLocalBranchRemoved;
-        public event Action<string, string> OnRemoteBranchAdded;
-        public event Action<string, string> OnRemoteBranchRemoved;
         public event Action<IUser> OnGitUserLoaded;
-
-        public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker,
-            IGitClient gitClient, NPath repositoryRoot)
-        {
-            var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
-            string filePath = repositoryPathConfiguration.DotGitConfig;
-            var gitConfig = new GitConfig(filePath);
-
-            var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
-
-            return new RepositoryManager(platform, taskManager, usageTracker, gitConfig, repositoryWatcher,
-                gitClient, repositoryPathConfiguration, taskManager.Token);
-        }
+        public event Action<bool> OnIsBusyChanged;
+        public event Action<string> OnLocalBranchAdded;
+        public event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
+        public event Action<string> OnLocalBranchRemoved;
+        public event Action<string> OnLocalBranchUpdated;
+        public event Action<IList<GitLock>> OnLocksUpdated;
+        public event Action<string, string> OnRemoteBranchAdded;
+        public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
+        public event Action<string, string> OnRemoteBranchRemoved;
+        public event Action<GitStatus> OnStatusUpdated;
 
         public RepositoryManager(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker, IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
@@ -148,6 +133,19 @@ namespace GitHub.Unity
             this.config = gitConfig;
 
             SetupWatcher();
+        }
+
+        public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker,
+            IGitClient gitClient, NPath repositoryRoot)
+        {
+            var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
+            string filePath = repositoryPathConfiguration.DotGitConfig;
+            var gitConfig = new GitConfig(filePath);
+
+            var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
+
+            return new RepositoryManager(platform, taskManager, usageTracker, gitConfig, repositoryWatcher,
+                gitClient, repositoryPathConfiguration, taskManager.Token);
         }
 
         public void Initialize()

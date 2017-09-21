@@ -52,8 +52,8 @@ namespace GitHub.Unity
         ConfigBranch? CurrentBranch { get; set; }
         GitStatus CurrentStatus { get; set; }
         IList<GitRemote> Remotes { get; }
-        IList<GitBranch> LocalBranches { get; }
-        IList<GitBranch> RemoteBranches { get; }
+        IEnumerable<GitBranch> LocalBranches { get; }
+        IEnumerable<GitBranch> RemoteBranches { get; }
         IUser User { get; set; }
         IList<GitLock> CurrentLocks { get; }
         string CurrentBranchName { get; }

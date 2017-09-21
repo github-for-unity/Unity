@@ -60,6 +60,22 @@ namespace TestUtils.Events
             OnRemoteBranchRemoved.Reset();
             OnGitUserLoaded.Reset();
         }
+
+        public void WaitForNotBusy(int seconds = 1)
+        {
+            OnIsBusy.WaitOne(TimeSpan.FromSeconds(seconds));
+            OnIsNotBusy.WaitOne(TimeSpan.FromSeconds(seconds));
+        }
+
+        public void WaitForStatusUpdated(int seconds = 1)
+        {
+            OnStatusUpdated.WaitOne(TimeSpan.FromSeconds(seconds));
+        }
+
+        public void WaitForHeadUpdated(int seconds = 1)
+        {
+            OnHeadUpdated.WaitOne(TimeSpan.FromSeconds(seconds));
+        }
     }
 
     static class RepositoryManagerListenerExtensions

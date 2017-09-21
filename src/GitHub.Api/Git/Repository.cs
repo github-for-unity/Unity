@@ -188,15 +188,6 @@ namespace GitHub.Unity
 
             remoteBranches = branches;
 
-            RemoteBranches = remoteBranches.Values
-                .SelectMany(x => x.Values)
-                .Select(x =>
-                {
-                    var name = x.Remote.Value.Name + "/" + x.Name;
-                    return new GitBranch(name, "[None]", false);
-                }).ToArray();
-
-
             Logger.Trace("OnRemoteBranchListChanged");
             OnRemoteBranchListChanged?.Invoke();
         }
@@ -204,19 +195,6 @@ namespace GitHub.Unity
         private void OnRepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branches)
         {
             localBranches = branches;
-
-            LocalBranches = localBranches.Values.Select(x =>
-            {
-                var argName = x.Name;
-
-                var tracking = x.IsTracking
-                    ? x.Remote.Value.Name + "/" + argName
-                    : "[None]";
-
-                var active = argName == CurrentBranch?.Name;
-
-                return new GitBranch(argName, tracking, active);
-            }).ToArray();
 
             Logger.Trace("OnLocalBranchListChanged");
             OnLocalBranchListChanged?.Invoke();
@@ -315,9 +293,20 @@ namespace GitHub.Unity
 
         public IList<GitRemote> Remotes { get; private set; }
 
-        public IList<GitBranch> LocalBranches { get; private set; }
+        public IEnumerable<GitBranch> LocalBranches => localBranches.Values.Select(x => {
+            var name = x.Name;
+            var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + name : "[None]";
+            var isActive = name == CurrentBranch?.Name;
 
-        public IList<GitBranch> RemoteBranches { get; private set; }
+            return new GitBranch(name, trackingName, isActive);
+        });
+
+        public IEnumerable<GitBranch> RemoteBranches => remoteBranches.Values.SelectMany(x => x.Values).Select(x => {
+            var name = x.Remote.Value.Name + "/" + x.Name;
+            var trackingName = "[None]";
+
+            return new GitBranch(name, trackingName, false);
+        });
 
         public ConfigBranch? CurrentBranch
         {

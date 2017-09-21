@@ -31,7 +31,7 @@ namespace IntegrationTests
             repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
 
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents, 2);
+            repositoryManagerEvents.WaitForNotBusy(2);
 
             repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
@@ -54,7 +54,11 @@ namespace IntegrationTests
                 new GitBranch("feature/document", "origin/feature/document", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
-            Repository.Remotes.Should().BeEquivalentTo();
+            Repository.Remotes.Should().BeEquivalentTo(new GitRemote
+            {
+                Name = "origin",
+                Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
+            });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -89,8 +93,8 @@ namespace IntegrationTests
 
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
-            WaitForStatusUpdated(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
+            repositoryManagerEvents.WaitForStatusUpdated();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.Received().OnStatusUpdated(Args.GitStatus);
@@ -144,12 +148,12 @@ namespace IntegrationTests
 
             //Intentionally wait two cycles, in case the first cycle did not pick up all events
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
-            WaitForStatusUpdated(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
+            repositoryManagerEvents.WaitForStatusUpdated();
 
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
-            WaitForStatusUpdated(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
+            repositoryManagerEvents.WaitForStatusUpdated();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.Received().OnStatusUpdated(Args.GitStatus);
@@ -175,7 +179,7 @@ namespace IntegrationTests
 
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnStatusUpdated(Args.GitStatus);
@@ -225,8 +229,8 @@ namespace IntegrationTests
 
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
-            WaitForStatusUpdated(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
+            repositoryManagerEvents.WaitForStatusUpdated();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.Received().OnStatusUpdated(Args.GitStatus);
@@ -252,7 +256,7 @@ namespace IntegrationTests
 
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnStatusUpdated(Args.GitStatus);
@@ -292,8 +296,8 @@ namespace IntegrationTests
 
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
-            WaitForStatusUpdated(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
+            repositoryManagerEvents.WaitForStatusUpdated();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.Received().OnStatusUpdated(Args.GitStatus);
@@ -352,7 +356,7 @@ namespace IntegrationTests
             await RepositoryManager.DeleteBranch(deletedBranch, true).StartAsAsync();
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnStatusUpdated(Args.GitStatus);
@@ -385,7 +389,11 @@ namespace IntegrationTests
                 new GitBranch("master", "origin/master", true),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
-            Repository.Remotes.Should().BeEquivalentTo();
+            Repository.Remotes.Should().BeEquivalentTo(new GitRemote
+            {
+                Name = "origin",
+                Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
+            });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -405,7 +413,7 @@ namespace IntegrationTests
             await RepositoryManager.CreateBranch(createdBranch1, "feature/document").StartAsAsync();
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnStatusUpdated(Args.GitStatus);
@@ -440,7 +448,11 @@ namespace IntegrationTests
                 new GitBranch("feature/document2", "[None]", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
-            Repository.Remotes.Should().BeEquivalentTo();
+            Repository.Remotes.Should().BeEquivalentTo(new GitRemote
+            {
+                Name = "origin",
+                Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
+            });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -454,7 +466,7 @@ namespace IntegrationTests
             await RepositoryManager.CreateBranch(createdBranch2, "feature/document").StartAsAsync();
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnStatusUpdated(Args.GitStatus);
@@ -490,7 +502,11 @@ namespace IntegrationTests
                 new GitBranch("feature2/document2", "[None]", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
-            Repository.Remotes.Should().BeEquivalentTo();
+            Repository.Remotes.Should().BeEquivalentTo(new GitRemote
+            {
+                Name = "origin",
+                Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
+            });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -509,7 +525,7 @@ namespace IntegrationTests
             await RepositoryManager.RemoteRemove("origin").StartAsAsync();
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
             repositoryManagerEvents.OnRemoteBranchListUpdated.WaitOne(TimeSpan.FromSeconds(1));
             repositoryManagerEvents.OnLocalBranchListUpdated.WaitOne(TimeSpan.FromSeconds(1));
 
@@ -554,7 +570,7 @@ namespace IntegrationTests
             await RepositoryManager.RemoteAdd("origin", "https://github.com/EvilShana/IOTestsRepo.git").StartAsAsync();
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
             repositoryManagerEvents.OnRemoteBranchListUpdated.WaitOne(TimeSpan.FromSeconds(1));
             repositoryManagerEvents.OnLocalBranchListUpdated.WaitOne(TimeSpan.FromSeconds(1));
 
@@ -590,7 +606,11 @@ namespace IntegrationTests
                 new GitBranch("feature/document", "[None]", false),
                 new GitBranch("feature/other-feature", "[None]", false),
             });
-            Repository.Remotes.Should().BeEquivalentTo();
+            Repository.Remotes.Should().BeEquivalentTo(new GitRemote
+            {
+                Name = "origin",
+                Url = "https://github.com/EvilShana/IOTestsRepo.git"
+            });
             Repository.RemoteBranches.Should().BeEmpty();
         }
 
@@ -623,7 +643,15 @@ namespace IntegrationTests
                 new GitBranch("feature/document", "origin/feature/document", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
-            Repository.Remotes.Should().BeEquivalentTo();
+            Repository.Remotes.Should().BeEquivalentTo(new GitRemote
+            {
+                Name = "origin",
+                Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
+            }, new GitRemote
+            {
+                Name = "another",
+                Url = "https://another.remote/Owner/Url.git"
+            });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -638,7 +666,7 @@ namespace IntegrationTests
 
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnStatusUpdated(Args.GitStatus);
@@ -673,7 +701,15 @@ namespace IntegrationTests
                 new GitBranch("feature/document", "origin/feature/document", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
-            Repository.Remotes.Should().BeEquivalentTo();
+            Repository.Remotes.Should().BeEquivalentTo(new GitRemote
+            {
+                Name = "origin",
+                Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
+            }, new GitRemote
+            {
+                Name = "another",
+                Url = "https://another.remote/Owner/Url.git"
+            });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -691,8 +727,8 @@ namespace IntegrationTests
 
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
-            WaitForHeadUpdated(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
+            repositoryManagerEvents.WaitForHeadUpdated();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.Received().OnStatusUpdated(Args.GitStatus);
@@ -727,7 +763,15 @@ namespace IntegrationTests
                 new GitBranch("feature/document", "origin/feature/document", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
-            Repository.Remotes.Should().BeEquivalentTo();
+            Repository.Remotes.Should().BeEquivalentTo(new GitRemote
+            {
+                Name = "origin",
+                Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
+            }, new GitRemote
+            {
+                Name = "another",
+                Url = "https://another.remote/Owner/Url.git"
+            });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -758,8 +802,8 @@ namespace IntegrationTests
             await RepositoryManager.Pull("origin", "master").StartAsAsync();
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
-            WaitForStatusUpdated(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
+            repositoryManagerEvents.WaitForStatusUpdated();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.Received().OnStatusUpdated(Args.GitStatus);
@@ -795,7 +839,11 @@ namespace IntegrationTests
                 new GitBranch("feature/document", "origin/feature/document", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
-            Repository.Remotes.Should().BeEquivalentTo();
+            Repository.Remotes.Should().BeEquivalentTo(new GitRemote
+            {
+                Name = "origin",
+                Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
+            });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -803,7 +851,7 @@ namespace IntegrationTests
             });
 
             repositoryManagerEvents.Reset();
-            WaitForNotBusy(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
         }
 
         [Test]
@@ -815,7 +863,7 @@ namespace IntegrationTests
             repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
 
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents, 2);
+            repositoryManagerEvents.WaitForNotBusy(2);
 
             repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
@@ -836,7 +884,11 @@ namespace IntegrationTests
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("feature/document", "origin/feature/document", false),
             });
-            Repository.Remotes.Should().BeEquivalentTo();
+            Repository.Remotes.Should().BeEquivalentTo(new GitRemote
+            {
+                Name = "origin",
+                Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
+            });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document", "[None]", false),
@@ -846,7 +898,7 @@ namespace IntegrationTests
             await RepositoryManager.Fetch("origin").StartAsAsync();
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
-            WaitForNotBusy(repositoryManagerEvents);
+            repositoryManagerEvents.WaitForNotBusy();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnStatusUpdated(Args.GitStatus);
@@ -878,7 +930,11 @@ namespace IntegrationTests
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("feature/document", "origin/feature/document", false),
             });
-            Repository.Remotes.Should().BeEquivalentTo();
+            Repository.Remotes.Should().BeEquivalentTo(new GitRemote
+            {
+                Name = "origin",
+                Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
+            });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document", "[None]", false),
@@ -886,22 +942,6 @@ namespace IntegrationTests
                 new GitBranch("origin/feature/new-feature", "[None]", false),
                 new GitBranch("origin/feature/other-feature", "[None]", false),
             });
-        }
-
-        private void WaitForNotBusy(RepositoryManagerEvents managerEvents, int seconds = 1)
-        {
-            managerEvents.OnIsBusy.WaitOne(TimeSpan.FromSeconds(seconds));
-            managerEvents.OnIsNotBusy.WaitOne(TimeSpan.FromSeconds(seconds));
-        }
-
-        private void WaitForStatusUpdated(RepositoryManagerEvents managerEvents, int seconds = 1)
-        {
-            managerEvents.OnStatusUpdated.WaitOne(TimeSpan.FromSeconds(seconds));
-        }
-
-        private void WaitForHeadUpdated(RepositoryManagerEvents managerEvents, int seconds = 1)
-        {
-            managerEvents.OnHeadUpdated.WaitOne(TimeSpan.FromSeconds(seconds));
         }
     }
 }
