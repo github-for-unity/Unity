@@ -121,7 +121,7 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-            repository.OnHeadChanged += Refresh;
+            repository.OnLocalBranchChanged += Refresh;
             repository.OnStatusChanged += UpdateStatusOnMainThread;
             repository.OnCurrentBranchChanged += s => Refresh();
             repository.OnCurrentRemoteChanged += s => Refresh();
@@ -131,7 +131,7 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-            repository.OnHeadChanged -= Refresh;
+            repository.OnLocalBranchChanged -= Refresh;
             repository.OnStatusChanged -= UpdateStatusOnMainThread;
             repository.OnCurrentBranchChanged -= s => Refresh();
             repository.OnCurrentRemoteChanged -= s => Refresh();

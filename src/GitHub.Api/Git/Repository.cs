@@ -8,38 +8,30 @@ using System.Threading;
 namespace GitHub.Unity
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    class Repository : IRepository, IEquatable<Repository>
+    class Repository : IEquatable<Repository>, IRepository
     {
-        private IRepositoryManager repositoryManager;
         private ConfigBranch? currentBranch;
+        private IList<GitLock> currentLocks;
         private ConfigRemote? currentRemote;
         private GitStatus currentStatus;
         private Dictionary<string, ConfigBranch> localBranches = new Dictionary<string, ConfigBranch>();
-        private IEnumerable<GitLock> locks;
         private Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
         private Dictionary<string, ConfigRemote> remotes;
-
-        public event Action<GitStatus> OnStatusChanged;
+        private IRepositoryManager repositoryManager;
         public event Action<string> OnCurrentBranchChanged;
         public event Action<string> OnCurrentRemoteChanged;
+        public event Action OnLocalBranchChanged;
         public event Action OnLocalBranchListChanged;
-        public event Action OnRemoteBranchListChanged;
-        public event Action OnHeadChanged;
         public event Action<IEnumerable<GitLock>> OnLocksChanged;
+        public event Action OnRemoteBranchListChanged;
         public event Action OnRepositoryInfoChanged;
 
-        public IEnumerable<GitBranch> LocalBranches => localBranches.Values.Select(
-            x => new GitBranch(x.Name, (x.IsTracking ? (x.Remote.Value.Name + "/" + x.Name) : "[None]"), x.Name == CurrentBranch?.Name));
-
-        public IEnumerable<GitBranch> RemoteBranches => remoteBranches.Values.SelectMany(
-            x => x.Values).Select(x => new GitBranch(x.Remote.Value.Name + "/" + x.Name, "[None]", false));
+        public event Action<GitStatus> OnStatusChanged;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
         /// </summary>
-        /// <param name="repositoryManager"></param>
         /// <param name="name">The repository name.</param>
-        /// <param name="cloneUrl">The repository's clone URL.</param>
         /// <param name="localPath"></param>
         public Repository(string name, NPath localPath)
         {
@@ -57,13 +49,13 @@ namespace GitHub.Unity
 
             this.repositoryManager = repositoryManager;
 
-            repositoryManager.OnCurrentBranchUpdated += RepositoryManager_OnCurrentBranchUpdated;
-            repositoryManager.OnCurrentRemoteUpdated += RepositoryManager_OnCurrentRemoteUpdated;
-            repositoryManager.OnStatusUpdated += RepositoryManager_OnStatusUpdated;
-            repositoryManager.OnLocksUpdated += RepositoryManager_OnLocksUpdated;
-            repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
-            repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
-            repositoryManager.OnLocalBranchUpdated += RepositoryManager_OnLocalBranchUpdated;
+            repositoryManager.OnCurrentBranchUpdated += branch => CurrentBranch = branch;
+            repositoryManager.OnCurrentRemoteUpdated += remote => CurrentRemote = remote;
+            repositoryManager.OnStatusUpdated += status => CurrentStatus = status;
+            repositoryManager.OnLocksUpdated += locks => CurrentLocks = locks;
+            repositoryManager.OnLocalBranchListUpdated += OnRepositoryManager_OnLocalBranchListUpdated;
+            repositoryManager.OnRemoteBranchListUpdated += OnRepositoryManager_OnRemoteBranchListUpdated;
+            repositoryManager.OnLocalBranchUpdated += OnRepositoryManager_OnLocalBranchUpdated;
             repositoryManager.OnLocalBranchAdded += RepositoryManager_OnLocalBranchAdded;
             repositoryManager.OnLocalBranchRemoved += RepositoryManager_OnLocalBranchRemoved;
             repositoryManager.OnRemoteBranchAdded += RepositoryManager_OnRemoteBranchAdded;
@@ -122,7 +114,7 @@ namespace GitHub.Unity
         {
             return repositoryManager.Fetch(CurrentRemote.Value.Name);
         }
-        
+
         public ITask Revert(string changeset)
         {
             return repositoryManager.Revert(changeset);
@@ -145,6 +137,91 @@ namespace GitHub.Unity
             return repositoryManager.UnlockFile(file, force);
         }
 
+        /// <summary>
+        /// Note: We don't consider CloneUrl a part of the hash code because it can change during the lifetime
+        /// of a repository. Equals takes care of any hash collisions because of this
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return LocalPath.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(this, obj))
+                return true;
+            var other = obj as Repository;
+            return Equals(other);
+        }
+
+        public bool Equals(Repository other)
+        {
+            return Equals((IRepository)other);
+        }
+
+        public bool Equals(IRepository other)
+        {
+            if (ReferenceEquals(this, other))
+                return true;
+            return other != null &&
+                object.Equals(LocalPath, other.LocalPath);
+        }
+
+        private void OnRepositoryManager_OnLocalBranchUpdated(string name)
+        {
+            if (name == currentBranch?.Name)
+            {
+                OnLocalBranchChanged?.Invoke();
+                Refresh();
+            }
+        }
+
+        private void OnRepositoryManager_OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> updatedRemotes, Dictionary<string, Dictionary<string, ConfigBranch>> branches)
+        {
+            remotes = updatedRemotes;
+
+            Remotes = remotes.Select(pair => new GitRemote {
+                Name = pair.Value.Name,
+                Url = pair.Value.Url
+            }).ToArray();
+
+            remoteBranches = branches;
+
+            RemoteBranches = remoteBranches.Values
+                .SelectMany(x => x.Values)
+                .Select(x =>
+                {
+                    var name = x.Remote.Value.Name + "/" + x.Name;
+                    return new GitBranch(name, "[None]", false);
+                }).ToArray();
+
+
+            Logger.Trace("OnRemoteBranchListChanged");
+            OnRemoteBranchListChanged?.Invoke();
+        }
+
+        private void OnRepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branches)
+        {
+            localBranches = branches;
+
+            LocalBranches = localBranches.Values.Select(x =>
+            {
+                var argName = x.Name;
+
+                var tracking = x.IsTracking
+                    ? x.Remote.Value.Name + "/" + argName
+                    : "[None]";
+
+                var active = argName == CurrentBranch?.Name;
+
+                return new GitBranch(argName, tracking, active);
+            }).ToArray();
+
+            Logger.Trace("OnLocalBranchListChanged");
+            OnLocalBranchListChanged?.Invoke();
+        }
+
         private void UpdateRepositoryInfo()
         {
             if (CurrentRemote.HasValue)
@@ -161,47 +238,6 @@ namespace GitHub.Unity
             }
 
             OnRepositoryInfoChanged?.Invoke();
-        }
-
-        private void RepositoryManager_OnStatusUpdated(GitStatus status)
-        {
-            CurrentStatus = status;
-        }
-
-        private void RepositoryManager_OnLocksUpdated(IEnumerable<GitLock> locks)
-        {
-            CurrentLocks = locks;
-            OnLocksChanged?.Invoke(CurrentLocks);
-        }
-
-        private void RepositoryManager_OnCurrentBranchUpdated(ConfigBranch? branch)
-        {
-            CurrentBranch = branch;
-        }
-
-        private void RepositoryManager_OnCurrentRemoteUpdated(ConfigRemote? remote)
-        {
-            CurrentRemote = remote;
-        }
-
-        private void RepositoryManager_OnRemoteBranchListUpdated(Dictionary<string, Dictionary<string, ConfigBranch>> branches)
-        {
-            Logger.Trace("RemoteBranchListUpdated");
-
-            remoteBranches = branches;
-            remotes = branches
-                .Where(pair => pair.Value.Any())
-                .ToDictionary(pair => pair.Key, pair => pair.Value.First().Value.Remote.Value);
-
-            OnRemoteBranchListChanged?.Invoke();
-        }
-
-        private void RepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branches)
-        {
-            Logger.Trace("LocalBranchListUpdated");
-
-            localBranches = branches;
-            OnLocalBranchListChanged?.Invoke();
         }
 
         private void RepositoryManager_OnLocalBranchRemoved(string name)
@@ -235,16 +271,6 @@ namespace GitHub.Unity
             }
         }
 
-        private void RepositoryManager_OnLocalBranchUpdated(string name)
-        {
-            if (name == currentBranch?.Name)
-            {
-                // commit of current branch changed, trigger OnHeadChanged
-                OnHeadChanged?.Invoke();
-                repositoryManager.Refresh();
-            }
-        }       
-        
         private void RepositoryManager_OnRemoteBranchAdded(string remote, string name)
         {
             Dictionary<string, ConfigBranch> branchList;
@@ -265,7 +291,7 @@ namespace GitHub.Unity
                 Logger.Warning("Remote {0} is not found", remote);
             }
         }
-        
+
         private void RepositoryManager_OnRemoteBranchRemoved(string remote, string name)
         {
             Dictionary<string, ConfigBranch> branchList;
@@ -287,36 +313,11 @@ namespace GitHub.Unity
             }
         }
 
-        /// <summary>
-        /// Note: We don't consider CloneUrl a part of the hash code because it can change during the lifetime
-        /// of a repository. Equals takes care of any hash collisions because of this
-        /// </summary>
-        /// <returns></returns>
-        public override int GetHashCode()
-        {
-            return LocalPath.GetHashCode();
-        }
+        public IList<GitRemote> Remotes { get; private set; }
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(this, obj))
-                return true;
-            var other = obj as Repository;
-            return Equals(other);
-        }
+        public IList<GitBranch> LocalBranches { get; private set; }
 
-        public bool Equals(Repository other)
-        {
-            return (Equals((IRepository)other));
-        }
-
-        public bool Equals(IRepository other)
-        {
-            if (ReferenceEquals(this, other))
-                return true;
-            return other != null &&
-                object.Equals(LocalPath, other.LocalPath);
-        }
+        public IList<GitBranch> RemoteBranches { get; private set; }
 
         public ConfigBranch? CurrentBranch
         {
@@ -331,6 +332,7 @@ namespace GitHub.Unity
                 }
             }
         }
+
         /// <summary>
         /// Gets the current branch of the repository.
         /// </summary>
@@ -381,14 +383,25 @@ namespace GitHub.Unity
             get { return currentStatus; }
             set
             {
-                Logger.Trace("OnStatusUpdated: {0}", value.ToString());
                 currentStatus = value;
-                OnStatusChanged?.Invoke(CurrentStatus);
+                Logger.Trace("OnStatusChanged: {0}", value.ToString());
+                OnStatusChanged?.Invoke(value);
             }
         }
 
         public IUser User { get; set; }
-        public IEnumerable<GitLock> CurrentLocks { get; private set; }
+
+        public IList<GitLock> CurrentLocks
+        {
+            get { return currentLocks; }
+            private set
+            {
+                Logger.Trace("OnLocksChanged: {0}", value.ToString());
+                currentLocks = value;
+                OnLocksChanged?.Invoke(value);
+            }
+        }
+
         protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
     }
 
@@ -401,12 +414,12 @@ namespace GitHub.Unity
     [Serializable]
     class User : IUser
     {
-        public string Name { get; set; }
-        public string Email { get; set; }
-
         public override string ToString()
         {
             return String.Format("Name: {0} Email: {1}", Name, Email);
         }
+
+        public string Name { get; set; }
+        public string Email { get; set; }
     }
 }

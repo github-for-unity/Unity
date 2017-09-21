@@ -10,9 +10,9 @@ namespace GitHub.Unity
     {
         event Action<bool> OnIsBusyChanged;
         event Action<GitStatus> OnStatusUpdated;
-        event Action<IEnumerable<GitLock>> OnLocksUpdated;
+        event Action<IList<GitLock>> OnLocksUpdated;
         event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
-        event Action<Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
+        event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         event Action<ConfigBranch?> OnCurrentBranchUpdated;
         event Action<ConfigRemote?> OnCurrentRemoteUpdated;
         event Action<string> OnLocalBranchUpdated;
@@ -109,8 +109,8 @@ namespace GitHub.Unity
         public event Action<bool> OnIsBusyChanged;
 
         public event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
-        public event Action<Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
-        public event Action<IEnumerable<GitLock>> OnLocksUpdated;
+        public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
+        public event Action<IList<GitLock>> OnLocksUpdated;
         public event Action<GitStatus> OnStatusUpdated;
         public event Action<ConfigBranch?> OnCurrentBranchUpdated;
         public event Action<ConfigRemote?> OnCurrentRemoteUpdated;
@@ -523,7 +523,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("LoadRemotesFromConfig");
 
-            var remotes = config.GetRemotes().ToDictionary(x => x.Name, x => x);
+            var remotes = config.GetRemotes().ToArray().ToDictionary(x => x.Name, x => x);
             var remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
 
             foreach (var remote in remotes.Keys)
@@ -544,7 +544,7 @@ namespace GitHub.Unity
                 }
             }
 
-            OnRemoteBranchListUpdated?.Invoke(remoteBranches);
+            OnRemoteBranchListUpdated?.Invoke(remotes, remoteBranches);
         }
 
         private bool disposed;

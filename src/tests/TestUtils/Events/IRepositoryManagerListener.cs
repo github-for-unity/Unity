@@ -13,7 +13,7 @@ namespace TestUtils.Events
         void OnStatusUpdated(GitStatus status);
         void OnLocksUpdated(IEnumerable<GitLock> locks);
         void OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branchList);
-        void OnRemoteBranchListUpdated(Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranchList);
+        void OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> remotesList, Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranchList);
         void OnLocalBranchUpdated(string name);
         void OnLocalBranchAdded(string name);
         void OnLocalBranchRemoved(string name);
@@ -109,9 +109,9 @@ namespace TestUtils.Events
                 managerEvents?.OnLocalBranchListUpdated.Set();
             };
 
-            repositoryManager.OnRemoteBranchListUpdated += branchList => {
+            repositoryManager.OnRemoteBranchListUpdated += (remotesList, branchList) => {
                 logger?.Trace("OnRemoteBranchListUpdated");
-                listener.OnRemoteBranchListUpdated(branchList);
+                listener.OnRemoteBranchListUpdated(remotesList, branchList);
                 managerEvents?.OnRemoteBranchListUpdated.Set();
             };
 
@@ -160,7 +160,7 @@ namespace TestUtils.Events
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);

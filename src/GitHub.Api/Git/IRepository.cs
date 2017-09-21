@@ -51,17 +51,18 @@ namespace GitHub.Unity
         /// </summary>
         ConfigBranch? CurrentBranch { get; set; }
         GitStatus CurrentStatus { get; set; }
-        IEnumerable<GitBranch> LocalBranches { get; }
-        IEnumerable<GitBranch> RemoteBranches { get; }
+        IList<GitRemote> Remotes { get; }
+        IList<GitBranch> LocalBranches { get; }
+        IList<GitBranch> RemoteBranches { get; }
         IUser User { get; set; }
-        IEnumerable<GitLock> CurrentLocks { get; }
+        IList<GitLock> CurrentLocks { get; }
         string CurrentBranchName { get; }
 
         event Action<GitStatus> OnStatusChanged;
         event Action<string> OnCurrentBranchChanged;
         event Action<string> OnCurrentRemoteChanged;
         event Action OnLocalBranchListChanged;
-        event Action OnHeadChanged;
+        event Action OnLocalBranchChanged;
         event Action<IEnumerable<GitLock>> OnLocksChanged;
         event Action OnRepositoryInfoChanged;
         event Action OnRemoteBranchListChanged;

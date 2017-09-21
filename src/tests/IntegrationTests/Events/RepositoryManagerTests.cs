@@ -54,6 +54,7 @@ namespace IntegrationTests
                 new GitBranch("feature/document", "origin/feature/document", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
+            Repository.Remotes.Should().BeEquivalentTo();
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -97,7 +98,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -156,7 +157,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -182,7 +183,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.Received().OnLocalBranchUpdated(expectedLocalBranch);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -233,7 +234,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -259,7 +260,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.Received().OnLocalBranchUpdated(expectedLocalBranch);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -300,7 +301,7 @@ namespace IntegrationTests
             repositoryManagerListener.Received().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.Received().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -327,6 +328,10 @@ namespace IntegrationTests
                 new GitBranch("master", "origin/master", false),
                 new GitBranch("feature/document", "origin/feature/document", true),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
+            });
+            Repository.Remotes.Should().BeEquivalentTo(new GitRemote {
+                Name = "origin",
+                Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
             });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
@@ -355,7 +360,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.Received().OnLocalBranchRemoved(deletedBranch);
@@ -380,6 +385,7 @@ namespace IntegrationTests
                 new GitBranch("master", "origin/master", true),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
+            Repository.Remotes.Should().BeEquivalentTo();
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -407,7 +413,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.Received().OnLocalBranchAdded(createdBranch1);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -434,6 +440,7 @@ namespace IntegrationTests
                 new GitBranch("feature/document2", "[None]", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
+            Repository.Remotes.Should().BeEquivalentTo();
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -455,7 +462,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.Received().OnLocalBranchAdded(createdBranch2);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -483,6 +490,7 @@ namespace IntegrationTests
                 new GitBranch("feature2/document2", "[None]", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
+            Repository.Remotes.Should().BeEquivalentTo();
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -511,7 +519,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -537,6 +545,7 @@ namespace IntegrationTests
                 new GitBranch("feature/document", "[None]", false),
                 new GitBranch("feature/other-feature", "[None]", false),
             });
+            Repository.Remotes.Should().BeEquivalentTo();
             Repository.RemoteBranches.Should().BeEmpty();
 
             repositoryManagerListener.ClearReceivedCalls();
@@ -555,7 +564,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -581,6 +590,7 @@ namespace IntegrationTests
                 new GitBranch("feature/document", "[None]", false),
                 new GitBranch("feature/other-feature", "[None]", false),
             });
+            Repository.Remotes.Should().BeEquivalentTo();
             Repository.RemoteBranches.Should().BeEmpty();
         }
 
@@ -613,6 +623,7 @@ namespace IntegrationTests
                 new GitBranch("feature/document", "origin/feature/document", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
+            Repository.Remotes.Should().BeEquivalentTo();
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -635,7 +646,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.Received().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -662,6 +673,7 @@ namespace IntegrationTests
                 new GitBranch("feature/document", "origin/feature/document", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
+            Repository.Remotes.Should().BeEquivalentTo();
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -688,7 +700,7 @@ namespace IntegrationTests
             repositoryManagerListener.Received().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.Received().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -715,6 +727,7 @@ namespace IntegrationTests
                 new GitBranch("feature/document", "origin/feature/document", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
+            Repository.Remotes.Should().BeEquivalentTo();
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -754,7 +767,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.Received().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -782,6 +795,7 @@ namespace IntegrationTests
                 new GitBranch("feature/document", "origin/feature/document", false),
                 new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
+            Repository.Remotes.Should().BeEquivalentTo();
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document-2", "[None]", false),
@@ -822,6 +836,7 @@ namespace IntegrationTests
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("feature/document", "origin/feature/document", false),
             });
+            Repository.Remotes.Should().BeEquivalentTo();
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document", "[None]", false),
@@ -839,7 +854,7 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
@@ -863,6 +878,7 @@ namespace IntegrationTests
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("feature/document", "origin/feature/document", false),
             });
+            Repository.Remotes.Should().BeEquivalentTo();
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
                 new GitBranch("origin/master", "[None]", false),
                 new GitBranch("origin/feature/document", "[None]", false),
