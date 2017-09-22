@@ -355,8 +355,8 @@ namespace IntegrationTests
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnStatusUpdated(Args.GitStatus);
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
-            repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
-            repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
+            repositoryManagerListener.Received().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
+            repositoryManagerListener.Received().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
             repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
