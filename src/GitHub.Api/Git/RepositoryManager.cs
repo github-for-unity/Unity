@@ -346,6 +346,7 @@ namespace GitHub.Unity
         private void UpdateHead()
         {
             var head = repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
+            Logger.Trace("UpdateHead: {0}", head ?? "[NULL]");
             UpdateCurrentBranchAndRemote(head);
         }
 
@@ -428,6 +429,11 @@ namespace GitHub.Unity
             {
                 var branchName = head.Substring(head.IndexOf("refs/heads/") + "refs/heads/".Length);
                 branch = config.GetBranch(branchName);
+
+                if (!branch.HasValue)
+                {
+                    branch = new ConfigBranch { Name = branchName };
+                }
             }
 
             var defaultRemote = "origin";
@@ -452,7 +458,10 @@ namespace GitHub.Unity
                 }
             }
 
+            Logger.Trace("OnCurrentBranchUpdated: {0}", branch.HasValue ? branch.Value.ToString() : "[NULL]");
             OnCurrentBranchUpdated?.Invoke(branch);
+
+            Logger.Trace("OnCurrentRemoteUpdated: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
             OnCurrentRemoteUpdated?.Invoke(remote);
         }
 
@@ -476,12 +485,12 @@ namespace GitHub.Unity
 
         private void UpdateConfigData(bool resetConfig = false)
         {
+            Logger.Trace("UpdateConfigData reset:{0}", resetConfig);
+
             if (resetConfig)
             {
                 config.Reset();
             }
-
-            Logger.Trace("RefreshConfigData");
 
             LoadBranchesFromConfig();
             LoadRemotesFromConfig();
@@ -494,6 +503,8 @@ namespace GitHub.Unity
 
             var branches = new Dictionary<string, ConfigBranch>();
             LoadBranchesFromConfig(branches, repositoryPaths.BranchesPath, config.GetBranches().Where(x => x.IsTracking), "");
+
+            Logger.Trace("OnLocalBranchListUpdated {0} branches", branches.Count);
             OnLocalBranchListUpdated?.Invoke(branches);
         }
 
@@ -542,6 +553,7 @@ namespace GitHub.Unity
                 }
             }
 
+            Logger.Trace("OnRemoteBranchListUpdated {0} remotes", remotes.Count);
             OnRemoteBranchListUpdated?.Invoke(remotes, remoteBranches);
         }
 
