@@ -14,7 +14,7 @@ namespace UnitTests
 
             Logging.LogAdapter = new MultipleLogAdapter(
                 new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-unit-tests.log")
-                , new ConsoleLogAdapter()
+                //, new ConsoleLogAdapter()
             );
         }
     }
