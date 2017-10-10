@@ -44,7 +44,6 @@ namespace GitHub.Unity
         [NonSerialized] private BranchTreeNode newNodeSelection;
         [NonSerialized] private BranchesMode targetMode;
         [NonSerialized] private bool favoritesHasChanged;
-        [NonSerialized] private bool branchesHasChanged;
 
         [SerializeField] private BranchTreeNode activeBranchNode;
         [SerializeField] private BranchTreeNode localRoot;
@@ -66,7 +65,7 @@ namespace GitHub.Unity
             base.OnEnable();
             AttachHandlers(Repository);
             favoritesHasChanged = true;
-            branchesHasChanged = true;
+            Refresh();
         }
 
         public override void OnDisable()
@@ -87,12 +86,6 @@ namespace GitHub.Unity
             {
                 favoritesList = Manager.LocalSettings.Get(FavoritesSetting, new List<string>());
                 favoritesHasChanged = false;
-            }
-
-            if (branchesHasChanged)
-            {
-                RunUpdateBranchesOnMainThread();
-                branchesHasChanged = false;
             }
         }
 
@@ -125,6 +118,12 @@ namespace GitHub.Unity
         private void HandleRepositoryBranchChangeEvent(string obj)
         {
             RunUpdateBranchesOnMainThread();
+        }
+
+        public override void Refresh()
+        {
+            base.Refresh();
+            UpdateBranches();
         }
 
         private void RunUpdateBranchesOnMainThread()
@@ -537,7 +536,7 @@ namespace GitHub.Unity
                             .FinallyInUI((success, e) => {
                                      if (success)
                                      {
-                                         Refresh();
+                                         Redraw();
                                      }
                                      else
                                      {
@@ -658,7 +657,7 @@ namespace GitHub.Unity
                                 {
                                     if (success)
                                     {
-                                        Refresh();
+                                        Redraw();
                                     }
                                     else
                                     {
@@ -694,7 +693,7 @@ namespace GitHub.Unity
                                     {
                                         if (success)
                                         {
-                                            Refresh();
+                                            Redraw();
                                         }
                                         else
                                         {
