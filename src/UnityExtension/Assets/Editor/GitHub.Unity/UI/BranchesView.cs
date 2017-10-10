@@ -91,7 +91,7 @@ namespace GitHub.Unity
 
             if (branchesHasChanged)
             {
-                RunRefreshEmbeddedOnMainThread();
+                RunUpdateBranchesOnMainThread();
                 branchesHasChanged = false;
             }
         }
@@ -108,7 +108,7 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
+            repository.OnLocalBranchListChanged += RunUpdateBranchesOnMainThread;
             repository.OnCurrentBranchChanged += HandleRepositoryBranchChangeEvent;
             repository.OnCurrentRemoteChanged += HandleRepositoryBranchChangeEvent;
         }
@@ -117,23 +117,23 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-            repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
+            repository.OnLocalBranchListChanged -= RunUpdateBranchesOnMainThread;
             repository.OnCurrentBranchChanged -= HandleRepositoryBranchChangeEvent;
             repository.OnCurrentRemoteChanged -= HandleRepositoryBranchChangeEvent;
         }
 
         private void HandleRepositoryBranchChangeEvent(string obj)
         {
-            RunRefreshEmbeddedOnMainThread();
+            RunUpdateBranchesOnMainThread();
         }
 
-        private void RunRefreshEmbeddedOnMainThread()
+        private void RunUpdateBranchesOnMainThread()
         {
-            new ActionTask(TaskManager.Token, _ => RefreshEmbedded())
+            new ActionTask(TaskManager.Token, _ => UpdateBranches())
                 .ScheduleUI(TaskManager);
         }
 
-        public void RefreshEmbedded()
+        public void UpdateBranches()
         {
             if (Repository == null)
                 return;
