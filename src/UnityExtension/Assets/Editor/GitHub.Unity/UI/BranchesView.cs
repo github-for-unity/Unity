@@ -44,6 +44,7 @@ namespace GitHub.Unity
         [NonSerialized] private BranchTreeNode newNodeSelection;
         [NonSerialized] private BranchesMode targetMode;
         [NonSerialized] private bool favoritesHasChanged;
+        [NonSerialized] private bool branchesHasChanged;
 
         [SerializeField] private BranchTreeNode activeBranchNode;
         [SerializeField] private BranchTreeNode localRoot;
@@ -65,6 +66,7 @@ namespace GitHub.Unity
             base.OnEnable();
             AttachHandlers(Repository);
             favoritesHasChanged = true;
+            branchesHasChanged = true;
         }
 
         public override void OnDisable()
@@ -85,6 +87,12 @@ namespace GitHub.Unity
             {
                 favoritesList = Manager.LocalSettings.Get(FavoritesSetting, new List<string>());
                 favoritesHasChanged = false;
+            }
+
+            if (branchesHasChanged)
+            {
+                RunRefreshEmbeddedOnMainThread();
+                branchesHasChanged = false;
             }
         }
 
@@ -114,22 +122,15 @@ namespace GitHub.Unity
             repository.OnCurrentRemoteChanged -= HandleRepositoryBranchChangeEvent;
         }
 
-        private void RunRefreshEmbeddedOnMainThread()
-        {
-            new ActionTask(TaskManager.Token, _ => RefreshEmbedded())
-                .ScheduleUI(TaskManager);
-        }
-
         private void HandleRepositoryBranchChangeEvent(string obj)
         {
             RunRefreshEmbeddedOnMainThread();
         }
 
-        public override void Refresh()
+        private void RunRefreshEmbeddedOnMainThread()
         {
-            base.Refresh();
-
-            RefreshEmbedded();
+            new ActionTask(TaskManager.Token, _ => RefreshEmbedded())
+                .ScheduleUI(TaskManager);
         }
 
         public void RefreshEmbedded()
@@ -297,9 +298,9 @@ namespace GitHub.Unity
             newLocalBranches = new List<GitBranch>(list);
         }
 
-        private void OnRemoteBranchesUpdate(IEnumerable<GitBranch> list)
+        private void OnRemoteBranchesUpdate(IEnumerable<GitBranch> newRemoteBranches)
         {
-            BuildTree(newLocalBranches, list);
+            BuildTree(newLocalBranches, newRemoteBranches);
             newLocalBranches.Clear();
         }
 
