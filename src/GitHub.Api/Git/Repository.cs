@@ -49,13 +49,13 @@ namespace GitHub.Unity
 
             this.repositoryManager = repositoryManager;
 
-            repositoryManager.OnCurrentBranchUpdated += OnRepositoryManager_OnCurrentBranchUpdated;
-            repositoryManager.OnCurrentRemoteUpdated += OnRepositoryManager_OnCurrentRemoteUpdated;
+            repositoryManager.OnCurrentBranchUpdated += RepositoryManager_OnCurrentBranchUpdated;
+            repositoryManager.OnCurrentRemoteUpdated += RepositoryManager_OnCurrentRemoteUpdated;
             repositoryManager.OnStatusUpdated += status => CurrentStatus = status;
             repositoryManager.OnLocksUpdated += locks => CurrentLocks = locks;
-            repositoryManager.OnLocalBranchListUpdated += OnRepositoryManager_OnLocalBranchListUpdated;
-            repositoryManager.OnRemoteBranchListUpdated += OnRepositoryManager_OnRemoteBranchListUpdated;
-            repositoryManager.OnLocalBranchUpdated += OnRepositoryManager_OnLocalBranchUpdated;
+            repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
+            repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
+            repositoryManager.OnLocalBranchUpdated += RepositoryManager_OnLocalBranchUpdated;
             repositoryManager.OnLocalBranchAdded += RepositoryManager_OnLocalBranchAdded;
             repositoryManager.OnLocalBranchRemoved += RepositoryManager_OnLocalBranchRemoved;
             repositoryManager.OnRemoteBranchAdded += RepositoryManager_OnRemoteBranchAdded;
@@ -168,7 +168,7 @@ namespace GitHub.Unity
                 object.Equals(LocalPath, other.LocalPath);
         }
 
-        private void OnRepositoryManager_OnCurrentRemoteUpdated(ConfigRemote? remote)
+        private void RepositoryManager_OnCurrentRemoteUpdated(ConfigRemote? remote)
         {
             if (!Nullable.Equals(currentRemote, remote))
             {
@@ -179,7 +179,7 @@ namespace GitHub.Unity
             }
         }
 
-        private void OnRepositoryManager_OnCurrentBranchUpdated(ConfigBranch? branch)
+        private void RepositoryManager_OnCurrentBranchUpdated(ConfigBranch? branch)
         {
             if (!Nullable.Equals(currentBranch, branch))
             {
@@ -189,7 +189,7 @@ namespace GitHub.Unity
             }
         }
 
-        private void OnRepositoryManager_OnLocalBranchUpdated(string name)
+        private void RepositoryManager_OnLocalBranchUpdated(string name)
         {
             if (name == currentBranch?.Name)
             {
@@ -198,7 +198,7 @@ namespace GitHub.Unity
             }
         }
 
-        private void OnRepositoryManager_OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> updatedRemotes, Dictionary<string, Dictionary<string, ConfigBranch>> branches)
+        private void RepositoryManager_OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> updatedRemotes, Dictionary<string, Dictionary<string, ConfigBranch>> branches)
         {
             remotes = updatedRemotes;
 
@@ -210,7 +210,7 @@ namespace GitHub.Unity
             OnRemoteBranchListChanged?.Invoke();
         }
 
-        private void OnRepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branches)
+        private void RepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branches)
         {
             localBranches = branches;
 
