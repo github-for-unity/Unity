@@ -74,7 +74,6 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             AttachHandlers(Repository);
-            UpdateLog();
         }
 
         public override void OnDisable()
@@ -108,6 +107,12 @@ namespace GitHub.Unity
         public override void OnGUI()
         {
             OnEmbeddedGUI();
+        }
+
+        public override void Refresh()
+        {
+            base.Refresh();
+            UpdateLog();
         }
 
         private void AttachHandlers(IRepository repository)
