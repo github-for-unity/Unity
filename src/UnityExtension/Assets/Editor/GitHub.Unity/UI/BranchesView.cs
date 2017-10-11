@@ -40,7 +40,6 @@ namespace GitHub.Unity
 
         [NonSerialized] private List<BranchTreeNode> favorites = new List<BranchTreeNode>();
         [NonSerialized] private int listID = -1;
-        [NonSerialized] private List<GitBranch> newLocalBranches;
         [NonSerialized] private BranchTreeNode newNodeSelection;
         [NonSerialized] private BranchesMode targetMode;
         [NonSerialized] private bool favoritesHasChanged;
@@ -137,8 +136,7 @@ namespace GitHub.Unity
             if (Repository == null)
                 return;
 
-            OnLocalBranchesUpdate(Repository.LocalBranches);
-            OnRemoteBranchesUpdate(Repository.RemoteBranches);
+            BuildTree(Repository.LocalBranches, Repository.RemoteBranches);
         }
 
         public override void OnGUI()
@@ -290,17 +288,6 @@ namespace GitHub.Unity
         private bool IsFavorite(string branchName)
         {
             return !String.IsNullOrEmpty(branchName) && favoritesList.Contains(branchName);
-        }
-
-        private void OnLocalBranchesUpdate(IEnumerable<GitBranch> list)
-        {
-            newLocalBranches = new List<GitBranch>(list);
-        }
-
-        private void OnRemoteBranchesUpdate(IEnumerable<GitBranch> newRemoteBranches)
-        {
-            BuildTree(newLocalBranches, newRemoteBranches);
-            newLocalBranches.Clear();
         }
 
         private void BuildTree(IEnumerable<GitBranch> local, IEnumerable<GitBranch> remote)
