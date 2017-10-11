@@ -74,6 +74,7 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             AttachHandlers(Repository);
+            logHasChanged = true;
         }
 
         public override void OnDisable()
@@ -109,40 +110,18 @@ namespace GitHub.Unity
             OnEmbeddedGUI();
         }
 
-        public override void Refresh()
-        {
-            base.Refresh();
-            UpdateLog();
-        }
-
         private void AttachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnLocalBranchChanged += Refresh;
             repository.OnStatusChanged += UpdateStatusOnMainThread;
-            repository.OnCurrentBranchChanged += Repository_OnCurrentBranchChanged();
-            repository.OnCurrentRemoteChanged += Repository_OnCurrentRemoteChanged();
         }
 
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnLocalBranchChanged -= Refresh;
             repository.OnStatusChanged -= UpdateStatusOnMainThread;
-            repository.OnCurrentBranchChanged -= Repository_OnCurrentBranchChanged();
-            repository.OnCurrentRemoteChanged -= Repository_OnCurrentRemoteChanged();
-        }
-
-        private Action<string> Repository_OnCurrentRemoteChanged()
-        {
-            return s => Refresh();
-        }
-
-        private Action<string> Repository_OnCurrentBranchChanged()
-        {
-            return s => Refresh();
         }
 
         private void UpdateStatusOnMainThread(GitStatus status)
@@ -155,22 +134,6 @@ namespace GitHub.Unity
         {
             statusAhead = status.Ahead;
             statusBehind = status.Behind;
-        }
-
-        private void UpdateLog()
-        {
-            if (Repository != null)
-            {
-                Repository.Log().ThenInUI((success, log) => {
-                    if (success)
-                    {
-                        Logger.Trace("OnLogUpdate");
-                        GitLogCache.Instance.Log = log;
-                        logHasChanged = true;
-                        Redraw();
-                    }
-                }).Start();
-            }
         }
 
         private void MaybeUpdateData()

@@ -144,6 +144,7 @@ namespace GitHub.Unity
             if (ActiveView != null)
                 ActiveView.OnRepositoryChanged(oldRepository);
 
+            UpdateLog();
         }
 
         public override void OnSelectionChange()
@@ -197,6 +198,16 @@ namespace GitHub.Unity
             new ActionTask(TaskManager.Token, Refresh) { Affinity = TaskAffinity.UI }.Start();
         }
 
+        private void Repository_OnCurrentRemoteChanged(string s)
+        {
+            UpdateLog();
+        }
+
+        private void Repository_OnCurrentBranchChanged(string s)
+        {
+            UpdateLog();
+        }
+
         private bool MaybeUpdateData(out string repoRemote)
         {
             repoRemote = null;
@@ -243,6 +254,8 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
             repository.OnRepositoryInfoChanged += RefreshOnMainThread;
+            repository.OnCurrentBranchChanged += Repository_OnCurrentBranchChanged;
+            repository.OnCurrentRemoteChanged += Repository_OnCurrentRemoteChanged;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -251,6 +264,7 @@ namespace GitHub.Unity
                 return;
             repository.OnRepositoryInfoChanged -= RefreshOnMainThread;
         }
+
         private void DoHeaderGUI()
         {
             GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
@@ -391,6 +405,25 @@ namespace GitHub.Unity
         private static SubTab TabButton(SubTab tab, string title, SubTab activeTab)
         {
             return GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
+        }
+
+        private void UpdateLog()
+        {
+            Logger.Trace("Updating Log");
+
+            if (Repository != null)
+            {
+                Repository
+                    .Log()
+                    .ThenInUI((success, log) => {
+                        if (success)
+                        {
+                            Logger.Trace("Updated Log");
+                            GitLogCache.Instance.Log = log;
+                            Redraw();
+                        }
+                    }).Start();
+            }
         }
 
         private Subview ToView(SubTab tab)

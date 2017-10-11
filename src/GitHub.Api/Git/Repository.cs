@@ -173,8 +173,10 @@ namespace GitHub.Unity
             if (!Nullable.Equals(currentRemote, remote))
             {
                 currentRemote = remote;
+
                 Logger.Trace("OnCurrentRemoteChanged: {0}", currentRemote.HasValue ? currentRemote.Value.ToString() : "[NULL]");
                 OnCurrentRemoteChanged?.Invoke(currentRemote.HasValue ? currentRemote.Value.Name : null);
+
                 UpdateRepositoryInfo();
             }
         }
@@ -184,6 +186,7 @@ namespace GitHub.Unity
             if (!Nullable.Equals(currentBranch, branch))
             {
                 currentBranch = branch;
+
                 Logger.Trace("OnCurrentBranchChanged: {0}", currentBranch.HasValue ? currentBranch.ToString() : "[NULL]");
                 OnCurrentBranchChanged?.Invoke(currentBranch.HasValue ? currentBranch.Value.Name : null);
             }
@@ -193,6 +196,7 @@ namespace GitHub.Unity
         {
             if (name == currentBranch?.Name)
             {
+                Logger.Trace("OnLocalBranchChanged: {0}", name);
                 OnLocalBranchChanged?.Invoke();
                 Refresh();
             }
@@ -241,6 +245,8 @@ namespace GitHub.Unity
             if (localBranches.ContainsKey(name))
             {
                 localBranches.Remove(name);
+
+                Logger.Trace("OnLocalBranchListChanged");
                 OnLocalBranchListChanged?.Invoke();
             }
             else
@@ -259,6 +265,8 @@ namespace GitHub.Unity
                     branch = new ConfigBranch { Name = name };
                 }
                 localBranches.Add(name, branch.Value);
+
+                Logger.Trace("OnLocalBranchListChanged");
                 OnLocalBranchListChanged?.Invoke();
             }
             else
@@ -275,6 +283,8 @@ namespace GitHub.Unity
                 if (!branchList.ContainsKey(name))
                 {
                     branchList.Add(name, new ConfigBranch { Name = name, Remote = remotes[remote] });
+
+                    Logger.Trace("OnRemoteBranchListChanged");
                     OnRemoteBranchListChanged?.Invoke();
                 }
                 else
@@ -296,6 +306,8 @@ namespace GitHub.Unity
                 if (localBranches.ContainsKey(name))
                 {
                     localBranches.Remove(name);
+
+                    Logger.Trace("OnRemoteBranchListChanged");
                     OnRemoteBranchListChanged?.Invoke();
                 }
                 else
