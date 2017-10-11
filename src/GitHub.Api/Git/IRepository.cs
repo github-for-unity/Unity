@@ -62,7 +62,7 @@ namespace GitHub.Unity
         event Action<string> OnCurrentBranchChanged;
         event Action<string> OnCurrentRemoteChanged;
         event Action OnLocalBranchListChanged;
-        event Action OnLocalBranchChanged;
+        event Action OnCurrentBranchUpdated;
         event Action<IEnumerable<GitLock>> OnLocksChanged;
         event Action OnRepositoryInfoChanged;
         event Action OnRemoteBranchListChanged;

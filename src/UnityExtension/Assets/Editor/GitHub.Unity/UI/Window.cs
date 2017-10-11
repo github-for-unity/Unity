@@ -198,16 +198,6 @@ namespace GitHub.Unity
             new ActionTask(TaskManager.Token, Refresh) { Affinity = TaskAffinity.UI }.Start();
         }
 
-        private void Repository_OnCurrentRemoteChanged(string s)
-        {
-            UpdateLog();
-        }
-
-        private void Repository_OnCurrentBranchChanged(string s)
-        {
-            UpdateLog();
-        }
-
         private bool MaybeUpdateData(out string repoRemote)
         {
             repoRemote = null;
@@ -254,15 +244,15 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
             repository.OnRepositoryInfoChanged += RefreshOnMainThread;
-            repository.OnCurrentBranchChanged += Repository_OnCurrentBranchChanged;
-            repository.OnCurrentRemoteChanged += Repository_OnCurrentRemoteChanged;
+            repository.OnCurrentBranchUpdated += UpdateLog;
         }
-
+        
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
             repository.OnRepositoryInfoChanged -= RefreshOnMainThread;
+            repository.OnCurrentBranchUpdated -= UpdateLog;
         }
 
         private void DoHeaderGUI()
@@ -409,18 +399,22 @@ namespace GitHub.Unity
 
         private void UpdateLog()
         {
-            Logger.Trace("Updating Log");
-
             if (Repository != null)
             {
+                Logger.Trace("Updating Log");
+
                 Repository
                     .Log()
-                    .ThenInUI((success, log) => {
+                    .FinallyInUI((success, exception, log) => {
                         if (success)
                         {
                             Logger.Trace("Updated Log");
                             GitLogCache.Instance.Log = log;
-                            Redraw();
+
+                            if (activeTab == SubTab.History)
+                            {
+                                HistoryView.CheckLogCache();
+                            }
                         }
                     }).Start();
             }

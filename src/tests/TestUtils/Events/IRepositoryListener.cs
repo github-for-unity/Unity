@@ -84,7 +84,7 @@ namespace TestUtils.Events
                 repositoryEvents?.OnRemoteBranchListChanged.Set();
             };
 
-            repository.OnLocalBranchChanged += () =>
+            repository.OnCurrentBranchUpdated += () =>
             {
                 logger?.Debug("OnHeadChanged");
                 listener.OnHeadChanged();

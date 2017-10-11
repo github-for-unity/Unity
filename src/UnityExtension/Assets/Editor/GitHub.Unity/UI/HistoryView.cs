@@ -74,7 +74,7 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             AttachHandlers(Repository);
-            logHasChanged = true;
+            CheckLogCache();
         }
 
         public override void OnDisable()
@@ -108,6 +108,30 @@ namespace GitHub.Unity
         public override void OnGUI()
         {
             OnEmbeddedGUI();
+        }
+
+        public void CheckLogCache()
+        {
+            string firstItemCommitID = null;
+            if (history.Any())
+            {
+                firstItemCommitID = history.First().CommitID;
+            }
+
+            var cachedList = GitLogCache.Instance.Log;
+
+            string firstCachedItemCommitID = null;
+            if (cachedList.Any())
+            {
+                firstCachedItemCommitID = cachedList.First().CommitID;
+            }
+
+            if (firstItemCommitID != firstCachedItemCommitID)
+            {
+                Logger.Trace("CommitID {0} != Cached CommitId {1}", firstItemCommitID ?? "[NULL]", firstCachedItemCommitID ?? "[NULL]");
+                logHasChanged = true;
+                Redraw();
+            }
         }
 
         private void AttachHandlers(IRepository repository)

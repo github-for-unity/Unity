@@ -20,7 +20,7 @@ namespace GitHub.Unity
         private IRepositoryManager repositoryManager;
         public event Action<string> OnCurrentBranchChanged;
         public event Action<string> OnCurrentRemoteChanged;
-        public event Action OnLocalBranchChanged;
+        public event Action OnCurrentBranchUpdated;
         public event Action OnLocalBranchListChanged;
         public event Action<IEnumerable<GitLock>> OnLocksChanged;
         public event Action OnRemoteBranchListChanged;
@@ -196,8 +196,8 @@ namespace GitHub.Unity
         {
             if (name == currentBranch?.Name)
             {
-                Logger.Trace("OnLocalBranchChanged: {0}", name);
-                OnLocalBranchChanged?.Invoke();
+                Logger.Trace("OnCurrentBranchUpdated: {0}", name);
+                OnCurrentBranchUpdated?.Invoke();
                 Refresh();
             }
         }
