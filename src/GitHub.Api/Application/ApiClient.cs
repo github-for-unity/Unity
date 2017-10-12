@@ -74,13 +74,6 @@ namespace GitHub.Unity
             await GetOrganizationInternal(onSuccess, onError);
         }
 
-        public async Task LoadKeychain(Action<bool> callback)
-        {
-            Guard.ArgumentNotNull(callback, "callback");
-            var hasLoadedKeys = await LoadKeychainInternal();
-            callback(hasLoadedKeys);
-        }
-
         public async Task GetCurrentUser(Action<Octokit.User> callback)
         {
             Guard.ArgumentNotNull(callback, "callback");
@@ -261,12 +254,15 @@ namespace GitHub.Unity
         private async Task ValidateCurrentUserInternal()
         {
             logger.Trace("Validating User");
-            var apiUsername = await GetCurrentUserInternal();
+
+            var apiUser = await GetCurrentUserInternal();
+            var apiUsername = apiUser.Login;
+
             var cachedUsername = keychain.Connections.First().Username;
 
-            if (apiUsername.Name != cachedUsername)
+            if (apiUsername != cachedUsername)
             {
-                throw new TokenUsernameMismatchException();
+                throw new TokenUsernameMismatchException(cachedUsername, apiUsername);
             }
         }
 
@@ -319,25 +315,19 @@ namespace GitHub.Unity
 
     class TokenUsernameMismatchException : ApiClientException
     {
-        public TokenUsernameMismatchException()
-        { }
+        public string CachedUsername { get; }
+        public string CurrentUsername { get; }
 
-        public TokenUsernameMismatchException(string message) : base(message)
-        { }
-
-        public TokenUsernameMismatchException(string message, Exception innerException) : base(message, innerException)
-        { }
+        public TokenUsernameMismatchException(string cachedUsername, string currentUsername)
+        {
+            CachedUsername = cachedUsername;
+            CurrentUsername = currentUsername;
+        }
     }
 
     class KeychainEmptyException : ApiClientException
     {
         public KeychainEmptyException()
-        { }
-
-        public KeychainEmptyException(string message) : base(message)
-        { }
-
-        public KeychainEmptyException(string message, Exception innerException) : base(message, innerException)
         { }
     }
 }

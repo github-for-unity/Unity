@@ -284,15 +284,11 @@ namespace GitHub.Unity
                 else
                 {
                     // Publishing a repo
-                    EditorGUI.BeginDisabledGroup(!Platform.Keychain.Connections.Any());
+                    var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
+                    if (publishedClicked)
                     {
-                        var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
-                        if (publishedClicked)
-                        {
-                            PopupWindow.Open(PopupWindow.PopupViewType.PublishView);
-                        }
+                        PopupWindow.Open(PopupWindow.PopupViewType.PublishView);
                     }
-                    EditorGUI.EndDisabledGroup();
                 }
             }
             GUILayout.EndHorizontal();

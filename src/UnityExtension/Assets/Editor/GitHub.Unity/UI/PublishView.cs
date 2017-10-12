@@ -21,6 +21,10 @@ namespace GitHub.Unity
         private const string RepositoryNameLabel = "Repository Name";
         private const string DescriptionLabel = "Description";
         private const string CreatePrivateRepositoryLabel = "Create as a private repository";
+        private const string AuthenticationChangedMessageFormat = "You were authenticated as \"{0}\", but you are now authenticated as \"{1}\". Would you like to proceed or logout?";
+        private const string AuthenticationChangedTitle = "Authentication Changed";
+        private const string AuthenticationChangedProceed = "Proceed";
+        private const string AuthenticationChangedLogout = "Logout";
 
         [SerializeField] private string username;
         [SerializeField] private string[] owners = { OwnersDefaultText };
@@ -33,7 +37,7 @@ namespace GitHub.Unity
         [NonSerialized] private IApiClient client;
         [NonSerialized] private bool isBusy;
         [NonSerialized] private string error;
-        [NonSerialized] private bool organizationsNeedLoading;
+        [NonSerialized] private bool ownersNeedLoading;
 
         public IApiClient Client
         {
@@ -62,7 +66,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            organizationsNeedLoading = organizations == null && !isBusy;
+            ownersNeedLoading = organizations == null && !isBusy;
         }
 
         public override void OnDataUpdate()
@@ -73,10 +77,10 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (organizationsNeedLoading)
+            if (ownersNeedLoading)
             {
-                organizationsNeedLoading = false;
-                LoadOrganizations();
+                ownersNeedLoading = false;
+                LoadOwners();
             }
         }
 
@@ -87,75 +91,67 @@ namespace GitHub.Unity
             Size = viewSize;
         }
 
-        private void LoadOrganizations()
+        private void LoadOwners()
         {
             var keychainConnections = Platform.Keychain.Connections;
             //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-            if (keychainConnections.Any())
+
+            isBusy = true;
+
+            //TODO: ONE_USER_LOGIN This assumes only ever one user can login
+            username = keychainConnections.First().Username;
+
+            Logger.Trace("Loading Owners");
+
+            Client.GetOrganizations(orgs =>
             {
-                try
-                {
-                    Logger.Trace("Loading Keychain");
+                organizations = orgs;
+                Logger.Trace("Loaded {0} Owners", organizations.Count);
 
-                    isBusy = true;
+                var organizationLogins = organizations
+                    .OrderBy(organization => organization.Login)
+                    .Select(organization => organization.Login);
 
-                    Client.LoadKeychain(hasKeys => {
-                        if (!hasKeys)
-                        {
-                            Logger.Warning("Unable to get current user");
-                            isBusy = false;
-                            return;
-                        }
+                owners = new[] { OwnersDefaultText, username }.Union(organizationLogins).ToArray();
 
-                        //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-                        username = keychainConnections.First().Username;
-
-                        Logger.Trace("Loading Organizations");
-
-                        Client.GetOrganizations(orgs => {
-                            organizations = orgs;
-                            Logger.Trace("Loaded {0} organizations", organizations.Count);
-
-                            var organizationLogins = organizations
-                                .OrderBy(organization => organization.Login).Select(organization => organization.Login);
-
-                            owners = new[] { OwnersDefaultText, username }.Union(organizationLogins).ToArray();
-
-                            isBusy = false;
-                        }, exception => {
-
-                            //PopupWindow.Open(PopupWindow.PopupViewType.AuthenticationView);
-
-                            var tokenUsernameMismatchException = exception as TokenUsernameMismatchException;
-                            if (tokenUsernameMismatchException != null)
-                            {
-                                //This is a specific case
-
-                                Logger.Error(exception, "Token Username Mismatch");
-                                return;
-                            }
-
-                            var keychainEmptyException = exception as KeychainEmptyException;
-                            if (keychainEmptyException != null)
-                            {
-                                Logger.Error(exception, "Keychain empty");
-                                return;
-                            }
-
-                            Logger.Error(exception, "Unhandled Exception Type");
-                        });
-                    });
-                }
-                catch (Exception e)
-                {
-                    Logger.Error(e, "Error PopulateView & GetOrganizations");
-                    isBusy = false;
-                }
-            }
-            else
+                isBusy = false;
+            }, exception =>
             {
-                Logger.Warning("No Keychain connections to use");
-            }
+                isBusy = false;
+
+                var tokenUsernameMismatchException = exception as TokenUsernameMismatchException;
+                if (tokenUsernameMismatchException != null)
+                {
+                    Logger.Trace("Token Username Mismatch");
+
+                    var shouldProceed = EditorUtility.DisplayDialog(AuthenticationChangedTitle,
+                        string.Format(AuthenticationChangedMessageFormat,
+                            tokenUsernameMismatchException.CachedUsername,
+                            tokenUsernameMismatchException.CurrentUsername), AuthenticationChangedProceed, AuthenticationChangedLogout);
+
+                    if (shouldProceed)
+                    {
+                        //Proceed as current user
+
+                    }
+                    else
+                    {
+                        //Logout current user and try again
+
+                    }
+                    return;
+                }
+
+                var keychainEmptyException = exception as KeychainEmptyException;
+                if (keychainEmptyException != null)
+                {
+                    Logger.Trace("Keychain empty");
+                    PopupWindow.Open(PopupWindow.PopupViewType.AuthenticationView);
+                    return;
+                }
+
+                Logger.Error(exception, "Unhandled Exception");
+            });
         }
 
         public override void OnGUI()

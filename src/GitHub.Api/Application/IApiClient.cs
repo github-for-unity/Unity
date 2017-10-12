@@ -16,6 +16,5 @@ namespace GitHub.Unity
         Task<bool> LoginAsync(string username, string password, Func<LoginResult, string> need2faCode);
         Task Logout(UriString host);
         Task GetCurrentUser(Action<Octokit.User> callback);
-        Task LoadKeychain(Action<bool> callback);
     }
 }
