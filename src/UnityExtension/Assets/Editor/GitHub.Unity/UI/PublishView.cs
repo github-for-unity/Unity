@@ -122,10 +122,27 @@ namespace GitHub.Unity
                             owners = new[] { OwnersDefaultText, username }.Union(organizationLogins).ToArray();
 
                             isBusy = false;
-                        }, () => {
-                            PopupWindow.Open(PopupWindow.PopupViewType.AuthenticationView);
                         }, exception => {
-                            
+
+                            //PopupWindow.Open(PopupWindow.PopupViewType.AuthenticationView);
+
+                            var tokenUsernameMismatchException = exception as TokenUsernameMismatchException;
+                            if (tokenUsernameMismatchException != null)
+                            {
+                                //This is a specific case
+
+                                Logger.Error(exception, "Token Username Mismatch");
+                                return;
+                            }
+
+                            var keychainEmptyException = exception as KeychainEmptyException;
+                            if (keychainEmptyException != null)
+                            {
+                                Logger.Error(exception, "Keychain empty");
+                                return;
+                            }
+
+                            Logger.Error(exception, "Unhandled Exception Type");
                         });
                     });
                 }

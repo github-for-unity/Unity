@@ -68,7 +68,7 @@ namespace GitHub.Unity
             {
                 if (keychainItem.Username != cachedConnection.Username)
                 {
-                    logger.Warning("Keychain Username: {0} does not match; Hopefully it works", keychainItem.Username);
+                    logger.Warning("Keychain Username:\"{0}\" does not match cached Username:\"{1}\"; Hopefully it works", keychainItem.Username, cachedConnection.Username);
                 }
 
                 logger.Trace("Loaded from Credential Manager Host:\"{0}\" Username:\"{1}\"", keychainItem.Host, keychainItem.Username); 
