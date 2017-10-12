@@ -44,6 +44,11 @@ namespace GitHub.Unity
             OnClose.SafeInvoke(false);
             OnClose = null;
 
+            onClose = onClose ?? (b => {
+                Logger.Trace("Closing Window");
+                //Close();
+            });
+
             Logger.Trace("OpenView: {0}", popupViewType.ToString());
 
             var viewNeedsAuthentication = popupViewType == PopupViewType.PublishView;
@@ -172,7 +177,6 @@ namespace GitHub.Unity
         {
             OnClose.SafeInvoke(result);
             OnClose = null;
-            Close();
             base.Finish(result);
         }
 
