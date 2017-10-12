@@ -12,7 +12,7 @@ namespace GitHub.Unity
     [Serializable]
     class InitProjectView : Subview
     {
-        private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
+        private const string NoRepoTitle = "To begin using GitHub, initialize a git repository";
 
         [SerializeField] private bool isBusy;
         [SerializeField] private bool isPublished;
@@ -35,7 +35,7 @@ namespace GitHub.Unity
             {
                 GUILayout.FlexibleSpace();
 
-                GUILayout.Label(NoRepoDescription, Styles.CenteredLabel);
+                GUILayout.Label(NoRepoTitle, Styles.BoldCenteredLabel);
 
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
@@ -51,7 +51,6 @@ namespace GitHub.Unity
                     }
                 }
                 EditorGUI.EndDisabledGroup();
-
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 
