@@ -20,17 +20,13 @@ namespace GitHub.Unity
                 new GitHubClient(AppConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri));
         }
 
-        private static readonly Unity.ILogging logger = Unity.Logging.GetLogger<ApiClient>();
+        private static readonly ILogging logger = Logging.GetLogger<ApiClient>();
         public HostAddress HostAddress { get; }
         public UriString OriginalUrl { get; }
 
         private readonly IKeychain keychain;
         private readonly IGitHubClient githubClient;
         private readonly ILoginManager loginManager;
-        private static readonly SemaphoreSlim sem = new SemaphoreSlim(1);
-
-        IList<Organization> organizationsCache;
-        Octokit.User userCache;
 
         string owner;
         bool? isEnterprise;
@@ -72,11 +68,10 @@ namespace GitHub.Unity
             }
         }
 
-        public async Task GetOrganizations(Action<IList<Organization>> callback)
+        public async Task GetOrganizations(Action<IList<Organization>> onSuccess, Action<Exception> onError = null)
         {
-            Guard.ArgumentNotNull(callback, "callback");
-            var organizations = await GetOrganizationInternal();
-            callback(organizations);
+            Guard.ArgumentNotNull(onSuccess, nameof(onSuccess));
+            await GetOrganizationInternal(onSuccess, onError);
         }
 
         public async Task LoadKeychain(Action<bool> callback)
@@ -222,7 +217,7 @@ namespace GitHub.Unity
             }
         }
 
-        private async Task<IList<Organization>> GetOrganizationInternal()
+        private async Task GetOrganizationInternal(Action<IList<Organization>> onSuccess, Action<Exception> onError = null)
         {
             try
             {
@@ -237,16 +232,14 @@ namespace GitHub.Unity
 
                 if (organizations != null)
                 {
-                    organizationsCache = organizations.ToArray();
+                    onSuccess(organizations.ToArray());
                 }
             }
             catch(Exception ex)
             {
                 logger.Error(ex, "Error Getting Organizations");
-                throw;
+                onError?.Invoke(ex);
             }
-
-            return organizationsCache;
         }
 
         private async Task<Octokit.User> GetCurrentUserInternal()
@@ -254,50 +247,31 @@ namespace GitHub.Unity
             try
             {
                 logger.Trace("Getting Current User");
+                await ValidateKeychain();
 
-                if (!await LoadKeychainInternal())
-                {
-                    throw new ApplicationException("Error Loading Keychain");
-                }
-
-                userCache = await githubClient.User.Current();
+                return await githubClient.User.Current();
             }
             catch (Exception ex)
             {
                 logger.Error(ex, "Error Getting Current User");
                 throw;
             }
-
-            return userCache;
         }
 
         private async Task ValidateCurrentUserInternal()
         {
-            Octokit.User apiUsername;
-            string cachedUsername;
-
-            try
-            {
-                logger.Trace("Validating User");
-                apiUsername = await GetCurrentUserInternal();
-                cachedUsername = keychain.Connections.First().Username;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Error Validating User");
-                throw;
-            }
+            logger.Trace("Validating User");
+            var apiUsername = await GetCurrentUserInternal();
+            var cachedUsername = keychain.Connections.First().Username;
 
             if (apiUsername.Name != cachedUsername)
             {
-                throw new ApplicationException("Credentialed user does not match API");
+                throw new TokenUsernameMismatchException();
             }
         }
 
         private async Task<bool> LoadKeychainInternal()
         {
-            logger.Trace("LoadKeychainInternal");
-
             if (keychain.HasKeys)
             {
                 if (!keychain.NeedsLoad)
@@ -312,6 +286,8 @@ namespace GitHub.Unity
                 var uriString = keychain.Connections.First().Host;
                 var keychainAdapter = await keychain.Load(uriString);
 
+                logger.Trace("LoadKeychainInternal: Loaded");
+
                 return keychainAdapter.OctokitCredentials != Credentials.Anonymous;
             }
 
@@ -324,8 +300,44 @@ namespace GitHub.Unity
         {
             if (!await LoadKeychainInternal())
             {
-                throw new ApplicationException("Error Loading Keychain");
+                throw new KeychainEmptyException();
             }
         }
+    }
+
+    class ApiClientException : Exception
+    {
+        public ApiClientException()
+        { }
+
+        public ApiClientException(string message) : base(message)
+        { }
+
+        public ApiClientException(string message, Exception innerException) : base(message, innerException)
+        { }
+    }
+
+    class TokenUsernameMismatchException : ApiClientException
+    {
+        public TokenUsernameMismatchException()
+        { }
+
+        public TokenUsernameMismatchException(string message) : base(message)
+        { }
+
+        public TokenUsernameMismatchException(string message, Exception innerException) : base(message, innerException)
+        { }
+    }
+
+    class KeychainEmptyException : ApiClientException
+    {
+        public KeychainEmptyException()
+        { }
+
+        public KeychainEmptyException(string message) : base(message)
+        { }
+
+        public KeychainEmptyException(string message, Exception innerException) : base(message, innerException)
+        { }
     }
 }
