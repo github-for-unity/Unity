@@ -54,6 +54,12 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 
+                GUILayout.BeginHorizontal();
+                  GUILayout.FlexibleSpace();
+                  GUILayout.Label("There was an error initializing a repository.", Styles.ErrorLabel);
+                  GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
