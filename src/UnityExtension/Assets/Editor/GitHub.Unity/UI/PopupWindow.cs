@@ -46,7 +46,7 @@ namespace GitHub.Unity
 
             onClose = onClose ?? (b => {
                 Logger.Trace("Closing Window");
-                //Close();
+                Close();
             });
 
             Logger.Trace("OpenView: {0}", popupViewType.ToString());
