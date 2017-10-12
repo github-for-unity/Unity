@@ -146,7 +146,7 @@ namespace GitHub.Unity
                 if (keychainEmptyException != null)
                 {
                     Logger.Trace("Keychain empty");
-                    PopupWindow.Open(PopupWindow.PopupViewType.AuthenticationView);
+                    PopupWindow.OpenWindow(PopupWindow.PopupViewType.AuthenticationView);
                     return;
                 }
 

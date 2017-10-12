@@ -20,32 +20,100 @@ namespace GitHub.Unity
         [SerializeField] private PublishView publishView;
         [SerializeField] private LoadingView loadingView;
 
+        [NonSerialized] private IApiClient client;
+
         public event Action<bool> OnClose;
 
         [MenuItem("GitHub/Authenticate")]
         public static void Launch()
         {
-            Open(PopupViewType.AuthenticationView);
+            OpenWindow(PopupViewType.AuthenticationView);
         }
 
-        public static PopupWindow Open(PopupViewType popupViewType, Action<bool> onClose = null)
+        public static PopupWindow OpenWindow(PopupViewType popupViewType, Action<bool> onClose = null)
         {
             var popupWindow = GetWindow<PopupWindow>(true);
 
-            popupWindow.OnClose.SafeInvoke(false);
-
-            if (onClose != null)
-            {
-                popupWindow.OnClose += onClose;
-            }
-
-            popupWindow.ActiveViewType = popupViewType;
-            popupWindow.titleContent = new GUIContent(popupWindow.ActiveView.Title, Styles.SmallLogo);
-            popupWindow.OnEnable();
-            popupWindow.Show();
-            popupWindow.Refresh();
+            popupWindow.Open(popupViewType, onClose);
 
             return popupWindow;
+        }
+
+        private void Open(PopupViewType popupViewType, Action<bool> onClose)
+        {
+            OnClose.SafeInvoke(false);
+            OnClose = null;
+
+            Logger.Trace("OpenView: {0}", popupViewType.ToString());
+
+            var viewNeedsAuthentication = popupViewType == PopupViewType.PublishView;
+            if (viewNeedsAuthentication)
+            {
+                Logger.Trace("Validating to open view");
+
+                Client.ValidateCurrentUser(() => {
+
+                    Logger.Trace("User validated opening view");
+
+                    OpenInternal(popupViewType, onClose);
+
+                }, exception => {
+
+                    Logger.Trace("User required validation opening AuthenticationView");
+
+                    Open(PopupViewType.AuthenticationView, completedAuthentication => {
+
+                        if (completedAuthentication)
+                        {
+                            Logger.Trace("User completed validation opening view: {0}", popupViewType.ToString());
+
+                            Open(popupViewType, onClose);
+                        }
+                    });
+                });
+            }
+            else
+            {
+                OpenInternal(popupViewType, onClose);
+            }
+        }
+
+        private void OpenInternal(PopupViewType popupViewType, Action<bool> onClose)
+        {
+            if (onClose != null)
+            {
+                OnClose += onClose;
+            }
+
+            ActiveViewType = popupViewType;
+            titleContent = new GUIContent(ActiveView.Title, Styles.SmallLogo);
+            OnEnable();
+            Show();
+            Refresh();
+        }
+
+        public IApiClient Client
+        {
+            get
+            {
+                if (client == null)
+                {
+                    var repository = Environment.Repository;
+                    UriString host;
+                    if (repository != null && !string.IsNullOrEmpty(repository.CloneUrl))
+                    {
+                        host = repository.CloneUrl.ToRepositoryUrl();
+                    }
+                    else
+                    {
+                        host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
+                    }
+
+                    client = ApiClient.Create(host, Platform.Keychain);
+                }
+
+                return client;
+            }
         }
 
         public override void Initialize(IApplicationManager applicationManager)
@@ -59,6 +127,8 @@ namespace GitHub.Unity
             publishView.InitializeView(this);
             authenticationView.InitializeView(this);
             loadingView.InitializeView(this);
+
+            titleContent = new GUIContent(ActiveView.Title, Styles.SmallLogo);
         }
 
         public override void OnEnable()

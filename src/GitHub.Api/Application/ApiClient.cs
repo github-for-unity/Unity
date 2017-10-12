@@ -74,6 +74,20 @@ namespace GitHub.Unity
             await GetOrganizationInternal(onSuccess, onError);
         }
 
+        public async Task ValidateCurrentUser(Action onSuccess, Action<Exception> onError = null)
+        {
+            Guard.ArgumentNotNull(onSuccess, nameof(onSuccess));
+            try
+            {
+                await ValidateCurrentUserInternal();
+                onSuccess();
+            }
+            catch (Exception e)
+            {
+                onError?.Invoke(e);
+            }
+        }
+
         public async Task GetCurrentUser(Action<Octokit.User> callback)
         {
             Guard.ArgumentNotNull(callback, "callback");

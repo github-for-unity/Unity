@@ -287,7 +287,7 @@ namespace GitHub.Unity
                     var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
                     if (publishedClicked)
                     {
-                        PopupWindow.Open(PopupWindow.PopupViewType.PublishView);
+                        PopupWindow.OpenWindow(PopupWindow.PopupViewType.PublishView);
                     }
                 }
             }
