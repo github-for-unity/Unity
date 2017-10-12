@@ -181,7 +181,6 @@ namespace UnitTests
 
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
         }
@@ -243,7 +242,6 @@ namespace UnitTests
 
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
         }
@@ -282,7 +280,6 @@ namespace UnitTests
 
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
         }
@@ -321,7 +318,6 @@ namespace UnitTests
 
             repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnHeadChanged();
             repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
         }

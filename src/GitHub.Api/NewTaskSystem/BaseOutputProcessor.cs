@@ -4,23 +4,23 @@ using System.Text;
 
 namespace GitHub.Unity
 {
-    interface IOutputProcessor
+    public interface IOutputProcessor
     {
         void LineReceived(string line);
     }
 
-    interface IOutputProcessor<T> : IOutputProcessor
+    public interface IOutputProcessor<T> : IOutputProcessor
     {
         T Result { get; }
         event Action<T> OnEntry;
     }
 
-    interface IOutputProcessor<TData, T> : IOutputProcessor<T>
+    public interface IOutputProcessor<TData, T> : IOutputProcessor<T>
     {
         new event Action<TData> OnEntry;
     }
 
-    abstract class BaseOutputProcessor<T> : IOutputProcessor<T>
+    public abstract class BaseOutputProcessor<T> : IOutputProcessor<T>
     {
         public event Action<T> OnEntry;
 
@@ -36,7 +36,7 @@ namespace GitHub.Unity
         protected ILogging Logger { get { return logger = logger ?? Logging.GetLogger(GetType()); } }
     }
 
-    abstract class BaseOutputProcessor<TData, T> : BaseOutputProcessor<T>, IOutputProcessor<TData, T>
+    public abstract class BaseOutputProcessor<TData, T> : BaseOutputProcessor<T>, IOutputProcessor<TData, T>
     {
         public new event Action<TData> OnEntry;
 
@@ -46,7 +46,7 @@ namespace GitHub.Unity
         }
     }
 
-    abstract class BaseOutputListProcessor<T> : BaseOutputProcessor<T, List<T>>
+    public abstract class BaseOutputListProcessor<T> : BaseOutputProcessor<T, List<T>>
     {
         protected override void RaiseOnEntry(T entry)
         {

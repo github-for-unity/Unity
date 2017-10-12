@@ -24,8 +24,9 @@ Details about how the team is organizing and shipping GitHub for Unity:
 
  - **[Issue Triage](process/issue-triage.md)** - how we address issues reported
     by users
- - **[Review Process](process/reviews.md)** - how we review contributions
+ - **[Review](process/reviews.md)** - how we review contributions
  - **[Roadmap](process/roadmap.md)** - how we plan for the future
+ - **[Release](process/release-process.md)** - how we review contributions
 
 ## Technical
 

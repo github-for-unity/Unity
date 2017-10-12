@@ -17,7 +17,7 @@ namespace GitHub.Unity
         {
             SynchronizationContext = synchronizationContext;
             SynchronizationContext.SetSynchronizationContext(SynchronizationContext);
-            ThreadingHelper.SetMainThread();
+            ThreadingHelper.SetUIThread();
             UIScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             ThreadingHelper.MainThreadScheduler = UIScheduler;
             TaskManager = new TaskManager(UIScheduler);

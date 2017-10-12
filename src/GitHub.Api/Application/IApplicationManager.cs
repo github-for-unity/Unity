@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface IApplicationManager : IDisposable
+    public interface IApplicationManager : IDisposable
     {
         CancellationToken CancellationToken { get; }
         IEnvironment Environment { get; }

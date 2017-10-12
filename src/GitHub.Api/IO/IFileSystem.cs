@@ -4,7 +4,7 @@ using System.Text;
 
 namespace GitHub.Unity
 {
-    interface IFileSystem
+    public interface IFileSystem
     {
         bool FileExists(string path);
         string Combine(string path1, string path2);

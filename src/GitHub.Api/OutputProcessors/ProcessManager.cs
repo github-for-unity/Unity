@@ -22,31 +22,13 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
         }
 
-        public T Configure<T>(T processTask, bool withInput = false) where T : IProcess
-        {
-            NPath executableFileName;
-            if (processTask.ProcessName != null)
-            {
-                executableFileName = processTask.ProcessName.ToNPath();
-                //logger.Trace("Configuring Task:{0} with Exec:{1}", processTask.GetType().Name, executableFileName);
-            }
-            else
-            {
-                executableFileName = environment.GitExecutablePath;
-                //logger.Trace("Configuring Task:{0} with Git", processTask.GetType().Name);
-            }
-
-            return Configure(processTask,
-                executableFileName,
-                processTask.ProcessArguments,
-                environment.RepositoryPath, withInput);
-        }
-
-        public T Configure<T>(T processTask, string executableFileName, string arguments, NPath workingDirectory = null, bool withInput = false)
+        public T Configure<T>(T processTask, NPath executable = null, string arguments = null, NPath workingDirectory = null, bool withInput = false)
              where T : IProcess
         {
+            executable = executable ?? processTask.ProcessName?.ToNPath() ?? environment.GitExecutablePath;
+
             //If this null check fails, be sure you called Configure() on your task
-            Guard.ArgumentNotNull(executableFileName, nameof(executableFileName));
+            Guard.ArgumentNotNull(executable, nameof(executable));
 
             var startInfo = new ProcessStartInfo
             {
@@ -61,11 +43,13 @@ namespace GitHub.Unity
 
             gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath);
 
-            var execPath = executableFileName.ToNPath();
-            if (execPath.IsRelative)
-                executableFileName = FindExecutableInPath(execPath, startInfo.EnvironmentVariables["PATH"]) ?? execPath.FileName;
-            startInfo.FileName = executableFileName;
-            startInfo.Arguments = arguments;
+            if (executable.IsRelative)
+            {
+                executable = executable.FileName.ToNPath();
+                executable = FindExecutableInPath(executable, startInfo.EnvironmentVariables["PATH"]) ?? executable;
+            }
+            startInfo.FileName = executable;
+            startInfo.Arguments = arguments ?? processTask.ProcessArguments;
             processTask.Configure(startInfo);
             return processTask;
         }

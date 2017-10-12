@@ -1,6 +1,6 @@
 namespace GitHub.Unity
 {
-    enum GitFileStatus
+    public enum GitFileStatus
     {
         None,
         Untracked,

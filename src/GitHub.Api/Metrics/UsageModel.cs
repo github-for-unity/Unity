@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace GitHub.Unity
 {
-    class Usage
+    public class Usage
     {
         public string Guid { get; set; }
         public DateTime Date { get; set; }
