@@ -140,26 +140,6 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            GUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
-            {
-                GUILayout.BeginVertical(GUILayout.Width(16));
-                {
-                    GUILayout.Space(9);
-                    GUILayout.Label(Styles.BigLogo, GUILayout.Height(20), GUILayout.Width(20));
-                }
-                GUILayout.EndVertical();
-
-                GUILayout.BeginVertical();
-                {
-                    GUILayout.Space(11);
-                    GUILayout.Label(Title, EditorStyles.boldLabel);
-                }
-                GUILayout.EndVertical();
-            }
-            GUILayout.EndHorizontal();
-
-            GUILayout.Space(Styles.PublishViewSpacingHeight);
-
             EditorGUI.BeginDisabledGroup(isBusy);
             {
                 GUILayout.BeginHorizontal();
