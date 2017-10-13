@@ -21,6 +21,7 @@ namespace GitHub.Unity
         private const string RepositoryNameLabel = "Repository Name";
         private const string DescriptionLabel = "Description";
         private const string CreatePrivateRepositoryLabel = "Create as a private repository";
+        private const string PublishLimtPrivateRepositoriesError = "You are currently at your limt of private repositories";
 
         [SerializeField] private string username;
         [SerializeField] private string[] owners = { OwnersDefaultText };
@@ -235,11 +236,11 @@ namespace GitHub.Unity
                             Description = cleanRepoDescription
                         }, (repository, ex) =>
                         {
-                            Logger.Trace("Create Repository Callback");
-
                             if (ex != null)
                             {
-                                error = ex.Message;
+                                Logger.Error(ex, "Repository Create Error Type:{0}", ex.GetType().ToString());
+
+                                error = GetPublishErrorMessage(ex);
                                 isBusy = false;
                                 return;
                             }
@@ -250,6 +251,8 @@ namespace GitHub.Unity
                                 isBusy = false;
                                 return;
                             }
+
+                            Logger.Trace("Repository Created");
 
                             GitClient.RemoteAdd("origin", repository.CloneUrl)
                                      .Then(GitClient.Push("origin", Repository.CurrentBranch.Value.Name))
@@ -263,6 +266,16 @@ namespace GitHub.Unity
                 GUILayout.Space(10);
             }
             EditorGUI.EndDisabledGroup();
+        }
+
+        private string GetPublishErrorMessage(Exception ex)
+        {
+            if (ex.Message.StartsWith(PublishLimtPrivateRepositoriesError))
+            {
+                return PublishLimtPrivateRepositoriesError;
+            }
+
+            return ex.Message;
         }
 
         public override bool IsBusy
