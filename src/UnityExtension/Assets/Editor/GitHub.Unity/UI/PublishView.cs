@@ -9,7 +9,7 @@ namespace GitHub.Unity
 {
     class PublishView : Subview
     {
-        private static readonly Vector2 viewSize = new Vector2(300, 250);
+        private static readonly Vector2 viewSize = new Vector2(400, 350);
 
         private const string WindowTitle = "Publish";
         private const string Header = "Publish this repository to GitHub";
@@ -211,11 +211,6 @@ namespace GitHub.Unity
 
                 GUILayout.Space(Styles.PublishViewSpacingHeight);
 
-                if (error != null)
-                    GUILayout.Label(error, Styles.ErrorLabel);
-
-                GUILayout.FlexibleSpace();
-
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.FlexibleSpace();
@@ -240,7 +235,7 @@ namespace GitHub.Unity
                             {
                                 Logger.Error(ex, "Repository Create Error Type:{0}", ex.GetType().ToString());
 
-                                error = GetPublishErrorMessage(ex);
+                                error = ex.Message;
                                 isBusy = false;
                                 return;
                             }
@@ -264,18 +259,13 @@ namespace GitHub.Unity
                 }
                 GUILayout.EndHorizontal();
                 GUILayout.Space(10);
+
+                if (error != null)
+                    GUILayout.Label(error, Styles.ErrorLabel);
+
+                GUILayout.FlexibleSpace();
             }
             EditorGUI.EndDisabledGroup();
-        }
-
-        private string GetPublishErrorMessage(Exception ex)
-        {
-            if (ex.Message.StartsWith(PublishLimtPrivateRepositoriesError))
-            {
-                return PublishLimtPrivateRepositoriesError;
-            }
-
-            return ex.Message;
         }
 
         public override bool IsBusy
