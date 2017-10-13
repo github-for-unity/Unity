@@ -96,6 +96,7 @@ namespace GitHub.Unity
                                  localCommitIcon,
                                  repoIcon,
                                  lockIcon,
+                                 emptyStateInit,
                                  dropdownListIcon;
 
         private static Color timelineBarColor;
@@ -801,6 +802,19 @@ namespace GitHub.Unity
                 }
                 return lockIcon;
             }
+        }
+
+        public static Texture2D EmptyStateInit
+        {
+          get
+          {
+            if (emptyStateInit == null)
+            {
+              emptyStateInit = Utility.GetIcon("empty-state-init.png", "empty-state-init@2x.png");
+            }
+            return emptyStateInit;
+          }
+
         }
 
         public static Texture2D DropdownListIcon
