@@ -146,27 +146,8 @@ namespace GitHub.Unity
                 repoName = EditorGUILayout.TextField(RepositoryNameLabel, repoName);
                 repoDescription = EditorGUILayout.TextField(DescriptionLabel, repoDescription);
 
-                GUILayout.Space(Styles.PublishViewSpacingHeight);
-
-                GUILayout.BeginVertical();
-                {
-                    GUILayout.BeginHorizontal();
-                    {
-                        togglePrivate = GUILayout.Toggle(togglePrivate, CreatePrivateRepositoryLabel);
-                    }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.BeginHorizontal();
-                    {
-                        GUILayout.Space(Styles.PublishViewSpacingHeight);
-                        var repoPrivacyExplanation = togglePrivate ? PrivateRepoMessage : PublicRepoMessage;
-                        GUILayout.Label(repoPrivacyExplanation, Styles.LongMessageStyle);
-                    }
-                    GUILayout.EndHorizontal();
-                }
-                GUILayout.EndVertical();
-
-                GUILayout.Space(Styles.PublishViewSpacingHeight);
+                togglePrivate = EditorGUILayout.Toggle(CreatePrivateRepositoryLabel, togglePrivate);
+                var repoPrivacyExplanation = togglePrivate ? PrivateRepoMessage : PublicRepoMessage;
 
                 GUILayout.BeginHorizontal();
                 {
