@@ -149,7 +149,9 @@ namespace GitHub.Unity
                 repoDescription = EditorGUILayout.TextField(DescriptionLabel, repoDescription);
 
                 togglePrivate = EditorGUILayout.Toggle(CreatePrivateRepositoryLabel, togglePrivate);
+
                 var repoPrivacyExplanation = togglePrivate ? PrivateRepoMessage : PublicRepoMessage;
+                EditorGUILayout.HelpBox(repoPrivacyExplanation, MessageType.None);
 
                 GUILayout.BeginHorizontal();
                 {
