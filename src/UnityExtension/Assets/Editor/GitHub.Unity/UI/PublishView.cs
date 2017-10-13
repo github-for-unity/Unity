@@ -140,6 +140,8 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
+            GUILayout.Label("Publish to GitHub", EditorStyles.boldLabel);
+
             EditorGUI.BeginDisabledGroup(isBusy);
             {
                 selectedOwner = EditorGUILayout.Popup(SelectedOwnerLabel, selectedOwner, owners);
