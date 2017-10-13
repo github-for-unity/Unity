@@ -142,33 +142,10 @@ namespace GitHub.Unity
         {
             EditorGUI.BeginDisabledGroup(isBusy);
             {
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.BeginVertical();
-                    {
-                        GUILayout.Label(SelectedOwnerLabel);
-                        selectedOwner = EditorGUILayout.Popup(selectedOwner, owners);
-                    }
-                    GUILayout.EndVertical();
+                selectedOwner = EditorGUILayout.Popup(SelectedOwnerLabel, selectedOwner, owners);
+                repoName = EditorGUILayout.TextField(RepositoryNameLabel, repoName);
+                repoDescription = EditorGUILayout.TextField(DescriptionLabel, repoDescription);
 
-                    GUILayout.BeginVertical(GUILayout.Width(8));
-                    {
-                        GUILayout.Space(20);
-                        GUILayout.Label("/");
-                    }
-                    GUILayout.EndVertical();
-
-                    GUILayout.BeginVertical();
-                    {
-                        GUILayout.Label(RepositoryNameLabel);
-                        repoName = EditorGUILayout.TextField(repoName);
-                    }
-                    GUILayout.EndVertical();
-                }
-                GUILayout.EndHorizontal();
-
-                GUILayout.Label(DescriptionLabel);
-                repoDescription = EditorGUILayout.TextField(repoDescription);
                 GUILayout.Space(Styles.PublishViewSpacingHeight);
 
                 GUILayout.BeginVertical();
