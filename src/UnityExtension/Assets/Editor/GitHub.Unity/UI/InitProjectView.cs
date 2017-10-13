@@ -35,7 +35,13 @@ namespace GitHub.Unity
             {
                 GUILayout.FlexibleSpace();
 
-                GUILayout.Label(Styles.EmptyStateInit);
+                GUILayout.BeginHorizontal();
+                {
+                  GUILayout.FlexibleSpace();
+                  GUILayout.Label(Styles.EmptyStateInit, GUILayout.MaxWidth(265), GUILayout.MaxHeight(136));
+                  GUILayout.FlexibleSpace();
+                }
+                GUILayout.EndHorizontal();
 
                 GUILayout.Label(NoRepoTitle, Styles.BoldCenteredLabel);
 
