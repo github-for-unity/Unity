@@ -20,7 +20,7 @@ namespace GitHub.Unity
         private const string SelectedOwnerLabel = "Owner";
         private const string RepositoryNameLabel = "Repository Name";
         private const string DescriptionLabel = "Description";
-        private const string CreatePrivateRepositoryLabel = "Create as a private repository";
+        private const string CreatePrivateRepositoryLabel = "Make repository private";
         private const string PublishLimtPrivateRepositoriesError = "You are currently at your limt of private repositories";
 
         [SerializeField] private string username;
