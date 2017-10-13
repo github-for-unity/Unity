@@ -59,11 +59,30 @@ namespace GitHub.Unity
                     shouldCloseOnFinish = true;
 
                 }, exception => {
-
                     Logger.Trace("User required validation opening AuthenticationView");
 
-                    OpenInternal(PopupViewType.AuthenticationView, completedAuthentication => {
+                    string message = null;
+                    string username = null;
 
+                    var usernameMismatchException = exception as TokenUsernameMismatchException;
+                    if (usernameMismatchException != null)
+                    {
+                        message = "Your credentials need to be refreshed";
+                        username = usernameMismatchException.CachedUsername;
+                    }
+
+                    var keychainEmptyException = exception as KeychainEmptyException;
+                    if (keychainEmptyException != null)
+                    {
+                        message = "We need you to authenticate first";
+                    }
+
+                    if (usernameMismatchException == null && keychainEmptyException == null)
+                    {
+                        message = "There was an error validating your account";
+                    }
+
+                    OpenInternal(PopupViewType.AuthenticationView, completedAuthentication => {
                         if (completedAuthentication)
                         {
                             Logger.Trace("User completed validation opening view: {0}", popupViewType.ToString());
@@ -71,7 +90,13 @@ namespace GitHub.Unity
                             Open(popupViewType, onClose);
                         }
                     });
+
                     shouldCloseOnFinish = false;
+                    authenticationView.SetMessage(message);
+                    if (username != null)
+                    {
+                        authenticationView.SetUsername(username);
+                    }
                 });
             }
             else

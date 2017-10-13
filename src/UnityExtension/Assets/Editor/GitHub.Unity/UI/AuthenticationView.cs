@@ -23,6 +23,7 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string username = "";
         [SerializeField] private string two2fa = "";
+        [SerializeField] private string message;
 
         [NonSerialized] private bool need2fa;
         [NonSerialized] private bool isBusy;
@@ -98,6 +99,16 @@ namespace GitHub.Unity
             GUILayout.EndScrollView();
         }
 
+        public void SetMessage(string value)
+        {
+            message = value;
+        }
+
+        public void SetUsername(string value)
+        {
+            username = value;
+        }
+
         private void HandleEnterPressed()
         {
             if (Event.current.type != EventType.KeyDown)
@@ -112,6 +123,8 @@ namespace GitHub.Unity
         {
             EditorGUI.BeginDisabledGroup(isBusy);
             {
+                ShowMessage();
+
                 GUILayout.Space(3);
                 GUILayout.BeginHorizontal();
                 {
@@ -214,6 +227,16 @@ namespace GitHub.Unity
             else
             {
                 Redraw();
+            }
+        }
+
+        private void ShowMessage()
+        {
+            if (message != null)
+            {
+                GUILayout.Space(Styles.BaseSpacing + 3);
+                GUILayout.Label(message, Styles.CenteredLabel);
+                GUILayout.Space(Styles.BaseSpacing + 3);
             }
         }
 
