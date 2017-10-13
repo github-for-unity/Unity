@@ -14,8 +14,8 @@ namespace GitHub.Unity
             AuthenticationView
         }
 
+        [SerializeField] private bool shouldCloseOnFinish;
         [SerializeField] private PopupViewType activeViewType;
-
         [SerializeField] private AuthenticationView authenticationView;
         [SerializeField] private PublishView publishView;
         [SerializeField] private LoadingView loadingView;
@@ -44,11 +44,6 @@ namespace GitHub.Unity
             OnClose.SafeInvoke(false);
             OnClose = null;
 
-            onClose = onClose ?? (b => {
-                Logger.Trace("Closing Window");
-                Close();
-            });
-
             Logger.Trace("OpenView: {0}", popupViewType.ToString());
 
             var viewNeedsAuthentication = popupViewType == PopupViewType.PublishView;
@@ -61,12 +56,13 @@ namespace GitHub.Unity
                     Logger.Trace("User validated opening view");
 
                     OpenInternal(popupViewType, onClose);
+                    shouldCloseOnFinish = true;
 
                 }, exception => {
 
                     Logger.Trace("User required validation opening AuthenticationView");
 
-                    Open(PopupViewType.AuthenticationView, completedAuthentication => {
+                    OpenInternal(PopupViewType.AuthenticationView, completedAuthentication => {
 
                         if (completedAuthentication)
                         {
@@ -75,11 +71,13 @@ namespace GitHub.Unity
                             Open(popupViewType, onClose);
                         }
                     });
+                    shouldCloseOnFinish = false;
                 });
             }
             else
             {
                 OpenInternal(popupViewType, onClose);
+                shouldCloseOnFinish = true;
             }
         }
 
@@ -177,6 +175,13 @@ namespace GitHub.Unity
         {
             OnClose.SafeInvoke(result);
             OnClose = null;
+
+            if (shouldCloseOnFinish)
+            {
+                shouldCloseOnFinish = false;
+                Close();
+            }
+
             base.Finish(result);
         }
 
