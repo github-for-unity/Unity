@@ -83,6 +83,9 @@ namespace GitHub.Unity
                     }
 
                     OpenInternal(PopupViewType.AuthenticationView, completedAuthentication => {
+                        authenticationView.ClearMessage();
+                        authenticationView.ClearUsername();
+
                         if (completedAuthentication)
                         {
                             Logger.Trace("User completed validation opening view: {0}", popupViewType.ToString());
