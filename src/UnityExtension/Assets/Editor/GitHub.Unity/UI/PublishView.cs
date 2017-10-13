@@ -201,7 +201,7 @@ namespace GitHub.Unity
                 GUILayout.Space(10);
 
                 if (error != null)
-                    GUILayout.Label(error, Styles.ErrorLabel);
+                    EditorGUILayout.HelpBox(error, MessageType.Error);
 
                 GUILayout.FlexibleSpace();
             }
