@@ -367,9 +367,10 @@ namespace GitHub.Unity
                 eventsProcessed++;
             }
 
-            if (events.ContainsKey(EventType.LocalBranchCreated))
+            List<EventData> localBranchesCreated;
+            if (events.TryGetValue(EventType.LocalBranchCreated, out localBranchesCreated))
             {
-                foreach (var evt in events[EventType.LocalBranchCreated])
+                foreach (var evt in localBranchesCreated)
                 {
                     Logger.Trace($"LocalBranchCreated: {evt.Branch}");
                     LocalBranchCreated?.Invoke(evt.Branch);
@@ -377,9 +378,10 @@ namespace GitHub.Unity
                 }
             }
 
-            if (events.ContainsKey(EventType.LocalBranchChanged))
+            List<EventData> localBranchesChanged;
+            if (events.TryGetValue(EventType.LocalBranchChanged, out localBranchesChanged))
             {
-                foreach (var evt in events[EventType.LocalBranchChanged])
+                foreach (var evt in localBranchesChanged)
                 {
                     Logger.Trace($"LocalBranchChanged: {evt.Branch}");
                     LocalBranchChanged?.Invoke(evt.Branch);
@@ -387,9 +389,10 @@ namespace GitHub.Unity
                 }
             }
 
-            if (events.ContainsKey(EventType.LocalBranchDeleted))
+            List<EventData> localBranchesDeleted;
+            if (events.TryGetValue(EventType.LocalBranchDeleted, out localBranchesDeleted))
             {
-                foreach (var evt in events[EventType.LocalBranchDeleted])
+                foreach (var evt in localBranchesDeleted)
                 {
                     Logger.Trace($"LocalBranchDeleted: {evt.Branch}");
                     LocalBranchDeleted?.Invoke(evt.Branch);
@@ -397,9 +400,10 @@ namespace GitHub.Unity
                 }
             }
 
-            if (events.ContainsKey(EventType.RemoteBranchCreated))
+            List<EventData> remoteBranchesCreated;
+            if (events.TryGetValue(EventType.RemoteBranchCreated, out remoteBranchesCreated))
             {
-                foreach (var evt in events[EventType.RemoteBranchCreated])
+                foreach (var evt in remoteBranchesCreated)
                 {
                     Logger.Trace($"RemoteBranchCreated: {evt.Origin}/{evt.Branch}");
                     RemoteBranchCreated?.Invoke(evt.Origin, evt.Branch);
@@ -407,9 +411,10 @@ namespace GitHub.Unity
                 }
             }
 
-            if (events.ContainsKey(EventType.RemoteBranchDeleted))
+            List<EventData> remoteBranchesDeleted;
+            if (events.TryGetValue(EventType.RemoteBranchDeleted, out remoteBranchesDeleted))
             {
-                foreach (var evt in events[EventType.RemoteBranchDeleted])
+                foreach (var evt in remoteBranchesDeleted)
                 {
                     Logger.Trace($"RemoteBranchDeleted: {evt.Origin}/{evt.Branch}");
                     RemoteBranchDeleted?.Invoke(evt.Origin, evt.Branch);
