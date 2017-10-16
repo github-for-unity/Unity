@@ -284,7 +284,7 @@ namespace GitHub.Unity
                 changeTab = activeTab;
                 EditorGUI.BeginChangeCheck();
                 {
-                    if (!HasRepository)
+                    if (HasRepository)
                     {
                         changeTab = TabButton(SubTab.Changes, ChangesTitle, changeTab);
                         changeTab = TabButton(SubTab.History, HistoryTitle, changeTab);
