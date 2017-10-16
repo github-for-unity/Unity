@@ -21,6 +21,7 @@ namespace GitHub.Unity
         ITask ListLocks();
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
+		ITask CheckoutFiles( List<string> files );
 
         /// <summary>
         /// Gets the name of the repository.
