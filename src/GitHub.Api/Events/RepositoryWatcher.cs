@@ -160,27 +160,6 @@ namespace GitHub.Unity
             return processedEventCount;
         }
 
-        enum EventType
-        {
-            None,
-            ConfigChanged,
-            HeadChanged,
-            RepositoryChanged,
-            IndexChanged,
-            RemoteBranchDeleted,
-            RemoteBranchCreated,
-            RemoteBranchChanged,
-            LocalBranchDeleted,
-            LocalBranchCreated,
-            LocalBranchChanged
-        }
-
-        class EventData
-        {
-            public string Origin;
-            public string Branch;
-        }
-
         private int ProcessEvents(Event[] fileEvents)
         {
             Dictionary<EventType, List<EventData>> events = new Dictionary<EventType, List<EventData>>();
@@ -464,5 +443,26 @@ namespace GitHub.Unity
         }
 
         protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryWatcher>();
+
+        private enum EventType
+        {
+            None,
+            ConfigChanged,
+            HeadChanged,
+            RepositoryChanged,
+            IndexChanged,
+            RemoteBranchDeleted,
+            RemoteBranchCreated,
+            RemoteBranchChanged,
+            LocalBranchDeleted,
+            LocalBranchCreated,
+            LocalBranchChanged
+        }
+
+        private class EventData
+        {
+            public string Origin;
+            public string Branch;
+        }
     }
 }
