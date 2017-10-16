@@ -64,7 +64,12 @@ namespace GitHub.Unity
 
         ITask<string> AddAll(IOutputProcessor<string> processor = null);
 
-        ITask<string> Remove(IList<string> files,
+		ITask<string> Discard( IList<string> files,
+			IOutputProcessor<string> processor = null );
+
+		ITask<string> DiscardAll( IOutputProcessor<string> processor = null );
+
+		ITask<string> Remove(IList<string> files,
             IOutputProcessor<string> processor = null);
 
         ITask<string> AddAndCommit(IList<string> files, string message, string body,
@@ -360,14 +365,6 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<string> AddAll(IOutputProcessor<string> processor = null)
-        {
-            Logger.Trace("Add all files");
-
-            return new GitAddTask(cancellationToken, processor)
-                .Configure(processManager);
-        }
-
         public ITask<string> Add(IList<string> files,
             IOutputProcessor<string> processor = null)
         {
@@ -391,7 +388,46 @@ namespace GitHub.Unity
             return last;
         }
 
-        public ITask<string> Remove(IList<string> files,
+        public ITask<string> AddAll(IOutputProcessor<string> processor = null)
+        {
+            Logger.Trace("Add all files");
+
+            return new GitAddTask(cancellationToken, processor)
+                .Configure(processManager);
+        }
+
+		public ITask<string> Discard( IList<string> files,
+			IOutputProcessor<string> processor = null )
+		{
+			Logger.Trace("Checkout Files");
+
+			GitCheckoutTask last = null;
+			foreach( var batch in files.Spool( 5000 ) )
+			{
+				var current = new GitCheckoutTask( batch, cancellationToken, processor ).Configure( processManager );
+				if( last == null )
+				{
+					last = current;
+				}
+				else
+				{
+					last.Then( current );
+					last = current;
+				}
+			}
+
+			return last;
+		}
+
+		public ITask<string> DiscardAll( IOutputProcessor<string> processor = null )
+		{
+			Logger.Trace( "Checkout all files" );
+
+			return new GitCheckoutTask( cancellationToken, processor )
+				.Configure( processManager );
+		}
+
+		public ITask<string> Remove(IList<string> files,
             IOutputProcessor<string> processor = null)
         {
             Logger.Trace("Remove");
