@@ -160,14 +160,30 @@ namespace GitHub.Unity
             return processedEventCount;
         }
 
+        enum EventType
+        {
+            None,
+            ConfigChanged,
+            HeadChanged,
+            RepositoryChanged,
+            IndexChanged,
+            RemoteBranchDeleted,
+            RemoteBranchCreated,
+            RemoteBranchChanged,
+            LocalBranchDeleted,
+            LocalBranchCreated,
+            LocalBranchChanged
+        }
+
+        class EventData
+        {
+            public string Origin;
+            public string Branch;
+        }
+
         private int ProcessEvents(Event[] fileEvents)
         {
-            var eventsProcessed = 0;
-            var configChanged = false;
-            var headChanged = false;
-            var repositoryChanged = false;
-            var indexChanged = false;
-
+            Dictionary<EventType, List<EventData>> events = new Dictionary<EventType, List<EventData>>();
             foreach (var fileEvent in fileEvents)
             {
                 if (!running)
@@ -195,29 +211,17 @@ namespace GitHub.Unity
                 // handling events in .git/*
                 if (fileA.IsChildOf(paths.DotGitPath))
                 {
-                    if (!configChanged && fileA.Equals(paths.DotGitConfig))
+                    if (!events.ContainsKey(EventType.ConfigChanged) && fileA.Equals(paths.DotGitConfig))
                     {
-                        configChanged = true;
-
-                        Logger.Trace("ConfigChanged");
-                        ConfigChanged?.Invoke();
-                        eventsProcessed++;
+                        events.Add(EventType.ConfigChanged, null);
                     }
-                    else if (!headChanged && fileA.Equals(paths.DotGitHead))
+                    else if (!events.ContainsKey(EventType.HeadChanged) && fileA.Equals(paths.DotGitHead))
                     {
-                        headChanged = true;
-
-                        Logger.Trace("HeadChanged");
-                        HeadChanged?.Invoke();
-                        eventsProcessed++;
+                        events.Add(EventType.HeadChanged, null);
                     }
-                    else if (!indexChanged && fileA.Equals(paths.DotGitIndex))
+                    else if (!events.ContainsKey(EventType.IndexChanged) && fileA.Equals(paths.DotGitIndex))
                     {
-                        indexChanged = true;
-
-                        Logger.Trace("IndexChanged");
-                        IndexChanged?.Invoke();
-                        eventsProcessed++;
+                        events.Add(EventType.IndexChanged, null);
                     }
                     else if (fileA.IsChildOf(paths.RemotesPath))
                     {
@@ -231,7 +235,7 @@ namespace GitHub.Unity
 
                         var origin = relativePathElements[0];
 
-                        if (fileEvent.Type == EventType.DELETED)
+                        if (fileEvent.Type == sfw.net.EventType.DELETED)
                         {
                             if (fileA.ExtensionWithDot == ".lock")
                             {
@@ -239,12 +243,9 @@ namespace GitHub.Unity
                             }
 
                             var branch = string.Join(@"/", relativePathElements.Skip(1).ToArray());
-
-                            Logger.Trace("RemoteBranchDeleted: {0}/{1}", origin, branch);
-                            RemoteBranchDeleted?.Invoke(origin, branch);
-                            eventsProcessed++;
+                            AddOrUpdateEventData(events, EventType.RemoteBranchDeleted, new EventData { Origin = origin, Branch = branch });
                         }
-                        else if (fileEvent.Type == EventType.RENAMED)
+                        else if (fileEvent.Type == sfw.net.EventType.RENAMED)
                         {
                             if (fileA.ExtensionWithDot != ".lock")
                             {
@@ -260,17 +261,14 @@ namespace GitHub.Unity
                                         .Union(new[] { fileA.FileNameWithoutExtension }).ToArray();
 
                                     var branch = string.Join(@"/", branchPathElement);
-
-                                    Logger.Trace("RemoteBranchCreated: {0}/{1}", origin, branch);
-                                    RemoteBranchCreated?.Invoke(origin, branch);
-                                    eventsProcessed++;
+                                    AddOrUpdateEventData(events, EventType.RemoteBranchCreated, new EventData { Origin = origin, Branch = branch });
                                 }
                             }
                         }
                     }
                     else if (fileA.IsChildOf(paths.BranchesPath))
                     {
-                        if (fileEvent.Type == EventType.MODIFIED)
+                        if (fileEvent.Type == sfw.net.EventType.MODIFIED)
                         {
                             if (fileA.DirectoryExists())
                             {
@@ -292,11 +290,10 @@ namespace GitHub.Unity
 
                             var branch = string.Join(@"/", relativePathElements.ToArray());
 
-                            Logger.Trace("LocalBranchChanged: {0}", branch);
-                            LocalBranchChanged?.Invoke(branch);
-                            eventsProcessed++;
+                            AddOrUpdateEventData(events, EventType.LocalBranchChanged, new EventData { Branch = branch });
+
                         }
-                        else if (fileEvent.Type == EventType.DELETED)
+                        else if (fileEvent.Type == sfw.net.EventType.DELETED)
                         {
                             if (fileA.ExtensionWithDot == ".lock")
                             {
@@ -312,12 +309,9 @@ namespace GitHub.Unity
                             }
 
                             var branch = string.Join(@"/", relativePathElements.ToArray());
-
-                            Logger.Trace("LocalBranchDeleted: {0}", branch);
-                            LocalBranchDeleted?.Invoke(branch);
-                            eventsProcessed++;
+                            AddOrUpdateEventData(events, EventType.LocalBranchDeleted, new EventData { Branch = branch });
                         }
-                        else if (fileEvent.Type == EventType.RENAMED)
+                        else if (fileEvent.Type == sfw.net.EventType.RENAMED)
                         {
                             if (fileA.ExtensionWithDot != ".lock")
                             {
@@ -337,10 +331,7 @@ namespace GitHub.Unity
                                     }
 
                                     var branch = string.Join(@"/", relativePathElements.ToArray());
-
-                                    Logger.Trace("LocalBranchCreated: {0}", branch);
-                                    LocalBranchCreated?.Invoke(branch);
-                                    eventsProcessed++;
+                                    AddOrUpdateEventData(events, EventType.LocalBranchCreated, new EventData { Branch = branch });
                                 }
                             }
                         }
@@ -348,19 +339,104 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    if (repositoryChanged || ignoredPaths.Any(ignoredPath => fileA.IsChildOf(ignoredPath)))
+                    if (events.ContainsKey(EventType.RepositoryChanged) || ignoredPaths.Any(ignoredPath => fileA.IsChildOf(ignoredPath)))
                     {
                         continue;
                     }
+                    events.Add(EventType.RepositoryChanged, null);
+                }
+            }
 
-                    repositoryChanged = true;
+            return FireEvents(events);
+        }
 
-                    Logger.Trace("RepositoryChanged");
-                    RepositoryChanged?.Invoke();
+        private void AddOrUpdateEventData(Dictionary<EventType, List<EventData>> events, EventType type, EventData data)
+        {
+            if (!events.ContainsKey(type))
+                events.Add(type, new List<EventData>());
+            events[type].Add(data);
+        }
+
+        private int FireEvents(Dictionary<EventType, List<EventData>> events)
+        {
+            int eventsProcessed = 0;
+            if (events.ContainsKey(EventType.ConfigChanged))
+            {
+                Logger.Trace("ConfigChanged");
+                ConfigChanged?.Invoke();
+                eventsProcessed++;
+            }
+
+            if (events.ContainsKey(EventType.HeadChanged))
+            {
+                Logger.Trace("HeadChanged");
+                HeadChanged?.Invoke();
+                eventsProcessed++;
+            }
+
+            if (events.ContainsKey(EventType.IndexChanged))
+            {
+                Logger.Trace("IndexChanged");
+                IndexChanged?.Invoke();
+                eventsProcessed++;
+            }
+
+            if (events.ContainsKey(EventType.RepositoryChanged))
+            {
+                Logger.Trace("RepositoryChanged");
+                RepositoryChanged?.Invoke();
+                eventsProcessed++;
+            }
+
+            if (events.ContainsKey(EventType.LocalBranchCreated))
+            {
+                foreach (var evt in events[EventType.LocalBranchCreated])
+                {
+                    Logger.Trace($"LocalBranchCreated: {evt.Branch}");
+                    LocalBranchCreated?.Invoke(evt.Branch);
                     eventsProcessed++;
                 }
             }
 
+            if (events.ContainsKey(EventType.LocalBranchChanged))
+            {
+                foreach (var evt in events[EventType.LocalBranchChanged])
+                {
+                    Logger.Trace($"LocalBranchChanged: {evt.Branch}");
+                    LocalBranchChanged?.Invoke(evt.Branch);
+                    eventsProcessed++;
+                }
+            }
+
+            if (events.ContainsKey(EventType.LocalBranchDeleted))
+            {
+                foreach (var evt in events[EventType.LocalBranchDeleted])
+                {
+                    Logger.Trace($"LocalBranchDeleted: {evt.Branch}");
+                    LocalBranchDeleted?.Invoke(evt.Branch);
+                    eventsProcessed++;
+                }
+            }
+
+            if (events.ContainsKey(EventType.RemoteBranchCreated))
+            {
+                foreach (var evt in events[EventType.RemoteBranchCreated])
+                {
+                    Logger.Trace($"RemoteBranchCreated: {evt.Origin}/{evt.Branch}");
+                    RemoteBranchCreated?.Invoke(evt.Origin, evt.Branch);
+                    eventsProcessed++;
+                }
+            }
+
+            if (events.ContainsKey(EventType.RemoteBranchDeleted))
+            {
+                foreach (var evt in events[EventType.RemoteBranchDeleted])
+                {
+                    Logger.Trace($"RemoteBranchDeleted: {evt.Origin}/{evt.Branch}");
+                    RemoteBranchDeleted?.Invoke(evt.Origin, evt.Branch);
+                    eventsProcessed++;
+                }
+            }
             return eventsProcessed;
         }
 
