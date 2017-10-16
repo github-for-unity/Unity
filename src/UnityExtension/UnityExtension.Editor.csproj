@@ -178,8 +178,6 @@
     <Compile Include="Assets\Editor\GitHub.Unity\ScriptObjectSingleton.cs" />
     <Compile Include="Assets\Editor\GitHub.Unity\Services\AuthenticationService.cs" />
     <Compile Include="Assets\Editor\GitHub.Unity\Services\StatusService.cs" />
-    <Compile Include="Assets\Editor\GitHub.Unity\Tasks\EvaluateProjectConfigurationTask.cs" />
-    <Compile Include="Assets\Editor\GitHub.Unity\Tasks\TaskException.cs" />
     <Compile Include="Assets\Editor\GitHub.Unity\Threading\SingleThreadSynchronizationContext.cs" />
     <Compile Include="Assets\Editor\GitHub.Unity\Tools\MozRoots.cs" />
     <Compile Include="Assets\Editor\GitHub.Unity\UI\AuthenticationView.cs" />
