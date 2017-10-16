@@ -20,7 +20,7 @@ namespace GitHub.Unity
         private const string SelectedOwnerLabel = "Owner";
         private const string RepositoryNameLabel = "Repository Name";
         private const string DescriptionLabel = "Description";
-        private const string CreatePrivateRepositoryLabel = "Create as a private repository";
+        private const string CreatePrivateRepositoryLabel = "Make repository private";
         private const string PublishLimtPrivateRepositoriesError = "You are currently at your limt of private repositories";
         private const string AuthenticationChangedMessageFormat = "You were authenticated as \"{0}\", but you are now authenticated as \"{1}\". Would you like to proceed or logout?";
         private const string AuthenticationChangedTitle = "Authentication Changed";
@@ -157,76 +157,18 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            GUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
-            {
-                GUILayout.BeginVertical(GUILayout.Width(16));
-                {
-                    GUILayout.Space(9);
-                    GUILayout.Label(Styles.BigLogo, GUILayout.Height(20), GUILayout.Width(20));
-                }
-                GUILayout.EndVertical();
-
-                GUILayout.BeginVertical();
-                {
-                    GUILayout.Space(11);
-                    GUILayout.Label(Title, EditorStyles.boldLabel);
-                }
-                GUILayout.EndVertical();
-            }
-            GUILayout.EndHorizontal();
-
-            GUILayout.Space(Styles.PublishViewSpacingHeight);
+            GUILayout.Label("Publish to GitHub", EditorStyles.boldLabel);
 
             EditorGUI.BeginDisabledGroup(isBusy);
             {
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.BeginVertical();
-                    {
-                        GUILayout.Label(SelectedOwnerLabel);
-                        selectedOwner = EditorGUILayout.Popup(selectedOwner, owners);
-                    }
-                    GUILayout.EndVertical();
+                selectedOwner = EditorGUILayout.Popup(SelectedOwnerLabel, selectedOwner, owners);
+                repoName = EditorGUILayout.TextField(RepositoryNameLabel, repoName);
+                repoDescription = EditorGUILayout.TextField(DescriptionLabel, repoDescription);
 
-                    GUILayout.BeginVertical(GUILayout.Width(8));
-                    {
-                        GUILayout.Space(20);
-                        GUILayout.Label("/");
-                    }
-                    GUILayout.EndVertical();
+                togglePrivate = EditorGUILayout.Toggle(CreatePrivateRepositoryLabel, togglePrivate);
 
-                    GUILayout.BeginVertical();
-                    {
-                        GUILayout.Label(RepositoryNameLabel);
-                        repoName = EditorGUILayout.TextField(repoName);
-                    }
-                    GUILayout.EndVertical();
-                }
-                GUILayout.EndHorizontal();
-
-                GUILayout.Label(DescriptionLabel);
-                repoDescription = EditorGUILayout.TextField(repoDescription);
-                GUILayout.Space(Styles.PublishViewSpacingHeight);
-
-                GUILayout.BeginVertical();
-                {
-                    GUILayout.BeginHorizontal();
-                    {
-                        togglePrivate = GUILayout.Toggle(togglePrivate, CreatePrivateRepositoryLabel);
-                    }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.BeginHorizontal();
-                    {
-                        GUILayout.Space(Styles.PublishViewSpacingHeight);
-                        var repoPrivacyExplanation = togglePrivate ? PrivateRepoMessage : PublicRepoMessage;
-                        GUILayout.Label(repoPrivacyExplanation, Styles.LongMessageStyle);
-                    }
-                    GUILayout.EndHorizontal();
-                }
-                GUILayout.EndVertical();
-
-                GUILayout.Space(Styles.PublishViewSpacingHeight);
+                var repoPrivacyExplanation = togglePrivate ? PrivateRepoMessage : PublicRepoMessage;
+                EditorGUILayout.HelpBox(repoPrivacyExplanation, MessageType.None);
 
                 GUILayout.BeginHorizontal();
                 {
@@ -278,7 +220,7 @@ namespace GitHub.Unity
                 GUILayout.Space(10);
 
                 if (error != null)
-                    GUILayout.Label(error, Styles.ErrorLabel);
+                    EditorGUILayout.HelpBox(error, MessageType.Error);
 
                 GUILayout.FlexibleSpace();
             }
