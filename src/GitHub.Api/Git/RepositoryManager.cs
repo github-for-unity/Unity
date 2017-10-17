@@ -44,6 +44,7 @@ namespace GitHub.Unity
         ITask ListLocks(bool local);
         ITask LockFile(string file);
         ITask UnlockFile(string file, bool force);
+		ITask CheckoutFiles(List<string> files);
         int WaitForEvents();
     }
 
@@ -323,6 +324,14 @@ namespace GitHub.Unity
 
             return task.Then(ListLocks(false));
         }
+
+		public ITask CheckoutFiles( List<string> files )
+		{
+			var discard = GitClient.Discard(files);
+			discard.OnStart += t => IsBusy = true;
+			
+			return discard.Finally(() => IsBusy = false);
+		}
 
         private void LoadGitUser()
         {
