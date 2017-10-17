@@ -11,21 +11,23 @@ namespace GitHub.Unity
 {
     static class ProcessTaskExtensions
     {
-        public static T Configure<T>(this T task, IProcessManager processManager, bool withInput = false)
+        public static T Configure<T>(this T task, IProcessManager processManager, bool withInput)
             where T : IProcess
         {
-            return processManager.Configure(task, withInput);
+            return processManager.Configure(task, withInput: withInput);
         }
 
-        public static T Configure<T>(this T task, IProcessManager processManager, string executable, string arguments,
-            NPath workingDirectory = null, bool withInput = false)
+        public static T Configure<T>(this T task, IProcessManager processManager, string executable = null,
+            string arguments = null,
+            NPath workingDirectory = null,
+            bool withInput = false)
             where T : IProcess
         {
-            return processManager.Configure(task, executable, arguments, workingDirectory, withInput);
+            return processManager.Configure(task, executable?.ToNPath(), arguments, workingDirectory, withInput);
         }
     }
 
-    interface IProcess
+    public interface IProcess
     {
         void Configure(Process existingProcess);
         void Configure(ProcessStartInfo psi);
@@ -286,8 +288,8 @@ namespace GitHub.Unity
                     if (outputProcessor != null)
                         result = outputProcessor.Result;
 
-                    if (result == null && typeof(T) == typeof(string))
-                        result = (T)(object)(Process.StartInfo.CreateNoWindow ? "Process finished" : "Process running");
+                    if (result == null && !Process.StartInfo.CreateNoWindow && typeof(T) == typeof(string))
+                        result = (T)(object)"Process running";
 
                     RaiseOnEnd(result);
 

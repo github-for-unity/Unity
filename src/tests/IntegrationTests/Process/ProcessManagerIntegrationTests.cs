@@ -179,7 +179,6 @@ namespace IntegrationTests
             s = await ProcessManager
                 .GetGitCreds(TestRepoMasterCleanSynchronized, Environment, GitEnvironment)
                 .StartAsAsync();
-            s.Should().NotBeNull();
         }
     }
 }

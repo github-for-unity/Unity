@@ -133,6 +133,8 @@ namespace GitHub.Unity
                 .Configure(processManager)
                 .StartAwait();
 
+            Logger.Trace("Loaded Credential Helper: {0}", credHelper);
+
             if (credHelper != null)
             {
                 return true;

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace GitHub.Unity
 {
     [Serializable]
-    struct GitStatus
+    public struct GitStatus
     {
         public string LocalBranch;
         public string RemoteBranch;

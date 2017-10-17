@@ -9,7 +9,7 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    struct GitBranch : ITreeData
+    public struct GitBranch : ITreeData
     {
         private string name;
         private string tracking;
