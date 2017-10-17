@@ -127,12 +127,12 @@ namespace GitHub.Unity
         private void HandleDataUpdated()
         {
             branchesHaveChanged = true;
+            new ActionTask(TaskManager.Token, Redraw) { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void HandleDataUpdated(string obj)
         {
-            branchesHaveChanged = true;
-            new ActionTask(TaskManager.Token, Redraw) { Affinity = TaskAffinity.UI }.Start();
+            HandleDataUpdated();
         }
 
         public override void Refresh()
