@@ -43,6 +43,7 @@ namespace GitHub.Unity
         [NonSerialized] private BranchTreeNode newNodeSelection;
         [NonSerialized] private BranchesMode targetMode;
         [NonSerialized] private bool favoritesHasChanged;
+        [NonSerialized] private bool branchesHaveChanged;
 
         [SerializeField] private BranchTreeNode activeBranchNode;
         [SerializeField] private BranchTreeNode localRoot;
@@ -63,8 +64,11 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             AttachHandlers(Repository);
-            favoritesHasChanged = true;
-            Refresh();
+            if (!Application.isPlaying)
+            {
+                favoritesHasChanged = true;
+                branchesHaveChanged = true;
+            }
         }
 
         public override void OnDisable()
@@ -86,6 +90,12 @@ namespace GitHub.Unity
                 favoritesList = Manager.LocalSettings.Get(FavoritesSetting, new List<string>());
                 favoritesHasChanged = false;
             }
+
+            if (branchesHaveChanged)
+            {
+                UpdateBranches();
+                branchesHaveChanged = false;
+            }
         }
 
         public override void OnRepositoryChanged(IRepository oldRepository)
@@ -100,23 +110,28 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.OnLocalBranchListChanged += RunUpdateBranchesOnMainThread;
-            repository.OnCurrentBranchChanged += HandleRepositoryBranchChangeEvent;
-            repository.OnCurrentRemoteChanged += HandleRepositoryBranchChangeEvent;
+            repository.OnLocalBranchListChanged += HandleDataUpdated;
+            repository.OnCurrentBranchChanged += HandleDataUpdated;
+            repository.OnCurrentRemoteChanged += HandleDataUpdated;
         }
 
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnLocalBranchListChanged -= RunUpdateBranchesOnMainThread;
-            repository.OnCurrentBranchChanged -= HandleRepositoryBranchChangeEvent;
-            repository.OnCurrentRemoteChanged -= HandleRepositoryBranchChangeEvent;
+            repository.OnLocalBranchListChanged -= HandleDataUpdated;
+            repository.OnCurrentBranchChanged -= HandleDataUpdated;
+            repository.OnCurrentRemoteChanged -= HandleDataUpdated;
         }
 
-        private void HandleRepositoryBranchChangeEvent(string obj)
+        private void HandleDataUpdated()
         {
-            RunUpdateBranchesOnMainThread();
+            branchesHaveChanged = true;
+        }
+
+        private void HandleDataUpdated(string obj)
+        {
+            branchesHaveChanged = true;
         }
 
         public override void Refresh()
