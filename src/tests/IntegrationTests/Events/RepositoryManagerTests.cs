@@ -774,7 +774,7 @@ namespace IntegrationTests
 				Entries =
 					new List<GitStatusEntry> {
 						new GitStatusEntry("foobar.txt", TestRepoMasterCleanSynchronized.Combine("foobar.txt"),
-							"foobar.txt", GitFileStatus.None)
+							"foobar.txt", GitFileStatus.Untracked)
 					}
 			};
 
