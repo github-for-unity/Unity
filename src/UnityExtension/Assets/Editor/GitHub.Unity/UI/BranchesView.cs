@@ -149,20 +149,6 @@ namespace GitHub.Unity
             BuildTree(localBranches, remoteBranches);
         }
 
-        private void RunUpdateBranchesOnMainThread()
-        {
-            new ActionTask(TaskManager.Token, _ => UpdateBranches())
-                .ScheduleUI(TaskManager);
-        }
-
-        public void UpdateBranches()
-        {
-            if (Repository == null)
-                return;
-
-            BuildTree(Repository.LocalBranches, Repository.RemoteBranches);
-        }
-
         private void Render()
         {
             scroll = GUILayout.BeginScrollView(scroll, false, true);
