@@ -157,7 +157,11 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            GUILayout.Label("Publish to GitHub", EditorStyles.boldLabel);
+            GUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
+            {
+              GUILayout.Label("Publish to GitHub", EditorStyles.boldLabel);
+            }
+            GUILayout.EndHorizontal();
 
             EditorGUI.BeginDisabledGroup(isBusy);
             {
