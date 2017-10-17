@@ -78,6 +78,7 @@
     <Compile Include="BaseGitEnvironmentTest.cs" />
     <Compile Include="BaseGitRepoTest.cs" />
     <Compile Include="BaseIntegrationTest.cs" />
+    <Compile Include="GitClientTests.cs" />
     <Compile Include="Git\GitSetupTests.cs" />
     <Compile Include="Git\IntegrationTestEnvironment.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
@@ -121,8 +122,8 @@
       <Link>sfw_x64.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="$(SolutionDir)\lib\sfw\win\x64\sfw_x64.dll.meta">
-      <Link>sfw_x64.dll.meta</Link>
+    <None Include="$(SolutionDir)\lib\sfw\win\x64\pthreadVC2.dll">
+      <Link>pthreadVC2.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

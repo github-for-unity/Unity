@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface IRepositoryManager : IDisposable
+    public interface IRepositoryManager : IDisposable
     {
         event Action<bool> OnIsBusyChanged;
 
@@ -312,16 +312,16 @@ namespace GitHub.Unity
         {
             var task = GitClient.Lock(file);
             HookupHandlers(task);
-            ListLocks(false);
-            return task;
+            
+            return task.Then(ListLocks(false));
         }
 
         public ITask UnlockFile(string file, bool force)
         {
             var task = GitClient.Unlock(file, force);
             HookupHandlers(task).Schedule(taskManager);
-            ListLocks(false);
-            return task;
+
+            return task.Then(ListLocks(false));
         }
 
         private void LoadGitUser()

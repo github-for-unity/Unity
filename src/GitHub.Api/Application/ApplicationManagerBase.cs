@@ -18,7 +18,7 @@ namespace GitHub.Unity
         {
             SynchronizationContext = synchronizationContext;
             SynchronizationContext.SetSynchronizationContext(SynchronizationContext);
-            ThreadingHelper.SetMainThread();
+            ThreadingHelper.SetUIThread();
             UIScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             ThreadingHelper.MainThreadScheduler = UIScheduler;
             TaskManager = new TaskManager(UIScheduler);
@@ -66,8 +66,15 @@ namespace GitHub.Unity
                 if (Environment.IsWindows)
                 {
                     var credentialHelper = await GitClient.GetConfig("credential.helper", GitConfigSource.Global).StartAwait();
-                    if (string.IsNullOrEmpty(credentialHelper))
+
+                    if (!string.IsNullOrEmpty(credentialHelper))
                     {
+                        Logger.Trace("Windows CredentialHelper: {0}", credentialHelper);
+                    }
+                    else
+                    {
+                        Logger.Warning("No Windows CredentialHeloper found: Setting to wincred");
+
                         await GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global).StartAwait();
                     }
                 }

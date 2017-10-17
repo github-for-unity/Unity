@@ -25,7 +25,7 @@ namespace GitHub.Unity
         }
     }
 
-    static class Logging
+    public static class Logging
     {
         private static readonly LogAdapterBase nullLogAdapter = new NullLogAdapter();
 

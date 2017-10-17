@@ -1,6 +1,6 @@
 namespace GitHub.Unity
 {
-    interface ISettings
+    public interface ISettings
     {
         void Initialize();
         bool Exists(string key);
