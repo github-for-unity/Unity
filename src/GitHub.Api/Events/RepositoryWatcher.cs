@@ -458,7 +458,6 @@ namespace GitHub.Unity
             IndexChanged,
             RemoteBranchDeleted,
             RemoteBranchCreated,
-            RemoteBranchChanged,
             LocalBranchDeleted,
             LocalBranchCreated,
             LocalBranchChanged
