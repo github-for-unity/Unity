@@ -61,6 +61,7 @@ namespace GitHub.Unity
             base.OnEnable();
             AttachHandlers(Repository);
             favoritesHasChanged = true;
+            Refresh();
         }
 
         public override void OnDisable()
@@ -116,8 +117,8 @@ namespace GitHub.Unity
                 return;
 
             repository.OnLocalBranchListChanged += RunRefreshOnMainThread;
-            repository.OnActiveBranchChanged += HandleRepositoryBranchChangeEvent;
-            repository.OnActiveRemoteChanged += HandleRepositoryBranchChangeEvent;
+            repository.OnCurrentBranchChanged += HandleRepositoryBranchChangeEvent;
+            repository.OnCurrentRemoteChanged += HandleRepositoryBranchChangeEvent;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -125,8 +126,8 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
             repository.OnLocalBranchListChanged -= RunRefreshOnMainThread;
-            repository.OnActiveBranchChanged -= HandleRepositoryBranchChangeEvent;
-            repository.OnActiveRemoteChanged -= HandleRepositoryBranchChangeEvent;
+            repository.OnCurrentBranchChanged -= HandleRepositoryBranchChangeEvent;
+            repository.OnCurrentRemoteChanged -= HandleRepositoryBranchChangeEvent;
         }
 
         private void RunRefreshOnMainThread()
@@ -146,6 +147,20 @@ namespace GitHub.Unity
             var remoteBranches = BranchCache.Instance.RemoteBranches;
             remoteBranches.Sort(CompareBranches);
             BuildTree(localBranches, remoteBranches);
+        }
+
+        private void RunUpdateBranchesOnMainThread()
+        {
+            new ActionTask(TaskManager.Token, _ => UpdateBranches())
+                .ScheduleUI(TaskManager);
+        }
+
+        public void UpdateBranches()
+        {
+            if (Repository == null)
+                return;
+
+            BuildTree(Repository.LocalBranches, Repository.RemoteBranches);
         }
 
         private void Render()
@@ -272,7 +287,7 @@ namespace GitHub.Unity
                             .FinallyInUI((success, e) => {
                                      if (success)
                                      {
-                                         Refresh();
+                                         Redraw();
                                      }
                                      else
                                      {
@@ -326,7 +341,7 @@ namespace GitHub.Unity
                             {
                                 if (success)
                                 {
-                                    Refresh();
+                                    Redraw();
                                 }
                                 else
                                 {
@@ -377,7 +392,7 @@ namespace GitHub.Unity
                                 {
                                     if (success)
                                     {
-                                        Refresh();
+                                        Redraw();
                                     }
                                     else
                                     {
