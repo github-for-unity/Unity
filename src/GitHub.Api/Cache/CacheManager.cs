@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace GitHub.Unity
 {
-    class CacheManager
+    public class CacheManager
     {
         private IBranchCache branchCache;
         public IBranchCache BranchCache
