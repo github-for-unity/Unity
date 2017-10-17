@@ -140,12 +140,6 @@ namespace GitHub.Unity
             UpdateBranches();
         }
 
-        private void RunUpdateBranchesOnMainThread()
-        {
-            new ActionTask(TaskManager.Token, _ => UpdateBranches())
-                .ScheduleUI(TaskManager);
-        }
-
         public void UpdateBranches()
         {
             if (Repository == null)
