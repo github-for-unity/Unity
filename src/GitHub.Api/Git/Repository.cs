@@ -8,33 +8,30 @@ using System.Threading;
 namespace GitHub.Unity
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    class Repository : IRepository, IEquatable<Repository>
+    class Repository : IEquatable<Repository>, IRepository
     {
-        private IRepositoryManager repositoryManager;
         private ConfigBranch? currentBranch;
+        private IList<GitLock> currentLocks;
         private ConfigRemote? currentRemote;
         private GitStatus currentStatus;
-
-        public event Action<GitStatus> OnStatusUpdated;
-        public event Action<string> OnActiveBranchChanged;
-        public event Action<string> OnActiveRemoteChanged;
+        private Dictionary<string, ConfigBranch> localBranches = new Dictionary<string, ConfigBranch>();
+        private Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
+        private Dictionary<string, ConfigRemote> remotes;
+        private IRepositoryManager repositoryManager;
+        public event Action<string> OnCurrentBranchChanged;
+        public event Action<string> OnCurrentRemoteChanged;
+        public event Action OnCurrentBranchUpdated;
         public event Action OnLocalBranchListChanged;
-        public event Action OnHeadChanged;
-        public event Action<IEnumerable<GitLock>> OnLocksUpdated;
+        public event Action<IEnumerable<GitLock>> OnLocksChanged;
+        public event Action OnRemoteBranchListChanged;
         public event Action OnRepositoryInfoChanged;
 
-        public IEnumerable<GitBranch> LocalBranches => repositoryManager.LocalBranches.Values.Select(
-            x => new GitBranch(x.Name, (x.IsTracking ? (x.Remote.Value.Name + "/" + x.Name) : "[None]"), x.Name == CurrentBranch?.Name));
-
-        public IEnumerable<GitBranch> RemoteBranches => repositoryManager.RemoteBranches.Values.SelectMany(
-            x => x.Values).Select(x => new GitBranch(x.Remote.Value.Name + "/" + x.Name, "[None]", false));
+        public event Action<GitStatus> OnStatusChanged;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
         /// </summary>
-        /// <param name="repositoryManager"></param>
         /// <param name="name">The repository name.</param>
-        /// <param name="cloneUrl">The repository's clone URL.</param>
         /// <param name="localPath"></param>
         public Repository(string name, NPath localPath)
         {
@@ -51,12 +48,18 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
 
             this.repositoryManager = repositoryManager;
-            repositoryManager.OnLocalBranchListChanged += RepositoryManager_OnLocalBranchListChanged;
-            repositoryManager.OnCommitChanged += RepositoryManager_OnHeadChanged;
-            repositoryManager.OnLocksUpdated += RepositoryManager_OnLocksUpdated;
-            repositoryManager.OnStatusUpdated += RepositoryManager_OnStatusUpdated;
-            repositoryManager.OnActiveBranchChanged += RepositoryManager_OnActiveBranchChanged;
-            repositoryManager.OnActiveRemoteChanged += RepositoryManager_OnActiveRemoteChanged;
+
+            repositoryManager.OnCurrentBranchUpdated += RepositoryManager_OnCurrentBranchUpdated;
+            repositoryManager.OnCurrentRemoteUpdated += RepositoryManager_OnCurrentRemoteUpdated;
+            repositoryManager.OnStatusUpdated += status => CurrentStatus = status;
+            repositoryManager.OnLocksUpdated += locks => CurrentLocks = locks;
+            repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
+            repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
+            repositoryManager.OnLocalBranchUpdated += RepositoryManager_OnLocalBranchUpdated;
+            repositoryManager.OnLocalBranchAdded += RepositoryManager_OnLocalBranchAdded;
+            repositoryManager.OnLocalBranchRemoved += RepositoryManager_OnLocalBranchRemoved;
+            repositoryManager.OnRemoteBranchAdded += RepositoryManager_OnRemoteBranchAdded;
+            repositoryManager.OnRemoteBranchRemoved += RepositoryManager_OnRemoteBranchRemoved;
             repositoryManager.OnGitUserLoaded += user => User = user;
         }
 
@@ -111,7 +114,7 @@ namespace GitHub.Unity
         {
             return repositoryManager.Fetch(CurrentRemote.Value.Name);
         }
-        
+
         public ITask Revert(string changeset)
         {
             return repositoryManager.Revert(changeset);
@@ -134,47 +137,6 @@ namespace GitHub.Unity
             return repositoryManager.UnlockFile(file, force);
         }
 
-        private void SetCloneUrl()
-        {
-            if (CurrentRemote.HasValue)
-                CloneUrl = new UriString(CurrentRemote.Value.Url);
-            else
-                CloneUrl = null;
-            Name = CloneUrl != null ? CloneUrl.RepositoryName : LocalPath.FileName;
-            OnRepositoryInfoChanged?.Invoke();
-        }
-
-        private void RepositoryManager_OnStatusUpdated(GitStatus status)
-        {
-            CurrentStatus = status;
-        }
-
-        private void RepositoryManager_OnActiveRemoteChanged(ConfigRemote? remote)
-        {
-            CurrentRemote = remote;
-        }
-
-        private void RepositoryManager_OnActiveBranchChanged(ConfigBranch? branch)
-        {
-            CurrentBranch = branch;
-        }
-
-        private void RepositoryManager_OnHeadChanged()
-        {
-            OnHeadChanged?.Invoke();
-        }
-
-        private void RepositoryManager_OnLocalBranchListChanged()
-        {
-            OnLocalBranchListChanged?.Invoke();
-        }
-
-        private void RepositoryManager_OnLocksUpdated(IEnumerable<GitLock> locks)
-        {
-            CurrentLocks = locks;
-            OnLocksUpdated?.Invoke(CurrentLocks);
-        }
-
         /// <summary>
         /// Note: We don't consider CloneUrl a part of the hash code because it can change during the lifetime
         /// of a repository. Equals takes care of any hash collisions because of this
@@ -195,7 +157,7 @@ namespace GitHub.Unity
 
         public bool Equals(Repository other)
         {
-            return (Equals((IRepository)other));
+            return Equals((IRepository)other);
         }
 
         public bool Equals(IRepository other)
@@ -206,40 +168,212 @@ namespace GitHub.Unity
                 object.Equals(LocalPath, other.LocalPath);
         }
 
-        public ConfigBranch? CurrentBranch
+        private void RepositoryManager_OnCurrentRemoteUpdated(ConfigRemote? remote)
         {
-            get { return currentBranch; }
-            set
+            if (!Nullable.Equals(currentRemote, remote))
             {
-                if (currentBranch.HasValue != value.HasValue || (currentBranch.HasValue && !currentBranch.Value.Equals(value.Value)))
-                {
-                    currentBranch = value;
-                    Logger.Trace("OnActiveBranchChanged: {0}", value?.ToString() ?? "NULL");
-                    OnActiveBranchChanged?.Invoke(CurrentBranch.HasValue ? CurrentBranch.Value.Name : null);
-                }
+                currentRemote = remote;
+
+                Logger.Trace("OnCurrentRemoteChanged: {0}", currentRemote.HasValue ? currentRemote.Value.ToString() : "[NULL]");
+                OnCurrentRemoteChanged?.Invoke(currentRemote.HasValue ? currentRemote.Value.Name : null);
+
+                UpdateRepositoryInfo();
             }
         }
-        /// <summary>
-        /// Gets the current branch of the repository.
-        /// </summary>
+
+        private void RepositoryManager_OnCurrentBranchUpdated(ConfigBranch? branch)
+        {
+            if (!Nullable.Equals(currentBranch, branch))
+            {
+                currentBranch = branch;
+
+                Logger.Trace("OnCurrentBranchChanged: {0}", currentBranch.HasValue ? currentBranch.ToString() : "[NULL]");
+                OnCurrentBranchChanged?.Invoke(currentBranch.HasValue ? currentBranch.Value.Name : null);
+            }
+        }
+
+        private void RepositoryManager_OnLocalBranchUpdated(string name)
+        {
+            if (name == currentBranch?.Name)
+            {
+                Logger.Trace("OnCurrentBranchUpdated: {0}", name);
+                OnCurrentBranchUpdated?.Invoke();
+                Refresh();
+            }
+        }
+
+        private void RepositoryManager_OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> updatedRemotes, Dictionary<string, Dictionary<string, ConfigBranch>> branches)
+        {
+            remotes = updatedRemotes;
+
+            Remotes = remotes.Select(pair => GetGitRemote(pair.Value)).ToArray();
+
+            remoteBranches = branches;
+
+            Logger.Trace("OnRemoteBranchListChanged");
+            OnRemoteBranchListChanged?.Invoke();
+        }
+
+        private void RepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branches)
+        {
+            localBranches = branches;
+
+            Logger.Trace("OnLocalBranchListChanged");
+            OnLocalBranchListChanged?.Invoke();
+        }
+
+        private void UpdateRepositoryInfo()
+        {
+            if (CurrentRemote.HasValue)
+            {
+                CloneUrl = new UriString(CurrentRemote.Value.Url);
+                Name = CloneUrl.RepositoryName;
+                Logger.Trace("CloneUrl: {0}", CloneUrl.ToString());
+            }
+            else
+            {
+                CloneUrl = null;
+                Name = LocalPath.FileName;
+                Logger.Trace("CloneUrl: [NULL]");
+            }
+
+            OnRepositoryInfoChanged?.Invoke();
+        }
+
+        private void RepositoryManager_OnLocalBranchRemoved(string name)
+        {
+            if (localBranches.ContainsKey(name))
+            {
+                localBranches.Remove(name);
+
+                Logger.Trace("OnLocalBranchListChanged");
+                OnLocalBranchListChanged?.Invoke();
+            }
+            else
+            {
+                Logger.Warning("Branch {0} is not found", name);
+            }
+        }
+
+        private void RepositoryManager_OnLocalBranchAdded(string name)
+        {
+            if (!localBranches.ContainsKey(name))
+            {
+                var branch = repositoryManager.Config.GetBranch(name);
+                if (!branch.HasValue)
+                {
+                    branch = new ConfigBranch { Name = name };
+                }
+                localBranches.Add(name, branch.Value);
+
+                Logger.Trace("OnLocalBranchListChanged");
+                OnLocalBranchListChanged?.Invoke();
+            }
+            else
+            {
+                Logger.Warning("Branch {0} is already present", name);
+            }
+        }
+
+        private void RepositoryManager_OnRemoteBranchAdded(string remote, string name)
+        {
+            Dictionary<string, ConfigBranch> branchList;
+            if (remoteBranches.TryGetValue(remote, out branchList))
+            {
+                if (!branchList.ContainsKey(name))
+                {
+                    branchList.Add(name, new ConfigBranch { Name = name, Remote = remotes[remote] });
+
+                    Logger.Trace("OnRemoteBranchListChanged");
+                    OnRemoteBranchListChanged?.Invoke();
+                }
+                else
+                {
+                    Logger.Warning("Branch {0} is already present in Remote {1}", name, remote);
+                }
+            }
+            else
+            {
+                Logger.Warning("Remote {0} is not found", remote);
+            }
+        }
+
+        private void RepositoryManager_OnRemoteBranchRemoved(string remote, string name)
+        {
+            Dictionary<string, ConfigBranch> branchList;
+            if (remoteBranches.TryGetValue(remote, out branchList))
+            {
+                if (localBranches.ContainsKey(name))
+                {
+                    localBranches.Remove(name);
+
+                    Logger.Trace("OnRemoteBranchListChanged");
+                    OnRemoteBranchListChanged?.Invoke();
+                }
+                else
+                {
+                    Logger.Warning("Branch {0} is not found in Remote {1}", name, remote);
+                }
+            }
+            else
+            {
+                Logger.Warning("Remote {0} is not found", remote);
+            }
+        }
+
+        private GitBranch GetLocalGitBranch(ConfigBranch x)
+        {
+            var name = x.Name;
+            var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + name : "[None]";
+            var isActive = name == currentBranch?.Name;
+
+            return new GitBranch(name, trackingName, isActive);
+        }
+
+        private GitBranch GetRemoteGitBranch(ConfigBranch x)
+        {
+            var name = x.Remote.Value.Name + "/" + x.Name;
+            var trackingName = "[None]";
+
+            return new GitBranch(name, trackingName, false);
+        }
+
+        private GitRemote GetGitRemote(ConfigRemote configRemote)
+        {
+            return new GitRemote { Name = configRemote.Name, Url = configRemote.Url };
+        }
+
+        public IList<GitRemote> Remotes { get; private set; }
+
+        public IEnumerable<GitBranch> LocalBranches => localBranches.Values.Select(GetLocalGitBranch);
+
+        public IEnumerable<GitBranch> RemoteBranches => remoteBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch);
+
+        public GitBranch? CurrentBranch
+        {
+            get
+            {
+                if (currentBranch != null)
+                {
+                    return GetLocalGitBranch(currentBranch.Value);
+                }
+
+                return null;
+            }
+        }
 
         public string CurrentBranchName => currentBranch?.Name;
 
-        /// <summary>
-        /// Gets the current remote of the repository.
-        /// </summary>
-        public ConfigRemote? CurrentRemote
+        public GitRemote? CurrentRemote
         {
-            get { return currentRemote; }
-            set
+            get
             {
-                if (currentRemote.HasValue != value.HasValue || (currentRemote.HasValue && !currentRemote.Value.Equals(value.Value)))
+                if (currentRemote != null)
                 {
-                    currentRemote = value;
-                    SetCloneUrl();
-                    Logger.Trace("OnActiveRemoteChanged: {0}", value?.ToString() ?? "NULL");
-                    OnActiveRemoteChanged?.Invoke(CurrentRemote.HasValue ? CurrentRemote.Value.Name : null);
+                    return GetGitRemote(currentRemote.Value);
                 }
+
+                return null;
             }
         }
 
@@ -267,16 +401,27 @@ namespace GitHub.Unity
         public GitStatus CurrentStatus
         {
             get { return currentStatus; }
-            set
+            private set
             {
-                Logger.Trace("OnStatusUpdated: {0}", value.ToString());
                 currentStatus = value;
-                OnStatusUpdated?.Invoke(CurrentStatus);
+                Logger.Trace("OnStatusChanged: {0}", value.ToString());
+                OnStatusChanged?.Invoke(value);
             }
         }
 
         public IUser User { get; set; }
-        public IEnumerable<GitLock> CurrentLocks { get; private set; }
+
+        public IList<GitLock> CurrentLocks
+        {
+            get { return currentLocks; }
+            private set
+            {
+                Logger.Trace("OnLocksChanged: {0}", value.ToString());
+                currentLocks = value;
+                OnLocksChanged?.Invoke(value);
+            }
+        }
+
         protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
     }
 
@@ -289,12 +434,12 @@ namespace GitHub.Unity
     [Serializable]
     class User : IUser
     {
-        public string Name { get; set; }
-        public string Email { get; set; }
-
         public override string ToString()
         {
             return String.Format("Name: {0} Email: {1}", Name, Email);
         }
+
+        public string Name { get; set; }
+        public string Email { get; set; }
     }
 }
