@@ -132,6 +132,7 @@ namespace GitHub.Unity
         private void HandleDataUpdated(string obj)
         {
             branchesHaveChanged = true;
+            new ActionTask(TaskManager.Token, Redraw) { Affinity = TaskAffinity.UI }.Start();
         }
 
         public override void Refresh()
