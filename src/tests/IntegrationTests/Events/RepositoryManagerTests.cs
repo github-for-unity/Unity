@@ -560,7 +560,10 @@ namespace IntegrationTests
 			repositoryManagerListener.DidNotReceive().OnLocksUpdated( Args.EnumerableGitLock );
 
 			result.AssertEqual( expected );
-		}
+
+            repositoryManagerListener.ClearReceivedCalls();
+            repositoryManagerEvents.Reset();
+        }
 
 		private void WaitForNotBusy(RepositoryManagerEvents managerEvents, int seconds = 1)
         {
