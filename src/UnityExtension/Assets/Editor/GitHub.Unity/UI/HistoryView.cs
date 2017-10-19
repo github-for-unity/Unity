@@ -62,7 +62,6 @@ namespace GitHub.Unity
         {
             base.InitializeView(parent);
 
-            lastWidth = Position.width;
             selectionIndex = newSelectionIndex = -1;
 
             changesetTree.InitializeView(this);
