@@ -37,7 +37,6 @@ namespace GitHub.Unity
 
         [NonSerialized] private int historyStartIndex;
         [NonSerialized] private int historyStopIndex;
-        [NonSerialized] private float lastWidth;
         [NonSerialized] private int listID;
         [NonSerialized] private int newSelectionIndex;
         [NonSerialized] private float scrollOffset;
