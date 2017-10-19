@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
@@ -94,7 +93,6 @@ namespace GitHub.Unity
 
     class RepositoryManager : IRepositoryManager
     {
-        private readonly CancellationToken cancellationToken;
         private readonly IGitConfig config;
         private readonly IGitClient gitClient;
         private readonly IPlatform platform;
@@ -120,12 +118,11 @@ namespace GitHub.Unity
 
         public RepositoryManager(IPlatform platform, ITaskManager taskManager, IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
-            IRepositoryPathConfiguration repositoryPaths, CancellationToken cancellationToken)
+            IRepositoryPathConfiguration repositoryPaths)
         {
             this.repositoryPaths = repositoryPaths;
             this.platform = platform;
             this.taskManager = taskManager;
-            this.cancellationToken = cancellationToken;
             this.gitClient = gitClient;
             this.watcher = repositoryWatcher;
             this.config = gitConfig;
@@ -143,7 +140,7 @@ namespace GitHub.Unity
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
 
             return new RepositoryManager(platform, taskManager, gitConfig, repositoryWatcher,
-                gitClient, repositoryPathConfiguration, taskManager.Token);
+                gitClient, repositoryPathConfiguration);
         }
 
         public void Initialize()
