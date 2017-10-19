@@ -25,8 +25,7 @@ namespace GitHub.Unity
         private const string Window_RepoBranchTooltip = "Active branch";
 
         [NonSerialized] private double notificationClearTime = -1;
-        [SerializeField] private SubTab? nextTab;
-
+        [SerializeField] private SubTab changeTab = SubTab.History;
         [SerializeField] private SubTab activeTab = SubTab.History;
         [SerializeField] private InitProjectView initProjectView = new InitProjectView();
         [SerializeField] private BranchesView branchesView = new BranchesView();
@@ -73,6 +72,9 @@ namespace GitHub.Unity
         public override void Initialize(IApplicationManager applicationManager)
         {
             base.Initialize(applicationManager);
+
+            if (!HasRepository && activeTab != SubTab.InitProject && activeTab != SubTab.Settings)
+                changeTab = activeTab = SubTab.InitProject;
 
             HistoryView.InitializeView(this);
             ChangesView.InitializeView(this);
@@ -132,8 +134,17 @@ namespace GitHub.Unity
             DetachHandlers(oldRepository);
             AttachHandlers(Repository);
 
+            if (Repository != null && activeTab == SubTab.InitProject)
+            {
+                changeTab = SubTab.History;
+            }
+
+            UpdateActiveTab();
+
             if (ActiveView != null)
                 ActiveView.OnRepositoryChanged(oldRepository);
+
+            UpdateLog();
         }
 
         public override void OnSelectionChange()
@@ -161,12 +172,6 @@ namespace GitHub.Unity
             }
 
             DoToolbarGUI();
-
-            if (nextTab.HasValue)
-            {
-                SetActiveTab(nextTab.Value);
-                nextTab = null;
-            }
 
             // GUI for the active tab
             if (ActiveView != null)
@@ -199,15 +204,6 @@ namespace GitHub.Unity
             bool repoDataChanged = false;
             if (Repository != null)
             {
-                if (activeTab == SubTab.InitProject)
-                {
-                    if (!nextTab.HasValue || nextTab.Value == SubTab.InitProject)
-                    {
-                        nextTab = SubTab.History;
-                        repoDataChanged = true;
-                    }
-                }
-
                 var currentBranchString = (Repository.CurrentBranch.HasValue ? Repository.CurrentBranch.Value.Name : null);
                 if (repoBranch != currentBranchString)
                 {
@@ -227,15 +223,6 @@ namespace GitHub.Unity
             }
             else
             {
-                if (!(activeTab == SubTab.InitProject || activeTab ==  SubTab.Settings))
-                {
-                    if (!nextTab.HasValue || nextTab.Value != SubTab.InitProject)
-                    {
-                        nextTab = SubTab.InitProject;
-                        repoDataChanged = true;
-                    }
-                }
-
                 if (repoBranch != null)
                 {
                     repoBranch = null;
@@ -257,14 +244,17 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
             repository.OnRepositoryInfoChanged += RefreshOnMainThread;
+            repository.OnCurrentBranchUpdated += UpdateLog;
         }
-
+        
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
             repository.OnRepositoryInfoChanged -= RefreshOnMainThread;
+            repository.OnCurrentBranchUpdated -= UpdateLog;
         }
+
         private void DoHeaderGUI()
         {
             GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
@@ -295,7 +285,7 @@ namespace GitHub.Unity
             // Subtabs & toolbar
             Rect mainNavRect = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
-                SubTab changeTab = activeTab;
+                changeTab = activeTab;
                 EditorGUI.BeginChangeCheck();
                 {
                     if (HasRepository)
@@ -313,7 +303,7 @@ namespace GitHub.Unity
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    nextTab = changeTab;
+                    UpdateActiveTab();
                 }
 
                 GUILayout.FlexibleSpace();
@@ -324,7 +314,7 @@ namespace GitHub.Unity
             EditorGUILayout.EndHorizontal();
         }
 
-        private void SetActiveTab(SubTab changeTab)
+        private void UpdateActiveTab()
         {
             if (changeTab != activeTab)
             {
@@ -340,10 +330,10 @@ namespace GitHub.Unity
 
             if (fromView != null)
                 fromView.OnDisable();
-
             toView.OnEnable();
 
-            Refresh();
+            // this triggers a repaint
+            Repaint();
         }
 
         private void DoAccountDropdown()
@@ -407,6 +397,48 @@ namespace GitHub.Unity
             return GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
         }
 
+        private void UpdateLog()
+        {
+            if (Repository != null)
+            {
+                Logger.Trace("Updating Log");
+
+                Repository
+                    .Log()
+                    .FinallyInUI((success, exception, log) => {
+                        if (success)
+                        {
+                            Logger.Trace("Updated Log");
+                            GitLogCache.Instance.Log = log;
+
+                            if (activeTab == SubTab.History)
+                            {
+                                HistoryView.CheckLogCache();
+                            }
+                        }
+                    }).Start();
+            }
+        }
+
+        private Subview ToView(SubTab tab)
+        {
+            switch (tab)
+            {
+                case SubTab.InitProject:
+                    return initProjectView;
+                case SubTab.History:
+                    return historyView;
+                case SubTab.Changes:
+                    return changesView;
+                case SubTab.Branches:
+                    return branchesView;
+                case SubTab.Settings:
+                    return settingsView;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         public HistoryView HistoryView
         {
             get { return historyView; }
@@ -434,34 +466,7 @@ namespace GitHub.Unity
 
         private Subview ActiveView
         {
-            get
-            {
-                return ToView(activeTab);
-            }
-        }
-
-        private Subview ToView(SubTab tab)
-        {
-            switch (tab)
-            {
-                case SubTab.InitProject:
-                    return initProjectView;
-
-                case SubTab.History:
-                    return historyView;
-
-                case SubTab.Changes:
-                    return changesView;
-
-                case SubTab.Branches:
-                    return branchesView;
-
-                case SubTab.Settings:
-                    return settingsView;
-
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            get { return ToView(activeTab); }
         }
 
         public override bool IsBusy
@@ -471,6 +476,7 @@ namespace GitHub.Unity
 
         private enum SubTab
         {
+            None,
             InitProject,
             History,
             Changes,

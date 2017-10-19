@@ -10,10 +10,10 @@ namespace GitHub.Unity
         private const string NoRepoTitle = "No Git repository found for this project";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
         private const string NoUserOrEmailError = "Name and Email must be configured in Settings";
-
+        
+        [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
+        [SerializeField] private GitPathView gitPathView = new GitPathView();
         [SerializeField] private bool isBusy;
-        [SerializeField] private bool isUserDataPresent = true;
-
         [NonSerialized] private string errorMessage;
         [NonSerialized] private bool userDataHasChanged;
 
@@ -33,21 +33,19 @@ namespace GitHub.Unity
             userDataHasChanged = Environment.GitExecutablePath != null;
         }
 
+        public override void InitializeView(IView parent)
+        {
+            base.InitializeView(parent);
+            userSettingsView.InitializeView(this);
+            gitPathView.InitializeView(this);
+        }
+
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
-            MaybeUpdateData();
-        }
 
-        public override void OnRepositoryChanged(IRepository oldRepository)
-        {
-            base.OnRepositoryChanged(oldRepository);
-            Refresh();
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy; }
+            userSettingsView.OnDataUpdate();
+            gitPathView.OnDataUpdate();
         }
 
         public override void OnGUI()
@@ -81,6 +79,10 @@ namespace GitHub.Unity
             }
             EditorGUILayout.EndHorizontal();
 
+            gitPathView.OnGUI();
+
+            userSettingsView.OnGUI();
+
             GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {
                 GUILayout.FlexibleSpace();
@@ -90,7 +92,7 @@ namespace GitHub.Unity
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
 
-                EditorGUI.BeginDisabledGroup(isBusy || !isUserDataPresent);
+                EditorGUI.BeginDisabledGroup(IsBusy || !isUserDataPresent);
                 {
                     if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
                     {
@@ -164,6 +166,11 @@ namespace GitHub.Unity
 
                 Redraw();
             }).Start();
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy || userSettingsView.IsBusy || gitPathView.IsBusy; }
         }
     }
 }
