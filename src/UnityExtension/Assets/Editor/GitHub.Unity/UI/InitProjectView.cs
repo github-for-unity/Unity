@@ -16,13 +16,6 @@ namespace GitHub.Unity
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
 
         [SerializeField] private bool isBusy;
-        [SerializeField] private bool isPublished;
-
-        public override void OnDataUpdate()
-        {
-            base.OnDataUpdate();
-            MaybeUpdateData();
-        }
 
         public override void OnRepositoryChanged(IRepository oldRepository)
         {
@@ -88,11 +81,6 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
-        }
-
-        private void MaybeUpdateData()
-        {
-            isPublished = Repository != null && Repository.CurrentRemote.HasValue;
         }
 
         public override bool IsBusy
