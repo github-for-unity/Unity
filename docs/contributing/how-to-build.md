@@ -40,11 +40,11 @@ To be able to authenticate in GitHub for Unity, you'll need to:
 - [Register a new developer application](https://github.com/settings/developers) in your profile.
 - Copy [common/ApplicationInfo_Local.cs-example](../../common/ApplicationInfo_Local.cs-example) to `common/ApplicationInfo_Local.cs` and fill out the clientId/clientSecret fields for your application.
 
-The build needs to reference `UnityEngine.dll` and `UnityEditor.dll`. These DLLs are included with Unity. If you've installed Unity in the default location, the build will be able to find them automatically. If not, copy these DLLs from `Unity/Editor/Data/Managed` into the `lib` directory in order for the build to work.
+The build needs to reference `UnityEngine.dll` and `UnityEditor.dll`. These DLLs are included with Unity. If you've installed Unity in the default location, the build will be able to find them automatically. If not, copy these DLLs from `[your Unity installation path]\Unity\Editor\Data\Managed` into the `lib` directory in order for the build to work.
 
 ### Visual Studio
 
-To build with Visual Studio 2015+ open the solution file `GitHub.Unity.sln`. Select `Build Solution` in the `Build` menu.
+To build with Visual Studio 2015+, open the solution file `GitHub.Unity.sln`. Select `Build Solution` in the `Build` menu.
 
 ### Mono and Bash (windows and mac)
 
