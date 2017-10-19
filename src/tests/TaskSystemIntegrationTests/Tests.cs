@@ -570,21 +570,6 @@ namespace IntegrationTests
             await task.StartAsAsync();
         }
 
-        //[Test]
-        //[Ignore("borked")]
-        [ExpectedException(typeof(InvalidOperationException))]
-        public async Task DeferExceptions()
-        {
-            var task = new FuncTask<int>(Token, _ => 1)
-                .Defer<int>(async d =>
-                {
-                    throw new InvalidOperationException();
-                    return await TaskEx.FromResult(d);
-                })
-                .Then(_ => { });
-            await task.StartAsAsync();
-        }
-
         [Test]
         public async Task StartAsyncWorks()
         {
