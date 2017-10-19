@@ -32,7 +32,6 @@ namespace GitHub.Unity
         private readonly ManualResetEventSlim pauseEvent;
         private NativeInterface nativeInterface;
         private bool running;
-        private Task task;
         private int lastCountOfProcessedEvents = 0;
         private bool processingEvents;
         private readonly ManualResetEventSlim signalProcessingEventsDone = new ManualResetEventSlim(false);
@@ -87,7 +86,7 @@ namespace GitHub.Unity
 
             running = true;
             pauseEvent.Reset();
-            task = Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
+            Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         public void Stop()
