@@ -100,7 +100,6 @@ namespace GitHub.Unity
         private readonly IPlatform platform;
         private readonly IRepositoryPathConfiguration repositoryPaths;
         private readonly ITaskManager taskManager;
-        private readonly IUsageTracker usageTracker;
         private readonly IRepositoryWatcher watcher;
 
         private bool isBusy;
@@ -119,14 +118,13 @@ namespace GitHub.Unity
         public event Action<string, string> OnRemoteBranchRemoved;
         public event Action<GitStatus> OnStatusUpdated;
 
-        public RepositoryManager(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker, IGitConfig gitConfig,
+        public RepositoryManager(IPlatform platform, ITaskManager taskManager, IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
             IRepositoryPathConfiguration repositoryPaths, CancellationToken cancellationToken)
         {
             this.repositoryPaths = repositoryPaths;
             this.platform = platform;
             this.taskManager = taskManager;
-            this.usageTracker = usageTracker;
             this.cancellationToken = cancellationToken;
             this.gitClient = gitClient;
             this.watcher = repositoryWatcher;
@@ -135,7 +133,7 @@ namespace GitHub.Unity
             SetupWatcher();
         }
 
-        public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker,
+        public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager,
             IGitClient gitClient, NPath repositoryRoot)
         {
             var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
@@ -144,7 +142,7 @@ namespace GitHub.Unity
 
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
 
-            return new RepositoryManager(platform, taskManager, usageTracker, gitConfig, repositoryWatcher,
+            return new RepositoryManager(platform, taskManager, gitConfig, repositoryWatcher,
                 gitClient, repositoryPathConfiguration, taskManager.Token);
         }
 
