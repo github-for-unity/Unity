@@ -11,7 +11,6 @@ namespace GitHub.Unity
     [Serializable]
     class SettingsView : Subview
     {
-        private const string GitInstallTitle = "Git installation";
         private const string GitRepositoryTitle = "Repository Configuration";
         private const string GitRepositoryRemoteLabel = "Remote";
         private const string GitRepositorySave = "Save Repository";
@@ -20,9 +19,6 @@ namespace GitHub.Unity
         private const string EnableTraceLoggingLabel = "Enable Trace Logging";
         private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
         private const string DefaultRepositoryRemoteName = "origin";
-        private const string BrowseButton = "...";
-        private const string PathToGit = "Path to Git";
-        private const string GitPathSaveButton = "Save Path";
 
         [NonSerialized] private int newGitIgnoreRulesSelection = -1;
         [NonSerialized] private bool isBusy;
