@@ -20,11 +20,8 @@ namespace GitHub.Unity
         private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
         private const string DefaultRepositoryRemoteName = "origin";
 
-        [NonSerialized] private int newGitIgnoreRulesSelection = -1;
         [NonSerialized] private bool isBusy;
 
-        [SerializeField] private int gitIgnoreRulesSelection = 0;
-        [SerializeField] private string initDirectory;
         [SerializeField] private List<GitLock> lockedFiles = new List<GitLock>();
         [SerializeField] private Vector2 lockScrollPos;
         [SerializeField] private string repositoryRemoteName;
@@ -35,16 +32,12 @@ namespace GitHub.Unity
         [NonSerialized] private bool remoteHasChanged;
         [NonSerialized] private bool locksHaveChanged;
 
-        [SerializeField] private string newGitName;
-        [SerializeField] private string newGitEmail;
         [SerializeField] private string newRepositoryRemoteUrl;
-        [SerializeField] private User cachedUser;
         
         [SerializeField] private bool metricsEnabled;
         [NonSerialized] private bool metricsHasChanged;
         
         [SerializeField] private GitPathView gitPathView = new GitPathView();
-
         [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
 
         public override void InitializeView(IView parent)
