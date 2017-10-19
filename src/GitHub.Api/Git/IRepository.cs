@@ -45,24 +45,26 @@ namespace GitHub.Unity
         /// <summary>
         /// Gets the current remote of the repository.
         /// </summary>
-        ConfigRemote? CurrentRemote { get; set; }
+        GitRemote? CurrentRemote { get; }
         /// <summary>
         /// Gets the current branch of the repository.
         /// </summary>
-        ConfigBranch? CurrentBranch { get; set; }
-        GitStatus CurrentStatus { get; set; }
+        GitBranch? CurrentBranch { get; }
+        GitStatus CurrentStatus { get; }
+        IList<GitRemote> Remotes { get; }
         IEnumerable<GitBranch> LocalBranches { get; }
         IEnumerable<GitBranch> RemoteBranches { get; }
         IUser User { get; set; }
-        IEnumerable<GitLock> CurrentLocks { get; }
+        IList<GitLock> CurrentLocks { get; }
         string CurrentBranchName { get; }
 
-        event Action<GitStatus> OnStatusUpdated;
-        event Action<string> OnActiveBranchChanged;
-        event Action<string> OnActiveRemoteChanged;
+        event Action<GitStatus> OnStatusChanged;
+        event Action<string> OnCurrentBranchChanged;
+        event Action<string> OnCurrentRemoteChanged;
         event Action OnLocalBranchListChanged;
-        event Action OnHeadChanged;
-        event Action<IEnumerable<GitLock>> OnLocksUpdated;
+        event Action OnCurrentBranchUpdated;
+        event Action<IEnumerable<GitLock>> OnLocksChanged;
         event Action OnRepositoryInfoChanged;
+        event Action OnRemoteBranchListChanged;
     }
 }
