@@ -41,7 +41,7 @@ namespace GitHub.Unity
         [NonSerialized] private float scrollOffset;
         [NonSerialized] private DateTimeOffset scrollTime = DateTimeOffset.Now;
         [NonSerialized] private int selectionIndex;
-        [NonSerialized] private bool updated = true;
+        [NonSerialized] private bool logHasChanged;
         [NonSerialized] private bool useScrollTime;
         [NonSerialized] private bool isBusy;
 
@@ -71,6 +71,7 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             AttachHandlers(Repository);
+            CheckLogCache();
         }
 
         public override void OnDisable()
@@ -91,13 +92,6 @@ namespace GitHub.Unity
 
             DetachHandlers(oldRepository);
             AttachHandlers(Repository);
-            Refresh();
-        }
-
-        public override void Refresh()
-        {
-            base.Refresh();
-            RefreshLog();
         }
 
         public override void OnSelectionChange()
@@ -110,24 +104,42 @@ namespace GitHub.Unity
             OnEmbeddedGUI();
         }
 
+        public void CheckLogCache()
+        {
+            string firstItemCommitID = null;
+            if (history.Any())
+            {
+                firstItemCommitID = history.First().CommitID;
+            }
+
+            var cachedList = GitLogCache.Instance.Log;
+
+            string firstCachedItemCommitID = null;
+            if (cachedList.Any())
+            {
+                firstCachedItemCommitID = cachedList.First().CommitID;
+            }
+
+            if (firstItemCommitID != firstCachedItemCommitID)
+            {
+                Logger.Trace("CommitID {0} != Cached CommitId {1}", firstItemCommitID ?? "[NULL]", firstCachedItemCommitID ?? "[NULL]");
+                logHasChanged = true;
+                Redraw();
+            }
+        }
+
         private void AttachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnHeadChanged += Refresh;
-            repository.OnStatusUpdated += UpdateStatusOnMainThread;
-            repository.OnActiveBranchChanged += s => Refresh();
-            repository.OnActiveRemoteChanged += s => Refresh();
+            repository.OnStatusChanged += UpdateStatusOnMainThread;
         }
 
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnHeadChanged -= Refresh;
-            repository.OnStatusUpdated -= UpdateStatusOnMainThread;
-            repository.OnActiveBranchChanged -= s => Refresh();
-            repository.OnActiveRemoteChanged -= s => Refresh();
+            repository.OnStatusChanged -= UpdateStatusOnMainThread;
         }
 
         private void UpdateStatusOnMainThread(GitStatus status)
@@ -142,68 +154,52 @@ namespace GitHub.Unity
             statusBehind = status.Behind;
         }
 
-        private void RefreshLog()
-        {
-            if (Repository != null)
-            {
-                Repository.Log().ThenInUI((success, log) => {
-                    if (success) OnLogUpdate(log);
-                }).Start();
-            }
-        }
-
-        private void OnLogUpdate(List<GitLogEntry> entries)
-        {
-            Logger.Trace("OnLogUpdate");
-            GitLogCache.Instance.Log = entries;
-            updated = true;
-            Redraw();
-        }
-
         private void MaybeUpdateData()
         {
             isPublished = Repository != null && Repository.CurrentRemote.HasValue;
             currentRemote = isPublished ? Repository.CurrentRemote.Value.Name : "placeholder";
 
-            if (!updated)
-                return;
-            updated = false;
-
-            history = GitLogCache.Instance.Log;
-
-            if (history.Any())
+            if (logHasChanged)
             {
-                // Make sure that scroll as much as possible focuses the same time period in the new entry list
-                if (useScrollTime)
+                logHasChanged = false;
+
+                history = GitLogCache.Instance.Log;
+
+                if (history.Any())
                 {
-                    var closestIndex = -1;
-                    double closestDifference = Mathf.Infinity;
-                    for (var index = 0; index < history.Count; ++index)
+                    // Make sure that scroll as much as possible focuses the same time period in the new entry list
+                    if (useScrollTime)
                     {
-                        var diff = Math.Abs((history[index].Time - scrollTime).TotalSeconds);
-                        if (diff < closestDifference)
+                        var closestIndex = -1;
+                        double closestDifference = Mathf.Infinity;
+                        for (var index = 0; index < history.Count; ++index)
                         {
-                            closestDifference = diff;
-                            closestIndex = index;
+                            var diff = Math.Abs((history[index].Time - scrollTime).TotalSeconds);
+                            if (diff < closestDifference)
+                            {
+                                closestDifference = diff;
+                                closestIndex = index;
+                            }
                         }
+
+                        ScrollTo(closestIndex, scrollOffset);
                     }
 
-                    ScrollTo(closestIndex, scrollOffset);
+                    CullHistory();
                 }
 
-                CullHistory();
-            }
-
-            // Restore selection index or clear it
-            newSelectionIndex = -1;
-            if (!string.IsNullOrEmpty(selectionID))
-            {
-                selectionIndex =
-                    Enumerable.Range(1, history.Count + 1).FirstOrDefault(index => history[index - 1].CommitID.Equals(selectionID)) - 1;
-
-                if (selectionIndex < 0)
+                // Restore selection index or clear it
+                newSelectionIndex = -1;
+                if (!string.IsNullOrEmpty(selectionID))
                 {
-                    selectionID = string.Empty;
+                    selectionIndex = Enumerable.Range(1, history.Count + 1)
+                                               .FirstOrDefault(
+                                                   index => history[index - 1].CommitID.Equals(selectionID)) - 1;
+
+                    if (selectionIndex < 0)
+                    {
+                        selectionID = string.Empty;
+                    }
                 }
             }
         }
@@ -284,7 +280,7 @@ namespace GitHub.Unity
                 // Only update time scroll
                 var lastScroll = scroll;
                 scroll = GUILayout.BeginScrollView(scroll);
-                if (lastScroll != scroll && !updated)
+                if (lastScroll != scroll && !logHasChanged)
                 {
                     scrollTime = history[historyStartIndex].Time;
                     scrollOffset = scroll.y - historyStartIndex * EntryHeight;
@@ -390,7 +386,7 @@ namespace GitHub.Unity
             if (Event.current.type == EventType.Repaint)
             {
                 CullHistory();
-                updated = false;
+                logHasChanged = false;
 
                 if (newSelectionIndex >= 0 || newSelectionIndex == -2)
                 {

@@ -118,8 +118,8 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.OnActiveRemoteChanged += Repository_OnActiveRemoteChanged;
-            repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
+            repository.OnCurrentRemoteChanged += Repository_OnActiveRemoteChanged;
+            repository.OnLocksChanged += RunLocksUpdateOnMainThread;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -127,8 +127,8 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.OnActiveRemoteChanged -= Repository_OnActiveRemoteChanged;
-            repository.OnLocksUpdated -= RunLocksUpdateOnMainThread;
+            repository.OnCurrentRemoteChanged -= Repository_OnActiveRemoteChanged;
+            repository.OnLocksChanged -= RunLocksUpdateOnMainThread;
         }
 
         public override void OnGUI()
