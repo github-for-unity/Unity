@@ -469,7 +469,6 @@ namespace GitHub.Unity
             get { return ToView(activeTab); }
         }
 
-        }
         public override bool IsBusy
         {
             get { return false; }

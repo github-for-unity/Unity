@@ -18,12 +18,6 @@ namespace GitHub.Unity
         [SerializeField] private bool isBusy;
         [SerializeField] private bool isPublished;
 
-        public override void OnDataUpdate()
-        {
-            base.OnDataUpdate();
-            MaybeUpdateData();
-        }
-
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
@@ -77,6 +71,7 @@ namespace GitHub.Unity
             userSettingsView.Refresh();
             gitPathView.Refresh();
         }
+
         public override void OnGUI()
         {
             var headerRect = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
