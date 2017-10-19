@@ -142,7 +142,6 @@ namespace GitHub.Unity
                 var username = strings[0];
                 var email = strings[1];
 
-                Logger.Trace("Return success:{0} name:{1} email:{2}", success, username, email);
 
                 isBusy = false;
                 isUserDataPresent = success && !String.IsNullOrEmpty(username) && !String.IsNullOrEmpty(email);
