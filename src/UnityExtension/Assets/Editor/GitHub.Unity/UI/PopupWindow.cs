@@ -7,6 +7,10 @@ namespace GitHub.Unity
     [Serializable]
     class PopupWindow : BaseWindow
     {
+        private const string CredentialsNeedRefreshMessage = "We've detected that your stored credentials are out of sync with your current user. This can happen if you have signed in to git outside of Unity. Sign in again to refresh your credentials.";
+        private const string NeedAuthenticationMessage = "We need you to authenticate first";
+        private const string AccountValidationErrorMessage = "There was an error validating your account";
+
         public enum PopupViewType
         {
             None,
@@ -67,19 +71,19 @@ namespace GitHub.Unity
                     var usernameMismatchException = exception as TokenUsernameMismatchException;
                     if (usernameMismatchException != null)
                     {
-                        message = "Your credentials need to be refreshed";
+                        message = CredentialsNeedRefreshMessage;
                         username = usernameMismatchException.CachedUsername;
                     }
 
                     var keychainEmptyException = exception as KeychainEmptyException;
                     if (keychainEmptyException != null)
                     {
-                        message = "We need you to authenticate first";
+                        message = NeedAuthenticationMessage;
                     }
 
                     if (usernameMismatchException == null && keychainEmptyException == null)
                     {
-                        message = "There was an error validating your account";
+                        message = AccountValidationErrorMessage;
                     }
 
                     OpenInternal(PopupViewType.AuthenticationView, completedAuthentication => {
