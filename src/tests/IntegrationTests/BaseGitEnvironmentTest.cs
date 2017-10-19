@@ -26,7 +26,7 @@ namespace IntegrationTests
 
             Platform.Initialize(ProcessManager, TaskManager);
 
-            GitClient = new GitClient(Environment, ProcessManager, Platform.CredentialManager, TaskManager);
+            GitClient = new GitClient(Environment, ProcessManager, TaskManager);
 
             var usageTracker = new NullUsageTracker();
 
