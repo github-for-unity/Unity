@@ -473,7 +473,6 @@ namespace GitHub.Unity
         private bool HistoryEntry(GitLogEntry entry, LogEntryState state, bool selected)
         {
             var entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
-            var timelineBarRect = new Rect(entryRect.x + Styles.BaseSpacing, 0, 2, Styles.HistoryDetailsHeight);
 
             if (Event.current.type == EventType.Repaint)
             {
@@ -481,7 +480,6 @@ namespace GitHub.Unity
 
                 var summaryRect = new Rect(entryRect.x, entryRect.y + (Styles.BaseSpacing / 2), entryRect.width, Styles.HistorySummaryHeight + Styles.BaseSpacing);
                 var timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight - (Styles.BaseSpacing / 2), entryRect.width, Styles.HistoryDetailsHeight);
-                var authorRect = new Rect(timestampRect.xMax, timestampRect.y, timestampRect.width, timestampRect.height);
 
                 var contentOffset = new Vector2(Styles.BaseSpacing * 2, 0);
 
@@ -630,7 +628,6 @@ namespace GitHub.Unity
 
         private void Fetch()
         {
-            var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
             Repository
                 .Fetch()
                 .FinallyInUI((success, e) => {
