@@ -758,61 +758,61 @@ namespace IntegrationTests
 
 
 
-		[Test]
-		public async Task ShouldCheckoutFiles()
-		{
-			await Initialize( TestRepoMasterCleanSynchronized );
+        [Test]
+        public async Task ShouldCheckoutFiles()
+        {
+            await Initialize(TestRepoMasterCleanSynchronized);
 
-			var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-			repositoryManagerListener.AttachListener( RepositoryManager, repositoryManagerEvents );
+            var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
+            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
 
-			var expected = new GitStatus
-			{
-				Behind = 1,
-				LocalBranch = "master",
-				RemoteBranch = "origin/master",
-				Entries =
-					new List<GitStatusEntry> {
-						new GitStatusEntry("foobar.txt", TestRepoMasterCleanSynchronized.Combine("foobar.txt"),
-							"foobar.txt", GitFileStatus.Untracked)
-					}
-			};
+            var expected = new GitStatus
+            {
+                Behind = 1,
+                LocalBranch = "master",
+                RemoteBranch = "origin/master",
+                Entries =
+                    new List<GitStatusEntry> {
+                        new GitStatusEntry("foobar.txt", TestRepoMasterCleanSynchronized.Combine("foobar.txt"),
+                            "foobar.txt", GitFileStatus.Untracked)
+                    }
+            };
 
-			var result = new GitStatus();
-			Environment.Repository.OnStatusUpdated += status => { result = status; };
+            var result = new GitStatus();
+            Environment.Repository.OnStatusUpdated += status => { result = status; };
 
-			var foobarTxt = TestRepoMasterCleanSynchronized.Combine( "foobar.txt" );
-			foobarTxt.WriteAllText( "foobar" );
+            var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
+            foobarTxt.WriteAllText("foobar");
 
-			await TaskManager.Wait();
-			RepositoryManager.WaitForEvents();
-			WaitForNotBusy( repositoryManagerEvents, 1 );
+            await TaskManager.Wait();
+            RepositoryManager.WaitForEvents();
+            WaitForNotBusy(repositoryManagerEvents, 1);
 
-			repositoryManagerListener.Received().OnStatusUpdate( Args.GitStatus );
-			repositoryManagerListener.DidNotReceive().OnActiveBranchChanged( Arg.Any<ConfigBranch?>() );
-			repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged( Arg.Any<ConfigRemote?>() );
-			repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
-			repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-			repositoryManagerListener.Received().OnIsBusyChanged( Args.Bool );
-			repositoryManagerListener.DidNotReceive().OnLocksUpdated( Args.EnumerableGitLock );
+            repositoryManagerListener.Received().OnStatusUpdate(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Arg.Any<ConfigBranch?>());
+            repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
+            repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
+            repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
+            repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
 
-			await RepositoryManager.CheckoutFiles( new List<string>() { "foobar.txt" } )
-				.StartAsAsync();
+            await RepositoryManager.CheckoutFiles(new List<string>() { "foobar.txt" })
+                .StartAsAsync();
 
-			await TaskManager.Wait();
-			RepositoryManager.WaitForEvents();
-			WaitForNotBusy( repositoryManagerEvents, 1 );
-			repositoryManagerEvents.OnStatusUpdate.WaitOne( TimeSpan.FromSeconds( 1 ) );
+            await TaskManager.Wait();
+            RepositoryManager.WaitForEvents();
+            WaitForNotBusy(repositoryManagerEvents, 1);
+            repositoryManagerEvents.OnStatusUpdate.WaitOne(TimeSpan.FromSeconds(1));
 
-			repositoryManagerListener.Received().OnStatusUpdate( Args.GitStatus );
-			repositoryManagerListener.DidNotReceive().OnActiveBranchChanged( Arg.Any<ConfigBranch?>() );
-			repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged( Arg.Any<ConfigRemote?>() );
-			repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
-			repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
-			repositoryManagerListener.Received().OnIsBusyChanged( Args.Bool );
-			repositoryManagerListener.DidNotReceive().OnLocksUpdated( Args.EnumerableGitLock );
+            repositoryManagerListener.Received().OnStatusUpdate(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().OnActiveBranchChanged(Arg.Any<ConfigBranch?>());
+            repositoryManagerListener.DidNotReceive().OnActiveRemoteChanged(Arg.Any<ConfigRemote?>());
+            repositoryManagerListener.DidNotReceive().OnLocalBranchListChanged();
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListChanged();
+            repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
+            repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
 
-			result.AssertEqual( expected );
+            result.AssertEqual(expected);
 
             repositoryManagerListener.ClearReceivedCalls();
             repositoryManagerEvents.Reset();

@@ -112,10 +112,10 @@ namespace GitHub.Unity
             return repositoryManager.UnlockFile(file, force);
         }
 
-		public ITask CheckoutFiles( List<string> files )
-		{
-			return repositoryManager.CheckoutFiles( files );
-		}
+        public ITask CheckoutFiles(List<string> files)
+        {
+            return repositoryManager.CheckoutFiles(files);
+        }
 
         public void CheckLogChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {

@@ -35,7 +35,7 @@ namespace GitHub.Unity
         ITask CreateBranch(string branch, string baseBranch);
         ITask LockFile(string file);
         ITask UnlockFile(string file, bool force);
-		ITask CheckoutFiles(List<string> files);
+        ITask CheckoutFiles(List<string> files);
         void UpdateGitLog();
         void UpdateGitStatus();
         void UpdateGitAheadBehindStatus();
@@ -285,13 +285,13 @@ namespace GitHub.Unity
             }).Start();
         }
 
-		public ITask CheckoutFiles( List<string> files )
-		{
-			var discard = GitClient.Discard(files);
-			discard.OnStart += t => IsBusy = true;
+        public ITask CheckoutFiles(List<string> files)
+        {
+            var discard = GitClient.Discard(files);
+            discard.OnStart += t => IsBusy = true;
 
-			return discard.Finally(() => IsBusy = false);
-		}
+            return discard.Finally(() => IsBusy = false);
+        }
 
         public void UpdateGitAheadBehindStatus()
         {
