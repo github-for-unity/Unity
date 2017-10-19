@@ -29,6 +29,20 @@ namespace GitHub.Unity
             gitPathView.OnDataUpdate();
         }
 
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            userSettingsView.OnEnable();
+            gitPathView.OnEnable();
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            userSettingsView.OnDisable();
+            gitPathView.OnDisable();
+        }
+
         public override void OnGUI()
         {
             var headerRect = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
