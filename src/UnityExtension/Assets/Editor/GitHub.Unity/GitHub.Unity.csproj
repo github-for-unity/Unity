@@ -91,8 +91,6 @@
     <Compile Include="Misc\Utility.cs" />
     <Compile Include="Services\AuthenticationService.cs" />
     <Compile Include="Services\StatusService.cs" />
-    <Compile Include="Tasks\EvaluateProjectConfigurationTask.cs" />
-    <Compile Include="Tasks\TaskException.cs" />
     <Compile Include="Tools\MozRoots.cs" />
     <Compile Include="UI\AuthenticationView.cs" />
     <Compile Include="UI\BranchesView.cs" />

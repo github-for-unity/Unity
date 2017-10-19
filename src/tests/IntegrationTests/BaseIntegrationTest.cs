@@ -13,6 +13,7 @@ namespace IntegrationTests
         protected NPath TestBasePath { get; private set; }
         protected ILogging Logger { get; private set; }
         public IEnvironment Environment { get; set; }
+        public IRepository Repository => Environment.Repository;
 
         protected TestUtils.SubstituteFactory Factory { get; set; }
         protected static NPath SolutionDirectory => TestContext.CurrentContext.TestDirectory.ToNPath();

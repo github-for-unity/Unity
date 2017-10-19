@@ -30,8 +30,8 @@ namespace GitHub.Unity
             repository = repo;
             if (repository != null)
             {
-                repository.OnStatusUpdated += RunStatusUpdateOnMainThread;
-                repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
+                repository.OnStatusChanged += RunStatusUpdateOnMainThread;
+                repository.OnLocksChanged += RunLocksUpdateOnMainThread;
             }
         }
 
