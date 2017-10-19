@@ -188,6 +188,8 @@
     <EmbeddedResource Include="IconsAndLogos\small-logo-light%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\small-logo-light.png" />
     <EmbeddedResource Include="IconsAndLogos\small-logo.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-sprite%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-sprite.png" />
     <EmbeddedResource Include="IconsAndLogos\tracked-branch-indicator.png" />
     <EmbeddedResource Include="IconsAndLogos\untracked%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\untracked.png" />
