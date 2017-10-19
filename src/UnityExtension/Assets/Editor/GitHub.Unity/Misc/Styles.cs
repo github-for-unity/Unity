@@ -97,8 +97,6 @@ namespace GitHub.Unity
                                  lockIcon,
                                  dropdownListIcon;
 
-        private static Color timelineBarColor;
-
         public static Texture2D GetFileStatusIcon(GitFileStatus status, bool isLocked)
         {
             if (isLocked)
@@ -594,18 +592,6 @@ namespace GitHub.Unity
                     genericBoxStyle.padding = new RectOffset(5, 5, 5, 5);
                 }
                 return genericBoxStyle;
-            }
-        }
-
-        public static Color TimelineBarColor
-        {
-            get
-            {
-                if (timelineBarColor == null)
-                {
-                    timelineBarColor = new Color(0.51F, 0.51F, 0.51F, 0.2F);
-                }
-                return timelineBarColor;
             }
         }
 
