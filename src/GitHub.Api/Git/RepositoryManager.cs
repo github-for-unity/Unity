@@ -44,7 +44,7 @@ namespace GitHub.Unity
         ITask ListLocks(bool local);
         ITask LockFile(string file);
         ITask UnlockFile(string file, bool force);
-		ITask CheckoutFiles(List<string> files);
+        ITask CheckoutFiles(List<string> files);
         int WaitForEvents();
     }
 
@@ -249,7 +249,8 @@ namespace GitHub.Unity
             HookupHandlers(task);
             if (!platform.Environment.IsWindows)
             {
-                task.Then(_ => {
+                task.Then(_ =>
+                {
                     RefreshConfigData(true);
                 });
             }
@@ -262,7 +263,8 @@ namespace GitHub.Unity
             HookupHandlers(task);
             if (!platform.Environment.IsWindows)
             {
-                task.Then(_ => {
+                task.Then(_ =>
+                {
                     RefreshConfigData(true);
                 });
             }
@@ -313,7 +315,7 @@ namespace GitHub.Unity
         {
             var task = GitClient.Lock(file);
             HookupHandlers(task);
-            
+
             return task.Then(ListLocks(false));
         }
 
@@ -325,13 +327,13 @@ namespace GitHub.Unity
             return task.Then(ListLocks(false));
         }
 
-		public ITask CheckoutFiles( List<string> files )
-		{
-			var discard = GitClient.Discard(files);
-			discard.OnStart += t => IsBusy = true;
-			
-			return discard.Finally(() => IsBusy = false);
-		}
+        public ITask CheckoutFiles(List<string> files)
+        {
+            var discard = GitClient.Discard(files);
+            discard.OnStart += t => IsBusy = true;
+
+            return discard.Finally(() => IsBusy = false);
+        }
 
         private void LoadGitUser()
         {
@@ -364,7 +366,8 @@ namespace GitHub.Unity
 
         private ITask HookupHandlers(ITask task, bool disableWatcher = false)
         {
-            task.OnStart += t => {
+            task.OnStart += t =>
+            {
                 Logger.Trace("Start " + task.Name);
                 IsBusy = true;
 
@@ -374,7 +377,8 @@ namespace GitHub.Unity
                 }
             };
 
-            task.OnEnd += t => {
+            task.OnEnd += t =>
+            {
                 if (disableWatcher)
                 {
                     watcher.Start();
@@ -435,7 +439,7 @@ namespace GitHub.Unity
         }
 
         private void Watcher_OnIndexChanged()
-        {}
+        { }
 
         private void Watcher_OnLocalBranchCreated(string name)
         {

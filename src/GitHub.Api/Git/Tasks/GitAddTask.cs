@@ -9,7 +9,7 @@ namespace GitHub.Unity
         private const string TaskName = "git add";
         private readonly string arguments;
 
-        public GitAddTask(IEnumerable<string> files, CancellationToken token, 
+        public GitAddTask(IEnumerable<string> files, CancellationToken token,
             IOutputProcessor<string> processor = null) : base(token, processor ?? new SimpleOutputProcessor())
         {
             Guard.ArgumentNotNull(files, "files");

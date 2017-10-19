@@ -111,7 +111,7 @@ namespace GitHub.Unity
         {
             return repositoryManager.Fetch(CurrentRemote.Value.Name);
         }
-        
+
         public ITask Revert(string changeset)
         {
             return repositoryManager.Revert(changeset);
@@ -134,10 +134,10 @@ namespace GitHub.Unity
             return repositoryManager.UnlockFile(file, force);
         }
 
-		public ITask CheckoutFiles( List<string> files )
-		{
-			return repositoryManager.CheckoutFiles( files );
-		}
+        public ITask CheckoutFiles(List<string> files)
+        {
+            return repositoryManager.CheckoutFiles(files);
+        }
 
         private void SetCloneUrl()
         {
