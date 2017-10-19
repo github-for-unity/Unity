@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface IGitClient
+    public interface IGitClient
     {
         Task<NPath> FindGitInstallation();
         ITask<ValidateGitInstallResult> ValidateGitInstall(NPath path);

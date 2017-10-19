@@ -17,6 +17,7 @@ namespace TestUtils
         public static GitConfigSource GitConfigSource { get { return Arg.Any<GitConfigSource>(); } }
         public static GitStatus GitStatus { get { return Arg.Any<GitStatus>(); } }
         public static IEnumerable<GitLock> EnumerableGitLock { get { return Arg.Any<IEnumerable<GitLock>>(); } }
+        public static IUser User { get { return Arg.Any<IUser>(); } }
 
         public static ITask<GitStatus?> GitStatusTask
         {

@@ -3,7 +3,7 @@ using System;
 namespace GitHub.Unity
 {
     [Serializable]
-    struct GitStatusEntry
+    public struct GitStatusEntry
     {
         public string Path;
         public string FullPath;

@@ -10,14 +10,14 @@ namespace GitHub.Unity
         public static TaskScheduler MainThreadScheduler { get; set; }
 
         public static int MainThread { get; set; }
-        public static bool InMainThread { get { return MainThread == 0 || Thread.CurrentThread.ManagedThreadId == MainThread; } }
+        static bool InMainThread { get { return MainThread == 0 || Thread.CurrentThread.ManagedThreadId == MainThread; } }
 
-        public static void SetMainThread()
+        public static void SetUIThread()
         {
             MainThread = Thread.CurrentThread.ManagedThreadId;
         }
 
-        public static bool InUIThread => (!Guard.InUnitTestRunner && InMainThread) || !(Guard.InUnitTestRunner);
+        public static bool InUIThread => InMainThread || Guard.InUnitTestRunner;
 
         /// <summary>
         /// Switch to the UI thread
@@ -97,7 +97,7 @@ namespace GitHub.Unity
             {
                 get
                 {
-                    return (this.scheduler == TaskManager.Instance.UIScheduler && InMainThread) || (this.scheduler != TaskManager.Instance.UIScheduler && !InMainThread);
+                    return (this.scheduler == TaskManager.Instance.UIScheduler && InUIThread) || (this.scheduler != TaskManager.Instance.UIScheduler && !InUIThread);
                 }
             }
 

@@ -70,11 +70,6 @@ namespace GitHub.Unity
             Refresh();
         }
 
-        public override bool IsBusy
-        {
-            get { return isBusy || userSettingsView.IsBusy || gitPathView.IsBusy; }
-        }
-
         public override void Refresh()
         {
             base.Refresh();
@@ -82,7 +77,6 @@ namespace GitHub.Unity
             userSettingsView.Refresh();
             gitPathView.Refresh();
         }
-
         public override void OnGUI()
         {
             var headerRect = EditorGUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
@@ -150,6 +144,11 @@ namespace GitHub.Unity
         private void MaybeUpdateData()
         {
             isPublished = Repository != null && Repository.CurrentRemote.HasValue;
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy || userSettingsView.IsBusy || gitPathView.IsBusy; }
         }
     }
 }
