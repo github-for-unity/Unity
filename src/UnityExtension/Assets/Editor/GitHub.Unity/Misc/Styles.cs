@@ -49,8 +49,6 @@ namespace GitHub.Unity
 
         private const string WarningLabel = "<b>Warning:</b> {0}";
 
-        private static Color headerGreyColor = new Color(0.878f, 0.878f, 0.878f, 1.0f);
-
         private static GUIStyle label,
                                 boldLabel,
                                 errorLabel,
