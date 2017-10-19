@@ -266,7 +266,6 @@ namespace IntegrationTests
             var output = new Dictionary<int, int>();
             var tasks = new List<ITask>();
             var seed = Randomizer.RandomSeed;
-            var rand = new Randomizer(seed);
 
             var uiThread = 0;
             await new ActionTask(Token, _ => uiThread = Thread.CurrentThread.ManagedThreadId) { Affinity = TaskAffinity.UI }
@@ -290,7 +289,6 @@ namespace IntegrationTests
             var output = new Dictionary<int, KeyValuePair<int, int>>();
             var tasks = new List<ITask>();
             var seed = Randomizer.RandomSeed;
-            var rand = new Randomizer(seed);
 
             var uiThread = 0;
             await new ActionTask(Token, _ => uiThread = Thread.CurrentThread.ManagedThreadId) { Affinity = TaskAffinity.UI }
@@ -567,7 +565,6 @@ namespace IntegrationTests
         [ExpectedException(typeof(InvalidOperationException))]
         public async Task ExceptionPropagatesOutIfNoFinally()
         {
-            var runOrder = new List<string>();
             var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
                 .Catch(_ => { });
             await task.StartAsAsync();
@@ -578,9 +575,8 @@ namespace IntegrationTests
         [ExpectedException(typeof(InvalidOperationException))]
         public async Task DeferExceptions()
         {
-            var runOrder = new List<string>();
             var task = new FuncTask<int>(Token, _ => 1)
-                .Defer(async d =>
+                .Defer<int>(async d =>
                 {
                     throw new InvalidOperationException();
                     return await TaskEx.FromResult(d);
@@ -592,7 +588,6 @@ namespace IntegrationTests
         [Test]
         public async Task StartAsyncWorks()
         {
-            var runOrder = new List<string>();
             var task = new FuncTask<int>(Token, _ => 1);
             var ret = await task.StartAsAsync();
             Assert.AreEqual(1, ret);
@@ -643,7 +638,6 @@ namespace IntegrationTests
         [Test]
         public async Task StartAwaitSafelyAwaits()
         {
-            var runOrder = new List<string>();
             var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
                 .Catch(_ => { });
             await task.StartAwait(_ => { });
@@ -702,7 +696,6 @@ namespace IntegrationTests
                 }), TaskAffinity.Concurrent)
                 .Finally((_, e, v) => v);
             ;
-            var ret = await act.StartAsAsync();
             CollectionAssert.AreEqual(Enumerable.Range(1, 7), runOrder);
         }
 
@@ -758,7 +751,6 @@ namespace IntegrationTests
                     return v;
                 }), TaskAffinity.Concurrent);
             ;
-            var ret = await act.Start().Task;
             // the last one hasn't finished before await is done
             CollectionAssert.AreEqual(Enumerable.Range(1, 6), runOrder);
         }
