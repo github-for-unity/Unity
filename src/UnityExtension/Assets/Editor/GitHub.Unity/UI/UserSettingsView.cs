@@ -21,7 +21,6 @@ namespace GitHub.Unity
 
         [SerializeField] private string gitName;
         [SerializeField] private string gitEmail;
-
         [SerializeField] private string newGitName;
         [SerializeField] private string newGitEmail;
         [SerializeField] private User cachedUser;
@@ -30,13 +29,6 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
             MaybeUpdateData();
-        }
-
-        public override void OnRepositoryChanged(IRepository oldRepository)
-        {
-            base.OnRepositoryChanged(oldRepository);
-
-            Refresh();
         }
 
         public override void OnGUI()
@@ -108,11 +100,6 @@ namespace GitHub.Unity
             EditorGUI.EndDisabledGroup();
         }
 
-        public override bool IsBusy
-        {
-            get { return isBusy; }
-        }
-
         private void MaybeUpdateData()
         {
             if (Repository == null)
@@ -153,6 +140,11 @@ namespace GitHub.Unity
             userDataHasChanged = false;
             newGitName = gitName = Repository.User.Name;
             newGitEmail = gitEmail = Repository.User.Email;
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy; }
         }
     }
 }

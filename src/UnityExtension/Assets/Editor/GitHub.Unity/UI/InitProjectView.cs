@@ -16,7 +16,6 @@ namespace GitHub.Unity
         [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
         [SerializeField] private GitPathView gitPathView = new GitPathView();
         [SerializeField] private bool isBusy;
-        [SerializeField] private bool isPublished;
 
         public override void InitializeView(IView parent)
         {
@@ -25,51 +24,12 @@ namespace GitHub.Unity
             gitPathView.InitializeView(this);
         }
 
-        public override void OnEnable()
-        {
-            base.OnEnable();
-            userSettingsView.OnEnable();
-            gitPathView.OnEnable();
-        }
-
-        public override void OnDisable()
-        {
-            base.OnDisable();
-            userSettingsView.OnDisable();
-            gitPathView.OnDisable();
-        }
-
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
 
-            if (userSettingsView != null)
-            {
-                userSettingsView.OnDataUpdate();
-            }
-
-            if (gitPathView != null)
-            {
-                gitPathView.OnDataUpdate();
-            }
-        }
-
-        public override void OnRepositoryChanged(IRepository oldRepository)
-        {
-            base.OnRepositoryChanged(oldRepository);
-
-            userSettingsView.OnRepositoryChanged(oldRepository);
-            gitPathView.OnRepositoryChanged(oldRepository);
-
-            Refresh();
-        }
-
-        public override void Refresh()
-        {
-            base.Refresh();
-
-            userSettingsView.Refresh();
-            gitPathView.Refresh();
+            userSettingsView.OnDataUpdate();
+            gitPathView.OnDataUpdate();
         }
 
         public override void OnGUI()
@@ -134,11 +94,6 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
-        }
-
-        private void MaybeUpdateData()
-        {
-            isPublished = Repository != null && Repository.CurrentRemote.HasValue;
         }
 
         public override bool IsBusy

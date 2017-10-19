@@ -38,7 +38,6 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-
             gitExecHasChanged = true;
         }
 
