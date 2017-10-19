@@ -12,8 +12,6 @@ namespace GitHub.Unity
     [Serializable]
     class HistoryView : Subview
     {
-        private const string HistoryFocusAll = "(All)";
-        private const string HistoryFocusSingle = "Focus: <b>{0}</b>";
         private const string PullButton = "Pull";
         private const string PullButtonCount = "Pull (<b>{0}</b>)";
         private const string PushButton = "Push";
@@ -47,7 +45,6 @@ namespace GitHub.Unity
         [NonSerialized] private bool isBusy;
 
         [SerializeField] private Vector2 detailsScroll;
-        [SerializeField] private Object historyTarget;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string selectionID;
         [SerializeField] private int statusAhead;
@@ -97,10 +94,7 @@ namespace GitHub.Unity
 
         public override void OnSelectionChange()
         {
-            if (!string.IsNullOrEmpty(AssetDatabase.GetAssetPath(Selection.activeObject)))
-            {
-                historyTarget = Selection.activeObject;
-            }
+
         }
 
         public override void OnGUI()
@@ -213,20 +207,6 @@ namespace GitHub.Unity
             // History toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
-                // Target indicator / clear button
-                EditorGUI.BeginDisabledGroup(historyTarget == null);
-                {
-                    if (GUILayout.Button(
-                        historyTarget == null ? HistoryFocusAll : String.Format(HistoryFocusSingle, historyTarget.name),
-                        Styles.HistoryToolbarButtonStyle)
-                    )
-                    {
-                        historyTarget = null;
-                        Refresh();
-                    }
-                }
-                EditorGUI.EndDisabledGroup();
-
                 GUILayout.FlexibleSpace();
 
                 if (isPublished)
@@ -429,7 +409,7 @@ namespace GitHub.Unity
 
         private LogEntryState GetEntryState(int index)
         {
-            return historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal;
+            return index < statusAhead ? LogEntryState.Local : LogEntryState.Normal;
         }
 
         /// <summary>
