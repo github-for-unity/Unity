@@ -28,8 +28,6 @@ namespace IntegrationTests
 
             GitClient = new GitClient(Environment, ProcessManager, TaskManager);
 
-            var usageTracker = new NullUsageTracker();
-
             RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
             RepositoryManager.Initialize();
 
