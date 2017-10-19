@@ -31,15 +31,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            userSettingsView.OnEnable();
             gitPathView.OnEnable();
-        }
-
-        public override void OnDisable()
-        {
-            base.OnDisable();
-            userSettingsView.OnDisable();
-            gitPathView.OnDisable();
         }
 
         public override void OnGUI()
