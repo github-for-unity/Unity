@@ -9,14 +9,14 @@ This repository is LFS-enabled. To clone it, you should use a git client that su
 - Visual Studio 2015+ or Mono 4.x + bash shell (git bash).
   - Mono 5.x will not work
 - `UnityEngine.dll` and `UnityEditor.dll`.
-  - If you've installed Unity in the default location of `C:\Program Files\Unity` or `C:\Program Files (x86)\Unity`, the build will be able to reference these DLLs automatically. Otherwise, you'll need to copy these DLLs from your Unity installation into the `lib` directory in order for the build to work
+  - If you've installed Unity in the default location of `C:\Program Files\Unity` or `C:\Program Files (x86)\Unity`, the build will be able to reference these DLLs automatically. Otherwise, you'll need to copy these DLLs from `[Unity installation path]\Unity\Editor\Data\Managed` into the `lib` directory in order for the build to work
 
 ### MacOS
 
 - Mono 4.x required.
   - Mono 5.x will not work
 - `UnityEngine.dll` and `UnityEditor.dll`.
-  - If you've installed Unity in the default location of `/Applications/Unity`, the build will be able to reference these DLLs automatically. Otherwise, you'll need to copy these DLLs from your Unity installation into the `lib` directory in order for the build to work
+  - If you've installed Unity in the default location of `/Applications/Unity`, the build will be able to reference these DLLs automatically. Otherwise, you'll need to copy these DLLs from `[Unity installation path]/Unity.app/Contents/Managed` into the `lib` directory in order for the build to work
 
 ## How to Build
 
