@@ -138,22 +138,10 @@ namespace GitHub.Unity
         {
             isBusy = true;
 
-            string username = null;
-            string email = null;
+            GitClient.GetConfigUserAndEmail().FinallyInUI((success, ex, strings) => {
+                var username = strings[0];
+                var email = strings[1];
 
-            GitClient.GetConfig("user.name", GitConfigSource.User).Then((success, value) => {
-                Logger.Trace("Return success:{0} user.name", success, value);
-                if (success)
-                {
-                    username = value;
-                }
-            }).Then(GitClient.GetConfig("user.email", GitConfigSource.User).Then((success, value) => {
-                Logger.Trace("Return success:{0} user.email", success, value);
-                if (success)
-                {
-                    email = value;
-                }
-            })).FinallyInUI((success, ex) => {
                 Logger.Trace("Return success:{0} name:{1} email:{2}", success, username, email);
 
                 isBusy = false;

@@ -318,16 +318,20 @@ namespace GitHub.Unity
 
         private void LoadGitUser()
         {
-            var user = new User();
-            GitClient.GetConfig("user.name", GitConfigSource.User)
-                .Then((success, value) => user.Name = value).Then(
-            GitClient.GetConfig("user.email", GitConfigSource.User)
-                .Then((success, value) => user.Email = value))
-            .Then(() => {
-                        Logger.Trace("OnGitUserLoaded: {0}", user);
-                        OnGitUserLoaded?.Invoke(user);
-                     })
-            .Start();
+            GitClient.GetConfigUserAndEmail()
+                .Then((success, strings) => {
+                    var username = strings[0];
+                    var email = strings[1];
+
+                    var user = new User {
+                        Name = username,
+                        Email = email
+                    };
+
+                    Logger.Trace("OnGitUserLoaded: {0}", user);
+                    OnGitUserLoaded?.Invoke(user);
+
+                }).Start();
         }
 
         private void SetupWatcher()
