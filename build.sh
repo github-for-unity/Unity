@@ -1,4 +1,4 @@
-#!/bin/sh -eux
+#!/bin/sh -eu
 Configuration="dev"
 if [ $# -gt 0 ]; then
 	Configuration=$1
@@ -32,7 +32,7 @@ else
 	nuget restore GitHub.Unity.sln
 fi
 
-xbuild GitHub.Unity.sln /verbosity:normal /property:Configuration=$Configuration /target:$Target || true
+xbuild GitHub.Unity.sln /verbosity:minimal /property:Configuration=$Configuration /target:$Target || true
 
 rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/deleteme*
 rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/deleteme*

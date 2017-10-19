@@ -17,21 +17,15 @@ namespace GitHub.Unity
             Logger.Trace("Initialize ApplicationManager:{0} Initialized:{1}", applicationManager, initialized);
         }
 
-        public void InitializeWindow(IApplicationManager applicationManager)
+        public void InitializeWindow(IApplicationManager applicationManager, bool requiresRedraw = true)
         {
-            if (inLayout)
-            {
-                initializeWasCalled = true;
-                cachedManager = applicationManager;
-                return;
-            }
-
+            initialized = true;
+            initializeWasCalled = true;
             Manager = applicationManager;
             cachedRepository = Environment.Repository;
-            initialized = true;
             Initialize(applicationManager);
-            OnRepositoryChanged(null);
-            Redraw();
+            if (requiresRedraw)
+                Redraw();
         }
 
         public virtual void Redraw()
@@ -51,14 +45,14 @@ namespace GitHub.Unity
         {
             Logger.Trace("Awake Initialized:{0}", initialized);
             if (!initialized)
-                InitializeWindow(EntryPoint.ApplicationManager);
+                InitializeWindow(EntryPoint.ApplicationManager, false);
         }
 
         public virtual void OnEnable()
         {
             Logger.Trace("OnEnable Initialized:{0}", initialized);
             if (!initialized)
-                InitializeWindow(EntryPoint.ApplicationManager);
+                InitializeWindow(EntryPoint.ApplicationManager, false);
         }
 
         public virtual void OnDisable()
@@ -81,8 +75,9 @@ namespace GitHub.Unity
         {
             if (Event.current.type == EventType.layout)
             {
-                if (cachedRepository != Environment.Repository)
+                if (cachedRepository != Environment.Repository || initializeWasCalled)
                 {
+                    initializeWasCalled = false;
                     OnRepositoryChanged(cachedRepository);
                     cachedRepository = Environment.Repository;
                 }
@@ -95,11 +90,6 @@ namespace GitHub.Unity
             if (Event.current.type == EventType.repaint)
             {
                 inLayout = false;
-                if (initializeWasCalled)
-                {
-                    initializeWasCalled = false;
-                    InitializeWindow(cachedManager);
-                }
             }
         }
 
@@ -113,7 +103,7 @@ namespace GitHub.Unity
         public IApplicationManager Manager { get; private set; }
         public abstract bool IsBusy { get; }
         public IRepository Repository { get { return inLayout ? cachedRepository : Environment.Repository; } }
-        public bool HasRepository { get { return Environment.RepositoryPath != null; } }
+        public bool HasRepository { get { return Repository != null; } }
 
         protected ITaskManager TaskManager { get { return Manager.TaskManager; } }
         protected IGitClient GitClient { get { return Manager.GitClient; } }
