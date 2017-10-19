@@ -14,12 +14,17 @@ namespace GitHub.Unity
         [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
         [SerializeField] private GitPathView gitPathView = new GitPathView();
         [SerializeField] private bool isBusy;
+
         [NonSerialized] private string errorMessage;
+        [NonSerialized] private bool isUserDataPresent;
         [NonSerialized] private bool userDataHasChanged;
 
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
+
+            userSettingsView.InitializeView(this);
+            gitPathView.InitializeView(this);
 
             if (!string.IsNullOrEmpty(Environment.GitExecutablePath))
             {
@@ -31,13 +36,6 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             userDataHasChanged = Environment.GitExecutablePath != null;
-        }
-
-        public override void InitializeView(IView parent)
-        {
-            base.InitializeView(parent);
-            userSettingsView.InitializeView(this);
-            gitPathView.InitializeView(this);
         }
 
         public override void OnDataUpdate()
