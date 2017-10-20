@@ -55,7 +55,6 @@ namespace GitHub.Unity
         {
             base.InitializeView(parent);
             targetMode = mode;
-            Manager.CacheManager.SetupCache(BranchCache.Instance, Environment.Repository);
         }
 
         public override void OnEnable()
