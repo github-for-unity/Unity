@@ -17,6 +17,7 @@ namespace GitHub.Unity
         }
 
         private Action onLocalBranchListChanged;
+        private Action<GitStatus> onStatusChanged;
 
         public void SetupCache(IBranchCache branchCache, IRepository repository)
         {
@@ -25,8 +26,17 @@ namespace GitHub.Unity
 
             BranchCache = branchCache;
             UpdateCache(repository);
+
             if (onLocalBranchListChanged != null)
+            {
                 repository.OnLocalBranchListChanged -= onLocalBranchListChanged;
+            }
+
+            if (onStatusChanged != null)
+            {
+                repository.OnStatusChanged -= onStatusChanged;
+            }
+
             onLocalBranchListChanged = () =>
             {
                 if (!ThreadingHelper.InUIThread)
@@ -34,7 +44,17 @@ namespace GitHub.Unity
                 else
                     UpdateCache(repository);
             };
+
+            onStatusChanged = status =>
+            {
+                if (!ThreadingHelper.InUIThread)
+                    new ActionTask(TaskManager.Instance.Token, () => UpdateCache(repository)) { Affinity = TaskAffinity.UI }.Start();
+                else
+                    UpdateCache(repository);
+            };
+
             repository.OnLocalBranchListChanged += onLocalBranchListChanged;
+            repository.OnStatusChanged += onStatusChanged;
         }
 
         private void UpdateCache(IRepository repository)

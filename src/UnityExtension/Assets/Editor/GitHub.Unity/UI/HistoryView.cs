@@ -12,8 +12,6 @@ namespace GitHub.Unity
     [Serializable]
     class HistoryView : Subview
     {
-        private const string HistoryFocusAll = "(All)";
-        private const string HistoryFocusSingle = "Focus: <b>{0}</b>";
         private const string PullButton = "Pull";
         private const string PullButtonCount = "Pull (<b>{0}</b>)";
         private const string PushButton = "Push";
@@ -37,7 +35,6 @@ namespace GitHub.Unity
 
         [NonSerialized] private int historyStartIndex;
         [NonSerialized] private int historyStopIndex;
-        [NonSerialized] private float lastWidth;
         [NonSerialized] private int listID;
         [NonSerialized] private int newSelectionIndex;
         [NonSerialized] private float scrollOffset;
@@ -48,7 +45,6 @@ namespace GitHub.Unity
         [NonSerialized] private bool isBusy;
 
         [SerializeField] private Vector2 detailsScroll;
-        [SerializeField] private Object historyTarget;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string selectionID;
         [SerializeField] private int statusAhead;
@@ -63,7 +59,6 @@ namespace GitHub.Unity
         {
             base.InitializeView(parent);
 
-            lastWidth = Position.width;
             selectionIndex = newSelectionIndex = -1;
 
             changesetTree.InitializeView(this);
@@ -99,10 +94,7 @@ namespace GitHub.Unity
 
         public override void OnSelectionChange()
         {
-            if (!string.IsNullOrEmpty(AssetDatabase.GetAssetPath(Selection.activeObject)))
-            {
-                historyTarget = Selection.activeObject;
-            }
+
         }
 
         public override void OnGUI()
@@ -215,20 +207,6 @@ namespace GitHub.Unity
             // History toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
-                // Target indicator / clear button
-                EditorGUI.BeginDisabledGroup(historyTarget == null);
-                {
-                    if (GUILayout.Button(
-                        historyTarget == null ? HistoryFocusAll : String.Format(HistoryFocusSingle, historyTarget.name),
-                        Styles.HistoryToolbarButtonStyle)
-                    )
-                    {
-                        historyTarget = null;
-                        Refresh();
-                    }
-                }
-                EditorGUI.EndDisabledGroup();
-
                 GUILayout.FlexibleSpace();
 
                 if (isPublished)
@@ -431,7 +409,7 @@ namespace GitHub.Unity
 
         private LogEntryState GetEntryState(int index)
         {
-            return historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal;
+            return index < statusAhead ? LogEntryState.Local : LogEntryState.Normal;
         }
 
         /// <summary>
@@ -473,7 +451,6 @@ namespace GitHub.Unity
         private bool HistoryEntry(GitLogEntry entry, LogEntryState state, bool selected)
         {
             var entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
-            var timelineBarRect = new Rect(entryRect.x + Styles.BaseSpacing, 0, 2, Styles.HistoryDetailsHeight);
 
             if (Event.current.type == EventType.Repaint)
             {
@@ -481,7 +458,6 @@ namespace GitHub.Unity
 
                 var summaryRect = new Rect(entryRect.x, entryRect.y + (Styles.BaseSpacing / 2), entryRect.width, Styles.HistorySummaryHeight + Styles.BaseSpacing);
                 var timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight - (Styles.BaseSpacing / 2), entryRect.width, Styles.HistoryDetailsHeight);
-                var authorRect = new Rect(timestampRect.xMax, timestampRect.y, timestampRect.width, timestampRect.height);
 
                 var contentOffset = new Vector2(Styles.BaseSpacing * 2, 0);
 
@@ -630,7 +606,6 @@ namespace GitHub.Unity
 
         private void Fetch()
         {
-            var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
             Repository
                 .Fetch()
                 .FinallyInUI((success, e) => {

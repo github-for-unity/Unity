@@ -13,8 +13,6 @@ namespace UnitTests.UI
     [TestFixture, Isolated]
     public class TreeBuilderTests
     {
-        private ILogging logger = Logging.GetLogger<TreeBuilderTests>();
-
         private IEnvironment environment;
         private GitObjectFactory gitObjectFactory;
 

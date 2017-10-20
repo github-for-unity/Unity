@@ -266,7 +266,6 @@ namespace IntegrationTests
             var output = new Dictionary<int, int>();
             var tasks = new List<ITask>();
             var seed = Randomizer.RandomSeed;
-            var rand = new Randomizer(seed);
 
             var uiThread = 0;
             await new ActionTask(Token, _ => uiThread = Thread.CurrentThread.ManagedThreadId) { Affinity = TaskAffinity.UI }
@@ -290,7 +289,6 @@ namespace IntegrationTests
             var output = new Dictionary<int, KeyValuePair<int, int>>();
             var tasks = new List<ITask>();
             var seed = Randomizer.RandomSeed;
-            var rand = new Randomizer(seed);
 
             var uiThread = 0;
             await new ActionTask(Token, _ => uiThread = Thread.CurrentThread.ManagedThreadId) { Affinity = TaskAffinity.UI }
@@ -567,32 +565,14 @@ namespace IntegrationTests
         [ExpectedException(typeof(InvalidOperationException))]
         public async Task ExceptionPropagatesOutIfNoFinally()
         {
-            var runOrder = new List<string>();
             var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
                 .Catch(_ => { });
-            await task.StartAsAsync();
-        }
-
-        //[Test]
-        //[Ignore("borked")]
-        [ExpectedException(typeof(InvalidOperationException))]
-        public async Task DeferExceptions()
-        {
-            var runOrder = new List<string>();
-            var task = new FuncTask<int>(Token, _ => 1)
-                .Defer(async d =>
-                {
-                    throw new InvalidOperationException();
-                    return await TaskEx.FromResult(d);
-                })
-                .Then(_ => { });
             await task.StartAsAsync();
         }
 
         [Test]
         public async Task StartAsyncWorks()
         {
-            var runOrder = new List<string>();
             var task = new FuncTask<int>(Token, _ => 1);
             var ret = await task.StartAsAsync();
             Assert.AreEqual(1, ret);
@@ -643,7 +623,6 @@ namespace IntegrationTests
         [Test]
         public async Task StartAwaitSafelyAwaits()
         {
-            var runOrder = new List<string>();
             var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
                 .Catch(_ => { });
             await task.StartAwait(_ => { });
@@ -661,106 +640,6 @@ namespace IntegrationTests
             var act = new ActionTask(task) { Affinity = TaskAffinity.Exclusive };
             await act.Start().Task;
             CollectionAssert.AreEqual(new string[] { $"ran" }, runOrder);
-        }
-
-        /// <summary>
-        /// Always call Then or another non-Defer variant after calling Defer
-        /// </summary>
-        //[Test]
-        //[Ignore("borked")]
-        public async Task AlwaysChainAsyncBodiesWithNonAsync()
-        {
-            var runOrder = new List<int>();
-            var act = new FuncTask<List<int>>(Token, _ => runOrder) { Name = "First" }
-                .Defer(GetData)
-                .Then((_, v) =>
-                {
-                    v.Add(2);
-                    return v;
-                })
-                .Defer(GetData2)
-                .Then((_, v) =>
-                {
-                    v.Add(4);
-                    return v;
-                })
-                .Defer(async v =>
-                {
-                    await TaskEx.Delay(10);
-                    v.Add(5);
-                    return v;
-                })
-                .Then((_, v) =>
-                {
-                    v.Add(6);
-                    return v;
-                })
-                .Defer(v => new Task<List<int>>(() =>
-                {
-                    v.Add(7);
-                    return v;
-                }), TaskAffinity.Concurrent)
-                .Finally((_, e, v) => v);
-            ;
-            var ret = await act.StartAsAsync();
-            CollectionAssert.AreEqual(Enumerable.Range(1, 7), runOrder);
-        }
-
-        /// <summary>
-        /// Always call Then or another non-Defer variant after calling Defer
-        /// </summary>
-        //[Test]
-        //[Ignore("borked")]
-        public async Task TwoDefersInARowWillNotWork()
-        {
-            var runOrder = new List<int>();
-            var act = new FuncTask<List<int>>(Token, _ => runOrder) { Name = "First" }
-                .Defer(GetData)
-                .Defer(GetData2)
-                .Finally((_, e, v) => v);
-            ;
-            var ret = await act.StartAsAsync();
-            Assert.IsNull(ret);
-        }
-
-        //[Test]
-        //[Ignore("borked")]
-        public async Task DoNotEndChainsWithDefer()
-        {
-            var runOrder = new List<int>();
-            var act = new FuncTask<List<int>>(Token, _ => runOrder) { Name = "First" }
-                .Defer(GetData)
-                .Then((_, v) =>
-                {
-                    v.Add(2);
-                    return v;
-                })
-                .Defer(GetData2)
-                .Then((_, v) =>
-                {
-                    v.Add(4);
-                    return v;
-                })
-                .Defer(async v =>
-                {
-                    await TaskEx.Delay(10);
-                    v.Add(5);
-                    return v;
-                })
-                .Then((_, v) =>
-                {
-                    v.Add(6);
-                    return v;
-                })
-                .Defer(v => new Task<List<int>>(() =>
-                {
-                    v.Add(7);
-                    return v;
-                }), TaskAffinity.Concurrent);
-            ;
-            var ret = await act.Start().Task;
-            // the last one hasn't finished before await is done
-            CollectionAssert.AreEqual(Enumerable.Range(1, 6), runOrder);
         }
 
         private async Task<List<int>> GetData(List<int> v)

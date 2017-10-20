@@ -1,11 +1,6 @@
-#pragma warning disable 649
-
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
@@ -14,20 +9,41 @@ namespace GitHub.Unity
     {
         private const string NoRepoTitle = "No Git repository found for this project";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
-
+        private const string NoUserOrEmailError = "Name and Email must be configured in Settings";
+        
+        [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
+        [SerializeField] private GitPathView gitPathView = new GitPathView();
         [SerializeField] private bool isBusy;
-        [SerializeField] private bool isPublished;
+
+        [NonSerialized] private string errorMessage;
+        [NonSerialized] private bool isUserDataPresent;
+        [NonSerialized] private bool userDataHasChanged;
+
+        public override void InitializeView(IView parent)
+        {
+            base.InitializeView(parent);
+
+            userSettingsView.InitializeView(this);
+            gitPathView.InitializeView(this);
+
+            if (!string.IsNullOrEmpty(Environment.GitExecutablePath))
+            {
+                CheckForUser();
+            }
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            gitPathView.OnEnable();
+            userDataHasChanged = Environment.GitExecutablePath != null;
+        }
 
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
-            MaybeUpdateData();
-        }
-
-        public override void OnRepositoryChanged(IRepository oldRepository)
-        {
-            base.OnRepositoryChanged(oldRepository);
-            Refresh();
+            userSettingsView.OnDataUpdate();
+            gitPathView.OnDataUpdate();
         }
 
         public override void OnGUI()
@@ -61,6 +77,10 @@ namespace GitHub.Unity
             }
             EditorGUILayout.EndHorizontal();
 
+            gitPathView.OnGUI();
+
+            userSettingsView.OnGUI();
+
             GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {
                 GUILayout.FlexibleSpace();
@@ -70,7 +90,7 @@ namespace GitHub.Unity
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
 
-                EditorGUI.BeginDisabledGroup(isBusy);
+                EditorGUI.BeginDisabledGroup(IsBusy || !isUserDataPresent);
                 {
                     if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
                     {
@@ -85,19 +105,57 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 
+                ShowErrorMessage();
+
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
         }
 
+        private void ShowErrorMessage()
+        {
+            if (errorMessage != null)
+            {
+                GUILayout.Space(Styles.BaseSpacing);
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label(errorMessage, Styles.CenteredErrorLabel);
+                }
+                GUILayout.EndHorizontal();
+            }
+        }
+
         private void MaybeUpdateData()
         {
-            isPublished = Repository != null && Repository.CurrentRemote.HasValue;
+            if (userDataHasChanged)
+            {
+                userDataHasChanged = false;
+                CheckForUser();
+            }
+        }
+
+        private void CheckForUser()
+        {
+            isBusy = true;
+
+            GitClient.GetConfigUserAndEmail().FinallyInUI((success, ex, strings) => {
+                var username = strings[0];
+                var email = strings[1];
+
+
+                isBusy = false;
+                isUserDataPresent = success && !String.IsNullOrEmpty(username) && !String.IsNullOrEmpty(email);
+                errorMessage = isUserDataPresent ? null : NoUserOrEmailError;
+
+                Logger.Trace("Finally: {0}", isUserDataPresent);
+
+                Redraw();
+            }).Start();
         }
 
         public override bool IsBusy
         {
-            get { return isBusy; }
+            get { return isBusy || userSettingsView.IsBusy || gitPathView.IsBusy; }
         }
     }
 }
