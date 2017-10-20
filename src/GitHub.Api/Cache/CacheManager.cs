@@ -102,33 +102,39 @@ namespace GitHub.Unity
 
         private void OnCurrentBranchUpdated(IRepository repository)
         {
+            logger.Trace("OnCurrentBranchUpdated");
             UpdateBranchCache(repository);
             UpdateGitLogCache(repository);
         }
 
         private void OnLocalBranchListChanged(IRepository repository)
         {
+            logger.Trace("OnLocalBranchListChanged");
             UpdateBranchCache(repository);
         }
 
         private void OnStatusChanged(IRepository repository)
         {
+            logger.Trace("OnStatusChanged");
             UpdateBranchCache(repository);
         }
 
         private void UpdateBranchCache(IRepository repository)
         {
+            logger.Trace("UpdateBranchCache");
             BranchCache.LocalBranches = repository.LocalBranches.ToList();
             BranchCache.RemoteBranches = repository.RemoteBranches.ToList();
         }
 
         private void UpdateGitLogCache(IRepository repository)
         {
+            logger.Trace("Start UpdateGitLogCache");
             repository
                 .Log()
                 .FinallyInUI((success, exception, log) => {
                     if (success)
                     {
+                        logger.Trace("Completed UpdateGitLogCache");
                         GitLogCache.Log = log;
                     }
                 }).Start();
