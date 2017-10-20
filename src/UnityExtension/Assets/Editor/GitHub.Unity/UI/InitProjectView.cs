@@ -35,6 +35,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
+            gitPathView.OnEnable();
             userDataHasChanged = Environment.GitExecutablePath != null;
         }
 
@@ -43,12 +44,6 @@ namespace GitHub.Unity
             base.OnDataUpdate();
             userSettingsView.OnDataUpdate();
             gitPathView.OnDataUpdate();
-        }
-
-        public override void OnEnable()
-        {
-            base.OnEnable();
-            gitPathView.OnEnable();
         }
 
         public override void OnGUI()
