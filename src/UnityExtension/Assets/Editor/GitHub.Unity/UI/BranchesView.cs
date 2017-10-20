@@ -85,6 +85,7 @@ namespace GitHub.Unity
         {
             if (!treeLocals.IsInitialized || branchesHasChanged)
             {
+                branchesHasChanged = false;
                 BuildTree(BranchCache.Instance.LocalBranches, BranchCache.Instance.RemoteBranches);
             }
 
