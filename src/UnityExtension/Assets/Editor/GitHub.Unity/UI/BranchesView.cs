@@ -80,7 +80,7 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (treeLocals == null || !treeLocals.IsInitialized)
+            if (!treeLocals.IsInitialized)
             {
                 BuildTree(BranchCache.Instance.LocalBranches, BranchCache.Instance.RemoteBranches);
             }
