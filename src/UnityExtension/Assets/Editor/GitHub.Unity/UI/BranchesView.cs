@@ -49,6 +49,9 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private bool disableDelete;
 
+        [NonSerialized] private bool branchesHasChanged;
+
+
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
@@ -80,7 +83,7 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (!treeLocals.IsInitialized)
+            if (!treeLocals.IsInitialized || branchesHasChanged)
             {
                 BuildTree(BranchCache.Instance.LocalBranches, BranchCache.Instance.RemoteBranches);
             }
@@ -134,7 +137,10 @@ namespace GitHub.Unity
 
         private void HandleDataUpdated()
         {
-            new ActionTask(TaskManager.Token, Redraw) { Affinity = TaskAffinity.UI }.Start();
+            new ActionTask(TaskManager.Token, () => {
+                branchesHasChanged = true;
+                Redraw();
+            }) { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void HandleDataUpdated(string obj)
