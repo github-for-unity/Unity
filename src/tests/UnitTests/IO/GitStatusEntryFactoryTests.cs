@@ -23,7 +23,7 @@ namespace UnitTests
             var repositoryPath = "/Source".ToNPath();
             var unityProjectPath = repositoryPath.Combine("UnityProject");
 
-            var gitEnvironment = SubstituteFactory.CreateProcessEnvironment(repositoryPath);
+            SubstituteFactory.CreateProcessEnvironment(repositoryPath);
             var environment = SubstituteFactory.CreateEnvironment(new CreateEnvironmentOptions {
                 RepositoryPath = repositoryPath,
                 UnityProjectPath = unityProjectPath
@@ -54,7 +54,7 @@ namespace UnitTests
             var repositoryPath = "/Source".ToNPath();
             var unityProjectPath = repositoryPath.Combine("UnityProject");
 
-            var gitEnvironment = SubstituteFactory.CreateProcessEnvironment(repositoryPath);
+            SubstituteFactory.CreateProcessEnvironment(repositoryPath);
             var environment = SubstituteFactory.CreateEnvironment(new CreateEnvironmentOptions {
                 RepositoryPath = repositoryPath,
                 UnityProjectPath = unityProjectPath
@@ -84,7 +84,7 @@ namespace UnitTests
             var repositoryPath = "/Source".ToNPath();
             var unityProjectPath = repositoryPath;
 
-            var gitEnvironment = SubstituteFactory.CreateProcessEnvironment(repositoryPath);
+            SubstituteFactory.CreateProcessEnvironment(repositoryPath);
             var environment = SubstituteFactory.CreateEnvironment(new CreateEnvironmentOptions {
                 RepositoryPath = repositoryPath,
                 UnityProjectPath = unityProjectPath
