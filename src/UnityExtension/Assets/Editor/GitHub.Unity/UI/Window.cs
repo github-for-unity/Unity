@@ -143,8 +143,6 @@ namespace GitHub.Unity
 
             if (ActiveView != null)
                 ActiveView.OnRepositoryChanged(oldRepository);
-
-            UpdateLog();
         }
 
         public override void OnSelectionChange()
@@ -244,7 +242,6 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
             repository.OnRepositoryInfoChanged += RefreshOnMainThread;
-            repository.OnCurrentBranchUpdated += UpdateLog;
         }
         
         private void DetachHandlers(IRepository repository)
@@ -252,7 +249,6 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
             repository.OnRepositoryInfoChanged -= RefreshOnMainThread;
-            repository.OnCurrentBranchUpdated -= UpdateLog;
         }
 
         private void DoHeaderGUI()
@@ -395,29 +391,6 @@ namespace GitHub.Unity
         private static SubTab TabButton(SubTab tab, string title, SubTab activeTab)
         {
             return GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
-        }
-
-        private void UpdateLog()
-        {
-            if (Repository != null)
-            {
-                Logger.Trace("Updating Log");
-
-                Repository
-                    .Log()
-                    .FinallyInUI((success, exception, log) => {
-                        if (success)
-                        {
-                            Logger.Trace("Updated Log");
-                            GitLogCache.Instance.Log = log;
-
-                            if (activeTab == SubTab.History)
-                            {
-                                HistoryView.CheckLogCache();
-                            }
-                        }
-                    }).Start();
-            }
         }
 
         private Subview ToView(SubTab tab)

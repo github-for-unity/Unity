@@ -12,7 +12,6 @@ namespace GitHub.Unity
         protected static ILogging Logger { get; } = Logging.GetLogger<IApplicationManager>();
 
         private RepositoryManager repositoryManager;
-        private IBranchCache branchCache;
 
         public ApplicationManagerBase(SynchronizationContext synchronizationContext)
         {
@@ -80,11 +79,6 @@ namespace GitHub.Unity
                 }
             }
 
-        }
-
-        public void SetupCache(IBranchCache bcache)
-        {
-            branchCache = bcache;
         }
 
         public ITask InitializeRepository()

@@ -3,8 +3,10 @@ using System.Linq;
 
 namespace GitHub.Unity
 {
-    class CacheManager
+    public class CacheManager
     {
+        private static ILogging logger = Logging.GetLogger<CacheManager>();
+
         private IBranchCache branchCache;
         public IBranchCache BranchCache
         {
@@ -16,16 +18,40 @@ namespace GitHub.Unity
             }
         }
 
+        private IGitLogCache gitLogCache;
+        public IGitLogCache GitLogCache
+        {
+            get { return gitLogCache; }
+            set
+            {
+                if (gitLogCache == null)
+                    gitLogCache = value;
+            }
+        }
+
         private Action onLocalBranchListChanged;
         private Action<GitStatus> onStatusChanged;
+        private Action onCurrentBranchUpdated;
 
-        public void SetupCache(IBranchCache branchCache, IRepository repository)
+        public void SetupCache(IGitLogCache cache)
+        {
+            GitLogCache = cache;
+        }
+
+        public void SetupCache(IBranchCache cache)
+        {
+            BranchCache = cache;
+        }
+
+        public void SetRepository(IRepository repository)
         {
             if (repository == null)
                 return;
 
-            BranchCache = branchCache;
-            UpdateCache(repository);
+            logger.Trace("SetRepository: {0}", repository);
+
+            UpdateBranchCache(repository);
+            UpdateGitLogCache(repository);
 
             if (onLocalBranchListChanged != null)
             {
@@ -37,30 +63,75 @@ namespace GitHub.Unity
                 repository.OnStatusChanged -= onStatusChanged;
             }
 
-            onLocalBranchListChanged = () =>
+            if (onStatusChanged != null)
             {
+                repository.OnCurrentBranchUpdated -= onCurrentBranchUpdated;
+            }
+
+            onCurrentBranchUpdated = () => {
                 if (!ThreadingHelper.InUIThread)
-                    new ActionTask(TaskManager.Instance.Token, () => UpdateCache(repository)) { Affinity = TaskAffinity.UI }.Start();
+                    new ActionTask(TaskManager.Instance.Token, () => OnCurrentBranchUpdated(repository)) {
+                        Affinity = TaskAffinity.UI
+                    }.Start();
                 else
-                    UpdateCache(repository);
+                    OnCurrentBranchUpdated(repository);
             };
 
-            onStatusChanged = status =>
-            {
+            onLocalBranchListChanged = () => {
                 if (!ThreadingHelper.InUIThread)
-                    new ActionTask(TaskManager.Instance.Token, () => UpdateCache(repository)) { Affinity = TaskAffinity.UI }.Start();
+                    new ActionTask(TaskManager.Instance.Token, () => OnLocalBranchListChanged(repository)) {
+                        Affinity = TaskAffinity.UI
+                    }.Start();
                 else
-                    UpdateCache(repository);
+                    OnLocalBranchListChanged(repository);
             };
 
+            onStatusChanged = status => {
+                if (!ThreadingHelper.InUIThread)
+                    new ActionTask(TaskManager.Instance.Token, () => OnStatusChanged(repository)) {
+                        Affinity = TaskAffinity.UI
+                    }.Start();
+                else
+                    OnStatusChanged(repository);
+            };
+
+            repository.OnCurrentBranchUpdated += onCurrentBranchUpdated;
             repository.OnLocalBranchListChanged += onLocalBranchListChanged;
             repository.OnStatusChanged += onStatusChanged;
         }
 
-        private void UpdateCache(IRepository repository)
+        private void OnCurrentBranchUpdated(IRepository repository)
+        {
+            UpdateBranchCache(repository);
+            UpdateGitLogCache(repository);
+        }
+
+        private void OnLocalBranchListChanged(IRepository repository)
+        {
+            UpdateBranchCache(repository);
+        }
+
+        private void OnStatusChanged(IRepository repository)
+        {
+            UpdateBranchCache(repository);
+        }
+
+        private void UpdateBranchCache(IRepository repository)
         {
             BranchCache.LocalBranches = repository.LocalBranches.ToList();
             BranchCache.RemoteBranches = repository.RemoteBranches.ToList();
+        }
+
+        private void UpdateGitLogCache(IRepository repository)
+        {
+            repository
+                .Log()
+                .FinallyInUI((success, exception, log) => {
+                    if (success)
+                    {
+                        GitLogCache.Log = log;
+                    }
+                }).Start();
         }
     }
 }
