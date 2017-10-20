@@ -49,8 +49,6 @@ namespace GitHub.Unity
 
         private const string WarningLabel = "<b>Warning:</b> {0}";
 
-        private static Color headerGreyColor = new Color(0.878f, 0.878f, 0.878f, 1.0f);
-
         private static GUIStyle label,
                                 boldLabel,
                                 errorLabel,
@@ -96,8 +94,6 @@ namespace GitHub.Unity
                                  repoIcon,
                                  lockIcon,
                                  dropdownListIcon;
-
-        private static Color timelineBarColor;
 
         public static Texture2D GetFileStatusIcon(GitFileStatus status, bool isLocked)
         {
@@ -594,18 +590,6 @@ namespace GitHub.Unity
                     genericBoxStyle.padding = new RectOffset(5, 5, 5, 5);
                 }
                 return genericBoxStyle;
-            }
-        }
-
-        public static Color TimelineBarColor
-        {
-            get
-            {
-                if (timelineBarColor == null)
-                {
-                    timelineBarColor = new Color(0.51F, 0.51F, 0.51F, 0.2F);
-                }
-                return timelineBarColor;
             }
         }
 
