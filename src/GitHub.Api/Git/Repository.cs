@@ -85,7 +85,7 @@ namespace GitHub.Unity
         public ITask<List<GitLogEntry>> Log()
         {
             if (repositoryManager == null)
-                return new FuncListTask<GitLogEntry>(TaskHelpers.GetCompletedTask(new List<GitLogEntry>()));
+                return new FuncListTask<GitLogEntry>(new NotReadyException().ToTask<List<GitLogEntry>>());
 
             return repositoryManager.Log();
         }
@@ -123,7 +123,7 @@ namespace GitHub.Unity
         public ITask ListLocks()
         {
             if (repositoryManager == null)
-                return new ActionTask(TaskExtensions.CompletedTask);
+                return new ActionTask(new NotReadyException().ToTask<bool>());
             return repositoryManager.ListLocks(false);
         }
 

@@ -1,4 +1,3 @@
-using GitHub.Unity;
 using System;
 using System.Threading;
 using UnityEditor;
@@ -7,8 +6,6 @@ namespace GitHub.Unity
 {
     class MainThreadSynchronizationContext : SynchronizationContext, IMainThreadSynchronizationContext
     {
-        private static readonly ILogging logger = Logging.GetLogger<MainThreadSynchronizationContext>();
-
         public void Schedule(Action action)
         {
             Guard.ArgumentNotNull(action, "action");

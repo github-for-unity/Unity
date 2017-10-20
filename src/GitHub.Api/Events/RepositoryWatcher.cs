@@ -30,10 +30,8 @@ namespace GitHub.Unity
         private readonly CancellationToken cancellationToken;
         private readonly NPath[] ignoredPaths;
         private readonly ManualResetEventSlim pauseEvent;
-        private readonly bool disableNative;
         private NativeInterface nativeInterface;
         private bool running;
-        private Task task;
         private int lastCountOfProcessedEvents = 0;
         private bool processingEvents;
         private readonly ManualResetEventSlim signalProcessingEventsDone = new ManualResetEventSlim(false);
@@ -68,8 +66,7 @@ namespace GitHub.Unity
 
             try
             {
-                if (!disableNative)
-                    nativeInterface = new NativeInterface(pathsRepositoryPath);
+                nativeInterface = new NativeInterface(pathsRepositoryPath);
             }
             catch (Exception ex)
             {
@@ -79,12 +76,6 @@ namespace GitHub.Unity
 
         public void Start()
         {
-            if (disableNative)
-            {
-                Logger.Trace("Native interface is disabled");
-                return;
-            }
-
             if (nativeInterface == null)
             {
                 Logger.Warning("NativeInterface is null");
@@ -95,7 +86,7 @@ namespace GitHub.Unity
 
             running = true;
             pauseEvent.Reset();
-            task = Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
+            Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         public void Stop()
