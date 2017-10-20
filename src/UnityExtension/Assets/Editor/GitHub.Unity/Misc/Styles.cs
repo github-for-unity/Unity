@@ -51,6 +51,7 @@ namespace GitHub.Unity
 
         private static GUIStyle label,
                                 boldLabel,
+                                centeredErrorLabel,
                                 errorLabel,
                                 deletedFileLabel,
                                 longMessageStyle,
@@ -330,6 +331,22 @@ namespace GitHub.Unity
                     errorLabel.normal.textColor = Color.red;
                 }
                 return errorLabel;
+            }
+        }
+
+        public static GUIStyle CenteredErrorLabel
+        {
+            get
+            {
+                if (centeredErrorLabel == null)
+                {
+                    centeredErrorLabel = new GUIStyle(EditorStyles.label);
+                    centeredErrorLabel.alignment = TextAnchor.MiddleCenter;
+                    centeredErrorLabel.name = "CenteredErrorLabel";
+                    centeredErrorLabel.wordWrap = true;
+                    centeredErrorLabel.normal.textColor = Color.red;
+                }
+                return centeredErrorLabel;
             }
         }
 

@@ -23,6 +23,8 @@ namespace GitHub.Unity
         ITask<string> SetConfig(string key, string value, GitConfigSource configSource,
             IOutputProcessor<string> processor = null);
 
+        ITask<string[]> GetConfigUserAndEmail();
+
         ITask<List<GitLock>> ListLocks(bool local,
             BaseOutputListProcessor<GitLock> processor = null);
 
@@ -239,7 +241,7 @@ namespace GitHub.Unity
 
         public ITask<string> GetConfig(string key, GitConfigSource configSource, IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("GetConfig");
+            Logger.Trace("GetConfig: {0}", key);
 
             return new GitConfigGetTask(key, configSource, cancellationToken, processor)
                 .Configure(processManager);
@@ -251,6 +253,28 @@ namespace GitHub.Unity
 
             return new GitConfigSetTask(key, value, configSource, cancellationToken, processor)
                 .Configure(processManager);
+        }
+
+        public ITask<string[]> GetConfigUserAndEmail()
+        {
+            string username = null;
+            string email = null;
+
+            return GetConfig("user.name", GitConfigSource.User).Then((success, value) => {
+                if (success)
+                {
+                    username = value;
+                }
+
+            }).Then(GetConfig("user.email", GitConfigSource.User).Then((success, value) => {
+                if (success)
+                {
+                    email = value;
+                }
+            })).Then(success => {
+                Logger.Trace("user.name:{1} user.email:{2}", success, username, email);
+                return new[] { username, email };
+            });
         }
 
         public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null)
