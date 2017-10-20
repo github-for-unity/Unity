@@ -51,7 +51,6 @@ namespace GitHub.Unity
 
         [NonSerialized] private bool branchesHasChanged;
 
-
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
