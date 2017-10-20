@@ -24,9 +24,14 @@ namespace GitHub.Unity
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
-
             userSettingsView.OnDataUpdate();
             gitPathView.OnDataUpdate();
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            gitPathView.OnEnable();
         }
 
         public override void OnGUI()
