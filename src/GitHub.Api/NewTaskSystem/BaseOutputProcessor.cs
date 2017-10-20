@@ -84,7 +84,6 @@ namespace GitHub.Unity
 
     abstract class FirstResultOutputProcessor<T> : BaseOutputProcessor<T>
     {
-        private readonly StringBuilder sb = new StringBuilder();
         private bool isSet = false;
         public override void LineReceived(string line)
         {

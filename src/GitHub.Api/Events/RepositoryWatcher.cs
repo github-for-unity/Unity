@@ -11,7 +11,7 @@ namespace GitHub.Unity
     {
         void Start();
         void Stop();
-        event Action<string> HeadChanged;
+        event Action HeadChanged;
         event Action IndexChanged;
         event Action ConfigChanged;
         event Action<string> LocalBranchChanged;
@@ -30,15 +30,13 @@ namespace GitHub.Unity
         private readonly CancellationToken cancellationToken;
         private readonly NPath[] ignoredPaths;
         private readonly ManualResetEventSlim pauseEvent;
-        private readonly bool disableNative;
         private NativeInterface nativeInterface;
         private bool running;
-        private Task task;
         private int lastCountOfProcessedEvents = 0;
         private bool processingEvents;
         private readonly ManualResetEventSlim signalProcessingEventsDone = new ManualResetEventSlim(false);
 
-        public event Action<string> HeadChanged;
+        public event Action HeadChanged;
         public event Action IndexChanged;
         public event Action ConfigChanged;
         public event Action<string> LocalBranchChanged;
@@ -68,8 +66,7 @@ namespace GitHub.Unity
 
             try
             {
-                if (!disableNative)
-                    nativeInterface = new NativeInterface(pathsRepositoryPath);
+                nativeInterface = new NativeInterface(pathsRepositoryPath);
             }
             catch (Exception ex)
             {
@@ -79,12 +76,6 @@ namespace GitHub.Unity
 
         public void Start()
         {
-            if (disableNative)
-            {
-                Logger.Trace("Native interface is disabled");
-                return;
-            }
-
             if (nativeInterface == null)
             {
                 Logger.Warning("NativeInterface is null");
@@ -95,7 +86,7 @@ namespace GitHub.Unity
 
             running = true;
             pauseEvent.Reset();
-            task = Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
+            Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         public void Stop()
@@ -162,14 +153,7 @@ namespace GitHub.Unity
 
         private int ProcessEvents(Event[] fileEvents)
         {
-            var eventsProcessed = 0;
-            var configChanged = false;
-            var headChanged = false;
-            var repositoryChanged = false;
-            var indexChanged = false;
-
-            string headContent = null;
-
+            Dictionary<EventType, List<EventData>> events = new Dictionary<EventType, List<EventData>>();
             foreach (var fileEvent in fileEvents)
             {
                 if (!running)
@@ -197,22 +181,17 @@ namespace GitHub.Unity
                 // handling events in .git/*
                 if (fileA.IsChildOf(paths.DotGitPath))
                 {
-                    if (!configChanged && fileA.Equals(paths.DotGitConfig))
+                    if (!events.ContainsKey(EventType.ConfigChanged) && fileA.Equals(paths.DotGitConfig))
                     {
-                        configChanged = true;
+                        events.Add(EventType.ConfigChanged, null);
                     }
-                    else if (!headChanged && fileA.Equals(paths.DotGitHead))
+                    else if (!events.ContainsKey(EventType.HeadChanged) && fileA.Equals(paths.DotGitHead))
                     {
-                        if (fileEvent.Type != EventType.DELETED)
-                        {
-                            headContent = paths.DotGitHead.ReadAllLines().FirstOrDefault();
-                        }
-
-                        headChanged = true;
+                        events.Add(EventType.HeadChanged, null);
                     }
-                    else if (!indexChanged && fileA.Equals(paths.DotGitIndex))
+                    else if (!events.ContainsKey(EventType.IndexChanged) && fileA.Equals(paths.DotGitIndex))
                     {
-                        indexChanged = true;
+                        events.Add(EventType.IndexChanged, null);
                     }
                     else if (fileA.IsChildOf(paths.RemotesPath))
                     {
@@ -226,7 +205,7 @@ namespace GitHub.Unity
 
                         var origin = relativePathElements[0];
 
-                        if (fileEvent.Type == EventType.DELETED)
+                        if (fileEvent.Type == sfw.net.EventType.DELETED)
                         {
                             if (fileA.ExtensionWithDot == ".lock")
                             {
@@ -234,12 +213,9 @@ namespace GitHub.Unity
                             }
 
                             var branch = string.Join(@"/", relativePathElements.Skip(1).ToArray());
-
-                            Logger.Trace("RemoteBranchDeleted: {0}/{1}", origin, branch);
-                            RemoteBranchDeleted?.Invoke(origin, branch);
-                            eventsProcessed++;
+                            AddOrUpdateEventData(events, EventType.RemoteBranchDeleted, new EventData { Origin = origin, Branch = branch });
                         }
-                        else if (fileEvent.Type == EventType.RENAMED)
+                        else if (fileEvent.Type == sfw.net.EventType.RENAMED)
                         {
                             if (fileA.ExtensionWithDot != ".lock")
                             {
@@ -255,17 +231,14 @@ namespace GitHub.Unity
                                         .Union(new[] { fileA.FileNameWithoutExtension }).ToArray();
 
                                     var branch = string.Join(@"/", branchPathElement);
-
-                                    Logger.Trace("RemoteBranchCreated: {0}/{1}", origin, branch);
-                                    RemoteBranchCreated?.Invoke(origin, branch);
-                                    eventsProcessed++;
+                                    AddOrUpdateEventData(events, EventType.RemoteBranchCreated, new EventData { Origin = origin, Branch = branch });
                                 }
                             }
                         }
                     }
                     else if (fileA.IsChildOf(paths.BranchesPath))
                     {
-                        if (fileEvent.Type == EventType.MODIFIED)
+                        if (fileEvent.Type == sfw.net.EventType.MODIFIED)
                         {
                             if (fileA.DirectoryExists())
                             {
@@ -287,11 +260,10 @@ namespace GitHub.Unity
 
                             var branch = string.Join(@"/", relativePathElements.ToArray());
 
-                            Logger.Trace("LocalBranchChanged: {0}", branch);
-                            LocalBranchChanged?.Invoke(branch);
-                            eventsProcessed++;
+                            AddOrUpdateEventData(events, EventType.LocalBranchChanged, new EventData { Branch = branch });
+
                         }
-                        else if (fileEvent.Type == EventType.DELETED)
+                        else if (fileEvent.Type == sfw.net.EventType.DELETED)
                         {
                             if (fileA.ExtensionWithDot == ".lock")
                             {
@@ -307,12 +279,9 @@ namespace GitHub.Unity
                             }
 
                             var branch = string.Join(@"/", relativePathElements.ToArray());
-
-                            Logger.Trace("LocalBranchDeleted: {0}", branch);
-                            LocalBranchDeleted?.Invoke(branch);
-                            eventsProcessed++;
+                            AddOrUpdateEventData(events, EventType.LocalBranchDeleted, new EventData { Branch = branch });
                         }
-                        else if (fileEvent.Type == EventType.RENAMED)
+                        else if (fileEvent.Type == sfw.net.EventType.RENAMED)
                         {
                             if (fileA.ExtensionWithDot != ".lock")
                             {
@@ -332,10 +301,7 @@ namespace GitHub.Unity
                                     }
 
                                     var branch = string.Join(@"/", relativePathElements.ToArray());
-
-                                    Logger.Trace("LocalBranchCreated: {0}", branch);
-                                    LocalBranchCreated?.Invoke(branch);
-                                    eventsProcessed++;
+                                    AddOrUpdateEventData(events, EventType.LocalBranchCreated, new EventData { Branch = branch });
                                 }
                             }
                         }
@@ -343,43 +309,109 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    if (repositoryChanged || ignoredPaths.Any(ignoredPath => fileA.IsChildOf(ignoredPath)))
+                    if (events.ContainsKey(EventType.RepositoryChanged) || ignoredPaths.Any(ignoredPath => fileA.IsChildOf(ignoredPath)))
                     {
                         continue;
                     }
-
-                    repositoryChanged = true;
+                    events.Add(EventType.RepositoryChanged, null);
                 }
             }
 
-            if (configChanged)
+            return FireEvents(events);
+        }
+
+        private void AddOrUpdateEventData(Dictionary<EventType, List<EventData>> events, EventType type, EventData data)
+        {
+            if (!events.ContainsKey(type))
+                events.Add(type, new List<EventData>());
+            events[type].Add(data);
+        }
+
+        private int FireEvents(Dictionary<EventType, List<EventData>> events)
+        {
+            int eventsProcessed = 0;
+            if (events.ContainsKey(EventType.ConfigChanged))
             {
                 Logger.Trace("ConfigChanged");
                 ConfigChanged?.Invoke();
                 eventsProcessed++;
             }
 
-            if (headChanged)
+            if (events.ContainsKey(EventType.HeadChanged))
             {
-                Logger.Trace("HeadChanged: {0}", headContent ?? "[null]");
-                HeadChanged?.Invoke(headContent);
+                Logger.Trace("HeadChanged");
+                HeadChanged?.Invoke();
                 eventsProcessed++;
             }
 
-            if (indexChanged)
+            if (events.ContainsKey(EventType.IndexChanged))
             {
                 Logger.Trace("IndexChanged");
                 IndexChanged?.Invoke();
                 eventsProcessed++;
             }
 
-            if (repositoryChanged)
+            if (events.ContainsKey(EventType.RepositoryChanged))
             {
                 Logger.Trace("RepositoryChanged");
                 RepositoryChanged?.Invoke();
                 eventsProcessed++;
             }
 
+            List<EventData> localBranchesCreated;
+            if (events.TryGetValue(EventType.LocalBranchCreated, out localBranchesCreated))
+            {
+                foreach (var evt in localBranchesCreated)
+                {
+                    Logger.Trace($"LocalBranchCreated: {evt.Branch}");
+                    LocalBranchCreated?.Invoke(evt.Branch);
+                    eventsProcessed++;
+                }
+            }
+
+            List<EventData> localBranchesChanged;
+            if (events.TryGetValue(EventType.LocalBranchChanged, out localBranchesChanged))
+            {
+                foreach (var evt in localBranchesChanged)
+                {
+                    Logger.Trace($"LocalBranchChanged: {evt.Branch}");
+                    LocalBranchChanged?.Invoke(evt.Branch);
+                    eventsProcessed++;
+                }
+            }
+
+            List<EventData> localBranchesDeleted;
+            if (events.TryGetValue(EventType.LocalBranchDeleted, out localBranchesDeleted))
+            {
+                foreach (var evt in localBranchesDeleted)
+                {
+                    Logger.Trace($"LocalBranchDeleted: {evt.Branch}");
+                    LocalBranchDeleted?.Invoke(evt.Branch);
+                    eventsProcessed++;
+                }
+            }
+
+            List<EventData> remoteBranchesCreated;
+            if (events.TryGetValue(EventType.RemoteBranchCreated, out remoteBranchesCreated))
+            {
+                foreach (var evt in remoteBranchesCreated)
+                {
+                    Logger.Trace($"RemoteBranchCreated: {evt.Origin}/{evt.Branch}");
+                    RemoteBranchCreated?.Invoke(evt.Origin, evt.Branch);
+                    eventsProcessed++;
+                }
+            }
+
+            List<EventData> remoteBranchesDeleted;
+            if (events.TryGetValue(EventType.RemoteBranchDeleted, out remoteBranchesDeleted))
+            {
+                foreach (var evt in remoteBranchesDeleted)
+                {
+                    Logger.Trace($"RemoteBranchDeleted: {evt.Origin}/{evt.Branch}");
+                    RemoteBranchDeleted?.Invoke(evt.Origin, evt.Branch);
+                    eventsProcessed++;
+                }
+            }
             return eventsProcessed;
         }
 
@@ -407,5 +439,25 @@ namespace GitHub.Unity
         }
 
         protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryWatcher>();
+
+        private enum EventType
+        {
+            None,
+            ConfigChanged,
+            HeadChanged,
+            RepositoryChanged,
+            IndexChanged,
+            RemoteBranchDeleted,
+            RemoteBranchCreated,
+            LocalBranchDeleted,
+            LocalBranchCreated,
+            LocalBranchChanged
+        }
+
+        private class EventData
+        {
+            public string Origin;
+            public string Branch;
+        }
     }
 }

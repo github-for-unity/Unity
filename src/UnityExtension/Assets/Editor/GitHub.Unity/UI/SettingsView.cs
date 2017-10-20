@@ -11,7 +11,6 @@ namespace GitHub.Unity
     [Serializable]
     class SettingsView : Subview
     {
-        private const string GitInstallTitle = "Git installation";
         private const string GitRepositoryTitle = "Repository Configuration";
         private const string GitRepositoryRemoteLabel = "Remote";
         private const string GitRepositorySave = "Save Repository";
@@ -20,15 +19,9 @@ namespace GitHub.Unity
         private const string EnableTraceLoggingLabel = "Enable Trace Logging";
         private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
         private const string DefaultRepositoryRemoteName = "origin";
-        private const string BrowseButton = "...";
-        private const string PathToGit = "Path to Git";
-        private const string GitPathSaveButton = "Save Path";
 
-        [NonSerialized] private int newGitIgnoreRulesSelection = -1;
         [NonSerialized] private bool isBusy;
 
-        [SerializeField] private int gitIgnoreRulesSelection = 0;
-        [SerializeField] private string initDirectory;
         [SerializeField] private List<GitLock> lockedFiles = new List<GitLock>();
         [SerializeField] private Vector2 lockScrollPos;
         [SerializeField] private string repositoryRemoteName;
@@ -39,16 +32,12 @@ namespace GitHub.Unity
         [NonSerialized] private bool remoteHasChanged;
         [NonSerialized] private bool locksHaveChanged;
 
-        [SerializeField] private string newGitName;
-        [SerializeField] private string newGitEmail;
         [SerializeField] private string newRepositoryRemoteUrl;
-        [SerializeField] private User cachedUser;
         
         [SerializeField] private bool metricsEnabled;
         [NonSerialized] private bool metricsHasChanged;
         
         [SerializeField] private GitPathView gitPathView = new GitPathView();
-
         [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
 
         public override void InitializeView(IView parent)
@@ -118,8 +107,8 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.OnActiveRemoteChanged += Repository_OnActiveRemoteChanged;
-            repository.OnLocksUpdated += RunLocksUpdateOnMainThread;
+            repository.OnCurrentRemoteChanged += Repository_OnActiveRemoteChanged;
+            repository.OnLocksChanged += RunLocksUpdateOnMainThread;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -127,8 +116,8 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.OnActiveRemoteChanged -= Repository_OnActiveRemoteChanged;
-            repository.OnLocksUpdated -= RunLocksUpdateOnMainThread;
+            repository.OnCurrentRemoteChanged -= Repository_OnActiveRemoteChanged;
+            repository.OnLocksChanged -= RunLocksUpdateOnMainThread;
         }
 
         public override void OnGUI()

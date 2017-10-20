@@ -91,8 +91,6 @@
     <Compile Include="Misc\Utility.cs" />
     <Compile Include="Services\AuthenticationService.cs" />
     <Compile Include="Services\StatusService.cs" />
-    <Compile Include="Tasks\EvaluateProjectConfigurationTask.cs" />
-    <Compile Include="Tasks\TaskException.cs" />
     <Compile Include="Tools\MozRoots.cs" />
     <Compile Include="UI\AuthenticationView.cs" />
     <Compile Include="UI\BranchesView.cs" />
@@ -102,6 +100,7 @@
     <Compile Include="UI\IView.cs" />
     <Compile Include="UI\LoadingView.cs" />
     <Compile Include="UI\PublishView.cs" />
+    <Compile Include="UI\InitProjectView.cs" />
     <Compile Include="UI\UserSettingsView.cs" />
     <Compile Include="UI\GitPathView.cs" />
     <Compile Include="UI\SettingsView.cs" />
@@ -187,6 +186,8 @@
     <EmbeddedResource Include="IconsAndLogos\small-logo-light%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\small-logo-light.png" />
     <EmbeddedResource Include="IconsAndLogos\small-logo.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-sprite%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-sprite.png" />
     <EmbeddedResource Include="IconsAndLogos\tracked-branch-indicator.png" />
     <EmbeddedResource Include="IconsAndLogos\untracked%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\untracked.png" />

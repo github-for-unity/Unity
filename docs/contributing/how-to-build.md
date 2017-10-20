@@ -9,14 +9,14 @@ This repository is LFS-enabled. To clone it, you should use a git client that su
 - Visual Studio 2015+ or Mono 4.x + bash shell (git bash).
   - Mono 5.x will not work
 - `UnityEngine.dll` and `UnityEditor.dll`.
-  - If you've installed Unity in the default location of `C:\Program Files\Unity` or `C:\Program Files (x86)\Unity`, the build will be able to reference these DLLs automatically. Otherwise, you'll need to copy these DLLs from your Unity installation into the `lib` directory in order for the build to work
+  - If you've installed Unity in the default location of `C:\Program Files\Unity` or `C:\Program Files (x86)\Unity`, the build will be able to reference these DLLs automatically. Otherwise, you'll need to copy these DLLs from `[Unity installation path]\Unity\Editor\Data\Managed` into the `lib` directory in order for the build to work
 
 ### MacOS
 
 - Mono 4.x required.
   - Mono 5.x will not work
 - `UnityEngine.dll` and `UnityEditor.dll`.
-  - If you've installed Unity in the default location of `/Applications/Unity`, the build will be able to reference these DLLs automatically. Otherwise, you'll need to copy these DLLs from your Unity installation into the `lib` directory in order for the build to work
+  - If you've installed Unity in the default location of `/Applications/Unity`, the build will be able to reference these DLLs automatically. Otherwise, you'll need to copy these DLLs from `[Unity installation path]/Unity.app/Contents/Managed` into the `lib` directory in order for the build to work
 
 ## How to Build
 
@@ -40,11 +40,11 @@ To be able to authenticate in GitHub for Unity, you'll need to:
 - [Register a new developer application](https://github.com/settings/developers) in your profile.
 - Copy [common/ApplicationInfo_Local.cs-example](../../common/ApplicationInfo_Local.cs-example) to `common/ApplicationInfo_Local.cs` and fill out the clientId/clientSecret fields for your application.
 
-The build needs to reference `UnityEngine.dll` and `UnityEditor.dll`. These DLLs are included with Unity. If you've installed Unity in the default location, the build will be able to find them automatically. If not, copy these DLLs from your Unity installation into the `lib` directory in order for the build to work.
+The build needs to reference `UnityEngine.dll` and `UnityEditor.dll`. These DLLs are included with Unity. If you've installed Unity in the default location, the build will be able to find them automatically. If not, copy these DLLs from `[your Unity installation path]\Unity\Editor\Data\Managed` into the `lib` directory in order for the build to work.
 
 ### Visual Studio
 
-To build with Visual Studio 2015 open the solution file `GitHub.Unity.sln`. Select `Build Solution` in the `Build` menu.
+To build with Visual Studio 2015+, open the solution file `GitHub.Unity.sln`. Select `Build Solution` in the `Build` menu.
 
 ### Mono and Bash (windows and mac)
 

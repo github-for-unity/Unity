@@ -48,21 +48,6 @@ namespace UnitTests
             yield return testCase;
         }
 
-        //[TestCaseSource(nameof(GetDefaultGitPath_TestCases))]
-        //public void GetDefaultGitPath(string localAppDataPath, string gitHubRootPath, string[] gitHubRootPathChildren, string gitExecutablePath)
-        //{
-        //    var environment = Substitute.For<IEnvironment>();
-        //    environment.GetSpecialFolder(Arg.Is(Environment.SpecialFolder.LocalApplicationData))
-        //        .Returns(localAppDataPath);
-
-        //    var filesystem = Substitute.For<IFileSystem>();
-        //    filesystem.GetDirectories(gitHubRootPath)
-        //        .Returns(gitHubRootPathChildren);
-
-        //    var windowsGitInstallationStrategy = new WindowsGitEnvironment(environment, filesystem);
-        //    windowsGitInstallationStrategy.FindGitInstallationPath(TODO).Should().Be(gitExecutablePath);
-        //}
-
         public static IEnumerable<TestCaseData> ValidateGitPath_TestCases()
         {
             var testCase = new TestCaseData(true, true);
@@ -77,8 +62,6 @@ namespace UnitTests
         [TestCaseSource(nameof(ValidateGitPath_TestCases))]
         public void ValidateGitPath(bool inFileSystem, bool found)
         {
-            var environment = Substitute.For<IEnvironment>();
-
             var filesystem = Substitute.For<IFileSystem>();
             filesystem.FileExists(Args.String).Returns(inFileSystem);
 
