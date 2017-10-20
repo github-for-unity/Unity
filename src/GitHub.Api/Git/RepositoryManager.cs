@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
@@ -94,13 +93,11 @@ namespace GitHub.Unity
 
     class RepositoryManager : IRepositoryManager
     {
-        private readonly CancellationToken cancellationToken;
         private readonly IGitConfig config;
         private readonly IGitClient gitClient;
         private readonly IPlatform platform;
         private readonly IRepositoryPathConfiguration repositoryPaths;
         private readonly ITaskManager taskManager;
-        private readonly IUsageTracker usageTracker;
         private readonly IRepositoryWatcher watcher;
 
         private bool isBusy;
@@ -119,15 +116,13 @@ namespace GitHub.Unity
         public event Action<string, string> OnRemoteBranchRemoved;
         public event Action<GitStatus> OnStatusUpdated;
 
-        public RepositoryManager(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker, IGitConfig gitConfig,
+        public RepositoryManager(IPlatform platform, ITaskManager taskManager, IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
-            IRepositoryPathConfiguration repositoryPaths, CancellationToken cancellationToken)
+            IRepositoryPathConfiguration repositoryPaths)
         {
             this.repositoryPaths = repositoryPaths;
             this.platform = platform;
             this.taskManager = taskManager;
-            this.usageTracker = usageTracker;
-            this.cancellationToken = cancellationToken;
             this.gitClient = gitClient;
             this.watcher = repositoryWatcher;
             this.config = gitConfig;
@@ -135,7 +130,7 @@ namespace GitHub.Unity
             SetupWatcher();
         }
 
-        public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IUsageTracker usageTracker,
+        public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager,
             IGitClient gitClient, NPath repositoryRoot)
         {
             var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
@@ -144,8 +139,8 @@ namespace GitHub.Unity
 
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
 
-            return new RepositoryManager(platform, taskManager, usageTracker, gitConfig, repositoryWatcher,
-                gitClient, repositoryPathConfiguration, taskManager.Token);
+            return new RepositoryManager(platform, taskManager, gitConfig, repositoryWatcher,
+                gitClient, repositoryPathConfiguration);
         }
 
         public void Initialize()

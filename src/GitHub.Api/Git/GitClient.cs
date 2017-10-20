@@ -89,16 +89,13 @@ namespace GitHub.Unity
     {
         private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
-        private readonly ICredentialManager credentialManager;
         private readonly ITaskManager taskManager;
         private readonly CancellationToken cancellationToken;
 
-        public GitClient(IEnvironment environment, IProcessManager processManager,
-            ICredentialManager credentialManager, ITaskManager taskManager)
+        public GitClient(IEnvironment environment, IProcessManager processManager, ITaskManager taskManager)
         {
             this.environment = environment;
             this.processManager = processManager;
-            this.credentialManager = credentialManager;
             this.taskManager = taskManager;
             this.cancellationToken = taskManager.Token;
         }
