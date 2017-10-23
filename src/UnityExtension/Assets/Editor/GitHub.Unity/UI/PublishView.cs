@@ -21,7 +21,7 @@ namespace GitHub.Unity
         private const string RepositoryNameLabel = "Repository Name";
         private const string DescriptionLabel = "Description";
         private const string CreatePrivateRepositoryLabel = "Make repository private";
-        private const string PublishLimtPrivateRepositoriesError = "You are currently at your limt of private repositories";
+        private const string PublishLimitPrivateRepositoriesError = "You are currently at your limit of private repositories";
 
         [SerializeField] private string username;
         [SerializeField] private string[] owners = { OwnersDefaultText };
@@ -177,7 +177,7 @@ namespace GitHub.Unity
                             {
                                 Logger.Error(ex, "Repository Create Error Type:{0}", ex.GetType().ToString());
 
-                                error = ex.Message;
+                                error = GetPublishErrorMessage(ex);
                                 isBusy = false;
                                 return;
                             }
@@ -208,6 +208,16 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
             }
             EditorGUI.EndDisabledGroup();
+        }
+
+        private string GetPublishErrorMessage(Exception ex)
+        {
+            if (ex.Message.StartsWith(PublishLimitPrivateRepositoriesError))
+            {
+                return PublishLimitPrivateRepositoriesError;
+            }
+            
+            return ex.Message;
         }
 
         public override bool IsBusy
