@@ -22,6 +22,7 @@ namespace GitHub.Unity
         private const string DescriptionLabel = "Description";
         private const string CreatePrivateRepositoryLabel = "Make repository private";
         private const string PublishLimitPrivateRepositoriesError = "You are currently at your limit of private repositories";
+        private const string PublishToGithubLabel = "Publish to GitHub";
 
         [SerializeField] private string username;
         [SerializeField] private string[] owners = { OwnersDefaultText };
@@ -140,7 +141,7 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            GUILayout.Label("Publish to GitHub", EditorStyles.boldLabel);
+            GUILayout.Label(PublishToGithubLabel, EditorStyles.boldLabel);
 
             EditorGUI.BeginDisabledGroup(isBusy);
             {
