@@ -38,7 +38,6 @@ namespace GitHub.Unity
         [SerializeField] private string unityApplication;
         [SerializeField] private string unityAssetsPath;
         [SerializeField] private string extensionInstallPath;
-        [SerializeField] private string gitExecutablePath;
         [SerializeField] private string unityVersion;
 
         [NonSerialized] private IEnvironment environment;
@@ -80,7 +79,6 @@ namespace GitHub.Unity
             unityApplication = Environment.UnityApplication;
             unityAssetsPath = Environment.UnityAssetsPath;
             extensionInstallPath = Environment.ExtensionInstallPath;
-            gitExecutablePath = Environment.GitExecutablePath;
             Save(true);
         }
     }

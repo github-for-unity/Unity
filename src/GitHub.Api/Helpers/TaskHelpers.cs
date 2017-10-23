@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
@@ -8,5 +9,16 @@ namespace GitHub.Unity
         {
             return TaskEx.FromResult(result);
         }
+
+        public static Task<T> ToTask<T>(this Exception exception)
+        {
+          TaskCompletionSource<T> completionSource = new TaskCompletionSource<T>();
+          completionSource.TrySetException(exception);
+          return completionSource.Task;
+        }
+    }
+
+    public class NotReadyException : Exception
+    {
     }
 }

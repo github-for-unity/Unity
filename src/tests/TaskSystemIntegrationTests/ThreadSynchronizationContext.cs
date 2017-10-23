@@ -59,7 +59,6 @@ namespace GitHub.Unity
             while (!token.IsCancellationRequested)
             {
                 var current = DateTime.Now.Ticks;
-                var elapsed = current - lastTime;
                 count++;
                 if (current - secondStart > TimeSpan.TicksPerMillisecond * 1000)
                 {

@@ -175,8 +175,7 @@ namespace IntegrationTests
         {
             await Initialize(TestRepoMasterCleanSynchronized);
 
-            string s = null;
-            s = await ProcessManager
+            await ProcessManager
                 .GetGitCreds(TestRepoMasterCleanSynchronized, Environment, GitEnvironment)
                 .StartAsAsync();
         }
