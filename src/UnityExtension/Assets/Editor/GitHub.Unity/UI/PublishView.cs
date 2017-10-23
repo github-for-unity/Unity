@@ -21,7 +21,8 @@ namespace GitHub.Unity
         private const string RepositoryNameLabel = "Repository Name";
         private const string DescriptionLabel = "Description";
         private const string CreatePrivateRepositoryLabel = "Make repository private";
-        private const string PublishLimtPrivateRepositoriesError = "You are currently at your limt of private repositories";
+        private const string PublishLimitPrivateRepositoriesError = "You are currently at your limit of private repositories";
+        private const string PublishToGithubLabel = "Publish to GitHub";
         private const string AuthenticationChangedMessageFormat = "You were authenticated as \"{0}\", but you are now authenticated as \"{1}\". Would you like to proceed or logout?";
         private const string AuthenticationChangedTitle = "Authentication Changed";
         private const string AuthenticationChangedProceed = "Proceed";
@@ -159,7 +160,7 @@ namespace GitHub.Unity
         {
             GUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
             {
-              GUILayout.Label("Publish to GitHub", EditorStyles.boldLabel);
+            	GUILayout.Label(PublishToGithubLabel, EditorStyles.boldLabel);
             }
             GUILayout.EndHorizontal();
 
@@ -198,7 +199,7 @@ namespace GitHub.Unity
                             {
                                 Logger.Error(ex, "Repository Create Error Type:{0}", ex.GetType().ToString());
 
-                                error = ex.Message;
+                                error = GetPublishErrorMessage(ex);
                                 isBusy = false;
                                 return;
                             }
@@ -229,6 +230,16 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
             }
             EditorGUI.EndDisabledGroup();
+        }
+
+        private string GetPublishErrorMessage(Exception ex)
+        {
+            if (ex.Message.StartsWith(PublishLimitPrivateRepositoriesError))
+            {
+                return PublishLimitPrivateRepositoriesError;
+            }
+            
+            return ex.Message;
         }
 
         public override bool IsBusy
