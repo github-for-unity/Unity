@@ -49,10 +49,9 @@ namespace GitHub.Unity
 
         private const string WarningLabel = "<b>Warning:</b> {0}";
 
-        private static Color headerGreyColor = new Color(0.878f, 0.878f, 0.878f, 1.0f);
-
         private static GUIStyle label,
                                 boldLabel,
+                                centeredErrorLabel,
                                 errorLabel,
                                 deletedFileLabel,
                                 longMessageStyle,
@@ -96,8 +95,6 @@ namespace GitHub.Unity
                                  repoIcon,
                                  lockIcon,
                                  dropdownListIcon;
-
-        private static Color timelineBarColor;
 
         public static Texture2D GetFileStatusIcon(GitFileStatus status, bool isLocked)
         {
@@ -334,6 +331,22 @@ namespace GitHub.Unity
                     errorLabel.normal.textColor = Color.red;
                 }
                 return errorLabel;
+            }
+        }
+
+        public static GUIStyle CenteredErrorLabel
+        {
+            get
+            {
+                if (centeredErrorLabel == null)
+                {
+                    centeredErrorLabel = new GUIStyle(EditorStyles.label);
+                    centeredErrorLabel.alignment = TextAnchor.MiddleCenter;
+                    centeredErrorLabel.name = "CenteredErrorLabel";
+                    centeredErrorLabel.wordWrap = true;
+                    centeredErrorLabel.normal.textColor = Color.red;
+                }
+                return centeredErrorLabel;
             }
         }
 
@@ -593,18 +606,6 @@ namespace GitHub.Unity
                     genericBoxStyle.padding = new RectOffset(5, 5, 5, 5);
                 }
                 return genericBoxStyle;
-            }
-        }
-
-        public static Color TimelineBarColor
-        {
-            get
-            {
-                if (timelineBarColor == null)
-                {
-                    timelineBarColor = new Color(0.51F, 0.51F, 0.51F, 0.2F);
-                }
-                return timelineBarColor;
             }
         }
 

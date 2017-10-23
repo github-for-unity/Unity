@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Octokit;
 
@@ -27,9 +26,6 @@ namespace GitHub.Unity
         private readonly IKeychain keychain;
         private readonly IGitHubClient githubClient;
         private readonly ILoginManager loginManager;
-
-        string owner;
-        bool? isEnterprise;
 
         public ApiClient(UriString hostUrl, IKeychain keychain, IGitHubClient githubClient)
         {

@@ -14,7 +14,7 @@ namespace GitHub.Unity
         {
             None,
             PublishView,
-            AuthenticationView
+            AuthenticationView,
         }
 
         [SerializeField] private bool shouldCloseOnFinish;

@@ -283,7 +283,7 @@ namespace GitHub.Unity
         private void DoToolbarGUI()
         {
             // Subtabs & toolbar
-            Rect mainNavRect = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+            GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
                 changeTab = activeTab;
                 EditorGUI.BeginChangeCheck();
