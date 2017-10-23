@@ -13,7 +13,8 @@ namespace GitHub.Unity
         
         [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
         [SerializeField] private GitPathView gitPathView = new GitPathView();
-        [SerializeField] private bool isBusy;
+
+        [NonSerialized] private bool isBusy;
 
         [NonSerialized] private string errorMessage;
         [NonSerialized] private bool isUserDataPresent;
