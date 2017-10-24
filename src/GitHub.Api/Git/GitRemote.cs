@@ -3,7 +3,7 @@ using System.Text;
 
 namespace GitHub.Unity
 {
-    enum GitRemoteFunction
+    public enum GitRemoteFunction
     {
         Unknown,
         Fetch,
@@ -12,7 +12,7 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    struct GitRemote
+    public struct GitRemote
     {
         public string Name;
         public string Url;

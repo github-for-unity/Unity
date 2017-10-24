@@ -40,7 +40,6 @@ namespace GitHub.Unity
 
         [NonSerialized] private List<BranchTreeNode> favorites = new List<BranchTreeNode>();
         [NonSerialized] private int listID = -1;
-        [NonSerialized] private List<GitBranch> newLocalBranches;
         [NonSerialized] private BranchTreeNode newNodeSelection;
         [NonSerialized] private BranchesMode targetMode;
         [NonSerialized] private bool favoritesHasChanged;
@@ -65,6 +64,7 @@ namespace GitHub.Unity
             base.OnEnable();
             AttachHandlers(Repository);
             favoritesHasChanged = true;
+            Refresh();
         }
 
         public override void OnDisable()
@@ -100,45 +100,43 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.OnLocalBranchListChanged += RunRefreshEmbeddedOnMainThread;
-            repository.OnActiveBranchChanged += HandleRepositoryBranchChangeEvent;
-            repository.OnActiveRemoteChanged += HandleRepositoryBranchChangeEvent;
+            repository.OnLocalBranchListChanged += RunUpdateBranchesOnMainThread;
+            repository.OnCurrentBranchChanged += HandleRepositoryBranchChangeEvent;
+            repository.OnCurrentRemoteChanged += HandleRepositoryBranchChangeEvent;
         }
 
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnLocalBranchListChanged -= RunRefreshEmbeddedOnMainThread;
-            repository.OnActiveBranchChanged -= HandleRepositoryBranchChangeEvent;
-            repository.OnActiveRemoteChanged -= HandleRepositoryBranchChangeEvent;
-        }
-
-        private void RunRefreshEmbeddedOnMainThread()
-        {
-            new ActionTask(TaskManager.Token, _ => RefreshEmbedded())
-                .ScheduleUI(TaskManager);
+            repository.OnLocalBranchListChanged -= RunUpdateBranchesOnMainThread;
+            repository.OnCurrentBranchChanged -= HandleRepositoryBranchChangeEvent;
+            repository.OnCurrentRemoteChanged -= HandleRepositoryBranchChangeEvent;
         }
 
         private void HandleRepositoryBranchChangeEvent(string obj)
         {
-            RunRefreshEmbeddedOnMainThread();
+            RunUpdateBranchesOnMainThread();
         }
 
         public override void Refresh()
         {
             base.Refresh();
-
-            RefreshEmbedded();
+            UpdateBranches();
         }
 
-        public void RefreshEmbedded()
+        private void RunUpdateBranchesOnMainThread()
+        {
+            new ActionTask(TaskManager.Token, _ => UpdateBranches())
+                .ScheduleUI(TaskManager);
+        }
+
+        public void UpdateBranches()
         {
             if (Repository == null)
                 return;
 
-            OnLocalBranchesUpdate(Repository.LocalBranches);
-            OnRemoteBranchesUpdate(Repository.RemoteBranches);
+            BuildTree(Repository.LocalBranches, Repository.RemoteBranches);
         }
 
         public override void OnGUI()
@@ -290,17 +288,6 @@ namespace GitHub.Unity
         private bool IsFavorite(string branchName)
         {
             return !String.IsNullOrEmpty(branchName) && favoritesList.Contains(branchName);
-        }
-
-        private void OnLocalBranchesUpdate(IEnumerable<GitBranch> list)
-        {
-            newLocalBranches = new List<GitBranch>(list);
-        }
-
-        private void OnRemoteBranchesUpdate(IEnumerable<GitBranch> list)
-        {
-            BuildTree(newLocalBranches, list);
-            newLocalBranches.Clear();
         }
 
         private void BuildTree(IEnumerable<GitBranch> local, IEnumerable<GitBranch> remote)
@@ -536,7 +523,7 @@ namespace GitHub.Unity
                             .FinallyInUI((success, e) => {
                                      if (success)
                                      {
-                                         Refresh();
+                                         Redraw();
                                      }
                                      else
                                      {
@@ -657,7 +644,7 @@ namespace GitHub.Unity
                                 {
                                     if (success)
                                     {
-                                        Refresh();
+                                        Redraw();
                                     }
                                     else
                                     {
@@ -693,7 +680,7 @@ namespace GitHub.Unity
                                     {
                                         if (success)
                                         {
-                                            Refresh();
+                                            Redraw();
                                         }
                                         else
                                         {
