@@ -8,7 +8,6 @@ namespace GitHub.Unity
     class InitProjectView : Subview
     {
         private const string NoRepoTitle = "To begin using GitHub, initialize a git repository";
-        private const string NoRepoTitle = "No Git repository found for this project";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
         private const string NoUserOrEmailError = "Name and Email must be configured in Settings";
         
