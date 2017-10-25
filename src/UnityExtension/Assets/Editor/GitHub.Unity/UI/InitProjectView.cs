@@ -84,7 +84,10 @@ namespace GitHub.Unity
                 GUILayout.EndHorizontal();
 
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("There was an error initializing a repository.", MessageType.Error);
+                EditorGUILayout.HelpBox(
+                  "Name and email not set in git. Go into the settings tab and enter the missing information",
+                  MessageType.Error
+                );
 
                 GUILayout.FlexibleSpace();
             }
