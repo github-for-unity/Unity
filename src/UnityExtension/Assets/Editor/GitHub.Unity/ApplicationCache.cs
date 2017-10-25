@@ -87,7 +87,7 @@ namespace GitHub.Unity
     sealed class BranchCache : ScriptObjectSingleton<BranchCache>, IBranchCache
     {
         private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(0.5);
+        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
 
         [SerializeField] private DateTime lastUpdatedAt;
         [SerializeField] private DateTime lastVerifiedAt;
@@ -244,7 +244,7 @@ namespace GitHub.Unity
     sealed class RepositoryInfoCache : ScriptObjectSingleton<RepositoryInfoCache>, IRepositoryInfoCache
     {
         private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(0.5);
+        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
 
         [SerializeField] private DateTime lastUpdatedAt;
         [SerializeField] private DateTime lastVerifiedAt;
@@ -355,7 +355,7 @@ namespace GitHub.Unity
     sealed class GitLogCache : ScriptObjectSingleton<GitLogCache>, IGitLogCache
     {
         private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(0.5);
+        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
 
         [SerializeField]
         private DateTime lastUpdatedAt;
@@ -440,7 +440,7 @@ namespace GitHub.Unity
     sealed class GitStatusCache : ScriptObjectSingleton<GitStatusCache>, IGitStatusCache
     {
         private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(0.5);
+        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
 
         [SerializeField]
         private DateTime lastUpdatedAt;
@@ -522,7 +522,7 @@ namespace GitHub.Unity
     sealed class GitLocksCache : ScriptObjectSingleton<GitLocksCache>, IGitLocksCache
     {
         private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(0.5);
+        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
 
         [SerializeField]
         private DateTime lastUpdatedAt;
@@ -608,7 +608,7 @@ namespace GitHub.Unity
     sealed class GitUserCache : ScriptObjectSingleton<GitUserCache>, IGitUserCache
     {
         private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(0.5);
+        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
 
         [SerializeField]
         private DateTime lastUpdatedAt;
