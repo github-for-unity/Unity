@@ -31,9 +31,13 @@ namespace GitHub.Unity
             Logger.Trace("Restarted {0}", Environment.Repository);
             EnvironmentCache.Instance.Flush();
 
-            CacheManager.SetupCache(BranchCache.Instance);
-            CacheManager.SetupCache(GitLogCache.Instance);
-            CacheManager.SetRepository(Environment.Repository);
+            var cacheContainer = (CacheContainer)CacheContainer;
+            cacheContainer.BranchCache = BranchCache.Instance;
+            cacheContainer.GitLocksCache = GitLocksCache.Instance;
+            cacheContainer.GitLogCache = GitLogCache.Instance;
+            cacheContainer.GitStatusCache = GitStatusCache.Instance;
+            cacheContainer.GitUserCache = GitUserCache.Instance;
+            cacheContainer.RepositoryInfoCache = RepositoryInfoCache.Instance;
 
             ProjectWindowInterface.Initialize(Environment.Repository);
             var window = Window.GetWindow();

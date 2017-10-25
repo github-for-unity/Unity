@@ -32,7 +32,7 @@ namespace IntegrationTests
             RepositoryManager.Initialize();
 
             Environment.Repository = new Repository("TestRepo", repoPath);
-            Environment.Repository.Initialize(RepositoryManager);
+            Environment.Repository.Initialize(RepositoryManager, null);
 
             RepositoryManager.Start();
 

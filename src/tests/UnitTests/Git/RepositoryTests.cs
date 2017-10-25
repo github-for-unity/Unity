@@ -79,7 +79,7 @@ namespace UnitTests
                 .ToDictionary(grouping => grouping.Key,
                     grouping => grouping.ToDictionary(branch => branch.Name));
 
-            repository.Initialize(repositoryManager);
+            repository.Initialize(repositoryManager, null);
 
             string expectedBranch = null;
             repository.OnCurrentBranchChanged += branch => {

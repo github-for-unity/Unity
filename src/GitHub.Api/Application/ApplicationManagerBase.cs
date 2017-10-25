@@ -21,7 +21,7 @@ namespace GitHub.Unity
             UIScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             ThreadingHelper.MainThreadScheduler = UIScheduler;
             TaskManager = new TaskManager(UIScheduler);
-            CacheManager = new CacheManager();
+            CacheContainer = new CacheContainer();
         }
 
         protected void Initialize()
@@ -130,7 +130,7 @@ namespace GitHub.Unity
             {
                 repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, Environment.RepositoryPath);
                 repositoryManager.Initialize();
-                Environment.Repository.Initialize(repositoryManager);
+                Environment.Repository.Initialize(repositoryManager, CacheContainer);
                 repositoryManager.Start();
                 Logger.Trace($"Got a repository? {Environment.Repository}");
             }
@@ -215,7 +215,7 @@ namespace GitHub.Unity
         public ISettings LocalSettings { get; protected set; }
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
-        public CacheManager CacheManager { get; private set; }
+        public ICacheContainer CacheContainer { get; private set; }
         public IUsageTracker UsageTracker { get; protected set; }
 
         protected TaskScheduler UIScheduler { get; private set; }
