@@ -29,8 +29,7 @@ namespace IntegrationTests
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
             repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
 
-            var expected = new GitStatus
-            {
+            var expected = new GitStatus {
                 Behind = 1,
                 LocalBranch = "master",
                 RemoteBranch = "origin/master",
@@ -70,8 +69,7 @@ namespace IntegrationTests
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
             repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
 
-            var expectedAfterChanges = new GitStatus
-            {
+            var expectedAfterChanges = new GitStatus {
                 Behind = 1,
                 LocalBranch = "master",
                 RemoteBranch = "origin/master",
