@@ -134,8 +134,9 @@ namespace GitHub.Unity
             return repositoryManager.UnlockFile(file, force);
         }
 
-        public ITask CheckoutFiles(List<string> files)
+        public ITask DiscardChanges(List<string> files)
         {
+
             return repositoryManager.CheckoutFiles(files);
         }
 
