@@ -63,7 +63,7 @@ namespace GitHub.Unity
                 GUILayout.EndHorizontal();
 
                 GUILayout.Label(NoRepoTitle, Styles.BoldCenteredLabel);
-                EditorGUILayout.Space();
+                GUILayout.Space(4);
 
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
