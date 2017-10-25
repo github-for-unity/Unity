@@ -10,7 +10,7 @@ namespace GitHub.Unity
         private const string NoRepoTitle = "To begin using GitHub, initialize a git repository";
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
         private const string NoUserOrEmailError = "Name and Email must be configured in Settings";
-        
+
         [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
         [SerializeField] private GitPathView gitPathView = new GitPathView();
 
@@ -52,9 +52,7 @@ namespace GitHub.Unity
             GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {
                 GUILayout.FlexibleSpace();
-                
-                gitPathView.OnGUI();
-                userSettingsView.OnGUI();
+                GUILayout.Space(-140);
 
                 GUILayout.BeginHorizontal();
                 {
@@ -65,6 +63,7 @@ namespace GitHub.Unity
                 GUILayout.EndHorizontal();
 
                 GUILayout.Label(NoRepoTitle, Styles.BoldCenteredLabel);
+                EditorGUILayout.Space();
 
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
@@ -84,6 +83,7 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 
+                EditorGUILayout.Space();
                 EditorGUILayout.HelpBox("There was an error initializing a repository.", MessageType.Error);
 
                 GUILayout.FlexibleSpace();
