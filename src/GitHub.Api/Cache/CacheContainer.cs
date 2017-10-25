@@ -5,6 +5,8 @@ namespace GitHub.Unity
 {
     public class CacheContainer : ICacheContainer
     {
+        private static ILogging Logger = Logging.GetLogger<CacheContainer>();
+
         private IBranchCache branchCache;
 
         private IGitLocksCache gitLocksCache;
@@ -19,7 +21,7 @@ namespace GitHub.Unity
 
         public event Action<CacheType> CacheInvalidated;
 
-        public event Action<CacheType, DateTime> CacheUpdated;
+        public event Action<CacheType, DateTimeOffset> CacheUpdated;
 
         private IManagedCache GetManagedCache(CacheType cacheType)
         {
@@ -47,6 +49,8 @@ namespace GitHub.Unity
                     throw new ArgumentOutOfRangeException(nameof(cacheType), cacheType, null);
             }
         }
+
+        public ITestCache TestCache { get; set; }
 
         public void Validate(CacheType cacheType)
         {
@@ -86,8 +90,8 @@ namespace GitHub.Unity
                 if (branchCache == null)
                 {
                     branchCache = value;
-                    branchCache.CacheInvalidated += () => CacheInvalidated?.Invoke(CacheType.BranchCache);
-                    branchCache.CacheUpdated += datetime => CacheUpdated?.Invoke(CacheType.BranchCache, datetime);
+                    branchCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.BranchCache);
+                    branchCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.BranchCache, datetime);
                 }
             }
         }
@@ -100,8 +104,8 @@ namespace GitHub.Unity
                 if (gitLogCache == null)
                 {
                     gitLogCache = value;
-                    gitLogCache.CacheInvalidated += () => CacheInvalidated?.Invoke(CacheType.GitLogCache);
-                    gitLogCache.CacheUpdated += datetime => CacheUpdated?.Invoke(CacheType.GitLogCache, datetime);
+                    gitLogCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.GitLogCache);
+                    gitLogCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.GitLogCache, datetime);
                 }
             }
         }
@@ -114,8 +118,8 @@ namespace GitHub.Unity
                 if (repositoryInfoCache == null)
                 {
                     repositoryInfoCache = value;
-                    repositoryInfoCache.CacheInvalidated += () => CacheInvalidated?.Invoke(CacheType.RepositoryInfoCache);
-                    repositoryInfoCache.CacheUpdated += datetime => CacheUpdated?.Invoke(CacheType.RepositoryInfoCache, datetime);
+                    repositoryInfoCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.RepositoryInfoCache);
+                    repositoryInfoCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.RepositoryInfoCache, datetime);
                 }
             }
         }
@@ -128,8 +132,8 @@ namespace GitHub.Unity
                 if (gitStatusCache == null)
                 {
                     gitStatusCache = value;
-                    gitStatusCache.CacheInvalidated += () => CacheInvalidated?.Invoke(CacheType.GitStatusCache);
-                    gitStatusCache.CacheUpdated += datetime => CacheUpdated?.Invoke(CacheType.GitStatusCache, datetime);
+                    gitStatusCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.GitStatusCache);
+                    gitStatusCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.GitStatusCache, datetime);
                 }
             }
         }
@@ -142,8 +146,8 @@ namespace GitHub.Unity
                 if (gitLocksCache == null)
                 {
                     gitLocksCache = value;
-                    gitLocksCache.CacheInvalidated += () => CacheInvalidated?.Invoke(CacheType.GitLocksCache);
-                    gitLocksCache.CacheUpdated += datetime => CacheUpdated?.Invoke(CacheType.GitLocksCache, datetime);
+                    gitLocksCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.GitLocksCache);
+                    gitLocksCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.GitLocksCache, datetime);
                 }
             }
         }
@@ -156,10 +160,22 @@ namespace GitHub.Unity
                 if (gitUserCache == null)
                 {
                     gitUserCache = value;
-                    gitUserCache.CacheInvalidated += () => CacheInvalidated?.Invoke(CacheType.GitUserCache);
-                    gitUserCache.CacheUpdated += datetime => CacheUpdated?.Invoke(CacheType.GitUserCache, datetime);
+                    gitUserCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.GitUserCache);
+                    gitUserCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.GitUserCache, datetime);
                 }
             }
+        }
+
+        private void OnCacheUpdated(CacheType cacheType, DateTimeOffset datetime)
+        {
+            Logger.Trace("OnCacheUpdated cacheType:{0} datetime:{1}", cacheType, datetime);
+            CacheUpdated?.Invoke(cacheType, datetime);
+        }
+
+        private void OnCacheInvalidated(CacheType cacheType)
+        {
+            Logger.Trace("OnCacheInvalidated cacheType:{0}", cacheType);
+            CacheInvalidated?.Invoke(cacheType);
         }
     }
 
@@ -176,7 +192,7 @@ namespace GitHub.Unity
     public interface ICacheContainer
     {
         event Action<CacheType> CacheInvalidated;
-        event Action<CacheType, DateTime> CacheUpdated;
+        event Action<CacheType, DateTimeOffset> CacheUpdated;
 
         IBranchCache BranchCache { get; }
         IGitLogCache GitLogCache { get; }
@@ -184,6 +200,7 @@ namespace GitHub.Unity
         IGitStatusCache GitStatusCache { get; }
         IGitLocksCache GitLocksCache { get; }
         IGitUserCache GitUserCache { get; }
+        ITestCache TestCache { get; }
         void Validate(CacheType cacheType);
         void ValidateAll();
         void Invalidate(CacheType cacheType);
@@ -193,13 +210,13 @@ namespace GitHub.Unity
     public interface IManagedCache
     {
         event Action CacheInvalidated;
-        event Action<DateTime> CacheUpdated;
+        event Action<DateTimeOffset> CacheUpdated;
 
         void ValidateData();
         void InvalidateData();
 
-        DateTime LastUpdatedAt { get; }
-        DateTime LastVerifiedAt { get; }
+        DateTimeOffset LastUpdatedAt { get; }
+        DateTimeOffset LastVerifiedAt { get; }
     }
 
     public interface IGitLocks
@@ -214,6 +231,14 @@ namespace GitHub.Unity
     {
         User User { get; }
     }
+
+    public interface ITestCache : IManagedCache, ITestCacheItem
+    {
+        void UpdateData();
+    }
+
+    public interface ITestCacheItem
+    { }
 
     public interface IGitUserCache : IManagedCache, IGitUser
     { }

@@ -83,26 +83,146 @@ namespace GitHub.Unity
         }
     }
 
+    abstract class ManagedCacheBase<T> : ScriptObjectSingleton<T> where T : ScriptableObject, IManagedCache
+    {
+        private ILogging logger;
+        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
+
+        public event Action CacheInvalidated;
+        public event Action<DateTimeOffset> CacheUpdated;
+
+        public abstract string LastUpdatedAtString { get; protected set; }
+        public abstract string LastVerifiedAtString { get; protected set; }
+
+        [NonSerialized] private DateTimeOffset? lastUpdatedAtValue;
+        public DateTimeOffset LastUpdatedAt {
+            get
+            {
+                if (!lastUpdatedAtValue.HasValue)
+                {
+                    lastUpdatedAtValue = DateTimeOffset.Parse(LastUpdatedAtString);
+                }
+
+                return lastUpdatedAtValue.Value;
+            }
+            set
+            {
+                LastUpdatedAtString = value.ToString();
+                lastUpdatedAtValue = null;
+            }
+        }
+
+        [NonSerialized] private DateTimeOffset? lastVerifiedAtValue;
+        public DateTimeOffset LastVerifiedAt {
+            get
+            {
+                if (!lastVerifiedAtValue.HasValue)
+                {
+                    lastVerifiedAtValue = DateTimeOffset.Parse(LastVerifiedAtString);
+                }
+
+                return lastVerifiedAtValue.Value;
+            }
+            set
+            {
+                LastVerifiedAtString = value.ToString();
+                lastVerifiedAtValue = null;
+            }
+        }
+
+        protected ManagedCacheBase()
+        {
+            logger = Logging.GetLogger(GetType());
+        }
+
+        public void ValidateData()
+        {
+            if (DateTimeOffset.Now - LastUpdatedAt > DataTimeout)
+            {
+                InvalidateData();
+            }
+        }
+
+        public void InvalidateData()
+        {
+            logger.Trace("Invalidated");
+            CacheInvalidated.SafeInvoke();
+            ResetData();
+        }
+
+        protected abstract void ResetData();
+
+        protected void SaveData(DateTimeOffset now, bool isUpdated)
+        {
+            if (isUpdated)
+            {
+                LastUpdatedAt = now;
+            }
+
+            LastVerifiedAt = now;
+            Save(true);
+
+            if (isUpdated)
+            {
+                logger.Trace("Updated: {0}", now);
+                CacheUpdated.SafeInvoke(now);
+            }
+            else
+            {
+                logger.Trace("Verified: {0}", now);
+            }
+        }
+    }
+
+    [Location("cache/testCache.yaml", LocationAttribute.Location.LibraryFolder)]
+    sealed class TestCache : ManagedCacheBase<TestCache>, ITestCache
+    {
+        [SerializeField] private string lastUpdatedAtString;
+        [SerializeField] private string lastVerifiedAtString;
+
+        public override string LastUpdatedAtString
+        {
+            get { return lastUpdatedAtString; }
+            protected set { lastUpdatedAtString = value; }
+        }
+
+        public override string LastVerifiedAtString
+        {
+            get { return lastVerifiedAtString; }
+            protected set { lastVerifiedAtString = value; }
+        }
+
+        protected override void ResetData()
+        {
+            
+        }
+
+        public void UpdateData()
+        {
+            SaveData(DateTimeOffset.Now, false);
+        }
+    }
+
     [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class BranchCache : ScriptObjectSingleton<BranchCache>, IBranchCache
     {
         private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
         private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
 
-        [SerializeField] private DateTime lastUpdatedAt;
-        [SerializeField] private DateTime lastVerifiedAt;
+        [SerializeField] private DateTimeOffset lastUpdatedAt;
+        [SerializeField] private DateTimeOffset lastVerifiedAt;
         [SerializeField] private List<GitBranch> localBranches = new List<GitBranch>();
         [SerializeField] private List<GitBranch> remoteBranches = new List<GitBranch>();
 
         public event Action CacheInvalidated;
-        public event Action<DateTime> CacheUpdated;
+        public event Action<DateTimeOffset> CacheUpdated;
 
         public BranchCache()
         { }
 
         public void UpdateData(List<GitBranch> localBranchUpdate, List<GitBranch> remoteBranchUpdate)
         {
-            var now = DateTime.Now;
+            var now = DateTimeOffset.Now;
             var isUpdated = false;
 
             Logger.Trace("Processing Update: {0}", now);
@@ -127,6 +247,11 @@ namespace GitHub.Unity
                 isUpdated = true;
             }
 
+            SaveData(now, isUpdated);
+        }
+
+        private void SaveData(DateTimeOffset now, bool isUpdated)
+        {
             if (isUpdated)
             {
                 lastUpdatedAt = now;
@@ -148,7 +273,7 @@ namespace GitHub.Unity
 
         public void ValidateData()
         {
-            if (DateTime.Now - lastUpdatedAt > DataTimeout)
+            if (DateTimeOffset.Now - lastUpdatedAt > DataTimeout)
             {
                 InvalidateData();
             }
@@ -179,12 +304,12 @@ namespace GitHub.Unity
             }
         }
 
-        public DateTime LastUpdatedAt
+        public DateTimeOffset LastUpdatedAt
         {
             get { return lastUpdatedAt; }
         }
 
-        public DateTime LastVerifiedAt
+        public DateTimeOffset LastVerifiedAt
         {
             get { return lastVerifiedAt; }
         }
@@ -246,14 +371,14 @@ namespace GitHub.Unity
         private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
         private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
 
-        [SerializeField] private DateTime lastUpdatedAt;
-        [SerializeField] private DateTime lastVerifiedAt;
+        [SerializeField] private DateTimeOffset lastUpdatedAt;
+        [SerializeField] private DateTimeOffset lastVerifiedAt;
 
         [SerializeField] private ConfigRemote? gitRemote;
         [SerializeField] private ConfigBranch? gitBranch;
 
         public event Action CacheInvalidated;
-        public event Action<DateTime> CacheUpdated;
+        public event Action<DateTimeOffset> CacheUpdated;
 
         public RepositoryInfoCache()
         { }
@@ -270,7 +395,7 @@ namespace GitHub.Unity
 
         public void UpdateData(ConfigRemote? gitRemoteUpdate, ConfigBranch? gitBranchUpdate)
         {
-            var now = DateTime.Now;
+            var now = DateTimeOffset.Now;
             var isUpdated = false;
 
             Logger.Trace("Processing Update: {0}", now);
@@ -309,7 +434,7 @@ namespace GitHub.Unity
 
         public void ValidateData()
         {
-            if (DateTime.Now - lastUpdatedAt > DataTimeout)
+            if (DateTimeOffset.Now - lastUpdatedAt > DataTimeout)
             {
                 InvalidateData();
             }
@@ -322,12 +447,12 @@ namespace GitHub.Unity
             UpdateData(null, null);
         }
 
-        public DateTime LastUpdatedAt
+        public DateTimeOffset LastUpdatedAt
         {
             get { return lastUpdatedAt; }
         }
 
-        public DateTime LastVerifiedAt
+        public DateTimeOffset LastVerifiedAt
         {
             get { return lastVerifiedAt; }
         }
@@ -357,22 +482,19 @@ namespace GitHub.Unity
         private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
         private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
 
-        [SerializeField]
-        private DateTime lastUpdatedAt;
-        [SerializeField]
-        private DateTime lastVerifiedAt;
-        [SerializeField]
-        private List<GitLogEntry> log = new List<GitLogEntry>();
+        [SerializeField] private DateTimeOffset lastUpdatedAt;
+        [SerializeField] private DateTimeOffset lastVerifiedAt;
+        [SerializeField] private List<GitLogEntry> log = new List<GitLogEntry>();
 
         public event Action CacheInvalidated;
-        public event Action<DateTime> CacheUpdated;
+        public event Action<DateTimeOffset> CacheUpdated;
 
         public GitLogCache()
         { }
 
         public void UpdateData(List<GitLogEntry> logUpdate)
         {
-            var now = DateTime.Now;
+            var now = DateTimeOffset.Now;
             var isUpdated = false;
 
             Logger.Trace("Processing Update: {0}", now);
@@ -412,7 +534,7 @@ namespace GitHub.Unity
 
         public void ValidateData()
         {
-            if (DateTime.Now - lastUpdatedAt > DataTimeout)
+            if (DateTimeOffset.Now - lastUpdatedAt > DataTimeout)
             {
                 InvalidateData();
             }
@@ -425,12 +547,12 @@ namespace GitHub.Unity
             UpdateData(new List<GitLogEntry>());
         }
 
-        public DateTime LastUpdatedAt
+        public DateTimeOffset LastUpdatedAt
         {
             get { return lastUpdatedAt; }
         }
 
-        public DateTime LastVerifiedAt
+        public DateTimeOffset LastVerifiedAt
         {
             get { return lastVerifiedAt; }
         }
@@ -442,22 +564,19 @@ namespace GitHub.Unity
         private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
         private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
 
-        [SerializeField]
-        private DateTime lastUpdatedAt;
-        [SerializeField]
-        private DateTime lastVerifiedAt;
-        [SerializeField]
-        private GitStatus status;
+        [SerializeField] private DateTimeOffset lastUpdatedAt;
+        [SerializeField] private DateTimeOffset lastVerifiedAt;
+        [SerializeField] private GitStatus status;
 
         public event Action CacheInvalidated;
-        public event Action<DateTime> CacheUpdated;
+        public event Action<DateTimeOffset> CacheUpdated;
 
         public GitStatusCache()
         { }
 
         public void UpdateData(GitStatus statusUpdate)
         {
-            var now = DateTime.Now;
+            var now = DateTimeOffset.Now;
             var isUpdated = false;
 
             Logger.Trace("Processing Update: {0}", now);
@@ -494,7 +613,7 @@ namespace GitHub.Unity
 
         public void ValidateData()
         {
-            if (DateTime.Now - lastUpdatedAt > DataTimeout)
+            if (DateTimeOffset.Now - lastUpdatedAt > DataTimeout)
             {
                 InvalidateData();
             }
@@ -507,12 +626,12 @@ namespace GitHub.Unity
             UpdateData(new GitStatus());
         }
 
-        public DateTime LastUpdatedAt
+        public DateTimeOffset LastUpdatedAt
         {
             get { return lastUpdatedAt; }
         }
 
-        public DateTime LastVerifiedAt
+        public DateTimeOffset LastVerifiedAt
         {
             get { return lastVerifiedAt; }
         }
@@ -524,22 +643,19 @@ namespace GitHub.Unity
         private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
         private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
 
-        [SerializeField]
-        private DateTime lastUpdatedAt;
-        [SerializeField]
-        private DateTime lastVerifiedAt;
-        [SerializeField]
-        private List<GitLock> locks;
+        [SerializeField] private DateTimeOffset lastUpdatedAt;
+        [SerializeField] private DateTimeOffset lastVerifiedAt;
+        [SerializeField] private List<GitLock> locks;
 
         public event Action CacheInvalidated;
-        public event Action<DateTime> CacheUpdated;
+        public event Action<DateTimeOffset> CacheUpdated;
 
         public GitLocksCache()
         { }
 
         public void UpdateData(List<GitLock> locksUpdate)
         {
-            var now = DateTime.Now;
+            var now = DateTimeOffset.Now;
             var isUpdated = false;
 
             Logger.Trace("Processing Update: {0}", now);
@@ -580,7 +696,7 @@ namespace GitHub.Unity
 
         public void ValidateData()
         {
-            if (DateTime.Now - lastUpdatedAt > DataTimeout)
+            if (DateTimeOffset.Now - lastUpdatedAt > DataTimeout)
             {
                 InvalidateData();
             }
@@ -593,12 +709,12 @@ namespace GitHub.Unity
             UpdateData(null);
         }
 
-        public DateTime LastUpdatedAt
+        public DateTimeOffset LastUpdatedAt
         {
             get { return lastUpdatedAt; }
         }
 
-        public DateTime LastVerifiedAt
+        public DateTimeOffset LastVerifiedAt
         {
             get { return lastVerifiedAt; }
         }
@@ -610,22 +726,19 @@ namespace GitHub.Unity
         private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
         private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
 
-        [SerializeField]
-        private DateTime lastUpdatedAt;
-        [SerializeField]
-        private DateTime lastVerifiedAt;
-        [SerializeField]
-        private User user;
+        [SerializeField] private DateTimeOffset lastUpdatedAt;
+        [SerializeField] private DateTimeOffset lastVerifiedAt;
+        [SerializeField] private User user;
 
         public event Action CacheInvalidated;
-        public event Action<DateTime> CacheUpdated;
+        public event Action<DateTimeOffset> CacheUpdated;
 
         public GitUserCache()
         { }
 
         public void UpdateData(User userUpdate)
         {
-            var now = DateTime.Now;
+            var now = DateTimeOffset.Now;
             var isUpdated = false;
 
             Logger.Trace("Processing Update: {0}", now);
@@ -662,7 +775,7 @@ namespace GitHub.Unity
 
         public void ValidateData()
         {
-            if (DateTime.Now - lastUpdatedAt > DataTimeout)
+            if (DateTimeOffset.Now - lastUpdatedAt > DataTimeout)
             {
                 InvalidateData();
             }
@@ -675,12 +788,12 @@ namespace GitHub.Unity
             UpdateData(null);
         }
 
-        public DateTime LastUpdatedAt
+        public DateTimeOffset LastUpdatedAt
         {
             get { return lastUpdatedAt; }
         }
 
-        public DateTime LastVerifiedAt
+        public DateTimeOffset LastVerifiedAt
         {
             get { return lastVerifiedAt; }
         }

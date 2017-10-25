@@ -37,7 +37,10 @@ namespace GitHub.Unity
             cacheContainer.GitLogCache = GitLogCache.Instance;
             cacheContainer.GitStatusCache = GitStatusCache.Instance;
             cacheContainer.GitUserCache = GitUserCache.Instance;
+            cacheContainer.TestCache = TestCache.Instance;
             cacheContainer.RepositoryInfoCache = RepositoryInfoCache.Instance;
+
+            cacheContainer.TestCache.UpdateData();
 
             ProjectWindowInterface.Initialize(Environment.Repository);
             var window = Window.GetWindow();
