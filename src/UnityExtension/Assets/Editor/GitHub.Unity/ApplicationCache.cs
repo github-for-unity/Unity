@@ -114,6 +114,7 @@ namespace GitHub.Unity
             Logger.Trace("Invalidated");
             CacheInvalidated.SafeInvoke();
             ResetData();
+            SaveData(DateTimeOffset.Now, true);
         }
 
         protected abstract void ResetData();
