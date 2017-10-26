@@ -50,8 +50,6 @@ namespace GitHub.Unity
             }
         }
 
-        public ITestCache TestCache { get; set; }
-
         public void Validate(CacheType cacheType)
         {
             GetManagedCache(cacheType).ValidateData();
@@ -230,11 +228,6 @@ namespace GitHub.Unity
     public interface IGitUser
     {
         User User { get; }
-    }
-
-    public interface ITestCache : IManagedCache, ITestCacheItem
-    {
-        void UpdateData();
     }
 
     public interface ITestCacheItem
