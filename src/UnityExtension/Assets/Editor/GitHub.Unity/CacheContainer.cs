@@ -24,12 +24,8 @@ namespace GitHub.Unity
 
         public CacheContainer()
         {
-            BranchCache = Unity.BranchCache.Instance;
-            GitLocksCache = Unity.GitLocksCache.Instance;
-            GitLogCache = Unity.GitLogCache.Instance;
-            GitStatusCache = Unity.GitStatusCache.Instance;
-            GitUserCache = Unity.GitUserCache.Instance;
-            RepositoryInfoCache = Unity.RepositoryInfoCache.Instance;
+            var t = new System.Diagnostics.StackTrace();
+            Logger.Trace("Constructing: {0}", t.ToString());
         }
 
         private IManagedCache GetManagedCache(CacheType cacheType)
@@ -91,85 +87,87 @@ namespace GitHub.Unity
 
         public IBranchCache BranchCache
         {
-            get { return branchCache; }
-            set
+            get
             {
                 if (branchCache == null)
                 {
-                    branchCache = value;
+                    branchCache = Unity.BranchCache.Instance;
                     branchCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.BranchCache);
                     branchCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.BranchCache, datetime);
                 }
+                return branchCache;
             }
         }
 
         public IGitLogCache GitLogCache
         {
-            get { return gitLogCache; }
-            set
+            get
             {
                 if (gitLogCache == null)
                 {
-                    gitLogCache = value;
+                    gitLogCache = Unity.GitLogCache.Instance;
                     gitLogCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.GitLogCache);
                     gitLogCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.GitLogCache, datetime);
                 }
+                return gitLogCache;
             }
         }
 
         public IRepositoryInfoCache RepositoryInfoCache
         {
-            get { return repositoryInfoCache; }
-            set
+            get
             {
                 if (repositoryInfoCache == null)
                 {
-                    repositoryInfoCache = value;
+                    repositoryInfoCache = Unity.RepositoryInfoCache.Instance;
                     repositoryInfoCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.RepositoryInfoCache);
                     repositoryInfoCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.RepositoryInfoCache, datetime);
                 }
+                return repositoryInfoCache;
             }
         }
 
         public IGitStatusCache GitStatusCache
         {
-            get { return gitStatusCache; }
-            set
+            get
             {
                 if (gitStatusCache == null)
                 {
-                    gitStatusCache = value;
+                    gitStatusCache = Unity.GitStatusCache.Instance;
                     gitStatusCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.GitStatusCache);
                     gitStatusCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.GitStatusCache, datetime);
                 }
+                return gitStatusCache;
             }
         }
 
         public IGitLocksCache GitLocksCache
         {
-            get { return gitLocksCache; }
-            set
+            get
             {
                 if (gitLocksCache == null)
                 {
-                    gitLocksCache = value;
+                    gitLocksCache = Unity.GitLocksCache.Instance;
                     gitLocksCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.GitLocksCache);
                     gitLocksCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.GitLocksCache, datetime);
                 }
+
+                return gitLocksCache;
             }
         }
 
         public IGitUserCache GitUserCache
         {
-            get { return gitUserCache; }
-            set
+            get
             {
                 if (gitUserCache == null)
                 {
-                    gitUserCache = value;
+                    gitUserCache = Unity.GitUserCache.Instance;
                     gitUserCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.GitUserCache);
                     gitUserCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.GitUserCache, datetime);
                 }
+
+                return gitUserCache;
             }
         }
 
