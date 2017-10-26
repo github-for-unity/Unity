@@ -227,9 +227,7 @@ namespace GitHub.Unity
         {
             if (message != null)
             {
-                GUILayout.Space(Styles.BaseSpacing + 3);
-                GUILayout.Label(message, Styles.CenteredLabel);
-                GUILayout.Space(Styles.BaseSpacing + 3);
+                EditorGUILayout.HelpBox(message, MessageType.Warning);
             }
         }
 
@@ -237,7 +235,7 @@ namespace GitHub.Unity
         {
             if (errorMessage != null)
             {
-                GUILayout.Label(errorMessage, Styles.ErrorLabel);
+                EditorGUILayout.HelpBox(errorMessage, MessageType.Error);
             }
         }
 
