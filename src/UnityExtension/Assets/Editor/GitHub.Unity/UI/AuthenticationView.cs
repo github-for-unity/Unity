@@ -118,19 +118,23 @@ namespace GitHub.Unity
             {
                 ShowMessage();
 
-                GUILayout.Space(3);
+                EditorGUILayout.Space();
+                
                 GUILayout.BeginHorizontal();
                 {
                     username = EditorGUILayout.TextField(UsernameLabel ,username, Styles.TextFieldStyle);
                 }
                 GUILayout.EndHorizontal();
 
-                GUILayout.Space(Styles.BaseSpacing);
+                EditorGUILayout.Space();
+
                 GUILayout.BeginHorizontal();
                 {
                     password = EditorGUILayout.PasswordField(PasswordLabel, password, Styles.TextFieldStyle);
                 }
                 GUILayout.EndHorizontal();
+
+                EditorGUILayout.Space();
 
                 ShowErrorMessage();
 
