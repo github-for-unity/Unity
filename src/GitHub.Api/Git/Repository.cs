@@ -39,15 +39,15 @@ namespace GitHub.Unity
 
             Name = name;
             LocalPath = localPath;
-            this.User = new User();
+            User = new User();
         }
 
-        public void Initialize(IRepositoryManager repositoryManager, ICacheContainer cacheContainer)
+        public void Initialize(IRepositoryManager initRepositoryManager, ICacheContainer initCacheContainer)
         {
-            Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
+            Guard.ArgumentNotNull(initRepositoryManager, nameof(initRepositoryManager));
 
-            this.repositoryManager = repositoryManager;
-            this.cacheContainer = cacheContainer;
+            repositoryManager = initRepositoryManager;
+            cacheContainer = initCacheContainer;
 
             repositoryManager.OnCurrentBranchUpdated += RepositoryManager_OnCurrentBranchUpdated;
             repositoryManager.OnCurrentRemoteUpdated += RepositoryManager_OnCurrentRemoteUpdated;
