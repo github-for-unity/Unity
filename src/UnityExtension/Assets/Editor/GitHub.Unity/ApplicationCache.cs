@@ -8,9 +8,8 @@ namespace GitHub.Unity
 {
     sealed class ApplicationCache : ScriptObjectSingleton<ApplicationCache>
     {
-        [SerializeField] private bool firstRun = true;
-
         [NonSerialized] private bool? val;
+        [SerializeField] private bool firstRun = true;
 
         public bool FirstRun
         {
@@ -34,13 +33,32 @@ namespace GitHub.Unity
 
     sealed class EnvironmentCache : ScriptObjectSingleton<EnvironmentCache>
     {
+        [NonSerialized] private IEnvironment environment;
+        [SerializeField] private string extensionInstallPath;
         [SerializeField] private string repositoryPath;
         [SerializeField] private string unityApplication;
         [SerializeField] private string unityAssetsPath;
-        [SerializeField] private string extensionInstallPath;
         [SerializeField] private string unityVersion;
 
-        [NonSerialized] private IEnvironment environment;
+        public void Flush()
+        {
+            repositoryPath = Environment.RepositoryPath;
+            unityApplication = Environment.UnityApplication;
+            unityAssetsPath = Environment.UnityAssetsPath;
+            extensionInstallPath = Environment.ExtensionInstallPath;
+            Save(true);
+        }
+
+        private NPath DetermineInstallationPath()
+        {
+            // Juggling to find out where we got installed
+            var shim = CreateInstance<RunLocationShim>();
+            var script = MonoScript.FromScriptableObject(shim);
+            var scriptPath = AssetDatabase.GetAssetPath(script).ToNPath();
+            DestroyImmediate(shim);
+            return scriptPath.Parent;
+        }
+
         public IEnvironment Environment
         {
             get
@@ -55,84 +73,32 @@ namespace GitHub.Unity
                         extensionInstallPath = DetermineInstallationPath();
                         unityVersion = Application.unityVersion;
                     }
-                    environment.Initialize(unityVersion, extensionInstallPath.ToNPath(), unityApplication.ToNPath(), unityAssetsPath.ToNPath());
-                    environment.InitializeRepository(!String.IsNullOrEmpty(repositoryPath) ? repositoryPath.ToNPath() : null);
+                    environment.Initialize(unityVersion, extensionInstallPath.ToNPath(), unityApplication.ToNPath(),
+                        unityAssetsPath.ToNPath());
+                    environment.InitializeRepository(!String.IsNullOrEmpty(repositoryPath)
+                        ? repositoryPath.ToNPath()
+                        : null);
                     Flush();
                 }
                 return environment;
             }
         }
-
-        private NPath DetermineInstallationPath()
-        {
-            // Juggling to find out where we got installed
-            var shim = ScriptableObject.CreateInstance<RunLocationShim>();
-            var script = MonoScript.FromScriptableObject(shim);
-            var scriptPath = AssetDatabase.GetAssetPath(script).ToNPath();
-            ScriptableObject.DestroyImmediate(shim);
-            return scriptPath.Parent;
-        }
-
-        public void Flush()
-        {
-            repositoryPath = Environment.RepositoryPath;
-            unityApplication = Environment.UnityApplication;
-            unityAssetsPath = Environment.UnityAssetsPath;
-            extensionInstallPath = Environment.ExtensionInstallPath;
-            Save(true);
-        }
     }
 
     abstract class ManagedCacheBase<T> : ScriptObjectSingleton<T> where T : ScriptableObject, IManagedCache
     {
-        private ILogging logger;
         private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
+
+        [NonSerialized] private DateTimeOffset? lastUpdatedAtValue;
+
+        [NonSerialized] private DateTimeOffset? lastVerifiedAtValue;
 
         public event Action CacheInvalidated;
         public event Action<DateTimeOffset> CacheUpdated;
 
-        public abstract string LastUpdatedAtString { get; protected set; }
-        public abstract string LastVerifiedAtString { get; protected set; }
-
-        [NonSerialized] private DateTimeOffset? lastUpdatedAtValue;
-        public DateTimeOffset LastUpdatedAt {
-            get
-            {
-                if (!lastUpdatedAtValue.HasValue)
-                {
-                    lastUpdatedAtValue = DateTimeOffset.Parse(LastUpdatedAtString);
-                }
-
-                return lastUpdatedAtValue.Value;
-            }
-            set
-            {
-                LastUpdatedAtString = value.ToString();
-                lastUpdatedAtValue = null;
-            }
-        }
-
-        [NonSerialized] private DateTimeOffset? lastVerifiedAtValue;
-        public DateTimeOffset LastVerifiedAt {
-            get
-            {
-                if (!lastVerifiedAtValue.HasValue)
-                {
-                    lastVerifiedAtValue = DateTimeOffset.Parse(LastVerifiedAtString);
-                }
-
-                return lastVerifiedAtValue.Value;
-            }
-            set
-            {
-                LastVerifiedAtString = value.ToString();
-                lastVerifiedAtValue = null;
-            }
-        }
-
         protected ManagedCacheBase()
         {
-            logger = Logging.GetLogger(GetType());
+            Logger = Logging.GetLogger(GetType());
         }
 
         public void ValidateData()
@@ -145,7 +111,7 @@ namespace GitHub.Unity
 
         public void InvalidateData()
         {
-            logger.Trace("Invalidated");
+            Logger.Trace("Invalidated");
             CacheInvalidated.SafeInvoke();
             ResetData();
         }
@@ -164,21 +130,114 @@ namespace GitHub.Unity
 
             if (isUpdated)
             {
-                logger.Trace("Updated: {0}", now);
+                Logger.Trace("Updated: {0}", now);
                 CacheUpdated.SafeInvoke(now);
             }
             else
             {
-                logger.Trace("Verified: {0}", now);
+                Logger.Trace("Verified: {0}", now);
             }
         }
+
+        public abstract string LastUpdatedAtString { get; protected set; }
+        public abstract string LastVerifiedAtString { get; protected set; }
+
+        public DateTimeOffset LastUpdatedAt
+        {
+            get
+            {
+                if (!lastUpdatedAtValue.HasValue)
+                {
+                    lastUpdatedAtValue = DateTimeOffset.Parse(LastUpdatedAtString);
+                }
+
+                return lastUpdatedAtValue.Value;
+            }
+            set
+            {
+                LastUpdatedAtString = value.ToString();
+                lastUpdatedAtValue = null;
+            }
+        }
+
+        public DateTimeOffset LastVerifiedAt
+        {
+            get
+            {
+                if (!lastVerifiedAtValue.HasValue)
+                {
+                    lastVerifiedAtValue = DateTimeOffset.Parse(LastVerifiedAtString);
+                }
+
+                return lastVerifiedAtValue.Value;
+            }
+            set
+            {
+                LastVerifiedAtString = value.ToString();
+                lastVerifiedAtValue = null;
+            }
+        }
+
+        protected ILogging Logger { get; private set; }
     }
 
-    [Location("cache/testCache.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class TestCache : ManagedCacheBase<TestCache>, ITestCache
+    [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
+    sealed class BranchCache : ManagedCacheBase<BranchCache>, IBranchCache
     {
         [SerializeField] private string lastUpdatedAtString;
         [SerializeField] private string lastVerifiedAtString;
+        [SerializeField] private List<GitBranch> localBranches = new List<GitBranch>();
+        [SerializeField] private List<GitBranch> remoteBranches = new List<GitBranch>();
+
+        public void UpdateData(List<GitBranch> localBranchUpdate, List<GitBranch> remoteBranchUpdate)
+        {
+            var now = DateTimeOffset.Now;
+            var isUpdated = false;
+
+            Logger.Trace("Processing Update: {0}", now);
+
+            var localBranchesIsNull = localBranches == null;
+            var localBranchUpdateIsNull = localBranchUpdate == null;
+
+            if (localBranchesIsNull != localBranchUpdateIsNull ||
+                !localBranchesIsNull && !localBranches.SequenceEqual(localBranchUpdate))
+            {
+                localBranches = localBranchUpdate;
+                isUpdated = true;
+            }
+
+            var remoteBranchesIsNull = remoteBranches == null;
+            var remoteBranchUpdateIsNull = remoteBranchUpdate == null;
+
+            if (remoteBranchesIsNull != remoteBranchUpdateIsNull ||
+                !remoteBranchesIsNull && !remoteBranches.SequenceEqual(remoteBranchUpdate))
+            {
+                remoteBranches = remoteBranchUpdate;
+                isUpdated = true;
+            }
+
+            SaveData(now, isUpdated);
+        }
+
+        public List<GitBranch> LocalBranches {
+            get { return localBranches;  }
+        }
+
+        public List<GitBranch> RemoteBranches
+        {
+            get { return remoteBranches; }
+        }
+
+        public void UpdateData()
+        {
+            SaveData(DateTimeOffset.Now, false);
+        }
+
+        protected override void ResetData()
+        {
+            localBranches = new List<GitBranch>();
+            remoteBranches = new List<GitBranch>();
+        }
 
         public override string LastUpdatedAtString
         {
@@ -191,140 +250,61 @@ namespace GitHub.Unity
             get { return lastVerifiedAtString; }
             protected set { lastVerifiedAtString = value; }
         }
-
-        protected override void ResetData()
-        {
-            
-        }
-
-        public void UpdateData()
-        {
-            SaveData(DateTimeOffset.Now, false);
-        }
-    }
-
-    [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class BranchCache : ScriptObjectSingleton<BranchCache>, IBranchCache
-    {
-        private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
-
-        [SerializeField] private DateTimeOffset lastUpdatedAt;
-        [SerializeField] private DateTimeOffset lastVerifiedAt;
-        [SerializeField] private List<GitBranch> localBranches = new List<GitBranch>();
-        [SerializeField] private List<GitBranch> remoteBranches = new List<GitBranch>();
-
-        public event Action CacheInvalidated;
-        public event Action<DateTimeOffset> CacheUpdated;
-
-        public BranchCache()
-        { }
-
-        public void UpdateData(List<GitBranch> localBranchUpdate, List<GitBranch> remoteBranchUpdate)
-        {
-            var now = DateTimeOffset.Now;
-            var isUpdated = false;
-
-            Logger.Trace("Processing Update: {0}", now);
-
-            var localBranchesIsNull = localBranches == null;
-            var localBranchUpdateIsNull = localBranchUpdate == null;
-
-            if (localBranchesIsNull != localBranchUpdateIsNull
-                || !localBranchesIsNull && !localBranches.SequenceEqual(localBranchUpdate))
-            {
-                localBranches = localBranchUpdate;
-                isUpdated = true;
-            }
-
-            var remoteBranchesIsNull = remoteBranches == null;
-            var remoteBranchUpdateIsNull = remoteBranchUpdate == null;
-
-            if (remoteBranchesIsNull != remoteBranchUpdateIsNull
-                || !remoteBranchesIsNull && !remoteBranches.SequenceEqual(remoteBranchUpdate))
-            {
-                remoteBranches = remoteBranchUpdate;
-                isUpdated = true;
-            }
-
-            SaveData(now, isUpdated);
-        }
-
-        private void SaveData(DateTimeOffset now, bool isUpdated)
-        {
-            if (isUpdated)
-            {
-                lastUpdatedAt = now;
-            }
-
-            lastVerifiedAt = now;
-            Save(true);
-
-            if (isUpdated)
-            {
-                Logger.Trace("Updated: {0}", now);
-                CacheUpdated.SafeInvoke(lastUpdatedAt);
-            }
-            else
-            {
-                Logger.Trace("Verified: {0}", now);
-            }
-        }
-
-        public void ValidateData()
-        {
-            if (DateTimeOffset.Now - lastUpdatedAt > DataTimeout)
-            {
-                InvalidateData();
-            }
-        }
-
-        public void InvalidateData()
-        {
-            Logger.Trace("Invalidated");
-            CacheInvalidated.SafeInvoke();
-            UpdateData(new List<GitBranch>(), new List<GitBranch>());
-        }
-
-        public List<GitBranch> LocalBranches
-        {
-            get
-            {
-                ValidateData();
-                return localBranches;
-            }
-        }
-
-        public List<GitBranch> RemoteBranches
-        {
-            get
-            {
-                ValidateData();
-                return remoteBranches;
-            }
-        }
-
-        public DateTimeOffset LastUpdatedAt
-        {
-            get { return lastUpdatedAt; }
-        }
-
-        public DateTimeOffset LastVerifiedAt
-        {
-            get { return lastVerifiedAt; }
-        }
     }
 
     [Location("views/branches.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class Favorites : ScriptObjectSingleton<Favorites>
     {
         [SerializeField] private List<string> favoriteBranches;
+
+        public void SetFavorite(string branchName)
+        {
+            if (FavoriteBranches.Contains(branchName))
+            {
+                return;
+            }
+
+            FavoriteBranches.Add(branchName);
+            Save(true);
+        }
+
+        public void UnsetFavorite(string branchName)
+        {
+            if (!FavoriteBranches.Contains(branchName))
+            {
+                return;
+            }
+
+            FavoriteBranches.Remove(branchName);
+            Save(true);
+        }
+
+        public void ToggleFavorite(string branchName)
+        {
+            if (FavoriteBranches.Contains(branchName))
+            {
+                FavoriteBranches.Remove(branchName);
+            }
+            else
+            {
+                FavoriteBranches.Add(branchName);
+            }
+            Save(true);
+        }
+
+        public bool IsFavorite(string branchName)
+        {
+            return FavoriteBranches.Contains(branchName);
+        }
+
         public List<string> FavoriteBranches
         {
             get
             {
                 if (favoriteBranches == null)
+                {
                     FavoriteBranches = new List<string>();
+                }
                 return favoriteBranches;
             }
             set
@@ -333,55 +313,15 @@ namespace GitHub.Unity
                 Save(true);
             }
         }
-
-        public void SetFavorite(string branchName)
-        {
-            if (FavoriteBranches.Contains(branchName))
-                return;
-            FavoriteBranches.Add(branchName);
-            Save(true);
-        }
-
-        public void UnsetFavorite(string branchName)
-        {
-            if (!FavoriteBranches.Contains(branchName))
-                return;
-            FavoriteBranches.Remove(branchName);
-            Save(true);
-        }
-
-        public void ToggleFavorite(string branchName)
-        {
-            if (FavoriteBranches.Contains(branchName))
-                FavoriteBranches.Remove(branchName);
-            else
-                FavoriteBranches.Add(branchName);
-            Save(true);
-        }
-
-        public bool IsFavorite(string branchName)
-        {
-            return FavoriteBranches.Contains(branchName);
-        }
     }
 
     [Location("cache/repoinfo.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class RepositoryInfoCache : ScriptObjectSingleton<RepositoryInfoCache>, IRepositoryInfoCache
+    sealed class RepositoryInfoCache : ManagedCacheBase<RepositoryInfoCache>, IRepositoryInfoCache
     {
-        private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
-
-        [SerializeField] private DateTimeOffset lastUpdatedAt;
-        [SerializeField] private DateTimeOffset lastVerifiedAt;
-
-        [SerializeField] private ConfigRemote? gitRemote;
+        [SerializeField] private string lastUpdatedAtString;
+        [SerializeField] private string lastVerifiedAtString;
         [SerializeField] private ConfigBranch? gitBranch;
-
-        public event Action CacheInvalidated;
-        public event Action<DateTimeOffset> CacheUpdated;
-
-        public RepositoryInfoCache()
-        { }
+        [SerializeField] private ConfigRemote? gitRemote;
 
         public void UpdateData(ConfigRemote? gitRemoteUpdate)
         {
@@ -412,49 +352,25 @@ namespace GitHub.Unity
                 isUpdated = true;
             }
 
-            if (isUpdated)
-            {
-                lastUpdatedAt = now;
-            }
-
-            lastVerifiedAt = now;
-            Save(true);
-
-            if (isUpdated)
-            {
-                Logger.Trace("Updated: {0}", now);
-                CacheUpdated.SafeInvoke(lastUpdatedAt);
-            }
-            else
-            {
-                Logger.Trace("Verified: {0}", now);
-            }
+            SaveData(now, isUpdated);
         }
 
-
-        public void ValidateData()
+        protected override void ResetData()
         {
-            if (DateTimeOffset.Now - lastUpdatedAt > DataTimeout)
-            {
-                InvalidateData();
-            }
+            gitBranch = null;
+            gitRemote = null;
         }
 
-        public void InvalidateData()
+        public override string LastUpdatedAtString
         {
-            Logger.Trace("Invalidated");
-            CacheInvalidated.SafeInvoke();
-            UpdateData(null, null);
+            get { return lastUpdatedAtString; }
+            protected set { lastUpdatedAtString = value; }
         }
 
-        public DateTimeOffset LastUpdatedAt
+        public override string LastVerifiedAtString
         {
-            get { return lastUpdatedAt; }
-        }
-
-        public DateTimeOffset LastVerifiedAt
-        {
-            get { return lastVerifiedAt; }
+            get { return lastVerifiedAtString; }
+            protected set { lastVerifiedAtString = value; }
         }
 
         public ConfigRemote? CurrentRemote
@@ -477,20 +393,11 @@ namespace GitHub.Unity
     }
 
     [Location("cache/gitlog.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class GitLogCache : ScriptObjectSingleton<GitLogCache>, IGitLogCache
+    sealed class GitLogCache : ManagedCacheBase<GitLogCache>, IGitLogCache
     {
-        private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
-
-        [SerializeField] private DateTimeOffset lastUpdatedAt;
-        [SerializeField] private DateTimeOffset lastVerifiedAt;
+        [SerializeField] private string lastUpdatedAtString;
+        [SerializeField] private string lastVerifiedAtString;
         [SerializeField] private List<GitLogEntry> log = new List<GitLogEntry>();
-
-        public event Action CacheInvalidated;
-        public event Action<DateTimeOffset> CacheUpdated;
-
-        public GitLogCache()
-        { }
 
         public void UpdateData(List<GitLogEntry> logUpdate)
         {
@@ -501,26 +408,13 @@ namespace GitHub.Unity
 
             var logIsNull = log == null;
             var updateIsNull = logUpdate == null;
-            if (logIsNull != updateIsNull ||
-                !logIsNull && !log.SequenceEqual(logUpdate))
+            if (logIsNull != updateIsNull || !logIsNull && !log.SequenceEqual(logUpdate))
             {
                 log = logUpdate;
-                lastUpdatedAt = now;
                 isUpdated = true;
             }
 
-            lastVerifiedAt = now;
-            Save(true);
-
-            if (isUpdated)
-            {
-                Logger.Trace("Updated: {0}", now);
-                CacheUpdated.SafeInvoke(lastUpdatedAt);
-            }
-            else
-            {
-                Logger.Trace("Verified: {0}", now);
-            }
+            SaveData(now, isUpdated);
         }
 
         public List<GitLogEntry> Log
@@ -532,47 +426,30 @@ namespace GitHub.Unity
             }
         }
 
-        public void ValidateData()
+        protected override void ResetData()
         {
-            if (DateTimeOffset.Now - lastUpdatedAt > DataTimeout)
-            {
-                InvalidateData();
-            }
+            log = new List<GitLogEntry>();
         }
 
-        public void InvalidateData()
+        public override string LastUpdatedAtString
         {
-            Logger.Trace("Invalidated");
-            CacheInvalidated.SafeInvoke();
-            UpdateData(new List<GitLogEntry>());
+            get { return lastUpdatedAtString; }
+            protected set { lastUpdatedAtString = value; }
         }
 
-        public DateTimeOffset LastUpdatedAt
+        public override string LastVerifiedAtString
         {
-            get { return lastUpdatedAt; }
-        }
-
-        public DateTimeOffset LastVerifiedAt
-        {
-            get { return lastVerifiedAt; }
+            get { return lastVerifiedAtString; }
+            protected set { lastVerifiedAtString = value; }
         }
     }
 
     [Location("cache/gitstatus.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class GitStatusCache : ScriptObjectSingleton<GitStatusCache>, IGitStatusCache
+    sealed class GitStatusCache : ManagedCacheBase<GitStatusCache>, IGitStatusCache
     {
-        private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
-
-        [SerializeField] private DateTimeOffset lastUpdatedAt;
-        [SerializeField] private DateTimeOffset lastVerifiedAt;
+        [SerializeField] private string lastUpdatedAtString;
+        [SerializeField] private string lastVerifiedAtString;
         [SerializeField] private GitStatus status;
-
-        public event Action CacheInvalidated;
-        public event Action<DateTimeOffset> CacheUpdated;
-
-        public GitStatusCache()
-        { }
 
         public void UpdateData(GitStatus statusUpdate)
         {
@@ -584,22 +461,10 @@ namespace GitHub.Unity
             if (!status.Equals(statusUpdate))
             {
                 status = statusUpdate;
-                lastUpdatedAt = now;
                 isUpdated = true;
             }
 
-            lastVerifiedAt = now;
-            Save(true);
-
-            if (isUpdated)
-            {
-                Logger.Trace("Updated: {0}", now);
-                CacheUpdated.SafeInvoke(lastUpdatedAt);
-            }
-            else
-            {
-                Logger.Trace("Verified: {0}", now);
-            }
+            SaveData(now, isUpdated);
         }
 
         public GitStatus GitStatus
@@ -611,47 +476,30 @@ namespace GitHub.Unity
             }
         }
 
-        public void ValidateData()
+        protected override void ResetData()
         {
-            if (DateTimeOffset.Now - lastUpdatedAt > DataTimeout)
-            {
-                InvalidateData();
-            }
+            status = new GitStatus();
         }
 
-        public void InvalidateData()
+        public override string LastUpdatedAtString
         {
-            Logger.Trace("Invalidated");
-            CacheInvalidated.SafeInvoke();
-            UpdateData(new GitStatus());
+            get { return lastUpdatedAtString; }
+            protected set { lastUpdatedAtString = value; }
         }
 
-        public DateTimeOffset LastUpdatedAt
+        public override string LastVerifiedAtString
         {
-            get { return lastUpdatedAt; }
-        }
-
-        public DateTimeOffset LastVerifiedAt
-        {
-            get { return lastVerifiedAt; }
+            get { return lastVerifiedAtString; }
+            protected set { lastVerifiedAtString = value; }
         }
     }
 
     [Location("cache/gitlocks.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class GitLocksCache : ScriptObjectSingleton<GitLocksCache>, IGitLocksCache
+    sealed class GitLocksCache : ManagedCacheBase<GitLocksCache>, IGitLocksCache
     {
-        private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
-
-        [SerializeField] private DateTimeOffset lastUpdatedAt;
-        [SerializeField] private DateTimeOffset lastVerifiedAt;
-        [SerializeField] private List<GitLock> locks;
-
-        public event Action CacheInvalidated;
-        public event Action<DateTimeOffset> CacheUpdated;
-
-        public GitLocksCache()
-        { }
+        [SerializeField] private string lastUpdatedAtString;
+        [SerializeField] private string lastVerifiedAtString;
+        [SerializeField] private List<GitLock> locks = new List<GitLock>();
 
         public void UpdateData(List<GitLock> locksUpdate)
         {
@@ -663,26 +511,13 @@ namespace GitHub.Unity
             var locksIsNull = locks == null;
             var locksUpdateIsNull = locksUpdate == null;
 
-            if (locksIsNull != locksUpdateIsNull
-                || !locksIsNull && !locks.SequenceEqual(locksUpdate))
+            if (locksIsNull != locksUpdateIsNull || !locksIsNull && !locks.SequenceEqual(locksUpdate))
             {
                 locks = locksUpdate;
                 isUpdated = true;
-                lastUpdatedAt = now;
             }
 
-            lastVerifiedAt = now;
-            Save(true);
-
-            if (isUpdated)
-            {
-                Logger.Trace("Updated: {0}", now);
-                CacheUpdated.SafeInvoke(lastUpdatedAt);
-            }
-            else
-            {
-                Logger.Trace("Verified: {0}", now);
-            }
+            SaveData(now, isUpdated);
         }
 
         public List<GitLock> GitLocks
@@ -694,47 +529,30 @@ namespace GitHub.Unity
             }
         }
 
-        public void ValidateData()
+        protected override void ResetData()
         {
-            if (DateTimeOffset.Now - lastUpdatedAt > DataTimeout)
-            {
-                InvalidateData();
-            }
+            locks = new List<GitLock>();
         }
 
-        public void InvalidateData()
+        public override string LastUpdatedAtString
         {
-            Logger.Trace("Invalidated");
-            CacheInvalidated.SafeInvoke();
-            UpdateData(null);
+            get { return lastUpdatedAtString; }
+            protected set { lastUpdatedAtString = value; }
         }
 
-        public DateTimeOffset LastUpdatedAt
+        public override string LastVerifiedAtString
         {
-            get { return lastUpdatedAt; }
-        }
-
-        public DateTimeOffset LastVerifiedAt
-        {
-            get { return lastVerifiedAt; }
+            get { return lastVerifiedAtString; }
+            protected set { lastVerifiedAtString = value; }
         }
     }
 
     [Location("cache/gituser.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class GitUserCache : ScriptObjectSingleton<GitUserCache>, IGitUserCache
+    sealed class GitUserCache : ManagedCacheBase<GitUserCache>, IGitUserCache
     {
-        private static ILogging Logger = Logging.GetLogger<RepositoryInfoCache>();
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
-
-        [SerializeField] private DateTimeOffset lastUpdatedAt;
-        [SerializeField] private DateTimeOffset lastVerifiedAt;
+        [SerializeField] private string lastUpdatedAtString;
+        [SerializeField] private string lastVerifiedAtString;
         [SerializeField] private User user;
-
-        public event Action CacheInvalidated;
-        public event Action<DateTimeOffset> CacheUpdated;
-
-        public GitUserCache()
-        { }
 
         public void UpdateData(User userUpdate)
         {
@@ -747,21 +565,9 @@ namespace GitHub.Unity
             {
                 user = userUpdate;
                 isUpdated = true;
-                lastUpdatedAt = now;
             }
 
-            lastVerifiedAt = now;
-            Save(true);
-
-            if (isUpdated)
-            {
-                Logger.Trace("Updated: {0}", now);
-                CacheUpdated.SafeInvoke(lastUpdatedAt);
-            }
-            else
-            {
-                Logger.Trace("Verified: {0}", now);
-            }
+            SaveData(now, isUpdated);
         }
 
         public User User
@@ -773,29 +579,21 @@ namespace GitHub.Unity
             }
         }
 
-        public void ValidateData()
+        protected override void ResetData()
         {
-            if (DateTimeOffset.Now - lastUpdatedAt > DataTimeout)
-            {
-                InvalidateData();
-            }
+            user = null;
         }
 
-        public void InvalidateData()
+        public override string LastUpdatedAtString
         {
-            Logger.Trace("Invalidated");
-            CacheInvalidated.SafeInvoke();
-            UpdateData(null);
+            get { return lastUpdatedAtString; }
+            protected set { lastUpdatedAtString = value; }
         }
 
-        public DateTimeOffset LastUpdatedAt
+        public override string LastVerifiedAtString
         {
-            get { return lastUpdatedAt; }
-        }
-
-        public DateTimeOffset LastVerifiedAt
-        {
-            get { return lastVerifiedAt; }
+            get { return lastVerifiedAtString; }
+            protected set { lastVerifiedAtString = value; }
         }
     }
 }
