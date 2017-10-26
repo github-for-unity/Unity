@@ -27,7 +27,9 @@ namespace UnitTests
 
             NPath.FileSystem = fileSystem;
 
-            return new Repository("TestRepo", @"C:\Repo".ToNPath());
+            //TODO: Mock CacheContainer
+            ICacheContainer cacheContainer = null;
+            return new Repository("TestRepo", @"C:\Repo".ToNPath(), cacheContainer);
         }
 
         private RepositoryEvents repositoryEvents;
@@ -79,7 +81,7 @@ namespace UnitTests
                 .ToDictionary(grouping => grouping.Key,
                     grouping => grouping.ToDictionary(branch => branch.Name));
 
-            repository.Initialize(repositoryManager, null);
+            repository.Initialize(repositoryManager);
 
             string expectedBranch = null;
             repository.OnCurrentBranchChanged += branch => {

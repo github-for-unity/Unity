@@ -75,7 +75,7 @@ namespace GitHub.Unity
                     }
                     environment.Initialize(unityVersion, extensionInstallPath.ToNPath(), unityApplication.ToNPath(),
                         unityAssetsPath.ToNPath());
-                    environment.InitializeRepository(!String.IsNullOrEmpty(repositoryPath)
+                    environment.InitializeRepository(EntryPoint.ApplicationManager.CacheContainer, !String.IsNullOrEmpty(repositoryPath)
                         ? repositoryPath.ToNPath()
                         : null);
                     Flush();

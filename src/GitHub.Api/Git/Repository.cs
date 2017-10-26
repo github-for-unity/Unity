@@ -32,7 +32,8 @@ namespace GitHub.Unity
         /// </summary>
         /// <param name="name">The repository name.</param>
         /// <param name="localPath"></param>
-        public Repository(string name, NPath localPath)
+        /// <param name="container"></param>
+        public Repository(string name, NPath localPath, ICacheContainer container)
         {
             Guard.ArgumentNotNullOrWhiteSpace(name, nameof(name));
             Guard.ArgumentNotNull(localPath, nameof(localPath));
@@ -40,15 +41,15 @@ namespace GitHub.Unity
             Name = name;
             LocalPath = localPath;
             User = new User();
+
+            cacheContainer = container;
         }
 
-        public void Initialize(IRepositoryManager initRepositoryManager, ICacheContainer initCacheContainer)
+        public void Initialize(IRepositoryManager initRepositoryManager)
         {
             Guard.ArgumentNotNull(initRepositoryManager, nameof(initRepositoryManager));
 
             repositoryManager = initRepositoryManager;
-            cacheContainer = initCacheContainer;
-
             repositoryManager.OnCurrentBranchUpdated += RepositoryManager_OnCurrentBranchUpdated;
             repositoryManager.OnCurrentRemoteUpdated += RepositoryManager_OnCurrentRemoteUpdated;
             repositoryManager.OnStatusUpdated += status => CurrentStatus = status;

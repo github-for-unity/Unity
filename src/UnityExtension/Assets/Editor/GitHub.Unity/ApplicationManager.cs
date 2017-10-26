@@ -19,6 +19,7 @@ namespace GitHub.Unity
         {
             ListenToUnityExit();
             Initialize();
+            CacheContainer = new CacheContainer();
         }
 
         protected override void SetupMetrics()
@@ -31,14 +32,6 @@ namespace GitHub.Unity
             Logger.Trace("Restarted {0}", Environment.Repository);
             EnvironmentCache.Instance.Flush();
 
-            var cacheContainer = (CacheContainer)CacheContainer;
-            cacheContainer.BranchCache = BranchCache.Instance;
-            cacheContainer.GitLocksCache = GitLocksCache.Instance;
-            cacheContainer.GitLogCache = GitLogCache.Instance;
-            cacheContainer.GitStatusCache = GitStatusCache.Instance;
-            cacheContainer.GitUserCache = GitUserCache.Instance;
-            cacheContainer.RepositoryInfoCache = RepositoryInfoCache.Instance;
-
             ProjectWindowInterface.Initialize(Environment.Repository);
             var window = Window.GetWindow();
             if (window != null)
@@ -50,7 +43,6 @@ namespace GitHub.Unity
             Logger.Trace("SetProjectToTextSerialization");
             EditorSettings.serializationMode = SerializationMode.ForceText;
         }
-
 
         private void ListenToUnityExit()
         {
