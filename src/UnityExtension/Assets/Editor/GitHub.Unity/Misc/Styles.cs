@@ -567,6 +567,7 @@ namespace GitHub.Unity
                     boldCenteredLabel = new GUIStyle(EditorStyles.boldLabel);
                     boldCenteredLabel.name = "BoldCenteredLabelStyle";
                     boldCenteredLabel.alignment = TextAnchor.MiddleCenter;
+                    boldCenteredLabel.wordWrap = true;
                 }
                 return boldCenteredLabel;
             }
