@@ -42,7 +42,6 @@ namespace GitHub.Unity
             UnityAssetsPath = assetsPath;
             UnityProjectPath = assetsPath.Parent;
             UnityVersion = unityVersion;
-            InitializeRepository();
         }
 
         public void InitializeRepository(NPath expectedRepositoryPath = null)
