@@ -184,8 +184,8 @@ namespace GitHub.Unity
     [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class BranchCache : ManagedCacheBase<BranchCache>, IBranchCache
     {
-        [SerializeField] private string lastUpdatedAtString;
-        [SerializeField] private string lastVerifiedAtString;
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private List<GitBranch> localBranches = new List<GitBranch>();
         [SerializeField] private List<GitBranch> remoteBranches = new List<GitBranch>();
 
@@ -318,8 +318,8 @@ namespace GitHub.Unity
     [Location("cache/repoinfo.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class RepositoryInfoCache : ManagedCacheBase<RepositoryInfoCache>, IRepositoryInfoCache
     {
-        [SerializeField] private string lastUpdatedAtString;
-        [SerializeField] private string lastVerifiedAtString;
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private ConfigBranch? gitBranch;
         [SerializeField] private ConfigRemote? gitRemote;
 
@@ -395,8 +395,8 @@ namespace GitHub.Unity
     [Location("cache/gitlog.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitLogCache : ManagedCacheBase<GitLogCache>, IGitLogCache
     {
-        [SerializeField] private string lastUpdatedAtString;
-        [SerializeField] private string lastVerifiedAtString;
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private List<GitLogEntry> log = new List<GitLogEntry>();
 
         public void UpdateData(List<GitLogEntry> logUpdate)
@@ -447,8 +447,8 @@ namespace GitHub.Unity
     [Location("cache/gitstatus.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitStatusCache : ManagedCacheBase<GitStatusCache>, IGitStatusCache
     {
-        [SerializeField] private string lastUpdatedAtString;
-        [SerializeField] private string lastVerifiedAtString;
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private GitStatus status;
 
         public void UpdateData(GitStatus statusUpdate)
@@ -497,8 +497,8 @@ namespace GitHub.Unity
     [Location("cache/gitlocks.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitLocksCache : ManagedCacheBase<GitLocksCache>, IGitLocksCache
     {
-        [SerializeField] private string lastUpdatedAtString;
-        [SerializeField] private string lastVerifiedAtString;
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private List<GitLock> locks = new List<GitLock>();
 
         public void UpdateData(List<GitLock> locksUpdate)
@@ -550,8 +550,8 @@ namespace GitHub.Unity
     [Location("cache/gituser.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitUserCache : ManagedCacheBase<GitUserCache>, IGitUserCache
     {
-        [SerializeField] private string lastUpdatedAtString;
-        [SerializeField] private string lastVerifiedAtString;
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private User user;
 
         public void UpdateData(User userUpdate)
