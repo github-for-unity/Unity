@@ -198,7 +198,6 @@ namespace GitHub.Unity
         IGitStatusCache GitStatusCache { get; }
         IGitLocksCache GitLocksCache { get; }
         IGitUserCache GitUserCache { get; }
-        ITestCache TestCache { get; }
         void Validate(CacheType cacheType);
         void ValidateAll();
         void Invalidate(CacheType cacheType);
