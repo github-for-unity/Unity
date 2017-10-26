@@ -59,28 +59,11 @@ namespace GitHub.Unity
 
             scroll = GUILayout.BeginScrollView(scroll);
             {
-                Rect authHeader = EditorGUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
+                GUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
                 {
-                    GUILayout.BeginVertical(GUILayout.Width(16));
-                    {
-                        GUILayout.Space(9);
-                        GUILayout.Label(Styles.BigLogo, GUILayout.Height(20), GUILayout.Width(20));
-                    }
-                    GUILayout.EndVertical();
-
-                    GUILayout.BeginVertical();
-                    {
-                        GUILayout.Space(11);
-                        GUILayout.Label(AuthTitle, Styles.HeaderRepoLabelStyle);
-                    }
-                    GUILayout.EndVertical();
+                  GUILayout.Label(AuthTitle, Styles.HeaderRepoLabelStyle);
                 }
-
                 GUILayout.EndHorizontal();
-                EditorGUI.DrawRect(
-                  new Rect(authHeader.x, authHeader.yMax, authHeader.xMax, 1),
-                  new Color(0.455F, 0.455F, 0.455F, 1F)
-                );
 
                 GUILayout.BeginVertical(Styles.GenericBoxStyle);
                 {
