@@ -99,7 +99,7 @@
     <Compile Include="Application\ApplicationInfo.cs" />
     <Compile Include="Application\LoginResult.cs" />
     <Compile Include="Application\AppConfiguration.cs" />
-    <Compile Include="Cache\CacheContainer.cs" />
+    <Compile Include="Cache\CacheInterfaces.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />
     <Compile Include="Git\Tasks\GitVersionTask.cs" />

@@ -117,7 +117,13 @@ namespace GitHub.Unity
             SaveData(DateTimeOffset.Now, true);
         }
 
-        protected abstract void ResetData();
+        private void ResetData()
+        {
+            Logger.Trace("ResetData");
+            OnResetData();
+        }
+
+        protected abstract void OnResetData();
 
         protected void SaveData(DateTimeOffset now, bool isUpdated)
         {
@@ -234,7 +240,7 @@ namespace GitHub.Unity
             SaveData(DateTimeOffset.Now, false);
         }
 
-        protected override void ResetData()
+        protected override void OnResetData()
         {
             localBranches = new List<GitBranch>();
             remoteBranches = new List<GitBranch>();
@@ -319,47 +325,22 @@ namespace GitHub.Unity
     [Location("cache/repoinfo.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class RepositoryInfoCache : ManagedCacheBase<RepositoryInfoCache>, IRepositoryInfoCache
     {
+        public static readonly ConfigBranch DefaultConfigBranch = new ConfigBranch();
+        public static readonly ConfigRemote DefaultConfigRemote = new ConfigRemote();
+        public static readonly GitRemote DefaultGitRemote = new GitRemote();
+        public static readonly GitBranch DefaultGitBranch = new GitBranch();
+
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private ConfigBranch? gitBranch;
-        [SerializeField] private ConfigRemote? gitRemote;
+        [SerializeField] private ConfigBranch gitConfigBranch;
+        [SerializeField] private ConfigRemote gitConfigRemote;
+        [SerializeField] private GitRemote gitRemote;
+        [SerializeField] private GitBranch gitBranch;
 
-        public void UpdateData(ConfigRemote? gitRemoteUpdate)
+        protected override void OnResetData()
         {
-            UpdateData(gitRemoteUpdate, gitBranch);
-        }
-
-        public void UpdateData(ConfigBranch? gitBranchUpdate)
-        {
-            UpdateData(gitRemote, gitBranchUpdate);
-        }
-
-        public void UpdateData(ConfigRemote? gitRemoteUpdate, ConfigBranch? gitBranchUpdate)
-        {
-            var now = DateTimeOffset.Now;
-            var isUpdated = false;
-
-            Logger.Trace("Processing Update: {0}", now);
-
-            if (!Nullable.Equals(gitRemote, gitRemoteUpdate))
-            {
-                gitRemote = gitRemoteUpdate;
-                isUpdated = true;
-            }
-
-            if (!Nullable.Equals(gitBranch, gitBranchUpdate))
-            {
-                gitBranch = gitBranchUpdate;
-                isUpdated = true;
-            }
-
-            SaveData(now, isUpdated);
-        }
-
-        protected override void ResetData()
-        {
-            gitBranch = null;
-            gitRemote = null;
+            gitConfigBranch = DefaultConfigBranch;
+            gitConfigRemote = DefaultConfigRemote;
         }
 
         public override string LastUpdatedAtString
@@ -374,21 +355,103 @@ namespace GitHub.Unity
             protected set { lastVerifiedAtString = value; }
         }
 
-        public ConfigRemote? CurrentRemote
+        public ConfigRemote? CurrentConfigRemote
         {
             get
             {
+                Logger.Trace("Get CurrentConfigRemote");
                 ValidateData();
-                return gitRemote;
+                return gitConfigRemote.Equals(DefaultConfigRemote) ? (ConfigRemote?) null : gitConfigRemote;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} gitConfigRemote:{1}", now, value);
+
+                if (!Nullable.Equals(gitConfigRemote, value))
+                {
+                    gitConfigRemote = value ?? DefaultConfigRemote;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
             }
         }
 
-        public ConfigBranch? CurentBranch
+        public ConfigBranch? CurentConfigBranch
         {
             get
             {
+                Logger.Trace("Get CurentConfigBranch");
                 ValidateData();
-                return gitBranch;
+                return gitConfigBranch.Equals(DefaultConfigBranch) ? (ConfigBranch?) null : gitConfigBranch;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} gitConfigBranch:{1}", now, value);
+
+                if (!Nullable.Equals(gitConfigBranch, value))
+                {
+                    gitConfigBranch = value ?? DefaultConfigBranch;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public GitRemote? CurrentGitRemote
+        {
+            get
+            {
+                Logger.Trace("Get CurrentGitRemote");
+                ValidateData();
+                return gitRemote.Equals(DefaultGitRemote) ? (GitRemote?) null : gitRemote;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} gitRemote:{1}", now, value);
+
+                if (!Nullable.Equals(gitRemote, value))
+                {
+                    gitRemote = value ?? DefaultGitRemote;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public GitBranch? CurentGitBranch
+        {
+            get
+            {
+                Logger.Trace("Get CurentConfigBranch");
+                ValidateData();
+                return gitBranch.Equals(DefaultGitBranch) ? (GitBranch?)null : gitBranch;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} gitBranch:{1}", now, value);
+
+                if (!Nullable.Equals(gitBranch, value))
+                {
+                    gitBranch = value ?? DefaultGitBranch;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
             }
         }
     }
@@ -427,7 +490,7 @@ namespace GitHub.Unity
             }
         }
 
-        protected override void ResetData()
+        protected override void OnResetData()
         {
             log = new List<GitLogEntry>();
         }
@@ -477,7 +540,7 @@ namespace GitHub.Unity
             }
         }
 
-        protected override void ResetData()
+        protected override void OnResetData()
         {
             status = new GitStatus();
         }
@@ -530,7 +593,7 @@ namespace GitHub.Unity
             }
         }
 
-        protected override void ResetData()
+        protected override void OnResetData()
         {
             locks = new List<GitLock>();
         }
@@ -580,7 +643,7 @@ namespace GitHub.Unity
             }
         }
 
-        protected override void ResetData()
+        protected override void OnResetData()
         {
             user = null;
         }

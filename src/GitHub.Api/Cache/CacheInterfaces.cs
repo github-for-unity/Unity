@@ -71,15 +71,14 @@ namespace GitHub.Unity
 
     public interface IRepositoryInfo
     {
-        ConfigRemote? CurrentRemote { get; }
-        ConfigBranch? CurentBranch { get; }
+        ConfigRemote? CurrentConfigRemote { get; set; }
+        ConfigBranch? CurentConfigBranch { get; set; }
     }
 
     public interface IRepositoryInfoCache : IManagedCache, IRepositoryInfo
     {
-        void UpdateData(ConfigRemote? gitRemoteUpdate);
-        void UpdateData(ConfigBranch? gitBranchUpdate);
-        void UpdateData(ConfigRemote? gitRemoteUpdate, ConfigBranch? gitBranchUpdate);
+        GitRemote? CurrentGitRemote { get; set; }
+        GitBranch? CurentGitBranch { get; set; }
     }
 
     public interface IBranch

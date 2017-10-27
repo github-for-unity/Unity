@@ -360,43 +360,32 @@ namespace GitHub.Unity
 
         private ConfigBranch? CurrentConfigBranch
         {
-            get { return this.cacheContainer.RepositoryInfoCache.CurentBranch; }
-            set { this.cacheContainer.RepositoryInfoCache.UpdateData(value); }
+            get { return this.cacheContainer.RepositoryInfoCache.CurentConfigBranch; }
+            set
+            {
+                cacheContainer.RepositoryInfoCache.CurentConfigBranch = value;
+                cacheContainer.RepositoryInfoCache.CurentGitBranch = value != null
+                    ? (GitBranch?)GetLocalGitBranch(value.Value)
+                    : null;
+            }
         }
 
         private ConfigRemote? CurrentConfigRemote
         {
-            get { return this.cacheContainer.RepositoryInfoCache.CurrentRemote; }
-            set { this.cacheContainer.RepositoryInfoCache.UpdateData(value); }
-        }
-
-        public GitBranch? CurrentBranch
-        {
-            get
-            {
-                if (CurrentConfigBranch != null)
-                {
-                    return GetLocalGitBranch(CurrentConfigBranch.Value);
-                }
-
-                return null;
+            get { return this.cacheContainer.RepositoryInfoCache.CurrentConfigRemote; }
+            set {
+                cacheContainer.RepositoryInfoCache.CurrentConfigRemote = value;
+                cacheContainer.RepositoryInfoCache.CurrentGitRemote = value != null
+                    ? (GitRemote?) GetGitRemote(value.Value)
+                    : null;
             }
         }
+
+        public GitBranch? CurrentBranch => cacheContainer.RepositoryInfoCache.CurentGitBranch;
 
         public string CurrentBranchName => CurrentConfigBranch?.Name;
 
-        public GitRemote? CurrentRemote
-        {
-            get
-            {
-                if (CurrentConfigRemote != null)
-                {
-                    return GetGitRemote(CurrentConfigRemote.Value);
-                }
-
-                return null;
-            }
-        }
+        public GitRemote? CurrentRemote => cacheContainer.RepositoryInfoCache.CurrentGitRemote;
 
         public UriString CloneUrl { get; private set; }
 
