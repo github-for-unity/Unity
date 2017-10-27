@@ -47,7 +47,7 @@ namespace GitHub.Unity
         public override void OnDisable()
         {
             base.OnDisable();
-            DetachHandlers();
+            DetachHandlers(Repository);
         }
 
         private void AttachHandlers(IRepository repository)
@@ -57,11 +57,11 @@ namespace GitHub.Unity
             repository.OnStatusChanged += RunStatusUpdateOnMainThread;
         }
 
-        private void DetachHandlers()
+        private void DetachHandlers(IRepository oldRepository)
         {
-            if (Repository == null)
+            if (oldRepository == null)
                 return;
-            Repository.OnStatusChanged -= RunStatusUpdateOnMainThread;
+            oldRepository.OnStatusChanged -= RunStatusUpdateOnMainThread;
         }
 
         private void RunStatusUpdateOnMainThread(GitStatus status)
