@@ -397,10 +397,10 @@ namespace GitHub.Unity
             var task = GitClient.Status()
                 .Finally((success, ex, data) =>
                 {
-                    Logger.Trace($"GitStatus update: {success} {(data.HasValue ? data.Value.ToString() : "[null]")}");
-                    if (success && data.HasValue)
+                    Logger.Trace($"GitStatus update: {success} {data}");
+                    if (success)
                     {
-                        OnStatusUpdated?.Invoke(data.Value);
+                        OnStatusUpdated?.Invoke(data);
                         Logger.Trace("Updated Git Status");
                     }
                 });
