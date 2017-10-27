@@ -44,7 +44,7 @@ namespace GitHub.Unity
             UnityVersion = unityVersion;
         }
 
-        public void InitializeRepository(NPath expectedRepositoryPath = null)
+        public void InitializeRepository(ICacheContainer cacheContainer, NPath expectedRepositoryPath = null)
         {
             Guard.NotNull(this, FileSystem, nameof(FileSystem));
 
@@ -79,7 +79,7 @@ namespace GitHub.Unity
             {
                 Logger.Trace("Determined expectedRepositoryPath:{0}", expectedRepositoryPath);
                 RepositoryPath = expectedRepositoryPath;
-                Repository = new Repository(RepositoryPath.FileName, RepositoryPath);
+                Repository = new Repository(RepositoryPath.FileName, RepositoryPath, cacheContainer);
             }
         }
 
