@@ -82,13 +82,6 @@ namespace GitHub.Unity
             base.OnRepositoryChanged(oldRepository);
             gitPathView.OnRepositoryChanged(oldRepository);
             userSettingsView.OnRepositoryChanged(oldRepository);
-
-            DetachHandlers(oldRepository);
-            AttachHandlers(Repository);
-
-            remoteHasChanged = true;
-
-            Refresh();
         }
 
         public override void Refresh()
@@ -106,7 +99,6 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-
             repository.OnCurrentRemoteChanged += Repository_OnActiveRemoteChanged;
             repository.OnLocksChanged += RunLocksUpdateOnMainThread;
         }
@@ -115,7 +107,6 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-
             repository.OnCurrentRemoteChanged -= Repository_OnActiveRemoteChanged;
             repository.OnLocksChanged -= RunLocksUpdateOnMainThread;
         }

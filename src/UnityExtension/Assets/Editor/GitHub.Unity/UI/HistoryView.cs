@@ -87,9 +87,6 @@ namespace GitHub.Unity
         public override void OnRepositoryChanged(IRepository oldRepository)
         {
             base.OnRepositoryChanged(oldRepository);
-
-            DetachHandlers(oldRepository);
-            AttachHandlers(Repository);
         }
 
         public override void OnSelectionChange()
