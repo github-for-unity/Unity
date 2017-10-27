@@ -216,7 +216,7 @@ namespace GitHub.Unity
             if (repoUrl != updatedRepoUrl)
             {
                 repoUrl = updatedRepoUrl;
-                if (repoUrl != null)
+                if (updatedRepoRemote != null)
                 {
                     repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, updatedRepoRemote));
                 }
