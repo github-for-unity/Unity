@@ -328,7 +328,11 @@ namespace GitHub.Unity
             var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + name : "[None]";
             var isActive = name == CurrentConfigBranch?.Name;
 
-            return new GitBranch(name, trackingName, isActive);
+            return new GitBranch {
+                Name = name,
+                Tracking = trackingName,
+                IsActive = isActive
+            };
         }
 
         private GitBranch GetRemoteGitBranch(ConfigBranch x)
@@ -336,7 +340,11 @@ namespace GitHub.Unity
             var name = x.Remote.Value.Name + "/" + x.Name;
             var trackingName = "[None]";
 
-            return new GitBranch(name, trackingName, false);
+            return new GitBranch {
+                Name = name,
+                Tracking = trackingName,
+                IsActive = false
+            };
         }
 
         private GitRemote GetGitRemote(ConfigRemote configRemote)

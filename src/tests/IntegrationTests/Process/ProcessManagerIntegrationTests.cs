@@ -23,8 +23,16 @@ namespace IntegrationTests
                 .StartAsAsync();
 
             gitBranches.Should().BeEquivalentTo(
-                new GitBranch("master", "origin/master: behind 1", true),
-                new GitBranch("feature/document", "origin/feature/document", false));
+                new GitBranch {
+                    Name = "master",
+                    Tracking = "origin/master: behind 1",
+                    IsActive = true
+                },
+                new GitBranch {
+                    Name = "feature/document",
+                    Tracking = "origin/feature/document",
+                    IsActive = false
+                });
         }
 
         [Test]
