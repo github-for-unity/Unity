@@ -22,12 +22,6 @@ namespace GitHub.Unity
 
         public event Action<CacheType, DateTimeOffset> CacheUpdated;
 
-        public CacheContainer()
-        {
-            var t = new System.Diagnostics.StackTrace();
-            Logger.Trace("Constructing: {0}", t.ToString());
-        }
-
         private IManagedCache GetManagedCache(CacheType cacheType)
         {
             switch (cacheType)
