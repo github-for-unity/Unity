@@ -87,7 +87,7 @@ namespace GitHub.Unity
 
     abstract class ManagedCacheBase<T> : ScriptObjectSingleton<T> where T : ScriptableObject, IManagedCache
     {
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan DataTimeout = TimeSpan.MaxValue;
 
         [NonSerialized] private DateTimeOffset? lastUpdatedAtValue;
 
