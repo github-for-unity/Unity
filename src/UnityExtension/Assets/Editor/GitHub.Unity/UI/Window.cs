@@ -109,19 +109,7 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
 
-            string repoRemote = null;
-            if (MaybeUpdateData(out repoRemote))
-            {
-                repoBranchContent = new GUIContent(repoBranch, Window_RepoBranchTooltip);
-                if (repoUrl != null)
-                {
-                    repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, repoRemote));
-                }
-                else
-                {
-                    repoUrlContent = new GUIContent(repoUrl, Window_RepoNoUrlTooltip);
-                }
-            }
+            MaybeUpdateData();
 
             if (ActiveView != null)
                 ActiveView.OnDataUpdate();
@@ -196,10 +184,10 @@ namespace GitHub.Unity
             new ActionTask(TaskManager.Token, Refresh) { Affinity = TaskAffinity.UI }.Start();
         }
 
-        private bool MaybeUpdateData(out string repoRemote)
+        private void MaybeUpdateData()
         {
-            repoRemote = null;
-            bool repoDataChanged = false;
+            string repoRemote = null;
+            var repoDataChanged = false;
             if (Repository != null)
             {
                 var currentBranchString = (Repository.CurrentBranch.HasValue ? Repository.CurrentBranch.Value.Name : null);
@@ -234,7 +222,18 @@ namespace GitHub.Unity
                 }
             }
 
-            return repoDataChanged;
+            if (repoDataChanged)
+            {
+                repoBranchContent = new GUIContent(repoBranch, Window_RepoBranchTooltip);
+                if (repoUrl != null)
+                {
+                    repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, repoRemote));
+                }
+                else
+                {
+                    repoUrlContent = new GUIContent(repoUrl, Window_RepoNoUrlTooltip);
+                }
+            }
         }
 
         private void AttachHandlers(IRepository repository)
