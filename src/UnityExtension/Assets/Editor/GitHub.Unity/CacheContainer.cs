@@ -4,8 +4,6 @@ namespace GitHub.Unity
 {
     public class CacheContainer : ICacheContainer
     {
-        private static ILogging Logger = Logging.GetLogger<CacheContainer>();
-
         private IBranchCache branchCache;
 
         private IGitLocksCache gitLocksCache;
