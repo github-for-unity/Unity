@@ -65,7 +65,7 @@ namespace GitHub.Unity
                 }
                 GUILayout.EndHorizontal();
 
-                GUILayout.BeginVertical(Styles.GenericBoxStyle);
+                GUILayout.BeginVertical();
                 {
                     if (!need2fa)
                     {
@@ -119,7 +119,7 @@ namespace GitHub.Unity
                 ShowMessage();
 
                 EditorGUILayout.Space();
-                
+
                 GUILayout.BeginHorizontal();
                 {
                     username = EditorGUILayout.TextField(UsernameLabel ,username, Styles.TextFieldStyle);
@@ -163,17 +163,11 @@ namespace GitHub.Unity
 
                 EditorGUI.BeginDisabledGroup(isBusy);
                 {
-                    GUILayout.Space(Styles.BaseSpacing);
-                    GUILayout.BeginHorizontal();
-                    {
-                        two2fa = EditorGUILayout.TextField(TwofaLabel, two2fa, Styles.TextFieldStyle);
-                    }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Space(Styles.BaseSpacing);
+                    EditorGUILayout.Space();
+                    two2fa = EditorGUILayout.TextField(TwofaLabel, two2fa, Styles.TextFieldStyle);
+                    EditorGUILayout.Space();
                     ShowErrorMessage();
 
-                    GUILayout.Space(Styles.BaseSpacing);
                     GUILayout.BeginHorizontal();
                     {
                         GUILayout.FlexibleSpace();
@@ -193,7 +187,7 @@ namespace GitHub.Unity
                     }
                     GUILayout.EndHorizontal();
 
-                    GUILayout.Space(Styles.BaseSpacing);
+                    EditorGUILayout.Space();
                 }
                 EditorGUI.EndDisabledGroup();
             }
