@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="ApplicationCache.cs" />
     <Compile Include="ApplicationManager.cs" />
+    <Compile Include="CacheContainer.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="RunLocationShim.cs" />
     <Compile Include="ScriptObjectSingleton.cs" />

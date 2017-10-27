@@ -116,7 +116,7 @@ namespace GitHub.Unity
                 .Then(GitClient.Commit("Initial commit", null))
                 .Then(_ =>
                 {
-                    Environment.InitializeRepository();
+                    Environment.InitializeRepository(CacheContainer);
                     RestartRepository();
                 })
                 .ThenInUI(InitializeUI);
@@ -214,6 +214,7 @@ namespace GitHub.Unity
         public ISettings LocalSettings { get; protected set; }
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
+        public ICacheContainer CacheContainer { get; protected set; }
         public IUsageTracker UsageTracker { get; protected set; }
 
         protected TaskScheduler UIScheduler { get; private set; }

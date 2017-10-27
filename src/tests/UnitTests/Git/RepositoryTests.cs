@@ -27,7 +27,9 @@ namespace UnitTests
 
             NPath.FileSystem = fileSystem;
 
-            return new Repository("TestRepo", @"C:\Repo".ToNPath());
+            //TODO: Mock CacheContainer
+            ICacheContainer cacheContainer = null;
+            return new Repository("TestRepo", @"C:\Repo".ToNPath(), cacheContainer);
         }
 
         private RepositoryEvents repositoryEvents;

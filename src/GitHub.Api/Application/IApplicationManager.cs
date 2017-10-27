@@ -15,6 +15,7 @@ namespace GitHub.Unity
         ISettings LocalSettings { get; }
         ISettings UserSettings { get; }
         ITaskManager TaskManager { get; }
+        ICacheContainer CacheContainer { get; }
         IGitClient GitClient { get; }
         IUsageTracker UsageTracker { get; }
 
