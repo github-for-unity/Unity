@@ -38,6 +38,9 @@ namespace GitHub.Unity
         [SerializeField] private GUIContent repoBranchContent;
         [SerializeField] private GUIContent repoUrlContent;
 
+        [SerializeField] private UpdateDataEventData repositoryInfoCacheEvent;
+        [NonSerialized] private bool repositoryInfoCacheHasChanged;
+
         [MenuItem(LaunchMenu)]
         public static void Window_GitHub()
         {
@@ -90,9 +93,10 @@ namespace GitHub.Unity
 #if DEVELOPER_BUILD
             Selection.activeObject = this;
 #endif
-
             // Set window title
             titleContent = new GUIContent(Title, Styles.SmallLogo);
+
+            Repository.CheckRepositoryInfoCacheEvent(repositoryInfoCacheEvent);
 
             if (ActiveView != null)
                 ActiveView.OnEnable();
@@ -240,14 +244,19 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-            repository.OnRepositoryInfoChanged += RefreshOnMainThread;
+            repository.OnRepositoryInfoCacheChanged += Repository_RepositoryInfoCacheChanged;
         }
-        
+
+        private void Repository_RepositoryInfoCacheChanged(UpdateDataEventData data)
+        {
+            repositoryInfoCacheEvent = data;
+            repositoryInfoCacheHasChanged = true;
+        }
+
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnRepositoryInfoChanged -= RefreshOnMainThread;
         }
 
         private void DoHeaderGUI()

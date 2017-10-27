@@ -22,6 +22,8 @@ namespace GitHub.Unity
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
 
+        void CheckRepositoryInfoCacheEvent(UpdateDataEventData repositoryInfoCacheEvent);
+   
         /// <summary>
         /// Gets the name of the repository.
         /// </summary>
@@ -66,5 +68,6 @@ namespace GitHub.Unity
         event Action<IEnumerable<GitLock>> OnLocksChanged;
         event Action OnRepositoryInfoChanged;
         event Action OnRemoteBranchListChanged;
+        event Action<UpdateDataEventData> OnRepositoryInfoCacheChanged;
     }
 }

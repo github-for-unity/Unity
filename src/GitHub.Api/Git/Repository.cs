@@ -25,6 +25,8 @@ namespace GitHub.Unity
         public event Action OnRemoteBranchListChanged;
         public event Action OnRepositoryInfoChanged;
 
+        public event Action<UpdateDataEventData> OnRepositoryInfoCacheChanged;
+
         public event Action<GitStatus> OnStatusChanged;
 
         /// <summary>
@@ -43,6 +45,68 @@ namespace GitHub.Unity
             User = new User();
 
             cacheContainer = container;
+
+            cacheContainer.CacheInvalidated += CacheContainer_OnCacheInvalidated;
+
+            cacheContainer.CacheUpdated += CacheContainer_OnCacheUpdated;
+        }
+
+        private void CacheContainer_OnCacheInvalidated(CacheType cacheType)
+        {
+            switch (cacheType)
+            {
+                case CacheType.BranchCache:
+                    break;
+
+                case CacheType.GitLogCache:
+                    break;
+
+                case CacheType.RepositoryInfoCache:
+                    break;
+
+                case CacheType.GitStatusCache:
+                    break;
+
+                case CacheType.GitLocksCache:
+                    break;
+
+                case CacheType.GitUserCache:
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(cacheType), cacheType, null);
+            }
+        }
+
+        private void CacheContainer_OnCacheUpdated(CacheType cacheType, DateTimeOffset offset)
+        {
+            switch (cacheType)
+            {
+                case CacheType.BranchCache:
+                    break;
+
+                case CacheType.GitLogCache:
+                    break;
+
+                case CacheType.RepositoryInfoCache:
+                    OnRepositoryInfoCacheChanged?.Invoke(new UpdateDataEventData
+                    {
+                        UpdatedTimeString = offset.ToString()
+                    });
+                    break;
+
+                case CacheType.GitStatusCache:
+                    break;
+
+                case CacheType.GitLocksCache:
+                    break;
+
+                case CacheType.GitUserCache:
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(cacheType), cacheType, null);
+            }
         }
 
         public void Initialize(IRepositoryManager initRepositoryManager)
@@ -136,6 +200,17 @@ namespace GitHub.Unity
         public ITask ReleaseLock(string file, bool force)
         {
             return repositoryManager.UnlockFile(file, force);
+        }
+
+        public void CheckRepositoryInfoCacheEvent(UpdateDataEventData repositoryInfoCacheEvent)
+        {
+            if (repositoryInfoCacheEvent.UpdatedTimeString == null)
+            {
+                if (cacheContainer.RepositoryInfoCache.LastUpdatedAt != DateTimeOffset.MinValue)
+                {
+                    
+                }
+            }
         }
 
         /// <summary>
@@ -451,5 +526,11 @@ namespace GitHub.Unity
 
         public string Name { get; set; }
         public string Email { get; set; }
+    }
+
+    [Serializable]
+    public struct UpdateDataEventData
+    {
+        public string UpdatedTimeString;
     }
 }
