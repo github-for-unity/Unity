@@ -63,7 +63,7 @@ namespace GitHub.Unity
 
     public interface IGitStatus
     {
-        GitStatus GitStatus { get; }
+        GitStatus GitStatus { get; set; }
     }
 
     public interface IGitStatusCache : IManagedCache, IGitStatus

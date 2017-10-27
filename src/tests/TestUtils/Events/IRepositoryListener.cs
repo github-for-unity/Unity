@@ -49,12 +49,13 @@ namespace TestUtils.Events
         {
             var logger = trace ? Logging.GetLogger<IRepositoryListener>() : null;
 
-            repository.OnStatusChanged += gitStatus =>
-            {
-                logger?.Trace("OnStatusChanged: {0}", gitStatus);
-                listener.OnStatusChanged(gitStatus);
-                repositoryEvents?.OnStatusChanged.Set();
-            };
+            //TODO: Figure this out
+            //repository.OnStatusChanged += gitStatus =>
+            //{
+            //    logger?.Trace("OnStatusChanged: {0}", gitStatus);
+            //    listener.OnStatusChanged(gitStatus);
+            //    repositoryEvents?.OnStatusChanged.Set();
+            //};
 
             repository.OnCurrentBranchChanged += name =>
             {

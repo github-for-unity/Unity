@@ -107,7 +107,8 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            Environment.Repository.OnStatusChanged += status => { result = status; };
+            //TODO: Figure this out
+            //Environment.Repository.OnStatusChanged += status => { result = status; };
 
             var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
             foobarTxt.WriteAllText("foobar");
@@ -157,7 +158,7 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            RepositoryManager.OnStatusUpdated += status => { result = status; };
+            //RepositoryManager.OnStatusUpdated += status => { result = status; };
 
             var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
             foobarTxt.WriteAllText("foobar");
@@ -240,7 +241,8 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            RepositoryManager.OnStatusUpdated += status => { result = status; };
+            //TODO: Figure this out
+            //RepositoryManager.OnStatusUpdated += status => { result = status; };
 
             var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
             foobarTxt.WriteAllText("foobar");
@@ -309,7 +311,8 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            RepositoryManager.OnStatusUpdated += status => { result = status; };
+            //TODO: Figure this out
+            //RepositoryManager.OnStatusUpdated += status => { result = status; };
 
             Logger.Trace("Starting test");
 
@@ -1077,7 +1080,8 @@ namespace IntegrationTests
             };
 
             var result = new GitStatus();
-            RepositoryManager.OnStatusUpdated += status => { result = status; };
+            //TODO: Figure this out
+            //RepositoryManager.OnStatusUpdated += status => { result = status; };
 
             await RepositoryManager.Pull("origin", "master").StartAsAsync();
             await TaskManager.Wait();

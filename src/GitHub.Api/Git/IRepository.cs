@@ -22,8 +22,9 @@ namespace GitHub.Unity
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
 
-        void CheckRepositoryInfoCacheEvent(UpdateDataEventData repositoryInfoCacheEvent);
-   
+        void CheckRepositoryInfoCacheEvent(UpdateDataEventData updateDataEventData);
+        void CheckGitStatusCacheEvent(UpdateDataEventData gitStatusCacheEvent);
+
         /// <summary>
         /// Gets the name of the repository.
         /// </summary>
@@ -60,7 +61,6 @@ namespace GitHub.Unity
         IList<GitLock> CurrentLocks { get; }
         string CurrentBranchName { get; }
 
-        event Action<GitStatus> OnStatusChanged;
         event Action<string> OnCurrentBranchChanged;
         event Action<string> OnCurrentRemoteChanged;
         event Action OnLocalBranchListChanged;
@@ -69,5 +69,6 @@ namespace GitHub.Unity
         event Action OnRepositoryInfoChanged;
         event Action OnRemoteBranchListChanged;
         event Action<UpdateDataEventData> OnRepositoryInfoCacheChanged;
+        event Action<UpdateDataEventData> OnGitStatusCacheChanged;
     }
 }

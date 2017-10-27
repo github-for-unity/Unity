@@ -127,14 +127,15 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-            repository.OnStatusChanged += UpdateStatusOnMainThread;
+
+            //TODO: Handle this event
+            //repository.OnStatusChanged += UpdateStatusOnMainThread;
         }
 
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnStatusChanged -= UpdateStatusOnMainThread;
         }
 
         private void UpdateStatusOnMainThread(GitStatus status)

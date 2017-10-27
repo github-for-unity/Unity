@@ -19,7 +19,7 @@ namespace GitHub.Unity
         event Action<string, string> OnRemoteBranchAdded;
         event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         event Action<string, string> OnRemoteBranchRemoved;
-        event Action<GitStatus> OnStatusUpdated;
+        event Action OnRepositoryUpdated;
 
         void Initialize();
         void Start();
@@ -28,6 +28,7 @@ namespace GitHub.Unity
         ITask CommitAllFiles(string message, string body);
         ITask CommitFiles(List<string> files, string message, string body);
         ITask<List<GitLogEntry>> Log();
+        ITask<GitStatus> Status();
         ITask Fetch(string remote);
         ITask Pull(string remote, string branch);
         ITask Push(string remote, string branch);
@@ -114,7 +115,7 @@ namespace GitHub.Unity
         public event Action<string, string> OnRemoteBranchAdded;
         public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         public event Action<string, string> OnRemoteBranchRemoved;
-        public event Action<GitStatus> OnStatusUpdated;
+        public event Action OnRepositoryUpdated;
 
         public RepositoryManager(IPlatform platform, ITaskManager taskManager, IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
@@ -178,7 +179,6 @@ namespace GitHub.Unity
         public void Refresh()
         {
             Logger.Trace("Refresh");
-            UpdateGitStatus();
         }
 
         public ITask CommitAllFiles(string message, string body)
@@ -202,6 +202,13 @@ namespace GitHub.Unity
         public ITask<List<GitLogEntry>> Log()
         {
             var task = GitClient.Log();
+            HookupHandlers(task);
+            return task;
+        }
+
+        public ITask<GitStatus> Status()
+        {
+            var task = GitClient.Status();
             HookupHandlers(task);
             return task;
         }
@@ -387,25 +394,7 @@ namespace GitHub.Unity
         private void Watcher_OnRepositoryChanged()
         {
             Logger.Trace("OnRepositoryChanged");
-            UpdateGitStatus();
-        }
-
-        private void UpdateGitStatus()
-        {
-            Logger.Trace("Updating Git Status");
-
-            var task = GitClient.Status()
-                .Finally((success, ex, data) =>
-                {
-                    Logger.Trace($"GitStatus update: {success} {data}");
-                    if (success)
-                    {
-                        OnStatusUpdated?.Invoke(data);
-                        Logger.Trace("Updated Git Status");
-                    }
-                });
-
-            HookupHandlers(task).Start();
+            OnRepositoryUpdated?.Invoke();
         }
 
         private void Watcher_OnConfigChanged()
@@ -417,7 +406,6 @@ namespace GitHub.Unity
         {
             Logger.Trace("Watcher_OnHeadChanged");
             UpdateHead();
-            UpdateGitStatus();
         }
 
         private void UpdateCurrentBranchAndRemote(string head)
