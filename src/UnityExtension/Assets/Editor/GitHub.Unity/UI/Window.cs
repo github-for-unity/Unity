@@ -190,48 +190,35 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            string repoRemote = null;
-            var repoDataChanged = false;
+            string updatedRepoBranch = null;
+            string updatedRepoRemote = null;
+            string updatedRepoUrl = DefaultRepoUrl;
+
             if (Repository != null)
             {
-                var currentBranchString = (Repository.CurrentBranch.HasValue ? Repository.CurrentBranch.Value.Name : null);
-                if (repoBranch != currentBranchString)
-                {
-                    repoBranch = currentBranchString;
-                    repoDataChanged = true;
-                }
+                var repositoryCurrentBranch = Repository.CurrentBranch;
+                updatedRepoBranch = repositoryCurrentBranch.HasValue ? repositoryCurrentBranch.Value.Name : null;
 
-                var url = Repository.CloneUrl != null ? Repository.CloneUrl.ToString() : DefaultRepoUrl;
-                if (repoUrl != url)
-                {
-                    repoUrl = url;
-                    repoDataChanged = true;
-                }
+                var repositoryCloneUrl = Repository.CloneUrl;
+                updatedRepoUrl = repositoryCloneUrl != null ? repositoryCloneUrl.ToString() : DefaultRepoUrl;
 
-                if (Repository.CurrentRemote.HasValue)
-                    repoRemote = Repository.CurrentRemote.Value.Name;
-            }
-            else
-            {
-                if (repoBranch != null)
-                {
-                    repoBranch = null;
-                    repoDataChanged = true;
-                }
-
-                if (repoUrl != DefaultRepoUrl)
-                {
-                    repoUrl = DefaultRepoUrl;
-                    repoDataChanged = true;
-                }
+                var repositoryCurrentRemote = Repository.CurrentRemote;
+                if (repositoryCurrentRemote.HasValue)
+                    updatedRepoRemote = repositoryCurrentRemote.Value.Name;
             }
 
-            if (repoDataChanged)
+            if (repoBranch != updatedRepoBranch)
             {
+                repoBranch = updatedRepoBranch;
                 repoBranchContent = new GUIContent(repoBranch, Window_RepoBranchTooltip);
+            }
+
+            if (repoUrl != updatedRepoUrl)
+            {
+                repoUrl = updatedRepoUrl;
                 if (repoUrl != null)
                 {
-                    repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, repoRemote));
+                    repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, updatedRepoRemote));
                 }
                 else
                 {
