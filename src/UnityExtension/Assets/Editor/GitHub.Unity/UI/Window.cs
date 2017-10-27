@@ -33,6 +33,7 @@ namespace GitHub.Unity
         [SerializeField] private HistoryView historyView = new HistoryView();
         [SerializeField] private SettingsView settingsView = new SettingsView();
 
+        [SerializeField] private string repoRemote;
         [SerializeField] private string repoBranch;
         [SerializeField] private string repoUrl;
         [SerializeField] private GUIContent repoBranchContent;
@@ -40,6 +41,7 @@ namespace GitHub.Unity
 
         [SerializeField] private UpdateDataEventData repositoryInfoCacheEvent;
         [NonSerialized] private bool repositoryInfoCacheHasChanged;
+        [NonSerialized] private bool hasMaybeUpdateDataWithRepository;
 
         [MenuItem(LaunchMenu)]
         public static void Window_GitHub()
@@ -96,7 +98,8 @@ namespace GitHub.Unity
             // Set window title
             titleContent = new GUIContent(Title, Styles.SmallLogo);
 
-            Repository.CheckRepositoryInfoCacheEvent(repositoryInfoCacheEvent);
+            if (Repository != null)
+                Repository.CheckRepositoryInfoCacheEvent(repositoryInfoCacheEvent);
 
             if (ActiveView != null)
                 ActiveView.OnEnable();
@@ -183,39 +186,76 @@ namespace GitHub.Unity
             }
         }
 
-        private void RefreshOnMainThread()
-        {
-            new ActionTask(TaskManager.Token, Refresh) { Affinity = TaskAffinity.UI }.Start();
-        }
-
         private void MaybeUpdateData()
         {
             string updatedRepoBranch = null;
             string updatedRepoRemote = null;
             string updatedRepoUrl = DefaultRepoUrl;
 
+            var shouldUpdateContentFields = false;
+
             if (Repository != null)
             {
-                var repositoryCurrentBranch = Repository.CurrentBranch;
-                updatedRepoBranch = repositoryCurrentBranch.HasValue ? repositoryCurrentBranch.Value.Name : null;
+                if(!hasMaybeUpdateDataWithRepository || repositoryInfoCacheHasChanged)
+                {
+                    hasMaybeUpdateDataWithRepository = true;
 
-                var repositoryCloneUrl = Repository.CloneUrl;
-                updatedRepoUrl = repositoryCloneUrl != null ? repositoryCloneUrl.ToString() : DefaultRepoUrl;
+                    var repositoryCurrentBranch = Repository.CurrentBranch;
+                    updatedRepoBranch = repositoryCurrentBranch.HasValue ? repositoryCurrentBranch.Value.Name : null;
 
-                var repositoryCurrentRemote = Repository.CurrentRemote;
-                if (repositoryCurrentRemote.HasValue)
-                    updatedRepoRemote = repositoryCurrentRemote.Value.Name;
+                    var repositoryCloneUrl = Repository.CloneUrl;
+                    updatedRepoUrl = repositoryCloneUrl != null ? repositoryCloneUrl.ToString() : DefaultRepoUrl;
+
+                    var repositoryCurrentRemote = Repository.CurrentRemote;
+                    if (repositoryCurrentRemote.HasValue)
+                    {
+                        updatedRepoRemote = repositoryCurrentRemote.Value.Name;
+                    }
+
+                    if (repoRemote != updatedRepoRemote)
+                    {
+                        repoRemote = updatedRepoBranch;
+                        shouldUpdateContentFields = true;
+                    }
+
+                    if (repoBranch != updatedRepoBranch)
+                    {
+                        repoBranch = updatedRepoBranch;
+                        shouldUpdateContentFields = true;
+                    }
+
+                    if (repoUrl != updatedRepoUrl)
+                    {
+                        repoUrl = updatedRepoUrl;
+                        shouldUpdateContentFields = true;
+                    }
+                }
+            }
+            else
+            {
+                if (repoRemote != null)
+                {
+                    repoRemote = null;
+                    shouldUpdateContentFields = true;
+                }
+
+                if (repoBranch != null)
+                {
+                    repoBranch = null;
+                    shouldUpdateContentFields = true;
+                }
+
+                if (repoUrl != DefaultRepoUrl)
+                {
+                    repoUrl = DefaultRepoUrl;
+                    shouldUpdateContentFields = true;
+                }
             }
 
-            if (repoBranch != updatedRepoBranch)
+            if (shouldUpdateContentFields)
             {
-                repoBranch = updatedRepoBranch;
                 repoBranchContent = new GUIContent(repoBranch, Window_RepoBranchTooltip);
-            }
 
-            if (repoUrl != updatedRepoUrl)
-            {
-                repoUrl = updatedRepoUrl;
                 if (updatedRepoRemote != null)
                 {
                     repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, updatedRepoRemote));
@@ -236,14 +276,19 @@ namespace GitHub.Unity
 
         private void Repository_RepositoryInfoCacheChanged(UpdateDataEventData data)
         {
-            repositoryInfoCacheEvent = data;
-            repositoryInfoCacheHasChanged = true;
+            new ActionTask(TaskManager.Token, () => {
+                repositoryInfoCacheEvent = data;
+                repositoryInfoCacheHasChanged = true;
+                Redraw();
+            }) { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
+
+            repository.OnRepositoryInfoCacheChanged -= Repository_RepositoryInfoCacheChanged;
         }
 
         private void DoHeaderGUI()

@@ -358,7 +358,6 @@ namespace GitHub.Unity
         {
             get
             {
-                Logger.Trace("Get CurrentConfigRemote");
                 ValidateData();
                 return gitConfigRemote.Equals(DefaultConfigRemote) ? (ConfigRemote?) null : gitConfigRemote;
             }
@@ -383,7 +382,6 @@ namespace GitHub.Unity
         {
             get
             {
-                Logger.Trace("Get CurentConfigBranch");
                 ValidateData();
                 return gitConfigBranch.Equals(DefaultConfigBranch) ? (ConfigBranch?) null : gitConfigBranch;
             }
@@ -408,7 +406,6 @@ namespace GitHub.Unity
         {
             get
             {
-                Logger.Trace("Get CurrentGitRemote");
                 ValidateData();
                 return gitRemote.Equals(DefaultGitRemote) ? (GitRemote?) null : gitRemote;
             }
@@ -433,7 +430,6 @@ namespace GitHub.Unity
         {
             get
             {
-                Logger.Trace("Get CurentConfigBranch");
                 ValidateData();
                 return gitBranch.Equals(DefaultGitBranch) ? (GitBranch?)null : gitBranch;
             }

@@ -89,10 +89,7 @@ namespace GitHub.Unity
                     break;
 
                 case CacheType.RepositoryInfoCache:
-                    OnRepositoryInfoCacheChanged?.Invoke(new UpdateDataEventData
-                    {
-                        UpdatedTimeString = offset.ToString()
-                    });
+                    FireOnRepositoryInfoCacheChanged(offset);
                     break;
 
                 case CacheType.GitStatusCache:
@@ -107,6 +104,12 @@ namespace GitHub.Unity
                 default:
                     throw new ArgumentOutOfRangeException(nameof(cacheType), cacheType, null);
             }
+        }
+
+        private void FireOnRepositoryInfoCacheChanged(DateTimeOffset dateTimeOffset)
+        {
+            Logger.Trace("OnRepositoryInfoCacheChanged {0}", dateTimeOffset);
+            OnRepositoryInfoCacheChanged?.Invoke(new UpdateDataEventData { UpdatedTimeString = dateTimeOffset.ToString() });
         }
 
         public void Initialize(IRepositoryManager initRepositoryManager)
@@ -204,12 +207,24 @@ namespace GitHub.Unity
 
         public void CheckRepositoryInfoCacheEvent(UpdateDataEventData repositoryInfoCacheEvent)
         {
+            bool raiseEvent;
             if (repositoryInfoCacheEvent.UpdatedTimeString == null)
             {
-                if (cacheContainer.RepositoryInfoCache.LastUpdatedAt != DateTimeOffset.MinValue)
-                {
-                    
-                }
+                raiseEvent = cacheContainer.RepositoryInfoCache.LastUpdatedAt != DateTimeOffset.MinValue;
+            }
+            else
+            {
+                raiseEvent = cacheContainer.RepositoryInfoCache.LastUpdatedAt.ToString() != repositoryInfoCacheEvent.UpdatedTimeString;
+            }
+
+            Logger.Trace("CheckRepositoryInfoCacheEvent Current:{0} Check:{1} Result:{2}",
+                cacheContainer.RepositoryInfoCache.LastUpdatedAt,
+                repositoryInfoCacheEvent.UpdatedTimeString ?? "[NULL]",
+                raiseEvent);
+
+            if (raiseEvent)
+            {
+                FireOnRepositoryInfoCacheChanged(cacheContainer.RepositoryInfoCache.LastUpdatedAt);
             }
         }
 
