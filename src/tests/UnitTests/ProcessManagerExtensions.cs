@@ -62,12 +62,12 @@ namespace UnitTests
 
             NPath path = gitPath ?? defaultGitPath;
 
-            var results = await new ProcessTask<GitStatus?>(CancellationToken.None, processor)
+            var results = await new ProcessTask<GitStatus>(CancellationToken.None, processor)
                 .Configure(processManager, path, "status -b -u --porcelain", workingDirectory, false)
                 .Start()
                 .Task;
 
-            return results.Value;
+            return results;
         }
  
         public static async Task<List<GitRemote>> GetGitRemoteEntries(this ProcessManager processManager,

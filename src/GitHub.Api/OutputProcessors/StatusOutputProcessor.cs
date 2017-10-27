@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
 {
-    class StatusOutputProcessor : BaseOutputProcessor<GitStatus?>
+    class StatusOutputProcessor : BaseOutputProcessor<GitStatus>
     {
         private static readonly Regex branchTrackedAndDelta = new Regex(@"(.*)\.\.\.(.*)\s\[(.*)\]",
             RegexOptions.Compiled);

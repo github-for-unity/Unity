@@ -411,13 +411,12 @@ namespace TestUtils
                 });
 
             gitClient.Status().Returns(info => {
-                GitStatus? result = options.GitStatusResults;
-
-                var ret = new FuncTask<GitStatus?>(CancellationToken.None, _ => result);
+                var result = options.GitStatusResults;
+                var ret = new FuncTask<GitStatus>(CancellationToken.None, _ => result);
 
                 logger.Trace(@"RunGitStatus() -> {0}",
-                    result != null ? $"Success: \"{result.Value}\"" : "Failure");
-                var task = Args.GitStatusTask;
+                    $"Success: \"{result}\"");
+                
                 return ret;
             });
 
