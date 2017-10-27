@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
-    [TestFixture]
+    [TestFixture, Ignore]
     class RepositoryManagerTests : BaseGitEnvironmentTest
     {
         private RepositoryManagerEvents repositoryManagerEvents;
