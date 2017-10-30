@@ -9,7 +9,6 @@ namespace GitHub.Unity
     public interface IRepository : IEquatable<IRepository>
     {
         void Initialize(IRepositoryManager repositoryManager);
-        void Refresh();
         ITask CommitAllFiles(string message, string body);
         ITask CommitFiles(List<string> files, string message, string body);
         ITask SetupRemote(string remoteName, string remoteUrl);

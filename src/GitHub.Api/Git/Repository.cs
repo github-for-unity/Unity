@@ -149,11 +149,6 @@ namespace GitHub.Unity
             UpdateGitLog();
         }
 
-        public void Refresh()
-        {
-            repositoryManager?.Refresh();
-        }
-
         public ITask SetupRemote(string remote, string remoteUrl)
         {
             Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
@@ -355,7 +350,6 @@ namespace GitHub.Unity
             {
                 Logger.Trace("OnCurrentBranchUpdated: {0}", name);
                 OnCurrentBranchUpdated?.Invoke();
-                Refresh();
             }
         }
 

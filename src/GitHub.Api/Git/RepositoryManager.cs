@@ -24,7 +24,6 @@ namespace GitHub.Unity
         void Initialize();
         void Start();
         void Stop();
-        void Refresh();
         ITask CommitAllFiles(string message, string body);
         ITask CommitFiles(List<string> files, string message, string body);
         ITask<List<GitLogEntry>> Log();
@@ -174,11 +173,6 @@ namespace GitHub.Unity
         public int WaitForEvents()
         {
             return watcher.CheckAndProcessEvents();
-        }
-
-        public void Refresh()
-        {
-            Logger.Trace("Refresh");
         }
 
         public ITask CommitAllFiles(string message, string body)

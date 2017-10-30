@@ -126,28 +126,6 @@ namespace GitHub.Unity
                 })
                 .Start();
         }
-        public static void Run()
-        {
-            Refresh();
-        }
-
-        private static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moveDestination, string[] moveSource)
-        {
-            Refresh();
-        }
-
-        private static void Refresh()
-        {
-            if (repository == null)
-                return;
-            if (initialized)
-            {
-                if (!DefaultEnvironment.OnWindows)
-                {
-                    repository.Refresh();
-                }
-            }
-        }
 
         private static void RunLocksUpdateOnMainThread(IEnumerable<GitLock> update)
         {
