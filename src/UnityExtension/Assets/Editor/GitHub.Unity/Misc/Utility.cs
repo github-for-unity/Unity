@@ -32,7 +32,7 @@ namespace GitHub.Unity
 
         static StreamExtensions()
         {
-            var t = typeof(Texture2D).Assembly.GetType("UnityEngine.ImageConversion", false, false);
+            var t = Assembly.Load("UnityEngine.dll").GetType("UnityEngine.ImageConversion", false, false);
             if (t != null)
             {
                 // looking for ImageConversion.LoadImage(this Texture2D tex, byte[] data)
