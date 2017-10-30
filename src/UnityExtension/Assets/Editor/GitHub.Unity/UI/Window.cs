@@ -1,5 +1,3 @@
-#pragma warning disable 649
-
 using System;
 using System.Linq;
 using UnityEditor;
