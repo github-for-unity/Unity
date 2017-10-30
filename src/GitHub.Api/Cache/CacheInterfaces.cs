@@ -42,54 +42,35 @@ namespace GitHub.Unity
         DateTimeOffset LastVerifiedAt { get; }
     }
 
-    public interface IGitLocks
+    public interface IGitLocksCache : IManagedCache
     {
         List<GitLock> GitLocks { get; }
     }
 
-    public interface IGitLocksCache : IManagedCache, IGitLocks
-    { }
-
-    public interface IGitUser
+    public interface IGitUserCache : IManagedCache
     {
         User User { get; }
     }
 
-    public interface ITestCacheItem
-    { }
-
-    public interface IGitUserCache : IManagedCache, IGitUser
-    { }
-
-    public interface IGitStatus
+    public interface IGitStatusCache : IManagedCache
     {
         GitStatus GitStatus { get; set; }
     }
 
-    public interface IGitStatusCache : IManagedCache, IGitStatus
-    { }
-
-    public interface IRepositoryInfo
+    public interface IRepositoryInfoCache : IManagedCache
     {
+        GitRemote? CurrentGitRemote { get; set; }
+        GitBranch? CurentGitBranch { get; set; }
         ConfigRemote? CurrentConfigRemote { get; set; }
         ConfigBranch? CurentConfigBranch { get; set; }
     }
 
-    public interface IRepositoryInfoCache : IManagedCache, IRepositoryInfo
-    {
-        GitRemote? CurrentGitRemote { get; set; }
-        GitBranch? CurentGitBranch { get; set; }
-    }
-
-    public interface IBranch
+    public interface IBranchCache : IManagedCache
     {
         void UpdateData(List<GitBranch> localBranchUpdate, List<GitBranch> remoteBranchUpdate);
         List<GitBranch> LocalBranches { get; }
         List<GitBranch> RemoteBranches { get; }
     }
-
-    public interface IBranchCache : IManagedCache, IBranch
-    { }
 
     public interface IGitLogCache : IManagedCache
     {
