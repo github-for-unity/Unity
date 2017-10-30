@@ -24,8 +24,6 @@ namespace GitHub.Unity
         private const string WarningCheckoutBranchExistsOK = "Ok";
         private const string NewBranchCancelButton = "x";
         private const string NewBranchConfirmButton = "Create";
-        private const string FavoritesSetting = "Favorites";
-        private const string FavoritesTitle = "Favorites";
         private const string CreateBranchTitle = "Create Branch";
         private const string LocalTitle = "Local branches";
         private const string RemoteTitle = "Remote branches";
@@ -38,11 +36,9 @@ namespace GitHub.Unity
         private bool showLocalBranches = true;
         private bool showRemoteBranches = true;
 
-        [NonSerialized] private List<BranchTreeNode> favorites = new List<BranchTreeNode>();
         [NonSerialized] private int listID = -1;
         [NonSerialized] private BranchTreeNode newNodeSelection;
         [NonSerialized] private BranchesMode targetMode;
-        [NonSerialized] private bool favoritesHasChanged;
 
         [SerializeField] private BranchTreeNode activeBranchNode;
         [SerializeField] private BranchTreeNode localRoot;
@@ -51,7 +47,6 @@ namespace GitHub.Unity
         [SerializeField] private List<Remote> remotes = new List<Remote>();
         [SerializeField] private Vector2 scroll;
         [SerializeField] private BranchTreeNode selectedNode;
-        [SerializeField] private List<string> favoritesList = new List<string>();
 
         public override void InitializeView(IView parent)
         {
@@ -63,7 +58,6 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             AttachHandlers(Repository);
-            favoritesHasChanged = true;
             Refresh();
         }
 
@@ -81,11 +75,6 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (favoritesHasChanged)
-            {
-                favoritesList = Manager.LocalSettings.Get(FavoritesSetting, new List<string>());
-                favoritesHasChanged = false;
-            }
         }
 
         private void AttachHandlers(IRepository repository)
@@ -150,28 +139,6 @@ namespace GitHub.Unity
 
                 GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
                 {
-                    // Favorites list
-                    if (favorites.Count > 0)
-                    {
-                        GUILayout.Label(FavoritesTitle);
-                        GUILayout.BeginHorizontal();
-                        {
-                            GUILayout.BeginVertical();
-                            {
-                                for (var index = 0; index < favorites.Count; ++index)
-                                {
-                                    OnTreeNodeGUI(favorites[index]);
-                                }
-                            }
-
-                            GUILayout.EndVertical();
-                        }
-
-                        GUILayout.EndHorizontal();
-
-                        GUILayout.Space(Styles.BranchListSeperation);
-                    }
-
                     // Local branches and "create branch" button
                     showLocalBranches = EditorGUILayout.Foldout(showLocalBranches, LocalTitle);
                     if (showLocalBranches)
@@ -254,16 +221,6 @@ namespace GitHub.Unity
 
         private int CompareBranches(GitBranch a, GitBranch b)
         {
-            if (IsFavorite(a.Name))
-            {
-                return -1;
-            }
-
-            if (IsFavorite(b.Name))
-            {
-                return 1;
-            }
-
             if (a.Name.Equals("master"))
             {
                 return -1;
@@ -275,11 +232,6 @@ namespace GitHub.Unity
             }
 
             return 0;
-        }
-
-        private bool IsFavorite(string branchName)
-        {
-            return !String.IsNullOrEmpty(branchName) && favoritesList.Contains(branchName);
         }
 
         private void BuildTree(IEnumerable<GitBranch> local, IEnumerable<GitBranch> remote)
@@ -296,9 +248,6 @@ namespace GitHub.Unity
             // Prepare for tracking
             var tracking = new List<KeyValuePair<int, int>>();
             var localBranchNodes = new List<BranchTreeNode>();
-
-            // Prepare for updated favorites listing
-            favorites.Clear();
 
             // Just build directly on the local root, keep track of active branch
             localRoot = new BranchTreeNode("", NodeType.Folder, false);
@@ -325,12 +274,6 @@ namespace GitHub.Unity
                     {
                         tracking.Add(new KeyValuePair<int, int>(index, trackingIndex));
                     }
-                }
-
-                // Add to favorites
-                if (favoritesList.Contains(branch.Name))
-                {
-                    favorites.Add(node);
                 }
 
                 // Build into tree
@@ -371,12 +314,6 @@ namespace GitHub.Unity
                     }
                 }
 
-                // Add to favorites
-                if (favoritesList.Contains(branch.Name))
-                {
-                    favorites.Add(node);
-                }
-
                 // Build on the root of the remote, just like with locals
                 BuildTree(remotes[remoteIndex].Root, node);
             }
@@ -407,26 +344,6 @@ namespace GitHub.Unity
             // Pop the folder name from the front of the child label and add it to the folder
             child.Label = child.Label.Substring(folderName.Length + 1);
             BuildTree(folder, child);
-        }
-
-        private void SetFavorite(BranchTreeNode branch, bool favorite)
-        {
-            if (string.IsNullOrEmpty(branch.Name))
-            {
-                return;
-            }
-
-            if (!favorite)
-            {
-                favorites.Remove(branch);
-                Manager.LocalSettings.Set(FavoritesSetting, favorites.Select(x => x.Name).ToList());
-            }
-            else
-            {
-                favorites.Remove(branch);
-                favorites.Add(branch);
-                Manager.LocalSettings.Set(FavoritesSetting, favorites.Select(x => x.Name).ToList());
-            }
         }
 
         private void OnButtonBarGUI()
@@ -583,22 +500,11 @@ namespace GitHub.Unity
 
                 if (node.Type != NodeType.Folder)
                 {
-                    var favorite = IsFavorite(node.Name);
                     if (Event.current.type == EventType.Repaint)
                     {
-                        GUI.DrawTexture(favoriteRect, favorite ? Styles.FavoriteIconOn : Styles.FavoriteIconOff);
-                    }
-                    else if (Event.current.type == EventType.MouseDown && favoriteRect.Contains(Event.current.mousePosition))
-                    {
-                        SetFavorite(node, !favorite);
-                        Event.current.Use();
+                        GUI.DrawTexture(favoriteRect, Styles.FavoriteIconOff);
                     }
                 }
-            }
-            // Favorite status
-            else if (Event.current.type == EventType.Repaint && node.Type != NodeType.Folder && IsFavorite(node.Name))
-            {
-                GUI.DrawTexture(favoriteRect, Styles.FavoriteIconOn);
             }
 
             // The actual icon and label
