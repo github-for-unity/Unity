@@ -24,8 +24,8 @@ namespace GitHub.Unity
         public event Action OnRemoteBranchListChanged;
         public event Action OnRepositoryInfoChanged;
 
-        public event Action<UpdateDataEventData> OnRepositoryInfoCacheChanged;
-        public event Action<UpdateDataEventData> OnGitStatusCacheChanged;
+        public event Action<CacheUpdateEvent> OnRepositoryInfoCacheChanged;
+        public event Action<CacheUpdateEvent> OnGitStatusCacheChanged;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
@@ -108,13 +108,13 @@ namespace GitHub.Unity
         private void FireOnRepositoryInfoCacheChanged(DateTimeOffset dateTimeOffset)
         {
             Logger.Trace("OnRepositoryInfoCacheChanged {0}", dateTimeOffset);
-            OnRepositoryInfoCacheChanged?.Invoke(new UpdateDataEventData { UpdatedTimeString = dateTimeOffset.ToString() });
+            OnRepositoryInfoCacheChanged?.Invoke(new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() });
         }
 
         private void FireOnGitStatusCacheChanged(DateTimeOffset dateTimeOffset)
         {
             Logger.Trace("OnGitStatusCacheChanged {0}", dateTimeOffset);
-            OnGitStatusCacheChanged?.Invoke(new UpdateDataEventData { UpdatedTimeString = dateTimeOffset.ToString() });
+            OnGitStatusCacheChanged?.Invoke(new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() });
         }
 
         public void Initialize(IRepositoryManager initRepositoryManager)
@@ -213,23 +213,23 @@ namespace GitHub.Unity
             return repositoryManager.UnlockFile(file, force);
         }
 
-        public void CheckRepositoryInfoCacheEvent(UpdateDataEventData updateDataEventData)
+        public void CheckRepositoryInfoCacheEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             bool raiseEvent;
             IManagedCache managedCache = cacheContainer.RepositoryInfoCache;
 
-            if (updateDataEventData.UpdatedTimeString == null)
+            if (cacheUpdateEvent.UpdatedTimeString == null)
             {
                 raiseEvent = managedCache.LastUpdatedAt != DateTimeOffset.MinValue;
             }
             else
             {
-                raiseEvent = managedCache.LastUpdatedAt.ToString() != updateDataEventData.UpdatedTimeString;
+                raiseEvent = managedCache.LastUpdatedAt.ToString() != cacheUpdateEvent.UpdatedTimeString;
             }
 
             Logger.Trace("CheckRepositoryInfoCacheEvent Current:{0} Check:{1} Result:{2}",
                 managedCache.LastUpdatedAt,
-                updateDataEventData.UpdatedTimeString ?? "[NULL]",
+                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]",
                 raiseEvent);
 
             if (raiseEvent)
@@ -238,23 +238,23 @@ namespace GitHub.Unity
             }
         }
 
-        public void CheckGitStatusCacheEvent(UpdateDataEventData updateDataEventData)
+        public void CheckGitStatusCacheEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             bool raiseEvent;
             IManagedCache managedCache = cacheContainer.GitStatusCache;
 
-            if (updateDataEventData.UpdatedTimeString == null)
+            if (cacheUpdateEvent.UpdatedTimeString == null)
             {
                 raiseEvent = managedCache.LastUpdatedAt != DateTimeOffset.MinValue;
             }
             else
             {
-                raiseEvent = managedCache.LastUpdatedAt.ToString() != updateDataEventData.UpdatedTimeString;
+                raiseEvent = managedCache.LastUpdatedAt.ToString() != cacheUpdateEvent.UpdatedTimeString;
             }
 
             Logger.Trace("CheckGitStatusCacheEvent Current:{0} Check:{1} Result:{2}",
                 managedCache.LastUpdatedAt,
-                updateDataEventData.UpdatedTimeString ?? "[NULL]",
+                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]",
                 raiseEvent);
 
             if (raiseEvent)
@@ -585,7 +585,7 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    public struct UpdateDataEventData
+    public struct CacheUpdateEvent
     {
         public string UpdatedTimeString;
     }

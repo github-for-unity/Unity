@@ -37,9 +37,9 @@ namespace GitHub.Unity
         [SerializeField] private GUIContent repoBranchContent;
         [SerializeField] private GUIContent repoUrlContent;
 
-        [SerializeField] private UpdateDataEventData repositoryInfoCacheEvent;
-        [NonSerialized] private bool repositoryInfoCacheHasChanged;
-        [NonSerialized] private bool hasMaybeUpdateDataWithRepository;
+        [SerializeField] private CacheUpdateEvent repositoryInfoUpdateEvent;
+        [NonSerialized] private bool repositoryInfoCacheHasUpdate;
+        [NonSerialized] private bool hasRunMaybeUpdateDataWithRepository;
 
         [MenuItem(LaunchMenu)]
         public static void Window_GitHub()
@@ -97,7 +97,7 @@ namespace GitHub.Unity
             titleContent = new GUIContent(Title, Styles.SmallLogo);
 
             if (Repository != null)
-                Repository.CheckRepositoryInfoCacheEvent(repositoryInfoCacheEvent);
+                Repository.CheckRepositoryInfoCacheEvent(repositoryInfoUpdateEvent);
 
             if (ActiveView != null)
                 ActiveView.OnEnable();
@@ -194,9 +194,9 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                if(!hasMaybeUpdateDataWithRepository || repositoryInfoCacheHasChanged)
+                if(!hasRunMaybeUpdateDataWithRepository || repositoryInfoCacheHasUpdate)
                 {
-                    hasMaybeUpdateDataWithRepository = true;
+                    hasRunMaybeUpdateDataWithRepository = true;
 
                     var repositoryCurrentBranch = Repository.CurrentBranch;
                     updatedRepoBranch = repositoryCurrentBranch.HasValue ? repositoryCurrentBranch.Value.Name : null;
@@ -272,11 +272,11 @@ namespace GitHub.Unity
             repository.OnRepositoryInfoCacheChanged += Repository_RepositoryInfoCacheChanged;
         }
 
-        private void Repository_RepositoryInfoCacheChanged(UpdateDataEventData data)
+        private void Repository_RepositoryInfoCacheChanged(CacheUpdateEvent cacheUpdateEvent)
         {
             new ActionTask(TaskManager.Token, () => {
-                repositoryInfoCacheEvent = data;
-                repositoryInfoCacheHasChanged = true;
+                repositoryInfoUpdateEvent = cacheUpdateEvent;
+                repositoryInfoCacheHasUpdate = true;
                 Redraw();
             }) { Affinity = TaskAffinity.UI }.Start();
         }
