@@ -93,6 +93,6 @@ namespace GitHub.Unity
 
     public interface IGitLogCache : IManagedCache
     {
-        List<GitLogEntry> Log { get; }
+        List<GitLogEntry> Log { get; set; }
     }
 }

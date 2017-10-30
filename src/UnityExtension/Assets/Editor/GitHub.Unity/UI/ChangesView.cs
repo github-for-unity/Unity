@@ -37,7 +37,7 @@ namespace GitHub.Unity
             tree.InitializeView(this);
         }
 
-        private void Repository_GitStatusCacheChanged(CacheUpdateEvent cacheUpdateEvent)
+        private void Repository_GitStatusCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
             new ActionTask(TaskManager.Token, () => {
                     gitStatusUpdateEvent = cacheUpdateEvent;
@@ -47,7 +47,7 @@ namespace GitHub.Unity
                 { Affinity = TaskAffinity.UI }.Start();
         }
 
-        private void Repository_RepositoryInfoCacheChanged(CacheUpdateEvent cacheUpdateEvent)
+        private void Repository_RepositoryInfoCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
             new ActionTask(TaskManager.Token, () => {
                     repositoryInfoUpdateEvent = cacheUpdateEvent;
@@ -61,17 +61,17 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-            repository.OnRepositoryInfoCacheChanged += Repository_RepositoryInfoCacheChanged;
-            repository.OnGitStatusCacheChanged += Repository_GitStatusCacheChanged;
+            repository.RepositoryInfoCacheUpdated += Repository_RepositoryInfoCacheUpdated;
+            repository.GitStatusCacheUpdated += Repository_GitStatusCacheUpdated;
         }
 
-        private void DetachHandlers(IRepository oldRepository)
+        private void DetachHandlers(IRepository repository)
         {
-            if (oldRepository == null)
+            if (repository == null)
                 return;
 
-            oldRepository.OnRepositoryInfoCacheChanged -= Repository_RepositoryInfoCacheChanged;
-            oldRepository.OnGitStatusCacheChanged -= Repository_GitStatusCacheChanged;
+            repository.RepositoryInfoCacheUpdated -= Repository_RepositoryInfoCacheUpdated;
+            repository.GitStatusCacheUpdated -= Repository_GitStatusCacheUpdated;
         }
 
         public override void OnEnable()

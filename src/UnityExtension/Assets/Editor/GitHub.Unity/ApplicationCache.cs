@@ -483,6 +483,21 @@ namespace GitHub.Unity
                 ValidateData();
                 return log;
             }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} gitLog:{1}", now, value);
+
+                if (!log.SequenceEqual(value))
+                {
+                    log = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
         }
 
         protected override void OnResetData()

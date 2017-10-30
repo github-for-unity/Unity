@@ -13,7 +13,6 @@ namespace GitHub.Unity
         ITask CommitAllFiles(string message, string body);
         ITask CommitFiles(List<string> files, string message, string body);
         ITask SetupRemote(string remoteName, string remoteUrl);
-        ITask<List<GitLogEntry>> Log();
         ITask Pull();
         ITask Push();
         ITask Fetch();
@@ -23,7 +22,8 @@ namespace GitHub.Unity
         ITask ReleaseLock(string file, bool force);
 
         void CheckRepositoryInfoCacheEvent(CacheUpdateEvent cacheUpdateEvent);
-        void CheckGitStatusCacheEvent(CacheUpdateEvent gitStatusCacheEvent);
+        void CheckGitStatusCacheEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckGitLogCacheEvent(CacheUpdateEvent cacheUpdateEvent);
 
         /// <summary>
         /// Gets the name of the repository.
@@ -60,6 +60,7 @@ namespace GitHub.Unity
         IUser User { get; set; }
         IList<GitLock> CurrentLocks { get; }
         string CurrentBranchName { get; }
+        List<GitLogEntry> CurrentLog { get; }
 
         event Action<string> OnCurrentBranchChanged;
         event Action<string> OnCurrentRemoteChanged;
@@ -68,7 +69,8 @@ namespace GitHub.Unity
         event Action<IEnumerable<GitLock>> OnLocksChanged;
         event Action OnRepositoryInfoChanged;
         event Action OnRemoteBranchListChanged;
-        event Action<CacheUpdateEvent> OnRepositoryInfoCacheChanged;
-        event Action<CacheUpdateEvent> OnGitStatusCacheChanged;
+        event Action<CacheUpdateEvent> RepositoryInfoCacheUpdated;
+        event Action<CacheUpdateEvent> GitStatusCacheUpdated;
+        event Action<CacheUpdateEvent> GitLogCacheUpdated;
     }
 }

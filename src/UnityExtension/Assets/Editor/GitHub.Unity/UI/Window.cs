@@ -269,10 +269,10 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-            repository.OnRepositoryInfoCacheChanged += Repository_RepositoryInfoCacheChanged;
+            repository.RepositoryInfoCacheUpdated += Repository_RepositoryInfoCacheUpdated;
         }
 
-        private void Repository_RepositoryInfoCacheChanged(CacheUpdateEvent cacheUpdateEvent)
+        private void Repository_RepositoryInfoCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
             new ActionTask(TaskManager.Token, () => {
                 repositoryInfoUpdateEvent = cacheUpdateEvent;
@@ -286,7 +286,7 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.OnRepositoryInfoCacheChanged -= Repository_RepositoryInfoCacheChanged;
+            repository.RepositoryInfoCacheUpdated -= Repository_RepositoryInfoCacheUpdated;
         }
 
         private void DoHeaderGUI()

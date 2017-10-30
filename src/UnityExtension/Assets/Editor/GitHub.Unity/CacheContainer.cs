@@ -4,6 +4,8 @@ namespace GitHub.Unity
 {
     public class CacheContainer : ICacheContainer
     {
+        private static ILogging Logger = Logging.GetLogger<CacheContainer>();
+
         private IBranchCache branchCache;
 
         private IGitLocksCache gitLocksCache;
@@ -165,7 +167,7 @@ namespace GitHub.Unity
 
         private void OnCacheUpdated(CacheType cacheType, DateTimeOffset datetime)
         {
-            //Logger.Trace("OnCacheUpdated cacheType:{0} datetime:{1}", cacheType, datetime);
+            Logger.Trace("OnCacheUpdated cacheType:{0} datetime:{1}", cacheType, datetime);
             if (CacheUpdated != null)
             {
                 CacheUpdated.Invoke(cacheType, datetime);
@@ -174,7 +176,7 @@ namespace GitHub.Unity
 
         private void OnCacheInvalidated(CacheType cacheType)
         {
-            //Logger.Trace("OnCacheInvalidated cacheType:{0}", cacheType);
+            Logger.Trace("OnCacheInvalidated cacheType:{0}", cacheType);
             if (CacheInvalidated != null)
             {
                 CacheInvalidated.Invoke(cacheType);
