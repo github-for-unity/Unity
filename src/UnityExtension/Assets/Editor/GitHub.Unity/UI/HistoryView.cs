@@ -40,7 +40,6 @@ namespace GitHub.Unity
         [NonSerialized] private int selectionIndex;
         [NonSerialized] private bool logHasChanged;
         [NonSerialized] private bool useScrollTime;
-        [NonSerialized] private bool isBusy;
 
         [SerializeField] private Vector2 detailsScroll;
         [SerializeField] private Vector2 scroll;
@@ -648,7 +647,7 @@ namespace GitHub.Unity
 
         public override bool IsBusy
         {
-            get { return isBusy; }
+            get { return false; }
         }
 
         private float EntryHeight
