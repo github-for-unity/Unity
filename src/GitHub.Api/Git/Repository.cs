@@ -460,9 +460,9 @@ namespace GitHub.Unity
             Dictionary<string, ConfigBranch> branchList;
             if (remoteBranches.TryGetValue(remote, out branchList))
             {
-                if (localBranches.ContainsKey(name))
+                if (branchList.ContainsKey(name))
                 {
-                    localBranches.Remove(name);
+                    branchList.Remove(name);
 
                     Logger.Trace("OnRemoteBranchListChanged");
                     OnRemoteBranchListChanged?.Invoke();
