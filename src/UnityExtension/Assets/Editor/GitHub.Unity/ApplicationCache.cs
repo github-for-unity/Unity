@@ -761,33 +761,29 @@ namespace GitHub.Unity
     {
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private List<GitLock> locks = new List<GitLock>();
-
-        public void UpdateData(List<GitLock> locksUpdate)
-        {
-            var now = DateTimeOffset.Now;
-            var isUpdated = false;
-
-            Logger.Trace("Processing Update: {0}", now);
-
-            var locksIsNull = locks == null;
-            var locksUpdateIsNull = locksUpdate == null;
-
-            if (locksIsNull != locksUpdateIsNull || !locksIsNull && !locks.SequenceEqual(locksUpdate))
-            {
-                locks = locksUpdate;
-                isUpdated = true;
-            }
-
-            SaveData(now, isUpdated);
-        }
+        [SerializeField] private List<GitLock> gitLocks = new List<GitLock>();
 
         public List<GitLock> GitLocks
         {
             get
             {
                 ValidateData();
-                return locks;
+                return gitLocks;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} gitLocks:{1}", now, value);
+
+                if (!gitLocks.SequenceEqual(value))
+                {
+                    gitLocks = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
             }
         }
 

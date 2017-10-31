@@ -89,24 +89,18 @@ namespace GitHub.Unity
             base.Refresh();
             gitPathView.Refresh();
             userSettingsView.Refresh();
-            if (Repository != null && Repository.CurrentRemote.HasValue)
-            {
-                Repository.ListLocks().Start();
-            }
         }
 
         private void AttachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnLocksChanged += RunLocksUpdateOnMainThread;
         }
 
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnLocksChanged -= RunLocksUpdateOnMainThread;
         }
 
         public override void OnGUI()

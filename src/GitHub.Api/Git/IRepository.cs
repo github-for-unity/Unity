@@ -16,7 +16,6 @@ namespace GitHub.Unity
         ITask Push();
         ITask Fetch();
         ITask Revert(string changeset);
-        ITask ListLocks();
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
 
@@ -57,14 +56,14 @@ namespace GitHub.Unity
         GitBranch[] LocalBranches { get; }
         GitBranch[] RemoteBranches { get; }
         IUser User { get; set; }
-        IList<GitLock> CurrentLocks { get; }
+        List<GitLock> CurrentLocks { get; }
         string CurrentBranchName { get; }
         List<GitLogEntry> CurrentLog { get; }
 
-        event Action<IEnumerable<GitLock>> OnLocksChanged;
         event Action OnRepositoryInfoChanged;
         event Action<CacheUpdateEvent> GitStatusCacheUpdated;
         event Action<CacheUpdateEvent> GitLogCacheUpdated;
+        event Action<CacheUpdateEvent> GitLockCacheUpdated;
         event Action<CacheUpdateEvent> BranchCacheUpdated;
     }
 }

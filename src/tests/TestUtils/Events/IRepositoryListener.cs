@@ -34,13 +34,6 @@ namespace TestUtils.Events
         {
             var logger = trace ? Logging.GetLogger<IRepositoryListener>() : null;
 
-            repository.OnLocksChanged += locks =>
-            {
-                logger?.Debug("OnLocksChanged: {0}", locks);
-                listener.OnLocksChanged(locks);
-                repositoryEvents?.OnLocksChanged.Set();
-            };
-
             repository.OnRepositoryInfoChanged += () =>
             {
                 logger?.Debug("OnRepositoryInfoChanged");

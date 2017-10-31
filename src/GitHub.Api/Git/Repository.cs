@@ -11,15 +11,14 @@ namespace GitHub.Unity
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     class Repository : IEquatable<Repository>, IRepository
     {
-        private IList<GitLock> currentLocks;
         private IRepositoryManager repositoryManager;
         private ICacheContainer cacheContainer;
 
-        public event Action<IEnumerable<GitLock>> OnLocksChanged;
         public event Action OnRepositoryInfoChanged;
 
         public event Action<CacheUpdateEvent> GitStatusCacheUpdated;
         public event Action<CacheUpdateEvent> GitLogCacheUpdated;
+        public event Action<CacheUpdateEvent> GitLockCacheUpdated;
         public event Action<CacheUpdateEvent> BranchCacheUpdated;
 
         /// <summary>
@@ -85,6 +84,7 @@ namespace GitHub.Unity
                     break;
 
                 case CacheType.GitLocksCache:
+                    FireGitLocksCacheUpdated(offset);
                     break;
 
                 case CacheType.GitUserCache:
@@ -113,6 +113,12 @@ namespace GitHub.Unity
             GitStatusCacheUpdated?.Invoke(new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() });
         }
 
+        private void FireGitLocksCacheUpdated(DateTimeOffset dateTimeOffset)
+        {
+            Logger.Trace("GitStatusCacheUpdated {0}", dateTimeOffset);
+            GitLockCacheUpdated?.Invoke(new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() });
+        }
+
         public void Initialize(IRepositoryManager initRepositoryManager)
         {
             Logger.Trace("Initialize");
@@ -122,7 +128,6 @@ namespace GitHub.Unity
             repositoryManager.OnCurrentBranchUpdated += RepositoryManager_OnCurrentBranchUpdated;
             repositoryManager.OnCurrentRemoteUpdated += RepositoryManager_OnCurrentRemoteUpdated;
             repositoryManager.OnRepositoryUpdated += RepositoryManager_OnRepositoryUpdated;
-            repositoryManager.OnLocksUpdated += locks => CurrentLocks = locks;
             repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
             repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
             repositoryManager.OnLocalBranchUpdated += RepositoryManager_OnLocalBranchUpdated;
@@ -134,6 +139,7 @@ namespace GitHub.Unity
 
             UpdateGitStatus();
             UpdateGitLog();
+            UpdateLocks();
         }
 
         public ITask SetupRemote(string remote, string remoteUrl)
@@ -178,13 +184,6 @@ namespace GitHub.Unity
         public ITask Revert(string changeset)
         {
             return repositoryManager.Revert(changeset);
-        }
-
-        public ITask ListLocks()
-        {
-            if (repositoryManager == null)
-                return new ActionTask(new NotReadyException().ToTask<bool>());
-            return repositoryManager.ListLocks(false);
         }
 
         public ITask RequestLock(string file)
@@ -235,6 +234,22 @@ namespace GitHub.Unity
             var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
 
             Logger.Trace("CheckGitLogCacheEvent Current:{0} Check:{1} Result:{2}",
+                managedCache.LastUpdatedAt,
+                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]",
+                raiseEvent);
+
+            if (raiseEvent)
+            {
+                FireGitLogCacheUpdated(managedCache.LastUpdatedAt);
+            }
+        }
+
+        public void CheckGitLocksCacheEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            var managedCache = cacheContainer.GitLocksCache;
+            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
+
+            Logger.Trace("CheckGitLocksCacheEvent Current:{0} Check:{1} Result:{2}",
                 managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]",
                 raiseEvent);
@@ -317,6 +332,11 @@ namespace GitHub.Unity
         private void UpdateGitLog()
         {
             repositoryManager?.Log().ThenInUI((b, log) => { CurrentLog = log; }).Start();
+        }
+
+        private void UpdateLocks()
+        {
+            repositoryManager?.ListLocks(false).ThenInUI((b, locks) => { CurrentLocks = locks; }).Start();
         }
 
         private void RepositoryManager_OnCurrentBranchUpdated(ConfigBranch? branch)
@@ -504,6 +524,12 @@ namespace GitHub.Unity
             set { cacheContainer.GitLogCache.Log = value; }
         }
 
+        public List<GitLock> CurrentLocks
+        {
+            get { return cacheContainer.GitLocksCache.GitLocks; }
+            set { cacheContainer.GitLocksCache.GitLocks = value; }
+        }
+
         public UriString CloneUrl { get; private set; }
 
         public string Name { get; private set; }
@@ -526,17 +552,6 @@ namespace GitHub.Unity
             CurrentRemote);
 
         public IUser User { get; set; }
-
-        public IList<GitLock> CurrentLocks
-        {
-            get { return currentLocks; }
-            private set
-            {
-                Logger.Trace("OnLocksChanged: {0}", value.ToString());
-                currentLocks = value;
-                OnLocksChanged?.Invoke(value);
-            }
-        }
 
         protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
     }

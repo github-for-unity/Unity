@@ -42,7 +42,7 @@ namespace GitHub.Unity
 
     public interface IGitLocksCache : IManagedCache
     {
-        List<GitLock> GitLocks { get; }
+        List<GitLock> GitLocks { get; set; }
     }
 
     public interface IGitUserCache : IManagedCache

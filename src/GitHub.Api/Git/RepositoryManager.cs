@@ -15,7 +15,6 @@ namespace GitHub.Unity
         event Action<IDictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
         event Action<string> OnLocalBranchRemoved;
         event Action<string> OnLocalBranchUpdated;
-        event Action<IList<GitLock>> OnLocksUpdated;
         event Action<string, string> OnRemoteBranchAdded;
         event Action<IDictionary<string, ConfigRemote>, IDictionary<string, IDictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         event Action<string, string> OnRemoteBranchRemoved;
@@ -38,7 +37,7 @@ namespace GitHub.Unity
         ITask SwitchBranch(string branch);
         ITask DeleteBranch(string branch, bool deleteUnmerged = false);
         ITask CreateBranch(string branch, string baseBranch);
-        ITask ListLocks(bool local);
+        ITask<List<GitLock>> ListLocks(bool local);
         ITask LockFile(string file);
         ITask UnlockFile(string file, bool force);
         int WaitForEvents();
@@ -110,7 +109,6 @@ namespace GitHub.Unity
         public event Action<IDictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
         public event Action<string> OnLocalBranchRemoved;
         public event Action<string> OnLocalBranchUpdated;
-        public event Action<IList<GitLock>> OnLocksUpdated;
         public event Action<string, string> OnRemoteBranchAdded;
         public event Action<IDictionary<string, ConfigRemote>, IDictionary<string, IDictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         public event Action<string, string> OnRemoteBranchRemoved;
@@ -281,35 +279,23 @@ namespace GitHub.Unity
             return HookupHandlers(task);
         }
 
-        public ITask ListLocks(bool local)
+        public ITask<List<GitLock>> ListLocks(bool local)
         {
-            var task = GitClient
-                .ListLocks(local)
-                .Then((success, locks) =>
-                {
-                    if (success)
-                    {
-                        Logger.Trace("OnLocksUpdated");
-                        OnLocksUpdated?.Invoke(locks);
-                    }
-                });
-            return HookupHandlers(task);
+            var task = GitClient.ListLocks(local);
+            HookupHandlers(task);
+            return task;
         }
 
         public ITask LockFile(string file)
         {
             var task = GitClient.Lock(file);
-            HookupHandlers(task);
-            
-            return task.Then(ListLocks(false));
+            return HookupHandlers(task);
         }
 
         public ITask UnlockFile(string file, bool force)
         {
             var task = GitClient.Unlock(file, force);
-            HookupHandlers(task).Schedule(taskManager);
-
-            return task.Then(ListLocks(false));
+            return HookupHandlers(task);
         }
 
         private void LoadGitUser()

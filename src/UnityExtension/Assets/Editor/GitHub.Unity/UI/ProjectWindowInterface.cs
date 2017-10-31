@@ -28,11 +28,11 @@ namespace GitHub.Unity
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
             initialized = true;
             repository = repo;
+
             if (repository != null)
             {
                 //TODO: Listen to status change event
                 //repository.OnStatusChanged += RunStatusUpdateOnMainThread;
-                repository.OnLocksChanged += RunLocksUpdateOnMainThread;
             }
         }
 
@@ -127,14 +127,6 @@ namespace GitHub.Unity
                 .Start();
         }
 
-        private static void RunLocksUpdateOnMainThread(IEnumerable<GitLock> update)
-        {
-            new ActionTask(EntryPoint.ApplicationManager.TaskManager.Token, _ => OnLocksUpdate(update))
-            {
-                Affinity = TaskAffinity.UI
-            }.Start();
-        }
-
         private static void OnLocksUpdate(IEnumerable<GitLock> update)
         {
             if (update == null)
@@ -154,14 +146,6 @@ namespace GitHub.Unity
             }
 
             EditorApplication.RepaintProjectWindow();
-        }
-
-        private static void RunStatusUpdateOnMainThread(GitStatus update)
-        {
-            new ActionTask(EntryPoint.ApplicationManager.TaskManager.Token, _ => OnStatusUpdate(update))
-            {
-                Affinity = TaskAffinity.UI
-            }.Start();
         }
 
         private static void OnStatusUpdate(GitStatus update)

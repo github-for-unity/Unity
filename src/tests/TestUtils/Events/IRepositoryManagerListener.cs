@@ -94,20 +94,6 @@ namespace TestUtils.Events
                     managerEvents?.OnIsNotBusy.Set();
             };
 
-            //TODO: Figure this out
-            //repositoryManager.OnStatusUpdated += status => {
-            //    logger?.Debug("OnStatusUpdated: {0}", status);
-            //    listener.OnStatusUpdated(status);
-            //    managerEvents?.OnStatusUpdated.Set();
-            //};
-
-            repositoryManager.OnLocksUpdated += locks => {
-                var lockArray = locks.ToArray();
-                logger?.Trace("OnLocksUpdated Count:{0}", lockArray.Length);
-                listener.OnLocksUpdated(lockArray);
-                managerEvents?.OnLocksUpdated.Set();
-            };
-
             repositoryManager.OnCurrentBranchUpdated += configBranch => {
                 logger?.Trace("OnCurrentBranchUpdated");
                 listener.OnCurrentBranchUpdated(configBranch);
