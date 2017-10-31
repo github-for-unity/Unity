@@ -493,7 +493,6 @@ namespace GitHub.Unity
             var style = node.Active ? Styles.BoldLabel : Styles.Label;
             var rect = GUILayoutUtility.GetRect(content, style, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
             var clickRect = new Rect(0f, rect.y, Position.width, rect.height);
-            var favoriteRect = new Rect(clickRect.xMax - clickRect.height * 2f, clickRect.y, clickRect.height, clickRect.height);
 
             var selected = selectedNode == node;
             var keyboardFocus = GUIUtility.keyboardControl == listID;
@@ -504,14 +503,6 @@ namespace GitHub.Unity
                 if (Event.current.type == EventType.Repaint)
                 {
                     style.Draw(clickRect, GUIContent.none, false, false, true, keyboardFocus);
-                }
-
-                if (node.Type != NodeType.Folder)
-                {
-                    if (Event.current.type == EventType.Repaint)
-                    {
-                        GUI.DrawTexture(favoriteRect, Styles.FavoriteIconOff);
-                    }
                 }
             }
 
