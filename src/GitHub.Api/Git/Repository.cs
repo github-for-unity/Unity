@@ -360,7 +360,8 @@ namespace GitHub.Unity
         {
             if (name == CurrentConfigBranch?.Name)
             {
-                Logger.Trace("OnCurrentBranchUpdated: {0}", name);
+                UpdateGitStatus();
+                UpdateGitLog();
             }
         }
 
