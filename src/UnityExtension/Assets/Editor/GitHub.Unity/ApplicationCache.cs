@@ -260,17 +260,16 @@ namespace GitHub.Unity
 
         bool IDictionary<string, IDictionary<string, ConfigBranch>>.TryGetValue(string key, out IDictionary<string, ConfigBranch> value)
         {
-            throw new NotImplementedException();
-            //value = null;
-            //                        
-            //SerializableDictionary<string, ConfigBranch> branches;
-            //if (TryGetValue(key, out branches))
-            //{
-            //    value = branches.AsDictionary;
-            //    return true;
-            //}
-            //                        
-            //return false;
+            value = null;
+                                    
+            SerializableDictionary<string, ConfigBranch> branches;
+            if (TryGetValue(key, out branches))
+            {
+                value = branches;
+                return true;
+            }
+                                    
+            return false;
         }
 
         IDictionary<string, ConfigBranch> IDictionary<string, IDictionary<string, ConfigBranch>>.this[string key]
@@ -307,8 +306,7 @@ namespace GitHub.Unity
         {
             get
             {
-                throw new NotImplementedException();
-                //return AsDictionary.Select(pair => pair.Value.AsDictionary).ToArray();
+                return Values.Cast<IDictionary<string,ConfigBranch>>().ToArray();
             }
         }
     }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -19,6 +20,8 @@ namespace GitHub.Unity
         private static bool isBusy = false;
         private static ILogging logger;
         private static ILogging Logger { get { return logger = logger ?? Logging.GetLogger<ProjectWindowInterface>(); } }
+        private static CacheUpdateEvent gitStatusUpdateEvent;
+        private static CacheUpdateEvent gitLocksUpdateEvent;
 
         public static void Initialize(IRepository repo)
         {
@@ -26,14 +29,36 @@ namespace GitHub.Unity
 
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
+
             initialized = true;
             repository = repo;
 
             if (repository != null)
             {
-                //TODO: Listen to status change event
-                //repository.OnStatusChanged += RunStatusUpdateOnMainThread;
+                repository.GitLockCacheUpdated += Repository_GitLockCacheUpdated;
+                repository.GitStatusCacheUpdated += Repository_GitStatusCacheUpdated;
+
+                repository.CheckGitStatusCacheEvent(gitStatusUpdateEvent);
+                repository.CheckGitLocksCacheEvent(gitLocksUpdateEvent);
             }
+        }
+
+        private static void Repository_GitStatusCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        {
+            new ActionTask(CancellationToken.None, () => {
+                    gitStatusUpdateEvent = cacheUpdateEvent;
+                    OnStatusUpdate(repository.CurrentStatus);
+                })
+                { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private static void Repository_GitLockCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        {
+            new ActionTask(CancellationToken.None, () => {
+                    gitLocksUpdateEvent = cacheUpdateEvent;
+                    OnLocksUpdate(repository.CurrentLocks);
+                })
+                { Affinity = TaskAffinity.UI }.Start();
         }
 
         [MenuItem("Assets/Request Lock", true)]

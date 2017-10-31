@@ -14,8 +14,6 @@ namespace GitHub.Unity
         private IRepositoryManager repositoryManager;
         private ICacheContainer cacheContainer;
 
-        public event Action OnRepositoryInfoChanged;
-
         public event Action<CacheUpdateEvent> GitStatusCacheUpdated;
         public event Action<CacheUpdateEvent> GitLogCacheUpdated;
         public event Action<CacheUpdateEvent> GitLockCacheUpdated;
@@ -139,7 +137,9 @@ namespace GitHub.Unity
 
             UpdateGitStatus();
             UpdateGitLog();
-            UpdateLocks();
+
+            new ActionTask(CancellationToken.None, UpdateLocks)
+                { Affinity = TaskAffinity.UI }.Start();
         }
 
         public ITask SetupRemote(string remote, string remoteUrl)
@@ -173,7 +173,7 @@ namespace GitHub.Unity
 
         public ITask Push()
         {
-            return repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch?.Name);
+            return repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch?.Name).Then(UpdateGitStatus);
         }
 
         public ITask Fetch()
@@ -188,12 +188,12 @@ namespace GitHub.Unity
 
         public ITask RequestLock(string file)
         {
-            return repositoryManager.LockFile(file);
+            return repositoryManager.LockFile(file).Then(UpdateLocks);
         }
 
         public ITask ReleaseLock(string file, bool force)
         {
-            return repositoryManager.UnlockFile(file, force);
+            return repositoryManager.UnlockFile(file, force).Then(UpdateLocks);
         }
 
         public void CheckBranchCacheEvent(CacheUpdateEvent cacheUpdateEvent)
@@ -336,7 +336,10 @@ namespace GitHub.Unity
 
         private void UpdateLocks()
         {
-            repositoryManager?.ListLocks(false).ThenInUI((b, locks) => { CurrentLocks = locks; }).Start();
+            if (CurrentRemote.HasValue)
+            {
+                repositoryManager?.ListLocks(false).ThenInUI((b, locks) => { CurrentLocks = locks; }).Start();
+            }
         }
 
         private void RepositoryManager_OnCurrentBranchUpdated(ConfigBranch? branch)
@@ -351,6 +354,7 @@ namespace GitHub.Unity
 
                     CurrentConfigBranch = branch;
                     CurrentBranch = currentBranch;
+                    UpdateLocalBranches();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
             }
@@ -416,8 +420,6 @@ namespace GitHub.Unity
                 Name = LocalPath.FileName;
                 Logger.Trace("CloneUrl: [NULL]");
             }
-
-            OnRepositoryInfoChanged?.Invoke();
         }
 
         private void RepositoryManager_OnLocalBranchRemoved(string name)

@@ -22,6 +22,7 @@ namespace GitHub.Unity
         void CheckBranchCacheEvent(CacheUpdateEvent cacheUpdateEvent);
         void CheckGitStatusCacheEvent(CacheUpdateEvent cacheUpdateEvent);
         void CheckGitLogCacheEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckGitLocksCacheEvent(CacheUpdateEvent cacheUpdateEvent);
 
         /// <summary>
         /// Gets the name of the repository.
@@ -60,7 +61,6 @@ namespace GitHub.Unity
         string CurrentBranchName { get; }
         List<GitLogEntry> CurrentLog { get; }
 
-        event Action OnRepositoryInfoChanged;
         event Action<CacheUpdateEvent> GitStatusCacheUpdated;
         event Action<CacheUpdateEvent> GitLogCacheUpdated;
         event Action<CacheUpdateEvent> GitLockCacheUpdated;

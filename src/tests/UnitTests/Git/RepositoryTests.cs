@@ -89,8 +89,6 @@ namespace UnitTests
 
             repositoryManager.OnCurrentBranchUpdated += Raise.Event<Action<ConfigBranch?>>(masterOriginBranch);
             repositoryManager.OnCurrentRemoteUpdated += Raise.Event<Action<ConfigRemote?>>(origin);
-
-            repositoryEvents.OnRepositoryInfoChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnRepositoryInfoChanged not raised");
         }
     }
 }
