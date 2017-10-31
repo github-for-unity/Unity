@@ -16,8 +16,6 @@ namespace GitHub.Unity
 
         private IGitUserCache gitUserCache;
 
-        private IRepositoryInfoCache repositoryInfoCache;
-
         public event Action<CacheType> CacheInvalidated;
 
         public event Action<CacheType, DateTimeOffset> CacheUpdated;
@@ -31,9 +29,6 @@ namespace GitHub.Unity
 
                 case CacheType.GitLogCache:
                     return GitLogCache;
-
-                case CacheType.RepositoryInfoCache:
-                    return RepositoryInfoCache;
 
                 case CacheType.GitStatusCache:
                     return GitStatusCache;
@@ -58,7 +53,6 @@ namespace GitHub.Unity
         {
             BranchCache.ValidateData();
             GitLogCache.ValidateData();
-            RepositoryInfoCache.ValidateData();
             GitStatusCache.ValidateData();
             GitLocksCache.ValidateData();
             GitUserCache.ValidateData();
@@ -73,7 +67,6 @@ namespace GitHub.Unity
         {
             BranchCache.InvalidateData();
             GitLogCache.InvalidateData();
-            RepositoryInfoCache.InvalidateData();
             GitStatusCache.InvalidateData();
             GitLocksCache.InvalidateData();
             GitUserCache.InvalidateData();
@@ -104,20 +97,6 @@ namespace GitHub.Unity
                     gitLogCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.GitLogCache, datetime);
                 }
                 return gitLogCache;
-            }
-        }
-
-        public IRepositoryInfoCache RepositoryInfoCache
-        {
-            get
-            {
-                if (repositoryInfoCache == null)
-                {
-                    repositoryInfoCache = Unity.RepositoryInfoCache.Instance;
-                    repositoryInfoCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.RepositoryInfoCache);
-                    repositoryInfoCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.RepositoryInfoCache, datetime);
-                }
-                return repositoryInfoCache;
             }
         }
 

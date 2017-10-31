@@ -48,17 +48,36 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private BranchTreeNode selectedNode;
 
+        [SerializeField] private CacheUpdateEvent branchUpdateEvent;
+        [NonSerialized] private bool branchCacheHasUpdate;
+        [SerializeField] private GitBranch[] localBranches;
+        [SerializeField] private GitBranch[] remoteBranches;
+
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
             targetMode = mode;
         }
 
+        private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        {
+            new ActionTask(TaskManager.Token, () => {
+                    branchUpdateEvent = cacheUpdateEvent;
+                    branchCacheHasUpdate = true;
+                    Redraw();
+                })
+                { Affinity = TaskAffinity.UI }.Start();
+        }
+
         public override void OnEnable()
         {
             base.OnEnable();
             AttachHandlers(Repository);
-            Refresh();
+
+            if (Repository != null)
+            {
+                Repository.CheckBranchCacheEvent(branchUpdateEvent);
+            }
         }
 
         public override void OnDisable()
@@ -75,49 +94,32 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
+            if (branchCacheHasUpdate)
+            {
+                branchCacheHasUpdate = false;
+
+                localBranches = Repository.LocalBranches.ToArray();
+                remoteBranches = Repository.RemoteBranches.ToArray();
+
+
+                BuildTree(localBranches, remoteBranches);
+            }
         }
 
         private void AttachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnLocalBranchListChanged += RunUpdateBranchesOnMainThread;
-            repository.OnCurrentBranchChanged += HandleRepositoryBranchChangeEvent;
-            repository.OnCurrentRemoteChanged += HandleRepositoryBranchChangeEvent;
+
+            repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
         }
 
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnLocalBranchListChanged -= RunUpdateBranchesOnMainThread;
-            repository.OnCurrentBranchChanged -= HandleRepositoryBranchChangeEvent;
-            repository.OnCurrentRemoteChanged -= HandleRepositoryBranchChangeEvent;
-        }
 
-        private void HandleRepositoryBranchChangeEvent(string obj)
-        {
-            RunUpdateBranchesOnMainThread();
-        }
-
-        public override void Refresh()
-        {
-            base.Refresh();
-            UpdateBranches();
-        }
-
-        private void RunUpdateBranchesOnMainThread()
-        {
-            new ActionTask(TaskManager.Token, _ => UpdateBranches())
-                .ScheduleUI(TaskManager);
-        }
-
-        public void UpdateBranches()
-        {
-            if (Repository == null)
-                return;
-
-            BuildTree(Repository.LocalBranches, Repository.RemoteBranches);
+            repository.BranchCacheUpdated -= Repository_BranchCacheUpdated;
         }
 
         public override void OnGUI()
@@ -550,7 +552,7 @@ namespace GitHub.Unity
                         var originName = selectedNode.Name.Substring(0, indexOfFirstSlash);
                         var branchName = selectedNode.Name.Substring(indexOfFirstSlash + 1);
 
-                        if (Repository.LocalBranches.Any(localBranch => localBranch.Name == branchName))
+                        if (localBranches.Any(localBranch => localBranch.Name == branchName))
                         {
                             EditorUtility.DisplayDialog(WarningCheckoutBranchExistsTitle, 
                                 String.Format(WarningCheckoutBranchExistsMessage, branchName),

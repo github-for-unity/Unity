@@ -51,8 +51,8 @@ namespace GitHub.Unity
         [SerializeField] private bool hasRemote;
         [SerializeField] private bool hasItemsToCommit;
 
-        [SerializeField] private CacheUpdateEvent repositoryInfoUpdateEvent;
-        [NonSerialized] private bool repositoryInfoCacheHasUpdate;
+        [SerializeField] private CacheUpdateEvent branchUpdateEvent;
+        [NonSerialized] private bool branchCacheHasUpdate;
 
         [SerializeField] private CacheUpdateEvent gitStatusUpdateEvent;
         [NonSerialized] private bool gitStatusCacheHasUpdate;
@@ -79,7 +79,7 @@ namespace GitHub.Unity
             {
                 Repository.CheckGitLogCacheEvent(gitLogCacheUpdateEvent);
                 Repository.CheckGitStatusCacheEvent(gitStatusUpdateEvent);
-                Repository.CheckRepositoryInfoCacheEvent(repositoryInfoUpdateEvent);
+                Repository.CheckBranchCacheEvent(branchUpdateEvent);
             }
         }
 
@@ -120,11 +120,11 @@ namespace GitHub.Unity
                 { Affinity = TaskAffinity.UI }.Start();
         }
 
-        private void Repository_RepositoryInfoCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
             new ActionTask(TaskManager.Token, () => {
-                    repositoryInfoUpdateEvent = cacheUpdateEvent;
-                    repositoryInfoCacheHasUpdate = true;
+                    branchUpdateEvent = cacheUpdateEvent;
+                    branchCacheHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
@@ -137,7 +137,7 @@ namespace GitHub.Unity
 
             repository.GitStatusCacheUpdated += Repository_GitStatusCacheUpdated;
             repository.GitLogCacheUpdated += Repository_GitLogCacheUpdated;
-            repository.RepositoryInfoCacheUpdated += Repository_RepositoryInfoCacheUpdated;
+            repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -147,7 +147,7 @@ namespace GitHub.Unity
 
             repository.GitStatusCacheUpdated -= Repository_GitStatusCacheUpdated;
             repository.GitLogCacheUpdated -= Repository_GitLogCacheUpdated;
-            repository.RepositoryInfoCacheUpdated -= Repository_RepositoryInfoCacheUpdated;
+            repository.BranchCacheUpdated -= Repository_BranchCacheUpdated;
         }
 
         private void MaybeUpdateData()
@@ -155,9 +155,9 @@ namespace GitHub.Unity
             if (Repository == null)
                 return;
 
-            if (repositoryInfoCacheHasUpdate)
+            if (branchCacheHasUpdate)
             {
-                repositoryInfoCacheHasUpdate = false;
+                branchCacheHasUpdate = false;
 
                 var currentRemote = Repository.CurrentRemote;
                 hasRemote = currentRemote.HasValue;

@@ -20,7 +20,7 @@ namespace GitHub.Unity
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
 
-        void CheckRepositoryInfoCacheEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckBranchCacheEvent(CacheUpdateEvent cacheUpdateEvent);
         void CheckGitStatusCacheEvent(CacheUpdateEvent cacheUpdateEvent);
         void CheckGitLogCacheEvent(CacheUpdateEvent cacheUpdateEvent);
 
@@ -53,23 +53,18 @@ namespace GitHub.Unity
         /// </summary>
         GitBranch? CurrentBranch { get; }
         GitStatus CurrentStatus { get; }
-        IList<GitRemote> Remotes { get; }
-        IEnumerable<GitBranch> LocalBranches { get; }
-        IEnumerable<GitBranch> RemoteBranches { get; }
+        GitRemote[] Remotes { get; }
+        GitBranch[] LocalBranches { get; }
+        GitBranch[] RemoteBranches { get; }
         IUser User { get; set; }
         IList<GitLock> CurrentLocks { get; }
         string CurrentBranchName { get; }
         List<GitLogEntry> CurrentLog { get; }
 
-        event Action<string> OnCurrentBranchChanged;
-        event Action<string> OnCurrentRemoteChanged;
-        event Action OnLocalBranchListChanged;
-        event Action OnCurrentBranchUpdated;
         event Action<IEnumerable<GitLock>> OnLocksChanged;
         event Action OnRepositoryInfoChanged;
-        event Action OnRemoteBranchListChanged;
-        event Action<CacheUpdateEvent> RepositoryInfoCacheUpdated;
         event Action<CacheUpdateEvent> GitStatusCacheUpdated;
         event Action<CacheUpdateEvent> GitLogCacheUpdated;
+        event Action<CacheUpdateEvent> BranchCacheUpdated;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -11,23 +12,15 @@ namespace GitHub.Unity
     class Repository : IEquatable<Repository>, IRepository
     {
         private IList<GitLock> currentLocks;
-        private Dictionary<string, ConfigBranch> localBranches = new Dictionary<string, ConfigBranch>();
-        private Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
-        private Dictionary<string, ConfigRemote> remotes;
         private IRepositoryManager repositoryManager;
         private ICacheContainer cacheContainer;
 
-        public event Action<string> OnCurrentBranchChanged;
-        public event Action<string> OnCurrentRemoteChanged;
-        public event Action OnCurrentBranchUpdated;
-        public event Action OnLocalBranchListChanged;
         public event Action<IEnumerable<GitLock>> OnLocksChanged;
-        public event Action OnRemoteBranchListChanged;
         public event Action OnRepositoryInfoChanged;
 
-        public event Action<CacheUpdateEvent> RepositoryInfoCacheUpdated;
         public event Action<CacheUpdateEvent> GitStatusCacheUpdated;
         public event Action<CacheUpdateEvent> GitLogCacheUpdated;
+        public event Action<CacheUpdateEvent> BranchCacheUpdated;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
@@ -61,9 +54,6 @@ namespace GitHub.Unity
                 case CacheType.GitLogCache:
                     break;
 
-                case CacheType.RepositoryInfoCache:
-                    break;
-
                 case CacheType.GitStatusCache:
                     break;
 
@@ -83,14 +73,11 @@ namespace GitHub.Unity
             switch (cacheType)
             {
                 case CacheType.BranchCache:
+                    FireBranchCacheUpdated(offset);
                     break;
 
                 case CacheType.GitLogCache:
                     FireGitLogCacheUpdated(offset);
-                    break;
-
-                case CacheType.RepositoryInfoCache:
-                    FireRepositoryInfoCacheUpdated(offset);
                     break;
 
                 case CacheType.GitStatusCache:
@@ -114,10 +101,10 @@ namespace GitHub.Unity
             GitLogCacheUpdated?.Invoke(new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() });
         }
 
-        private void FireRepositoryInfoCacheUpdated(DateTimeOffset dateTimeOffset)
+        private void FireBranchCacheUpdated(DateTimeOffset dateTimeOffset)
         {
-            Logger.Trace("RepositoryInfoCacheUpdated {0}", dateTimeOffset);
-            RepositoryInfoCacheUpdated?.Invoke(new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() });
+            Logger.Trace("BranchCacheUpdated {0}", dateTimeOffset);
+            BranchCacheUpdated?.Invoke(new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() });
         }
 
         private void FireGitStatusCacheUpdated(DateTimeOffset dateTimeOffset)
@@ -210,19 +197,19 @@ namespace GitHub.Unity
             return repositoryManager.UnlockFile(file, force);
         }
 
-        public void CheckRepositoryInfoCacheEvent(CacheUpdateEvent cacheUpdateEvent)
+        public void CheckBranchCacheEvent(CacheUpdateEvent cacheUpdateEvent)
         {
-            var managedCache = cacheContainer.RepositoryInfoCache;
+            var managedCache = cacheContainer.BranchCache;
             var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
 
-            Logger.Trace("CheckRepositoryInfoCacheEvent Current:{0} Check:{1} Result:{2}",
+            Logger.Trace("CheckBranchCacheEvent Current:{0} Check:{1} Result:{2}",
                 managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]",
                 raiseEvent);
 
             if (raiseEvent)
             {
-                FireRepositoryInfoCacheUpdated(managedCache.LastUpdatedAt);
+                FireBranchCacheUpdated(managedCache.LastUpdatedAt);
             }
         }
 
@@ -307,12 +294,11 @@ namespace GitHub.Unity
         {
             if (!Nullable.Equals(CurrentConfigRemote, remote))
             {
-                CurrentConfigRemote = remote;
-
-                Logger.Trace("OnCurrentRemoteChanged: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
-                OnCurrentRemoteChanged?.Invoke(remote.HasValue ? remote.Value.Name : null);
-
-                UpdateRepositoryInfo();
+                new ActionTask(CancellationToken.None, () => {
+                    CurrentConfigRemote = remote;
+                    CurrentRemote = GetGitRemote(remote.Value);
+                    UpdateRepositoryInfo();
+                }) {Affinity = TaskAffinity.UI}.Start();
             }
         }
 
@@ -337,10 +323,16 @@ namespace GitHub.Unity
         {
             if (!Nullable.Equals(CurrentConfigBranch, branch))
             {
-                CurrentConfigBranch = branch;
+                new ActionTask(CancellationToken.None, () =>
+                {
+                    var currentBranch = branch != null
+                        ? (GitBranch?)GetLocalGitBranch(branch.Value)
+                        : null;
 
-                Logger.Trace("OnCurrentBranchChanged: {0}", branch.HasValue ? branch.ToString() : "[NULL]");
-                OnCurrentBranchChanged?.Invoke(branch.HasValue ? branch.Value.Name : null);
+                    CurrentConfigBranch = branch;
+                    CurrentBranch = currentBranch;
+                })
+                { Affinity = TaskAffinity.UI }.Start();
             }
         }
 
@@ -349,28 +341,44 @@ namespace GitHub.Unity
             if (name == CurrentConfigBranch?.Name)
             {
                 Logger.Trace("OnCurrentBranchUpdated: {0}", name);
-                OnCurrentBranchUpdated?.Invoke();
             }
         }
 
-        private void RepositoryManager_OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> updatedRemotes, Dictionary<string, Dictionary<string, ConfigBranch>> branches)
+        private void RepositoryManager_OnRemoteBranchListUpdated(IDictionary<string, ConfigRemote> remotes, IDictionary<string, IDictionary<string, ConfigBranch>> branches)
         {
-            remotes = updatedRemotes;
-
-            Remotes = remotes.Select(pair => GetGitRemote(pair.Value)).ToArray();
-
-            remoteBranches = branches;
-
-            Logger.Trace("OnRemoteBranchListChanged");
-            OnRemoteBranchListChanged?.Invoke();
+            new ActionTask(CancellationToken.None, () =>
+            {
+                cacheContainer.BranchCache.SetRemotes(remotes, branches);
+                UpdateRemoteAndRemoteBranches();
+            })
+            { Affinity = TaskAffinity.UI }.Start();
         }
 
-        private void RepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branches)
+        private void UpdateRemoteAndRemoteBranches()
         {
-            localBranches = branches;
+            cacheContainer.BranchCache.Remotes =
+                cacheContainer.BranchCache.ConfigRemotes.Values
+                .Select(GetGitRemote)
+                .ToArray();
+            
+            cacheContainer.BranchCache.RemoteBranches = 
+                cacheContainer.BranchCache.RemoteConfigBranches.Values
+                .SelectMany(x => x.Values).Select(GetRemoteGitBranch)
+                .ToArray();
+        }
 
-            Logger.Trace("OnLocalBranchListChanged");
-            OnLocalBranchListChanged?.Invoke();
+        private void RepositoryManager_OnLocalBranchListUpdated(IDictionary<string, ConfigBranch> branches)
+        {
+            new ActionTask(CancellationToken.None, () => {
+                    cacheContainer.BranchCache.SetLocals(branches);
+                    UpdateLocalBranches();
+                })
+            { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private void UpdateLocalBranches()
+        {
+            cacheContainer.BranchCache.LocalBranches = cacheContainer.BranchCache.LocalConfigBranches.Values.Select(GetLocalGitBranch).ToArray();
         }
 
         private void UpdateRepositoryInfo()
@@ -393,142 +401,81 @@ namespace GitHub.Unity
 
         private void RepositoryManager_OnLocalBranchRemoved(string name)
         {
-            if (localBranches.ContainsKey(name))
+            new ActionTask(CancellationToken.None, () =>
             {
-                localBranches.Remove(name);
-
-                Logger.Trace("OnLocalBranchListChanged");
-                OnLocalBranchListChanged?.Invoke();
-            }
-            else
-            {
-                Logger.Warning("Branch {0} is not found", name);
-            }
+                cacheContainer.BranchCache.RemoveLocalBranch(name);
+                UpdateLocalBranches();
+            })
+            { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void RepositoryManager_OnLocalBranchAdded(string name)
         {
-            if (!localBranches.ContainsKey(name))
+            new ActionTask(CancellationToken.None, () =>
             {
-                var branch = repositoryManager.Config.GetBranch(name);
-                if (!branch.HasValue)
-                {
-                    branch = new ConfigBranch { Name = name };
-                }
-                localBranches.Add(name, branch.Value);
-
-                Logger.Trace("OnLocalBranchListChanged");
-                OnLocalBranchListChanged?.Invoke();
-            }
-            else
-            {
-                Logger.Warning("Branch {0} is already present", name);
-            }
+                cacheContainer.BranchCache.AddLocalBranch(name);
+                UpdateLocalBranches();
+            })
+            { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void RepositoryManager_OnRemoteBranchAdded(string remote, string name)
         {
-            Dictionary<string, ConfigBranch> branchList;
-            if (remoteBranches.TryGetValue(remote, out branchList))
+            new ActionTask(CancellationToken.None, () =>
             {
-                if (!branchList.ContainsKey(name))
-                {
-                    branchList.Add(name, new ConfigBranch { Name = name, Remote = remotes[remote] });
-
-                    Logger.Trace("OnRemoteBranchListChanged");
-                    OnRemoteBranchListChanged?.Invoke();
-                }
-                else
-                {
-                    Logger.Warning("Branch {0} is already present in Remote {1}", name, remote);
-                }
-            }
-            else
-            {
-                Logger.Warning("Remote {0} is not found", remote);
-            }
+                cacheContainer.BranchCache.AddRemoteBranch(remote, name);
+                UpdateRemoteAndRemoteBranches();
+            })
+            { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void RepositoryManager_OnRemoteBranchRemoved(string remote, string name)
         {
-            Dictionary<string, ConfigBranch> branchList;
-            if (remoteBranches.TryGetValue(remote, out branchList))
+            new ActionTask(CancellationToken.None, () =>
             {
-                if (branchList.ContainsKey(name))
-                {
-                    branchList.Remove(name);
-
-                    Logger.Trace("OnRemoteBranchListChanged");
-                    OnRemoteBranchListChanged?.Invoke();
-                }
-                else
-                {
-                    Logger.Warning("Branch {0} is not found in Remote {1}", name, remote);
-                }
-            }
-            else
-            {
-                Logger.Warning("Remote {0} is not found", remote);
-            }
+                cacheContainer.BranchCache.RemoveRemoteBranch(remote, name);
+                UpdateRemoteAndRemoteBranches();
+            })
+            { Affinity = TaskAffinity.UI }.Start();
         }
 
         private GitBranch GetLocalGitBranch(ConfigBranch x)
         {
             var name = x.Name;
             var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + name : "[None]";
-            var isActive = name == CurrentConfigBranch?.Name;
+            var isActive = name == CurrentBranchName;
 
-            return new GitBranch {
-                Name = name,
-                Tracking = trackingName,
-                IsActive = isActive
-            };
+            return new GitBranch {Name= name, Tracking = trackingName, IsActive = isActive};
         }
 
-        private GitBranch GetRemoteGitBranch(ConfigBranch x)
+        private static GitBranch GetRemoteGitBranch(ConfigBranch x)
         {
             var name = x.Remote.Value.Name + "/" + x.Name;
-            var trackingName = "[None]";
 
-            return new GitBranch {
-                Name = name,
-                Tracking = trackingName,
-                IsActive = false
-            };
+            return new GitBranch {Name= name};
         }
 
-        private GitRemote GetGitRemote(ConfigRemote configRemote)
+        private static GitRemote GetGitRemote(ConfigRemote configRemote)
         {
             return new GitRemote { Name = configRemote.Name, Url = configRemote.Url };
         }
 
-        public IList<GitRemote> Remotes { get; private set; }
+        public GitRemote[] Remotes => cacheContainer.BranchCache.Remotes;
 
-        public IEnumerable<GitBranch> LocalBranches => localBranches.Values.Select(GetLocalGitBranch);
+        public GitBranch[] LocalBranches => cacheContainer.BranchCache.LocalBranches;
 
-        public IEnumerable<GitBranch> RemoteBranches => remoteBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch);
+        public GitBranch[] RemoteBranches => cacheContainer.BranchCache.RemoteBranches;
 
         private ConfigBranch? CurrentConfigBranch
         {
-            get { return this.cacheContainer.RepositoryInfoCache.CurentConfigBranch; }
-            set
-            {
-                cacheContainer.RepositoryInfoCache.CurentConfigBranch = value;
-                cacheContainer.RepositoryInfoCache.CurentGitBranch = value != null
-                    ? (GitBranch?)GetLocalGitBranch(value.Value)
-                    : null;
-            }
+            get { return this.cacheContainer.BranchCache.CurentConfigBranch; }
+            set { cacheContainer.BranchCache.CurentConfigBranch = value;}
         }
 
         private ConfigRemote? CurrentConfigRemote
         {
-            get { return this.cacheContainer.RepositoryInfoCache.CurrentConfigRemote; }
-            set {
-                cacheContainer.RepositoryInfoCache.CurrentConfigRemote = value;
-                cacheContainer.RepositoryInfoCache.CurrentGitRemote = value != null
-                    ? (GitRemote?) GetGitRemote(value.Value)
-                    : null;
-            }
+            get { return this.cacheContainer.BranchCache.CurrentConfigRemote; }
+            set { cacheContainer.BranchCache.CurrentConfigRemote = value; }
         }
 
         public GitStatus CurrentStatus
@@ -537,11 +484,19 @@ namespace GitHub.Unity
             set { cacheContainer.GitStatusCache.GitStatus = value; }
         }
 
-        public GitBranch? CurrentBranch => cacheContainer.RepositoryInfoCache.CurentGitBranch;
+        public GitBranch? CurrentBranch
+        {
+            get { return cacheContainer.BranchCache.CurentGitBranch; }
+            set { cacheContainer.BranchCache.CurentGitBranch = value; }
+        }
 
         public string CurrentBranchName => CurrentConfigBranch?.Name;
 
-        public GitRemote? CurrentRemote => cacheContainer.RepositoryInfoCache.CurrentGitRemote;
+        public GitRemote? CurrentRemote
+        {
+            get { return cacheContainer.BranchCache.CurrentGitRemote; }
+            set { cacheContainer.BranchCache.CurrentGitRemote = value; }
+        }
 
         public List<GitLogEntry> CurrentLog
         {

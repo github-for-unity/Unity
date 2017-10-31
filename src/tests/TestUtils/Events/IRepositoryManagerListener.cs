@@ -12,8 +12,8 @@ namespace TestUtils.Events
         void OnIsBusyChanged(bool busy);
         void OnStatusUpdated(GitStatus status);
         void OnLocksUpdated(IEnumerable<GitLock> locks);
-        void OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branchList);
-        void OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> remotesList, Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranchList);
+        void OnLocalBranchListUpdated(IDictionary<string, ConfigBranch> branchList);
+        void OnRemoteBranchListUpdated(IDictionary<string, ConfigRemote> remotesList, IDictionary<string, IDictionary<string, ConfigBranch>> remoteBranchList);
         void OnLocalBranchUpdated(string name);
         void OnLocalBranchAdded(string name);
         void OnLocalBranchRemoved(string name);
@@ -176,8 +176,8 @@ namespace TestUtils.Events
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
             repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
             repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<IDictionary<string, ConfigBranch>>());
+            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<IDictionary<string, ConfigRemote>>(), Arg.Any<IDictionary<string, IDictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
             repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);

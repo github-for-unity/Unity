@@ -83,33 +83,14 @@ namespace UnitTests
 
             repository.Initialize(repositoryManager);
 
-            string expectedBranch = null;
-            repository.OnCurrentBranchChanged += branch => {
-                expectedBranch = branch;
-            };
+            repositoryManager.OnLocalBranchListUpdated += Raise.Event<Action<IDictionary<string, ConfigBranch>>>(branchDictionary);
 
-            string expectedRemote = null;
-            repository.OnCurrentRemoteChanged += remote => {
-                expectedRemote = remote;
-            };
-
-            repositoryManager.OnLocalBranchListUpdated += Raise.Event<Action<Dictionary<string, ConfigBranch>>>(branchDictionary);
-
-            repositoryEvents.OnLocalBranchListChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnLocalBranchListChanged not raised");
-
-            repositoryManager.OnRemoteBranchListUpdated += Raise.Event<Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>>>(remoteDictionary, remoteBranchDictionary);
-
-            repositoryEvents.OnRemoteBranchListChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnRemoteBranchListChanged not raised");
+            repositoryManager.OnRemoteBranchListUpdated += Raise.Event<Action<IDictionary<string, ConfigRemote>, IDictionary<string, IDictionary<string, ConfigBranch>>>>(remoteDictionary, remoteBranchDictionary);
 
             repositoryManager.OnCurrentBranchUpdated += Raise.Event<Action<ConfigBranch?>>(masterOriginBranch);
             repositoryManager.OnCurrentRemoteUpdated += Raise.Event<Action<ConfigRemote?>>(origin);
 
-            repositoryEvents.OnCurrentBranchChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnCurrentBranchChanged not raised");
-            repositoryEvents.OnCurrentRemoteChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnCurrentRemoteChanged not raised");
             repositoryEvents.OnRepositoryInfoChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnRepositoryInfoChanged not raised");
-
-            expectedBranch.Should().Be("master");
-            expectedRemote.Should().Be("origin");
         }
     }
 }

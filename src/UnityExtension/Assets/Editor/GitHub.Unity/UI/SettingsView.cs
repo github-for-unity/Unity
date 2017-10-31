@@ -99,7 +99,6 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-            repository.OnCurrentRemoteChanged += Repository_OnActiveRemoteChanged;
             repository.OnLocksChanged += RunLocksUpdateOnMainThread;
         }
 
@@ -107,7 +106,6 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-            repository.OnCurrentRemoteChanged -= Repository_OnActiveRemoteChanged;
             repository.OnLocksChanged -= RunLocksUpdateOnMainThread;
         }
 
@@ -180,11 +178,6 @@ namespace GitHub.Unity
                     ? repositoryCurrentLocks.ToList()
                     : new List<GitLock>();
             }
-        }
-
-        private void Repository_OnActiveRemoteChanged(string remote)
-        {
-            remoteHasChanged = true;
         }
 
         private void RunLocksUpdateOnMainThread(IEnumerable<GitLock> locks)

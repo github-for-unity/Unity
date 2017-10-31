@@ -25,8 +25,8 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 horizontalScroll;
         [SerializeField] private ChangesetTreeView tree = new ChangesetTreeView();
 
-        [SerializeField] private CacheUpdateEvent repositoryInfoUpdateEvent;
-        [NonSerialized] private bool repositoryInfoCacheHasUpdate;
+        [SerializeField] private CacheUpdateEvent branchUpdateEvent;
+        [NonSerialized] private bool branchCacheHasUpdate;
 
         [SerializeField] private CacheUpdateEvent gitStatusUpdateEvent;
         [NonSerialized] private bool gitStatusCacheHasUpdate;
@@ -47,11 +47,11 @@ namespace GitHub.Unity
                 { Affinity = TaskAffinity.UI }.Start();
         }
 
-        private void Repository_RepositoryInfoCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
             new ActionTask(TaskManager.Token, () => {
-                    repositoryInfoUpdateEvent = cacheUpdateEvent;
-                    repositoryInfoCacheHasUpdate = true;
+                    branchUpdateEvent = cacheUpdateEvent;
+                    branchCacheHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
@@ -61,7 +61,7 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-            repository.RepositoryInfoCacheUpdated += Repository_RepositoryInfoCacheUpdated;
+            repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
             repository.GitStatusCacheUpdated += Repository_GitStatusCacheUpdated;
         }
 
@@ -70,7 +70,7 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.RepositoryInfoCacheUpdated -= Repository_RepositoryInfoCacheUpdated;
+            repository.BranchCacheUpdated -= Repository_BranchCacheUpdated;
             repository.GitStatusCacheUpdated -= Repository_GitStatusCacheUpdated;
         }
 
@@ -81,7 +81,7 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                Repository.CheckRepositoryInfoCacheEvent(repositoryInfoUpdateEvent);
+                Repository.CheckBranchCacheEvent(branchUpdateEvent);
                 Repository.CheckGitStatusCacheEvent(gitStatusUpdateEvent);
             }
         }
@@ -101,9 +101,9 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (repositoryInfoCacheHasUpdate)
+            if (branchCacheHasUpdate)
             {
-                repositoryInfoCacheHasUpdate = false;
+                branchCacheHasUpdate = false;
                 currentBranch = string.Format("[{0}]", Repository.CurrentBranchName);
             }
 

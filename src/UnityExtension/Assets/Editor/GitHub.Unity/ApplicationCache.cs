@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Octokit;
 using UnityEditor;
 using UnityEngine;
+using Application = UnityEngine.Application;
 
 namespace GitHub.Unity
 {
@@ -116,14 +118,6 @@ namespace GitHub.Unity
             SaveData(DateTimeOffset.Now, true);
         }
 
-        private void ResetData()
-        {
-            Logger.Trace("ResetData");
-            OnResetData();
-        }
-
-        protected abstract void OnResetData();
-
         protected void SaveData(DateTimeOffset now, bool isUpdated)
         {
             if (isUpdated)
@@ -187,79 +181,155 @@ namespace GitHub.Unity
         protected ILogging Logger { get; private set; }
     }
 
-    [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class BranchCache : ManagedCacheBase<BranchCache>, IBranchCache
+    [Serializable]
+    class LocalConfigBranchDictionary : SerializableDictionary<string, ConfigBranch>, ILocalConfigBranchDictionary
     {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private List<GitBranch> localBranches = new List<GitBranch>();
-        [SerializeField] private List<GitBranch> remoteBranches = new List<GitBranch>();
+        public LocalConfigBranchDictionary()
+        { }
 
-        public void UpdateData(List<GitBranch> localBranchUpdate, List<GitBranch> remoteBranchUpdate)
+        public LocalConfigBranchDictionary(IDictionary<string, ConfigBranch> dictionary) : base()
         {
-            var now = DateTimeOffset.Now;
-            var isUpdated = false;
-
-            Logger.Trace("Processing Update: {0}", now);
-
-            var localBranchesIsNull = localBranches == null;
-            var localBranchUpdateIsNull = localBranchUpdate == null;
-
-            if (localBranchesIsNull != localBranchUpdateIsNull ||
-                !localBranchesIsNull && !localBranches.SequenceEqual(localBranchUpdate))
+            foreach (var pair in dictionary)
             {
-                localBranches = localBranchUpdate;
-                isUpdated = true;
+                this.Add(pair.Key, pair.Value);
             }
-
-            var remoteBranchesIsNull = remoteBranches == null;
-            var remoteBranchUpdateIsNull = remoteBranchUpdate == null;
-
-            if (remoteBranchesIsNull != remoteBranchUpdateIsNull ||
-                !remoteBranchesIsNull && !remoteBranches.SequenceEqual(remoteBranchUpdate))
-            {
-                remoteBranches = remoteBranchUpdate;
-                isUpdated = true;
-            }
-
-            SaveData(now, isUpdated);
-        }
-
-        public List<GitBranch> LocalBranches {
-            get { return localBranches;  }
-        }
-
-        public List<GitBranch> RemoteBranches
-        {
-            get { return remoteBranches; }
-        }
-
-        public void UpdateData()
-        {
-            SaveData(DateTimeOffset.Now, false);
-        }
-
-        protected override void OnResetData()
-        {
-            localBranches = new List<GitBranch>();
-            remoteBranches = new List<GitBranch>();
-        }
-
-        public override string LastUpdatedAtString
-        {
-            get { return lastUpdatedAtString; }
-            protected set { lastUpdatedAtString = value; }
-        }
-
-        public override string LastVerifiedAtString
-        {
-            get { return lastVerifiedAtString; }
-            protected set { lastVerifiedAtString = value; }
         }
     }
 
-    [Location("cache/repoinfo.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class RepositoryInfoCache : ManagedCacheBase<RepositoryInfoCache>, IRepositoryInfoCache
+    [Serializable]
+    class RemoteConfigBranchDictionary : SerializableDictionary<string, SerializableDictionary<string, ConfigBranch>>, IRemoteConfigBranchDictionary
+    {
+        public RemoteConfigBranchDictionary()
+        { }
+
+        public RemoteConfigBranchDictionary(IDictionary<string, IDictionary<string, ConfigBranch>> dictionary)
+        {
+            foreach (var pair in dictionary)
+            {
+                this.Add(pair.Key, new LocalConfigBranchDictionary(pair.Value));
+            }
+        }
+
+        IEnumerator<KeyValuePair<string, IDictionary<string, ConfigBranch>>> IEnumerable<KeyValuePair<string, IDictionary<string, ConfigBranch>>>.GetEnumerator()
+        {
+            throw new NotImplementedException();
+            //return AsDictionary
+            //    .Select(pair => new KeyValuePair<string, IDictionary<string, ConfigBranch>>(pair.Key, pair.Value.AsDictionary))
+            //    .GetEnumerator();
+        }
+
+        void ICollection<KeyValuePair<string, IDictionary<string, ConfigBranch>>>.Add(KeyValuePair<string, IDictionary<string, ConfigBranch>> item)
+        {
+            throw new NotImplementedException();
+            //Guard.ArgumentNotNull(item, "item");
+            //Guard.ArgumentNotNull(item.Value, "item.Value");
+            //
+            //var serializableDictionary = item.Value as SerializableDictionary<string, ConfigBranch>;
+            //if (serializableDictionary == null)
+            //{
+            //    serializableDictionary = new SerializableDictionary<string, ConfigBranch>(item.Value);
+            //}
+            //
+            //Add(item.Key, serializableDictionary);
+        }
+
+        bool ICollection<KeyValuePair<string, IDictionary<string, ConfigBranch>>>.Contains(KeyValuePair<string, IDictionary<string, ConfigBranch>> item)
+        {
+            throw new NotImplementedException();
+        }
+
+        void ICollection<KeyValuePair<string, IDictionary<string, ConfigBranch>>>.CopyTo(KeyValuePair<string, IDictionary<string, ConfigBranch>>[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool ICollection<KeyValuePair<string, IDictionary<string, ConfigBranch>>>.Remove(KeyValuePair<string, IDictionary<string, ConfigBranch>> item)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool ICollection<KeyValuePair<string, IDictionary<string, ConfigBranch>>>.IsReadOnly
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        void IDictionary<string, IDictionary<string, ConfigBranch>>.Add(string key, IDictionary<string, ConfigBranch> value)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool IDictionary<string, IDictionary<string, ConfigBranch>>.TryGetValue(string key, out IDictionary<string, ConfigBranch> value)
+        {
+            throw new NotImplementedException();
+            //value = null;
+            //                        
+            //SerializableDictionary<string, ConfigBranch> branches;
+            //if (TryGetValue(key, out branches))
+            //{
+            //    value = branches.AsDictionary;
+            //    return true;
+            //}
+            //                        
+            //return false;
+        }
+
+        IDictionary<string, ConfigBranch> IDictionary<string, IDictionary<string, ConfigBranch>>.this[string key]
+        {
+            get
+            {
+                throw new NotImplementedException();
+                //var dictionary = (IDictionary<string, IDictionary<string, ConfigBranch>>)this;
+                //IDictionary<string, ConfigBranch> value;
+                //if (!dictionary.TryGetValue(key, out value))
+                //{
+                //    throw new KeyNotFoundException();
+                //}
+                //
+                //return value;
+            }
+            set
+            {
+                throw new NotImplementedException();
+                //var dictionary = (IDictionary<string, IDictionary<string, ConfigBranch>>)this;
+                //dictionary.Add(key, value);
+            }
+        }
+
+        ICollection<string> IDictionary<string, IDictionary<string, ConfigBranch>>.Keys
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        ICollection<IDictionary<string, ConfigBranch>> IDictionary<string, IDictionary<string, ConfigBranch>>.Values
+        {
+            get
+            {
+                throw new NotImplementedException();
+                //return AsDictionary.Select(pair => pair.Value.AsDictionary).ToArray();
+            }
+        }
+    }
+
+    [Serializable]
+    class ConfigRemoteDictionary : SerializableDictionary<string, ConfigRemote>, IConfigRemoteDictionary
+    {
+        public ConfigRemoteDictionary()
+        { }
+
+        public ConfigRemoteDictionary(IDictionary<string, ConfigRemote> dictionary)
+        {
+            foreach (var pair in dictionary)
+            {
+                this.Add(pair.Key, pair.Value);
+            }
+        }
+    }
+
+    [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
+    sealed class BranchCache : ManagedCacheBase<BranchCache>, IBranchCache
     {
         public static readonly ConfigBranch DefaultConfigBranch = new ConfigBranch();
         public static readonly ConfigRemote DefaultConfigRemote = new ConfigRemote();
@@ -268,35 +338,26 @@ namespace GitHub.Unity
 
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
+
+        [SerializeField] private GitBranch[] localBranches = new GitBranch[0];
+        [SerializeField] private GitBranch[] remoteBranches = new GitBranch[0];
+        [SerializeField] private GitRemote[] remotes = new GitRemote[0];
+
+        [SerializeField] private LocalConfigBranchDictionary localConfigBranches = new LocalConfigBranchDictionary();
+        [SerializeField] private RemoteConfigBranchDictionary remoteConfigBranches = new RemoteConfigBranchDictionary();
+        [SerializeField] private ConfigRemoteDictionary configRemotes = new ConfigRemoteDictionary();
+
         [SerializeField] private ConfigBranch gitConfigBranch;
         [SerializeField] private ConfigRemote gitConfigRemote;
         [SerializeField] private GitRemote gitRemote;
         [SerializeField] private GitBranch gitBranch;
-
-        protected override void OnResetData()
-        {
-            gitConfigBranch = DefaultConfigBranch;
-            gitConfigRemote = DefaultConfigRemote;
-        }
-
-        public override string LastUpdatedAtString
-        {
-            get { return lastUpdatedAtString; }
-            protected set { lastUpdatedAtString = value; }
-        }
-
-        public override string LastVerifiedAtString
-        {
-            get { return lastVerifiedAtString; }
-            protected set { lastVerifiedAtString = value; }
-        }
 
         public ConfigRemote? CurrentConfigRemote
         {
             get
             {
                 ValidateData();
-                return gitConfigRemote.Equals(DefaultConfigRemote) ? (ConfigRemote?) null : gitConfigRemote;
+                return gitConfigRemote.Equals(DefaultConfigRemote) ? (ConfigRemote?)null : gitConfigRemote;
             }
             set
             {
@@ -320,7 +381,7 @@ namespace GitHub.Unity
             get
             {
                 ValidateData();
-                return gitConfigBranch.Equals(DefaultConfigBranch) ? (ConfigBranch?) null : gitConfigBranch;
+                return gitConfigBranch.Equals(DefaultConfigBranch) ? (ConfigBranch?)null : gitConfigBranch;
             }
             set
             {
@@ -344,7 +405,7 @@ namespace GitHub.Unity
             get
             {
                 ValidateData();
-                return gitRemote.Equals(DefaultGitRemote) ? (GitRemote?) null : gitRemote;
+                return gitRemote.Equals(DefaultGitRemote) ? (GitRemote?)null : gitRemote;
             }
             set
             {
@@ -385,6 +446,191 @@ namespace GitHub.Unity
 
                 SaveData(now, isUpdated);
             }
+        }
+
+        public GitBranch[] LocalBranches {
+            get { return localBranches;  }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} localBranches:{1}", now, value);
+
+                var localBranchesIsNull = localBranches == null;
+                var valueIsNull = value == null;
+
+                if (localBranchesIsNull != valueIsNull ||
+                    !localBranchesIsNull && !localBranches.SequenceEqual(value))
+                {
+                    localBranches = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public ILocalConfigBranchDictionary LocalConfigBranches
+        {
+            get { return localConfigBranches; }
+        }
+
+        public GitBranch[] RemoteBranches
+        {
+            get { return remoteBranches; }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} remoteBranches:{1}", now, value);
+
+                var remoteBranchesIsNull = remoteBranches == null;
+                var valueIsNull = value == null;
+
+                if (remoteBranchesIsNull != valueIsNull ||
+                    !remoteBranchesIsNull && !remoteBranches.SequenceEqual(value))
+                {
+                    remoteBranches = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public IRemoteConfigBranchDictionary RemoteConfigBranches
+        {
+            get { return remoteConfigBranches; }
+        }
+
+        public GitRemote[] Remotes
+        {
+            get { return remotes; }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} remotes:{1}", now, value);
+
+                var remotesIsNull = remotes == null;
+                var valueIsNull = value == null;
+
+                if (remotesIsNull != valueIsNull ||
+                    !remotesIsNull && !remotes.SequenceEqual(value))
+                {
+                    remotes = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public IConfigRemoteDictionary ConfigRemotes
+        {
+            get { return configRemotes; }
+        }
+
+        public void RemoveLocalBranch(string branch)
+        {
+            if (LocalConfigBranches.ContainsKey(branch))
+            {
+                var now = DateTimeOffset.Now;
+                LocalConfigBranches.Remove(branch);
+                Logger.Trace("RemoveLocalBranch {0} branch:{1} ", now, branch);
+                SaveData(now, true);
+            }
+            else
+            {
+                Logger.Warning("Branch {0} is not found", branch);
+            }
+        }
+
+        public void AddLocalBranch(string branch)
+        {
+            if (!LocalConfigBranches.ContainsKey(branch))
+            {
+                var now = DateTimeOffset.Now;
+                LocalConfigBranches.Add(branch, new ConfigBranch { Name = branch });
+                Logger.Trace("AddLocalBranch {0} branch:{1} ", now, branch);
+                SaveData(now, true);
+            }
+            else
+            {
+                Logger.Warning("Branch {0} is already present", branch);
+            }
+        }
+
+        public void AddRemoteBranch(string remote, string branch)
+        {
+            IDictionary<string, ConfigBranch> branchList;
+            if (RemoteConfigBranches.TryGetValue(remote, out branchList))
+            {
+                if (!branchList.ContainsKey(branch))
+                {
+                    var now = DateTimeOffset.Now;
+                    branchList.Add(branch, new ConfigBranch { Name = branch, Remote = ConfigRemotes[remote] });
+                    Logger.Trace("AddRemoteBranch {0} remote:{1} branch:{2} ", now, remote, branch);
+                    SaveData(now, true);
+                }
+                else
+                {
+                    Logger.Warning("Branch {0} is already present in Remote {1}", branch, remote);
+                }
+            }
+            else
+            {
+                Logger.Warning("Remote {0} is not found", remote);
+            }
+        }
+
+        public void RemoveRemoteBranch(string remote, string branch)
+        {
+            IDictionary<string, ConfigBranch> branchList;
+            if (RemoteConfigBranches.TryGetValue(remote, out branchList))
+            {
+                if (branchList.ContainsKey(branch))
+                {
+                    var now = DateTimeOffset.Now;
+                    branchList.Remove(branch);
+                    Logger.Trace("RemoveRemoteBranch {0} remote:{1} branch:{2} ", now, remote, branch);
+                    SaveData(now, true);
+                }
+                else
+                {
+                    Logger.Warning("Branch {0} is not found in Remote {1}", branch, remote);
+                }
+            }
+            else
+            {
+                Logger.Warning("Remote {0} is not found", remote);
+            }
+        }
+
+        public void SetRemotes(IDictionary<string, ConfigRemote> remoteDictionary, IDictionary<string, IDictionary<string, ConfigBranch>> branchDictionary)
+        {
+            configRemotes = new ConfigRemoteDictionary(remoteDictionary);
+            remoteConfigBranches = new RemoteConfigBranchDictionary(branchDictionary);
+        }
+
+        public void SetLocals(IDictionary<string, ConfigBranch> branchDictionary)
+        {
+            localConfigBranches = new LocalConfigBranchDictionary(branchDictionary);
+        }
+
+        public override string LastUpdatedAtString
+        {
+            get { return lastUpdatedAtString; }
+            protected set { lastUpdatedAtString = value; }
+        }
+
+        public override string LastVerifiedAtString
+        {
+            get { return lastVerifiedAtString; }
+            protected set { lastVerifiedAtString = value; }
         }
     }
 
@@ -435,11 +681,6 @@ namespace GitHub.Unity
 
                 SaveData(now, isUpdated);
             }
-        }
-
-        protected override void OnResetData()
-        {
-            log = new List<GitLogEntry>();
         }
 
         public override string LastUpdatedAtString
@@ -502,11 +743,6 @@ namespace GitHub.Unity
             }
         }
 
-        protected override void OnResetData()
-        {
-            status = new GitStatus();
-        }
-
         public override string LastUpdatedAtString
         {
             get { return lastUpdatedAtString; }
@@ -555,11 +791,6 @@ namespace GitHub.Unity
             }
         }
 
-        protected override void OnResetData()
-        {
-            locks = new List<GitLock>();
-        }
-
         public override string LastUpdatedAtString
         {
             get { return lastUpdatedAtString; }
@@ -603,11 +834,6 @@ namespace GitHub.Unity
                 ValidateData();
                 return user;
             }
-        }
-
-        protected override void OnResetData()
-        {
-            user = null;
         }
 
         public override string LastUpdatedAtString
