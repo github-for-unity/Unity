@@ -50,6 +50,7 @@ namespace GitHub.Unity
 
         [SerializeField] private CacheUpdateEvent branchUpdateEvent;
         [NonSerialized] private bool branchCacheHasUpdate;
+
         [SerializeField] private GitBranch[] localBranches;
         [SerializeField] private GitBranch[] remoteBranches;
 

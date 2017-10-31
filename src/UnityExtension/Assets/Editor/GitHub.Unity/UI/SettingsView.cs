@@ -29,8 +29,6 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private int lockedFileSelection = -1;
         [SerializeField] private bool hasRemote;
-        [NonSerialized] private bool remoteHasChanged;
-        [NonSerialized] private bool locksHaveChanged;
 
         [SerializeField] private string newRepositoryRemoteUrl;
         
@@ -40,13 +38,18 @@ namespace GitHub.Unity
         [SerializeField] private GitPathView gitPathView = new GitPathView();
         [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
 
+        [SerializeField] private CacheUpdateEvent branchUpdateEvent;
+        [NonSerialized] private bool branchCacheHasUpdate;
+
+        [SerializeField] private CacheUpdateEvent gitLocksUpdateEvent;
+        [NonSerialized] private bool gitLocksCacheHasUpdate;
+
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
             gitPathView.InitializeView(this);
             userSettingsView.InitializeView(this);
         }
-
 
         public override void OnEnable()
         {
@@ -55,9 +58,13 @@ namespace GitHub.Unity
             userSettingsView.OnEnable();
             AttachHandlers(Repository);
 
-            remoteHasChanged = true;
+            if (Repository != null)
+            {
+                Repository.CheckBranchCacheEvent(branchUpdateEvent);
+                Repository.CheckGitLocksCacheEvent(gitLocksUpdateEvent);
+            }
+
             metricsHasChanged = true;
-            locksHaveChanged = true;
         }
 
         public override void OnDisable()
@@ -95,6 +102,29 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
+
+            repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
+            repository.GitLockCacheUpdated += Repository_GitLockCacheUpdated;
+        }
+
+        private void Repository_GitLockCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        {
+            new ActionTask(TaskManager.Token, () => {
+                    gitLocksUpdateEvent = cacheUpdateEvent;
+                    gitLocksCacheHasUpdate = true;
+                    Redraw();
+                })
+                { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        {
+            new ActionTask(TaskManager.Token, () => {
+                    branchUpdateEvent = cacheUpdateEvent;
+                    branchCacheHasUpdate = true;
+                    Redraw();
+                })
+                { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void DetachHandlers(IRepository repository)
@@ -144,12 +174,9 @@ namespace GitHub.Unity
             if (Repository == null)
                 return;
 
-            if (!remoteHasChanged && !locksHaveChanged)
-                return;
-
-            if (remoteHasChanged)
+            if (branchCacheHasUpdate)
             {
-                remoteHasChanged = false;
+                branchCacheHasUpdate = false;
                 var activeRemote = Repository.CurrentRemote;
                 hasRemote = activeRemote.HasValue && !String.IsNullOrEmpty(activeRemote.Value.Url);
                 if (!hasRemote)
@@ -164,34 +191,14 @@ namespace GitHub.Unity
                 }
             }
 
-            if (locksHaveChanged)
+            if (gitLocksCacheHasUpdate)
             {
-                locksHaveChanged = false;
+                gitLocksCacheHasUpdate = false;
                 var repositoryCurrentLocks = Repository.CurrentLocks;
                 lockedFiles = repositoryCurrentLocks != null
                     ? repositoryCurrentLocks.ToList()
                     : new List<GitLock>();
             }
-        }
-
-        private void RunLocksUpdateOnMainThread(IEnumerable<GitLock> locks)
-        {
-            new ActionTask(TaskManager.Token, _ => OnLocksUpdate(locks))
-                .ScheduleUI(TaskManager);
-        }
-
-        private void OnLocksUpdate(IEnumerable<GitLock> update)
-        {
-            if (update == null)
-            {
-                return;
-            }
-            lockedFiles = update.ToList();
-            if (lockedFiles.Count <= lockedFileSelection)
-            {
-                lockedFileSelection = -1;
-            }
-            Redraw();
         }
 
         private void OnRepositorySettingsGUI()

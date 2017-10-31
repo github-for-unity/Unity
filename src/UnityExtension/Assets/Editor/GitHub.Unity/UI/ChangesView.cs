@@ -61,6 +61,7 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
+
             repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
             repository.GitStatusCacheUpdated += Repository_GitStatusCacheUpdated;
         }
