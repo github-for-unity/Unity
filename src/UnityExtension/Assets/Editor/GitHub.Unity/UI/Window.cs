@@ -109,19 +109,7 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
 
-            string repoRemote = null;
-            if (MaybeUpdateData(out repoRemote))
-            {
-                repoBranchContent = new GUIContent(repoBranch, Window_RepoBranchTooltip);
-                if (repoUrl != null)
-                {
-                    repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, repoRemote));
-                }
-                else
-                {
-                    repoUrlContent = new GUIContent(repoUrl, Window_RepoNoUrlTooltip);
-                }
-            }
+            MaybeUpdateData();
 
             if (ActiveView != null)
                 ActiveView.OnDataUpdate();
@@ -198,45 +186,43 @@ namespace GitHub.Unity
             new ActionTask(TaskManager.Token, Refresh) { Affinity = TaskAffinity.UI }.Start();
         }
 
-        private bool MaybeUpdateData(out string repoRemote)
+        private void MaybeUpdateData()
         {
-            repoRemote = null;
-            bool repoDataChanged = false;
+            string updatedRepoBranch = null;
+            string updatedRepoRemote = null;
+            string updatedRepoUrl = DefaultRepoUrl;
+
             if (Repository != null)
             {
-                var currentBranchString = (Repository.CurrentBranch.HasValue ? Repository.CurrentBranch.Value.Name : null);
-                if (repoBranch != currentBranchString)
-                {
-                    repoBranch = currentBranchString;
-                    repoDataChanged = true;
-                }
+                var repositoryCurrentBranch = Repository.CurrentBranch;
+                updatedRepoBranch = repositoryCurrentBranch.HasValue ? repositoryCurrentBranch.Value.Name : null;
 
-                var url = Repository.CloneUrl != null ? Repository.CloneUrl.ToString() : DefaultRepoUrl;
-                if (repoUrl != url)
-                {
-                    repoUrl = url;
-                    repoDataChanged = true;
-                }
+                var repositoryCloneUrl = Repository.CloneUrl;
+                updatedRepoUrl = repositoryCloneUrl != null ? repositoryCloneUrl.ToString() : DefaultRepoUrl;
 
-                if (Repository.CurrentRemote.HasValue)
-                    repoRemote = Repository.CurrentRemote.Value.Name;
+                var repositoryCurrentRemote = Repository.CurrentRemote;
+                if (repositoryCurrentRemote.HasValue)
+                    updatedRepoRemote = repositoryCurrentRemote.Value.Name;
             }
-            else
+
+            if (repoBranch != updatedRepoBranch)
             {
-                if (repoBranch != null)
-                {
-                    repoBranch = null;
-                    repoDataChanged = true;
-                }
-
-                if (repoUrl != DefaultRepoUrl)
-                {
-                    repoUrl = DefaultRepoUrl;
-                    repoDataChanged = true;
-                }
+                repoBranch = updatedRepoBranch;
+                repoBranchContent = new GUIContent(repoBranch, Window_RepoBranchTooltip);
             }
 
-            return repoDataChanged;
+            if (repoUrl != updatedRepoUrl)
+            {
+                repoUrl = updatedRepoUrl;
+                if (updatedRepoRemote != null)
+                {
+                    repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, updatedRepoRemote));
+                }
+                else
+                {
+                    repoUrlContent = new GUIContent(repoUrl, Window_RepoNoUrlTooltip);
+                }
+            }
         }
 
         private void AttachHandlers(IRepository repository)
