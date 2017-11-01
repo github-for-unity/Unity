@@ -25,8 +25,6 @@ namespace GitHub.Unity
         private const string WarningCheckoutBranchExistsOK = "Ok";
         private const string NewBranchCancelButton = "x";
         private const string NewBranchConfirmButton = "Create";
-        private const string FavoritesSetting = "Favorites";
-        private const string FavoritesTitle = "Favorites";
         private const string CreateBranchTitle = "Create Branch";
         private const string LocalTitle = "Local branches";
         private const string RemoteTitle = "Remote branches";
@@ -38,7 +36,6 @@ namespace GitHub.Unity
 
         [NonSerialized] private int listID = -1;
         [NonSerialized] private BranchesMode targetMode;
-        [NonSerialized] private bool favoritesHasChanged;
         [NonSerialized] private List<string> favoritesList;
 
         [SerializeField] private Tree treeLocals = new Tree();
@@ -61,10 +58,6 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             AttachHandlers(Repository);
-            if (!Application.isPlaying)
-            {
-                favoritesHasChanged = true;
-            }
         }
 
         public override void OnDisable()
@@ -87,11 +80,6 @@ namespace GitHub.Unity
                 BuildTree(BranchCache.Instance.LocalBranches, BranchCache.Instance.RemoteBranches);
             }
 
-            if (favoritesHasChanged)
-            {
-                favoritesList = Manager.LocalSettings.Get(FavoritesSetting, new List<string>());
-                favoritesHasChanged = false;
-            }
 
             disableDelete = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.IsActive;
         }
@@ -168,7 +156,7 @@ namespace GitHub.Unity
                 }
                 GUILayout.EndHorizontal();
 
-                var rect = GUILayoutUtility.GetLastRect();
+                        GUILayout.Label(FavoritesTitle);
                 OnTreeGUI(new Rect(0f, rect.height + Styles.CommitAreaPadding, Position.width, Position.height - rect.height + Styles.CommitAreaPadding));
             }
             GUILayout.EndScrollView();

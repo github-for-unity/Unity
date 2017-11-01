@@ -123,56 +123,6 @@ namespace GitHub.Unity
         }
     }
 
-    [Location("views/branches.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class Favorites : ScriptObjectSingleton<Favorites>
-    {
-        [SerializeField] private List<string> favoriteBranches;
-        public List<string> FavoriteBranches
-        {
-            get
-            {
-                if (favoriteBranches == null)
-                    FavoriteBranches = new List<string>();
-                return favoriteBranches;
-            }
-            set
-            {
-                favoriteBranches = value;
-                Save(true);
-            }
-        }
-
-        public void SetFavorite(string branchName)
-        {
-            if (FavoriteBranches.Contains(branchName))
-                return;
-            FavoriteBranches.Add(branchName);
-            Save(true);
-        }
-
-        public void UnsetFavorite(string branchName)
-        {
-            if (!FavoriteBranches.Contains(branchName))
-                return;
-            FavoriteBranches.Remove(branchName);
-            Save(true);
-        }
-
-        public void ToggleFavorite(string branchName)
-        {
-            if (FavoriteBranches.Contains(branchName))
-                FavoriteBranches.Remove(branchName);
-            else
-                FavoriteBranches.Add(branchName);
-            Save(true);
-        }
-
-        public bool IsFavorite(string branchName)
-        {
-            return FavoriteBranches.Contains(branchName);
-        }
-    }
-
     [Location("cache/gitlog.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitLogCache : ScriptObjectSingleton<GitLogCache>
     {
