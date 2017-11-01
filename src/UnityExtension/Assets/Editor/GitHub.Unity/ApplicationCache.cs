@@ -197,8 +197,28 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    class RemoteConfigBranchDictionary : SerializableNestedDictionary<string, ConfigBranch>, IRemoteConfigBranchDictionary
+    public class ArrayContainer<T>
     {
+        [SerializeField] public T[] Values = new T[0];
+    }
+
+    [Serializable]
+    public class StringArrayContainer: ArrayContainer<string>
+    {
+    }
+
+    [Serializable]
+    public class ConfigBranchArrayContainer : ArrayContainer<ConfigBranch>
+    {
+    }
+
+    [Serializable]
+    class RemoteConfigBranchDictionary : Dictionary<string, Dictionary<string, ConfigBranch>>, ISerializationCallbackReceiver, IRemoteConfigBranchDictionary
+    {
+        [SerializeField] private string[] keys = new string[0];
+        [SerializeField] private StringArrayContainer[] subKeys = new StringArrayContainer[0];
+        [SerializeField] private ConfigBranchArrayContainer[] subKeyValues = new ConfigBranchArrayContainer[0];
+
         public RemoteConfigBranchDictionary()
         { }
 
@@ -207,6 +227,72 @@ namespace GitHub.Unity
             foreach (var pair in dictionary)
             {
                 Add(pair.Key, pair.Value.ToDictionary(valuePair => valuePair.Key, valuePair => valuePair.Value));
+            }
+        }        
+        
+        // save the dictionary to lists
+        public void OnBeforeSerialize()
+        {
+            var keyList = new List<string>();
+            var subKeysList = new List<StringArrayContainer>();
+            var subKeysValuesList = new List<ConfigBranchArrayContainer>();
+
+            foreach (var pair in this)
+            {
+                var pairKey = pair.Key;
+                keyList.Add(pairKey);
+
+                var serializeSubKeys = new List<string>();
+                var serializeSubKeyValues = new List<ConfigBranch>();
+
+                var subDictionary = pair.Value;
+                foreach (var subPair in subDictionary)
+                {
+                    serializeSubKeys.Add(subPair.Key);
+                    serializeSubKeyValues.Add(subPair.Value);
+                }
+
+                subKeysList.Add(new StringArrayContainer { Values = serializeSubKeys.ToArray() });
+                subKeysValuesList.Add(new ConfigBranchArrayContainer { Values = serializeSubKeyValues.ToArray() });
+            }
+
+            keys = keyList.ToArray();
+            subKeys = subKeysList.ToArray();
+            subKeyValues = subKeysValuesList.ToArray();
+        }
+
+        // load dictionary from lists
+        public void OnAfterDeserialize()
+        {
+            Clear();
+
+            if (keys.Length != subKeys.Length || subKeys.Length != subKeyValues.Length)
+            {
+                throw new Exception("Deserialization length mismatch");
+            }
+
+            for (var remoteIndex = 0; remoteIndex < keys.Length; remoteIndex++)
+            {
+                var remote = keys[remoteIndex];
+
+                var subKeyContainer = subKeys[remoteIndex];
+                var subKeyValueContainer = subKeyValues[remoteIndex];
+
+                if (subKeyContainer.Values.Length != subKeyValueContainer.Values.Length)
+                {
+                    throw new Exception("Deserialization length mismatch");
+                }
+
+                var branchesDictionary = new Dictionary<string, ConfigBranch>();
+                for (var branchIndex = 0; branchIndex < subKeyContainer.Values.Length; branchIndex++)
+                {
+                    var remoteBranchKey = subKeyContainer.Values[branchIndex];
+                    var remoteBranch = subKeyValueContainer.Values[branchIndex];
+
+                    branchesDictionary.Add(remoteBranchKey, remoteBranch);
+                }
+
+                Add(remote, branchesDictionary);
             }
         }
 
@@ -613,20 +699,7 @@ namespace GitHub.Unity
             var now = DateTimeOffset.Now;
             configRemotes = new ConfigRemoteDictionary(remoteDictionary);
             remoteConfigBranches = new RemoteConfigBranchDictionary(branchDictionary);
-
             Logger.Trace("SetRemotes {0}", now);
-
-            Logger.Trace("remoteDictionary.Length: {0}", remoteDictionary.Count);
-            Logger.Trace("branchDictionary.Length: {0}", branchDictionary.Count);
-
-            foreach (var remotePair in remoteConfigBranches)
-            {
-                foreach (var remotePairBranch in remotePair.Value)
-                {
-                    Logger.Trace("remoteConfigBranches Remote:{0} Branch:{1} BranchObject:{2}", remotePair.Key, remotePairBranch.Key, remotePairBranch.Value);
-                }
-            }
-
             SaveData(now, true);
         }
 
