@@ -91,7 +91,6 @@ namespace IntegrationTests
 
             var testDocumentTxt = TestRepoMasterCleanSynchronized.Combine("Assets", "TestDocument.txt");
             testDocumentTxt.WriteAllText("foobar");
-
             await TaskManager.Wait();
             RepositoryManager.WaitForEvents();
             WaitForNotBusy(repositoryManagerEvents, 1);
@@ -135,8 +134,7 @@ namespace IntegrationTests
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
             repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
 
-            var expectedAfterChanges = new GitStatus
-            {
+            var expectedAfterChanges = new GitStatus {
                 Behind = 1,
                 LocalBranch = "master",
                 RemoteBranch = "origin/master",
@@ -200,8 +198,7 @@ namespace IntegrationTests
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
             repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
 
-            var expected = new GitStatus
-            {
+            var expected = new GitStatus {
                 LocalBranch = "feature/document",
                 RemoteBranch = "origin/feature/document",
                 Entries = new List<GitStatusEntry>()
@@ -459,8 +456,7 @@ namespace IntegrationTests
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
             repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
 
-            var expected = new GitStatus
-            {
+            var expected = new GitStatus {
                 LocalBranch = "master",
                 RemoteBranch = "origin/master",
                 Entries = new List<GitStatusEntry>()

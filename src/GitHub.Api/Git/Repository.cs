@@ -111,7 +111,7 @@ namespace GitHub.Unity
         {
             return repositoryManager.Fetch(CurrentRemote.Value.Name);
         }
-
+        
         public ITask Revert(string changeset)
         {
             return repositoryManager.Revert(changeset);
@@ -136,7 +136,6 @@ namespace GitHub.Unity
 
         public ITask DiscardChanges(List<string> files)
         {
-
             return repositoryManager.CheckoutFiles(files);
         }
 
