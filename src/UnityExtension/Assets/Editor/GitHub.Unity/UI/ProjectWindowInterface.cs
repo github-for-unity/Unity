@@ -15,7 +15,6 @@ namespace GitHub.Unity
 
         private static readonly List<string> guids = new List<string>();
         private static readonly List<string> guidsLocks = new List<string>();
-        private static bool initialized = false;
         private static IRepository repository;
         private static bool isBusy = false;
         private static ILogging logger;
@@ -30,7 +29,6 @@ namespace GitHub.Unity
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
 
-            initialized = true;
             repository = repo;
 
             if (repository != null)
