@@ -17,7 +17,7 @@ namespace GitHub.Unity
         private const string OneChangedFileLabel = "1 changed file";
         private const string NoChangedFilesLabel = "No changed files";
 
-        [NonSerialized] private bool isBusy = true;
+        [NonSerialized] private bool isBusy;
 
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
@@ -25,52 +25,95 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 horizontalScroll;
         [SerializeField] private ChangesetTreeView tree = new ChangesetTreeView();
 
+        [SerializeField] private CacheUpdateEvent branchUpdateEvent;
+        [NonSerialized] private bool branchCacheHasUpdate;
+
+        [SerializeField] private CacheUpdateEvent gitStatusUpdateEvent;
+        [NonSerialized] private bool gitStatusCacheHasUpdate;
+
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
             tree.InitializeView(this);
         }
 
+        private void Repository_GitStatusCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        {
+            new ActionTask(TaskManager.Token, () => {
+                    gitStatusUpdateEvent = cacheUpdateEvent;
+                    gitStatusCacheHasUpdate = true;
+                    Redraw();
+                })
+                { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        {
+            new ActionTask(TaskManager.Token, () => {
+                    branchUpdateEvent = cacheUpdateEvent;
+                    branchCacheHasUpdate = true;
+                    Redraw();
+                })
+                { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private void AttachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+
+            repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
+            repository.GitStatusCacheUpdated += Repository_GitStatusCacheUpdated;
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+
+            repository.BranchCacheUpdated -= Repository_BranchCacheUpdated;
+            repository.GitStatusCacheUpdated -= Repository_GitStatusCacheUpdated;
+        }
+
         public override void OnEnable()
         {
             base.OnEnable();
-            if (Repository == null)
-                return;
+            AttachHandlers(Repository);
 
-            OnStatusUpdate(Repository.CurrentStatus);
-            Repository.OnStatusChanged += RunStatusUpdateOnMainThread;
-            Repository.Refresh();
+            if (Repository != null)
+            {
+                Repository.CheckBranchCacheEvent(branchUpdateEvent);
+                Repository.CheckGitStatusCacheEvent(gitStatusUpdateEvent);
+            }
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
-            if (Repository == null)
-                return;
-            Repository.OnStatusChanged -= RunStatusUpdateOnMainThread;
+            DetachHandlers(Repository);
         }
 
-        private void RunStatusUpdateOnMainThread(GitStatus status)
+        public override void OnDataUpdate()
         {
-            new ActionTask(TaskManager.Token, _ => OnStatusUpdate(status))
-                .ScheduleUI(TaskManager);
+            base.OnDataUpdate();
+
+            MaybeUpdateData();
         }
 
-        private void OnStatusUpdate(GitStatus update)
+        private void MaybeUpdateData()
         {
-            if (update.Entries == null)
+            if (branchCacheHasUpdate)
             {
-                //Refresh();
-                return;
+                branchCacheHasUpdate = false;
+                currentBranch = string.Format("[{0}]", Repository.CurrentBranchName);
             }
 
-            // Set branch state
-            currentBranch = update.LocalBranch;
-
-            // (Re)build tree
-            tree.UpdateEntries(update.Entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
-
-            isBusy = false;
+            if (gitStatusCacheHasUpdate)
+            {
+                gitStatusCacheHasUpdate = false;
+                var gitStatus = Repository.CurrentStatus;
+                tree.UpdateEntries(gitStatus.Entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
+            }
         }
 
         public override void OnGUI()

@@ -46,7 +46,11 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private bool disableDelete;
 
-        [NonSerialized] private bool branchesHasChanged;
+        [SerializeField] private CacheUpdateEvent branchUpdateEvent;
+        [NonSerialized] private bool branchCacheHasUpdate;
+
+        [SerializeField] private GitBranch[] localBranches;
+        [SerializeField] private GitBranch[] remoteBranches;
 
         public override void InitializeView(IView parent)
         {
@@ -54,10 +58,24 @@ namespace GitHub.Unity
             targetMode = mode;
         }
 
+        private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        {
+            new ActionTask(TaskManager.Token, () => {
+                    branchUpdateEvent = cacheUpdateEvent;
+                    branchCacheHasUpdate = true;
+                    Redraw();
+                })
+                { Affinity = TaskAffinity.UI }.Start();
+        }
+
         public override void OnEnable()
         {
             base.OnEnable();
             AttachHandlers(Repository);
+            if (Repository != null)
+            {
+                Repository.CheckBranchCacheEvent(branchUpdateEvent);
+            }
         }
 
         public override void OnDisable()
@@ -74,22 +92,19 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (!treeLocals.IsInitialized || branchesHasChanged)
+            if (!treeLocals.IsInitialized || branchCacheHasUpdate)
             {
-                branchesHasChanged = false;
-                BuildTree(BranchCache.Instance.LocalBranches, BranchCache.Instance.RemoteBranches);
+                branchCacheHasUpdate = false;
+
+                localBranches = Repository.LocalBranches.ToArray();
+                remoteBranches = Repository.RemoteBranches.ToArray();
+
+
+                BuildTree(localBranches, remoteBranches);
             }
 
-
             disableDelete = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.IsActive;
-        }
-
-
-        public override void OnRepositoryChanged(IRepository oldRepository)
-        {
-            base.OnRepositoryChanged(oldRepository);
-            DetachHandlers(oldRepository);
-            AttachHandlers(Repository);
+        
         }
 
         public override void Refresh()
@@ -108,40 +123,15 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.OnLocalBranchListChanged += HandleDataUpdated;
-            repository.OnCurrentBranchChanged += HandleDataUpdated;
-            repository.OnCurrentRemoteChanged += HandleDataUpdated;
+            repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
         }
 
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnLocalBranchListChanged -= HandleDataUpdated;
-            repository.OnCurrentBranchChanged -= HandleDataUpdated;
-            repository.OnCurrentRemoteChanged -= HandleDataUpdated;
-        }
 
-        private void HandleDataUpdated()
-        {
-            new ActionTask(TaskManager.Token, () => {
-                branchesHasChanged = true;
-                Redraw();
-            }) { Affinity = TaskAffinity.UI }.Start();
-        }
-
-        private void HandleDataUpdated(string obj)
-        {
-            HandleDataUpdated();
-        }
-
-        private void RefreshBranchList()
-        {
-            var localBranches = BranchCache.Instance.LocalBranches;
-            localBranches.Sort(CompareBranches);
-            var remoteBranches = BranchCache.Instance.RemoteBranches;
-            remoteBranches.Sort(CompareBranches);
-            BuildTree(localBranches, remoteBranches);
+            repository.BranchCacheUpdated -= Repository_BranchCacheUpdated;
         }
 
         private void Render()

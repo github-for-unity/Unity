@@ -9,18 +9,21 @@ namespace GitHub.Unity
     public interface IRepository : IEquatable<IRepository>
     {
         void Initialize(IRepositoryManager repositoryManager);
-        void Refresh();
         ITask CommitAllFiles(string message, string body);
         ITask CommitFiles(List<string> files, string message, string body);
         ITask SetupRemote(string remoteName, string remoteUrl);
-        ITask<List<GitLogEntry>> Log();
         ITask Pull();
         ITask Push();
         ITask Fetch();
         ITask Revert(string changeset);
-        ITask ListLocks();
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
+
+        void CheckRepositoryInfoCacheEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckBranchCacheEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckGitStatusCacheEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckGitLogCacheEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckGitLocksCacheEvent(CacheUpdateEvent cacheUpdateEvent);
 
         /// <summary>
         /// Gets the name of the repository.
@@ -51,20 +54,18 @@ namespace GitHub.Unity
         /// </summary>
         GitBranch? CurrentBranch { get; }
         GitStatus CurrentStatus { get; }
-        IList<GitRemote> Remotes { get; }
-        IEnumerable<GitBranch> LocalBranches { get; }
-        IEnumerable<GitBranch> RemoteBranches { get; }
+        GitRemote[] Remotes { get; }
+        GitBranch[] LocalBranches { get; }
+        GitBranch[] RemoteBranches { get; }
         IUser User { get; set; }
-        IList<GitLock> CurrentLocks { get; }
+        List<GitLock> CurrentLocks { get; }
         string CurrentBranchName { get; }
+        List<GitLogEntry> CurrentLog { get; }
 
-        event Action<GitStatus> OnStatusChanged;
-        event Action<string> OnCurrentBranchChanged;
-        event Action<string> OnCurrentRemoteChanged;
-        event Action OnLocalBranchListChanged;
-        event Action OnCurrentBranchUpdated;
-        event Action<IEnumerable<GitLock>> OnLocksChanged;
-        event Action OnRepositoryInfoChanged;
-        event Action OnRemoteBranchListChanged;
+        event Action<CacheUpdateEvent> GitStatusCacheUpdated;
+        event Action<CacheUpdateEvent> GitLogCacheUpdated;
+        event Action<CacheUpdateEvent> GitLockCacheUpdated;
+        event Action<CacheUpdateEvent> BranchCacheUpdated;
+        event Action<CacheUpdateEvent> RepositoryInfoCacheUpdated;
     }
 }

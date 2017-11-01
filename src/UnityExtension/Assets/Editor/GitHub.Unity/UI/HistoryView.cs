@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
@@ -38,7 +37,6 @@ namespace GitHub.Unity
         [NonSerialized] private float scrollOffset;
         [NonSerialized] private DateTimeOffset scrollTime = DateTimeOffset.Now;
         [NonSerialized] private int selectionIndex;
-        [NonSerialized] private bool logHasChanged;
         [NonSerialized] private bool useScrollTime;
 
         [SerializeField] private Vector2 detailsScroll;
@@ -49,8 +47,18 @@ namespace GitHub.Unity
 
         [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
         [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
-        [SerializeField] private string currentRemote;
-        [SerializeField] private bool isPublished;
+        [SerializeField] private string currentRemoteName;
+        [SerializeField] private bool hasRemote;
+        [SerializeField] private bool hasItemsToCommit;
+
+        [SerializeField] private CacheUpdateEvent branchUpdateEvent;
+        [NonSerialized] private bool branchCacheHasUpdate;
+
+        [SerializeField] private CacheUpdateEvent gitStatusUpdateEvent;
+        [NonSerialized] private bool gitStatusCacheHasUpdate;
+
+        [SerializeField] private CacheUpdateEvent gitLogCacheUpdateEvent;
+        [NonSerialized] private bool gitLogCacheHasUpdate;
 
         public override void InitializeView(IView parent)
         {
@@ -66,7 +74,13 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             AttachHandlers(Repository);
-            CheckLogCache();
+
+            if (Repository != null)
+            {
+                Repository.CheckGitLogCacheEvent(gitLogCacheUpdateEvent);
+                Repository.CheckGitStatusCacheEvent(gitStatusUpdateEvent);
+                Repository.CheckBranchCacheEvent(branchUpdateEvent);
+            }
         }
 
         public override void OnDisable()
@@ -81,84 +95,91 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        public override void OnRepositoryChanged(IRepository oldRepository)
-        {
-            base.OnRepositoryChanged(oldRepository);
-
-            DetachHandlers(oldRepository);
-            AttachHandlers(Repository);
-        }
-
-        public override void OnSelectionChange()
-        {
-
-        }
-
         public override void OnGUI()
         {
             OnEmbeddedGUI();
         }
 
-        public void CheckLogCache()
+        private void Repository_GitStatusCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
-            string firstItemCommitID = null;
-            if (history.Any())
-            {
-                firstItemCommitID = history.First().CommitID;
-            }
+            new ActionTask(TaskManager.Token, () => {
+                    gitStatusUpdateEvent = cacheUpdateEvent;
+                    gitStatusCacheHasUpdate = true;
+                    Redraw();
+                })
+                { Affinity = TaskAffinity.UI }.Start();
+        }
 
-            var cachedList = GitLogCache.Instance.Log;
+        private void Repository_GitLogCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        {
+            new ActionTask(TaskManager.Token, () => {
+                    gitLogCacheUpdateEvent = cacheUpdateEvent;
+                    gitLogCacheHasUpdate = true;
+                    Redraw();
+                })
+                { Affinity = TaskAffinity.UI }.Start();
+        }
 
-            string firstCachedItemCommitID = null;
-            if (cachedList.Any())
-            {
-                firstCachedItemCommitID = cachedList.First().CommitID;
-            }
-
-            if (firstItemCommitID != firstCachedItemCommitID)
-            {
-                Logger.Trace("CommitID {0} != Cached CommitId {1}", firstItemCommitID ?? "[NULL]", firstCachedItemCommitID ?? "[NULL]");
-                logHasChanged = true;
-                Redraw();
-            }
+        private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        {
+            new ActionTask(TaskManager.Token, () => {
+                    branchUpdateEvent = cacheUpdateEvent;
+                    branchCacheHasUpdate = true;
+                    Redraw();
+                })
+                { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void AttachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnStatusChanged += UpdateStatusOnMainThread;
+
+            repository.GitStatusCacheUpdated += Repository_GitStatusCacheUpdated;
+            repository.GitLogCacheUpdated += Repository_GitLogCacheUpdated;
+            repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
         }
 
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnStatusChanged -= UpdateStatusOnMainThread;
-        }
 
-        private void UpdateStatusOnMainThread(GitStatus status)
-        {
-            new ActionTask(TaskManager.Token, _ => UpdateStatus(status))
-                .ScheduleUI(TaskManager);
-        }
-
-        private void UpdateStatus(GitStatus status)
-        {
-            statusAhead = status.Ahead;
-            statusBehind = status.Behind;
+            repository.GitStatusCacheUpdated -= Repository_GitStatusCacheUpdated;
+            repository.GitLogCacheUpdated -= Repository_GitLogCacheUpdated;
+            repository.BranchCacheUpdated -= Repository_BranchCacheUpdated;
         }
 
         private void MaybeUpdateData()
         {
-            isPublished = Repository != null && Repository.CurrentRemote.HasValue;
-            currentRemote = isPublished ? Repository.CurrentRemote.Value.Name : "placeholder";
+            if (Repository == null)
+                return;
 
-            if (logHasChanged)
+            if (branchCacheHasUpdate)
             {
-                logHasChanged = false;
+                branchCacheHasUpdate = false;
 
-                history = GitLogCache.Instance.Log;
+                var currentRemote = Repository.CurrentRemote;
+                hasRemote = currentRemote.HasValue;
+                currentRemoteName = hasRemote ? currentRemote.Value.Name : "placeholder";
+            }
+
+            if (gitStatusCacheHasUpdate)
+            {
+                gitStatusCacheHasUpdate = false;
+
+                var currentStatus = Repository.CurrentStatus;
+                statusAhead = currentStatus.Ahead;
+                statusBehind = currentStatus.Behind;
+                hasItemsToCommit = currentStatus.Entries != null &&
+                    currentStatus.GetEntriesExcludingIgnoredAndUntracked().Any();
+            }
+
+            if (gitLogCacheHasUpdate)
+            {
+                gitLogCacheHasUpdate = false;
+
+                history = Repository.CurrentLog;
 
                 if (history.Any())
                 {
@@ -206,9 +227,9 @@ namespace GitHub.Unity
             {
                 GUILayout.FlexibleSpace();
 
-                if (isPublished)
+                if (hasRemote)
                 {
-                    EditorGUI.BeginDisabledGroup(currentRemote == null);
+                    EditorGUI.BeginDisabledGroup(currentRemoteName == null);
                     {
                         // Fetch button
                         var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
@@ -223,7 +244,7 @@ namespace GitHub.Unity
 
                         if (pullClicked &&
                             EditorUtility.DisplayDialog(PullConfirmTitle,
-                                String.Format(PullConfirmDescription, currentRemote),
+                                String.Format(PullConfirmDescription, currentRemoteName),
                                 PullConfirmYes,
                                 PullConfirmCancel)
                         )
@@ -234,14 +255,14 @@ namespace GitHub.Unity
                     EditorGUI.EndDisabledGroup();
 
                     // Push button
-                    EditorGUI.BeginDisabledGroup(currentRemote == null || statusBehind != 0);
+                    EditorGUI.BeginDisabledGroup(currentRemoteName == null || statusBehind != 0);
                     {
                         var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
                         var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
 
                         if (pushClicked &&
                             EditorUtility.DisplayDialog(PushConfirmTitle,
-                                String.Format(PushConfirmDescription, currentRemote),
+                                String.Format(PushConfirmDescription, currentRemoteName),
                                 PushConfirmYes,
                                 PushConfirmCancel)
                         )
@@ -275,7 +296,7 @@ namespace GitHub.Unity
                 // Only update time scroll
                 var lastScroll = scroll;
                 scroll = GUILayout.BeginScrollView(scroll);
-                if (lastScroll != scroll && !logHasChanged)
+                if (lastScroll != scroll && !gitLogCacheHasUpdate)
                 {
                     scrollTime = history[historyStartIndex].Time;
                     scrollOffset = scroll.y - historyStartIndex * EntryHeight;
@@ -381,7 +402,7 @@ namespace GitHub.Unity
             if (Event.current.type == EventType.Repaint)
             {
                 CullHistory();
-                logHasChanged = false;
+                gitLogCacheHasUpdate = false;
 
                 if (newSelectionIndex >= 0 || newSelectionIndex == -2)
                 {
@@ -542,14 +563,12 @@ namespace GitHub.Unity
 
         private void Pull()
         {
-            var status = Repository.CurrentStatus;
-            if (status.Entries != null && status.GetEntriesExcludingIgnoredAndUntracked().Any())
+            if (hasItemsToCommit)
             {
                 EditorUtility.DisplayDialog("Pull", "You need to commit your changes before pulling.", "Cancel");
             }
             else
             {
-                var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
                 Repository
                     .Pull()
                     // we need the error propagated from the original git command to handle things appropriately
@@ -565,7 +584,7 @@ namespace GitHub.Unity
                         if (success)
                         {
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
-                                String.Format(Localization.PullSuccessDescription, remote),
+                                String.Format(Localization.PullSuccessDescription, currentRemoteName),
                             Localization.Ok);
                         }
                         else
@@ -581,14 +600,13 @@ namespace GitHub.Unity
 
         private void Push()
         {
-            var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
             Repository
                 .Push()
                 .FinallyInUI((success, e) => {
                     if (success)
                     {
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
-                            String.Format(Localization.PushSuccessDescription, remote),
+                            String.Format(Localization.PushSuccessDescription, currentRemoteName),
                         Localization.Ok);
                     }
                     else

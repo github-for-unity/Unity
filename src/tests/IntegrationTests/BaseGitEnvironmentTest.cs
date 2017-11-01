@@ -31,7 +31,9 @@ namespace IntegrationTests
             RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
             RepositoryManager.Initialize();
 
-            Environment.Repository = new Repository("TestRepo", repoPath);
+            //TODO: Mock CacheContainer
+            ICacheContainer cacheContainer = null;
+            Environment.Repository = new Repository(repoPath, cacheContainer);
             Environment.Repository.Initialize(RepositoryManager);
 
             RepositoryManager.Start();

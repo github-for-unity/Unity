@@ -325,7 +325,12 @@ namespace TestUtils
                 var user = (string)info[1];
                 var id = (int)info[2];
 
-                return new GitLock(path, gitRepoPath + @"\" + path, user, id);
+                return new GitLock {
+                    Path = path,
+                    FullPath = gitRepoPath + @"\" + path,
+                    User = user,
+                    ID = id
+                };
             });
 
             return gitObjectFactory;
@@ -411,13 +416,12 @@ namespace TestUtils
                 });
 
             gitClient.Status().Returns(info => {
-                GitStatus? result = options.GitStatusResults;
-
-                var ret = new FuncTask<GitStatus?>(CancellationToken.None, _ => result);
+                var result = options.GitStatusResults;
+                var ret = new FuncTask<GitStatus>(CancellationToken.None, _ => result);
 
                 logger.Trace(@"RunGitStatus() -> {0}",
-                    result != null ? $"Success: \"{result.Value}\"" : "Failure");
-                var task = Args.GitStatusTask;
+                    $"Success: \"{result}\"");
+                
                 return ret;
             });
 

@@ -15,7 +15,7 @@ namespace GitHub.Unity
 
         ITask LfsInstall(IOutputProcessor<string> processor = null);
 
-        ITask<GitStatus?> Status(IOutputProcessor<GitStatus?> processor = null);
+        ITask<GitStatus> Status(IOutputProcessor<GitStatus> processor = null);
 
         ITask<string> GetConfig(string key, GitConfigSource configSource,
             IOutputProcessor<string> processor = null);
@@ -207,7 +207,7 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<GitStatus?> Status(IOutputProcessor<GitStatus?> processor = null)
+        public ITask<GitStatus> Status(IOutputProcessor<GitStatus> processor = null)
         {
             Logger.Trace("Status");
 
