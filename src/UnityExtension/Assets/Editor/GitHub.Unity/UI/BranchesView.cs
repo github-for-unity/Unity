@@ -49,8 +49,8 @@ namespace GitHub.Unity
         [SerializeField] private CacheUpdateEvent branchUpdateEvent;
         [NonSerialized] private bool branchCacheHasUpdate;
 
-        [SerializeField] private GitBranch[] localBranches;
-        [SerializeField] private GitBranch[] remoteBranches;
+        [SerializeField] private List<GitBranch> localBranches;
+        [SerializeField] private List<GitBranch> remoteBranches;
 
         public override void InitializeView(IView parent)
         {
@@ -96,21 +96,14 @@ namespace GitHub.Unity
             {
                 branchCacheHasUpdate = false;
 
-                localBranches = Repository.LocalBranches.ToArray();
-                remoteBranches = Repository.RemoteBranches.ToArray();
+                localBranches = Repository.LocalBranches.ToList();
+                remoteBranches = Repository.RemoteBranches.ToList();
 
 
                 BuildTree(localBranches, remoteBranches);
             }
 
             disableDelete = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.IsActive;
-        
-        }
-
-        public override void Refresh()
-        {
-            base.Refresh();
-            RefreshBranchList();
         }
 
         public override void OnGUI()
@@ -168,8 +161,8 @@ namespace GitHub.Unity
             treeRemotes.RootFolderIcon = Styles.RootFolderIcon;
             treeRemotes.FolderIcon = Styles.FolderIcon;
 
-            treeLocals.Load(localBranches.Cast<ITreeData>(), LocalTitle);
-            treeRemotes.Load(remoteBranches.Cast<ITreeData>(), RemoteTitle);
+            treeLocals.Load(localBranches, LocalTitle);
+            treeRemotes.Load(remoteBranches, RemoteTitle);
             Redraw();
         }
 
@@ -287,9 +280,6 @@ namespace GitHub.Unity
 
         private void OnTreeGUI(Rect rect)
         {
-            if (!treeLocals.IsInitialized)
-                RefreshBranchList();
-
             if (treeLocals.FolderStyle == null)
             {
                 treeLocals.FolderStyle = Styles.Foldout;
@@ -501,7 +491,7 @@ namespace GitHub.Unity
                 }
             }
 
-            public void Load(IEnumerable<ITreeData> data, string title)
+            public void Load(IEnumerable<GitBranch> data, string title)
             {
                 foldersKeys.Clear();
                 Folders.Clear();
