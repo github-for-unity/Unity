@@ -249,8 +249,7 @@ namespace GitHub.Unity
             HookupHandlers(task);
             if (!platform.Environment.IsWindows)
             {
-                task.Then(_ =>
-                {
+                task.Then(_ => {
                     RefreshConfigData(true);
                 });
             }
@@ -263,8 +262,7 @@ namespace GitHub.Unity
             HookupHandlers(task);
             if (!platform.Environment.IsWindows)
             {
-                task.Then(_ =>
-                {
+                task.Then(_ => {
                     RefreshConfigData(true);
                 });
             }
@@ -315,7 +313,7 @@ namespace GitHub.Unity
         {
             var task = GitClient.Lock(file);
             HookupHandlers(task);
-
+            
             return task.Then(ListLocks(false));
         }
 
@@ -366,8 +364,7 @@ namespace GitHub.Unity
 
         private ITask HookupHandlers(ITask task, bool disableWatcher = false)
         {
-            task.OnStart += t =>
-            {
+            task.OnStart += t => {
                 Logger.Trace("Start " + task.Name);
                 IsBusy = true;
 
@@ -377,8 +374,7 @@ namespace GitHub.Unity
                 }
             };
 
-            task.OnEnd += t =>
-            {
+            task.OnEnd += t => {
                 if (disableWatcher)
                 {
                     watcher.Start();
@@ -439,7 +435,7 @@ namespace GitHub.Unity
         }
 
         private void Watcher_OnIndexChanged()
-        { }
+        {}
 
         private void Watcher_OnLocalBranchCreated(string name)
         {
