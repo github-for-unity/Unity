@@ -187,7 +187,6 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            string updatedRepoBranch = null;
             string updatedRepoRemote = null;
             string updatedRepoUrl = DefaultRepoUrl;
 
@@ -200,15 +199,16 @@ namespace GitHub.Unity
                     hasRunMaybeUpdateDataWithRepository = true;
 
                     var repositoryCurrentBranch = Repository.CurrentBranch;
-                    updatedRepoBranch = repositoryCurrentBranch.HasValue ? repositoryCurrentBranch.Value.Name : null;
-
-                    var repositoryCloneUrl = Repository.CloneUrl;
-                    updatedRepoUrl = repositoryCloneUrl != null ? repositoryCloneUrl.ToString() : DefaultRepoUrl;
+                    var updatedRepoBranch = repositoryCurrentBranch.HasValue ? repositoryCurrentBranch.Value.Name : null;
 
                     var repositoryCurrentRemote = Repository.CurrentRemote;
                     if (repositoryCurrentRemote.HasValue)
                     {
                         updatedRepoRemote = repositoryCurrentRemote.Value.Name;
+                        if (repositoryCurrentRemote.Value.Url != null)
+                        {
+                            updatedRepoUrl = repositoryCurrentRemote.Value.Url;
+                        }
                     }
 
                     if (repoRemote != updatedRepoRemote)
