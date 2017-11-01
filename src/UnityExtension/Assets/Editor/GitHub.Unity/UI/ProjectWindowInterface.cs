@@ -45,20 +45,28 @@ namespace GitHub.Unity
 
         private static void Repository_GitStatusCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
-            new ActionTask(CancellationToken.None, () => {
+            if (!gitStatusUpdateEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(CancellationToken.None, () =>
+                {
                     gitStatusUpdateEvent = cacheUpdateEvent;
                     OnStatusUpdate(repository.CurrentStatus);
                 })
                 { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
         private static void Repository_GitLockCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
-            new ActionTask(CancellationToken.None, () => {
-                    gitLocksUpdateEvent = cacheUpdateEvent;
+            if (!gitStatusUpdateEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(CancellationToken.None, () =>
+                {
+                    gitStatusUpdateEvent = cacheUpdateEvent;
                     OnLocksUpdate(repository.CurrentLocks);
                 })
                 { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
         [MenuItem("Assets/Request Lock", true)]

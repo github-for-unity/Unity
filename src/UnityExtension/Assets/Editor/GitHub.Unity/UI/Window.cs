@@ -275,11 +275,16 @@ namespace GitHub.Unity
 
         private void Repository_RepositoryInfoCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
-            new ActionTask(TaskManager.Token, () => {
-                repositoryInfoUpdateEvent = cacheUpdateEvent;
-                repositoryInfoCacheHasUpdate = true;
-                Redraw();
-            }) { Affinity = TaskAffinity.UI }.Start();
+            if (!repositoryInfoUpdateEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () =>
+                {
+                    repositoryInfoUpdateEvent = cacheUpdateEvent;
+                    repositoryInfoCacheHasUpdate = true;
+                    Redraw();
+                })
+                { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
         private void DetachHandlers(IRepository repository)

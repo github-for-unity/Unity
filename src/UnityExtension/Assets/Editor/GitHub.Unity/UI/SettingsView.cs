@@ -109,22 +109,30 @@ namespace GitHub.Unity
 
         private void Repository_GitLockCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
-            new ActionTask(TaskManager.Token, () => {
+            if (!gitLocksUpdateEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () =>
+                {
                     gitLocksUpdateEvent = cacheUpdateEvent;
                     gitLocksCacheHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
         private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
-            new ActionTask(TaskManager.Token, () => {
+            if (!branchUpdateEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () =>
+                {
                     branchUpdateEvent = cacheUpdateEvent;
                     branchCacheHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
         private void DetachHandlers(IRepository repository)
