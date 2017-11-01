@@ -197,7 +197,7 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    class RemoteConfigBranchDictionary : SerializableDictionary<string, SerializableDictionary<string, ConfigBranch>>, IRemoteConfigBranchDictionary
+    class RemoteConfigBranchDictionary : SerializableNestedDictionary<string, ConfigBranch>, IRemoteConfigBranchDictionary
     {
         public RemoteConfigBranchDictionary()
         { }
@@ -206,7 +206,7 @@ namespace GitHub.Unity
         {
             foreach (var pair in dictionary)
             {
-                this.Add(pair.Key, new LocalConfigBranchDictionary(pair.Value));
+                Add(pair.Key, pair.Value.ToDictionary(valuePair => valuePair.Key, valuePair => valuePair.Value));
             }
         }
 
@@ -262,7 +262,7 @@ namespace GitHub.Unity
         {
             value = null;
                                     
-            SerializableDictionary<string, ConfigBranch> branches;
+            Dictionary<string, ConfigBranch> branches;
             if (TryGetValue(key, out branches))
             {
                 value = branches;
@@ -610,13 +610,21 @@ namespace GitHub.Unity
 
         public void SetRemotes(IDictionary<string, ConfigRemote> remoteDictionary, IDictionary<string, IDictionary<string, ConfigBranch>> branchDictionary)
         {
+            var now = DateTimeOffset.Now;
             configRemotes = new ConfigRemoteDictionary(remoteDictionary);
             remoteConfigBranches = new RemoteConfigBranchDictionary(branchDictionary);
+            Logger.Trace("SetRemotes {0}", now);
+            Logger.Trace("remoteDictionary.Length: {0}", remoteDictionary.Count);
+            Logger.Trace("branchDictionary.Length: {0}", branchDictionary.Count);
+            SaveData(now, true);
         }
 
         public void SetLocals(IDictionary<string, ConfigBranch> branchDictionary)
         {
+            var now = DateTimeOffset.Now;
             localConfigBranches = new LocalConfigBranchDictionary(branchDictionary);
+            Logger.Trace("SetRemotes {0}", now);
+            SaveData(now, true);
         }
 
         public override string LastUpdatedAtString
