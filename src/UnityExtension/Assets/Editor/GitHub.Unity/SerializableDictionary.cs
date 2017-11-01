@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 
@@ -42,25 +43,25 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    public class ArrayContainer<T>
+    public class ArrayContainer
     {
         [SerializeField]
-        public T[] Values = new T[0];
+        public object[] Values = new object[0];
     }
 
     [Serializable]
     public class SerializableNestedDictionary<TKey, TValue> : Dictionary<TKey, Dictionary<TKey, TValue>>, ISerializationCallbackReceiver
     {
         [SerializeField] private TKey[] keys = new TKey[0];
-        [SerializeField] private ArrayContainer<TKey>[] subKeys = new ArrayContainer<TKey>[0];
-        [SerializeField] private ArrayContainer<TValue>[] subKeyValues = new ArrayContainer<TValue>[0];
+        [SerializeField] private ArrayContainer[] subKeys = new ArrayContainer[0];
+        [SerializeField] private ArrayContainer[] subKeyValues = new ArrayContainer[0];
 
         // save the dictionary to lists
         public void OnBeforeSerialize()
         {
             var keyList = new List<TKey>();
-            var subKeysList = new List<ArrayContainer<TKey>>();
-            var subKeysValuesList = new List<ArrayContainer<TValue>>();
+            var subKeysList = new List<ArrayContainer>();
+            var subKeysValuesList = new List<ArrayContainer>();
 
             foreach (var pair in this)
             {
@@ -77,8 +78,8 @@ namespace GitHub.Unity
                     serializeSubKeyValues.Add(subPair.Value);
                 }
 
-                subKeysList.Add(new ArrayContainer<TKey> { Values = serializeSubKeys.ToArray() });
-                subKeysValuesList.Add(new ArrayContainer<TValue> { Values = serializeSubKeyValues.ToArray() });
+                subKeysList.Add(new ArrayContainer { Values = serializeSubKeys.Cast<object>().ToArray() });
+                subKeysValuesList.Add(new ArrayContainer { Values = serializeSubKeyValues.Cast<object>().ToArray() });
             }
 
             keys = keyList.ToArray();
