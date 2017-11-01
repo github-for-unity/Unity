@@ -365,6 +365,14 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
+        public ITask<string> AddAll(IOutputProcessor<string> processor = null)
+        {
+            Logger.Trace("Add all files");
+
+            return new GitAddTask(cancellationToken, processor)
+                .Configure(processManager);
+        }
+
         public ITask<string> Add(IList<string> files,
             IOutputProcessor<string> processor = null)
         {
@@ -386,14 +394,6 @@ namespace GitHub.Unity
             }
 
             return last;
-        }
-
-        public ITask<string> AddAll(IOutputProcessor<string> processor = null)
-        {
-            Logger.Trace("Add all files");
-
-            return new GitAddTask(cancellationToken, processor)
-                .Configure(processManager);
         }
 
         public ITask<string> Discard(IList<string> files,
