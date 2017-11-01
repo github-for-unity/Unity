@@ -58,11 +58,11 @@ namespace GitHub.Unity
 
         private static void Repository_GitLockCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!gitStatusUpdateEvent.Equals(cacheUpdateEvent))
+            if (!gitLocksUpdateEvent.Equals(cacheUpdateEvent))
             {
                 new ActionTask(CancellationToken.None, () =>
                 {
-                    gitStatusUpdateEvent = cacheUpdateEvent;
+                    gitLocksUpdateEvent = cacheUpdateEvent;
                     OnLocksUpdate(repository.CurrentLocks);
                 })
                 { Affinity = TaskAffinity.UI }.Start();
