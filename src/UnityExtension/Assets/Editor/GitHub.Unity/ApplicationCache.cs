@@ -613,9 +613,20 @@ namespace GitHub.Unity
             var now = DateTimeOffset.Now;
             configRemotes = new ConfigRemoteDictionary(remoteDictionary);
             remoteConfigBranches = new RemoteConfigBranchDictionary(branchDictionary);
+
             Logger.Trace("SetRemotes {0}", now);
+
             Logger.Trace("remoteDictionary.Length: {0}", remoteDictionary.Count);
             Logger.Trace("branchDictionary.Length: {0}", branchDictionary.Count);
+
+            foreach (var remotePair in remoteConfigBranches)
+            {
+                foreach (var remotePairBranch in remotePair.Value)
+                {
+                    Logger.Trace("remoteConfigBranches Remote:{0} Branch:{1} BranchObject:{2}", remotePair.Key, remotePairBranch.Key, remotePairBranch.Value);
+                }
+            }
+
             SaveData(now, true);
         }
 
