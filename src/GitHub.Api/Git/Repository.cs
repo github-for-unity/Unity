@@ -13,6 +13,8 @@ namespace GitHub.Unity
     {
         private IRepositoryManager repositoryManager;
         private ICacheContainer cacheContainer;
+        private UriString cloneUrl;
+        private string name;
 
         public event Action<CacheUpdateEvent> GitStatusCacheUpdated;
         public event Action<CacheUpdateEvent> GitLogCacheUpdated;
@@ -23,22 +25,17 @@ namespace GitHub.Unity
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
         /// </summary>
-        /// <param name="name">The repository name.</param>
         /// <param name="localPath"></param>
         /// <param name="container"></param>
-        public Repository(string name, NPath localPath, ICacheContainer container)
+        public Repository(NPath localPath, ICacheContainer container)
         {
-            Guard.ArgumentNotNullOrWhiteSpace(name, nameof(name));
             Guard.ArgumentNotNull(localPath, nameof(localPath));
 
-            Name = name;
             LocalPath = localPath;
             User = new User();
 
             cacheContainer = container;
-
             cacheContainer.CacheInvalidated += CacheContainer_OnCacheInvalidated;
-
             cacheContainer.CacheUpdated += CacheContainer_OnCacheUpdated;
         }
 
@@ -533,9 +530,42 @@ namespace GitHub.Unity
             set { cacheContainer.GitLocksCache.GitLocks = value; }
         }
 
-        public UriString CloneUrl { get; private set; }
+        public UriString CloneUrl
+        {
+            get
+            {
+                if (cloneUrl == null)
+                {
+                    var currentRemote = CurrentRemote;
+                    if (currentRemote.HasValue && currentRemote.Value.Url != null)
+                    {
+                        cloneUrl = new UriString(currentRemote.Value.Url);
+                    }
+                }
+                return cloneUrl;
+            }
+            private set
+            {
+                cloneUrl = value;
+            }
+        }
 
-        public string Name { get; private set; }
+        public string Name
+        {
+            get
+            {
+                if (name == null)
+                {
+                    var url = CloneUrl;
+                    if (url != null)
+                    {
+                        name = url.RepositoryName;
+                    }
+                }
+                return name;
+            }
+            private set { name = value; }
+        }
 
         public NPath LocalPath { get; private set; }
 

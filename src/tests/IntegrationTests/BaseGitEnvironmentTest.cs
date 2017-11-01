@@ -33,7 +33,7 @@ namespace IntegrationTests
 
             //TODO: Mock CacheContainer
             ICacheContainer cacheContainer = null;
-            Environment.Repository = new Repository("TestRepo", repoPath, cacheContainer);
+            Environment.Repository = new Repository(repoPath, cacheContainer);
             Environment.Repository.Initialize(RepositoryManager);
 
             RepositoryManager.Start();

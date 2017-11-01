@@ -29,7 +29,7 @@ namespace UnitTests
 
             //TODO: Mock CacheContainer
             ICacheContainer cacheContainer = null;
-            return new Repository("TestRepo", @"C:\Repo".ToNPath(), cacheContainer);
+            return new Repository(@"C:\Repo".ToNPath(), cacheContainer);
         }
 
         private RepositoryEvents repositoryEvents;
