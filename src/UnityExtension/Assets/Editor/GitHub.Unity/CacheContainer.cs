@@ -6,6 +6,8 @@ namespace GitHub.Unity
     {
         private static ILogging Logger = Logging.GetLogger<CacheContainer>();
 
+        private IRepositoryInfoCache repositoryInfoCache;
+
         private IBranchCache branchCache;
 
         private IGitLocksCache gitLocksCache;
@@ -70,6 +72,20 @@ namespace GitHub.Unity
             GitStatusCache.InvalidateData();
             GitLocksCache.InvalidateData();
             GitUserCache.InvalidateData();
+        }
+
+        public IRepositoryInfoCache RepositoryInfoCache
+        {
+            get
+            {
+                if (repositoryInfoCache == null)
+                {
+                    repositoryInfoCache = Unity.RepositoryInfoCache.Instance;
+                    repositoryInfoCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.RepositoryInfoCache);
+                    repositoryInfoCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.RepositoryInfoCache, datetime);
+                }
+                return repositoryInfoCache;
+            }
         }
 
         public IBranchCache BranchCache

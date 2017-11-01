@@ -5,6 +5,7 @@ namespace GitHub.Unity
 {
     public enum CacheType
     {
+        RepositoryInfoCache,
         BranchCache,
         GitLogCache,
         GitStatusCache,
@@ -22,6 +23,7 @@ namespace GitHub.Unity
         IGitStatusCache GitStatusCache { get; }
         IGitLocksCache GitLocksCache { get; }
         IGitUserCache GitUserCache { get; }
+        IRepositoryInfoCache RepositoryInfoCache { get; }
         void Validate(CacheType cacheType);
         void ValidateAll();
         void Invalidate(CacheType cacheType);
@@ -72,8 +74,6 @@ namespace GitHub.Unity
 
     public interface IBranchCache : IManagedCache
     {
-        GitRemote? CurrentGitRemote { get; set; }
-        GitBranch? CurentGitBranch { get; set; }
         ConfigRemote? CurrentConfigRemote { get; set; }
         ConfigBranch? CurentConfigBranch { get; set; }
         
@@ -91,6 +91,12 @@ namespace GitHub.Unity
         void RemoveRemoteBranch(string remote, string branch);
         void SetRemotes(IDictionary<string, ConfigRemote> remoteDictionary, IDictionary<string, IDictionary<string, ConfigBranch>> branchDictionary);
         void SetLocals(IDictionary<string, ConfigBranch> branchDictionary);
+    }
+
+    public interface IRepositoryInfoCache : IManagedCache
+    {
+        GitRemote? CurrentGitRemote { get; set; }
+        GitBranch? CurentGitBranch { get; set; }
     }
 
     public interface IGitLogCache : IManagedCache

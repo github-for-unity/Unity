@@ -19,6 +19,7 @@ namespace GitHub.Unity
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
 
+        void CheckRepositoryInfoCacheEvent(CacheUpdateEvent cacheUpdateEvent);
         void CheckBranchCacheEvent(CacheUpdateEvent cacheUpdateEvent);
         void CheckGitStatusCacheEvent(CacheUpdateEvent cacheUpdateEvent);
         void CheckGitLogCacheEvent(CacheUpdateEvent cacheUpdateEvent);
@@ -65,5 +66,6 @@ namespace GitHub.Unity
         event Action<CacheUpdateEvent> GitLogCacheUpdated;
         event Action<CacheUpdateEvent> GitLockCacheUpdated;
         event Action<CacheUpdateEvent> BranchCacheUpdated;
+        event Action<CacheUpdateEvent> RepositoryInfoCacheUpdated;
     }
 }

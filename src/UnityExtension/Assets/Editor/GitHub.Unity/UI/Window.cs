@@ -37,8 +37,9 @@ namespace GitHub.Unity
         [SerializeField] private GUIContent repoBranchContent;
         [SerializeField] private GUIContent repoUrlContent;
 
-        [SerializeField] private CacheUpdateEvent branchUpdateEvent;
-        [NonSerialized] private bool branchCacheHasUpdate;
+        [SerializeField] private CacheUpdateEvent repositoryInfoUpdateEvent;
+        [NonSerialized] private bool repositoryInfoCacheHasUpdate;
+
         [NonSerialized] private bool hasRunMaybeUpdateDataWithRepository;
 
         [MenuItem(LaunchMenu)]
@@ -97,7 +98,7 @@ namespace GitHub.Unity
             titleContent = new GUIContent(Title, Styles.SmallLogo);
 
             if (Repository != null)
-                Repository.CheckBranchCacheEvent(branchUpdateEvent);
+                Repository.CheckRepositoryInfoCacheEvent(repositoryInfoUpdateEvent);
 
             if (ActiveView != null)
                 ActiveView.OnEnable();
@@ -194,7 +195,7 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                if(!hasRunMaybeUpdateDataWithRepository || branchCacheHasUpdate)
+                if(!hasRunMaybeUpdateDataWithRepository || repositoryInfoCacheHasUpdate)
                 {
                     hasRunMaybeUpdateDataWithRepository = true;
 
@@ -269,14 +270,14 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-            repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
+            repository.RepositoryInfoCacheUpdated += Repository_RepositoryInfoCacheUpdated;
         }
 
-        private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private void Repository_RepositoryInfoCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
             new ActionTask(TaskManager.Token, () => {
-                branchUpdateEvent = cacheUpdateEvent;
-                branchCacheHasUpdate = true;
+                repositoryInfoUpdateEvent = cacheUpdateEvent;
+                repositoryInfoCacheHasUpdate = true;
                 Redraw();
             }) { Affinity = TaskAffinity.UI }.Start();
         }
@@ -286,7 +287,7 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.BranchCacheUpdated -= Repository_BranchCacheUpdated;
+            repository.RepositoryInfoCacheUpdated -= Repository_RepositoryInfoCacheUpdated;
         }
 
         private void DoHeaderGUI()

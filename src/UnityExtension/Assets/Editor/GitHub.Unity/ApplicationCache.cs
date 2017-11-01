@@ -412,77 +412,16 @@ namespace GitHub.Unity
         }
     }
 
-    [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class BranchCache : ManagedCacheBase<BranchCache>, IBranchCache
+    [Location("cache/repoinfo.yaml", LocationAttribute.Location.LibraryFolder)]
+    sealed class RepositoryInfoCache : ManagedCacheBase<RepositoryInfoCache>, IRepositoryInfoCache
     {
-        public static readonly ConfigBranch DefaultConfigBranch = new ConfigBranch();
-        public static readonly ConfigRemote DefaultConfigRemote = new ConfigRemote();
         public static readonly GitRemote DefaultGitRemote = new GitRemote();
         public static readonly GitBranch DefaultGitBranch = new GitBranch();
 
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-
-        [SerializeField] private GitBranch[] localBranches = new GitBranch[0];
-        [SerializeField] private GitBranch[] remoteBranches = new GitBranch[0];
-        [SerializeField] private GitRemote[] remotes = new GitRemote[0];
-
-        [SerializeField] private LocalConfigBranchDictionary localConfigBranches = new LocalConfigBranchDictionary();
-        [SerializeField] private RemoteConfigBranchDictionary remoteConfigBranches = new RemoteConfigBranchDictionary();
-        [SerializeField] private ConfigRemoteDictionary configRemotes = new ConfigRemoteDictionary();
-
-        [SerializeField] private ConfigBranch gitConfigBranch;
-        [SerializeField] private ConfigRemote gitConfigRemote;
         [SerializeField] private GitRemote gitRemote;
         [SerializeField] private GitBranch gitBranch;
-
-        public ConfigRemote? CurrentConfigRemote
-        {
-            get
-            {
-                ValidateData();
-                return gitConfigRemote.Equals(DefaultConfigRemote) ? (ConfigRemote?)null : gitConfigRemote;
-            }
-            set
-            {
-                var now = DateTimeOffset.Now;
-                var isUpdated = false;
-
-                Logger.Trace("Updating: {0} gitConfigRemote:{1}", now, value);
-
-                if (!Nullable.Equals(gitConfigRemote, value))
-                {
-                    gitConfigRemote = value ?? DefaultConfigRemote;
-                    isUpdated = true;
-                }
-
-                SaveData(now, isUpdated);
-            }
-        }
-
-        public ConfigBranch? CurentConfigBranch
-        {
-            get
-            {
-                ValidateData();
-                return gitConfigBranch.Equals(DefaultConfigBranch) ? (ConfigBranch?)null : gitConfigBranch;
-            }
-            set
-            {
-                var now = DateTimeOffset.Now;
-                var isUpdated = false;
-
-                Logger.Trace("Updating: {0} gitConfigBranch:{1}", now, value);
-
-                if (!Nullable.Equals(gitConfigBranch, value))
-                {
-                    gitConfigBranch = value ?? DefaultConfigBranch;
-                    isUpdated = true;
-                }
-
-                SaveData(now, isUpdated);
-            }
-        }
 
         public GitRemote? CurrentGitRemote
         {
@@ -532,8 +471,90 @@ namespace GitHub.Unity
             }
         }
 
-        public GitBranch[] LocalBranches {
-            get { return localBranches;  }
+        public override string LastUpdatedAtString
+        {
+            get { return lastUpdatedAtString; }
+            protected set { lastUpdatedAtString = value; }
+        }
+
+        public override string LastVerifiedAtString
+        {
+            get { return lastVerifiedAtString; }
+            protected set { lastVerifiedAtString = value; }
+        }
+    }
+
+    [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
+    sealed class BranchCache : ManagedCacheBase<BranchCache>, IBranchCache
+    {
+        public static readonly ConfigBranch DefaultConfigBranch = new ConfigBranch();
+        public static readonly ConfigRemote DefaultConfigRemote = new ConfigRemote();
+
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
+
+        [SerializeField] private ConfigBranch gitConfigBranch;
+        [SerializeField] private ConfigRemote gitConfigRemote;
+
+        [SerializeField] private GitBranch[] localBranches = new GitBranch[0];
+        [SerializeField] private GitBranch[] remoteBranches = new GitBranch[0];
+        [SerializeField] private GitRemote[] remotes = new GitRemote[0];
+
+        [SerializeField] private LocalConfigBranchDictionary localConfigBranches = new LocalConfigBranchDictionary();
+        [SerializeField] private RemoteConfigBranchDictionary remoteConfigBranches = new RemoteConfigBranchDictionary();
+        [SerializeField] private ConfigRemoteDictionary configRemotes = new ConfigRemoteDictionary();
+
+        public ConfigRemote? CurrentConfigRemote
+        {
+            get
+            {
+                ValidateData();
+                return gitConfigRemote.Equals(DefaultConfigRemote) ? (ConfigRemote?)null : gitConfigRemote;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} gitConfigRemote:{1}", now, value);
+
+                if (!Nullable.Equals(gitConfigRemote, value))
+                {
+                    gitConfigRemote = value ?? DefaultConfigRemote;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public ConfigBranch? CurentConfigBranch
+        {
+            get
+            {
+                ValidateData();
+                return gitConfigBranch.Equals(DefaultConfigBranch) ? (ConfigBranch?)null : gitConfigBranch;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} gitConfigBranch:{1}", now, value);
+
+                if (!Nullable.Equals(gitConfigBranch, value))
+                {
+                    gitConfigBranch = value ?? DefaultConfigBranch;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public GitBranch[] LocalBranches
+        {
+            get { return localBranches; }
             set
             {
                 var now = DateTimeOffset.Now;
