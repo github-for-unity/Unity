@@ -205,7 +205,7 @@ namespace GitHub.Unity
                     if (repositoryCurrentRemote.HasValue)
                     {
                         updatedRepoRemote = repositoryCurrentRemote.Value.Name;
-                        if (repositoryCurrentRemote.Value.Url != null)
+                        if (!string.IsNullOrEmpty(repositoryCurrentRemote.Value.Url))
                         {
                             updatedRepoUrl = repositoryCurrentRemote.Value.Url;
                         }
