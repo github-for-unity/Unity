@@ -156,7 +156,7 @@ namespace GitHub.Unity
                 }
                 GUILayout.EndHorizontal();
 
-                        GUILayout.Label(FavoritesTitle);
+                var rect = GUILayoutUtility.GetLastRect();
                 OnTreeGUI(new Rect(0f, rect.height + Styles.CommitAreaPadding, Position.width, Position.height - rect.height + Styles.CommitAreaPadding));
             }
             GUILayout.EndScrollView();
