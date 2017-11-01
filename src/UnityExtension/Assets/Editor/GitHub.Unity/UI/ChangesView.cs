@@ -1,5 +1,3 @@
-#pragma warning disable 649
-
 using System;
 using System.Linq;
 using UnityEditor;
@@ -40,7 +38,7 @@ namespace GitHub.Unity
                 return;
 
             OnStatusUpdate(Repository.CurrentStatus);
-            Repository.OnStatusUpdated += RunStatusUpdateOnMainThread;
+            Repository.OnStatusChanged += RunStatusUpdateOnMainThread;
             Repository.Refresh();
         }
 
@@ -49,7 +47,7 @@ namespace GitHub.Unity
             base.OnDisable();
             if (Repository == null)
                 return;
-            Repository.OnStatusUpdated -= RunStatusUpdateOnMainThread;
+            Repository.OnStatusChanged -= RunStatusUpdateOnMainThread;
         }
 
         private void RunStatusUpdateOnMainThread(GitStatus status)

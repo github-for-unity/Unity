@@ -7,7 +7,6 @@ namespace GitHub.Unity
     abstract class BaseWindow :  EditorWindow, IView
     {
         [NonSerialized] private bool initialized = false;
-        [NonSerialized] private IApplicationManager cachedManager;
         [NonSerialized] private IRepository cachedRepository;
         [NonSerialized] private bool initializeWasCalled;
         [NonSerialized] private bool inLayout;

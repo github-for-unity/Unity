@@ -53,7 +53,7 @@ namespace UnitTests
             environment.RepositoryPath.Returns(repositoryPath.ToNPath());
             environment.UnityProjectPath.Returns(projectPath.ToNPath());
 
-            var repositoryFilePath = environment.GetRepositoryPath(path.ToNPath());
+            environment.GetRepositoryPath(path.ToNPath());
         }
 
         [Test, Sequential]
@@ -83,7 +83,7 @@ namespace UnitTests
             environment.RepositoryPath.Returns(repositoryPath.ToNPath());
             environment.UnityProjectPath.Returns(projectPath.ToNPath());
 
-            var repositoryFilePath = environment.GetAssetPath(path.ToNPath());
+            environment.GetAssetPath(path.ToNPath());
         }
     }
 }
