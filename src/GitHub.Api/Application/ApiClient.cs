@@ -258,6 +258,11 @@ namespace GitHub.Unity
 
                 return (await githubClient.User.Current()).ToGitHubUser();
             }
+            catch (KeychainEmptyException)
+            {
+                logger.Warning("Keychain is empty");
+                throw;
+            }
             catch (Exception ex)
             {
                 logger.Error(ex, "Error Getting Current User");
