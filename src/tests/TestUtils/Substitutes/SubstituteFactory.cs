@@ -325,12 +325,7 @@ namespace TestUtils
                 var user = (string)info[1];
                 var id = (int)info[2];
 
-                return new GitLock {
-                    Path = path,
-                    FullPath = gitRepoPath + @"\" + path,
-                    User = user,
-                    ID = id
-                };
+                return new GitLock(path, gitRepoPath + @"\" + path, user, id);
             });
 
             return gitObjectFactory;

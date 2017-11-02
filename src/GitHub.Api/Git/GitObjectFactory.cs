@@ -26,12 +26,7 @@ namespace GitHub.Unity
             var npath = new NPath(path).MakeAbsolute();
             var fullPath = npath.RelativeTo(environment.RepositoryPath);
 
-            return new GitLock {
-                Path = path,
-                FullPath = fullPath,
-                User = user,
-                ID = id
-            };
+            return new GitLock(path, fullPath, user, id);
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -465,14 +464,14 @@ namespace GitHub.Unity
             var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + name : "[None]";
             var isActive = name == CurrentBranchName;
 
-            return new GitBranch { Name = name, Tracking = trackingName, IsActive = isActive };
+            return new GitBranch(name, trackingName, isActive);
         }
 
         private static GitBranch GetRemoteGitBranch(ConfigBranch x)
         {
             var name = x.Remote.Value.Name + "/" + x.Name;
 
-            return new GitBranch { Name = name };
+            return new GitBranch(name, "[None]", false);
         }
 
         private static GitRemote GetGitRemote(ConfigRemote configRemote)

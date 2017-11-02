@@ -63,18 +63,8 @@ namespace UnitTests
             };
 
             var expected = new[] {
-                new GitLock {
-                    Path = "folder/somefile.png",
-                    FullPath = TestRootPath + @"\folder/somefile.png",
-                    User = "GitHub User",
-                    ID = 12
-                },
-                new GitLock {
-                    Path = "somezip.zip",
-                    FullPath = TestRootPath + @"\somezip.zip",
-                    User = "GitHub User",
-                    ID = 21
-                }
+                new GitLock("folder/somefile.png", TestRootPath + @"\folder/somefile.png", "GitHub User", 12),
+                new GitLock("somezip.zip", TestRootPath + @"\somezip.zip", "GitHub User", 21)
             };
 
             AssertProcessOutput(output, expected);
@@ -91,18 +81,8 @@ namespace UnitTests
             };
 
             var expected = new[] {
-                new GitLock {
-                    Path = "folder/somefile.png",
-                    FullPath = TestRootPath + @"\folder/somefile.png",
-                    User = "GitHub User",
-                    ID = 12
-                },
-                new GitLock {
-                    Path = "somezip.zip",
-                    FullPath = TestRootPath + @"\somezip.zip",
-                    User = "GitHub User",
-                    ID = 21
-                }
+                new GitLock("folder/somefile.png", TestRootPath + @"\folder/somefile.png", "GitHub User", 12),
+                new GitLock("somezip.zip", TestRootPath + @"\somezip.zip", "GitHub User", 21)
             };
 
             AssertProcessOutput(output, expected);
@@ -117,12 +97,7 @@ namespace UnitTests
             };
 
             var expected = new[] {
-                new GitLock {
-                    Path = "2_TurtleDoves.jpg",
-                    FullPath = TestRootPath + @"\2_TurtleDoves.jpg",
-                    User = "Tree",
-                    ID = 100
-                }
+                new GitLock("2_TurtleDoves.jpg", TestRootPath + @"\2_TurtleDoves.jpg", "Tree", 100)
             };
 
             AssertProcessOutput(output, expected);
