@@ -7,9 +7,6 @@ namespace GitHub.Unity
     [Serializable]
     class PopupWindow : BaseWindow
     {
-        private const string CredentialsNeedRefreshMessage = "We've detected that your stored credentials are out of sync with your current user. This can happen if you have signed in to git outside of Unity. Sign in again to refresh your credentials.";
-        private const string NeedAuthenticationMessage = "We need you to authenticate first";
-
         public enum PopupViewType
         {
             None,
@@ -63,32 +60,8 @@ namespace GitHub.Unity
 
                 }, exception => {
                     Logger.Trace("User required validation opening AuthenticationView");
-
-                    string message = null;
-                    string username = null;
-
-                    var usernameMismatchException = exception as TokenUsernameMismatchException;
-                    if (usernameMismatchException != null)
-                    {
-                        message = CredentialsNeedRefreshMessage;
-                        username = usernameMismatchException.CachedUsername;
-                    }
-
-                    var keychainEmptyException = exception as KeychainEmptyException;
-                    if (keychainEmptyException != null)
-                    {
-                        message = NeedAuthenticationMessage;
-                    }
-
-                    if (usernameMismatchException == null && keychainEmptyException == null)
-                    {
-                        message = exception.Message;
-                    }
-
+                    authenticationView.Initialize(exception);
                     OpenInternal(PopupViewType.AuthenticationView, completedAuthentication => {
-                        authenticationView.ClearMessage();
-                        authenticationView.ClearUsername();
-
                         if (completedAuthentication)
                         {
                             Logger.Trace("User completed validation opening view: {0}", popupViewType.ToString());
@@ -98,11 +71,6 @@ namespace GitHub.Unity
                     });
 
                     shouldCloseOnFinish = false;
-                    authenticationView.SetMessage(message);
-                    if (username != null)
-                    {
-                        authenticationView.SetUsername(username);
-                    }
                 });
             }
             else
@@ -120,10 +88,7 @@ namespace GitHub.Unity
             }
 
             ActiveViewType = popupViewType;
-            titleContent = new GUIContent(ActiveView.Title, Styles.SmallLogo);
-            OnEnable();
             Show();
-            Refresh();
         }
 
         public IApiClient Client

@@ -9,6 +9,8 @@ namespace GitHub.Unity
     {
         private static readonly Vector2 viewSize = new Vector2(290, 290);
 
+        private const string CredentialsNeedRefreshMessage = "We've detected that your stored credentials are out of sync with your current user. This can happen if you have signed in to git outside of Unity. Sign in again to refresh your credentials.";
+        private const string NeedAuthenticationMessage = "We need you to authenticate first";
         private const string WindowTitle = "Authenticate";
         private const string UsernameLabel = "Username";
         private const string PasswordLabel = "Password";
@@ -24,10 +26,10 @@ namespace GitHub.Unity
         [SerializeField] private string username = string.Empty;
         [SerializeField] private string two2fa = string.Empty;
         [SerializeField] private string message;
+        [SerializeField] private string errorMessage;
+        [SerializeField] private bool need2fa;
 
-        [NonSerialized] private bool need2fa;
         [NonSerialized] private bool isBusy;
-        [NonSerialized] private string errorMessage;
         [NonSerialized] private bool enterPressed;
         [NonSerialized] private string password = string.Empty;
         [NonSerialized] private AuthenticationService authenticationService;
@@ -37,18 +39,30 @@ namespace GitHub.Unity
         {
             base.InitializeView(parent);
             need2fa = isBusy = false;
+            message = errorMessage = null;
             Title = WindowTitle;
             Size = viewSize;
         }
 
-        public override void OnEnable()
+        public void Initialize(Exception exception)
         {
-            base.OnEnable();
-        }
+            var usernameMismatchException = exception as TokenUsernameMismatchException;
+            if (usernameMismatchException != null)
+            {
+                message = CredentialsNeedRefreshMessage;
+                username = usernameMismatchException.CachedUsername;
+            }
 
-        public override void OnDisable()
-        {
-            base.OnDisable();
+            var keychainEmptyException = exception as KeychainEmptyException;
+            if (keychainEmptyException != null)
+            {
+                message = NeedAuthenticationMessage;
+            }
+
+            if (usernameMismatchException == null && keychainEmptyException == null)
+            {
+                message = exception.Message;
+            }
         }
 
         public override void OnGUI()
@@ -81,27 +95,7 @@ namespace GitHub.Unity
             }
             GUILayout.EndScrollView();
         }
-
-        public void SetMessage(string value)
-        {
-            message = value;
-        }
-
-        public void ClearMessage()
-        {
-            message = null;
-        }
-
-        public void SetUsername(string value)
-        {
-            username = value;
-        }
-
-        public void ClearUsername()
-        {
-            username = string.Empty;
-        }
-
+        
         private void HandleEnterPressed()
         {
             if (Event.current.type != EventType.KeyDown)
@@ -174,8 +168,7 @@ namespace GitHub.Unity
                         if (GUILayout.Button(BackButton))
                         {
                             GUI.FocusControl(null);
-                            need2fa = false;
-                            Redraw();
+                            Clear();
                         }
 
                         if (GUILayout.Button(TwofaButton) || (!isBusy && enterPressed))
@@ -196,10 +189,18 @@ namespace GitHub.Unity
 
         private void DoRequire2fa(string msg)
         {
-            Logger.Trace("Strating 2FA - Message:\"{0}\"", msg);
+            Logger.Trace("Starting 2FA - Message:\"{0}\"", msg);
 
             need2fa = true;
             errorMessage = msg;
+            isBusy = false;
+            Redraw();
+        }
+
+        private void Clear()
+        {
+            need2fa = false;
+            errorMessage = null;
             isBusy = false;
             Redraw();
         }
@@ -208,15 +209,16 @@ namespace GitHub.Unity
         {
             Logger.Trace("DoResult - Success:{0} Message:\"{1}\"", success, msg);
 
-            errorMessage = msg;
             isBusy = false;
 
             if (success == true)
             {
+                Clear();
                 Finish(true);
             }
             else
             {
+                errorMessage = msg;
                 Redraw();
             }
         }
