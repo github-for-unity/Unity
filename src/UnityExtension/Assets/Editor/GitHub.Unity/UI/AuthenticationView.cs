@@ -26,10 +26,10 @@ namespace GitHub.Unity
         [SerializeField] private string username = string.Empty;
         [SerializeField] private string two2fa = string.Empty;
         [SerializeField] private string message;
+        [SerializeField] private string errorMessage;
+        [SerializeField] private bool need2fa;
 
-        [NonSerialized] private bool need2fa;
         [NonSerialized] private bool isBusy;
-        [NonSerialized] private string errorMessage;
         [NonSerialized] private bool enterPressed;
         [NonSerialized] private string password = string.Empty;
         [NonSerialized] private AuthenticationService authenticationService;
@@ -39,6 +39,7 @@ namespace GitHub.Unity
         {
             base.InitializeView(parent);
             need2fa = isBusy = false;
+            message = errorMessage = null;
             Title = WindowTitle;
             Size = viewSize;
         }
@@ -167,8 +168,7 @@ namespace GitHub.Unity
                         if (GUILayout.Button(BackButton))
                         {
                             GUI.FocusControl(null);
-                            need2fa = false;
-                            Redraw();
+                            Clear();
                         }
 
                         if (GUILayout.Button(TwofaButton) || (!isBusy && enterPressed))
@@ -189,10 +189,18 @@ namespace GitHub.Unity
 
         private void DoRequire2fa(string msg)
         {
-            Logger.Trace("Strating 2FA - Message:\"{0}\"", msg);
+            Logger.Trace("Starting 2FA - Message:\"{0}\"", msg);
 
             need2fa = true;
             errorMessage = msg;
+            isBusy = false;
+            Redraw();
+        }
+
+        private void Clear()
+        {
+            need2fa = false;
+            errorMessage = null;
             isBusy = false;
             Redraw();
         }
@@ -201,15 +209,16 @@ namespace GitHub.Unity
         {
             Logger.Trace("DoResult - Success:{0} Message:\"{1}\"", success, msg);
 
-            errorMessage = msg;
             isBusy = false;
 
             if (success == true)
             {
+                Clear();
                 Finish(true);
             }
             else
             {
+                errorMessage = msg;
                 Redraw();
             }
         }
