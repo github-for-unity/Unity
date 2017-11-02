@@ -22,6 +22,7 @@ namespace GitHub.Unity
         private string user;
         private string host;
         private GitRemoteFunction function;
+        private readonly string token;
 
         public string Name
         {
@@ -43,7 +44,10 @@ namespace GitHub.Unity
             get { return user; }
         }
 
-        public string Token { get; }
+        public string Token
+        {
+            get { return token; }
+        }
 
         public string Host
         {
@@ -61,9 +65,20 @@ namespace GitHub.Unity
             this.url = url;
             this.login = login;
             this.user = user;
-            Token = token;
+            this.token = token;
             this.host = host;
             this.function = function;
+        }
+
+        public GitRemote(string name, string url)
+        {
+            this.name = name;
+            this.url = url;
+            login = null;
+            user = null;
+            token = null;
+            host = null;
+            function = GitRemoteFunction.Unknown;
         }
 
         public override string ToString()
