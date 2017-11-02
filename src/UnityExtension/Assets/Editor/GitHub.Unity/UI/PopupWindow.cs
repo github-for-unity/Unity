@@ -88,6 +88,7 @@ namespace GitHub.Unity
             }
 
             ActiveViewType = popupViewType;
+            ActiveView.OnEnable();
             titleContent = new GUIContent(ActiveView.Title, Styles.SmallLogo);
             Show();
         }
