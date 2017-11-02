@@ -101,8 +101,7 @@ namespace GitHub.Unity
                 localBranches = Repository.LocalBranches.ToList();
                 remoteBranches = Repository.RemoteBranches.ToList();
 
-
-                BuildTree(localBranches, remoteBranches);
+                BuildTree();
             }
 
             disableDelete = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.IsActive;
@@ -147,7 +146,7 @@ namespace GitHub.Unity
             GUILayout.EndScrollView();
         }
 
-        private void BuildTree(List<GitBranch> localBranches, List<GitBranch> remoteBranches)
+        private void BuildTree()
         {
             localBranches.Sort(CompareBranches);
             remoteBranches.Sort(CompareBranches);
