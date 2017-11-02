@@ -84,11 +84,6 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        public override void OnRepositoryChanged(IRepository oldRepository)
-        {
-            base.OnRepositoryChanged(oldRepository);
-        }
-
         public override void OnSelectionChange()
         {
 
