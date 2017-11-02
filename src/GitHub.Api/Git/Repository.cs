@@ -207,7 +207,7 @@ namespace GitHub.Unity
             var managedCache = cacheContainer.GitLogCache;
             var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent1, managedCache);
 
-            Logger.Trace("CheckGitLogCacheEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
+            Logger.Trace("Check GitLogCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent1.UpdatedTimeString ?? "[NULL]", raiseEvent);
 
             if (raiseEvent)
@@ -224,7 +224,7 @@ namespace GitHub.Unity
             var managedCache = cacheContainer.GitStatusCache;
             var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent1, managedCache);
 
-            Logger.Trace("CheckGitStatusCacheEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
+            Logger.Trace("Check GitStatusCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent1.UpdatedTimeString ?? "[NULL]", raiseEvent);
 
             if (raiseEvent)
@@ -255,7 +255,7 @@ namespace GitHub.Unity
             var managedCache = cacheContainer.RepositoryInfoCache;
             var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
 
-            Logger.Trace("CheckRepositoryInfoCacheEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
+            Logger.Trace("Check RepositoryInfoCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
 
             if (raiseEvent)
@@ -272,7 +272,7 @@ namespace GitHub.Unity
             var managedCache = cacheContainer.GitLocksCache;
             var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent1, managedCache);
 
-            Logger.Trace("CheckGitLocksCacheEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
+            Logger.Trace("Check GitLocksCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent1.UpdatedTimeString ?? "[NULL]", raiseEvent);
 
             if (raiseEvent)
@@ -303,7 +303,7 @@ namespace GitHub.Unity
             var managedCache = cacheContainer.BranchCache;
             var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
 
-            Logger.Trace("CheckBranchCacheEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
+            Logger.Trace("Check BranchCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
 
             if (raiseEvent)
