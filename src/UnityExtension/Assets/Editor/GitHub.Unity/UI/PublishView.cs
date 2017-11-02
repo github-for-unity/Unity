@@ -12,7 +12,6 @@ namespace GitHub.Unity
         private static readonly Vector2 viewSize = new Vector2(400, 350);
 
         private const string WindowTitle = "Publish";
-        private const string Header = "Publish this repository to GitHub";
         private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
         private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
         private const string PublishViewCreateButton = "Publish";
@@ -23,10 +22,6 @@ namespace GitHub.Unity
         private const string CreatePrivateRepositoryLabel = "Make repository private";
         private const string PublishLimitPrivateRepositoriesError = "You are currently at your limit of private repositories";
         private const string PublishToGithubLabel = "Publish to GitHub";
-        private const string AuthenticationChangedMessageFormat = "You were authenticated as \"{0}\", but you are now authenticated as \"{1}\". Would you like to proceed or logout?";
-        private const string AuthenticationChangedTitle = "Authentication Changed";
-        private const string AuthenticationChangedProceed = "Proceed";
-        private const string AuthenticationChangedLogout = "Logout";
 
         [SerializeField] private string username;
         [SerializeField] private string[] owners = { OwnersDefaultText };
