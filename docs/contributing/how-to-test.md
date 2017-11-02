@@ -2,7 +2,7 @@
 Unit and Integration tests for Unity can be found under `src/tests/`.
 
 ## Testing requirements
-Unit and integration tests currently run with NUnit 2.6.4.
+Tests currently run with NUnit 2.6.4.
 
 ## Running tests
 Tests can be run after building the Unity project. To run the tests execute `test.cmd` on Windows or `test.sh` on Mac.
