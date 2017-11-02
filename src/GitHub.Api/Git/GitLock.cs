@@ -5,14 +5,20 @@ namespace GitHub.Unity
     [Serializable]
     public struct GitLock
     {
-        public static GitLock Default = new GitLock {
-            ID = -1
-        };
+        public static GitLock Default = new GitLock { ID = -1 };
 
         public int ID;
         public string Path;
         public string FullPath;
         public string User;
+
+        public GitLock(string path, string fullPath, string user, int id)
+        {
+            Path = path;
+            FullPath = fullPath;
+            User = user;
+            ID = id;
+        }
 
         public override bool Equals(object other)
         {

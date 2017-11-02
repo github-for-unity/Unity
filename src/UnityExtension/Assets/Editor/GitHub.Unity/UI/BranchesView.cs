@@ -60,12 +60,16 @@ namespace GitHub.Unity
 
         private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
-            new ActionTask(TaskManager.Token, () => {
+            if (!branchUpdateEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () =>
+                {
                     branchUpdateEvent = cacheUpdateEvent;
                     branchCacheHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
         public override void OnEnable()

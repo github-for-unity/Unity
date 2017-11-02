@@ -51,8 +51,8 @@ namespace GitHub.Unity
         [SerializeField] private bool hasRemote;
         [SerializeField] private bool hasItemsToCommit;
 
-        [SerializeField] private CacheUpdateEvent branchUpdateEvent;
-        [NonSerialized] private bool branchCacheHasUpdate;
+        [SerializeField] private CacheUpdateEvent repositoryInfoUpdateEvent;
+        [NonSerialized] private bool repositoryInfoHasUpdate;
 
         [SerializeField] private CacheUpdateEvent gitStatusUpdateEvent;
         [NonSerialized] private bool gitStatusCacheHasUpdate;
@@ -79,7 +79,7 @@ namespace GitHub.Unity
             {
                 Repository.CheckGitLogCacheEvent(gitLogCacheUpdateEvent);
                 Repository.CheckGitStatusCacheEvent(gitStatusUpdateEvent);
-                Repository.CheckBranchCacheEvent(branchUpdateEvent);
+                Repository.CheckRepositoryInfoCacheEvent(repositoryInfoUpdateEvent);
             }
         }
 
@@ -102,32 +102,44 @@ namespace GitHub.Unity
 
         private void Repository_GitStatusCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
-            new ActionTask(TaskManager.Token, () => {
+            if (!gitStatusUpdateEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () =>
+                {
                     gitStatusUpdateEvent = cacheUpdateEvent;
                     gitStatusCacheHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
         private void Repository_GitLogCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
-            new ActionTask(TaskManager.Token, () => {
+            if (!gitLogCacheUpdateEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () =>
+                {
                     gitLogCacheUpdateEvent = cacheUpdateEvent;
                     gitLogCacheHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
-        private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private void Repository_RepositoryInfoCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
-            new ActionTask(TaskManager.Token, () => {
-                    branchUpdateEvent = cacheUpdateEvent;
-                    branchCacheHasUpdate = true;
+            if (!repositoryInfoUpdateEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () =>
+                {
+                    repositoryInfoUpdateEvent = cacheUpdateEvent;
+                    repositoryInfoHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
         private void AttachHandlers(IRepository repository)
@@ -137,7 +149,7 @@ namespace GitHub.Unity
 
             repository.GitStatusCacheUpdated += Repository_GitStatusCacheUpdated;
             repository.GitLogCacheUpdated += Repository_GitLogCacheUpdated;
-            repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
+            repository.RepositoryInfoCacheUpdated += Repository_RepositoryInfoCacheUpdated;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -147,7 +159,7 @@ namespace GitHub.Unity
 
             repository.GitStatusCacheUpdated -= Repository_GitStatusCacheUpdated;
             repository.GitLogCacheUpdated -= Repository_GitLogCacheUpdated;
-            repository.BranchCacheUpdated -= Repository_BranchCacheUpdated;
+            repository.RepositoryInfoCacheUpdated -= Repository_RepositoryInfoCacheUpdated;
         }
 
         private void MaybeUpdateData()
@@ -155,9 +167,9 @@ namespace GitHub.Unity
             if (Repository == null)
                 return;
 
-            if (branchCacheHasUpdate)
+            if (repositoryInfoHasUpdate)
             {
-                branchCacheHasUpdate = false;
+                repositoryInfoHasUpdate = false;
 
                 var currentRemote = Repository.CurrentRemote;
                 hasRemote = currentRemote.HasValue;

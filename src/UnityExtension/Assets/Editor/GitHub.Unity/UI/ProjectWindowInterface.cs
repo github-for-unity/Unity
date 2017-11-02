@@ -15,7 +15,6 @@ namespace GitHub.Unity
 
         private static readonly List<string> guids = new List<string>();
         private static readonly List<string> guidsLocks = new List<string>();
-        private static bool initialized = false;
         private static IRepository repository;
         private static bool isBusy = false;
         private static ILogging logger;
@@ -30,7 +29,6 @@ namespace GitHub.Unity
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
 
-            initialized = true;
             repository = repo;
 
             if (repository != null)
@@ -45,20 +43,28 @@ namespace GitHub.Unity
 
         private static void Repository_GitStatusCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
-            new ActionTask(CancellationToken.None, () => {
+            if (!gitStatusUpdateEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(CancellationToken.None, () =>
+                {
                     gitStatusUpdateEvent = cacheUpdateEvent;
                     OnStatusUpdate(repository.CurrentStatus);
                 })
                 { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
         private static void Repository_GitLockCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
         {
-            new ActionTask(CancellationToken.None, () => {
+            if (!gitLocksUpdateEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(CancellationToken.None, () =>
+                {
                     gitLocksUpdateEvent = cacheUpdateEvent;
                     OnLocksUpdate(repository.CurrentLocks);
                 })
                 { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
         [MenuItem("Assets/Request Lock", true)]

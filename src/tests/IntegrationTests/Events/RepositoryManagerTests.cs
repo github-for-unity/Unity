@@ -47,21 +47,9 @@ namespace IntegrationTests
             Repository.CurrentRemote.Value.Name.Should().Be("origin");
             Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "master",
-                    Tracking = "origin/master",
-                    IsActive = true
-                },
-                new GitBranch {
-                    Name = "feature/document",
-                    Tracking = "origin/feature/document",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature/other-feature",
-                    Tracking = "origin/feature/other-feature",
-                    IsActive = false
-                },
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
             Repository.Remotes.Should().BeEquivalentTo(new GitRemote
             {
@@ -69,21 +57,9 @@ namespace IntegrationTests
                 Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
             });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "origin/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
             });
         }
 
@@ -350,42 +326,18 @@ namespace IntegrationTests
             Repository.CurrentRemote.Value.Name.Should().Be("origin");
             Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "master",
-                    Tracking = "origin/master",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature/document",
-                    Tracking = "origin/feature/document",
-                    IsActive = true
-                },
-                new GitBranch {
-                    Name = "feature/other-feature",
-                    Tracking = "origin/feature/other-feature",
-                    IsActive = false
-                },
+                new GitBranch("master", "origin/master", false),
+                new GitBranch("feature/document", "origin/feature/document", true),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
             Repository.Remotes.Should().BeEquivalentTo(new GitRemote {
                 Name = "origin",
                 Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
             });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "origin/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
             });
         }
 
@@ -428,16 +380,8 @@ namespace IntegrationTests
             Repository.CurrentRemote.Value.Name.Should().Be("origin");
             Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "master",
-                    Tracking = "origin/master",
-                    IsActive = true
-                },
-                new GitBranch {
-                    Name = "feature/other-feature",
-                    Tracking = "origin/feature/other-feature",
-                    IsActive = false
-                },
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
             Repository.Remotes.Should().BeEquivalentTo(new GitRemote
             {
@@ -445,21 +389,9 @@ namespace IntegrationTests
                 Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
             });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "origin/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
             });
         }
 
@@ -502,26 +434,10 @@ namespace IntegrationTests
             Repository.CurrentRemote.Value.Name.Should().Be("origin");
             Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "master",
-                    Tracking = "origin/master",
-                    IsActive = true
-                },
-                new GitBranch {
-                    Name = "feature/document",
-                    Tracking = "origin/feature/document",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature/document2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature/other-feature",
-                    Tracking = "origin/feature/other-feature",
-                    IsActive = false
-                },
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/document2", "[None]", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
             Repository.Remotes.Should().BeEquivalentTo(new GitRemote
             {
@@ -529,21 +445,9 @@ namespace IntegrationTests
                 Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
             });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "origin/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
             });
 
             repositoryManagerListener.ClearReceivedCalls();
@@ -580,31 +484,11 @@ namespace IntegrationTests
             Repository.CurrentRemote.Value.Name.Should().Be("origin");
             Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "master",
-                    Tracking = "origin/master",
-                    IsActive = true
-                },
-                new GitBranch {
-                    Name = "feature/document",
-                    Tracking = "origin/feature/document",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature/document2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature2/document2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature/other-feature",
-                    Tracking = "origin/feature/other-feature",
-                    IsActive = false
-                },
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/document2", "[None]", false),
+                new GitBranch("feature2/document2", "[None]", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
             Repository.Remotes.Should().BeEquivalentTo(new GitRemote
             {
@@ -612,21 +496,9 @@ namespace IntegrationTests
                 Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
             });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "origin/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
             });
         }
 
@@ -655,21 +527,9 @@ namespace IntegrationTests
             Repository.CurrentRemote.Value.Name.Should().Be("origin");
             Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "master",
-                    Tracking = "origin/master",
-                    IsActive = true
-                },
-                new GitBranch {
-                    Name = "feature/document",
-                    Tracking = "origin/feature/document",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature/other-feature",
-                    Tracking = "origin/feature/other-feature",
-                    IsActive = false
-                },
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
             Repository.Remotes.Should().BeEquivalentTo(new GitRemote
             {
@@ -677,21 +537,9 @@ namespace IntegrationTests
                 Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
             });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "origin/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
             });
 
             await RepositoryManager.RemoteRemove("origin").StartAsAsync();
@@ -763,21 +611,9 @@ namespace IntegrationTests
             Repository.CurrentRemote.Value.Name.Should().Be("origin");
             Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilShana/IOTestsRepo.git");
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "master",
-                    Tracking = "[None]",
-                    IsActive = true
-                },
-                new GitBranch {
-                    Name = "feature/document",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
+                new GitBranch("master", "[None]", true),
+                new GitBranch("feature/document", "[None]", false),
+                new GitBranch("feature/other-feature", "[None]", false),
             });
             Repository.Remotes.Should().BeEquivalentTo(new GitRemote
             {
@@ -812,21 +648,9 @@ namespace IntegrationTests
             Repository.CurrentRemote.Value.Name.Should().Be("origin");
             Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "master",
-                    Tracking = "origin/master",
-                    IsActive = true
-                },
-                new GitBranch {
-                    Name = "feature/document",
-                    Tracking = "origin/feature/document",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature/other-feature",
-                    Tracking = "origin/feature/other-feature",
-                    IsActive = false
-                },
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
             Repository.Remotes.Should().BeEquivalentTo(new GitRemote
             {
@@ -838,36 +662,12 @@ namespace IntegrationTests
                 Url = "https://another.remote/Owner/Url.git"
             });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "origin/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "another/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "another/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "another/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
+                new GitBranch("another/master", "[None]", false),
+                new GitBranch("another/feature/document-2", "[None]", false),
+                new GitBranch("another/feature/other-feature", "[None]", false),
             });
 
             await RepositoryManager.CreateBranch("branch2", "another/master")
@@ -902,26 +702,10 @@ namespace IntegrationTests
             Repository.CurrentRemote.Value.Name.Should().Be("origin");
             Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "master",
-                    Tracking = "origin/master",
-                    IsActive = true
-                },
-                new GitBranch {
-                    Name = "branch2",
-                    Tracking = "another/branch2",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature/document",
-                    Tracking = "origin/feature/document",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature/other-feature",
-                    Tracking = "origin/feature/other-feature",
-                    IsActive = false
-                },
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("branch2", "another/branch2", false),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
             Repository.Remotes.Should().BeEquivalentTo(new GitRemote
             {
@@ -933,36 +717,12 @@ namespace IntegrationTests
                 Url = "https://another.remote/Owner/Url.git"
             });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "origin/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "another/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "another/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "another/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
+                new GitBranch("another/master", "[None]", false),
+                new GitBranch("another/feature/document-2", "[None]", false),
+                new GitBranch("another/feature/other-feature", "[None]", false),
             });
 
             repositoryManagerListener.ClearReceivedCalls();
@@ -1001,26 +761,10 @@ namespace IntegrationTests
             Repository.CurrentRemote.Value.Name.Should().Be("another");
             Repository.CurrentRemote.Value.Url.Should().Be("https://another.remote/Owner/Url.git");
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "master",
-                    Tracking = "origin/master",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "branch2",
-                    Tracking = "another/branch2",
-                    IsActive = true
-                },
-                new GitBranch {
-                    Name = "feature/document",
-                    Tracking = "origin/feature/document",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature/other-feature",
-                    Tracking = "origin/feature/other-feature",
-                    IsActive = false
-                },
+                new GitBranch("master", "origin/master", false),
+                new GitBranch("branch2", "another/branch2", true),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
             Repository.Remotes.Should().BeEquivalentTo(new GitRemote
             {
@@ -1032,36 +776,12 @@ namespace IntegrationTests
                 Url = "https://another.remote/Owner/Url.git"
             });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "origin/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "another/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "another/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "another/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
+                new GitBranch("another/master", "[None]", false),
+                new GitBranch("another/feature/document-2", "[None]", false),
+                new GitBranch("another/feature/other-feature", "[None]", false),
             });
         }
 
@@ -1116,21 +836,9 @@ namespace IntegrationTests
             Repository.CurrentRemote.Value.Name.Should().Be("origin");
             Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "master",
-                    Tracking = "origin/master",
-                    IsActive = true
-                },
-                new GitBranch {
-                    Name = "feature/document",
-                    Tracking = "origin/feature/document",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "feature/other-feature",
-                    Tracking = "origin/feature/other-feature",
-                    IsActive = false
-                },
+                new GitBranch("master", "origin/master", true),
+                new GitBranch("feature/document", "origin/feature/document", false),
+                new GitBranch("feature/other-feature", "origin/feature/other-feature", false),
             });
             Repository.Remotes.Should().BeEquivalentTo(new GitRemote
             {
@@ -1138,21 +846,9 @@ namespace IntegrationTests
                 Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
             });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "origin/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
             });
 
             repositoryManagerEvents.Reset();
@@ -1184,11 +880,7 @@ namespace IntegrationTests
             Repository.CurrentRemote.Value.Name.Should().Be("origin");
             Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "feature/document",
-                    Tracking = "origin/feature/document",
-                    IsActive = false
-                },
+                new GitBranch("feature/document", "origin/feature/document", false),
             });
             Repository.Remotes.Should().BeEquivalentTo(new GitRemote
             {
@@ -1196,21 +888,9 @@ namespace IntegrationTests
                 Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
             });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "origin/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
             });
 
             await RepositoryManager.Fetch("origin").StartAsAsync();
@@ -1243,11 +923,7 @@ namespace IntegrationTests
             Repository.CurrentRemote.Value.Name.Should().Be("origin");
             Repository.CurrentRemote.Value.Url.Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
             Repository.LocalBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "feature/document",
-                    Tracking = "origin/feature/document",
-                    IsActive = false
-                },
+                new GitBranch("feature/document", "origin/feature/document", false),
             });
             Repository.Remotes.Should().BeEquivalentTo(new GitRemote
             {
@@ -1255,31 +931,11 @@ namespace IntegrationTests
                 Url = "https://github.com/EvilStanleyGoldman/IOTestsRepo.git"
             });
             Repository.RemoteBranches.Should().BeEquivalentTo(new[] {
-                new GitBranch {
-                    Name = "origin/master",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/document-2",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/new-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
-                new GitBranch {
-                    Name = "origin/feature/other-feature",
-                    Tracking = "[None]",
-                    IsActive = false
-                },
+                new GitBranch("origin/master", "[None]", false),
+                new GitBranch("origin/feature/document", "[None]", false),
+                new GitBranch("origin/feature/document-2", "[None]", false),
+                new GitBranch("origin/feature/new-feature", "[None]", false),
+                new GitBranch("origin/feature/other-feature", "[None]", false),
             });
         }
     }

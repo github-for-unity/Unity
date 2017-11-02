@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading;
 using GitHub.Unity;
 using System.Threading.Tasks;
+using NSubstitute;
 
 namespace IntegrationTests
 {
@@ -14,7 +15,9 @@ namespace IntegrationTests
             SyncContext = new ThreadSynchronizationContext(TaskManager.Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(SyncContext);
 
-            Environment = new IntegrationTestEnvironment(repoPath, SolutionDirectory, environmentPath, enableEnvironmentTrace);
+            //TODO: Mock CacheContainer
+            ICacheContainer cacheContainer = Substitute.For<ICacheContainer>();
+            Environment = new IntegrationTestEnvironment(cacheContainer, repoPath, SolutionDirectory, environmentPath, enableEnvironmentTrace);
 
             var gitSetup = new GitInstaller(Environment, TaskManager.Token);
             await gitSetup.SetupIfNeeded();
@@ -31,8 +34,6 @@ namespace IntegrationTests
             RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
             RepositoryManager.Initialize();
 
-            //TODO: Mock CacheContainer
-            ICacheContainer cacheContainer = null;
             Environment.Repository = new Repository(repoPath, cacheContainer);
             Environment.Repository.Initialize(RepositoryManager);
 

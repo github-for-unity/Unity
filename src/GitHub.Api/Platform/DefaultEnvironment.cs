@@ -7,6 +7,7 @@ namespace GitHub.Unity
     public class DefaultEnvironment : IEnvironment
     {
         private const string logFile = "github-unity.log";
+        private ICacheContainer cacheContainer;
 
         public NPath LogPath { get; }
         public DefaultEnvironment()
@@ -35,6 +36,12 @@ namespace GitHub.Unity
             LogPath = UserCachePath.Combine(logFile);
         }
 
+        public DefaultEnvironment(ICacheContainer cacheContainer)
+            : this()
+        {
+            this.cacheContainer = cacheContainer;
+        }
+
         public void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityPath, NPath assetsPath)
         {
             ExtensionInstallPath = extensionInstallPath;
@@ -44,7 +51,7 @@ namespace GitHub.Unity
             UnityVersion = unityVersion;
         }
 
-        public void InitializeRepository(ICacheContainer cacheContainer, NPath expectedRepositoryPath = null)
+        public void InitializeRepository(NPath expectedRepositoryPath = null)
         {
             Guard.NotNull(this, FileSystem, nameof(FileSystem));
 

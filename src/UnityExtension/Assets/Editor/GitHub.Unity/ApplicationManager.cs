@@ -19,7 +19,6 @@ namespace GitHub.Unity
         {
             ListenToUnityExit();
             Initialize();
-            CacheContainer = new CacheContainer();
         }
 
         protected override void SetupMetrics()
