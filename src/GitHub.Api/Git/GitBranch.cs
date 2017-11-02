@@ -13,9 +13,9 @@ namespace GitHub.Unity
     {
         public static GitBranch Default = new GitBranch();
 
-        public string name;
-        public string tracking;
-        public bool isActive;
+        private string name;
+        private string tracking;
+        private bool isActive;
 
         public string Name { get { return name; } }
         public string Tracking { get { return tracking; } }

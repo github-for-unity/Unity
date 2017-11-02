@@ -14,13 +14,94 @@ namespace GitHub.Unity
     [Serializable]
     public struct GitRemote
     {
-        public string Name;
-        public string Url;
-        public string Login;
-        public string User;
-        public string Token;
-        public string Host;
-        public GitRemoteFunction Function;
+        public static GitRemote Default = new GitRemote();
+
+        private string name;
+        private string url;
+        private string login;
+        private string user;
+        private string host;
+        private GitRemoteFunction function;
+        private readonly string token;
+
+        public string Name
+        {
+            get { return name; }
+        }
+
+        public string Url
+        {
+            get { return url; }
+        }
+
+        public string Login
+        {
+            get { return login; }
+        }
+
+        public string User
+        {
+            get { return user; }
+        }
+
+        public string Token
+        {
+            get { return token; }
+        }
+
+        public string Host
+        {
+            get { return host; }
+        }
+
+        public GitRemoteFunction Function
+        {
+            get { return function; }
+        }
+
+        public GitRemote(string name, string host, string url, GitRemoteFunction function, string user, string login, string token)
+        {
+            this.name = name;
+            this.url = url;
+            this.host = host;
+            this.function = function;
+            this.user = user;
+            this.login = login;
+            this.token = token;
+        }
+
+        public GitRemote(string name, string host, string url, GitRemoteFunction function, string user)
+        {
+            this.name = name;
+            this.url = url;
+            this.host = host;
+            this.function = function;
+            this.user = user;
+            login = null;
+            token = null;
+        }
+
+        public GitRemote(string name, string host, string url, GitRemoteFunction function)
+        {
+            this.name = name;
+            this.url = url;
+            this.host = host;
+            this.function = function;
+            this.user = null;
+            this.login = null;
+            this.token = null;
+        }
+
+        public GitRemote(string name, string url)
+        {
+            this.name = name;
+            this.url = url;
+            login = null;
+            user = null;
+            token = null;
+            host = null;
+            function = GitRemoteFunction.Unknown;
+        }
 
         public override string ToString()
         {

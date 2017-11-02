@@ -431,11 +431,9 @@ namespace GitHub.Unity
 
         private void UpdateRemoteAndRemoteBranches()
         {
-            cacheContainer.BranchCache.Remotes =
-                cacheContainer.BranchCache.ConfigRemotes.Values.Select(GetGitRemote).ToArray();
+            Remotes = ConfigRemotes.Values.Select(GetGitRemote).ToArray();
 
-            cacheContainer.BranchCache.RemoteBranches = cacheContainer
-                .BranchCache.RemoteConfigBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch).ToArray();
+            RemoteBranches = RemoteConfigBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch).ToArray();
         }
 
         private void RepositoryManager_OnLocalBranchListUpdated(IDictionary<string, ConfigBranch> branches)
@@ -448,8 +446,7 @@ namespace GitHub.Unity
 
         private void UpdateLocalBranches()
         {
-            cacheContainer.BranchCache.LocalBranches = cacheContainer
-                .BranchCache.LocalConfigBranches.Values.Select(GetLocalGitBranch).ToArray();
+            LocalBranches = LocalConfigBranches.Values.Select(GetLocalGitBranch).ToArray();
         }
 
         private void UpdateRepositoryInfo()
@@ -518,19 +515,37 @@ namespace GitHub.Unity
 
         private static GitRemote GetGitRemote(ConfigRemote configRemote)
         {
-            return new GitRemote { Name = configRemote.Name, Url = configRemote.Url };
+            return new GitRemote(configRemote.Name, configRemote.Url);
         }
 
-        public GitRemote[] Remotes => cacheContainer.BranchCache.Remotes;
+        private IRemoteConfigBranchDictionary RemoteConfigBranches => cacheContainer.BranchCache.RemoteConfigBranches;
 
-        public GitBranch[] LocalBranches => cacheContainer.BranchCache.LocalBranches;
+        private IConfigRemoteDictionary ConfigRemotes => cacheContainer.BranchCache.ConfigRemotes;
 
-        public GitBranch[] RemoteBranches => cacheContainer.BranchCache.RemoteBranches;
+        private ILocalConfigBranchDictionary LocalConfigBranches => cacheContainer.BranchCache.LocalConfigBranches;
+
+        public GitRemote[] Remotes
+        {
+            get { return cacheContainer.BranchCache.Remotes; }
+            set { cacheContainer.BranchCache.Remotes = value; }
+        }
+
+        public GitBranch[] LocalBranches
+        {
+            get { return cacheContainer.BranchCache.LocalBranches; }
+            set { cacheContainer.BranchCache.LocalBranches = value; }
+        }
+
+        public GitBranch[] RemoteBranches
+        {
+            get { return cacheContainer.BranchCache.RemoteBranches; }
+            set { cacheContainer.BranchCache.RemoteBranches = value; }
+        }
 
         private ConfigBranch? CurrentConfigBranch
         {
             get { return this.cacheContainer.BranchCache.CurentConfigBranch; }
-            set { cacheContainer.BranchCache.CurentConfigBranch = value;}
+            set { cacheContainer.BranchCache.CurentConfigBranch = value; }
         }
 
         private ConfigRemote? CurrentConfigRemote

@@ -415,9 +415,6 @@ namespace GitHub.Unity
     [Location("cache/repoinfo.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class RepositoryInfoCache : ManagedCacheBase<RepositoryInfoCache>, IRepositoryInfoCache
     {
-        public static readonly GitRemote DefaultGitRemote = new GitRemote();
-        public static readonly GitBranch DefaultGitBranch = new GitBranch();
-
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private GitRemote gitRemote;
@@ -428,7 +425,7 @@ namespace GitHub.Unity
             get
             {
                 ValidateData();
-                return gitRemote.Equals(DefaultGitRemote) ? (GitRemote?)null : gitRemote;
+                return gitRemote.Equals(GitRemote.Default) ? (GitRemote?)null : gitRemote;
             }
             set
             {
@@ -439,7 +436,7 @@ namespace GitHub.Unity
 
                 if (!Nullable.Equals(gitRemote, value))
                 {
-                    gitRemote = value ?? DefaultGitRemote;
+                    gitRemote = value ?? GitRemote.Default;
                     isUpdated = true;
                 }
 
@@ -452,7 +449,7 @@ namespace GitHub.Unity
             get
             {
                 ValidateData();
-                return gitBranch.Equals(DefaultGitBranch) ? (GitBranch?)null : gitBranch;
+                return gitBranch.Equals(GitBranch.Default) ? (GitBranch?)null : gitBranch;
             }
             set
             {
@@ -463,7 +460,7 @@ namespace GitHub.Unity
 
                 if (!Nullable.Equals(gitBranch, value))
                 {
-                    gitBranch = value ?? DefaultGitBranch;
+                    gitBranch = value ?? GitBranch.Default;
                     isUpdated = true;
                 }
 

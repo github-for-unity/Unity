@@ -134,9 +134,6 @@ namespace GitHub.Unity
             }
 
             UpdateActiveTab();
-
-            if (ActiveView != null)
-                ActiveView.OnRepositoryChanged(oldRepository);
         }
 
         public override void OnSelectionChange()
