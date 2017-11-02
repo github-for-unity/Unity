@@ -91,6 +91,7 @@ namespace GitHub.Unity
             ActiveView.OnEnable();
             titleContent = new GUIContent(ActiveView.Title, Styles.SmallLogo);
             Show();
+            Redraw();
         }
 
         public IApiClient Client
