@@ -1,8 +1,6 @@
 @echo off
 setlocal
 
-set Configuration=Release
-
 :: make sure at Unity project root directory
 set NunitDirectory=packages\NUnit.Runners.2.6.4\tools
 echo %NunitDirectory%
