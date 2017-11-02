@@ -117,6 +117,8 @@ namespace GitHub.Unity
                 owners = new[] { OwnersDefaultText, username }.Union(publishOwners).ToArray();
 
                 isBusy = false;
+
+                Redraw();
             }, exception =>
             {
                 isBusy = false;
