@@ -473,7 +473,7 @@ namespace GitHub.Unity
 
         private static GitRemote GetGitRemote(ConfigRemote configRemote)
         {
-            return new GitRemote { Name = configRemote.Name, Url = configRemote.Url };
+            return new GitRemote(configRemote.Name, configRemote.Url);
         }
 
         private IRemoteConfigBranchDictionary RemoteConfigBranches => cacheContainer.BranchCache.RemoteConfigBranches;
