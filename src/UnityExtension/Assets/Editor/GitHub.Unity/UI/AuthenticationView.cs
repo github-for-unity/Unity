@@ -9,6 +9,8 @@ namespace GitHub.Unity
     {
         private static readonly Vector2 viewSize = new Vector2(290, 290);
 
+        private const string CredentialsNeedRefreshMessage = "We've detected that your stored credentials are out of sync with your current user. This can happen if you have signed in to git outside of Unity. Sign in again to refresh your credentials.";
+        private const string NeedAuthenticationMessage = "We need you to authenticate first";
         private const string WindowTitle = "Authenticate";
         private const string UsernameLabel = "Username";
         private const string PasswordLabel = "Password";
@@ -41,14 +43,25 @@ namespace GitHub.Unity
             Size = viewSize;
         }
 
-        public override void OnEnable()
+        public void Initialize(Exception exception)
         {
-            base.OnEnable();
-        }
+            var usernameMismatchException = exception as TokenUsernameMismatchException;
+            if (usernameMismatchException != null)
+            {
+                message = CredentialsNeedRefreshMessage;
+                username = usernameMismatchException.CachedUsername;
+            }
 
-        public override void OnDisable()
-        {
-            base.OnDisable();
+            var keychainEmptyException = exception as KeychainEmptyException;
+            if (keychainEmptyException != null)
+            {
+                message = NeedAuthenticationMessage;
+            }
+
+            if (usernameMismatchException == null && keychainEmptyException == null)
+            {
+                message = exception.Message;
+            }
         }
 
         public override void OnGUI()
@@ -81,27 +94,7 @@ namespace GitHub.Unity
             }
             GUILayout.EndScrollView();
         }
-
-        public void SetMessage(string value)
-        {
-            message = value;
-        }
-
-        public void ClearMessage()
-        {
-            message = null;
-        }
-
-        public void SetUsername(string value)
-        {
-            username = value;
-        }
-
-        public void ClearUsername()
-        {
-            username = string.Empty;
-        }
-
+        
         private void HandleEnterPressed()
         {
             if (Event.current.type != EventType.KeyDown)
