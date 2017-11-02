@@ -59,15 +59,37 @@ namespace GitHub.Unity
             get { return function; }
         }
 
-        public GitRemote(string name, string url, string login, string user, string token, string host, GitRemoteFunction function)
+        public GitRemote(string name, string host, string url, GitRemoteFunction function, string user, string login, string token)
         {
             this.name = name;
             this.url = url;
-            this.login = login;
-            this.user = user;
-            this.token = token;
             this.host = host;
             this.function = function;
+            this.user = user;
+            this.login = login;
+            this.token = token;
+        }
+
+        public GitRemote(string name, string host, string url, GitRemoteFunction function, string user)
+        {
+            this.name = name;
+            this.url = url;
+            this.host = host;
+            this.function = function;
+            this.user = user;
+            login = null;
+            token = null;
+        }
+
+        public GitRemote(string name, string host, string url, GitRemoteFunction function)
+        {
+            this.name = name;
+            this.url = url;
+            this.host = host;
+            this.function = function;
+            this.user = null;
+            this.login = null;
+            this.token = null;
         }
 
         public GitRemote(string name, string url)

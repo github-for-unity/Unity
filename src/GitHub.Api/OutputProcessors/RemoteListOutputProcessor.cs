@@ -99,7 +99,7 @@ namespace GitHub.Unity
                 currentUrl = currentUrl.Substring(user.Length + 1);
             }
 
-            RaiseOnEntry(new GitRemote(currentName, currentUrl, null, user, null, host, remoteFunction));
+            RaiseOnEntry(new GitRemote(currentName, host, currentUrl, remoteFunction, user, null, null));
             Reset();
         }
 
