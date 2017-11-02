@@ -67,7 +67,7 @@ namespace GitHub.Unity
             {
                 if (environment == null)
                 {
-                    environment = new DefaultEnvironment();
+                    environment = new DefaultEnvironment(new CacheContainer());
                     if (unityApplication == null)
                     {
                         unityAssetsPath = Application.dataPath;
@@ -77,7 +77,7 @@ namespace GitHub.Unity
                     }
                     environment.Initialize(unityVersion, extensionInstallPath.ToNPath(), unityApplication.ToNPath(),
                         unityAssetsPath.ToNPath());
-                    environment.InitializeRepository(EntryPoint.ApplicationManager.CacheContainer, !String.IsNullOrEmpty(repositoryPath)
+                    environment.InitializeRepository(!String.IsNullOrEmpty(repositoryPath)
                         ? repositoryPath.ToNPath()
                         : null);
                     Flush();

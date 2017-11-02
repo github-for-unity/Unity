@@ -12,10 +12,10 @@ namespace IntegrationTests
 
         private DefaultEnvironment defaultEnvironment;
 
-        public IntegrationTestEnvironment(NPath repoPath, NPath solutionDirectory, NPath environmentPath = null,
+        public IntegrationTestEnvironment(ICacheContainer cacheContainer, NPath repoPath, NPath solutionDirectory, NPath environmentPath = null,
             bool enableTrace = false)
         {
-            defaultEnvironment = new DefaultEnvironment();
+            defaultEnvironment = new DefaultEnvironment(cacheContainer);
             defaultEnvironment.FileSystem.SetCurrentDirectory(repoPath);
             environmentPath = environmentPath ??
                 defaultEnvironment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
@@ -28,10 +28,8 @@ namespace IntegrationTests
 
             var installPath = solutionDirectory.Parent.Parent.Combine("src", "GitHub.Api");
 
-            //TODO: Mock CacheContainer
-            ICacheContainer cacheContainer = null;
             Initialize(UnityVersion, installPath, solutionDirectory, repoPath.Combine("Assets"));
-            InitializeRepository(cacheContainer);
+            InitializeRepository();
 
             this.enableTrace = enableTrace;
 
@@ -47,9 +45,9 @@ namespace IntegrationTests
             defaultEnvironment.Initialize(unityVersion, extensionInstallPath, unityPath, assetsPath);
         }
 
-        public void InitializeRepository(ICacheContainer cacheContainer, NPath expectedPath = null)
+        public void InitializeRepository(NPath expectedPath = null)
         {
-            defaultEnvironment.InitializeRepository(cacheContainer, expectedPath);
+            defaultEnvironment.InitializeRepository(expectedPath);
         }
 
         public string ExpandEnvironmentVariables(string name)
