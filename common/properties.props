@@ -7,6 +7,7 @@
 
     <UnityDir Condition="$(UnityDir) == '' and Exists('$(SolutionDir)\script\lib\UnityEditor.dll')">$(SolutionDir)\script\lib\</UnityDir>
     <UnityDir Condition="$(UnityDir) == '' and Exists('$(SolutionDir)\lib\UnityEditor.dll')">$(SolutionDir)\lib\</UnityDir>
+    <UnityDir Condition="$(UnityDir) == '' and Exists('C:\Program Files\Unity\Editor\Data\Managed\UnityEditor.dll')">C:\Program Files\Unity\Editor\Data\Managed\</UnityDir>
     <UnityDir Condition="$(UnityDir) == '' and Exists('C:\Program Files (x86)\Unity\Editor\Data\Managed\UnityEditor.dll')">C:\Program Files (x86)\Unity\Editor\Data\Managed\</UnityDir>
     <UnityDir Condition="$(UnityDir) == '' and Exists('\Applications\Unity\Unity.app\Contents\Managed\UnityEditor.dll')">\Applications\Unity\Unity.app\Contents\Managed\</UnityDir>
     <BuildConfig Condition=" '$(BuildConfig)' == '' ">Debug</BuildConfig>
