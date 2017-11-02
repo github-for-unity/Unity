@@ -38,11 +38,11 @@ namespace GitHub.Unity
         [SerializeField] private GitPathView gitPathView = new GitPathView();
         [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
 
-        [SerializeField] private CacheUpdateEvent branchUpdateEvent;
-        [NonSerialized] private bool branchCacheHasUpdate;
+        [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
+        [NonSerialized] private bool currentRemoteHasUpdate;
 
-        [SerializeField] private CacheUpdateEvent gitLocksUpdateEvent;
-        [NonSerialized] private bool gitLocksCacheHasUpdate;
+        [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
+        [NonSerialized] private bool currentLocksHasUpdate;
 
         public override void InitializeView(IView parent)
         {
@@ -60,8 +60,8 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                Repository.CheckBranchCacheEvent(branchUpdateEvent);
-                Repository.CheckGitLocksCacheEvent(gitLocksUpdateEvent);
+                Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
+                Repository.CheckLocksChangedEvent(lastLocksChangedEvent);
             }
 
             metricsHasChanged = true;
@@ -103,32 +103,32 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
-            repository.GitLockCacheUpdated += Repository_GitLockCacheUpdated;
+            repository.CurrentRemoteChanged += RepositoryOnCurrentRemoteChanged;
+            repository.LocksChanged += RepositoryOnLocksChanged;
         }
 
-        private void Repository_GitLockCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!gitLocksUpdateEvent.Equals(cacheUpdateEvent))
+            if (!lastLocksChangedEvent.Equals(cacheUpdateEvent))
             {
                 new ActionTask(TaskManager.Token, () =>
                 {
-                    gitLocksUpdateEvent = cacheUpdateEvent;
-                    gitLocksCacheHasUpdate = true;
+                    lastLocksChangedEvent = cacheUpdateEvent;
+                    currentLocksHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
             }
         }
 
-        private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private void RepositoryOnCurrentRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!branchUpdateEvent.Equals(cacheUpdateEvent))
+            if (!lastCurrentRemoteChangedEvent.Equals(cacheUpdateEvent))
             {
                 new ActionTask(TaskManager.Token, () =>
                 {
-                    branchUpdateEvent = cacheUpdateEvent;
-                    branchCacheHasUpdate = true;
+                    lastCurrentRemoteChangedEvent = cacheUpdateEvent;
+                    currentRemoteHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
@@ -182,11 +182,11 @@ namespace GitHub.Unity
             if (Repository == null)
                 return;
 
-            if (branchCacheHasUpdate)
+            if (currentRemoteHasUpdate)
             {
-                branchCacheHasUpdate = false;
-                var activeRemote = Repository.CurrentRemote;
-                hasRemote = activeRemote.HasValue && !String.IsNullOrEmpty(activeRemote.Value.Url);
+                currentRemoteHasUpdate = false;
+                var currentRemote = Repository.CurrentRemote;
+                hasRemote = currentRemote.HasValue && !String.IsNullOrEmpty(currentRemote.Value.Url);
                 if (!hasRemote)
                 {
                     repositoryRemoteName = DefaultRepositoryRemoteName;
@@ -194,14 +194,14 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    repositoryRemoteName = activeRemote.Value.Name;
-                    newRepositoryRemoteUrl = repositoryRemoteUrl = activeRemote.Value.Url;
+                    repositoryRemoteName = currentRemote.Value.Name;
+                    newRepositoryRemoteUrl = repositoryRemoteUrl = currentRemote.Value.Url;
                 }
             }
 
-            if (gitLocksCacheHasUpdate)
+            if (currentLocksHasUpdate)
             {
-                gitLocksCacheHasUpdate = false;
+                currentLocksHasUpdate = false;
                 var repositoryCurrentLocks = Repository.CurrentLocks;
                 lockedFiles = repositoryCurrentLocks != null
                     ? repositoryCurrentLocks.ToList()

@@ -51,14 +51,14 @@ namespace GitHub.Unity
         [SerializeField] private bool hasRemote;
         [SerializeField] private bool hasItemsToCommit;
 
-        [SerializeField] private CacheUpdateEvent repositoryInfoUpdateEvent;
-        [NonSerialized] private bool repositoryInfoHasUpdate;
+        [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
+        [NonSerialized] private bool currentRemoteHasUpdate;
 
-        [SerializeField] private CacheUpdateEvent gitStatusUpdateEvent;
-        [NonSerialized] private bool gitStatusCacheHasUpdate;
+        [SerializeField] private CacheUpdateEvent lastStatusChangedEvent;
+        [NonSerialized] private bool currentStatusHasUpdate;
 
-        [SerializeField] private CacheUpdateEvent gitLogCacheUpdateEvent;
-        [NonSerialized] private bool gitLogCacheHasUpdate;
+        [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
+        [NonSerialized] private bool currentLogHasUpdate;
 
         public override void InitializeView(IView parent)
         {
@@ -77,9 +77,9 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                Repository.CheckGitLogCacheEvent(gitLogCacheUpdateEvent);
-                Repository.CheckGitStatusCacheEvent(gitStatusUpdateEvent);
-                Repository.CheckRepositoryInfoCacheEvent(repositoryInfoUpdateEvent);
+                Repository.CheckLogChangedEvent(lastLogChangedEvent);
+                Repository.CheckStatusChangedEvent(lastStatusChangedEvent);
+                Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
             }
         }
 
@@ -100,42 +100,42 @@ namespace GitHub.Unity
             OnEmbeddedGUI();
         }
 
-        private void Repository_GitStatusCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!gitStatusUpdateEvent.Equals(cacheUpdateEvent))
+            if (!lastStatusChangedEvent.Equals(cacheUpdateEvent))
             {
                 new ActionTask(TaskManager.Token, () =>
                 {
-                    gitStatusUpdateEvent = cacheUpdateEvent;
-                    gitStatusCacheHasUpdate = true;
+                    lastStatusChangedEvent = cacheUpdateEvent;
+                    currentStatusHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
             }
         }
 
-        private void Repository_GitLogCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private void RepositoryOnLogChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!gitLogCacheUpdateEvent.Equals(cacheUpdateEvent))
+            if (!lastLogChangedEvent.Equals(cacheUpdateEvent))
             {
                 new ActionTask(TaskManager.Token, () =>
                 {
-                    gitLogCacheUpdateEvent = cacheUpdateEvent;
-                    gitLogCacheHasUpdate = true;
+                    lastLogChangedEvent = cacheUpdateEvent;
+                    currentLogHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
             }
         }
 
-        private void Repository_RepositoryInfoCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private void RepositoryOnCurrentRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!repositoryInfoUpdateEvent.Equals(cacheUpdateEvent))
+            if (!lastCurrentRemoteChangedEvent.Equals(cacheUpdateEvent))
             {
                 new ActionTask(TaskManager.Token, () =>
                 {
-                    repositoryInfoUpdateEvent = cacheUpdateEvent;
-                    repositoryInfoHasUpdate = true;
+                    lastCurrentRemoteChangedEvent = cacheUpdateEvent;
+                    currentRemoteHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
@@ -147,9 +147,9 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.GitStatusCacheUpdated += Repository_GitStatusCacheUpdated;
-            repository.GitLogCacheUpdated += Repository_GitLogCacheUpdated;
-            repository.RepositoryInfoCacheUpdated += Repository_RepositoryInfoCacheUpdated;
+            repository.StatusChanged += RepositoryOnStatusChanged;
+            repository.LogChanged += RepositoryOnLogChanged;
+            repository.CurrentRemoteChanged += RepositoryOnCurrentRemoteChanged;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -157,9 +157,9 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.GitStatusCacheUpdated -= Repository_GitStatusCacheUpdated;
-            repository.GitLogCacheUpdated -= Repository_GitLogCacheUpdated;
-            repository.RepositoryInfoCacheUpdated -= Repository_RepositoryInfoCacheUpdated;
+            repository.StatusChanged -= RepositoryOnStatusChanged;
+            repository.LogChanged -= RepositoryOnLogChanged;
+            repository.CurrentRemoteChanged -= RepositoryOnCurrentRemoteChanged;
         }
 
         private void MaybeUpdateData()
@@ -167,18 +167,18 @@ namespace GitHub.Unity
             if (Repository == null)
                 return;
 
-            if (repositoryInfoHasUpdate)
+            if (currentRemoteHasUpdate)
             {
-                repositoryInfoHasUpdate = false;
+                currentRemoteHasUpdate = false;
 
                 var currentRemote = Repository.CurrentRemote;
                 hasRemote = currentRemote.HasValue;
                 currentRemoteName = hasRemote ? currentRemote.Value.Name : "placeholder";
             }
 
-            if (gitStatusCacheHasUpdate)
+            if (currentStatusHasUpdate)
             {
-                gitStatusCacheHasUpdate = false;
+                currentStatusHasUpdate = false;
 
                 var currentStatus = Repository.CurrentStatus;
                 statusAhead = currentStatus.Ahead;
@@ -187,9 +187,9 @@ namespace GitHub.Unity
                     currentStatus.GetEntriesExcludingIgnoredAndUntracked().Any();
             }
 
-            if (gitLogCacheHasUpdate)
+            if (currentLogHasUpdate)
             {
-                gitLogCacheHasUpdate = false;
+                currentLogHasUpdate = false;
 
                 history = Repository.CurrentLog;
 
@@ -308,7 +308,7 @@ namespace GitHub.Unity
                 // Only update time scroll
                 var lastScroll = scroll;
                 scroll = GUILayout.BeginScrollView(scroll);
-                if (lastScroll != scroll && !gitLogCacheHasUpdate)
+                if (lastScroll != scroll && !currentLogHasUpdate)
                 {
                     scrollTime = history[historyStartIndex].Time;
                     scrollOffset = scroll.y - historyStartIndex * EntryHeight;
@@ -414,7 +414,7 @@ namespace GitHub.Unity
             if (Event.current.type == EventType.Repaint)
             {
                 CullHistory();
-                gitLogCacheHasUpdate = false;
+                currentLogHasUpdate = false;
 
                 if (newSelectionIndex >= 0 || newSelectionIndex == -2)
                 {
