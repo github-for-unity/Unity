@@ -57,7 +57,7 @@ namespace UnitTests
             };
 
             var name = "origin";
-            var function = GitRemoteFunction.Fetch;
+            var function = GitRemoteFunction.Push;
             var host = "github.com";
             var url = "https://github.com/github/VisualStudio.git";
             AssertProcessOutput(output, new[]
@@ -103,7 +103,7 @@ namespace UnitTests
             AssertProcessOutput(output, new[]
             {
                 new GitRemote("origin", "github.com", "https://github.com/github/VisualStudio.git", GitRemoteFunction.Both),
-                new GitRemote("stanleygoldman", "github.com", "github.com:StanleyGoldman/VisualStudio.git", GitRemoteFunction.Both, "https://github.com/github/VisualStudio.git"),
+                new GitRemote("stanleygoldman", "github.com", "github.com:StanleyGoldman/VisualStudio.git", GitRemoteFunction.Both, "git"),
                 new GitRemote("fetchOnly", "github.com", "github.com:StanleyGoldman/VisualStudio2.git", GitRemoteFunction.Fetch,"git")
             });
         }
