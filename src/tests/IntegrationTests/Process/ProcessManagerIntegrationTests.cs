@@ -126,7 +126,7 @@ namespace IntegrationTests
                 .GetGitRemoteEntries(TestRepoMasterCleanSynchronized)
                 .StartAsAsync();
 
-            gitRemotes.Should().BeEquivalentTo(new GitRemote("origin","https://github.com/EvilStanleyGoldman/IOTestsRepo.git","github.com",GitRemoteFunction.Both));
+            gitRemotes.Should().BeEquivalentTo(new GitRemote("origin", "github.com", "https://github.com/EvilStanleyGoldman/IOTestsRepo.git", GitRemoteFunction.Both));
         }
 
         [Test]
