@@ -36,11 +36,9 @@ namespace GitHub.Unity
 
         [NonSerialized] private int listID = -1;
         [NonSerialized] private BranchesMode targetMode;
-        [NonSerialized] private List<string> favoritesList;
 
         [SerializeField] private Tree treeLocals = new Tree();
         [SerializeField] private Tree treeRemotes = new Tree();
-        [SerializeField] private Tree treeFavorites = new Tree();
         [SerializeField] private BranchesMode mode = BranchesMode.Default;
         [SerializeField] private string newBranchName;
         [SerializeField] private Vector2 scroll;
