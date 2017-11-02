@@ -30,7 +30,7 @@ namespace GitHub.Unity
 
         [SerializeField] private string username;
         [SerializeField] private string[] owners = { OwnersDefaultText };
-        [SerializeField] private IList<Organization> organizations;
+        [SerializeField] private string[] publishOwners;
         [SerializeField] private int selectedOwner;
         [SerializeField] private string repoName = String.Empty;
         [SerializeField] private string repoDescription = "";
@@ -68,7 +68,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            ownersNeedLoading = organizations == null && !isBusy;
+            ownersNeedLoading = publishOwners == null && !isBusy;
         }
 
         public override void OnDataUpdate()
@@ -107,14 +107,14 @@ namespace GitHub.Unity
 
             Client.GetOrganizations(orgs =>
             {
-                organizations = orgs;
-                Logger.Trace("Loaded {0} Owners", organizations.Count);
+                Logger.Trace("Loaded {0} Owners", orgs.Length);
 
-                var organizationLogins = organizations
+                publishOwners = orgs
                     .OrderBy(organization => organization.Login)
-                    .Select(organization => organization.Login);
+                    .Select(organization => organization.Login)
+                    .ToArray();
 
-                owners = new[] { OwnersDefaultText, username }.Union(organizationLogins).ToArray();
+                owners = new[] { OwnersDefaultText, username }.Union(publishOwners).ToArray();
 
                 isBusy = false;
             }, exception =>

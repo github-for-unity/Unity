@@ -50,7 +50,7 @@ namespace GitHub.Unity
             await loginManager.Logout(host);
         }
 
-        public async Task CreateRepository(NewRepository newRepository, Action<Octokit.Repository, Exception> callback, string organization = null)
+        public async Task CreateRepository(NewRepository newRepository, Action<GitHubRepository, Exception> callback, string organization = null)
         {
             Guard.ArgumentNotNull(callback, "callback");
             try
@@ -64,7 +64,7 @@ namespace GitHub.Unity
             }
         }
 
-        public async Task GetOrganizations(Action<IList<Organization>> onSuccess, Action<Exception> onError = null)
+        public async Task GetOrganizations(Action<Organization[]> onSuccess, Action<Exception> onError = null)
         {
             Guard.ArgumentNotNull(onSuccess, nameof(onSuccess));
             await GetOrganizationInternal(onSuccess, onError);
@@ -84,7 +84,7 @@ namespace GitHub.Unity
             }
         }
 
-        public async Task GetCurrentUser(Action<Octokit.User> callback)
+        public async Task GetCurrentUser(Action<GitHubUser> callback)
         {
             Guard.ArgumentNotNull(callback, "callback");
             var user = await GetCurrentUserInternal();
@@ -187,7 +187,7 @@ namespace GitHub.Unity
             return result.Code == LoginResultCodes.Success;
         }
 
-        private async Task<Octokit.Repository> CreateRepositoryInternal(NewRepository newRepository, string organization)
+        private async Task<GitHubRepository> CreateRepositoryInternal(NewRepository newRepository, string organization)
         {
             try
             {
@@ -196,18 +196,18 @@ namespace GitHub.Unity
                 await ValidateKeychain();
                 await ValidateCurrentUserInternal();
 
-                Octokit.Repository repository;
+                GitHubRepository repository;
                 if (!string.IsNullOrEmpty(organization))
                 {
                     logger.Trace("Creating repository for organization");
 
-                    repository = await githubClient.Repository.Create(organization, newRepository);
+                    repository = (await githubClient.Repository.Create(organization, newRepository)).ToGitHubRepository();
                 }
                 else
                 {
                     logger.Trace("Creating repository for user");
 
-                    repository = await githubClient.Repository.Create(newRepository);
+                    repository = (await githubClient.Repository.Create(newRepository)).ToGitHubRepository();
                 }
 
                 logger.Trace("Created Repository");
@@ -220,7 +220,7 @@ namespace GitHub.Unity
             }
         }
 
-        private async Task GetOrganizationInternal(Action<IList<Organization>> onSuccess, Action<Exception> onError = null)
+        private async Task GetOrganizationInternal(Action<Organization[]> onSuccess, Action<Exception> onError = null)
         {
             try
             {
@@ -235,7 +235,11 @@ namespace GitHub.Unity
 
                 if (organizations != null)
                 {
-                    onSuccess(organizations.ToArray());
+                    var array = organizations.Select(organization => new Organization() {
+                        Name = organization.Name,
+                        Login = organization.Login
+                    }).ToArray();
+                    onSuccess(array);
                 }
             }
             catch(Exception ex)
@@ -245,14 +249,14 @@ namespace GitHub.Unity
             }
         }
 
-        private async Task<Octokit.User> GetCurrentUserInternal()
+        private async Task<GitHubUser> GetCurrentUserInternal()
         {
             try
             {
                 logger.Trace("Getting Current User");
                 await ValidateKeychain();
 
-                return await githubClient.User.Current();
+                return (await githubClient.User.Current()).ToGitHubUser();
             }
             catch (Exception ex)
             {
@@ -309,6 +313,18 @@ namespace GitHub.Unity
                 throw new KeychainEmptyException();
             }
         }
+    }
+
+    class GitHubUser
+    {
+        public string Name { get; set; }
+        public string Login { get; set; }
+    }
+
+    class GitHubRepository
+    {
+        public string Name { get; set; }
+        public string CloneUrl { get; set; }
     }
 
     class ApiClientException : Exception
