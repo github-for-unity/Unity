@@ -14,13 +14,57 @@ namespace GitHub.Unity
     [Serializable]
     public struct GitRemote
     {
-        public string Name;
-        public string Url;
-        public string Login;
-        public string User;
-        public string Token;
-        public string Host;
-        public GitRemoteFunction Function;
+        public static GitRemote Default = new GitRemote();
+
+        private string name;
+        private string url;
+        private string login;
+        private string user;
+        private string host;
+        private GitRemoteFunction function;
+
+        public string Name
+        {
+            get { return name; }
+        }
+
+        public string Url
+        {
+            get { return url; }
+        }
+
+        public string Login
+        {
+            get { return login; }
+        }
+
+        public string User
+        {
+            get { return user; }
+        }
+
+        public string Token { get; }
+
+        public string Host
+        {
+            get { return host; }
+        }
+
+        public GitRemoteFunction Function
+        {
+            get { return function; }
+        }
+
+        public GitRemote(string name, string url, string login, string user, string token, string host, GitRemoteFunction function)
+        {
+            this.name = name;
+            this.url = url;
+            this.login = login;
+            this.user = user;
+            Token = token;
+            this.host = host;
+            this.function = function;
+        }
 
         public override string ToString()
         {
