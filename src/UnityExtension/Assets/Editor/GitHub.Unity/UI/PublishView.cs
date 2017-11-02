@@ -123,29 +123,6 @@ namespace GitHub.Unity
             {
                 isBusy = false;
 
-                var tokenUsernameMismatchException = exception as TokenUsernameMismatchException;
-                if (tokenUsernameMismatchException != null)
-                {
-                    Logger.Trace("Token Username Mismatch");
-
-                    var shouldProceed = EditorUtility.DisplayDialog(AuthenticationChangedTitle,
-                        string.Format(AuthenticationChangedMessageFormat,
-                            tokenUsernameMismatchException.CachedUsername,
-                            tokenUsernameMismatchException.CurrentUsername), AuthenticationChangedProceed, AuthenticationChangedLogout);
-
-                    if (shouldProceed)
-                    {
-                        //Proceed as current user
-
-                    }
-                    else
-                    {
-                        //Logout current user and try again
-
-                    }
-                    return;
-                }
-
                 var keychainEmptyException = exception as KeychainEmptyException;
                 if (keychainEmptyException != null)
                 {
