@@ -203,12 +203,11 @@ namespace GitHub.Unity
 
         public void CheckLogChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
-            CacheUpdateEvent cacheUpdateEvent1 = cacheUpdateEvent;
             var managedCache = cacheContainer.GitLogCache;
-            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent1, managedCache);
+            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
 
             Logger.Trace("Check GitLogCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent1.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
 
             if (raiseEvent)
             {
@@ -220,12 +219,11 @@ namespace GitHub.Unity
 
         public void CheckStatusChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
-            CacheUpdateEvent cacheUpdateEvent1 = cacheUpdateEvent;
             var managedCache = cacheContainer.GitStatusCache;
-            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent1, managedCache);
+            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
 
             Logger.Trace("Check GitStatusCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent1.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
 
             if (raiseEvent)
             {
