@@ -12,7 +12,6 @@ namespace GitHub.Unity
         private static readonly Vector2 viewSize = new Vector2(400, 350);
 
         private const string WindowTitle = "Publish";
-        private const string Header = "Publish this repository to GitHub";
         private const string PrivateRepoMessage = "You choose who can see and commit to this repository";
         private const string PublicRepoMessage = "Anyone can see this repository. You choose who can commit";
         private const string PublishViewCreateButton = "Publish";
@@ -26,7 +25,7 @@ namespace GitHub.Unity
 
         [SerializeField] private string username;
         [SerializeField] private string[] owners = { OwnersDefaultText };
-        [SerializeField] private IList<Organization> organizations;
+        [SerializeField] private string[] publishOwners;
         [SerializeField] private int selectedOwner;
         [SerializeField] private string repoName = String.Empty;
         [SerializeField] private string repoDescription = "";
@@ -35,7 +34,7 @@ namespace GitHub.Unity
         [NonSerialized] private IApiClient client;
         [NonSerialized] private bool isBusy;
         [NonSerialized] private string error;
-        [NonSerialized] private bool organizationsNeedLoading;
+        [NonSerialized] private bool ownersNeedLoading;
 
         public IApiClient Client
         {
@@ -64,7 +63,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            organizationsNeedLoading = organizations == null && !isBusy;
+            ownersNeedLoading = publishOwners == null && !isBusy;
         }
 
         public override void OnDataUpdate()
@@ -75,10 +74,10 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (organizationsNeedLoading)
+            if (ownersNeedLoading)
             {
-                organizationsNeedLoading = false;
-                LoadOrganizations();
+                ownersNeedLoading = false;
+                LoadOwners();
             }
         }
 
@@ -89,59 +88,55 @@ namespace GitHub.Unity
             Size = viewSize;
         }
 
-        private void LoadOrganizations()
+        private void LoadOwners()
         {
             var keychainConnections = Platform.Keychain.Connections;
             //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-            if (keychainConnections.Any())
+
+            isBusy = true;
+
+            //TODO: ONE_USER_LOGIN This assumes only ever one user can login
+            username = keychainConnections.First().Username;
+
+            Logger.Trace("Loading Owners");
+
+            Client.GetOrganizations(orgs =>
             {
-                try
-                {
-                    Logger.Trace("Loading Keychain");
+                Logger.Trace("Loaded {0} Owners", orgs.Length);
 
-                    isBusy = true;
+                publishOwners = orgs
+                    .OrderBy(organization => organization.Login)
+                    .Select(organization => organization.Login)
+                    .ToArray();
 
-                    Client.LoadKeychain(hasKeys => {
-                        if (!hasKeys)
-                        {
-                            Logger.Warning("Unable to get current user");
-                            isBusy = false;
-                            return;
-                        }
+                owners = new[] { OwnersDefaultText, username }.Union(publishOwners).ToArray();
 
-                        //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-                        username = keychainConnections.First().Username;
+                isBusy = false;
 
-                        Logger.Trace("Loading Organizations");
-
-                        Client.GetOrganizations(orgs => {
-                            organizations = orgs;
-                            Logger.Trace("Loaded {0} organizations", organizations.Count);
-
-                            var organizationLogins = organizations
-                                .OrderBy(organization => organization.Login).Select(organization => organization.Login);
-
-                            owners = new[] { OwnersDefaultText, username }.Union(organizationLogins).ToArray();
-
-                            isBusy = false;
-                        });
-                    });
-                }
-                catch (Exception e)
-                {
-                    Logger.Error(e, "Error PopulateView & GetOrganizations");
-                    isBusy = false;
-                }
-            }
-            else
+                Redraw();
+            }, exception =>
             {
-                Logger.Warning("No Keychain connections to use");
-            }
+                isBusy = false;
+
+                var keychainEmptyException = exception as KeychainEmptyException;
+                if (keychainEmptyException != null)
+                {
+                    Logger.Trace("Keychain empty");
+                    PopupWindow.OpenWindow(PopupWindow.PopupViewType.AuthenticationView);
+                    return;
+                }
+
+                Logger.Error(exception, "Unhandled Exception");
+            });
         }
 
         public override void OnGUI()
         {
-            GUILayout.Label(PublishToGithubLabel, EditorStyles.boldLabel);
+            GUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
+            {
+            	GUILayout.Label(PublishToGithubLabel, EditorStyles.boldLabel);
+            }
+            GUILayout.EndHorizontal();
 
             EditorGUI.BeginDisabledGroup(isBusy);
             {
