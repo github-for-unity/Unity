@@ -12,14 +12,13 @@ namespace GitHub.Unity
         event Action<IUser> OnGitUserLoaded;
         event Action<bool> OnIsBusyChanged;
         event Action<string> OnLocalBranchAdded;
-        event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
         event Action<string> OnLocalBranchRemoved;
         event Action<string> OnLocalBranchUpdated;
         event Action<IList<GitLock>> OnLocksUpdated;
         event Action<string, string> OnRemoteBranchAdded;
-        event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         event Action<string, string> OnRemoteBranchRemoved;
         event Action<GitStatus> OnStatusUpdated;
+        event Action<Dictionary<string, ConfigBranch>, Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnBranchListsUpdated;
 
         void Initialize();
         void Start();
@@ -107,14 +106,13 @@ namespace GitHub.Unity
         public event Action<IUser> OnGitUserLoaded;
         public event Action<bool> OnIsBusyChanged;
         public event Action<string> OnLocalBranchAdded;
-        public event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
         public event Action<string> OnLocalBranchRemoved;
         public event Action<string> OnLocalBranchUpdated;
         public event Action<IList<GitLock>> OnLocksUpdated;
         public event Action<string, string> OnRemoteBranchAdded;
-        public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         public event Action<string, string> OnRemoteBranchRemoved;
         public event Action<GitStatus> OnStatusUpdated;
+        public event Action<Dictionary<string, ConfigBranch>, Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnBranchListsUpdated;
 
         public RepositoryManager(IPlatform platform, ITaskManager taskManager, IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
@@ -491,44 +489,13 @@ namespace GitHub.Unity
                 config.Reset();
             }
 
-            LoadBranchesFromConfig();
-            LoadRemotesFromConfig();
-            UpdateHead();
-        }
-
-        private void LoadBranchesFromConfig()
-        {
             Logger.Trace("LoadBranchesFromConfig");
 
             var branches = new Dictionary<string, ConfigBranch>();
             LoadBranchesFromConfig(branches, repositoryPaths.BranchesPath, config.GetBranches().Where(x => x.IsTracking), "");
 
             Logger.Trace("OnLocalBranchListUpdated {0} branches", branches.Count);
-            OnLocalBranchListUpdated?.Invoke(branches);
-        }
 
-        private void LoadBranchesFromConfig(Dictionary<string, ConfigBranch> branches, NPath path, IEnumerable<ConfigBranch> configBranches, string prefix)
-        {
-            foreach (var file in path.Files())
-            {
-                var branchName = prefix + file.FileName;
-                var branch =
-                    configBranches.Where(x => x.Name == branchName).Select(x => x as ConfigBranch?).FirstOrDefault();
-                if (!branch.HasValue)
-                {
-                    branch = new ConfigBranch { Name = branchName };
-                }
-                branches.Add(branchName, branch.Value);
-            }
-
-            foreach (var dir in path.Directories())
-            {
-                LoadBranchesFromConfig(branches, dir, configBranches, prefix + dir.FileName + "/");
-            }
-        }
-
-        private void LoadRemotesFromConfig()
-        {
             Logger.Trace("LoadRemotesFromConfig");
 
             var remotes = config.GetRemotes().ToArray().ToDictionary(x => x.Name, x => x);
@@ -553,7 +520,33 @@ namespace GitHub.Unity
             }
 
             Logger.Trace("OnRemoteBranchListUpdated {0} remotes", remotes.Count);
-            OnRemoteBranchListUpdated?.Invoke(remotes, remoteBranches);
+
+            OnBranchListsUpdated?.Invoke(branches, remotes, remoteBranches);
+
+            //OnLocalBranchListUpdated?.Invoke(branches);
+            //OnRemoteBranchListUpdated?.Invoke(remotes, remoteBranches);
+
+            UpdateHead();
+        }
+
+        private void LoadBranchesFromConfig(Dictionary<string, ConfigBranch> branches, NPath path, IEnumerable<ConfigBranch> configBranches, string prefix)
+        {
+            foreach (var file in path.Files())
+            {
+                var branchName = prefix + file.FileName;
+                var branch =
+                    configBranches.Where(x => x.Name == branchName).Select(x => x as ConfigBranch?).FirstOrDefault();
+                if (!branch.HasValue)
+                {
+                    branch = new ConfigBranch { Name = branchName };
+                }
+                branches.Add(branchName, branch.Value);
+            }
+
+            foreach (var dir in path.Directories())
+            {
+                LoadBranchesFromConfig(branches, dir, configBranches, prefix + dir.FileName + "/");
+            }
         }
 
         private bool disposed;
