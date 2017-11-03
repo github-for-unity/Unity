@@ -39,7 +39,7 @@ namespace IntegrationTests
             var versionResult = version.Result;
             if (Environment.IsWindows)
             {
-                versionResult.Should().Be(new Version(2, 3, 0));
+                versionResult.Should().Be(new Version(2, 3, 4));
             }
             else
             {
