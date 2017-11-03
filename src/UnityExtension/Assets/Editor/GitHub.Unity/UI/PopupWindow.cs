@@ -87,11 +87,23 @@ namespace GitHub.Unity
                 OnClose += onClose;
             }
 
+            var fromView = ActiveView;
             ActiveViewType = popupViewType;
-            ActiveView.OnEnable();
-            titleContent = new GUIContent(ActiveView.Title, Styles.SmallLogo);
+            SwitchView(fromView, ActiveView);
             Show();
-            Redraw();
+        }
+
+        private void SwitchView(Subview fromView, Subview toView)
+        {
+            GUI.FocusControl(null);
+
+            if (fromView != null)
+                fromView.OnDisable();
+            toView.OnEnable();
+            titleContent = new GUIContent(ActiveView.Title, Styles.SmallLogo);
+
+            // this triggers a repaint
+            Repaint();
         }
 
         public IApiClient Client
