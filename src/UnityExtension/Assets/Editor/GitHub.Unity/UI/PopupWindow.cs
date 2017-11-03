@@ -14,13 +14,13 @@ namespace GitHub.Unity
             AuthenticationView,
         }
 
-        [SerializeField] private bool shouldCloseOnFinish;
+        [NonSerialized] private IApiClient client;
+
         [SerializeField] private PopupViewType activeViewType;
         [SerializeField] private AuthenticationView authenticationView;
-        [SerializeField] private PublishView publishView;
         [SerializeField] private LoadingView loadingView;
-
-        [NonSerialized] private IApiClient client;
+        [SerializeField] private PublishView publishView;
+        [SerializeField] private bool shouldCloseOnFinish;
 
         public event Action<bool> OnClose;
 
@@ -37,6 +37,79 @@ namespace GitHub.Unity
             popupWindow.Open(popupViewType, onClose);
 
             return popupWindow;
+        }
+
+        public override void Initialize(IApplicationManager applicationManager)
+        {
+            base.Initialize(applicationManager);
+
+            publishView = publishView ?? new PublishView();
+            authenticationView = authenticationView ?? new AuthenticationView();
+            loadingView = loadingView ?? new LoadingView();
+
+            publishView.InitializeView(this);
+            authenticationView.InitializeView(this);
+            loadingView.InitializeView(this);
+
+            titleContent = new GUIContent(ActiveView.Title, Styles.SmallLogo);
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            minSize = maxSize = ActiveView.Size;
+            ActiveView.OnEnable();
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            ActiveView.OnDisable();
+        }
+
+        public override void OnDataUpdate()
+        {
+            base.OnDataUpdate();
+            ActiveView.OnDataUpdate();
+        }
+
+        public override void OnUI()
+        {
+            base.OnUI();
+            ActiveView.OnGUI();
+        }
+
+        public override void Refresh()
+        {
+            base.Refresh();
+            ActiveView.Refresh();
+        }
+
+        public override void OnSelectionChange()
+        {
+            base.OnSelectionChange();
+            ActiveView.OnSelectionChange();
+        }
+
+        public override void Finish(bool result)
+        {
+            OnClose.SafeInvoke(result);
+            OnClose = null;
+
+            if (shouldCloseOnFinish)
+            {
+                shouldCloseOnFinish = false;
+                Close();
+            }
+
+            base.Finish(result);
+        }
+
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            OnClose.SafeInvoke(false);
+            OnClose = null;
         }
 
         private void Open(PopupViewType popupViewType, Action<bool> onClose)
@@ -128,79 +201,6 @@ namespace GitHub.Unity
 
                 return client;
             }
-        }
-
-        public override void Initialize(IApplicationManager applicationManager)
-        {
-            base.Initialize(applicationManager);
-
-            publishView = publishView ?? new PublishView();
-            authenticationView = authenticationView ?? new AuthenticationView();
-            loadingView = loadingView ?? new LoadingView();
-
-            publishView.InitializeView(this);
-            authenticationView.InitializeView(this);
-            loadingView.InitializeView(this);
-
-            titleContent = new GUIContent(ActiveView.Title, Styles.SmallLogo);
-        }
-
-        public override void OnEnable()
-        {
-            base.OnEnable();
-            minSize = maxSize = ActiveView.Size;
-            ActiveView.OnEnable();
-        }
-
-        public override void OnDisable()
-        {
-            base.OnDisable();
-            ActiveView.OnDisable();
-        }
-
-        public override void OnDataUpdate()
-        {
-            base.OnDataUpdate();
-            ActiveView.OnDataUpdate();
-        }
-
-        public override void OnUI()
-        {
-            base.OnUI();
-            ActiveView.OnGUI();
-        }
-
-        public override void Refresh()
-        {
-            base.Refresh();
-            ActiveView.Refresh();
-        }
-
-        public override void OnSelectionChange()
-        {
-            base.OnSelectionChange();
-            ActiveView.OnSelectionChange();
-        }
-
-        public override void Finish(bool result)
-        {
-            OnClose.SafeInvoke(result);
-            OnClose = null;
-
-            if (shouldCloseOnFinish)
-            {
-                shouldCloseOnFinish = false;
-                Close();
-            }
-
-            base.Finish(result);
-        }
-
-        public override void OnDestroy()
-        {
-            base.OnDestroy();
-            OnClose.SafeInvoke(false);
-            OnClose = null;
         }
 
         private Subview ActiveView
