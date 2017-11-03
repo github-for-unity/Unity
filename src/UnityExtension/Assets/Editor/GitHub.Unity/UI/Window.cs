@@ -126,10 +126,6 @@ namespace GitHub.Unity
             }
 
             UpdateActiveTab();
-
-            if (ActiveView != null)
-                ActiveView.OnRepositoryChanged(oldRepository);
-
             UpdateLog();
         }
 

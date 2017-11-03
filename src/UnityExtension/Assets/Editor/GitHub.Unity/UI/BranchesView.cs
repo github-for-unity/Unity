@@ -77,18 +77,10 @@ namespace GitHub.Unity
         {
         }
 
-        public override void OnRepositoryChanged(IRepository oldRepository)
-        {
-            base.OnRepositoryChanged(oldRepository);
-            DetachHandlers(oldRepository);
-            AttachHandlers(Repository);
-        }
-
         private void AttachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-
             repository.OnLocalBranchListChanged += RunUpdateBranchesOnMainThread;
             repository.OnCurrentBranchChanged += HandleRepositoryBranchChangeEvent;
             repository.OnCurrentRemoteChanged += HandleRepositoryBranchChangeEvent;
