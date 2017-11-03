@@ -452,10 +452,8 @@ namespace GitHub.Unity
             [SerializeField] public GUIStyle TreeNodeStyle;
             [SerializeField] public GUIStyle ActiveTreeNodeStyle;
 
-            [NonSerialized]
-            private Stack<bool> indents = new Stack<bool>();
-            [NonSerialized]
-            private Hashtable folders;
+            [NonSerialized] private Stack<bool> indents = new Stack<bool>();
+            [NonSerialized] private Hashtable folders;
 
             public bool IsInitialized { get { return nodes != null && nodes.Count > 0 && !String.IsNullOrEmpty(nodes[0].Name); } }
             public bool RequiresRepaint { get; private set; }
