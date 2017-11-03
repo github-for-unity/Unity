@@ -558,6 +558,9 @@ namespace GitHub.Unity
 
             public Rect Render(Rect rect, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null)
             {
+                if (!nodes.Any())
+                    return rect;
+
                 RequiresRepaint = false;
                 rect = new Rect(0f, rect.y, rect.width, ItemHeight);
 
