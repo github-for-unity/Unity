@@ -591,7 +591,6 @@ namespace GitHub.Unity
                 {
                     authHeaderBoxStyle = new GUIStyle(HeaderBoxStyle);
                     authHeaderBoxStyle.name = "AuthHeaderBoxStyle";
-                    authHeaderBoxStyle.padding = new RectOffset(10, 10, 0, 5);
                 }
                 return authHeaderBoxStyle;
             }

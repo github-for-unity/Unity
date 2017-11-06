@@ -7,8 +7,7 @@ namespace GitHub.Unity
 {
     public interface IRepositoryManager : IDisposable
     {
-        event Action<ConfigBranch?> OnCurrentBranchUpdated;
-        event Action<ConfigRemote?> OnCurrentRemoteUpdated;
+        event Action<ConfigBranch?, ConfigRemote?> OnCurrentBranchAndRemoteUpdated;
         event Action<IUser> OnGitUserLoaded;
         event Action<bool> OnIsBusyChanged;
         event Action<string> OnLocalBranchAdded;
@@ -101,8 +100,7 @@ namespace GitHub.Unity
 
         private bool isBusy;
 
-        public event Action<ConfigBranch?> OnCurrentBranchUpdated;
-        public event Action<ConfigRemote?> OnCurrentRemoteUpdated;
+        public event Action<ConfigBranch?, ConfigRemote?> OnCurrentBranchAndRemoteUpdated;
         public event Action<IUser> OnGitUserLoaded;
         public event Action<bool> OnIsBusyChanged;
         public event Action<string> OnLocalBranchAdded;
@@ -426,10 +424,8 @@ namespace GitHub.Unity
             }
 
             Logger.Trace("OnCurrentBranchUpdated: {0}", branch.HasValue ? branch.Value.ToString() : "[NULL]");
-            OnCurrentBranchUpdated?.Invoke(branch);
-
             Logger.Trace("OnCurrentRemoteUpdated: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
-            OnCurrentRemoteUpdated?.Invoke(remote);
+            OnCurrentBranchAndRemoteUpdated?.Invoke(branch, remote);
         }
 
         private void Watcher_OnIndexChanged()

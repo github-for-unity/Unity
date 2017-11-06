@@ -11,6 +11,6 @@ namespace GitHub.Unity
         public const string TraceLoggingKey = "EnableTraceLogging";
 
         public static readonly Version MinimumGitVersion = new Version(2, 11, 0);
-        public static readonly Version MinimumGitLfsVersion = new Version(2, 2, 0);
+        public static readonly Version MinimumGitLfsVersion = new Version(2, 3, 4);
     }
 }

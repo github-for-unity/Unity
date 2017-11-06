@@ -48,8 +48,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(initRepositoryManager, nameof(initRepositoryManager));
 
             repositoryManager = initRepositoryManager;
-            repositoryManager.OnCurrentBranchUpdated += RepositoryManager_OnCurrentBranchUpdated;
-            repositoryManager.OnCurrentRemoteUpdated += RepositoryManager_OnCurrentRemoteUpdated;
+            repositoryManager.OnCurrentBranchAndRemoteUpdated += RepositoryManager_OnCurrentBranchAndRemoteUpdated;
             repositoryManager.OnRepositoryUpdated += RepositoryManager_OnRepositoryUpdated;
             repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
             repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
@@ -371,18 +370,6 @@ namespace GitHub.Unity
             LocalAndRemoteBranchListChanged?.Invoke(cacheUpdateEvent);
         }
 
-        private void RepositoryManager_OnCurrentRemoteUpdated(ConfigRemote? remote)
-        {
-            new ActionTask(CancellationToken.None, () => {
-                if (!Nullable.Equals(CurrentConfigRemote, remote))
-                {
-                        CurrentConfigRemote = remote;
-                        CurrentRemote = GetGitRemote(remote.Value);
-                        UpdateRepositoryInfo();
-                }
-            }) { Affinity = TaskAffinity.UI }.Start();
-        }
-
         private void RepositoryManager_OnRepositoryUpdated()
         {
             Logger.Trace("OnRepositoryUpdated");
@@ -413,8 +400,8 @@ namespace GitHub.Unity
                     .Start();
             }
         }
-
-        private void RepositoryManager_OnCurrentBranchUpdated(ConfigBranch? branch)
+        
+        private void RepositoryManager_OnCurrentBranchAndRemoteUpdated(ConfigBranch? branch, ConfigRemote? remote)
         {
             new ActionTask(CancellationToken.None, () => {
                 if (!Nullable.Equals(CurrentConfigBranch, branch))
@@ -424,6 +411,13 @@ namespace GitHub.Unity
                         CurrentConfigBranch = branch;
                         CurrentBranch = currentBranch;
                         UpdateLocalBranches();
+                }
+
+                if (!Nullable.Equals(CurrentConfigRemote, remote))
+                {
+                        CurrentConfigRemote = remote;
+                        CurrentRemote = GetGitRemote(remote.Value);
+                        UpdateRepositoryInfo();
                 }
             }) { Affinity = TaskAffinity.UI }.Start();
         }

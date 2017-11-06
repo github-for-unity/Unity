@@ -32,26 +32,42 @@ namespace GitHub.Unity
 
         static StreamExtensions()
         {
-            var t = typeof(Texture2D).Assembly.GetType("UnityEngine.ImageConversion", false, false);
-            if (t != null)
+            // 5.6
+            // looking for Texture2D.LoadImage(byte[] data)
+            loadImage = typeof(Texture2D).GetMethods().FirstOrDefault(x => x.Name == "LoadImage" && x.GetParameters().Length == 1);
+            if (loadImage != null)
             {
-                // looking for ImageConversion.LoadImage(this Texture2D tex, byte[] data)
-                loadImage = t.GetMethods().FirstOrDefault(x => x.Name == "LoadImage" && x.GetParameters().Length == 2);
-                invokeLoadImage = (tex, ms) =>
-                {
-                    loadImage.Invoke(null, new object[] { tex, ms.ToArray() });
-                    return tex;
-                };
-            }
-            else
-            {
-                // looking for Texture2D.LoadImage(byte[] data)
-                loadImage = typeof(Texture2D).GetMethods().FirstOrDefault(x => x.Name == "LoadImage" && x.GetParameters().Length == 1);
                 invokeLoadImage = (tex, ms) =>
                 {
                     loadImage.Invoke(tex, new object[] { ms.ToArray() });
                     return tex;
                 };
+            }
+            else
+            {
+                // 2017.1
+                var t = typeof(Texture2D).Assembly.GetType("UnityEngine.ImageConversion", false, false);
+                if (t == null)
+                {
+                    // 2017.2 and above
+                    t = Assembly.Load("UnityEngine.ImageConversionModule").GetType("UnityEngine.ImageConversion", false, false);
+                }
+
+                if (t != null)
+                {
+                    // looking for ImageConversion.LoadImage(this Texture2D tex, byte[] data)
+                    loadImage = t.GetMethods().FirstOrDefault(x => x.Name == "LoadImage" && x.GetParameters().Length == 2);
+                    invokeLoadImage = (tex, ms) =>
+                    {
+                        loadImage.Invoke(null, new object[] { tex, ms.ToArray() });
+                        return tex;
+                    };
+                }
+            }
+
+            if (loadImage == null)
+            {
+                Logging.Error("Could not find ImageConversion.LoadImage method");
             }
         }
 
