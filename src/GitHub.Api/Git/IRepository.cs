@@ -19,11 +19,15 @@ namespace GitHub.Unity
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
 
-        void CheckRepositoryInfoCacheEvent(CacheUpdateEvent cacheUpdateEvent);
-        void CheckBranchCacheEvent(CacheUpdateEvent cacheUpdateEvent);
-        void CheckGitStatusCacheEvent(CacheUpdateEvent cacheUpdateEvent);
-        void CheckGitLogCacheEvent(CacheUpdateEvent cacheUpdateEvent);
-        void CheckGitLocksCacheEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckLogChangedEvent(CacheUpdateEvent gitLogCacheUpdateEvent);
+        void CheckStatusChangedEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckCurrentBranchChangedEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckCurrentRemoteChangedEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckCurrentBranchAndRemoteChangedEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckLocalBranchListChangedEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckLocksChangedEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckRemoteBranchListChangedEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckLocalAndRemoteBranchListChangedEvent(CacheUpdateEvent cacheUpdateEvent);
 
         /// <summary>
         /// Gets the name of the repository.
@@ -62,10 +66,14 @@ namespace GitHub.Unity
         string CurrentBranchName { get; }
         List<GitLogEntry> CurrentLog { get; }
 
-        event Action<CacheUpdateEvent> GitStatusCacheUpdated;
-        event Action<CacheUpdateEvent> GitLogCacheUpdated;
-        event Action<CacheUpdateEvent> GitLockCacheUpdated;
-        event Action<CacheUpdateEvent> BranchCacheUpdated;
-        event Action<CacheUpdateEvent> RepositoryInfoCacheUpdated;
+        event Action<CacheUpdateEvent> LogChanged;
+        event Action<CacheUpdateEvent> StatusChanged;
+        event Action<CacheUpdateEvent> CurrentBranchChanged;
+        event Action<CacheUpdateEvent> CurrentRemoteChanged;
+        event Action<CacheUpdateEvent> CurrentBranchAndRemoteChanged;
+        event Action<CacheUpdateEvent> LocalBranchListChanged;
+        event Action<CacheUpdateEvent> LocksChanged;
+        event Action<CacheUpdateEvent> RemoteBranchListChanged;
+        event Action<CacheUpdateEvent> LocalAndRemoteBranchListChanged;
     }
 }

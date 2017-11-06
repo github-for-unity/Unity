@@ -48,8 +48,8 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private BranchTreeNode selectedNode;
 
-        [SerializeField] private CacheUpdateEvent branchUpdateEvent;
-        [NonSerialized] private bool branchCacheHasUpdate;
+        [SerializeField] private CacheUpdateEvent lastLocalAndRemoteBranchListChangedEvent;
+        [NonSerialized] private bool localAndRemoteBranchListHasUpdate;
 
         [SerializeField] private GitBranch[] localBranches;
         [SerializeField] private GitBranch[] remoteBranches;
@@ -60,14 +60,14 @@ namespace GitHub.Unity
             targetMode = mode;
         }
 
-        private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!branchUpdateEvent.Equals(cacheUpdateEvent))
+            if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))
             {
                 new ActionTask(TaskManager.Token, () =>
                 {
-                    branchUpdateEvent = cacheUpdateEvent;
-                    branchCacheHasUpdate = true;
+                    lastLocalAndRemoteBranchListChangedEvent = cacheUpdateEvent;
+                    localAndRemoteBranchListHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
@@ -81,7 +81,7 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                Repository.CheckBranchCacheEvent(branchUpdateEvent);
+                Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
             }
         }
 
@@ -99,9 +99,9 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (branchCacheHasUpdate)
+            if (localAndRemoteBranchListHasUpdate)
             {
-                branchCacheHasUpdate = false;
+                localAndRemoteBranchListHasUpdate = false;
 
                 localBranches = Repository.LocalBranches.ToArray();
                 remoteBranches = Repository.RemoteBranches.ToArray();
@@ -116,7 +116,7 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
+            repository.LocalAndRemoteBranchListChanged += RepositoryOnLocalAndRemoteBranchListChanged;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -124,7 +124,7 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.BranchCacheUpdated -= Repository_BranchCacheUpdated;
+            repository.LocalAndRemoteBranchListChanged -= RepositoryOnLocalAndRemoteBranchListChanged;
         }
 
         public override void OnGUI()

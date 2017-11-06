@@ -19,8 +19,8 @@ namespace GitHub.Unity
         private static bool isBusy = false;
         private static ILogging logger;
         private static ILogging Logger { get { return logger = logger ?? Logging.GetLogger<ProjectWindowInterface>(); } }
-        private static CacheUpdateEvent gitStatusUpdateEvent;
-        private static CacheUpdateEvent gitLocksUpdateEvent;
+        private static CacheUpdateEvent lastRepositoryStatusChangedEvent;
+        private static CacheUpdateEvent lastLocksChangedEvent;
 
         public static void Initialize(IRepository repo)
         {
@@ -33,35 +33,38 @@ namespace GitHub.Unity
 
             if (repository != null)
             {
-                repository.GitLockCacheUpdated += Repository_GitLockCacheUpdated;
-                repository.GitStatusCacheUpdated += Repository_GitStatusCacheUpdated;
+                repository.StatusChanged += RepositoryOnStatusChanged;
+                repository.LocksChanged += RepositoryOnLocksChanged;
 
-                repository.CheckGitStatusCacheEvent(gitStatusUpdateEvent);
-                repository.CheckGitLocksCacheEvent(gitLocksUpdateEvent);
+                repository.CheckStatusChangedEvent(lastRepositoryStatusChangedEvent);
+                repository.CheckLocksChangedEvent(lastLocksChangedEvent);
             }
         }
 
-        private static void Repository_GitStatusCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private static void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!gitStatusUpdateEvent.Equals(cacheUpdateEvent))
+            if (!lastRepositoryStatusChangedEvent.Equals(cacheUpdateEvent))
             {
                 new ActionTask(CancellationToken.None, () =>
                 {
-                    gitStatusUpdateEvent = cacheUpdateEvent;
-                    OnStatusUpdate(repository.CurrentStatus);
+                    lastRepositoryStatusChangedEvent = cacheUpdateEvent;
+                    entries.Clear();
+                    entries.AddRange(repository.CurrentStatus.Entries);
+                    OnStatusUpdate();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
             }
         }
 
-        private static void Repository_GitLockCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private static void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!gitLocksUpdateEvent.Equals(cacheUpdateEvent))
+            if (!lastLocksChangedEvent.Equals(cacheUpdateEvent))
             {
                 new ActionTask(CancellationToken.None, () =>
                 {
-                    gitLocksUpdateEvent = cacheUpdateEvent;
-                    OnLocksUpdate(repository.CurrentLocks);
+                    lastLocksChangedEvent = cacheUpdateEvent;
+                    locks = repository.CurrentLocks;
+                    OnLocksUpdate();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
             }
@@ -158,13 +161,13 @@ namespace GitHub.Unity
                 .Start();
         }
 
-        private static void OnLocksUpdate(IEnumerable<GitLock> update)
+        private static void OnLocksUpdate()
         {
-            if (update == null)
+            if (locks == null)
             {
                 return;
             }
-            locks = update.ToList();
+            locks = locks.ToList();
 
             guidsLocks.Clear();
             foreach (var lck in locks)
@@ -179,16 +182,8 @@ namespace GitHub.Unity
             EditorApplication.RepaintProjectWindow();
         }
 
-        private static void OnStatusUpdate(GitStatus update)
+        private static void OnStatusUpdate()
         {
-            if (update.Entries == null)
-            {
-                return;
-            }
-
-            entries.Clear();
-            entries.AddRange(update.Entries);
-
             guids.Clear();
             for (var index = 0; index < entries.Count; ++index)
             {
