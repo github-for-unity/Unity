@@ -525,19 +525,19 @@ namespace GitHub.Unity
         public GitRemote[] Remotes
         {
             get { return cacheContainer.BranchCache.Remotes; }
-            set { cacheContainer.BranchCache.Remotes = value; }
+            private set { cacheContainer.BranchCache.Remotes = value; }
         }
 
         public GitBranch[] LocalBranches
         {
             get { return cacheContainer.BranchCache.LocalBranches; }
-            set { cacheContainer.BranchCache.LocalBranches = value; }
+            private set { cacheContainer.BranchCache.LocalBranches = value; }
         }
 
         public GitBranch[] RemoteBranches
         {
             get { return cacheContainer.BranchCache.RemoteBranches; }
-            set { cacheContainer.BranchCache.RemoteBranches = value; }
+            private set { cacheContainer.BranchCache.RemoteBranches = value; }
         }
 
         private ConfigBranch? CurrentConfigBranch
@@ -555,13 +555,13 @@ namespace GitHub.Unity
         public GitStatus CurrentStatus
         {
             get { return cacheContainer.GitStatusCache.GitStatus; }
-            set { cacheContainer.GitStatusCache.GitStatus = value; }
+            private set { cacheContainer.GitStatusCache.GitStatus = value; }
         }
 
         public GitBranch? CurrentBranch
         {
             get { return cacheContainer.RepositoryInfoCache.CurentGitBranch; }
-            set { cacheContainer.RepositoryInfoCache.CurentGitBranch = value; }
+            private set { cacheContainer.RepositoryInfoCache.CurentGitBranch = value; }
         }
 
         public string CurrentBranchName => CurrentConfigBranch?.Name;
@@ -569,13 +569,13 @@ namespace GitHub.Unity
         public GitRemote? CurrentRemote
         {
             get { return cacheContainer.RepositoryInfoCache.CurrentGitRemote; }
-            set { cacheContainer.RepositoryInfoCache.CurrentGitRemote = value; }
+            private set { cacheContainer.RepositoryInfoCache.CurrentGitRemote = value; }
         }
 
         public List<GitLogEntry> CurrentLog
         {
             get { return cacheContainer.GitLogCache.Log; }
-            set { cacheContainer.GitLogCache.Log = value; }
+            private set { cacheContainer.GitLogCache.Log = value; }
         }
 
         public event Action<CacheUpdateEvent> LogChanged;
@@ -591,7 +591,7 @@ namespace GitHub.Unity
         public List<GitLock> CurrentLocks
         {
             get { return cacheContainer.GitLocksCache.GitLocks; }
-            set { cacheContainer.GitLocksCache.GitLocks = value; }
+            private set { cacheContainer.GitLocksCache.GitLocks = value; }
         }
 
         public UriString CloneUrl
