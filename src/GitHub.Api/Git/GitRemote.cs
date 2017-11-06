@@ -16,13 +16,13 @@ namespace GitHub.Unity
     {
         public static GitRemote Default = new GitRemote();
 
-        private string name;
-        private string url;
-        private string login;
-        private string user;
-        private string host;
-        private GitRemoteFunction function;
-        private readonly string token;
+        public string name;
+        public string url;
+        public string login;
+        public string user;
+        public string host;
+        public GitRemoteFunction function;
+        public readonly string token;
 
         public string Name
         {
