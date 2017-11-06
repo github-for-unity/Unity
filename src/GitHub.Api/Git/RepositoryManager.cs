@@ -425,16 +425,11 @@ namespace GitHub.Unity
                 }
             }
 
-            new ActionTask(taskManager.Token, () => {
-                Logger.Trace("OnCurrentBranchUpdated: {0}", branch.HasValue ? branch.Value.ToString() : "[NULL]");
-                OnCurrentBranchUpdated?.Invoke(branch);
+            Logger.Trace("OnCurrentBranchUpdated: {0}", branch.HasValue ? branch.Value.ToString() : "[NULL]");
+            OnCurrentBranchUpdated?.Invoke(branch);
 
-                Logger.Trace("OnCurrentRemoteUpdated: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
-                OnCurrentRemoteUpdated?.Invoke(remote);
-            })
-            {
-                Affinity = TaskAffinity.UI
-            }.Start();
+            Logger.Trace("OnCurrentRemoteUpdated: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
+            OnCurrentRemoteUpdated?.Invoke(remote);
         }
 
         private void Watcher_OnIndexChanged()
