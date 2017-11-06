@@ -60,20 +60,6 @@ namespace GitHub.Unity
             targetMode = mode;
         }
 
-        private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)
-        {
-            if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))
-            {
-                new ActionTask(TaskManager.Token, () =>
-                {
-                    lastLocalAndRemoteBranchListChangedEvent = cacheUpdateEvent;
-                    localAndRemoteBranchListHasUpdate = true;
-                    Redraw();
-                })
-                { Affinity = TaskAffinity.UI }.Start();
-            }
-        }
-
         public override void OnEnable()
         {
             base.OnEnable();
@@ -95,6 +81,20 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
             MaybeUpdateData();
+        }
+
+        private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () =>
+                    {
+                        lastLocalAndRemoteBranchListChangedEvent = cacheUpdateEvent;
+                        localAndRemoteBranchListHasUpdate = true;
+                        Redraw();
+                    })
+                    { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
         private void MaybeUpdateData()
