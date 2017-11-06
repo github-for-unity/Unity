@@ -188,7 +188,8 @@ namespace GitHub.Unity
 
         public ITask Push()
         {
-            return repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch?.Name).Then(UpdateGitStatus);
+            return repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch?.Name)
+                .Then(UpdateGitStatus);
         }
 
         public ITask Fetch()
@@ -203,12 +204,14 @@ namespace GitHub.Unity
 
         public ITask RequestLock(string file)
         {
-            return repositoryManager.LockFile(file).Then(UpdateLocks);
+            return repositoryManager.LockFile(file)
+                .Then(UpdateLocks);
         }
 
         public ITask ReleaseLock(string file, bool force)
         {
-            return repositoryManager.UnlockFile(file, force).Then(UpdateLocks);
+            return repositoryManager.UnlockFile(file, force)
+                .Then(UpdateLocks);
         }
 
         public void CheckLogChangedEvent(CacheUpdateEvent cacheUpdateEvent)
@@ -389,19 +392,25 @@ namespace GitHub.Unity
 
         private void UpdateGitStatus()
         {
-            repositoryManager?.Status().ThenInUI((b, status) => { CurrentStatus = status; }).Start();
+            repositoryManager?.Status()
+                .ThenInUI((b, status) => { CurrentStatus = status; })
+                .Start();
         }
 
         private void UpdateGitLog()
         {
-            repositoryManager?.Log().ThenInUI((b, log) => { CurrentLog = log; }).Start();
+            repositoryManager?.Log()
+                .ThenInUI((b, log) => { CurrentLog = log; })
+                .Start();
         }
 
         private void UpdateLocks()
         {
             if (CurrentRemote.HasValue)
             {
-                repositoryManager?.ListLocks(false).ThenInUI((b, locks) => { CurrentLocks = locks; }).Start();
+                repositoryManager?.ListLocks(false)
+                    .ThenInUI((b, locks) => { CurrentLocks = locks; })
+                    .Start();
             }
         }
 
