@@ -83,8 +83,9 @@ namespace GitHub.Unity
                 GUILayout.Label(
                     tree.Entries.Count == 0
                         ? NoChangedFilesLabel
-                        : tree.Entries.Count == 1 ? OneChangedFileLabel : String.Format(ChangedFilesLabel, tree.Entries.Count),
-                    EditorStyles.miniLabel);
+                        : tree.Entries.Count == 1
+                            ? OneChangedFileLabel
+                            : String.Format(ChangedFilesLabel, tree.Entries.Count), EditorStyles.miniLabel);
             }
             GUILayout.EndHorizontal();
 
