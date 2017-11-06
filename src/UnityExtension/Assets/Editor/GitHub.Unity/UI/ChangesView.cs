@@ -17,19 +17,17 @@ namespace GitHub.Unity
         private const string OneChangedFileLabel = "1 changed file";
         private const string NoChangedFilesLabel = "No changed files";
 
+        [NonSerialized] private bool currentBranchHasUpdate;
+        [NonSerialized] private bool currentStatusHasUpdate;
         [NonSerialized] private bool isBusy;
 
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
         [SerializeField] private Vector2 horizontalScroll;
-        [SerializeField] private ChangesetTreeView tree = new ChangesetTreeView();
-
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
-        [NonSerialized] private bool currentBranchHasUpdate;
-
         [SerializeField] private CacheUpdateEvent lastStatusChangedEvent;
-        [NonSerialized] private bool currentStatusHasUpdate;
+        [SerializeField] private ChangesetTreeView tree = new ChangesetTreeView();
 
         public override void InitializeView(IView parent)
         {
