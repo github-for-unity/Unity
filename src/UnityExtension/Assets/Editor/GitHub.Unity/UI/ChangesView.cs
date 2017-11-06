@@ -35,52 +35,6 @@ namespace GitHub.Unity
             tree.InitializeView(this);
         }
 
-        private void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
-        {
-            if (!lastStatusChangedEvent.Equals(cacheUpdateEvent))
-            {
-                new ActionTask(TaskManager.Token, () =>
-                {
-                    lastStatusChangedEvent = cacheUpdateEvent;
-                    currentStatusHasUpdate = true;
-                    Redraw();
-                })
-                { Affinity = TaskAffinity.UI }.Start();
-            }
-        }
-
-        private void RepositoryOnCurrentBranchChanged(CacheUpdateEvent cacheUpdateEvent)
-        {
-            if (!lastCurrentBranchChangedEvent.Equals(cacheUpdateEvent))
-            {
-                new ActionTask(TaskManager.Token, () =>
-                {
-                    lastCurrentBranchChangedEvent = cacheUpdateEvent;
-                    currentBranchHasUpdate = true;
-                    Redraw();
-                })
-                { Affinity = TaskAffinity.UI }.Start();
-            }
-        }
-
-        private void AttachHandlers(IRepository repository)
-        {
-            if (repository == null)
-                return;
-
-            repository.CurrentBranchChanged += RepositoryOnCurrentBranchChanged;
-            repository.StatusChanged += RepositoryOnStatusChanged;
-        }
-
-        private void DetachHandlers(IRepository repository)
-        {
-            if (repository == null)
-                return;
-
-            repository.CurrentBranchChanged -= RepositoryOnCurrentBranchChanged;
-            repository.StatusChanged -= RepositoryOnStatusChanged;
-        }
-
         public override void OnEnable()
         {
             base.OnEnable();
@@ -104,22 +58,6 @@ namespace GitHub.Unity
             base.OnDataUpdate();
 
             MaybeUpdateData();
-        }
-
-        private void MaybeUpdateData()
-        {
-            if (currentBranchHasUpdate)
-            {
-                currentBranchHasUpdate = false;
-                currentBranch = string.Format("[{0}]", Repository.CurrentBranchName);
-            }
-
-            if (currentStatusHasUpdate)
-            {
-                currentStatusHasUpdate = false;
-                var gitStatus = Repository.CurrentStatus;
-                tree.UpdateEntries(gitStatus.Entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
-            }
         }
 
         public override void OnGUI()
@@ -160,9 +98,70 @@ namespace GitHub.Unity
             GUILayout.EndHorizontal();
             GUILayout.EndScrollView();
 
-
             // Do the commit details area
             OnCommitDetailsAreaGUI();
+        }
+
+        private void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastStatusChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () => {
+                    lastStatusChangedEvent = cacheUpdateEvent;
+                    currentStatusHasUpdate = true;
+                    Redraw();
+                }) { Affinity = TaskAffinity.UI }.Start();
+            }
+        }
+
+        private void RepositoryOnCurrentBranchChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastCurrentBranchChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () => {
+                    lastCurrentBranchChangedEvent = cacheUpdateEvent;
+                    currentBranchHasUpdate = true;
+                    Redraw();
+                }) { Affinity = TaskAffinity.UI }.Start();
+            }
+        }
+
+        private void AttachHandlers(IRepository repository)
+        {
+            if (repository == null)
+            {
+                return;
+            }
+
+            repository.CurrentBranchChanged += RepositoryOnCurrentBranchChanged;
+            repository.StatusChanged += RepositoryOnStatusChanged;
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+            {
+                return;
+            }
+
+            repository.CurrentBranchChanged -= RepositoryOnCurrentBranchChanged;
+            repository.StatusChanged -= RepositoryOnStatusChanged;
+        }
+
+        private void MaybeUpdateData()
+        {
+            if (currentBranchHasUpdate)
+            {
+                currentBranchHasUpdate = false;
+                currentBranch = string.Format("[{0}]", Repository.CurrentBranchName);
+            }
+
+            if (currentStatusHasUpdate)
+            {
+                currentStatusHasUpdate = false;
+                var gitStatus = Repository.CurrentStatus;
+                tree.UpdateEntries(gitStatus.Entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
+            }
         }
 
         private void OnCommitDetailsAreaGUI()
