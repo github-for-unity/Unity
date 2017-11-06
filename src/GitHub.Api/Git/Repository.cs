@@ -80,7 +80,7 @@ namespace GitHub.Unity
                     break;
 
                 case CacheType.GitStatusCache:
-                    HandleGitStatucCacheUpdatedEvent(cacheUpdateEvent);
+                    HandleGitStatusCacheUpdatedEvent(cacheUpdateEvent);
                     break;
 
                 case CacheType.GitLocksCache:
@@ -113,7 +113,7 @@ namespace GitHub.Unity
             LocksChanged?.Invoke(cacheUpdateEvent);
         }
 
-        private void HandleGitStatucCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
+        private void HandleGitStatusCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             Logger.Trace("GitStatusCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
             StatusChanged?.Invoke(cacheUpdateEvent);
@@ -242,7 +242,7 @@ namespace GitHub.Unity
             {
                 var dateTimeOffset = managedCache.LastUpdatedAt;
                 var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
-                HandleGitStatucCacheUpdatedEvent(updateEvent);
+                HandleGitStatusCacheUpdatedEvent(updateEvent);
             }
         }
 
