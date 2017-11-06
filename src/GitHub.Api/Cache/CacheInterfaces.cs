@@ -89,8 +89,8 @@ namespace GitHub.Unity
         void AddLocalBranch(string branch);
         void AddRemoteBranch(string remote, string branch);
         void RemoveRemoteBranch(string remote, string branch);
-        void SetRemotes(IDictionary<string, ConfigRemote> remoteDictionary, IDictionary<string, IDictionary<string, ConfigBranch>> branchDictionary);
-        void SetLocals(IDictionary<string, ConfigBranch> branchDictionary);
+        void SetRemotes(Dictionary<string, ConfigRemote> remoteDictionary, Dictionary<string, Dictionary<string, ConfigBranch>> branchDictionary);
+        void SetLocals(Dictionary<string, ConfigBranch> branchDictionary);
     }
 
     public interface IRepositoryInfoCache : IManagedCache

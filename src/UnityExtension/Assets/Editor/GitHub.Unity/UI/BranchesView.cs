@@ -44,8 +44,8 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private bool disableDelete;
 
-        [SerializeField] private CacheUpdateEvent branchUpdateEvent;
-        [NonSerialized] private bool branchCacheHasUpdate;
+        [SerializeField] private CacheUpdateEvent lastLocalAndRemoteBranchListChangedEvent;
+        [NonSerialized] private bool localAndRemoteBranchListHasUpdate;
 
         [SerializeField] private List<GitBranch> localBranches;
         [SerializeField] private List<GitBranch> remoteBranches;
@@ -76,7 +76,7 @@ namespace GitHub.Unity
             AttachHandlers(Repository);
             if (Repository != null)
             {
-                Repository.CheckBranchCacheEvent(branchUpdateEvent);
+                Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
             }
         }
 
@@ -94,9 +94,9 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (!treeLocals.IsInitialized || branchCacheHasUpdate)
+            if (localAndRemoteBranchListHasUpdate)
             {
-                branchCacheHasUpdate = false;
+                localAndRemoteBranchListHasUpdate = false;
 
                 localBranches = Repository.LocalBranches.ToList();
                 remoteBranches = Repository.RemoteBranches.ToList();
@@ -117,7 +117,7 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
+            repository.LocalAndRemoteBranchListChanged += RepositoryOnLocalAndRemoteBranchListChanged;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -125,7 +125,7 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.BranchCacheUpdated -= Repository_BranchCacheUpdated;
+            repository.LocalAndRemoteBranchListChanged -= RepositoryOnLocalAndRemoteBranchListChanged;
         }
 
         private void Render()

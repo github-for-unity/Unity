@@ -15,11 +15,15 @@ namespace GitHub.Unity
         private UriString cloneUrl;
         private string name;
 
-        public event Action<CacheUpdateEvent> GitStatusCacheUpdated;
-        public event Action<CacheUpdateEvent> GitLogCacheUpdated;
-        public event Action<CacheUpdateEvent> GitLockCacheUpdated;
-        public event Action<CacheUpdateEvent> BranchCacheUpdated;
-        public event Action<CacheUpdateEvent> RepositoryInfoCacheUpdated;
+        public event Action<CacheUpdateEvent> LogChanged;
+        public event Action<CacheUpdateEvent> StatusChanged;
+        public event Action<CacheUpdateEvent> CurrentBranchChanged;
+        public event Action<CacheUpdateEvent> CurrentRemoteChanged;
+        public event Action<CacheUpdateEvent> CurrentBranchAndRemoteChanged;
+        public event Action<CacheUpdateEvent> LocalBranchListChanged;
+        public event Action<CacheUpdateEvent> LocksChanged;
+        public event Action<CacheUpdateEvent> RemoteBranchListChanged;
+        public event Action<CacheUpdateEvent> LocalAndRemoteBranchListChanged;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
@@ -38,100 +42,13 @@ namespace GitHub.Unity
             cacheContainer.CacheUpdated += CacheContainer_OnCacheUpdated;
         }
 
-        private void CacheContainer_OnCacheInvalidated(CacheType cacheType)
-        {
-            switch (cacheType)
-            {
-                case CacheType.BranchCache:
-                    break;
-
-                case CacheType.GitLogCache:
-                    break;
-
-                case CacheType.GitStatusCache:
-                    break;
-
-                case CacheType.GitLocksCache:
-                    break;
-
-                case CacheType.GitUserCache:
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(cacheType), cacheType, null);
-            }
-        }
-
-        private void CacheContainer_OnCacheUpdated(CacheType cacheType, DateTimeOffset offset)
-        {
-            switch (cacheType)
-            {
-                case CacheType.BranchCache:
-                    FireBranchCacheUpdated(offset);
-                    break;
-
-                case CacheType.GitLogCache:
-                    FireGitLogCacheUpdated(offset);
-                    break;
-
-                case CacheType.GitStatusCache:
-                    FireGitStatusCacheUpdated(offset);
-                    break;
-
-                case CacheType.GitLocksCache:
-                    FireGitLocksCacheUpdated(offset);
-                    break;
-
-                case CacheType.GitUserCache:
-                    break;
-
-                case CacheType.RepositoryInfoCache:
-                    FireRepositoryInfoCacheUpdated(offset);
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(cacheType), cacheType, null);
-            }
-        }
-
-        private void FireGitLogCacheUpdated(DateTimeOffset dateTimeOffset)
-        {
-            Logger.Trace("GitLogCacheUpdated {0}", dateTimeOffset);
-            GitLogCacheUpdated?.Invoke(new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() });
-        }
-
-        private void FireBranchCacheUpdated(DateTimeOffset dateTimeOffset)
-        {
-            Logger.Trace("BranchCacheUpdated {0}", dateTimeOffset);
-            BranchCacheUpdated?.Invoke(new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() });
-        }
-
-        private void FireGitStatusCacheUpdated(DateTimeOffset dateTimeOffset)
-        {
-            Logger.Trace("GitStatusCacheUpdated {0}", dateTimeOffset);
-            GitStatusCacheUpdated?.Invoke(new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() });
-        }
-
-        private void FireGitLocksCacheUpdated(DateTimeOffset dateTimeOffset)
-        {
-            Logger.Trace("GitStatusCacheUpdated {0}", dateTimeOffset);
-            GitLockCacheUpdated?.Invoke(new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() });
-        }
-
-        private void FireRepositoryInfoCacheUpdated(DateTimeOffset dateTimeOffset)
-        {
-            Logger.Trace("RepositoryInfoCacheUpdated {0}", dateTimeOffset);
-            RepositoryInfoCacheUpdated?.Invoke(new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() });
-        }
-
         public void Initialize(IRepositoryManager initRepositoryManager)
         {
             Logger.Trace("Initialize");
             Guard.ArgumentNotNull(initRepositoryManager, nameof(initRepositoryManager));
 
             repositoryManager = initRepositoryManager;
-            repositoryManager.OnCurrentBranchUpdated += RepositoryManager_OnCurrentBranchUpdated;
-            repositoryManager.OnCurrentRemoteUpdated += RepositoryManager_OnCurrentRemoteUpdated;
+            repositoryManager.OnCurrentBranchAndRemoteUpdated += RepositoryManager_OnCurrentBranchAndRemoteUpdated;
             repositoryManager.OnRepositoryUpdated += RepositoryManager_OnRepositoryUpdated;
             repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
             repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
@@ -179,7 +96,8 @@ namespace GitHub.Unity
 
         public ITask Push()
         {
-            return repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch?.Name).Then(UpdateGitStatus);
+            return repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch?.Name)
+                .Then(UpdateGitStatus);
         }
 
         public ITask Fetch()
@@ -194,96 +112,109 @@ namespace GitHub.Unity
 
         public ITask RequestLock(string file)
         {
-            return repositoryManager.LockFile(file).Then(UpdateLocks);
+            return repositoryManager.LockFile(file)
+                .Then(UpdateLocks);
         }
 
         public ITask ReleaseLock(string file, bool force)
         {
-            return repositoryManager.UnlockFile(file, force).Then(UpdateLocks);
+            return repositoryManager.UnlockFile(file, force)
+                .Then(UpdateLocks);
         }
 
-        public void CheckRepositoryInfoCacheEvent(CacheUpdateEvent cacheUpdateEvent)
-        {
-            var managedCache = cacheContainer.RepositoryInfoCache;
-            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
-
-            Logger.Trace("CheckRepositoryInfoCacheEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
-
-            if (raiseEvent)
-            {
-                FireBranchCacheUpdated(managedCache.LastUpdatedAt);
-            }
-        }
-
-        public void CheckBranchCacheEvent(CacheUpdateEvent cacheUpdateEvent)
-        {
-            var managedCache = cacheContainer.BranchCache;
-            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
-
-            Logger.Trace("CheckBranchCacheEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
-
-            if (raiseEvent)
-            {
-                FireBranchCacheUpdated(managedCache.LastUpdatedAt);
-            }
-        }
-
-        public void CheckGitStatusCacheEvent(CacheUpdateEvent cacheUpdateEvent)
-        {
-            var managedCache = cacheContainer.GitStatusCache;
-            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
-
-            Logger.Trace("CheckGitStatusCacheEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
-
-            if (raiseEvent)
-            {
-                FireGitStatusCacheUpdated(managedCache.LastUpdatedAt);
-            }
-        }
-
-        public void CheckGitLogCacheEvent(CacheUpdateEvent cacheUpdateEvent)
+        public void CheckLogChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.GitLogCache;
             var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
 
-            Logger.Trace("CheckGitLogCacheEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
+            Logger.Trace("Check GitLogCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
 
             if (raiseEvent)
             {
-                FireGitLogCacheUpdated(managedCache.LastUpdatedAt);
+                var dateTimeOffset = managedCache.LastUpdatedAt;
+                var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
+                HandleGitLogCacheUpdatedEvent(updateEvent);
             }
         }
 
-        public void CheckGitLocksCacheEvent(CacheUpdateEvent cacheUpdateEvent)
+        public void CheckStatusChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
-            var managedCache = cacheContainer.GitLocksCache;
+            var managedCache = cacheContainer.GitStatusCache;
             var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
 
-            Logger.Trace("CheckGitLocksCacheEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
+            Logger.Trace("Check GitStatusCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
 
             if (raiseEvent)
             {
-                FireGitLogCacheUpdated(managedCache.LastUpdatedAt);
+                var dateTimeOffset = managedCache.LastUpdatedAt;
+                var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
+                HandleGitStatusCacheUpdatedEvent(updateEvent);
             }
         }
 
-        private static bool ShouldRaiseCacheEvent(CacheUpdateEvent cacheUpdateEvent, IManagedCache managedCache)
+        public void CheckCurrentBranchChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
-            bool raiseEvent;
-            if (cacheUpdateEvent.UpdatedTimeString == null)
+            CheckRepositoryInfoCacheEvent(cacheUpdateEvent);
+        }
+
+        public void CheckCurrentRemoteChangedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            CheckRepositoryInfoCacheEvent(cacheUpdateEvent);
+        }
+
+        public void CheckCurrentBranchAndRemoteChangedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            CheckRepositoryInfoCacheEvent(cacheUpdateEvent);
+        }
+
+        private void CheckRepositoryInfoCacheEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            var managedCache = cacheContainer.RepositoryInfoCache;
+            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
+
+            Logger.Trace("Check RepositoryInfoCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
+                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+
+            if (raiseEvent)
             {
-                raiseEvent = managedCache.LastUpdatedAt != DateTimeOffset.MinValue;
+                var dateTimeOffset = managedCache.LastUpdatedAt;
+                var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
+                HandleRepositoryInfoCacheUpdatedEvent(updateEvent);
             }
-            else
+        }
+
+        public void CheckLocksChangedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            CacheUpdateEvent cacheUpdateEvent1 = cacheUpdateEvent;
+            var managedCache = cacheContainer.GitLocksCache;
+            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent1, managedCache);
+
+            Logger.Trace("Check GitLocksCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
+                cacheUpdateEvent1.UpdatedTimeString ?? "[NULL]", raiseEvent);
+
+            if (raiseEvent)
             {
-                raiseEvent = managedCache.LastUpdatedAt.ToString() != cacheUpdateEvent.UpdatedTimeString;
+                var dateTimeOffset = managedCache.LastUpdatedAt;
+                var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
+                HandleGitLocksCacheUpdatedEvent(updateEvent);
             }
-            return raiseEvent;
+        }
+
+        public void CheckLocalBranchListChangedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            CheckBranchCacheEvent(cacheUpdateEvent);
+        }
+
+        public void CheckRemoteBranchListChangedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            CheckBranchCacheEvent(cacheUpdateEvent);
+        }
+
+        public void CheckLocalAndRemoteBranchListChangedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            CheckBranchCacheEvent(cacheUpdateEvent);
         }
 
         /// <summary>
@@ -318,16 +249,125 @@ namespace GitHub.Unity
             return other != null && object.Equals(LocalPath, other.LocalPath);
         }
 
-        private void RepositoryManager_OnCurrentRemoteUpdated(ConfigRemote? remote)
+        private void CheckBranchCacheEvent(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!Nullable.Equals(CurrentConfigRemote, remote))
+            var managedCache = cacheContainer.BranchCache;
+            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
+
+            Logger.Trace("Check BranchCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
+                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+
+            if (raiseEvent)
             {
-                new ActionTask(CancellationToken.None, () => {
-                    CurrentConfigRemote = remote;
-                    CurrentRemote = GetGitRemote(remote.Value);
-                    UpdateRepositoryInfo();
-                }) { Affinity = TaskAffinity.UI }.Start();
+                var dateTimeOffset = managedCache.LastUpdatedAt;
+                var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
+                HandleBranchCacheUpdatedEvent(updateEvent);
             }
+        }
+
+        private static bool ShouldRaiseCacheEvent(CacheUpdateEvent cacheUpdateEvent, IManagedCache managedCache)
+        {
+            bool raiseEvent;
+            if (cacheUpdateEvent.UpdatedTimeString == null)
+            {
+                raiseEvent = managedCache.LastUpdatedAt != DateTimeOffset.MinValue;
+            }
+            else
+            {
+                raiseEvent = managedCache.LastUpdatedAt.ToString() != cacheUpdateEvent.UpdatedTimeString;
+            }
+            return raiseEvent;
+        }
+
+        private void CacheContainer_OnCacheInvalidated(CacheType cacheType)
+        {
+            switch (cacheType)
+            {
+                case CacheType.BranchCache:
+                    break;
+
+                case CacheType.GitLogCache:
+                    break;
+
+                case CacheType.GitStatusCache:
+                    break;
+
+                case CacheType.GitLocksCache:
+                    break;
+
+                case CacheType.GitUserCache:
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(cacheType), cacheType, null);
+            }
+        }
+
+        private void CacheContainer_OnCacheUpdated(CacheType cacheType, DateTimeOffset offset)
+        {
+            var cacheUpdateEvent = new CacheUpdateEvent { UpdatedTimeString = offset.ToString() };
+            switch (cacheType)
+            {
+                case CacheType.BranchCache:
+                    HandleBranchCacheUpdatedEvent(cacheUpdateEvent);
+                    break;
+
+                case CacheType.GitLogCache:
+                    HandleGitLogCacheUpdatedEvent(cacheUpdateEvent);
+                    break;
+
+                case CacheType.GitStatusCache:
+                    HandleGitStatusCacheUpdatedEvent(cacheUpdateEvent);
+                    break;
+
+                case CacheType.GitLocksCache:
+                    HandleGitLocksCacheUpdatedEvent(cacheUpdateEvent);
+                    break;
+
+                case CacheType.GitUserCache:
+                    break;
+
+                case CacheType.RepositoryInfoCache:
+                    HandleRepositoryInfoCacheUpdatedEvent(cacheUpdateEvent);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(cacheType), cacheType, null);
+            }
+        }
+
+        private void HandleRepositoryInfoCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            Logger.Trace("RepositoryInfoCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
+            CurrentBranchChanged?.Invoke(cacheUpdateEvent);
+            CurrentRemoteChanged?.Invoke(cacheUpdateEvent);
+            CurrentBranchAndRemoteChanged?.Invoke(cacheUpdateEvent);
+        }
+
+        private void HandleGitLocksCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            Logger.Trace("GitLocksCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
+            LocksChanged?.Invoke(cacheUpdateEvent);
+        }
+
+        private void HandleGitStatusCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            Logger.Trace("GitStatusCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
+            StatusChanged?.Invoke(cacheUpdateEvent);
+        }
+
+        private void HandleGitLogCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            Logger.Trace("GitLogCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
+            LogChanged?.Invoke(cacheUpdateEvent);
+        }
+
+        private void HandleBranchCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            Logger.Trace("BranchCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
+            LocalBranchListChanged?.Invoke(cacheUpdateEvent);
+            RemoteBranchListChanged?.Invoke(cacheUpdateEvent);
+            LocalAndRemoteBranchListChanged?.Invoke(cacheUpdateEvent);
         }
 
         private void RepositoryManager_OnRepositoryUpdated()
@@ -339,34 +379,47 @@ namespace GitHub.Unity
 
         private void UpdateGitStatus()
         {
-            repositoryManager?.Status().ThenInUI((b, status) => { CurrentStatus = status; }).Start();
+            repositoryManager?.Status()
+                .ThenInUI((b, status) => { CurrentStatus = status; })
+                .Start();
         }
 
         private void UpdateGitLog()
         {
-            repositoryManager?.Log().ThenInUI((b, log) => { CurrentLog = log; }).Start();
+            repositoryManager?.Log()
+                .ThenInUI((b, log) => { CurrentLog = log; })
+                .Start();
         }
 
         private void UpdateLocks()
         {
             if (CurrentRemote.HasValue)
             {
-                repositoryManager?.ListLocks(false).ThenInUI((b, locks) => { CurrentLocks = locks; }).Start();
+                repositoryManager?.ListLocks(false)
+                    .ThenInUI((b, locks) => { CurrentLocks = locks; })
+                    .Start();
             }
         }
-
-        private void RepositoryManager_OnCurrentBranchUpdated(ConfigBranch? branch)
+        
+        private void RepositoryManager_OnCurrentBranchAndRemoteUpdated(ConfigBranch? branch, ConfigRemote? remote)
         {
-            if (!Nullable.Equals(CurrentConfigBranch, branch))
-            {
-                new ActionTask(CancellationToken.None, () => {
-                    var currentBranch = branch != null ? (GitBranch?)GetLocalGitBranch(branch.Value) : null;
+            new ActionTask(CancellationToken.None, () => {
+                if (!Nullable.Equals(CurrentConfigBranch, branch))
+                {
+                        var currentBranch = branch != null ? (GitBranch?)GetLocalGitBranch(branch.Value) : null;
 
-                    CurrentConfigBranch = branch;
-                    CurrentBranch = currentBranch;
-                    UpdateLocalBranches();
-                }) { Affinity = TaskAffinity.UI }.Start();
-            }
+                        CurrentConfigBranch = branch;
+                        CurrentBranch = currentBranch;
+                        UpdateLocalBranches();
+                }
+
+                if (!Nullable.Equals(CurrentConfigRemote, remote))
+                {
+                        CurrentConfigRemote = remote;
+                        CurrentRemote = GetGitRemote(remote.Value);
+                        UpdateRepositoryInfo();
+                }
+            }) { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void RepositoryManager_OnLocalBranchUpdated(string name)
@@ -378,8 +431,8 @@ namespace GitHub.Unity
             }
         }
 
-        private void RepositoryManager_OnRemoteBranchListUpdated(IDictionary<string, ConfigRemote> remotes,
-            IDictionary<string, IDictionary<string, ConfigBranch>> branches)
+        private void RepositoryManager_OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> remotes,
+            Dictionary<string, Dictionary<string, ConfigBranch>> branches)
         {
             new ActionTask(CancellationToken.None, () => {
                 cacheContainer.BranchCache.SetRemotes(remotes, branches);
@@ -394,7 +447,7 @@ namespace GitHub.Unity
             RemoteBranches = RemoteConfigBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch).ToArray();
         }
 
-        private void RepositoryManager_OnLocalBranchListUpdated(IDictionary<string, ConfigBranch> branches)
+        private void RepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branches)
         {
             new ActionTask(CancellationToken.None, () => {
                 cacheContainer.BranchCache.SetLocals(branches);
@@ -485,19 +538,19 @@ namespace GitHub.Unity
         public GitRemote[] Remotes
         {
             get { return cacheContainer.BranchCache.Remotes; }
-            set { cacheContainer.BranchCache.Remotes = value; }
+            private set { cacheContainer.BranchCache.Remotes = value; }
         }
 
         public GitBranch[] LocalBranches
         {
             get { return cacheContainer.BranchCache.LocalBranches; }
-            set { cacheContainer.BranchCache.LocalBranches = value; }
+            private set { cacheContainer.BranchCache.LocalBranches = value; }
         }
 
         public GitBranch[] RemoteBranches
         {
             get { return cacheContainer.BranchCache.RemoteBranches; }
-            set { cacheContainer.BranchCache.RemoteBranches = value; }
+            private set { cacheContainer.BranchCache.RemoteBranches = value; }
         }
 
         private ConfigBranch? CurrentConfigBranch
@@ -515,13 +568,13 @@ namespace GitHub.Unity
         public GitStatus CurrentStatus
         {
             get { return cacheContainer.GitStatusCache.GitStatus; }
-            set { cacheContainer.GitStatusCache.GitStatus = value; }
+            private set { cacheContainer.GitStatusCache.GitStatus = value; }
         }
 
         public GitBranch? CurrentBranch
         {
             get { return cacheContainer.RepositoryInfoCache.CurentGitBranch; }
-            set { cacheContainer.RepositoryInfoCache.CurentGitBranch = value; }
+            private set { cacheContainer.RepositoryInfoCache.CurentGitBranch = value; }
         }
 
         public string CurrentBranchName => CurrentConfigBranch?.Name;
@@ -529,19 +582,19 @@ namespace GitHub.Unity
         public GitRemote? CurrentRemote
         {
             get { return cacheContainer.RepositoryInfoCache.CurrentGitRemote; }
-            set { cacheContainer.RepositoryInfoCache.CurrentGitRemote = value; }
+            private set { cacheContainer.RepositoryInfoCache.CurrentGitRemote = value; }
         }
 
         public List<GitLogEntry> CurrentLog
         {
             get { return cacheContainer.GitLogCache.Log; }
-            set { cacheContainer.GitLogCache.Log = value; }
+            private set { cacheContainer.GitLogCache.Log = value; }
         }
 
         public List<GitLock> CurrentLocks
         {
             get { return cacheContainer.GitLocksCache.GitLocks; }
-            set { cacheContainer.GitLocksCache.GitLocks = value; }
+            private set { cacheContainer.GitLocksCache.GitLocks = value; }
         }
 
         public UriString CloneUrl
@@ -574,6 +627,10 @@ namespace GitHub.Unity
                     if (url != null)
                     {
                         name = url.RepositoryName;
+                    }
+                    else
+                    {
+                        name = LocalPath.FileName;
                     }
                 }
                 return name;

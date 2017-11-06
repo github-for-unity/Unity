@@ -7,16 +7,15 @@ namespace GitHub.Unity
 {
     public interface IRepositoryManager : IDisposable
     {
-        event Action<ConfigBranch?> OnCurrentBranchUpdated;
-        event Action<ConfigRemote?> OnCurrentRemoteUpdated;
+        event Action<ConfigBranch?, ConfigRemote?> OnCurrentBranchAndRemoteUpdated;
         event Action<IUser> OnGitUserLoaded;
         event Action<bool> OnIsBusyChanged;
         event Action<string> OnLocalBranchAdded;
-        event Action<IDictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
+        event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
         event Action<string> OnLocalBranchRemoved;
         event Action<string> OnLocalBranchUpdated;
         event Action<string, string> OnRemoteBranchAdded;
-        event Action<IDictionary<string, ConfigRemote>, IDictionary<string, IDictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
+        event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         event Action<string, string> OnRemoteBranchRemoved;
         event Action OnRepositoryUpdated;
 
@@ -101,16 +100,15 @@ namespace GitHub.Unity
 
         private bool isBusy;
 
-        public event Action<ConfigBranch?> OnCurrentBranchUpdated;
-        public event Action<ConfigRemote?> OnCurrentRemoteUpdated;
+        public event Action<ConfigBranch?, ConfigRemote?> OnCurrentBranchAndRemoteUpdated;
         public event Action<IUser> OnGitUserLoaded;
         public event Action<bool> OnIsBusyChanged;
         public event Action<string> OnLocalBranchAdded;
-        public event Action<IDictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
+        public event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
         public event Action<string> OnLocalBranchRemoved;
         public event Action<string> OnLocalBranchUpdated;
         public event Action<string, string> OnRemoteBranchAdded;
-        public event Action<IDictionary<string, ConfigRemote>, IDictionary<string, IDictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
+        public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         public event Action<string, string> OnRemoteBranchRemoved;
         public event Action OnRepositoryUpdated;
 
@@ -425,16 +423,9 @@ namespace GitHub.Unity
                 }
             }
 
-            new ActionTask(taskManager.Token, () => {
-                Logger.Trace("OnCurrentBranchUpdated: {0}", branch.HasValue ? branch.Value.ToString() : "[NULL]");
-                OnCurrentBranchUpdated?.Invoke(branch);
-
-                Logger.Trace("OnCurrentRemoteUpdated: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
-                OnCurrentRemoteUpdated?.Invoke(remote);
-            })
-            {
-                Affinity = TaskAffinity.UI
-            }.Start();
+            Logger.Trace("OnCurrentBranchUpdated: {0}", branch.HasValue ? branch.Value.ToString() : "[NULL]");
+            Logger.Trace("OnCurrentRemoteUpdated: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
+            OnCurrentBranchAndRemoteUpdated?.Invoke(branch, remote);
         }
 
         private void Watcher_OnIndexChanged()
@@ -505,7 +496,7 @@ namespace GitHub.Unity
             Logger.Trace("LoadRemotesFromConfig");
 
             var remotes = config.GetRemotes().ToArray().ToDictionary(x => x.Name, x => x);
-            var remoteBranches = new Dictionary<string, IDictionary<string, ConfigBranch>>();
+            var remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
 
             foreach (var remote in remotes.Keys)
             {

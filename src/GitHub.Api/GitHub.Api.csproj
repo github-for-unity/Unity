@@ -99,6 +99,8 @@
     <Compile Include="Application\ApplicationInfo.cs" />
     <Compile Include="Application\LoginResult.cs" />
     <Compile Include="Application\AppConfiguration.cs" />
+    <Compile Include="Application\OctokitExtensions.cs" />
+    <Compile Include="Application\Organization.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />

@@ -17,70 +17,22 @@ namespace GitHub.Unity
         private const string OneChangedFileLabel = "1 changed file";
         private const string NoChangedFilesLabel = "No changed files";
 
+        [NonSerialized] private bool currentBranchHasUpdate;
+        [NonSerialized] private bool currentStatusHasUpdate;
         [NonSerialized] private bool isBusy;
 
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
         [SerializeField] private Vector2 horizontalScroll;
+        [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastStatusChangedEvent;
         [SerializeField] private ChangesetTreeView tree = new ChangesetTreeView();
-
-        [SerializeField] private CacheUpdateEvent branchUpdateEvent;
-        [NonSerialized] private bool branchCacheHasUpdate;
-
-        [SerializeField] private CacheUpdateEvent gitStatusUpdateEvent;
-        [NonSerialized] private bool gitStatusCacheHasUpdate;
 
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
             tree.InitializeView(this);
-        }
-
-        private void Repository_GitStatusCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
-        {
-            if (!gitStatusUpdateEvent.Equals(cacheUpdateEvent))
-            {
-                new ActionTask(TaskManager.Token, () =>
-                {
-                    gitStatusUpdateEvent = cacheUpdateEvent;
-                    gitStatusCacheHasUpdate = true;
-                    Redraw();
-                })
-                { Affinity = TaskAffinity.UI }.Start();
-            }
-        }
-
-        private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
-        {
-            if (!branchUpdateEvent.Equals(cacheUpdateEvent))
-            {
-                new ActionTask(TaskManager.Token, () =>
-                {
-                    branchUpdateEvent = cacheUpdateEvent;
-                    branchCacheHasUpdate = true;
-                    Redraw();
-                })
-                { Affinity = TaskAffinity.UI }.Start();
-            }
-        }
-
-        private void AttachHandlers(IRepository repository)
-        {
-            if (repository == null)
-                return;
-
-            repository.BranchCacheUpdated += Repository_BranchCacheUpdated;
-            repository.GitStatusCacheUpdated += Repository_GitStatusCacheUpdated;
-        }
-
-        private void DetachHandlers(IRepository repository)
-        {
-            if (repository == null)
-                return;
-
-            repository.BranchCacheUpdated -= Repository_BranchCacheUpdated;
-            repository.GitStatusCacheUpdated -= Repository_GitStatusCacheUpdated;
         }
 
         public override void OnEnable()
@@ -90,8 +42,8 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                Repository.CheckBranchCacheEvent(branchUpdateEvent);
-                Repository.CheckGitStatusCacheEvent(gitStatusUpdateEvent);
+                Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
+                Repository.CheckStatusChangedEvent(lastStatusChangedEvent);
             }
         }
 
@@ -106,22 +58,6 @@ namespace GitHub.Unity
             base.OnDataUpdate();
 
             MaybeUpdateData();
-        }
-
-        private void MaybeUpdateData()
-        {
-            if (branchCacheHasUpdate)
-            {
-                branchCacheHasUpdate = false;
-                currentBranch = string.Format("[{0}]", Repository.CurrentBranchName);
-            }
-
-            if (gitStatusCacheHasUpdate)
-            {
-                gitStatusCacheHasUpdate = false;
-                var gitStatus = Repository.CurrentStatus;
-                tree.UpdateEntries(gitStatus.Entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
-            }
         }
 
         public override void OnGUI()
@@ -147,8 +83,9 @@ namespace GitHub.Unity
                 GUILayout.Label(
                     tree.Entries.Count == 0
                         ? NoChangedFilesLabel
-                        : tree.Entries.Count == 1 ? OneChangedFileLabel : String.Format(ChangedFilesLabel, tree.Entries.Count),
-                    EditorStyles.miniLabel);
+                        : tree.Entries.Count == 1
+                            ? OneChangedFileLabel
+                            : String.Format(ChangedFilesLabel, tree.Entries.Count), EditorStyles.miniLabel);
             }
             GUILayout.EndHorizontal();
 
@@ -162,9 +99,70 @@ namespace GitHub.Unity
             GUILayout.EndHorizontal();
             GUILayout.EndScrollView();
 
-
             // Do the commit details area
             OnCommitDetailsAreaGUI();
+        }
+
+        private void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastStatusChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () => {
+                    lastStatusChangedEvent = cacheUpdateEvent;
+                    currentStatusHasUpdate = true;
+                    Redraw();
+                }) { Affinity = TaskAffinity.UI }.Start();
+            }
+        }
+
+        private void RepositoryOnCurrentBranchChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastCurrentBranchChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () => {
+                    lastCurrentBranchChangedEvent = cacheUpdateEvent;
+                    currentBranchHasUpdate = true;
+                    Redraw();
+                }) { Affinity = TaskAffinity.UI }.Start();
+            }
+        }
+
+        private void AttachHandlers(IRepository repository)
+        {
+            if (repository == null)
+            {
+                return;
+            }
+
+            repository.CurrentBranchChanged += RepositoryOnCurrentBranchChanged;
+            repository.StatusChanged += RepositoryOnStatusChanged;
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+            {
+                return;
+            }
+
+            repository.CurrentBranchChanged -= RepositoryOnCurrentBranchChanged;
+            repository.StatusChanged -= RepositoryOnStatusChanged;
+        }
+
+        private void MaybeUpdateData()
+        {
+            if (currentBranchHasUpdate)
+            {
+                currentBranchHasUpdate = false;
+                currentBranch = string.Format("[{0}]", Repository.CurrentBranchName);
+            }
+
+            if (currentStatusHasUpdate)
+            {
+                currentStatusHasUpdate = false;
+                var gitStatus = Repository.CurrentStatus;
+                tree.UpdateEntries(gitStatus.Entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
+            }
         }
 
         private void OnCommitDetailsAreaGUI()

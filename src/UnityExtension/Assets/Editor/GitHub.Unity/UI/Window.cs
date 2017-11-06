@@ -37,10 +37,8 @@ namespace GitHub.Unity
         [SerializeField] private GUIContent repoBranchContent;
         [SerializeField] private GUIContent repoUrlContent;
 
-        [SerializeField] private CacheUpdateEvent repositoryInfoUpdateEvent;
-        [NonSerialized] private bool repositoryInfoCacheHasUpdate;
-
-        [NonSerialized] private bool hasRunMaybeUpdateDataWithRepository;
+        [SerializeField] private CacheUpdateEvent lastCurrentBranchAndRemoteChangedEvent;
+        [NonSerialized] private bool currentBranchAndRemoteHasUpdate;
 
         [MenuItem(LaunchMenu)]
         public static void Window_GitHub()
@@ -98,7 +96,7 @@ namespace GitHub.Unity
             titleContent = new GUIContent(Title, Styles.SmallLogo);
 
             if (Repository != null)
-                Repository.CheckRepositoryInfoCacheEvent(repositoryInfoUpdateEvent);
+                Repository.CheckCurrentBranchAndRemoteChangedEvent(lastCurrentBranchAndRemoteChangedEvent);
 
             if (ActiveView != null)
                 ActiveView.OnEnable();
@@ -191,10 +189,8 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                if(!hasRunMaybeUpdateDataWithRepository || repositoryInfoCacheHasUpdate)
+                if (currentBranchAndRemoteHasUpdate)
                 {
-                    hasRunMaybeUpdateDataWithRepository = true;
-
                     var repositoryCurrentBranch = Repository.CurrentBranch;
                     var updatedRepoBranch = repositoryCurrentBranch.HasValue ? repositoryCurrentBranch.Value.Name : null;
 
@@ -267,17 +263,17 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-            repository.RepositoryInfoCacheUpdated += Repository_RepositoryInfoCacheUpdated;
+            repository.CurrentBranchAndRemoteChanged += RepositoryOnCurrentBranchAndRemoteChanged;
         }
 
-        private void Repository_RepositoryInfoCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private void RepositoryOnCurrentBranchAndRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!repositoryInfoUpdateEvent.Equals(cacheUpdateEvent))
+            if (!lastCurrentBranchAndRemoteChangedEvent.Equals(cacheUpdateEvent))
             {
                 new ActionTask(TaskManager.Token, () =>
                 {
-                    repositoryInfoUpdateEvent = cacheUpdateEvent;
-                    repositoryInfoCacheHasUpdate = true;
+                    lastCurrentBranchAndRemoteChangedEvent = cacheUpdateEvent;
+                    currentBranchAndRemoteHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
@@ -288,8 +284,7 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
-
-            repository.RepositoryInfoCacheUpdated -= Repository_RepositoryInfoCacheUpdated;
+            repository.CurrentBranchAndRemoteChanged -= RepositoryOnCurrentBranchAndRemoteChanged;
         }
 
         private void DoHeaderGUI()
@@ -392,7 +387,7 @@ namespace GitHub.Unity
 
         private void SignIn(object obj)
         {
-            PopupWindow.Open(PopupWindow.PopupViewType.AuthenticationView);
+            PopupWindow.OpenWindow(PopupWindow.PopupViewType.AuthenticationView);
         }
 
         private void GoToProfile(object obj)
