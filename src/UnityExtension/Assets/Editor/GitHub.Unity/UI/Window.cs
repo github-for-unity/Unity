@@ -40,8 +40,6 @@ namespace GitHub.Unity
         [SerializeField] private CacheUpdateEvent lastCurrentBranchAndRemoteChangedEvent;
         [NonSerialized] private bool currentBranchAndRemoteHasUpdate;
 
-        [NonSerialized] private bool hasRunMaybeUpdateDataWithRepository;
-
         [MenuItem(LaunchMenu)]
         public static void Window_GitHub()
         {
@@ -191,10 +189,8 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                if (!hasRunMaybeUpdateDataWithRepository || currentBranchAndRemoteHasUpdate)
+                if (currentBranchAndRemoteHasUpdate)
                 {
-                    hasRunMaybeUpdateDataWithRepository = true;
-
                     var repositoryCurrentBranch = Repository.CurrentBranch;
                     var updatedRepoBranch = repositoryCurrentBranch.HasValue ? repositoryCurrentBranch.Value.Name : null;
 
