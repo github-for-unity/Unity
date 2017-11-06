@@ -99,8 +99,7 @@ namespace UnitTests
 
             repositoryEvents.OnRemoteBranchListChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnRemoteBranchListChanged not raised");
 
-            repositoryManager.OnCurrentBranchUpdated += Raise.Event<Action<ConfigBranch?>>(masterOriginBranch);
-            repositoryManager.OnCurrentRemoteUpdated += Raise.Event<Action<ConfigRemote?>>(origin);
+            repositoryManager.OnCurrentBranchAndRemoteUpdated += Raise.Event<Action<ConfigBranch?, ConfigRemote?>>(masterOriginBranch, origin);
 
             repositoryEvents.OnCurrentBranchChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnCurrentBranchChanged not raised");
             repositoryEvents.OnCurrentRemoteChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnCurrentRemoteChanged not raised");

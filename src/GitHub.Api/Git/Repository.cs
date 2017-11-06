@@ -49,8 +49,7 @@ namespace GitHub.Unity
 
             this.repositoryManager = repositoryManager;
 
-            repositoryManager.OnCurrentBranchUpdated += RepositoryManager_OnCurrentBranchUpdated;
-            repositoryManager.OnCurrentRemoteUpdated += RepositoryManager_OnCurrentRemoteUpdated;
+            repositoryManager.OnCurrentBranchAndRemoteUpdated += RepositoryManager_OnCurrentBranchAndRemoteUpdated;
             repositoryManager.OnStatusUpdated += status => CurrentStatus = status;
             repositoryManager.OnLocksUpdated += locks => CurrentLocks = locks;
             repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
@@ -168,8 +167,16 @@ namespace GitHub.Unity
                 object.Equals(LocalPath, other.LocalPath);
         }
 
-        private void RepositoryManager_OnCurrentRemoteUpdated(ConfigRemote? remote)
+        private void RepositoryManager_OnCurrentBranchAndRemoteUpdated(ConfigBranch? branch, ConfigRemote? remote)
         {
+            if (!Nullable.Equals(currentBranch, branch))
+            {
+                currentBranch = branch;
+
+                Logger.Trace("OnCurrentBranchChanged: {0}", currentBranch.HasValue ? currentBranch.ToString() : "[NULL]");
+                OnCurrentBranchChanged?.Invoke(currentBranch.HasValue ? currentBranch.Value.Name : null);
+            }
+
             if (!Nullable.Equals(currentRemote, remote))
             {
                 currentRemote = remote;
@@ -178,17 +185,6 @@ namespace GitHub.Unity
                 OnCurrentRemoteChanged?.Invoke(currentRemote.HasValue ? currentRemote.Value.Name : null);
 
                 UpdateRepositoryInfo();
-            }
-        }
-
-        private void RepositoryManager_OnCurrentBranchUpdated(ConfigBranch? branch)
-        {
-            if (!Nullable.Equals(currentBranch, branch))
-            {
-                currentBranch = branch;
-
-                Logger.Trace("OnCurrentBranchChanged: {0}", currentBranch.HasValue ? currentBranch.ToString() : "[NULL]");
-                OnCurrentBranchChanged?.Invoke(currentBranch.HasValue ? currentBranch.Value.Name : null);
             }
         }
 
