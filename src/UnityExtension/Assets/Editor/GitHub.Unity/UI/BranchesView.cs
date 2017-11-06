@@ -56,14 +56,14 @@ namespace GitHub.Unity
             targetMode = mode;
         }
 
-        private void Repository_BranchCacheUpdated(CacheUpdateEvent cacheUpdateEvent)
+        private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!branchUpdateEvent.Equals(cacheUpdateEvent))
+            if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))
             {
                 new ActionTask(TaskManager.Token, () =>
                 {
-                    branchUpdateEvent = cacheUpdateEvent;
-                    branchCacheHasUpdate = true;
+                    lastLocalAndRemoteBranchListChangedEvent = cacheUpdateEvent;
+                    localAndRemoteBranchListHasUpdate = true;
                     Redraw();
                 })
                 { Affinity = TaskAffinity.UI }.Start();
