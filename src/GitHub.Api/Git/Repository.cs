@@ -373,14 +373,14 @@ namespace GitHub.Unity
 
         private void RepositoryManager_OnCurrentRemoteUpdated(ConfigRemote? remote)
         {
-            if (!Nullable.Equals(CurrentConfigRemote, remote))
-            {
-                new ActionTask(CancellationToken.None, () => {
-                    CurrentConfigRemote = remote;
-                    CurrentRemote = GetGitRemote(remote.Value);
-                    UpdateRepositoryInfo();
-                }) { Affinity = TaskAffinity.UI }.Start();
-            }
+            new ActionTask(CancellationToken.None, () => {
+                if (!Nullable.Equals(CurrentConfigRemote, remote))
+                {
+                        CurrentConfigRemote = remote;
+                        CurrentRemote = GetGitRemote(remote.Value);
+                        UpdateRepositoryInfo();
+                }
+            }) { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void RepositoryManager_OnRepositoryUpdated()
@@ -416,16 +416,16 @@ namespace GitHub.Unity
 
         private void RepositoryManager_OnCurrentBranchUpdated(ConfigBranch? branch)
         {
-            if (!Nullable.Equals(CurrentConfigBranch, branch))
-            {
-                new ActionTask(CancellationToken.None, () => {
-                    var currentBranch = branch != null ? (GitBranch?)GetLocalGitBranch(branch.Value) : null;
+            new ActionTask(CancellationToken.None, () => {
+                if (!Nullable.Equals(CurrentConfigBranch, branch))
+                {
+                        var currentBranch = branch != null ? (GitBranch?)GetLocalGitBranch(branch.Value) : null;
 
-                    CurrentConfigBranch = branch;
-                    CurrentBranch = currentBranch;
-                    UpdateLocalBranches();
-                }) { Affinity = TaskAffinity.UI }.Start();
-            }
+                        CurrentConfigBranch = branch;
+                        CurrentBranch = currentBranch;
+                        UpdateLocalBranches();
+                }
+            }) { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void RepositoryManager_OnLocalBranchUpdated(string name)
