@@ -191,7 +191,7 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                if(!hasRunMaybeUpdateDataWithRepository || currentBranchAndRemoteHasUpdate)
+                if (!hasRunMaybeUpdateDataWithRepository || currentBranchAndRemoteHasUpdate)
                 {
                     hasRunMaybeUpdateDataWithRepository = true;
 
