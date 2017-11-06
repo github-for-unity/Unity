@@ -418,8 +418,8 @@ namespace GitHub.Unity
             }
         }
 
-        private void RepositoryManager_OnRemoteBranchListUpdated(IDictionary<string, ConfigRemote> remotes,
-            IDictionary<string, IDictionary<string, ConfigBranch>> branches)
+        private void RepositoryManager_OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> remotes,
+            Dictionary<string, Dictionary<string, ConfigBranch>> branches)
         {
             new ActionTask(CancellationToken.None, () => {
                 cacheContainer.BranchCache.SetRemotes(remotes, branches);
@@ -434,7 +434,7 @@ namespace GitHub.Unity
             RemoteBranches = RemoteConfigBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch).ToArray();
         }
 
-        private void RepositoryManager_OnLocalBranchListUpdated(IDictionary<string, ConfigBranch> branches)
+        private void RepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branches)
         {
             new ActionTask(CancellationToken.None, () => {
                 cacheContainer.BranchCache.SetLocals(branches);

@@ -222,7 +222,7 @@ namespace GitHub.Unity
         public RemoteConfigBranchDictionary()
         { }
 
-        public RemoteConfigBranchDictionary(IDictionary<string, IDictionary<string, ConfigBranch>> dictionary)
+        public RemoteConfigBranchDictionary(Dictionary<string, Dictionary<string, ConfigBranch>> dictionary)
         {
             foreach (var pair in dictionary)
             {
@@ -712,7 +712,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void SetRemotes(IDictionary<string, ConfigRemote> remoteDictionary, IDictionary<string, IDictionary<string, ConfigBranch>> branchDictionary)
+        public void SetRemotes(Dictionary<string, ConfigRemote> remoteDictionary, Dictionary<string, Dictionary<string, ConfigBranch>> branchDictionary)
         {
             var now = DateTimeOffset.Now;
             configRemotes = new ConfigRemoteDictionary(remoteDictionary);
@@ -721,7 +721,7 @@ namespace GitHub.Unity
             SaveData(now, true);
         }
 
-        public void SetLocals(IDictionary<string, ConfigBranch> branchDictionary)
+        public void SetLocals(Dictionary<string, ConfigBranch> branchDictionary)
         {
             var now = DateTimeOffset.Now;
             localConfigBranches = new LocalConfigBranchDictionary(branchDictionary);

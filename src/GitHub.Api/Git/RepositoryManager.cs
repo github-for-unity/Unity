@@ -12,11 +12,11 @@ namespace GitHub.Unity
         event Action<IUser> OnGitUserLoaded;
         event Action<bool> OnIsBusyChanged;
         event Action<string> OnLocalBranchAdded;
-        event Action<IDictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
+        event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
         event Action<string> OnLocalBranchRemoved;
         event Action<string> OnLocalBranchUpdated;
         event Action<string, string> OnRemoteBranchAdded;
-        event Action<IDictionary<string, ConfigRemote>, IDictionary<string, IDictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
+        event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         event Action<string, string> OnRemoteBranchRemoved;
         event Action OnRepositoryUpdated;
 
@@ -106,11 +106,11 @@ namespace GitHub.Unity
         public event Action<IUser> OnGitUserLoaded;
         public event Action<bool> OnIsBusyChanged;
         public event Action<string> OnLocalBranchAdded;
-        public event Action<IDictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
+        public event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
         public event Action<string> OnLocalBranchRemoved;
         public event Action<string> OnLocalBranchUpdated;
         public event Action<string, string> OnRemoteBranchAdded;
-        public event Action<IDictionary<string, ConfigRemote>, IDictionary<string, IDictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
+        public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         public event Action<string, string> OnRemoteBranchRemoved;
         public event Action OnRepositoryUpdated;
 
@@ -505,7 +505,7 @@ namespace GitHub.Unity
             Logger.Trace("LoadRemotesFromConfig");
 
             var remotes = config.GetRemotes().ToArray().ToDictionary(x => x.Name, x => x);
-            var remoteBranches = new Dictionary<string, IDictionary<string, ConfigBranch>>();
+            var remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
 
             foreach (var remote in remotes.Keys)
             {
