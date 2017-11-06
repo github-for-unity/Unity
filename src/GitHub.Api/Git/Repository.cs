@@ -15,6 +15,16 @@ namespace GitHub.Unity
         private UriString cloneUrl;
         private string name;
 
+        public event Action<CacheUpdateEvent> LogChanged;
+        public event Action<CacheUpdateEvent> StatusChanged;
+        public event Action<CacheUpdateEvent> CurrentBranchChanged;
+        public event Action<CacheUpdateEvent> CurrentRemoteChanged;
+        public event Action<CacheUpdateEvent> CurrentBranchAndRemoteChanged;
+        public event Action<CacheUpdateEvent> LocalBranchListChanged;
+        public event Action<CacheUpdateEvent> LocksChanged;
+        public event Action<CacheUpdateEvent> RemoteBranchListChanged;
+        public event Action<CacheUpdateEvent> LocalAndRemoteBranchListChanged;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
         /// </summary>
@@ -577,16 +587,6 @@ namespace GitHub.Unity
             get { return cacheContainer.GitLogCache.Log; }
             private set { cacheContainer.GitLogCache.Log = value; }
         }
-
-        public event Action<CacheUpdateEvent> LogChanged;
-        public event Action<CacheUpdateEvent> StatusChanged;
-        public event Action<CacheUpdateEvent> CurrentBranchChanged;
-        public event Action<CacheUpdateEvent> CurrentRemoteChanged;
-        public event Action<CacheUpdateEvent> CurrentBranchAndRemoteChanged;
-        public event Action<CacheUpdateEvent> LocalBranchListChanged;
-        public event Action<CacheUpdateEvent> LocksChanged;
-        public event Action<CacheUpdateEvent> RemoteBranchListChanged;
-        public event Action<CacheUpdateEvent> LocalAndRemoteBranchListChanged;
 
         public List<GitLock> CurrentLocks
         {
