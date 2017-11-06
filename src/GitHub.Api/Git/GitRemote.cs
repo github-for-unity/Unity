@@ -22,7 +22,7 @@ namespace GitHub.Unity
         public string user;
         public string host;
         public GitRemoteFunction function;
-        public readonly string token;
+        public string token;
 
         public string Name
         {
