@@ -91,11 +91,9 @@ namespace UnitTests
                 expectedRemote = remote;
             };
 
-            repositoryManager.OnLocalBranchListUpdated += Raise.Event<Action<Dictionary<string, ConfigBranch>>>(branchDictionary);
+            repositoryManager.OnBranchListsUpdated += Raise.Event<Action<Dictionary<string, ConfigBranch>, Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>>>(branchDictionary, remoteDictionary, remoteBranchDictionary);
 
             repositoryEvents.OnLocalBranchListChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnLocalBranchListChanged not raised");
-
-            repositoryManager.OnRemoteBranchListUpdated += Raise.Event<Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>>>(remoteDictionary, remoteBranchDictionary);
 
             repositoryEvents.OnRemoteBranchListChanged.WaitOne(repositoryEventsTimeout).Should().BeTrue("OnRemoteBranchListChanged not raised");
 

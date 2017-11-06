@@ -53,8 +53,7 @@ namespace GitHub.Unity
             repositoryManager.OnCurrentRemoteUpdated += RepositoryManager_OnCurrentRemoteUpdated;
             repositoryManager.OnStatusUpdated += status => CurrentStatus = status;
             repositoryManager.OnLocksUpdated += locks => CurrentLocks = locks;
-            repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
-            repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
+            repositoryManager.OnBranchListsUpdated += RepositoryManager_OnBranchListsUpdated;
             repositoryManager.OnLocalBranchUpdated += RepositoryManager_OnLocalBranchUpdated;
             repositoryManager.OnLocalBranchAdded += RepositoryManager_OnLocalBranchAdded;
             repositoryManager.OnLocalBranchRemoved += RepositoryManager_OnLocalBranchRemoved;
@@ -62,7 +61,7 @@ namespace GitHub.Unity
             repositoryManager.OnRemoteBranchRemoved += RepositoryManager_OnRemoteBranchRemoved;
             repositoryManager.OnGitUserLoaded += user => User = user;
         }
-
+        
         public void Refresh()
         {
             repositoryManager?.Refresh();
@@ -202,24 +201,21 @@ namespace GitHub.Unity
             }
         }
 
-        private void RepositoryManager_OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> updatedRemotes, Dictionary<string, Dictionary<string, ConfigBranch>> branches)
+        private void RepositoryManager_OnBranchListsUpdated(Dictionary<string, ConfigBranch> updateBranches, Dictionary<string, ConfigRemote> updateRemotes, Dictionary<string, Dictionary<string, ConfigBranch>> updateRemoteBranches)
         {
-            remotes = updatedRemotes;
-
-            Remotes = remotes.Select(pair => GetGitRemote(pair.Value)).ToArray();
-
-            remoteBranches = branches;
-
-            Logger.Trace("OnRemoteBranchListChanged");
-            OnRemoteBranchListChanged?.Invoke();
-        }
-
-        private void RepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branches)
-        {
-            localBranches = branches;
+            localBranches = updateBranches;
 
             Logger.Trace("OnLocalBranchListChanged");
             OnLocalBranchListChanged?.Invoke();
+
+            remotes = updateRemotes;
+
+            Remotes = remotes.Select(pair => GetGitRemote(pair.Value)).ToArray();
+
+            remoteBranches = updateRemoteBranches;
+
+            Logger.Trace("OnRemoteBranchListChanged");
+            OnRemoteBranchListChanged?.Invoke();
         }
 
         private void UpdateRepositoryInfo()
