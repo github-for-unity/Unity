@@ -628,6 +628,10 @@ namespace GitHub.Unity
                     {
                         name = url.RepositoryName;
                     }
+                    else
+                    {
+                        name = LocalPath.FileName;
+                    }
                 }
                 return name;
             }
