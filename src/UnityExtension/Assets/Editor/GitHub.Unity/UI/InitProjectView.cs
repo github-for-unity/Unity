@@ -52,21 +52,23 @@ namespace GitHub.Unity
                 GUILayout.Space(4);
 
                 GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-
-                EditorGUI.BeginDisabledGroup(IsBusy || !isUserDataPresent);
                 {
-                    if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
-                    {
-                        isBusy = true;
-                        Manager.InitializeRepository()
-                               .FinallyInUI(() => isBusy = false)
-                               .Start();
-                    }
-                }
-                EditorGUI.EndDisabledGroup();
+                    GUILayout.FlexibleSpace();
 
-                GUILayout.FlexibleSpace();
+                    EditorGUI.BeginDisabledGroup(IsBusy || !isUserDataPresent);
+                    {
+                        if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
+                        {
+                            isBusy = true;
+                            Manager.InitializeRepository()
+                                   .FinallyInUI(() => isBusy = false)
+                                   .Start();
+                        }
+                    }
+                    EditorGUI.EndDisabledGroup();
+
+                    GUILayout.FlexibleSpace();
+                }
                 GUILayout.EndHorizontal();
 
                 if (!isUserDataPresent)
