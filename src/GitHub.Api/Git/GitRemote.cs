@@ -24,41 +24,6 @@ namespace GitHub.Unity
         public GitRemoteFunction function;
         public string token;
 
-        public string Name
-        {
-            get { return name; }
-        }
-
-        public string Url
-        {
-            get { return url; }
-        }
-
-        public string Login
-        {
-            get { return login; }
-        }
-
-        public string User
-        {
-            get { return user; }
-        }
-
-        public string Token
-        {
-            get { return token; }
-        }
-
-        public string Host
-        {
-            get { return host; }
-        }
-
-        public GitRemoteFunction Function
-        {
-            get { return function; }
-        }
-
         public GitRemote(string name, string host, string url, GitRemoteFunction function, string user, string login, string token)
         {
             this.name = name;
@@ -77,8 +42,8 @@ namespace GitHub.Unity
             this.host = host;
             this.function = function;
             this.user = user;
-            login = null;
-            token = null;
+            this.login = null;
+            this.token = null;
         }
 
         public GitRemote(string name, string host, string url, GitRemoteFunction function)
@@ -96,11 +61,11 @@ namespace GitHub.Unity
         {
             this.name = name;
             this.url = url;
-            login = null;
-            user = null;
-            token = null;
-            host = null;
-            function = GitRemoteFunction.Unknown;
+            this.login = null;
+            this.user = null;
+            this.token = null;
+            this.host = null;
+            this.function = GitRemoteFunction.Unknown;
         }
 
         public override string ToString()
@@ -114,5 +79,13 @@ namespace GitHub.Unity
             sb.AppendLine(String.Format("Function: {0}", Function));
             return sb.ToString();
         }
+
+        public string Name => name;
+        public string Url => url;
+        public string Login => login;
+        public string User => user;
+        public string Token => token;
+        public string Host => host;
+        public GitRemoteFunction Function => function;
     }
 }
