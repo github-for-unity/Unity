@@ -11,9 +11,6 @@ namespace GitHub.Unity
         private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
         private const string NoUserOrEmailError = "Name and Email must be configured in Settings";
 
-        [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
-        [SerializeField] private GitPathView gitPathView = new GitPathView();
-
         [NonSerialized] private bool isBusy;
 
         [NonSerialized] private string errorMessage;
@@ -24,9 +21,6 @@ namespace GitHub.Unity
         {
             base.InitializeView(parent);
 
-            userSettingsView.InitializeView(this);
-            gitPathView.InitializeView(this);
-
             if (!string.IsNullOrEmpty(Environment.GitExecutablePath))
             {
                 CheckForUser();
@@ -36,15 +30,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            gitPathView.OnEnable();
             userDataHasChanged = Environment.GitExecutablePath != null;
-        }
-
-        public override void OnDataUpdate()
-        {
-            base.OnDataUpdate();
-            userSettingsView.OnDataUpdate();
-            gitPathView.OnDataUpdate();
         }
 
         public override void OnGUI()
@@ -124,7 +110,7 @@ namespace GitHub.Unity
 
         public override bool IsBusy
         {
-            get { return isBusy || userSettingsView.IsBusy || gitPathView.IsBusy; }
+            get { return isBusy;  }
         }
     }
 }
