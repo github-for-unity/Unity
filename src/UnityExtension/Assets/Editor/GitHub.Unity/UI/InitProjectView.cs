@@ -8,12 +8,10 @@ namespace GitHub.Unity
     class InitProjectView : Subview
     {
         private const string NoRepoTitle = "To begin using GitHub, initialize a git repository";
-        private const string NoRepoDescription = "Initialize a Git repository to track changes and collaborate with others.";
-        private const string NoUserOrEmailError = "Name and Email must be configured in Settings";
+        private const string NoUserOrEmailError = "Name and email not set in git. Go into the settings tab and enter the missing information";
 
         [NonSerialized] private bool isBusy;
 
-        [NonSerialized] private string errorMessage;
         [NonSerialized] private bool isUserDataPresent;
         [NonSerialized] private bool userDataHasChanged;
 
@@ -74,9 +72,7 @@ namespace GitHub.Unity
                 if (!isUserDataPresent)
                 {
                     EditorGUILayout.Space();
-                    EditorGUILayout.HelpBox(
-                        "Name and email not set in git. Go into the settings tab and enter the missing information",
-                        MessageType.Error);
+                    EditorGUILayout.HelpBox(NoUserOrEmailError, MessageType.Error);
                 }
 
                 GUILayout.FlexibleSpace();
@@ -101,10 +97,8 @@ namespace GitHub.Unity
                 var username = strings[0];
                 var email = strings[1];
 
-
                 isBusy = false;
                 isUserDataPresent = success && !String.IsNullOrEmpty(username) && !String.IsNullOrEmpty(email);
-                errorMessage = isUserDataPresent ? null : NoUserOrEmailError;
 
                 Logger.Trace("Finally: {0}", isUserDataPresent);
 
