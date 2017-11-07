@@ -18,7 +18,7 @@ set ConsoleRunner=%NunitDirectory%\nunit-console.exe
 echo %ConsoleRunner%
 
 :: run tests
-echo Running "build\IntegrationTests\IntegrationTests.dll" "build\IntegrationTests\TestUtils.dll" "build\TaskSystemIntegrationTests\TaskSystemIntegrationTests.dll" "build\UnitTests\TestUtils.dll" "build\UnitTests\UnitTests.dll" "src\tests\TestUtils\bin\Release\TestUtils.dll" /config=%Config% /exclude=%Exclude%
-call %ConsoleRunner% "build\IntegrationTests\IntegrationTests.dll" "build\IntegrationTests\TestUtils.dll" "build\TaskSystemIntegrationTests\TaskSystemIntegrationTests.dll" "build\UnitTests\TestUtils.dll" "build\UnitTests\UnitTests.dll" "src\tests\TestUtils\bin\Release\TestUtils.dll" /config=%Config% /exclude=%Exclude%
+echo Running "build\IntegrationTests\IntegrationTests.dll" "build\IntegrationTests\TestUtils.dll" "build\TaskSystemIntegrationTests\TaskSystemIntegrationTests.dll" "build\UnitTests\TestUtils.dll" "build\UnitTests\UnitTests.dll" "src\tests\TestUtils\bin\%Config%\TestUtils.dll" /exclude=%Exclude%
+call %ConsoleRunner% "build\IntegrationTests\IntegrationTests.dll" "build\IntegrationTests\TestUtils.dll" "build\TaskSystemIntegrationTests\TaskSystemIntegrationTests.dll" "build\UnitTests\TestUtils.dll" "build\UnitTests\UnitTests.dll" "src\tests\TestUtils\bin\%Config%\TestUtils.dll" /exclude=%Exclude%
 
 endlocal
