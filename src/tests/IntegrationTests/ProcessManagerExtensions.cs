@@ -44,7 +44,7 @@ namespace IntegrationTests
                 .Configure(processManager, path, logNameStatus, workingDirectory, false);
         }
 
-        public static ITask<GitStatus?> GetGitStatus(this IProcessManager processManager,
+        public static ITask<GitStatus> GetGitStatus(this IProcessManager processManager,
             NPath workingDirectory,
             IEnvironment environment, IProcessEnvironment gitEnvironment,
             NPath gitPath = null)
@@ -54,7 +54,7 @@ namespace IntegrationTests
 
             NPath path = gitPath ?? defaultGitPath;
 
-            return new ProcessTask<GitStatus?>(CancellationToken.None, processor)
+            return new ProcessTask<GitStatus>(CancellationToken.None, processor)
                 .Configure(processManager, path, "status -b -u --porcelain", workingDirectory, false);
         }
 

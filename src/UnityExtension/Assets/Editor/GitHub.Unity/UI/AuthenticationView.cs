@@ -9,6 +9,8 @@ namespace GitHub.Unity
     {
         private static readonly Vector2 viewSize = new Vector2(290, 290);
 
+        private const string CredentialsNeedRefreshMessage = "We've detected that your stored credentials are out of sync with your current user. This can happen if you have signed in to git outside of Unity. Sign in again to refresh your credentials.";
+        private const string NeedAuthenticationMessage = "We need you to authenticate first";
         private const string WindowTitle = "Authenticate";
         private const string UsernameLabel = "Username";
         private const string PasswordLabel = "Password";
@@ -21,14 +23,15 @@ namespace GitHub.Unity
         private const string TwofaButton = "Verify";
 
         [SerializeField] private Vector2 scroll;
-        [SerializeField] private string username = "";
-        [SerializeField] private string two2fa = "";
+        [SerializeField] private string username = string.Empty;
+        [SerializeField] private string two2fa = string.Empty;
+        [SerializeField] private string message;
+        [SerializeField] private string errorMessage;
+        [SerializeField] private bool need2fa;
 
-        [NonSerialized] private bool need2fa;
         [NonSerialized] private bool isBusy;
-        [NonSerialized] private string errorMessage;
         [NonSerialized] private bool enterPressed;
-        [NonSerialized] private string password = "";
+        [NonSerialized] private string password = string.Empty;
         [NonSerialized] private AuthenticationService authenticationService;
 
 
@@ -36,18 +39,30 @@ namespace GitHub.Unity
         {
             base.InitializeView(parent);
             need2fa = isBusy = false;
+            message = errorMessage = null;
             Title = WindowTitle;
             Size = viewSize;
         }
 
-        public override void OnEnable()
+        public void Initialize(Exception exception)
         {
-            base.OnEnable();
-        }
+            var usernameMismatchException = exception as TokenUsernameMismatchException;
+            if (usernameMismatchException != null)
+            {
+                message = CredentialsNeedRefreshMessage;
+                username = usernameMismatchException.CachedUsername;
+            }
 
-        public override void OnDisable()
-        {
-            base.OnDisable();
+            var keychainEmptyException = exception as KeychainEmptyException;
+            if (keychainEmptyException != null)
+            {
+                message = NeedAuthenticationMessage;
+            }
+
+            if (usernameMismatchException == null && keychainEmptyException == null)
+            {
+                message = exception.Message;
+            }
         }
 
         public override void OnGUI()
@@ -58,30 +73,13 @@ namespace GitHub.Unity
 
             scroll = GUILayout.BeginScrollView(scroll);
             {
-                Rect authHeader = EditorGUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
+                GUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
                 {
-                    GUILayout.BeginVertical(GUILayout.Width(16));
-                    {
-                        GUILayout.Space(9);
-                        GUILayout.Label(Styles.BigLogo, GUILayout.Height(20), GUILayout.Width(20));
-                    }
-                    GUILayout.EndVertical();
-
-                    GUILayout.BeginVertical();
-                    {
-                        GUILayout.Space(11);
-                        GUILayout.Label(AuthTitle, Styles.HeaderRepoLabelStyle);
-                    }
-                    GUILayout.EndVertical();
+                  GUILayout.Label(AuthTitle, Styles.HeaderRepoLabelStyle);
                 }
-
                 GUILayout.EndHorizontal();
-                EditorGUI.DrawRect(
-                  new Rect(authHeader.x, authHeader.yMax, authHeader.xMax, 1),
-                  new Color(0.455F, 0.455F, 0.455F, 1F)
-                );
 
-                GUILayout.BeginVertical(Styles.GenericBoxStyle);
+                GUILayout.BeginVertical();
                 {
                     if (!need2fa)
                     {
@@ -97,7 +95,7 @@ namespace GitHub.Unity
             }
             GUILayout.EndScrollView();
         }
-
+        
         private void HandleEnterPressed()
         {
             if (Event.current.type != EventType.KeyDown)
@@ -112,19 +110,25 @@ namespace GitHub.Unity
         {
             EditorGUI.BeginDisabledGroup(isBusy);
             {
-                GUILayout.Space(3);
+                ShowMessage();
+
+                EditorGUILayout.Space();
+
                 GUILayout.BeginHorizontal();
                 {
                     username = EditorGUILayout.TextField(UsernameLabel ,username, Styles.TextFieldStyle);
                 }
                 GUILayout.EndHorizontal();
 
-                GUILayout.Space(Styles.BaseSpacing);
+                EditorGUILayout.Space();
+
                 GUILayout.BeginHorizontal();
                 {
                     password = EditorGUILayout.PasswordField(PasswordLabel, password, Styles.TextFieldStyle);
                 }
                 GUILayout.EndHorizontal();
+
+                EditorGUILayout.Space();
 
                 ShowErrorMessage();
 
@@ -153,25 +157,18 @@ namespace GitHub.Unity
 
                 EditorGUI.BeginDisabledGroup(isBusy);
                 {
-                    GUILayout.Space(Styles.BaseSpacing);
-                    GUILayout.BeginHorizontal();
-                    {
-                        two2fa = EditorGUILayout.TextField(TwofaLabel, two2fa, Styles.TextFieldStyle);
-                    }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Space(Styles.BaseSpacing);
+                    EditorGUILayout.Space();
+                    two2fa = EditorGUILayout.TextField(TwofaLabel, two2fa, Styles.TextFieldStyle);
+                    EditorGUILayout.Space();
                     ShowErrorMessage();
 
-                    GUILayout.Space(Styles.BaseSpacing);
                     GUILayout.BeginHorizontal();
                     {
                         GUILayout.FlexibleSpace();
                         if (GUILayout.Button(BackButton))
                         {
                             GUI.FocusControl(null);
-                            need2fa = false;
-                            Redraw();
+                            Clear();
                         }
 
                         if (GUILayout.Button(TwofaButton) || (!isBusy && enterPressed))
@@ -183,7 +180,7 @@ namespace GitHub.Unity
                     }
                     GUILayout.EndHorizontal();
 
-                    GUILayout.Space(Styles.BaseSpacing);
+                    EditorGUILayout.Space();
                 }
                 EditorGUI.EndDisabledGroup();
             }
@@ -192,10 +189,18 @@ namespace GitHub.Unity
 
         private void DoRequire2fa(string msg)
         {
-            Logger.Trace("Strating 2FA - Message:\"{0}\"", msg);
+            Logger.Trace("Starting 2FA - Message:\"{0}\"", msg);
 
             need2fa = true;
             errorMessage = msg;
+            isBusy = false;
+            Redraw();
+        }
+
+        private void Clear()
+        {
+            need2fa = false;
+            errorMessage = null;
             isBusy = false;
             Redraw();
         }
@@ -204,16 +209,25 @@ namespace GitHub.Unity
         {
             Logger.Trace("DoResult - Success:{0} Message:\"{1}\"", success, msg);
 
-            errorMessage = msg;
             isBusy = false;
 
             if (success == true)
             {
+                Clear();
                 Finish(true);
             }
             else
             {
+                errorMessage = msg;
                 Redraw();
+            }
+        }
+
+        private void ShowMessage()
+        {
+            if (message != null)
+            {
+                EditorGUILayout.HelpBox(message, MessageType.Warning);
             }
         }
 
@@ -221,7 +235,7 @@ namespace GitHub.Unity
         {
             if (errorMessage != null)
             {
-                GUILayout.Label(errorMessage, Styles.ErrorLabel);
+                EditorGUILayout.HelpBox(errorMessage, MessageType.Error);
             }
         }
 

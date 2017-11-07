@@ -14,13 +14,59 @@ namespace GitHub.Unity
     [Serializable]
     public struct GitRemote
     {
-        public string Name;
-        public string Url;
-        public string Login;
-        public string User;
-        public string Token;
-        public string Host;
-        public GitRemoteFunction Function;
+        public static GitRemote Default = new GitRemote();
+
+        public string name;
+        public string url;
+        public string login;
+        public string user;
+        public string host;
+        public GitRemoteFunction function;
+        public string token;
+
+        public GitRemote(string name, string host, string url, GitRemoteFunction function, string user, string login, string token)
+        {
+            this.name = name;
+            this.url = url;
+            this.host = host;
+            this.function = function;
+            this.user = user;
+            this.login = login;
+            this.token = token;
+        }
+
+        public GitRemote(string name, string host, string url, GitRemoteFunction function, string user)
+        {
+            this.name = name;
+            this.url = url;
+            this.host = host;
+            this.function = function;
+            this.user = user;
+            this.login = null;
+            this.token = null;
+        }
+
+        public GitRemote(string name, string host, string url, GitRemoteFunction function)
+        {
+            this.name = name;
+            this.url = url;
+            this.host = host;
+            this.function = function;
+            this.user = null;
+            this.login = null;
+            this.token = null;
+        }
+
+        public GitRemote(string name, string url)
+        {
+            this.name = name;
+            this.url = url;
+            this.login = null;
+            this.user = null;
+            this.token = null;
+            this.host = null;
+            this.function = GitRemoteFunction.Unknown;
+        }
 
         public override string ToString()
         {
@@ -33,5 +79,13 @@ namespace GitHub.Unity
             sb.AppendLine(String.Format("Function: {0}", Function));
             return sb.ToString();
         }
+
+        public string Name => name;
+        public string Url => url;
+        public string Login => login;
+        public string User => user;
+        public string Token => token;
+        public string Host => host;
+        public GitRemoteFunction Function => function;
     }
 }
