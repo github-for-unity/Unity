@@ -69,11 +69,13 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 
-                EditorGUILayout.Space();
-                EditorGUILayout.HelpBox(
-                  "Name and email not set in git. Go into the settings tab and enter the missing information",
-                  MessageType.Error
-                );
+                if (!isUserDataPresent)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.HelpBox(
+                        "Name and email not set in git. Go into the settings tab and enter the missing information",
+                        MessageType.Error);
+                }
 
                 GUILayout.FlexibleSpace();
             }
