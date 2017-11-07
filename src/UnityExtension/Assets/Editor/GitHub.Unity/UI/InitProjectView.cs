@@ -11,19 +11,9 @@ namespace GitHub.Unity
         private const string NoUserOrEmailError = "Name and email not set in git. Go into the settings tab and enter the missing information";
 
         [NonSerialized] private bool isBusy;
-
         [NonSerialized] private bool isUserDataPresent;
+        [NonSerialized] private bool hasCompletedInitialCheck;
         [NonSerialized] private bool userDataHasChanged;
-
-        public override void InitializeView(IView parent)
-        {
-            base.InitializeView(parent);
-
-            if (!string.IsNullOrEmpty(Environment.GitExecutablePath))
-            {
-                CheckForUser();
-            }
-        }
 
         public override void OnEnable()
         {
@@ -69,7 +59,7 @@ namespace GitHub.Unity
                 }
                 GUILayout.EndHorizontal();
 
-                if (!isUserDataPresent)
+                if (hasCompletedInitialCheck && !isUserDataPresent)
                 {
                     EditorGUILayout.Space();
                     EditorGUILayout.HelpBox(NoUserOrEmailError, MessageType.Error);
@@ -78,6 +68,12 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
+        }
+
+        public override void OnDataUpdate()
+        {
+            base.OnDataUpdate();
+            MaybeUpdateData();
         }
 
         private void MaybeUpdateData()
@@ -91,6 +87,13 @@ namespace GitHub.Unity
 
         private void CheckForUser()
         {
+            if (string.IsNullOrEmpty(Environment.GitExecutablePath))
+            {
+                Logger.Warning("No git exec cannot check for user");
+                return;
+            }
+
+            Logger.Trace("Checking for user");
             isBusy = true;
 
             GitClient.GetConfigUserAndEmail().FinallyInUI((success, ex, strings) => {
@@ -99,8 +102,9 @@ namespace GitHub.Unity
 
                 isBusy = false;
                 isUserDataPresent = success && !String.IsNullOrEmpty(username) && !String.IsNullOrEmpty(email);
+                hasCompletedInitialCheck = true;
 
-                Logger.Trace("Finally: {0}", isUserDataPresent);
+                Logger.Trace("User Present: {0}", isUserDataPresent);
 
                 Redraw();
             }).Start();
