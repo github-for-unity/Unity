@@ -429,7 +429,9 @@ namespace GitHub.Unity
         }
 
         private void Watcher_OnIndexChanged()
-        {}
+        {
+            OnRepositoryUpdated?.Invoke();
+        }
 
         private void Watcher_OnLocalBranchCreated(string name)
         {
