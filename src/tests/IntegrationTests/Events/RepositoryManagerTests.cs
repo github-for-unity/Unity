@@ -51,7 +51,7 @@ namespace IntegrationTests
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
-            repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
+            repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
