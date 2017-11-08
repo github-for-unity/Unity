@@ -173,20 +173,20 @@ namespace GitHub.Unity
 
         public ITask CommitAllFiles(string message, string body)
         {
-            var add = GitClient.AddAll();
-            add.OnStart += t => IsBusy = true;
-            return add
-                .Then(GitClient.Commit(message, body))
-                .Finally(() => IsBusy = false);
+            var task = GitClient.AddAll()
+                .Then(GitClient.Commit(message, body));
+
+            HookupHandlers(task, true);
+            return task;
         }
 
         public ITask CommitFiles(List<string> files, string message, string body)
         {
-            var add = GitClient.Add(files);
-            add.OnStart += t => IsBusy = true;
-            return add
-                .Then(GitClient.Commit(message, body))
-                .Finally(() => IsBusy = false);
+            var task = GitClient.Add(files)
+                .Then(GitClient.Commit(message, body));
+
+            HookupHandlers(task, true);
+            return task;
         }
 
         public ITask<List<GitLogEntry>> Log()
