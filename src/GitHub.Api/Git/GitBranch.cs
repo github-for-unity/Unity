@@ -11,12 +11,15 @@ namespace GitHub.Unity
     [Serializable]
     public struct GitBranch : ITreeData
     {
-        private string name;
-        private string tracking;
-        private bool active;
+        public static GitBranch Default = new GitBranch();
+
+        public string name;
+        public string tracking;
+        public bool isActive;
+
         public string Name { get { return name; } }
         public string Tracking { get { return tracking; } }
-        public bool IsActive { get { return active; } }
+        public bool IsActive { get { return isActive; } }
 
         public GitBranch(string name, string tracking, bool active)
         {
@@ -24,7 +27,7 @@ namespace GitHub.Unity
 
             this.name = name;
             this.tracking = tracking;
-            this.active = active;
+            this.isActive = active;
         }
 
         public override string ToString()

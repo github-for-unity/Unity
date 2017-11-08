@@ -48,6 +48,12 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private BranchTreeNode selectedNode;
 
+        [SerializeField] private CacheUpdateEvent lastLocalAndRemoteBranchListChangedEvent;
+        [NonSerialized] private bool localAndRemoteBranchListHasUpdate;
+
+        [SerializeField] private GitBranch[] localBranches;
+        [SerializeField] private GitBranch[] remoteBranches;
+
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
@@ -58,7 +64,11 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             AttachHandlers(Repository);
-            Refresh();
+
+            if (Repository != null)
+            {
+                Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
+            }
         }
 
         public override void OnDisable()
@@ -73,15 +83,32 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        private void MaybeUpdateData()
+        private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)
         {
+            if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () =>
+                    {
+                        lastLocalAndRemoteBranchListChangedEvent = cacheUpdateEvent;
+                        localAndRemoteBranchListHasUpdate = true;
+                        Redraw();
+                    })
+                    { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
-        public override void OnRepositoryChanged(IRepository oldRepository)
+        private void MaybeUpdateData()
         {
-            base.OnRepositoryChanged(oldRepository);
-            DetachHandlers(oldRepository);
-            AttachHandlers(Repository);
+            if (localAndRemoteBranchListHasUpdate)
+            {
+                localAndRemoteBranchListHasUpdate = false;
+
+                localBranches = Repository.LocalBranches.ToArray();
+                remoteBranches = Repository.RemoteBranches.ToArray();
+
+
+                BuildTree(localBranches, remoteBranches);
+            }
         }
 
         private void AttachHandlers(IRepository repository)
@@ -89,43 +116,15 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.OnLocalBranchListChanged += RunUpdateBranchesOnMainThread;
-            repository.OnCurrentBranchChanged += HandleRepositoryBranchChangeEvent;
-            repository.OnCurrentRemoteChanged += HandleRepositoryBranchChangeEvent;
+            repository.LocalAndRemoteBranchListChanged += RepositoryOnLocalAndRemoteBranchListChanged;
         }
 
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnLocalBranchListChanged -= RunUpdateBranchesOnMainThread;
-            repository.OnCurrentBranchChanged -= HandleRepositoryBranchChangeEvent;
-            repository.OnCurrentRemoteChanged -= HandleRepositoryBranchChangeEvent;
-        }
 
-        private void HandleRepositoryBranchChangeEvent(string obj)
-        {
-            RunUpdateBranchesOnMainThread();
-        }
-
-        public override void Refresh()
-        {
-            base.Refresh();
-            UpdateBranches();
-        }
-
-        private void RunUpdateBranchesOnMainThread()
-        {
-            new ActionTask(TaskManager.Token, _ => UpdateBranches())
-                .ScheduleUI(TaskManager);
-        }
-
-        public void UpdateBranches()
-        {
-            if (Repository == null)
-                return;
-
-            BuildTree(Repository.LocalBranches, Repository.RemoteBranches);
+            repository.LocalAndRemoteBranchListChanged -= RepositoryOnLocalAndRemoteBranchListChanged;
         }
 
         public override void OnGUI()
@@ -558,7 +557,7 @@ namespace GitHub.Unity
                         var originName = selectedNode.Name.Substring(0, indexOfFirstSlash);
                         var branchName = selectedNode.Name.Substring(indexOfFirstSlash + 1);
 
-                        if (Repository.LocalBranches.Any(localBranch => localBranch.Name == branchName))
+                        if (localBranches.Any(localBranch => localBranch.Name == branchName))
                         {
                             EditorUtility.DisplayDialog(WarningCheckoutBranchExistsTitle, 
                                 String.Format(WarningCheckoutBranchExistsMessage, branchName),
