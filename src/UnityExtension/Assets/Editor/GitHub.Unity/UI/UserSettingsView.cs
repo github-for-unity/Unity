@@ -22,6 +22,7 @@ namespace GitHub.Unity
         [SerializeField] private string gitEmail;
         [SerializeField] private string newGitName;
         [SerializeField] private string newGitEmail;
+        [SerializeField] private bool needsSaving;
 
         public override void InitializeView(IView parent)
         {
@@ -42,11 +43,17 @@ namespace GitHub.Unity
 
             EditorGUI.BeginDisabledGroup(IsBusy || Parent.IsBusy);
             {
-                newGitName = EditorGUILayout.TextField(GitConfigNameLabel, newGitName);
-                newGitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, newGitEmail);
+                EditorGUI.BeginChangeCheck();
+                {
+                    newGitName = EditorGUILayout.TextField(GitConfigNameLabel, newGitName);
+                    newGitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, newGitEmail);
+                }
 
-                var needsSaving = (newGitName != gitName || newGitEmail != gitEmail)
-                    && !(string.IsNullOrEmpty(newGitName) || string.IsNullOrEmpty(newGitEmail));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    needsSaving = !(string.IsNullOrEmpty(newGitName) || string.IsNullOrEmpty(newGitEmail))
+                        && (newGitName != gitName || newGitEmail != gitEmail);
+                }
 
                 EditorGUI.BeginDisabledGroup(!needsSaving);
                 {
@@ -70,6 +77,8 @@ namespace GitHub.Unity
                                              gitName = newGitName;
                                              gitEmail = newGitEmail;
                                          }
+
+                                         needsSaving = false;
 
                                          Redraw();
                                          Finish(true);
@@ -103,6 +112,7 @@ namespace GitHub.Unity
                 {
                     newGitName = gitName = Repository.User.Name;
                     newGitEmail = gitEmail = Repository.User.Email;
+                    needsSaving = false;
                 }
             }
         }
@@ -127,6 +137,7 @@ namespace GitHub.Unity
                     {
                         newGitName = gitName = user.Name;
                         newGitEmail = gitEmail = user.Email;
+                        needsSaving = false;
                         Redraw();
                     }
                 }).Start();
