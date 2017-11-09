@@ -83,6 +83,8 @@ namespace GitHub.Unity
         ITask<Version> Version(IOutputProcessor<Version> processor = null);
 
         ITask<Version> LfsVersion(IOutputProcessor<Version> processor = null);
+
+        ITask<User> SetConfigUserAndEmail(string username, string email);
     }
 
     class GitClient : IGitClient
@@ -270,15 +272,22 @@ namespace GitHub.Unity
                     }
                 })
                 .Then(GetConfig(UserEmailConfigKey, GitConfigSource.User)
-                .Then((success, value) => {
-                    if (success)
-                    {
-                        email = value;
-                    }
-                })).Then(success => {
+                    .Then((success, value) => {
+                        if (success)
+                        {
+                            email = value;
+                        }
+                    })).Then(success => {
                     Logger.Trace("{0}:{1} {2}:{3}", UserNameConfigKey, username, UserEmailConfigKey, email);
-                    return new User { Name= username, Email = email };
+                    return new User { Name = username, Email = email };
                 });
+        }
+
+        public ITask<User> SetConfigUserAndEmail(string username, string email)
+        {
+            return SetConfig(UserNameConfigKey, username, GitConfigSource.User)
+                .Then(SetConfig(UserEmailConfigKey, email, GitConfigSource.User))
+                .Then(b => new User { Name = username, Email = email });
         }
 
         public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null)

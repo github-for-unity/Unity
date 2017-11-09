@@ -56,14 +56,15 @@ namespace GitHub.Unity
                         GUI.FocusControl(null);
                         isBusy = true;
 
-                        GitClient.SetConfig("user.name", newGitName, GitConfigSource.User)
-                                 .Then((success, value) =>
-                                 {
+                        GitClient.SetConfigUserAndEmail(newGitName, newGitEmail)
+                                 .FinallyInUI((success, exception, user) => {
+                                     isBusy = false;
                                      if (success)
                                      {
                                          if (Repository != null)
                                          {
                                              Repository.User.Name = newGitName;
+                                             Repository.User.Email = newGitEmail;
                                          }
                                          else
                                          {
@@ -72,32 +73,12 @@ namespace GitHub.Unity
                                                  cachedUser = new User();
                                              }
                                              cachedUser.Name = newGitName;
+                                             cachedUser.Email = newGitEmail;
                                          }
-                                     }
-                                 })
-                                 .Then(
-                                     GitClient.SetConfig("user.email", newGitEmail, GitConfigSource.User)
-                                              .Then((success, value) =>
-                                              {
-                                                  if (success)
-                                                  {
-                                                      if (Repository != null)
-                                                      {
-                                                          Repository.User.Email = newGitEmail;
-                                                      }
-                                                      else
-                                                      {
-                                                          cachedUser.Email = newGitEmail;
-                                                      }
 
-                                                      userDataHasChanged = true;
-                                                  }
-                                              }))
-                                 .FinallyInUI((_, __) =>
-                                 {
-                                     isBusy = false;
-                                     Redraw();
-                                     Finish(true);
+                                         Redraw();
+                                         Finish(true);
+                                     }
                                  })
                                  .Start();
                     }
