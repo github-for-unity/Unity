@@ -146,13 +146,10 @@ namespace GitHub.Unity
             Logger.Trace("Update user data from GitClient");
 
             GitClient.GetConfigUserAndEmail()
-                .ThenInUI((success, strings) => {
-                    var username = strings[0];
-                    var email = strings[1];
-
-                    if (success && !String.IsNullOrEmpty(username) && !String.IsNullOrEmpty(email))
+                .ThenInUI((success, user) => {
+                    if (success && !String.IsNullOrEmpty(user.Name) && !String.IsNullOrEmpty(user.Email))
                     {
-                        cachedUser = new User { Name = username, Email = email };
+                        cachedUser = user;
                         newGitName = gitName = cachedUser.Name;
                         newGitEmail = gitEmail = cachedUser.Email;
                         Redraw();
