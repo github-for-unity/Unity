@@ -260,21 +260,23 @@ namespace GitHub.Unity
             string username = null;
             string email = null;
 
-            return GetConfig("user.name", GitConfigSource.User).Then((success, value) => {
-                if (success)
-                {
-                    username = value;
-                }
-
-            }).Then(GetConfig("user.email", GitConfigSource.User).Then((success, value) => {
-                if (success)
-                {
-                    email = value;
-                }
-            })).Then(success => {
-                Logger.Trace("user.name:{1} user.email:{2}", success, username, email);
-                return new User { Name= username, Email = email };
-            });
+            return GetConfig("user.name", GitConfigSource.User)
+                .Then((success, value) => {
+                    if (success)
+                    {
+                        username = value;
+                    }
+                })
+                .Then(GetConfig("user.email", GitConfigSource.User)
+                .Then((success, value) => {
+                    if (success)
+                    {
+                        email = value;
+                    }
+                })).Then(success => {
+                    Logger.Trace("{0}:{1} {2}:{3}", UserNameConfigKey, username, UserEmailConfigKey, email);
+                    return new User { Name= username, Email = email };
+                });
         }
 
         public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null)
