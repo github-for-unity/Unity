@@ -87,6 +87,8 @@ namespace GitHub.Unity
 
     class GitClient : IGitClient
     {
+        private const string UserNameConfigKey = "user.name";
+        private const string UserEmailConfigKey = "user.email";
         private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
@@ -260,19 +262,19 @@ namespace GitHub.Unity
             string username = null;
             string email = null;
 
-            return GetConfig("user.name", GitConfigSource.User).Then((success, value) => {
+            return GetConfig(UserNameConfigKey, GitConfigSource.User).Then((success, value) => {
                 if (success)
                 {
                     username = value;
                 }
 
-            }).Then(GetConfig("user.email", GitConfigSource.User).Then((success, value) => {
+            }).Then(GetConfig(UserEmailConfigKey, GitConfigSource.User).Then((success, value) => {
                 if (success)
                 {
                     email = value;
                 }
             })).Then(success => {
-                Logger.Trace("user.name:{1} user.email:{2}", success, username, email);
+                Logger.Trace("{0}:{1} {2}:{3}", UserNameConfigKey, username, UserEmailConfigKey, email);
                 return new User { Name= username, Email = email };
             });
         }
