@@ -274,7 +274,7 @@ namespace GitHub.Unity
                         email = value;
                     }
                 })).Then(success => {
-                    Logger.Trace("{0}:{1} {2}:{3}", UserNameConfigKey, username, UserEmailConfigKey, email);
+                    Logger.Trace("{0}:{1} {2}:{3}", "user.name", username, "user.email", email);
                     return new User { Name= username, Email = email };
                 });
         }
