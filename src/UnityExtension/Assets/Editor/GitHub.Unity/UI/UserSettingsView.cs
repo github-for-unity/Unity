@@ -22,7 +22,6 @@ namespace GitHub.Unity
         [SerializeField] private string gitEmail;
         [SerializeField] private string newGitName;
         [SerializeField] private string newGitEmail;
-        [SerializeField] private User cachedUser;
 
         public override void InitializeView(IView parent)
         {
@@ -63,15 +62,11 @@ namespace GitHub.Unity
                                      {
                                          if (Repository != null)
                                          {
-                                             Repository.User.Name = newGitName;
+                                             Repository.User.Name = gitName = newGitName;
                                          }
                                          else
                                          {
-                                             if (cachedUser == null)
-                                             {
-                                                 cachedUser = new User();
-                                             }
-                                             cachedUser.Name = newGitName;
+                                             gitName = newGitName;
                                          }
                                      }
                                  })
@@ -83,11 +78,11 @@ namespace GitHub.Unity
                                                   {
                                                       if (Repository != null)
                                                       {
-                                                          Repository.User.Email = newGitEmail;
+                                                          Repository.User.Email = gitEmail = newGitEmail;
                                                       }
                                                       else
                                                       {
-                                                          cachedUser.Email = newGitEmail;
+                                                          gitEmail = newGitEmail;
                                                       }
 
                                                       userDataHasChanged = true;
@@ -149,9 +144,8 @@ namespace GitHub.Unity
                 .ThenInUI((success, user) => {
                     if (success && !String.IsNullOrEmpty(user.Name) && !String.IsNullOrEmpty(user.Email))
                     {
-                        cachedUser = user;
-                        newGitName = gitName = cachedUser.Name;
-                        newGitEmail = gitEmail = cachedUser.Email;
+                        newGitName = gitName = user.Name;
+                        newGitEmail = gitEmail = user.Email;
                         Redraw();
                     }
                 }).Start();
