@@ -63,16 +63,12 @@ namespace GitHub.Unity
                                          if (Repository != null)
                                          {
                                              Repository.User.Name = gitName = newGitName;
-                                             Repository.User.Email = newGitEmail;
+                                             Repository.User.Email = gitEmail = newGitEmail;
                                          }
                                          else
                                          {
-                                             if (cachedUser == null)
-                                             {
-                                                 cachedUser = new User();
-                                             }
-                                             cachedUser.Name = newGitName;
-                                             cachedUser.Email = newGitEmail;
+                                             gitName = newGitName;
+                                             gitEmail = newGitEmail;
                                          }
 
                                          Redraw();
