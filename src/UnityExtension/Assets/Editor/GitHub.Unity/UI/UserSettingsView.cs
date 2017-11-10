@@ -115,16 +115,10 @@ namespace GitHub.Unity
                 {
                     if ((cachedUser == null || String.IsNullOrEmpty(cachedUser.Name)) && GitClient != null)
                     {
-                        GitClient.GetConfigUserAndEmail().FinallyInUI((success, ex, strings) => {
-                            var username = strings[0];
-                            var email = strings[1];
-
-                            if (success && !String.IsNullOrEmpty(username) && !String.IsNullOrEmpty(email))
+                        GitClient.GetConfigUserAndEmail().FinallyInUI((success, ex, user) => {
+                            if (success && !String.IsNullOrEmpty(user.Name) && !String.IsNullOrEmpty(user.Email))
                             {
-                                cachedUser = new User {
-                                    Name = username,
-                                    Email = email
-                                };
+                                cachedUser = user;
 
                                 userDataHasChanged = true;
                                 Redraw();
