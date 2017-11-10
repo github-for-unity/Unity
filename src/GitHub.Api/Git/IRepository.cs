@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace GitHub.Unity
 {
     /// <summary>
-    /// Represents a repository, either local or retreived via the GitHub API.
+    /// Represents a repository, either local or retrieved via the GitHub API.
     /// </summary>
     public interface IRepository : IEquatable<IRepository>
     {
@@ -18,6 +18,7 @@ namespace GitHub.Unity
         ITask Revert(string changeset);
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
+        ITask DiscardChanges(List<string> files);
 
         void RefreshLog();
         void RefreshStatus();

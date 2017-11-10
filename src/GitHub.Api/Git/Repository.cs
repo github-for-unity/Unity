@@ -237,6 +237,11 @@ namespace GitHub.Unity
             CheckBranchCacheEvent(cacheUpdateEvent);
         }
 
+        public ITask DiscardChanges(List<string> files)
+        {
+            return repositoryManager.CheckoutFiles(files);
+        }
+
         /// <summary>
         /// Note: We don't consider CloneUrl a part of the hash code because it can change during the lifetime
         /// of a repository. Equals takes care of any hash collisions because of this
