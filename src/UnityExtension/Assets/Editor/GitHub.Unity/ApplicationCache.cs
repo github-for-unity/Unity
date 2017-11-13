@@ -135,18 +135,20 @@ namespace GitHub.Unity
 
                 if (invalidOnFirstRun)
                 {
+                    Logger.Trace("FirstRun Invalidation");
                     InvalidateData();
                 }
             }
             else if (DateTimeOffset.Now - LastUpdatedAt > DataTimeout)
             {
+                Logger.Trace("Timeout Invalidation");
                 InvalidateData();
             }
         }
 
         public void InvalidateData()
         {
-            Logger.Trace("Invalidated");
+            Logger.Trace("Invalidate");
             CacheInvalidated.SafeInvoke();
             SaveData(DateTimeOffset.Now, false);
         }
