@@ -557,7 +557,7 @@ namespace GitHub.Unity
 
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string firstInitializedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
 
         [SerializeField] private ConfigBranch gitConfigBranch;
         [SerializeField] private ConfigRemote gitConfigRemote;
@@ -815,8 +815,8 @@ namespace GitHub.Unity
 
         public override string InitializedAtString
         {
-            get { return firstInitializedAtString; }
-            protected set { firstInitializedAtString = value; }
+            get { return initializedAtString; }
+            protected set { initializedAtString = value; }
         }
 
         public override TimeSpan DataTimeout
@@ -830,7 +830,7 @@ namespace GitHub.Unity
     {
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string firstInitializedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private List<GitLogEntry> log = new List<GitLogEntry>();
 
         public GitLogCache() : base(true)
@@ -874,8 +874,8 @@ namespace GitHub.Unity
 
         public override string InitializedAtString
         {
-            get { return firstInitializedAtString; }
-            protected set { firstInitializedAtString = value; }
+            get { return initializedAtString; }
+            protected set { initializedAtString = value; }
         }
 
         public override TimeSpan DataTimeout
@@ -889,7 +889,7 @@ namespace GitHub.Unity
     {
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string firstInitializedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private GitStatus status;
 
         public GitStatusCache() : base(true)
@@ -933,8 +933,8 @@ namespace GitHub.Unity
 
         public override string InitializedAtString
         {
-            get { return firstInitializedAtString; }
-            protected set { firstInitializedAtString = value; }
+            get { return initializedAtString; }
+            protected set { initializedAtString = value; }
         }
 
         public override TimeSpan DataTimeout
@@ -948,7 +948,7 @@ namespace GitHub.Unity
     {
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string firstInitializedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private List<GitLock> gitLocks = new List<GitLock>();
 
         public GitLocksCache() : base(true)
@@ -992,8 +992,8 @@ namespace GitHub.Unity
 
         public override string InitializedAtString
         {
-            get { return firstInitializedAtString; }
-            protected set { firstInitializedAtString = value; }
+            get { return initializedAtString; }
+            protected set { initializedAtString = value; }
         }
 
         public override TimeSpan DataTimeout
@@ -1007,7 +1007,7 @@ namespace GitHub.Unity
     {
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string firstInitializedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private User user;
 
         public GitUserCache() : base(true)
@@ -1051,8 +1051,8 @@ namespace GitHub.Unity
 
         public override string InitializedAtString
         {
-            get { return firstInitializedAtString; }
-            protected set { firstInitializedAtString = value; }
+            get { return initializedAtString; }
+            protected set { initializedAtString = value; }
         }
 
         public override TimeSpan DataTimeout
