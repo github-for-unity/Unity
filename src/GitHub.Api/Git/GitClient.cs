@@ -123,7 +123,8 @@ namespace GitHub.Unity
 
         private void GitUserCacheOnCacheInvalidated()
         {
-
+            Logger.Trace("GitUserCache Invalidated");
+            UpdateUserAndEmail();
         }
 
         public void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent)
@@ -320,6 +321,8 @@ namespace GitHub.Unity
 
         private void UpdateUserAndEmail()
         {
+            Logger.Trace("UpdateUserAndEmail");
+
             string username = null;
             string email = null;
 

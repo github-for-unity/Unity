@@ -665,13 +665,25 @@ namespace GitHub.Unity
     [Serializable]
     public class User : IUser
     {
+        public string name;
+        public string email;
+
         public override string ToString()
         {
             return String.Format("Name: {0} Email: {1}", Name, Email);
         }
 
-        public string Name { get; set; }
-        public string Email { get; set; }
+        public string Name
+        {
+            get { return name; }
+            set { name = value; }
+        }
+
+        public string Email
+        {
+            get { return email; }
+            set { email = value; }
+        }
     }
 
     [Serializable]

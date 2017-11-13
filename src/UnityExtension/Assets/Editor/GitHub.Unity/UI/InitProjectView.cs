@@ -93,7 +93,7 @@ namespace GitHub.Unity
         {
             if (GitClient != null)
             {
-                GitClient.CurrentUserChanged+=GitClientOnCurrentUserChanged;
+                GitClient.CurrentUserChanged += GitClientOnCurrentUserChanged;
             }
         }
 
@@ -124,9 +124,10 @@ namespace GitHub.Unity
             if (userHasChanges)
             {
                 userHasChanges = false;
+                var currentUser = GitClient.CurrentUser;
+                isUserDataPresent = !string.IsNullOrEmpty(currentUser.Name)
+                    && !string.IsNullOrEmpty(currentUser.Email);
                 hasCompletedInitialCheck = true;
-                isUserDataPresent = !string.IsNullOrEmpty(GitClient.CurrentUser.Name)
-                    && !string.IsNullOrEmpty(GitClient.CurrentUser.Email);
             }
         }
 

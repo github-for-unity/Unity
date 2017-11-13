@@ -98,12 +98,14 @@ namespace GitHub.Unity
 
         private void GitClientOnCurrentUserChanged(CacheUpdateEvent cacheUpdateEvent)
         {
+            Logger.Trace("GitClientOnCurrentUserChanged");
+
             if (!lastCheckUserChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(TaskManager.Token, () =>
-                    {
+                new ActionTask(TaskManager.Token, () => {
                         lastCheckUserChangedEvent = cacheUpdateEvent;
                         userHasChanges = true;
+                        isBusy = false;
                         Redraw();
                     })
                     { Affinity = TaskAffinity.UI }.Start();
@@ -123,8 +125,9 @@ namespace GitHub.Unity
             if (userHasChanges)
             {
                 userHasChanges = false;
-                gitName = newGitName = GitClient.CurrentUser.Name;
-                gitEmail = newGitEmail = GitClient.CurrentUser.Email;
+                var currentUser = GitClient.CurrentUser;
+                gitName = newGitName = currentUser.Name;
+                gitEmail = newGitEmail = currentUser.Email;
             }
         }
 
