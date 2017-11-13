@@ -110,8 +110,6 @@ namespace GitHub.Unity
 
     abstract class ManagedCacheBase<T> : ScriptObjectSingleton<T> where T : ScriptableObject, IManagedCache
     {
-        private static readonly TimeSpan DataTimeout = TimeSpan.FromMinutes(1);
-
         [NonSerialized] private DateTimeOffset? lastUpdatedAtValue;
         [NonSerialized] private DateTimeOffset? lastVerifiedAtValue;
         [NonSerialized] private DateTimeOffset? firstInitializedAtValue;
@@ -174,6 +172,7 @@ namespace GitHub.Unity
             }
         }
 
+        public abstract TimeSpan DataTimeout { get; }
         public abstract string LastUpdatedAtString { get; protected set; }
         public abstract string LastVerifiedAtString { get; protected set; }
         public abstract string FirstInitializedAtString { get; protected set; }
@@ -543,6 +542,11 @@ namespace GitHub.Unity
             get { return firstInitializedAtString; }
             protected set { firstInitializedAtString = value; }
         }
+
+        public override TimeSpan DataTimeout
+        {
+            get { return TimeSpan.MaxValue; }
+        }
     }
 
     [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
@@ -814,6 +818,11 @@ namespace GitHub.Unity
             get { return firstInitializedAtString; }
             protected set { firstInitializedAtString = value; }
         }
+
+        public override TimeSpan DataTimeout
+        {
+            get { return TimeSpan.MaxValue; }
+        }
     }
 
     [Location("cache/gitlog.yaml", LocationAttribute.Location.LibraryFolder)]
@@ -867,6 +876,11 @@ namespace GitHub.Unity
         {
             get { return firstInitializedAtString; }
             protected set { firstInitializedAtString = value; }
+        }
+
+        public override TimeSpan DataTimeout
+        {
+            get { return TimeSpan.FromMinutes(1); }
         }
     }
 
@@ -922,6 +936,11 @@ namespace GitHub.Unity
             get { return firstInitializedAtString; }
             protected set { firstInitializedAtString = value; }
         }
+
+        public override TimeSpan DataTimeout
+        {
+            get { return TimeSpan.FromMinutes(1); }
+        }
     }
 
     [Location("cache/gitlocks.yaml", LocationAttribute.Location.LibraryFolder)]
@@ -976,6 +995,11 @@ namespace GitHub.Unity
             get { return firstInitializedAtString; }
             protected set { firstInitializedAtString = value; }
         }
+
+        public override TimeSpan DataTimeout
+        {
+            get { return TimeSpan.FromMinutes(1); }
+        }
     }
 
     [Location("cache/gituser.yaml", LocationAttribute.Location.LibraryFolder)]
@@ -1029,6 +1053,11 @@ namespace GitHub.Unity
         {
             get { return firstInitializedAtString; }
             protected set { firstInitializedAtString = value; }
+        }
+
+        public override TimeSpan DataTimeout
+        {
+            get { return TimeSpan.FromMinutes(10); }
         }
     }
 }
