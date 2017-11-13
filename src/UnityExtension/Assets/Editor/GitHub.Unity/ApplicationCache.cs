@@ -112,7 +112,7 @@ namespace GitHub.Unity
     {
         [NonSerialized] private DateTimeOffset? lastUpdatedAtValue;
         [NonSerialized] private DateTimeOffset? lastVerifiedAtValue;
-        [NonSerialized] private DateTimeOffset? firstInitializedAtValue;
+        [NonSerialized] private DateTimeOffset? initializedAtValue;
         [NonSerialized] private readonly bool invalidOnFirstRun;
 
         public event Action CacheInvalidated;
@@ -126,9 +126,9 @@ namespace GitHub.Unity
 
         public void ValidateData()
         {
-            if (ApplicationCache.Instance.FirstRunAt > FirstInitializedAt)
+            if (ApplicationCache.Instance.FirstRunAt > InitializedAt)
             {
-                FirstInitializedAt = DateTimeOffset.Now;
+                InitializedAt = DateTimeOffset.Now;
                 Save(true);
 
                 if (invalidOnFirstRun)
@@ -175,7 +175,7 @@ namespace GitHub.Unity
         public abstract TimeSpan DataTimeout { get; }
         public abstract string LastUpdatedAtString { get; protected set; }
         public abstract string LastVerifiedAtString { get; protected set; }
-        public abstract string FirstInitializedAtString { get; protected set; }
+        public abstract string InitializedAtString { get; protected set; }
 
         public DateTimeOffset LastUpdatedAt
         {
@@ -213,21 +213,21 @@ namespace GitHub.Unity
             }
         }
 
-        public DateTimeOffset FirstInitializedAt
+        public DateTimeOffset InitializedAt
         {
             get
             {
-                if (!firstInitializedAtValue.HasValue)
+                if (!initializedAtValue.HasValue)
                 {
-                    firstInitializedAtValue = DateTimeOffset.Parse(FirstInitializedAtString);
+                    initializedAtValue = DateTimeOffset.Parse(InitializedAtString);
                 }
 
-                return firstInitializedAtValue.Value;
+                return initializedAtValue.Value;
             }
             set
             {
-                FirstInitializedAtString = value.ToString();
-                firstInitializedAtValue = null;
+                InitializedAtString = value.ToString();
+                initializedAtValue = null;
             }
         }
 
@@ -537,7 +537,7 @@ namespace GitHub.Unity
             protected set { lastVerifiedAtString = value; }
         }
 
-        public override string FirstInitializedAtString
+        public override string InitializedAtString
         {
             get { return firstInitializedAtString; }
             protected set { firstInitializedAtString = value; }
@@ -813,7 +813,7 @@ namespace GitHub.Unity
             protected set { lastVerifiedAtString = value; }
         }
 
-        public override string FirstInitializedAtString
+        public override string InitializedAtString
         {
             get { return firstInitializedAtString; }
             protected set { firstInitializedAtString = value; }
@@ -872,7 +872,7 @@ namespace GitHub.Unity
             protected set { lastVerifiedAtString = value; }
         }
 
-        public override string FirstInitializedAtString
+        public override string InitializedAtString
         {
             get { return firstInitializedAtString; }
             protected set { firstInitializedAtString = value; }
@@ -931,7 +931,7 @@ namespace GitHub.Unity
             protected set { lastVerifiedAtString = value; }
         }
 
-        public override string FirstInitializedAtString
+        public override string InitializedAtString
         {
             get { return firstInitializedAtString; }
             protected set { firstInitializedAtString = value; }
@@ -990,7 +990,7 @@ namespace GitHub.Unity
             protected set { lastVerifiedAtString = value; }
         }
 
-        public override string FirstInitializedAtString
+        public override string InitializedAtString
         {
             get { return firstInitializedAtString; }
             protected set { firstInitializedAtString = value; }
@@ -1049,7 +1049,7 @@ namespace GitHub.Unity
             protected set { lastVerifiedAtString = value; }
         }
 
-        public override string FirstInitializedAtString
+        public override string InitializedAtString
         {
             get { return firstInitializedAtString; }
             protected set { firstInitializedAtString = value; }
