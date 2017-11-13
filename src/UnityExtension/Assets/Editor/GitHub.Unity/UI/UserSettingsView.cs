@@ -15,15 +15,14 @@ namespace GitHub.Unity
         private const string GitConfigEmailLabel = "Email";
         private const string GitConfigUserSave = "Save User";
 
-        [NonSerialized] private bool isBusy;
-
         [SerializeField] private string gitName;
         [SerializeField] private string gitEmail;
         [SerializeField] private string newGitName;
         [SerializeField] private string newGitEmail;
         [SerializeField] private bool needsSaving;
-
         [SerializeField] private CacheUpdateEvent lastCheckUserChangedEvent;
+
+        [NonSerialized] private bool isBusy;
         [NonSerialized] private bool userHasChanges;
 
         public override void InitializeView(IView parent)
@@ -88,6 +87,7 @@ namespace GitHub.Unity
             base.OnDisable();
             DetachHandlers();
         }
+        
         private void AttachHandlers()
         {
             if (GitClient != null)
