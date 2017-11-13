@@ -56,11 +56,6 @@ namespace GitHub.Unity
             repositoryManager.OnLocalBranchRemoved += RepositoryManager_OnLocalBranchRemoved;
             repositoryManager.OnRemoteBranchAdded += RepositoryManager_OnRemoteBranchAdded;
             repositoryManager.OnRemoteBranchRemoved += RepositoryManager_OnRemoteBranchRemoved;
-
-            UpdateGitStatus();
-            UpdateGitLog();
-
-            new ActionTask(CancellationToken.None, UpdateLocks) { Affinity = TaskAffinity.UI }.Start();
         }
 
         public ITask SetupRemote(string remote, string remoteUrl)
@@ -300,6 +295,9 @@ namespace GitHub.Unity
                     break;
 
                 case CacheType.GitUserCache:
+                    break;
+
+                case CacheType.RepositoryInfoCache:
                     break;
 
                 default:
