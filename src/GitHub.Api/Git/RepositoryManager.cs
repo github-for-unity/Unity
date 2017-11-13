@@ -177,7 +177,6 @@ namespace GitHub.Unity
             add.OnStart += t => IsBusy = true;
             return add
                 .Then(GitClient.Commit(message, body))
-                .Then(UpdateConfigData)
                 .Finally(() => IsBusy = false);
         }
 
@@ -187,7 +186,6 @@ namespace GitHub.Unity
             add.OnStart += t => IsBusy = true;
             return add
                 .Then(GitClient.Commit(message, body))
-                .Then(UpdateConfigData)
                 .Finally(() => IsBusy = false);
         }
 
