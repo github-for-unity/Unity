@@ -272,15 +272,15 @@ namespace GitHub.Unity
                     }
                 })
                 .Then(GetConfig(UserEmailConfigKey, GitConfigSource.User)
-                    .Then((success, value) => {
-                        if (success)
-                        {
-                            email = value;
-                        }
-                    })).Then(success => {
-                    Logger.Trace("{0}:{1} {2}:{3}", UserNameConfigKey, username, UserEmailConfigKey, email);
-                    return new User { Name = username, Email = email };
-                });
+                .Then((success, value) => {
+                    if (success)
+                    {
+                        email = value;
+                    }
+                })).Then(success => {
+                Logger.Trace("{0}:{1} {2}:{3}", UserNameConfigKey, username, UserEmailConfigKey, email);
+                return new User { Name = username, Email = email };
+            });
         }
 
         public ITask<User> SetConfigUserAndEmail(string username, string email)
