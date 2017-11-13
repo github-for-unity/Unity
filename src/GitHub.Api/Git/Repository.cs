@@ -81,12 +81,22 @@ namespace GitHub.Unity
 
         public ITask CommitAllFiles(string message, string body)
         {
-            return repositoryManager.CommitAllFiles(message, body);
+            return repositoryManager
+                .CommitAllFiles(message, body)
+                .Then(() => {
+                    UpdateGitStatus();
+                    UpdateGitLog();
+                });
         }
 
         public ITask CommitFiles(List<string> files, string message, string body)
         {
-            return repositoryManager.CommitFiles(files, message, body);
+            return repositoryManager
+                .CommitFiles(files, message, body)
+                .Then(() => {
+                    UpdateGitStatus();
+                    UpdateGitLog();
+                });
         }
 
         public ITask Pull()
@@ -120,6 +130,21 @@ namespace GitHub.Unity
         {
             return repositoryManager.UnlockFile(file, force)
                 .Then(UpdateLocks);
+        }
+
+        public void RefreshLog()
+        {
+            UpdateGitLog();
+        }
+
+        public void RefreshStatus()
+        {
+            UpdateGitStatus();
+        }
+
+        public void UpdateConfigData()
+        {
+            repositoryManager?.UpdateConfigData();
         }
 
         public void CheckLogChangedEvent(CacheUpdateEvent cacheUpdateEvent)

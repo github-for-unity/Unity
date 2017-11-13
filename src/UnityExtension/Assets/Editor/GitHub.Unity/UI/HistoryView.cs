@@ -73,8 +73,8 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                Repository.CheckLogChangedEvent(lastLogChangedEvent);
-                Repository.CheckStatusChangedEvent(lastStatusChangedEvent);
+                Repository.RefreshLog();
+                Repository.RefreshStatus();
                 Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
             }
         }
