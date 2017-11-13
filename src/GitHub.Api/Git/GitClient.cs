@@ -101,7 +101,7 @@ namespace GitHub.Unity
         private readonly CancellationToken cancellationToken;
 
         public event Action<CacheUpdateEvent> CurrentUserChanged;
-        private bool cacheInitialized = false;
+        private bool cacheInitialized;
 
         public GitClient(IEnvironment environment, IProcessManager processManager, ITaskManager taskManager)
         {
@@ -111,20 +111,6 @@ namespace GitHub.Unity
             this.processManager = processManager;
             this.taskManager = taskManager;
             this.cancellationToken = taskManager.Token;
-        }
-
-        private void GitUserCacheOnCacheUpdated(DateTimeOffset timeOffset)
-        {
-            HandleGitLogCacheUpdatedEvent(new CacheUpdateEvent
-            {
-                UpdatedTimeString = timeOffset.ToString()
-            });
-        }
-
-        private void GitUserCacheOnCacheInvalidated()
-        {
-            Logger.Trace("GitUserCache Invalidated");
-            UpdateUserAndEmail();
         }
 
         public void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent)
@@ -141,11 +127,6 @@ namespace GitHub.Unity
                 var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
                 HandleGitLogCacheUpdatedEvent(updateEvent);
             }
-        }
-        private void HandleGitLogCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
-        {
-            Logger.Trace("GitUserCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
-            CurrentUserChanged?.Invoke(cacheUpdateEvent);
         }
 
         public User CurrentUser
@@ -317,34 +298,6 @@ namespace GitHub.Unity
 
             return new GitConfigSetTask(key, value, configSource, cancellationToken, processor)
                 .Configure(processManager);
-        }
-
-        private void UpdateUserAndEmail()
-        {
-            Logger.Trace("UpdateUserAndEmail");
-
-            string username = null;
-            string email = null;
-
-            GetConfig(UserNameConfigKey, GitConfigSource.User)
-                .Then((success, value) => {
-                    if (success)
-                    {
-                        username = value;
-                    }
-                })
-                .Then(GetConfig(UserEmailConfigKey, GitConfigSource.User)
-                .Then((success, value) => {
-                    if (success)
-                    {
-                        email = value;
-                    }
-                })).ThenInUI(success => {
-                    environment.CacheContainer.GitUserCache.User= new User {
-                        Name = username,
-                        Email = email
-                    };
-                }).Start();
         }
 
         public void SetConfigUserAndEmail(string username, string email)
@@ -525,6 +478,54 @@ namespace GitHub.Unity
 
             return new GitUnlockTask(file, force, cancellationToken, processor)
                 .Configure(processManager);
+        }
+
+        private void GitUserCacheOnCacheUpdated(DateTimeOffset timeOffset)
+        {
+            HandleGitLogCacheUpdatedEvent(new CacheUpdateEvent
+            {
+                UpdatedTimeString = timeOffset.ToString()
+            });
+        }
+
+        private void GitUserCacheOnCacheInvalidated()
+        {
+            Logger.Trace("GitUserCache Invalidated");
+            UpdateUserAndEmail();
+        }
+        
+        private void HandleGitLogCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            Logger.Trace("GitUserCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
+            CurrentUserChanged?.Invoke(cacheUpdateEvent);
+        }
+
+        private void UpdateUserAndEmail()
+        {
+            Logger.Trace("UpdateUserAndEmail");
+
+            string username = null;
+            string email = null;
+
+            GetConfig(UserNameConfigKey, GitConfigSource.User)
+                .Then((success, value) => {
+                    if (success)
+                    {
+                        username = value;
+                    }
+                })
+                .Then(GetConfig(UserEmailConfigKey, GitConfigSource.User)
+                .Then((success, value) => {
+                    if (success)
+                    {
+                        email = value;
+                    }
+                })).ThenInUI(success => {
+                    CurrentUser = new User {
+                        Name = username,
+                        Email = email
+                    };
+                }).Start();
         }
 
         protected static ILogging Logger { get; } = Logging.GetLogger<GitClient>();
