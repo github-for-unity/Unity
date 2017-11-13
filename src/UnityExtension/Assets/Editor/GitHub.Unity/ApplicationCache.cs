@@ -148,7 +148,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("Invalidated");
             CacheInvalidated.SafeInvoke();
-            SaveData(DateTimeOffset.Now, true);
+            SaveData(DateTimeOffset.Now, false);
         }
 
         protected void SaveData(DateTimeOffset now, bool isUpdated)
