@@ -58,11 +58,6 @@ namespace GitHub.Unity
             repositoryManager.OnRemoteBranchAdded += RepositoryManager_OnRemoteBranchAdded;
             repositoryManager.OnRemoteBranchRemoved += RepositoryManager_OnRemoteBranchRemoved;
             repositoryManager.OnGitUserLoaded += user => User = user;
-
-            UpdateGitStatus();
-            UpdateGitLog();
-
-            new ActionTask(CancellationToken.None, UpdateLocks) { Affinity = TaskAffinity.UI }.Start();
         }
 
         public ITask SetupRemote(string remote, string remoteUrl)
