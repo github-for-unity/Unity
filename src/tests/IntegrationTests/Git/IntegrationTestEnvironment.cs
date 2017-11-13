@@ -120,5 +120,10 @@ namespace IntegrationTests
         public IRepository Repository { get; set; }
         public IFileSystem FileSystem { get { return defaultEnvironment.FileSystem; } set { defaultEnvironment.FileSystem = value; } }
         public string ExecutableExtension { get { return defaultEnvironment.ExecutableExtension; } }
+
+        public ICacheContainer CacheContainer
+        {
+            get { throw new NotImplementedException(); }
+        }
     }
 }

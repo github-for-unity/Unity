@@ -49,7 +49,7 @@ namespace GitHub.Unity
 
     public interface IGitUserCache : IManagedCache
     {
-        User User { get; }
+        User User { get; set; }
     }
 
     public interface IGitStatusCache : IManagedCache

@@ -915,28 +915,27 @@ namespace GitHub.Unity
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private User user;
 
-        public void UpdateData(User userUpdate)
-        {
-            var now = DateTimeOffset.Now;
-            var isUpdated = false;
-
-            Logger.Trace("Processing Update: {0}", now);
-
-            if (user != userUpdate)
-            {
-                user = userUpdate;
-                isUpdated = true;
-            }
-
-            SaveData(now, isUpdated);
-        }
-
         public User User
         {
             get
             {
                 ValidateData();
                 return user;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Processing Update: {0}", now);
+
+                if (user != value)
+                {
+                    user = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
             }
         }
 
