@@ -21,7 +21,7 @@ namespace GitHub.Unity
 
         void RefreshLog();
         void RefreshStatus();
-
+        void UpdateConfigData();
         void CheckLogChangedEvent(CacheUpdateEvent gitLogCacheUpdateEvent);
         void CheckStatusChangedEvent(CacheUpdateEvent cacheUpdateEvent);
         void CheckCurrentBranchChangedEvent(CacheUpdateEvent cacheUpdateEvent);
