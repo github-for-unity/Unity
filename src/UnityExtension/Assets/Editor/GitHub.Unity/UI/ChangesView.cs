@@ -43,7 +43,7 @@ namespace GitHub.Unity
             if (Repository != null)
             {
                 Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
-                Repository.CheckStatusChangedEvent(lastStatusChangedEvent);
+                Repository.RefreshStatus();
             }
         }
 
