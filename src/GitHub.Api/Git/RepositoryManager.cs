@@ -40,7 +40,6 @@ namespace GitHub.Unity
         ITask LockFile(string file);
         ITask UnlockFile(string file, bool force);
         int WaitForEvents();
-        void UpdateConfigData();
 
         IGitConfig Config { get; }
         IGitClient GitClient { get; }
@@ -178,6 +177,7 @@ namespace GitHub.Unity
             add.OnStart += t => IsBusy = true;
             return add
                 .Then(GitClient.Commit(message, body))
+                .Then(UpdateConfigData)
                 .Finally(() => IsBusy = false);
         }
 
@@ -187,6 +187,7 @@ namespace GitHub.Unity
             add.OnStart += t => IsBusy = true;
             return add
                 .Then(GitClient.Commit(message, body))
+                .Then(UpdateConfigData)
                 .Finally(() => IsBusy = false);
         }
 
@@ -295,11 +296,6 @@ namespace GitHub.Unity
         {
             var task = GitClient.Unlock(file, force);
             return HookupHandlers(task);
-        }
-
-        public void UpdateConfigData()
-        {
-            UpdateConfigData(false);
         }
 
         private void LoadGitUser()

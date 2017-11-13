@@ -142,11 +142,6 @@ namespace GitHub.Unity
             UpdateGitStatus();
         }
 
-        public void UpdateConfigData()
-        {
-            repositoryManager?.UpdateConfigData();
-        }
-
         public void CheckLogChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.GitLogCache;
