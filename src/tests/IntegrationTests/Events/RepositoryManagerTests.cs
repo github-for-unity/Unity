@@ -32,6 +32,10 @@ namespace IntegrationTests
                     repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                 });
 
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+
             repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
             repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
@@ -50,6 +54,10 @@ namespace IntegrationTests
                 onRepositoryManagerCreated: manager => {
                     repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                 });
+
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
 
             repositoryManagerListener.ClearReceivedCalls();
 
@@ -81,6 +89,10 @@ namespace IntegrationTests
                 onRepositoryManagerCreated: manager => {
                     repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                 });
+
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
 
             repositoryManagerListener.ClearReceivedCalls();
 
@@ -139,6 +151,10 @@ namespace IntegrationTests
                     repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                 });
 
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+
             repositoryManagerListener.ClearReceivedCalls();
 
             var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
@@ -195,6 +211,10 @@ namespace IntegrationTests
                     repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                 });
 
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+
             repositoryManagerListener.ClearReceivedCalls();
 
             await RepositoryManager.SwitchBranch("feature/document").StartAsAsync();
@@ -223,6 +243,10 @@ namespace IntegrationTests
                 onRepositoryManagerCreated: manager => {
                     repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                 });
+
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
 
             repositoryManagerListener.ClearReceivedCalls();
 
@@ -254,6 +278,10 @@ namespace IntegrationTests
                 onRepositoryManagerCreated: manager => {
                     repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                 });
+
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
 
             repositoryManagerListener.ClearReceivedCalls();
 
@@ -303,6 +331,10 @@ namespace IntegrationTests
                 onRepositoryManagerCreated: manager => {
                     repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                 });
+
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
 
             repositoryManagerListener.ClearReceivedCalls();
 
@@ -356,6 +388,10 @@ namespace IntegrationTests
                     repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                 });
 
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+
             repositoryManagerListener.ClearReceivedCalls();
 
             await RepositoryManager.CreateBranch("branch2", "another/master")
@@ -408,6 +444,10 @@ namespace IntegrationTests
                     repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                 });
 
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+
             repositoryManagerListener.ClearReceivedCalls();
 
             await RepositoryManager.Pull("origin", "master").StartAsAsync();
@@ -436,6 +476,10 @@ namespace IntegrationTests
                 onRepositoryManagerCreated: manager => {
                     repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                 });
+
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
 
             repositoryManagerListener.ClearReceivedCalls();
 
