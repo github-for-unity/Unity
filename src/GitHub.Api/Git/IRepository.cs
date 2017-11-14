@@ -19,6 +19,9 @@ namespace GitHub.Unity
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
 
+        void RefreshLog();
+        void RefreshStatus();
+        void UpdateConfigData();
         void CheckLogChangedEvent(CacheUpdateEvent gitLogCacheUpdateEvent);
         void CheckStatusChangedEvent(CacheUpdateEvent cacheUpdateEvent);
         void CheckCurrentBranchChangedEvent(CacheUpdateEvent cacheUpdateEvent);
