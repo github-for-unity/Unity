@@ -97,10 +97,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
             result.AssertEqual(expected);
         }
@@ -155,10 +151,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
             result.AssertEqual(expectedAfterChanges);
 
@@ -180,10 +172,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.Received().OnLocalBranchUpdated(expectedLocalBranch);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
         }
 
         [Test, Ignore("Fails often")]
@@ -231,10 +219,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
             result.AssertEqual(expectedAfterChanges);
 
@@ -256,10 +240,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.Received().OnLocalBranchUpdated(expectedLocalBranch);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
         }
 
         [Test]
@@ -297,10 +277,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
             result.AssertEqual(expected);
 
@@ -349,10 +325,6 @@ namespace IntegrationTests
             repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.Received().OnLocalBranchRemoved(deletedBranch);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
             Repository.Name.Should().Be("IOTestsRepo");
             Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
@@ -398,10 +370,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.Received().OnLocalBranchAdded(createdBranch1);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
             Repository.Name.Should().Be("IOTestsRepo");
             Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
@@ -443,10 +411,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.Received().OnLocalBranchAdded(createdBranch2);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
             Repository.Name.Should().Be("IOTestsRepo");
             Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
@@ -526,10 +490,6 @@ namespace IntegrationTests
             repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.Received().OnRemoteBranchRemoved(Args.String, Args.String);
 
             Repository.Name.Should().Be("IOTestsRepo_master_clean_sync");
             Repository.CloneUrl.Should().BeNull();
@@ -560,10 +520,6 @@ namespace IntegrationTests
             repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
             Repository.Name.Should().Be("IOTestsRepo");
             Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilShana/IOTestsRepo.git");
@@ -640,10 +596,6 @@ namespace IntegrationTests
             repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.Received().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
             Repository.Name.Should().Be("IOTestsRepo");
             Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");
@@ -692,10 +644,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
             Repository.Name.Should().Be("Url");
             Repository.CloneUrl.ToString().Should().Be("https://another.remote/Owner/Url.git");
@@ -758,10 +706,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.Received().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
             result.AssertEqual(expected);
 
@@ -838,10 +782,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.Received().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
 
             Repository.Name.Should().Be("IOTestsRepo");
             Repository.CloneUrl.ToString().Should().Be("https://github.com/EvilStanleyGoldman/IOTestsRepo.git");

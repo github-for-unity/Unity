@@ -52,10 +52,6 @@ namespace GitHub.Unity
             repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
             repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
             repositoryManager.OnLocalBranchUpdated += RepositoryManager_OnLocalBranchUpdated;
-            repositoryManager.OnLocalBranchAdded += RepositoryManager_OnLocalBranchAdded;
-            repositoryManager.OnLocalBranchRemoved += RepositoryManager_OnLocalBranchRemoved;
-            repositoryManager.OnRemoteBranchAdded += RepositoryManager_OnRemoteBranchAdded;
-            repositoryManager.OnRemoteBranchRemoved += RepositoryManager_OnRemoteBranchRemoved;
 
             UpdateGitStatus();
             UpdateGitLog();
@@ -461,38 +457,6 @@ namespace GitHub.Unity
                 Name = LocalPath.FileName;
                 Logger.Trace("CloneUrl: [NULL]");
             }
-        }
-
-        private void RepositoryManager_OnLocalBranchRemoved(string name)
-        {
-            new ActionTask(CancellationToken.None, () => {
-                cacheContainer.BranchCache.RemoveLocalBranch(name);
-                UpdateLocalBranches();
-            }) { Affinity = TaskAffinity.UI }.Start();
-        }
-
-        private void RepositoryManager_OnLocalBranchAdded(string name)
-        {
-            new ActionTask(CancellationToken.None, () => {
-                cacheContainer.BranchCache.AddLocalBranch(name);
-                UpdateLocalBranches();
-            }) { Affinity = TaskAffinity.UI }.Start();
-        }
-
-        private void RepositoryManager_OnRemoteBranchAdded(string remote, string name)
-        {
-            new ActionTask(CancellationToken.None, () => {
-                cacheContainer.BranchCache.AddRemoteBranch(remote, name);
-                UpdateRemoteAndRemoteBranches();
-            }) { Affinity = TaskAffinity.UI }.Start();
-        }
-
-        private void RepositoryManager_OnRemoteBranchRemoved(string remote, string name)
-        {
-            new ActionTask(CancellationToken.None, () => {
-                cacheContainer.BranchCache.RemoveRemoteBranch(remote, name);
-                UpdateRemoteAndRemoteBranches();
-            }) { Affinity = TaskAffinity.UI }.Start();
         }
 
         private GitBranch GetLocalGitBranch(ConfigBranch x)

@@ -15,10 +15,6 @@ namespace TestUtils.Events
         void OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branchList);
         void OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> remotesList, Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranchList);
         void OnLocalBranchUpdated(string name);
-        void OnLocalBranchAdded(string name);
-        void OnLocalBranchRemoved(string name);
-        void OnRemoteBranchAdded(string origin, string name);
-        void OnRemoteBranchRemoved(string origin, string name);
         void OnCurrentBranchAndRemoteUpdated(ConfigBranch? configBranch, ConfigRemote? configRemote);
     }
 
@@ -111,30 +107,6 @@ namespace TestUtils.Events
                 listener.OnLocalBranchUpdated(name);
                 managerEvents?.OnLocalBranchUpdated.Set();
             };
-
-            repositoryManager.OnLocalBranchAdded += name => {
-                logger?.Trace("OnLocalBranchAdded Name:{0}", name);
-                listener.OnLocalBranchAdded(name);
-                managerEvents?.OnLocalBranchAdded.Set();
-            };
-
-            repositoryManager.OnLocalBranchRemoved += name => {
-                logger?.Trace("OnLocalBranchRemoved Name:{0}", name);
-                listener.OnLocalBranchRemoved(name);
-                managerEvents?.OnLocalBranchRemoved.Set();
-            };
-
-            repositoryManager.OnRemoteBranchAdded += (origin, name) => {
-                logger?.Trace("OnRemoteBranchAdded Origin:{0} Name:{1}", origin, name);
-                listener.OnRemoteBranchAdded(origin, name);
-                managerEvents?.OnRemoteBranchAdded.Set();
-            };
-
-            repositoryManager.OnRemoteBranchRemoved += (origin, name) => {
-                logger?.Trace("OnRemoteBranchRemoved Origin:{0} Name:{1}", origin, name);
-                listener.OnRemoteBranchRemoved(origin, name);
-                managerEvents?.OnRemoteBranchRemoved.Set();
-            };
         }
 
         public static void AssertDidNotReceiveAnyCalls(this IRepositoryManagerListener repositoryManagerListener)
@@ -146,10 +118,6 @@ namespace TestUtils.Events
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchAdded(Args.String);
-            repositoryManagerListener.DidNotReceive().OnLocalBranchRemoved(Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchAdded(Args.String, Args.String);
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchRemoved(Args.String, Args.String);
         }
     }
 };
