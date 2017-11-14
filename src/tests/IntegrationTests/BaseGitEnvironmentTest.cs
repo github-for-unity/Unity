@@ -9,7 +9,7 @@ namespace IntegrationTests
     class BaseGitEnvironmentTest : BaseGitRepoTest
     {
         protected async Task<IEnvironment> Initialize(NPath repoPath, NPath environmentPath = null,
-            bool enableEnvironmentTrace = false)
+            bool enableEnvironmentTrace = false, bool initializeRepository = true)
         {
             TaskManager = new TaskManager();
             SyncContext = new ThreadSynchronizationContext(TaskManager.Token);
@@ -34,8 +34,11 @@ namespace IntegrationTests
             RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
             RepositoryManager.Initialize();
 
-            Environment.Repository = new Repository(repoPath, cacheContainer);
-            Environment.Repository.Initialize(RepositoryManager);
+            if (initializeRepository)
+            {
+                Environment.Repository = new Repository(repoPath, cacheContainer);
+                Environment.Repository.Initialize(RepositoryManager);
+            }
 
             RepositoryManager.Start();
 
