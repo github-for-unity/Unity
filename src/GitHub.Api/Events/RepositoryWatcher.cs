@@ -197,6 +197,10 @@ namespace GitHub.Unity
                     {
                         events.Add(EventType.LocalBranchesChanged, null);
                     }
+                    else if (!events.ContainsKey(EventType.RepositoryCommitted) && fileA.IsChildOf(paths.DotGitCommitEditMsg))
+                    {
+                        events.Add(EventType.RepositoryCommitted, null);
+                    }
                 }
                 else
                 {
@@ -256,6 +260,13 @@ namespace GitHub.Unity
                 eventsProcessed++;
             }
 
+            if (events.ContainsKey(EventType.RepositoryCommitted))
+            {
+                Logger.Trace("RepositoryCommitted");
+                RepositoryCommitted?.Invoke();
+                eventsProcessed++;
+            }
+
             return eventsProcessed;
         }
 
@@ -293,6 +304,7 @@ namespace GitHub.Unity
             LocalBranchesChanged,
             RemoteBranchesChanged,
             RepositoryChanged,
+            RepositoryCommitted
         }
 
         private class EventData

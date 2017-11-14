@@ -72,6 +72,7 @@ namespace GitHub.Unity
             DotGitIndex = DotGitPath.Combine("index");
             DotGitHead = DotGitPath.Combine("HEAD");
             DotGitConfig = DotGitPath.Combine("config");
+            DotGitCommitEditMsg = DotGitPath.Combine("COMMIT_EDITMSG");
         }
 
         public NPath RepositoryPath { get; }
@@ -81,6 +82,7 @@ namespace GitHub.Unity
         public NPath DotGitIndex { get; }
         public NPath DotGitHead { get; }
         public NPath DotGitConfig { get; }
+        public NPath DotGitCommitEditMsg { get; }
     }
 
     class RepositoryManager : IRepositoryManager
