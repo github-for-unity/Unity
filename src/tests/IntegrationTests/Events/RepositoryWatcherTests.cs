@@ -46,8 +46,6 @@ namespace IntegrationTests
                     repositoryWatcherListener.DidNotReceive().ConfigChanged();
                     repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.Received().IndexChanged();
-                    repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
-                    repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
                     repositoryWatcherListener.Received().RepositoryChanged();
                 }
                 finally
@@ -88,8 +86,6 @@ namespace IntegrationTests
                     repositoryWatcherListener.DidNotReceive().ConfigChanged();
                     repositoryWatcherListener.Received().HeadChanged();
                     repositoryWatcherListener.Received().IndexChanged();
-                    repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
-                    repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
                     repositoryWatcherListener.Received().RepositoryChanged();
                 }
                 finally
@@ -128,8 +124,6 @@ namespace IntegrationTests
                     repositoryWatcherListener.Received(1).ConfigChanged();
                     repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.DidNotReceive().IndexChanged();
-                    repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
-                    repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
                     repositoryWatcherListener.DidNotReceive().RepositoryChanged();
                 }
                 finally
@@ -166,8 +160,6 @@ namespace IntegrationTests
                     repositoryWatcherListener.DidNotReceive().ConfigChanged();
                     repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.DidNotReceive().IndexChanged();
-                    repositoryWatcherListener.DidNotReceive().LocalBranchChanged("feature/document2");
-                    repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
                     repositoryWatcherListener.DidNotReceive().RepositoryChanged();
 
                     repositoryWatcherListener.ClearReceivedCalls();
@@ -182,8 +174,6 @@ namespace IntegrationTests
                     repositoryWatcherListener.DidNotReceive().ConfigChanged();
                     repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.DidNotReceive().IndexChanged();
-                    repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
-                    repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
                     repositoryWatcherListener.DidNotReceive().RepositoryChanged();
 
                     repositoryWatcherListener.ClearReceivedCalls();
@@ -224,7 +214,6 @@ namespace IntegrationTests
                     repositoryWatcherListener.Received().ConfigChanged();
                     repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.DidNotReceive().IndexChanged();
-                    repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
                     repositoryWatcherListener.DidNotReceive().RepositoryChanged();
 
                     repositoryWatcherListener.ClearReceivedCalls();
@@ -244,8 +233,6 @@ namespace IntegrationTests
                     repositoryWatcherListener.Received().ConfigChanged();
                     repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.DidNotReceive().IndexChanged();
-                    repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
-                    repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
                     repositoryWatcherListener.DidNotReceive().RepositoryChanged();
                 }
                 finally
@@ -278,7 +265,6 @@ namespace IntegrationTests
                     await TaskManager.Wait();
 
                     watcherAutoResetEvent.IndexChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-                    watcherAutoResetEvent.LocalBranchChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
                     watcherAutoResetEvent.RepositoryChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
                     Logger.Trace("Continue test");
@@ -286,8 +272,6 @@ namespace IntegrationTests
                     repositoryWatcherListener.DidNotReceive().ConfigChanged();
                     repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.Received().IndexChanged();
-                    repositoryWatcherListener.Received().LocalBranchChanged("master");
-                    repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
                     repositoryWatcherListener.Received().RepositoryChanged();
                 }
                 finally
@@ -324,8 +308,6 @@ namespace IntegrationTests
                     repositoryWatcherListener.DidNotReceive().ConfigChanged();
                     repositoryWatcherListener.DidNotReceive().HeadChanged();
                     repositoryWatcherListener.DidNotReceive().IndexChanged();
-                    repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
-                    repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
                     repositoryWatcherListener.DidNotReceive().RepositoryChanged();
                 }
                 finally
@@ -347,8 +329,6 @@ namespace IntegrationTests
         void ConfigChanged();
         void HeadChanged();
         void IndexChanged();
-        void LocalBranchChanged(string branch);
-        void RemoteBranchChanged(string remote, string branch);
         void RepositoryChanged();
     }
 
@@ -379,13 +359,6 @@ namespace IntegrationTests
                 autoResetEvent?.IndexChanged.Set();
             };
 
-            repositoryWatcher.LocalBranchChanged += s =>
-            {
-                logger?.Trace("LocalBranchChanged: {0}", s);
-                listener.LocalBranchChanged(s);
-                autoResetEvent?.LocalBranchChanged.Set();
-            };
-
             repositoryWatcher.RepositoryChanged += () =>
             {
                 logger?.Trace("RepositoryChanged");
@@ -399,8 +372,6 @@ namespace IntegrationTests
             repositoryWatcherListener.DidNotReceive().ConfigChanged();
             repositoryWatcherListener.DidNotReceive().HeadChanged();
             repositoryWatcherListener.DidNotReceive().IndexChanged();
-            repositoryWatcherListener.DidNotReceive().LocalBranchChanged(Args.String);
-            repositoryWatcherListener.DidNotReceive().RemoteBranchChanged(Args.String, Args.String);
             repositoryWatcherListener.DidNotReceive().RepositoryChanged();
         }
     }
@@ -410,8 +381,6 @@ namespace IntegrationTests
         public AutoResetEvent HeadChanged { get; } = new AutoResetEvent(false);
         public AutoResetEvent ConfigChanged { get; } = new AutoResetEvent(false);
         public AutoResetEvent IndexChanged { get; } = new AutoResetEvent(false);
-        public AutoResetEvent LocalBranchChanged { get; } = new AutoResetEvent(false);
-        public AutoResetEvent RemoteBranchChanged { get; } = new AutoResetEvent(false);
         public AutoResetEvent RepositoryChanged { get; } = new AutoResetEvent(false);
     }
 }

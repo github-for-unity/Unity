@@ -10,7 +10,6 @@ namespace GitHub.Unity
         event Action<ConfigBranch?, ConfigRemote?> OnCurrentBranchAndRemoteUpdated;
         event Action<bool> OnIsBusyChanged;
         event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
-        event Action<string> OnLocalBranchUpdated;
         event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         event Action OnRepositoryUpdated;
 
@@ -97,7 +96,6 @@ namespace GitHub.Unity
         public event Action<ConfigBranch?, ConfigRemote?> OnCurrentBranchAndRemoteUpdated;
         public event Action<bool> OnIsBusyChanged;
         public event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
-        public event Action<string> OnLocalBranchUpdated;
         public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
         public event Action OnRepositoryUpdated;
 
@@ -288,7 +286,6 @@ namespace GitHub.Unity
             watcher.HeadChanged += Watcher_OnHeadChanged;
             watcher.IndexChanged += Watcher_OnIndexChanged;
             watcher.ConfigChanged += Watcher_OnConfigChanged;
-            watcher.LocalBranchChanged += Watcher_OnLocalBranchChanged;
             watcher.RepositoryChanged += Watcher_OnRepositoryChanged;
         }
 
@@ -385,11 +382,6 @@ namespace GitHub.Unity
 
         private void Watcher_OnIndexChanged()
         {}
-
-        private void Watcher_OnLocalBranchChanged(string name)
-        {
-            OnLocalBranchUpdated?.Invoke(name);
-        }
 
         private void UpdateConfigData(bool resetConfig = false)
         {

@@ -14,7 +14,6 @@ namespace GitHub.Unity
         event Action HeadChanged;
         event Action IndexChanged;
         event Action ConfigChanged;
-        event Action<string> LocalBranchChanged;
         event Action RepositoryChanged;
         void Initialize();
         int CheckAndProcessEvents();
@@ -35,7 +34,6 @@ namespace GitHub.Unity
         public event Action HeadChanged;
         public event Action IndexChanged;
         public event Action ConfigChanged;
-        public event Action<string> LocalBranchChanged;
         public event Action RepositoryChanged;
 
         public RepositoryWatcher(IPlatform platform, RepositoryPathConfiguration paths, CancellationToken cancellationToken)

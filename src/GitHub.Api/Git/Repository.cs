@@ -51,7 +51,6 @@ namespace GitHub.Unity
             repositoryManager.OnRepositoryUpdated += RepositoryManager_OnRepositoryUpdated;
             repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
             repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
-            repositoryManager.OnLocalBranchUpdated += RepositoryManager_OnLocalBranchUpdated;
 
             UpdateGitStatus();
             UpdateGitLog();
@@ -403,15 +402,6 @@ namespace GitHub.Unity
                         UpdateRepositoryInfo();
                 }
             }) { Affinity = TaskAffinity.UI }.Start();
-        }
-
-        private void RepositoryManager_OnLocalBranchUpdated(string name)
-        {
-            if (name == CurrentConfigBranch?.Name)
-            {
-                UpdateGitStatus();
-                UpdateGitLog();
-            }
         }
 
         private void RepositoryManager_OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> remotes,

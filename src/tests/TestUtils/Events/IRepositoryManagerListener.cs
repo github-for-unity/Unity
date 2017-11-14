@@ -14,7 +14,6 @@ namespace TestUtils.Events
         void OnLocksUpdated(IEnumerable<GitLock> locks);
         void OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branchList);
         void OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> remotesList, Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranchList);
-        void OnLocalBranchUpdated(string name);
         void OnCurrentBranchAndRemoteUpdated(ConfigBranch? configBranch, ConfigRemote? configRemote);
     }
 
@@ -28,11 +27,6 @@ namespace TestUtils.Events
         public EventWaitHandle OnHeadUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnLocalBranchListUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnRemoteBranchListUpdated { get; } = new AutoResetEvent(false);
-        public EventWaitHandle OnLocalBranchUpdated { get; } = new AutoResetEvent(false);
-        public EventWaitHandle OnLocalBranchAdded { get; } = new AutoResetEvent(false);
-        public EventWaitHandle OnLocalBranchRemoved { get; } = new AutoResetEvent(false);
-        public EventWaitHandle OnRemoteBranchAdded { get; } = new AutoResetEvent(false);
-        public EventWaitHandle OnRemoteBranchRemoved { get; } = new AutoResetEvent(false);
 
         public void Reset()
         {
@@ -44,11 +38,6 @@ namespace TestUtils.Events
             OnHeadUpdated.Reset();
             OnLocalBranchListUpdated.Reset();
             OnRemoteBranchListUpdated.Reset();
-            OnLocalBranchUpdated.Reset();
-            OnLocalBranchAdded.Reset();
-            OnLocalBranchRemoved.Reset();
-            OnRemoteBranchAdded.Reset();
-            OnRemoteBranchRemoved.Reset();
         }
 
         public void WaitForNotBusy(int seconds = 1)
@@ -101,12 +90,6 @@ namespace TestUtils.Events
                 listener.OnRemoteBranchListUpdated(remotesList, branchList);
                 managerEvents?.OnRemoteBranchListUpdated.Set();
             };
-
-            repositoryManager.OnLocalBranchUpdated += name => {
-                logger?.Trace("OnLocalBranchUpdated Name:{0}", name);
-                listener.OnLocalBranchUpdated(name);
-                managerEvents?.OnLocalBranchUpdated.Set();
-            };
         }
 
         public static void AssertDidNotReceiveAnyCalls(this IRepositoryManagerListener repositoryManagerListener)
@@ -117,7 +100,6 @@ namespace TestUtils.Events
             repositoryManagerListener.DidNotReceive().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);
         }
     }
 };
