@@ -23,32 +23,35 @@ namespace IntegrationTests
         }
 
         [Test]
-        public async Task ShouldDoNothingOnInitialize()
+        public async Task ShouldPerformBasicInitialize()
         {
-            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
-
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
 
-            RepositoryManager.WaitForEvents();
-            repositoryManagerEvents.WaitForNotBusy();
+            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                onRepositoryManagerCreated: manager => {
+                    repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
+                });
 
             repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
             repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
             repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
             repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
-            repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
-            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
+            repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
 
         [Test]
         public async Task ShouldDetectFileChanges()
         {
-            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
-
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                onRepositoryManagerCreated: manager => {
+                    repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
+                });
+
+            repositoryManagerListener.ClearReceivedCalls();
 
             var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
             foobarTxt.WriteAllText("foobar");
@@ -72,10 +75,14 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldAddAndCommitFiles()
         {
-            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
-
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                onRepositoryManagerCreated: manager => {
+                    repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
+                });
+
+            repositoryManagerListener.ClearReceivedCalls();
 
             var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
             foobarTxt.WriteAllText("foobar");
@@ -125,10 +132,14 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldAddAndCommitAllFiles()
         {
-            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
-
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                onRepositoryManagerCreated: manager => {
+                    repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
+                });
+
+            repositoryManagerListener.ClearReceivedCalls();
 
             var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
             foobarTxt.WriteAllText("foobar");
@@ -177,10 +188,14 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectBranchChange()
         {
-            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
-
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                onRepositoryManagerCreated: manager => {
+                    repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
+                });
+
+            repositoryManagerListener.ClearReceivedCalls();
 
             await RepositoryManager.SwitchBranch("feature/document").StartAsAsync();
             await TaskManager.Wait();
@@ -202,10 +217,14 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectBranchDelete()
         {
-            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
-
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                onRepositoryManagerCreated: manager => {
+                    repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
+                });
+
+            repositoryManagerListener.ClearReceivedCalls();
 
             await RepositoryManager.DeleteBranch("feature/document", true).StartAsAsync();
             await TaskManager.Wait();
@@ -229,10 +248,14 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectBranchCreate()
         {
-            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
-
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                onRepositoryManagerCreated: manager => {
+                    repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
+                });
+
+            repositoryManagerListener.ClearReceivedCalls();
 
             var createdBranch1 = "feature/document2";
             await RepositoryManager.CreateBranch(createdBranch1, "feature/document").StartAsAsync();
@@ -274,10 +297,14 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectChangesToRemotes()
         {
-            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
-
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                onRepositoryManagerCreated: manager => {
+                    repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
+                });
+
+            repositoryManagerListener.ClearReceivedCalls();
 
             await RepositoryManager.RemoteRemove("origin").StartAsAsync();
             await TaskManager.Wait();
@@ -322,10 +349,14 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectChangesToRemotesWhenSwitchingBranches()
         {
-            await Initialize(TestRepoMasterTwoRemotes, initializeRepository: false);
-
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            await Initialize(TestRepoMasterTwoRemotes, initializeRepository: false,
+                onRepositoryManagerCreated: manager => {
+                    repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
+                });
+
+            repositoryManagerListener.ClearReceivedCalls();
 
             await RepositoryManager.CreateBranch("branch2", "another/master")
                 .StartAsAsync();
@@ -370,10 +401,14 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectGitPull()
         {
-            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
-
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                onRepositoryManagerCreated: manager => {
+                    repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
+                });
+
+            repositoryManagerListener.ClearReceivedCalls();
 
             await RepositoryManager.Pull("origin", "master").StartAsAsync();
             await TaskManager.Wait();
@@ -395,10 +430,14 @@ namespace IntegrationTests
         [Test]
         public async Task ShouldDetectGitFetch()
         {
-            await Initialize(TestRepoMasterCleanUnsynchronized, initializeRepository: false);
-
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
-            repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
+
+            await Initialize(TestRepoMasterCleanUnsynchronized, initializeRepository: false,
+                onRepositoryManagerCreated: manager => {
+                    repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
+                });
+
+            repositoryManagerListener.ClearReceivedCalls();
 
             await RepositoryManager.Fetch("origin").StartAsAsync();
             await TaskManager.Wait();

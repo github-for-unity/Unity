@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using GitHub.Unity;
@@ -9,7 +10,7 @@ namespace IntegrationTests
     class BaseGitEnvironmentTest : BaseGitRepoTest
     {
         protected async Task<IEnvironment> Initialize(NPath repoPath, NPath environmentPath = null,
-            bool enableEnvironmentTrace = false, bool initializeRepository = true)
+            bool enableEnvironmentTrace = false, bool initializeRepository = true, Action<RepositoryManager> onRepositoryManagerCreated = null)
         {
             TaskManager = new TaskManager();
             SyncContext = new ThreadSynchronizationContext(TaskManager.Token);
@@ -31,7 +32,10 @@ namespace IntegrationTests
 
             GitClient = new GitClient(Environment, ProcessManager, TaskManager);
 
-            RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
+            var repositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
+            onRepositoryManagerCreated?.Invoke(repositoryManager);
+
+            RepositoryManager = repositoryManager;
             RepositoryManager.Initialize();
 
             if (initializeRepository)
