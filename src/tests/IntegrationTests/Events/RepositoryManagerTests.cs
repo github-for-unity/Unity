@@ -88,7 +88,7 @@ namespace IntegrationTests
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
-            repositoryManagerEvents.GitStatusUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            repositoryManagerEvents.GitStatusUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -109,14 +109,15 @@ namespace IntegrationTests
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
-            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-            repositoryManagerEvents.GitStatusUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.GitStatusUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
+            repositoryManagerEvents.GitLogUpdated.WaitOne(TimeSpan.FromSeconds(20)).Should().BeTrue();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
             repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
             repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
-            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
             repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
             repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
