@@ -13,6 +13,7 @@ namespace TestUtils.Events
         void LocalBranchesUpdated(Dictionary<string, ConfigBranch> branchList);
         void RemoteBranchesUpdated(Dictionary<string, ConfigRemote> remotesList, Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranchList);
         void CurrentBranchUpdated(ConfigBranch? configBranch, ConfigRemote? configRemote);
+        void GitLocksUpdated(List<GitLock> gitLocks);
         void GitStatusUpdated(GitStatus gitStatus);
         void GitLogUpdated(List<GitLogEntry> gitLogEntries);
     }
@@ -23,6 +24,7 @@ namespace TestUtils.Events
         public EventWaitHandle IsNotBusy { get; } = new AutoResetEvent(false);
         public EventWaitHandle CurrentBranchUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle GitStatusUpdated { get; } = new AutoResetEvent(false);
+        public EventWaitHandle GitLocksUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle GitLogUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle LocalBranchesUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle RemoteBranchesUpdated { get; } = new AutoResetEvent(false);
@@ -33,6 +35,7 @@ namespace TestUtils.Events
             IsNotBusy.Reset();
             CurrentBranchUpdated.Reset();
             GitStatusUpdated.Reset();
+            GitLocksUpdated.Reset();
             GitLogUpdated.Reset();
             LocalBranchesUpdated.Reset();
             RemoteBranchesUpdated.Reset();
@@ -67,6 +70,12 @@ namespace TestUtils.Events
                 managerEvents?.CurrentBranchUpdated.Set();
             };
 
+            repositoryManager.GitLocksUpdated += gitLocks => {
+                logger?.Trace("GitLocksUpdated");
+                listener.GitLocksUpdated(gitLocks);
+                managerEvents?.GitLocksUpdated.Set();
+            };
+
             repositoryManager.GitStatusUpdated += gitStatus => {
                 logger?.Trace("GitStatusUpdated");
                 listener.GitStatusUpdated(gitStatus);
@@ -95,11 +104,12 @@ namespace TestUtils.Events
         public static void AssertDidNotReceiveAnyCalls(this IRepositoryManagerListener repositoryManagerListener)
         {
             repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
+            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
             repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
             repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
-            repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
     }
 };
