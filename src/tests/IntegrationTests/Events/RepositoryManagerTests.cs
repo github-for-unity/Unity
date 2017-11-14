@@ -385,9 +385,6 @@ namespace IntegrationTests
             repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
             repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
             repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
-
-            repositoryManagerEvents.Reset();
-            repositoryManagerEvents.WaitForNotBusy();
         }
 
         [Test]
