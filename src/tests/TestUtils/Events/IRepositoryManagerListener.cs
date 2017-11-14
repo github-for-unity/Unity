@@ -19,7 +19,6 @@ namespace TestUtils.Events
     {
         public EventWaitHandle OnIsBusy { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnIsNotBusy { get; } = new AutoResetEvent(false);
-        public EventWaitHandle OnLocksUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnCurrentBranchAndRemoteUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnHeadUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnLocalBranchListUpdated { get; } = new AutoResetEvent(false);
@@ -29,7 +28,6 @@ namespace TestUtils.Events
         {
             OnIsBusy.Reset();
             OnIsNotBusy.Reset();
-            OnLocksUpdated.Reset();
             OnCurrentBranchAndRemoteUpdated.Reset();
             OnHeadUpdated.Reset();
             OnLocalBranchListUpdated.Reset();
