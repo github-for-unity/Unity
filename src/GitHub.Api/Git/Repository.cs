@@ -48,7 +48,6 @@ namespace GitHub.Unity
 
             repositoryManager = initRepositoryManager;
             repositoryManager.OnCurrentBranchAndRemoteUpdated += RepositoryManager_OnCurrentBranchAndRemoteUpdated;
-            repositoryManager.OnRepositoryUpdated += RepositoryManager_OnRepositoryUpdated;
             repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
             repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
 
@@ -350,13 +349,6 @@ namespace GitHub.Unity
             LocalBranchListChanged?.Invoke(cacheUpdateEvent);
             RemoteBranchListChanged?.Invoke(cacheUpdateEvent);
             LocalAndRemoteBranchListChanged?.Invoke(cacheUpdateEvent);
-        }
-
-        private void RepositoryManager_OnRepositoryUpdated()
-        {
-            Logger.Trace("OnRepositoryUpdated");
-            UpdateGitStatus();
-            UpdateGitLog();
         }
 
         private void UpdateGitStatus()

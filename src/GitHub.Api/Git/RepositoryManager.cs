@@ -11,7 +11,6 @@ namespace GitHub.Unity
         event Action<bool> OnIsBusyChanged;
         event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
         event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
-        event Action OnRepositoryUpdated;
 
         void Initialize();
         void Start();
@@ -99,7 +98,6 @@ namespace GitHub.Unity
         public event Action<bool> OnIsBusyChanged;
         public event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
         public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
-        public event Action OnRepositoryUpdated;
 
         public RepositoryManager(IPlatform platform, IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
@@ -326,7 +324,6 @@ namespace GitHub.Unity
         private void Watcher_OnRepositoryChanged()
         {
             Logger.Trace("OnRepositoryChanged");
-            OnRepositoryUpdated?.Invoke();
         }
 
         private void Watcher_OnConfigChanged()
