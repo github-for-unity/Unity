@@ -14,7 +14,10 @@ namespace GitHub.Unity
         event Action HeadChanged;
         event Action IndexChanged;
         event Action ConfigChanged;
+        event Action RepositoryCommitted;
         event Action RepositoryChanged;
+        event Action LocalBranchesChanged;
+        event Action RemoteBranchesChanged;
         void Initialize();
         int CheckAndProcessEvents();
     }
@@ -34,7 +37,10 @@ namespace GitHub.Unity
         public event Action HeadChanged;
         public event Action IndexChanged;
         public event Action ConfigChanged;
+        public event Action RepositoryCommitted;
         public event Action RepositoryChanged;
+        public event Action LocalBranchesChanged;
+        public event Action RemoteBranchesChanged;
 
         public RepositoryWatcher(IPlatform platform, RepositoryPathConfiguration paths, CancellationToken cancellationToken)
         {
@@ -183,13 +189,13 @@ namespace GitHub.Unity
                     {
                         events.Add(EventType.IndexChanged, null);
                     }
-                    else if (fileA.IsChildOf(paths.RemotesPath))
+                    else if (!events.ContainsKey(EventType.RemoteBranchesChanged) && fileA.IsChildOf(paths.RemotesPath))
                     {
-                        throw new NotImplementedException();
+                        events.Add(EventType.RemoteBranchesChanged, null);
                     }
-                    else if (fileA.IsChildOf(paths.BranchesPath))
+                    else if (!events.ContainsKey(EventType.LocalBranchesChanged) && fileA.IsChildOf(paths.BranchesPath))
                     {
-                        throw new NotImplementedException();
+                        events.Add(EventType.LocalBranchesChanged, null);
                     }
                 }
                 else
@@ -203,13 +209,6 @@ namespace GitHub.Unity
             }
 
             return FireEvents(events);
-        }
-
-        private void AddOrUpdateEventData(Dictionary<EventType, List<EventData>> events, EventType type, EventData data)
-        {
-            if (!events.ContainsKey(type))
-                events.Add(type, new List<EventData>());
-            events[type].Add(data);
         }
 
         private int FireEvents(Dictionary<EventType, List<EventData>> events)
@@ -226,6 +225,20 @@ namespace GitHub.Unity
             {
                 Logger.Trace("HeadChanged");
                 HeadChanged?.Invoke();
+                eventsProcessed++;
+            }
+
+            if (events.ContainsKey(EventType.LocalBranchesChanged))
+            {
+                Logger.Trace("LocalBranchesChanged");
+                LocalBranchesChanged?.Invoke();
+                eventsProcessed++;
+            }
+
+            if (events.ContainsKey(EventType.RemoteBranchesChanged))
+            {
+                Logger.Trace("RemoteBranchesChanged");
+                RemoteBranchesChanged?.Invoke();
                 eventsProcessed++;
             }
 
@@ -276,8 +289,10 @@ namespace GitHub.Unity
             None,
             ConfigChanged,
             HeadChanged,
-            RepositoryChanged,
             IndexChanged,
+            LocalBranchesChanged,
+            RemoteBranchesChanged,
+            RepositoryChanged,
         }
 
         private class EventData
