@@ -462,8 +462,8 @@ namespace GitHub.Unity
 
         private void ClearRepositoryInfo()
         {
-            CloneUrl = new UriString(CurrentRemote.Value.Url);
-            Name = CloneUrl.RepositoryName;
+            CloneUrl = null;
+            Name = null;
         }
 
         private void RepositoryManager_OnLocalBranchRemoved(string name)
