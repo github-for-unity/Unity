@@ -50,11 +50,6 @@ namespace GitHub.Unity
             repositoryManager.OnCurrentBranchAndRemoteUpdated += RepositoryManager_OnCurrentBranchAndRemoteUpdated;
             repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
             repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
-
-            UpdateGitStatus();
-            UpdateGitLog();
-
-            new ActionTask(CancellationToken.None, UpdateLocks) { Affinity = TaskAffinity.UI }.Start();
         }
 
         public ITask SetupRemote(string remote, string remoteUrl)
@@ -88,8 +83,7 @@ namespace GitHub.Unity
 
         public ITask Push()
         {
-            return repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch?.Name)
-                .Then(UpdateGitStatus);
+            return repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch?.Name);
         }
 
         public ITask Fetch()
@@ -104,14 +98,12 @@ namespace GitHub.Unity
 
         public ITask RequestLock(string file)
         {
-            return repositoryManager.LockFile(file)
-                .Then(UpdateLocks);
+            return repositoryManager.LockFile(file);
         }
 
         public ITask ReleaseLock(string file, bool force)
         {
-            return repositoryManager.UnlockFile(file, force)
-                .Then(UpdateLocks);
+            return repositoryManager.UnlockFile(file, force);
         }
 
         public void CheckLogChangedEvent(CacheUpdateEvent cacheUpdateEvent)
@@ -351,30 +343,6 @@ namespace GitHub.Unity
             LocalAndRemoteBranchListChanged?.Invoke(cacheUpdateEvent);
         }
 
-        private void UpdateGitStatus()
-        {
-            repositoryManager?.Status()
-                .ThenInUI((b, status) => { CurrentStatus = status; })
-                .Start();
-        }
-
-        private void UpdateGitLog()
-        {
-            repositoryManager?.Log()
-                .ThenInUI((b, log) => { CurrentLog = log; })
-                .Start();
-        }
-
-        private void UpdateLocks()
-        {
-            if (CurrentRemote.HasValue)
-            {
-                repositoryManager?.ListLocks(false)
-                    .ThenInUI((b, locks) => { CurrentLocks = locks; })
-                    .Start();
-            }
-        }
-        
         private void RepositoryManager_OnCurrentBranchAndRemoteUpdated(ConfigBranch? branch, ConfigRemote? remote)
         {
             new ActionTask(CancellationToken.None, () => {
