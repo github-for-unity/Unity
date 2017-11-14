@@ -8,7 +8,6 @@ namespace GitHub.Unity
     public interface IRepositoryManager : IDisposable
     {
         event Action<ConfigBranch?, ConfigRemote?> OnCurrentBranchAndRemoteUpdated;
-        event Action<IUser> OnGitUserLoaded;
         event Action<bool> OnIsBusyChanged;
         event Action<string> OnLocalBranchAdded;
         event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
@@ -95,13 +94,11 @@ namespace GitHub.Unity
         private readonly IGitClient gitClient;
         private readonly IPlatform platform;
         private readonly IRepositoryPathConfiguration repositoryPaths;
-        private readonly ITaskManager taskManager;
         private readonly IRepositoryWatcher watcher;
 
         private bool isBusy;
 
         public event Action<ConfigBranch?, ConfigRemote?> OnCurrentBranchAndRemoteUpdated;
-        public event Action<IUser> OnGitUserLoaded;
         public event Action<bool> OnIsBusyChanged;
         public event Action<string> OnLocalBranchAdded;
         public event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
@@ -112,13 +109,12 @@ namespace GitHub.Unity
         public event Action<string, string> OnRemoteBranchRemoved;
         public event Action OnRepositoryUpdated;
 
-        public RepositoryManager(IPlatform platform, ITaskManager taskManager, IGitConfig gitConfig,
+        public RepositoryManager(IPlatform platform, IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
             IRepositoryPathConfiguration repositoryPaths)
         {
             this.repositoryPaths = repositoryPaths;
             this.platform = platform;
-            this.taskManager = taskManager;
             this.gitClient = gitClient;
             this.watcher = repositoryWatcher;
             this.config = gitConfig;
@@ -135,7 +131,7 @@ namespace GitHub.Unity
 
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
 
-            return new RepositoryManager(platform, taskManager, gitConfig, repositoryWatcher,
+            return new RepositoryManager(platform, gitConfig, repositoryWatcher,
                 gitClient, repositoryPathConfiguration);
         }
 
@@ -150,7 +146,6 @@ namespace GitHub.Unity
             Logger.Trace("Start");
 
             UpdateConfigData();
-            LoadGitUser();
             watcher.Start();
         }
 
@@ -294,15 +289,6 @@ namespace GitHub.Unity
         {
             var task = GitClient.Unlock(file, force);
             return HookupHandlers(task);
-        }
-
-        private void LoadGitUser()
-        {
-            GitClient.GetConfigUserAndEmail()
-                .Then((success, user) => {
-                    Logger.Trace("OnGitUserLoaded: {0}", user);
-                    OnGitUserLoaded?.Invoke(user);
-                }).Start();
         }
 
         private void SetupWatcher()
