@@ -7,12 +7,12 @@ namespace GitHub.Unity
 {
     public interface IRepositoryManager : IDisposable
     {
-        event Action<ConfigBranch?, ConfigRemote?> OnCurrentBranchAndRemoteUpdated;
-        event Action<bool> OnIsBusyChanged;
+        event Action<bool> IsBusyChanged;
+        event Action<ConfigBranch?, ConfigRemote?> CurrentBranchUpdated;
         event Action<GitStatus> GitStatusUpdated;
         event Action<List<GitLogEntry>> GitLogUpdated;
-        event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
-        event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
+        event Action<Dictionary<string, ConfigBranch>> LocalBranchesUpdated;
+        event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> RemoteBranchesUpdated;
 
         void Initialize();
         void Start();
@@ -96,12 +96,12 @@ namespace GitHub.Unity
 
         private bool isBusy;
 
-        public event Action<ConfigBranch?, ConfigRemote?> OnCurrentBranchAndRemoteUpdated;
-        public event Action<bool> OnIsBusyChanged;
+        public event Action<ConfigBranch?, ConfigRemote?> CurrentBranchUpdated;
+        public event Action<bool> IsBusyChanged;
         public event Action<GitStatus> GitStatusUpdated;
         public event Action<List<GitLogEntry>> GitLogUpdated;
-        public event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
-        public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> OnRemoteBranchListUpdated;
+        public event Action<Dictionary<string, ConfigBranch>> LocalBranchesUpdated;
+        public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> RemoteBranchesUpdated;
 
         public RepositoryManager(IPlatform platform, IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
@@ -342,7 +342,7 @@ namespace GitHub.Unity
 
             Logger.Trace("CurrentBranch: {0}", branch.HasValue ? branch.Value.ToString() : "[NULL]");
             Logger.Trace("CurrentRemote: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
-            OnCurrentBranchAndRemoteUpdated?.Invoke(branch, remote);
+            CurrentBranchUpdated?.Invoke(branch, remote);
         }
 
         private ITask HookupHandlers(ITask task, bool disableWatcher = false)
@@ -456,7 +456,7 @@ namespace GitHub.Unity
             UpdateLocalBranches(branches, repositoryPaths.BranchesPath, config.GetBranches().Where(x => x.IsTracking), "");
 
             Logger.Trace("OnLocalBranchListUpdated {0} branches", branches.Count);
-            OnLocalBranchListUpdated?.Invoke(branches);
+            LocalBranchesUpdated?.Invoke(branches);
         }
 
         private void UpdateLocalBranches(Dictionary<string, ConfigBranch> branches, NPath path, IEnumerable<ConfigBranch> configBranches, string prefix)
@@ -505,7 +505,7 @@ namespace GitHub.Unity
             }
 
             Logger.Trace("OnRemoteBranchListUpdated {0} remotes", remotes.Count);
-            OnRemoteBranchListUpdated?.Invoke(remotes, remoteBranches);
+            RemoteBranchesUpdated?.Invoke(remotes, remoteBranches);
         }
 
         private bool disposed;
@@ -541,7 +541,7 @@ namespace GitHub.Unity
                 {
                     Logger.Trace("IsBusyChanged Value:{0}", value);
                     isBusy = value;
-                    OnIsBusyChanged?.Invoke(isBusy);
+                    IsBusyChanged?.Invoke(isBusy);
                 }
             }
         }

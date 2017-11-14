@@ -47,9 +47,11 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(initRepositoryManager, nameof(initRepositoryManager));
 
             repositoryManager = initRepositoryManager;
-            repositoryManager.OnCurrentBranchAndRemoteUpdated += RepositoryManager_OnCurrentBranchAndRemoteUpdated;
-            repositoryManager.OnLocalBranchListUpdated += RepositoryManager_OnLocalBranchListUpdated;
-            repositoryManager.OnRemoteBranchListUpdated += RepositoryManager_OnRemoteBranchListUpdated;
+            repositoryManager.CurrentBranchUpdated += RepositoryManagerOnCurrentBranchUpdated;
+            repositoryManager.GitStatusUpdated += RepositoryManagerOnGitStatusUpdated;
+            repositoryManager.GitLogUpdated += RepositoryManagerOnGitLogUpdated;
+            repositoryManager.LocalBranchesUpdated += RepositoryManagerOnLocalBranchesUpdated;
+            repositoryManager.RemoteBranchesUpdated += RepositoryManagerOnRemoteBranchesUpdated;
         }
 
         public ITask SetupRemote(string remote, string remoteUrl)
@@ -343,7 +345,7 @@ namespace GitHub.Unity
             LocalAndRemoteBranchListChanged?.Invoke(cacheUpdateEvent);
         }
 
-        private void RepositoryManager_OnCurrentBranchAndRemoteUpdated(ConfigBranch? branch, ConfigRemote? remote)
+        private void RepositoryManagerOnCurrentBranchUpdated(ConfigBranch? branch, ConfigRemote? remote)
         {
             new ActionTask(CancellationToken.None, () => {
                 if (!Nullable.Equals(CurrentConfigBranch, branch))
@@ -364,23 +366,31 @@ namespace GitHub.Unity
             }) { Affinity = TaskAffinity.UI }.Start();
         }
 
-        private void RepositoryManager_OnRemoteBranchListUpdated(Dictionary<string, ConfigRemote> remotes,
+        private void RepositoryManagerOnGitStatusUpdated(GitStatus gitStatus)
+        {
+            new ActionTask(CancellationToken.None, () => {
+                CurrentStatus = gitStatus;
+            }) { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private void RepositoryManagerOnGitLogUpdated(List<GitLogEntry> gitLogEntries)
+        {
+            new ActionTask(CancellationToken.None, () => {
+                CurrentLog = gitLogEntries;
+            }) { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private void RepositoryManagerOnRemoteBranchesUpdated(Dictionary<string, ConfigRemote> remotes,
             Dictionary<string, Dictionary<string, ConfigBranch>> branches)
         {
             new ActionTask(CancellationToken.None, () => {
                 cacheContainer.BranchCache.SetRemotes(remotes, branches);
-                UpdateRemoteAndRemoteBranches();
+                Remotes = ConfigRemotes.Values.Select(GetGitRemote).ToArray();
+                RemoteBranches = RemoteConfigBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch).ToArray();
             }) { Affinity = TaskAffinity.UI }.Start();
         }
 
-        private void UpdateRemoteAndRemoteBranches()
-        {
-            Remotes = ConfigRemotes.Values.Select(GetGitRemote).ToArray();
-
-            RemoteBranches = RemoteConfigBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch).ToArray();
-        }
-
-        private void RepositoryManager_OnLocalBranchListUpdated(Dictionary<string, ConfigBranch> branches)
+        private void RepositoryManagerOnLocalBranchesUpdated(Dictionary<string, ConfigBranch> branches)
         {
             new ActionTask(CancellationToken.None, () => {
                 cacheContainer.BranchCache.SetLocals(branches);

@@ -33,7 +33,12 @@ namespace IntegrationTests
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
-            repositoryManagerListener.AssertDidNotReceiveAnyCalls();
+            repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
+            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
 
         [Test]
@@ -48,13 +53,16 @@ namespace IntegrationTests
             foobarTxt.WriteAllText("foobar");
 
             await TaskManager.Wait();
+
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
-            repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
+            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
 
         [Test]
@@ -65,8 +73,6 @@ namespace IntegrationTests
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
             repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
 
-            var expectedLocalBranch = "master";
-
             var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
             foobarTxt.WriteAllText("foobar");
 
@@ -75,32 +81,38 @@ namespace IntegrationTests
 
             await TaskManager.Wait();
 
-            //Intentionally wait two cycles, in case the first cycle did not pick up all events
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
-            RepositoryManager.WaitForEvents();
-            repositoryManagerEvents.WaitForNotBusy();
-            repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerEvents.GitStatusUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
+            repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
+            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
             repositoryManagerListener.ClearReceivedCalls();
+
             repositoryManagerEvents.Reset();
 
             await RepositoryManager
                 .CommitFiles(new List<string> { "Assets\\TestDocument.txt", "foobar.txt" }, "IntegrationTest Commit", string.Empty)
                 .StartAsAsync();
-
             await TaskManager.Wait();
+
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            repositoryManagerEvents.GitStatusUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
 
         [Test]
@@ -111,8 +123,6 @@ namespace IntegrationTests
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
             repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
 
-            var expectedLocalBranch = "master";
-
             var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
             foobarTxt.WriteAllText("foobar");
 
@@ -120,13 +130,16 @@ namespace IntegrationTests
             testDocumentTxt.WriteAllText("foobar");
 
             await TaskManager.Wait();
+
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
-            repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
+            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
 
             repositoryManagerListener.ClearReceivedCalls();
             repositoryManagerEvents.Reset();
@@ -134,15 +147,20 @@ namespace IntegrationTests
             await RepositoryManager
                 .CommitAllFiles("IntegrationTest Commit", string.Empty)
                 .StartAsAsync();
-
             await TaskManager.Wait();
+
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
+            repositoryManagerEvents.GitStatusUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
 
         [Test]
@@ -153,20 +171,20 @@ namespace IntegrationTests
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
             repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
 
-            var expectedLocalBranch = "feature/document";
-
-            Logger.Trace("Starting test");
-
-            await RepositoryManager.SwitchBranch(expectedLocalBranch).StartAsAsync();
-
+            await RepositoryManager.SwitchBranch("feature/document").StartAsAsync();
             await TaskManager.Wait();
+
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.Received().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
 
         [Test]
@@ -177,16 +195,22 @@ namespace IntegrationTests
             var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
             repositoryManagerListener.AttachListener(RepositoryManager, repositoryManagerEvents);
 
-            var deletedBranch = "feature/document";
-            await RepositoryManager.DeleteBranch(deletedBranch, true).StartAsAsync();
+            await RepositoryManager.DeleteBranch("feature/document", true).StartAsAsync();
             await TaskManager.Wait();
+
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.Received().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
 
         [Test]
@@ -200,27 +224,36 @@ namespace IntegrationTests
             var createdBranch1 = "feature/document2";
             await RepositoryManager.CreateBranch(createdBranch1, "feature/document").StartAsAsync();
             await TaskManager.Wait();
+
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
 
             repositoryManagerListener.ClearReceivedCalls();
             repositoryManagerEvents.Reset();
 
-            var createdBranch2 = "feature2/document2";
-            await RepositoryManager.CreateBranch(createdBranch2, "feature/document").StartAsAsync();
+            await RepositoryManager.CreateBranch("feature2/document2", "feature/document").StartAsAsync();
             await TaskManager.Wait();
+
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
 
         [Test]
@@ -237,28 +270,36 @@ namespace IntegrationTests
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
-            repositoryManagerEvents.OnRemoteBranchListUpdated.WaitOne(TimeSpan.FromSeconds(1));
-            repositoryManagerEvents.OnLocalBranchListUpdated.WaitOne(TimeSpan.FromSeconds(1));
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.Received().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
 
             repositoryManagerListener.ClearReceivedCalls();
             repositoryManagerEvents.Reset();
 
             await RepositoryManager.RemoteAdd("origin", "https://github.com/EvilShana/IOTestsRepo.git").StartAsAsync();
             await TaskManager.Wait();
+
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
-            repositoryManagerEvents.OnRemoteBranchListUpdated.WaitOne(TimeSpan.FromSeconds(1));
-            repositoryManagerEvents.OnLocalBranchListUpdated.WaitOne(TimeSpan.FromSeconds(1));
+
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.Received().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
 
         [Test]
@@ -271,31 +312,40 @@ namespace IntegrationTests
 
             await RepositoryManager.CreateBranch("branch2", "another/master")
                 .StartAsAsync();
-
             await TaskManager.Wait();
+
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.Received().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.Received().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.Received().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
 
             repositoryManagerListener.ClearReceivedCalls();
             repositoryManagerEvents.Reset();
 
             await RepositoryManager.SwitchBranch("branch2")
                                    .StartAsAsync();
-
             await TaskManager.Wait();
+
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
-            repositoryManagerEvents.WaitForHeadUpdated();
+
+            repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
 
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.Received().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
 
         [Test]
@@ -308,13 +358,18 @@ namespace IntegrationTests
 
             await RepositoryManager.Pull("origin", "master").StartAsAsync();
             await TaskManager.Wait();
+
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
 
             repositoryManagerEvents.Reset();
             repositoryManagerEvents.WaitForNotBusy();
@@ -330,13 +385,19 @@ namespace IntegrationTests
 
             await RepositoryManager.Fetch("origin").StartAsAsync();
             await TaskManager.Wait();
+
             RepositoryManager.WaitForEvents();
             repositoryManagerEvents.WaitForNotBusy();
 
+            repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+
             repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
-            repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
-            repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
+            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
     }
 }
