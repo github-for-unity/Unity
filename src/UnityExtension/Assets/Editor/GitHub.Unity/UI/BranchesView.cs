@@ -162,8 +162,8 @@ namespace GitHub.Unity
             treeRemotes.RootFolderIcon = Styles.RootFolderIcon;
             treeRemotes.FolderIcon = Styles.FolderIcon;
 
-            treeLocals.Load(localBranches, LocalTitle);
-            treeRemotes.Load(remoteBranches, RemoteTitle);
+            treeLocals.Load(localBranches.Cast<ITreeData>(), LocalTitle);
+            treeRemotes.Load(remoteBranches.Cast<ITreeData>(), RemoteTitle);
             Redraw();
         }
 
@@ -490,7 +490,7 @@ namespace GitHub.Unity
                 }
             }
 
-            public void Load(IEnumerable<GitBranch> data, string title)
+            public void Load(IEnumerable<ITreeData> data, string title)
             {
                 foldersKeys.Clear();
                 Folders.Clear();
