@@ -86,7 +86,6 @@ namespace GitHub.Unity
 
         private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-        {
             if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))
             {
                 lastLocalAndRemoteBranchListChangedEvent = cacheUpdateEvent;
