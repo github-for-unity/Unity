@@ -25,8 +25,6 @@ namespace GitHub.Unity
         private const string WarningCheckoutBranchExistsOK = "Ok";
         private const string NewBranchCancelButton = "x";
         private const string NewBranchConfirmButton = "Create";
-        private const string FavoritesSetting = "Favorites";
-        private const string FavoritesTitle = "Favorites";
         private const string CreateBranchTitle = "Create Branch";
         private const string LocalTitle = "Local branches";
         private const string RemoteTitle = "Remote branches";
@@ -38,31 +36,47 @@ namespace GitHub.Unity
 
         [NonSerialized] private int listID = -1;
         [NonSerialized] private BranchesMode targetMode;
-        [NonSerialized] private bool favoritesHasChanged;
-        [NonSerialized] private List<string> favoritesList;
 
         [SerializeField] private Tree treeLocals = new Tree();
         [SerializeField] private Tree treeRemotes = new Tree();
-        [SerializeField] private Tree treeFavorites = new Tree();
         [SerializeField] private BranchesMode mode = BranchesMode.Default;
         [SerializeField] private string newBranchName;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private bool disableDelete;
 
+        [SerializeField] private CacheUpdateEvent lastLocalAndRemoteBranchListChangedEvent;
+        [NonSerialized] private bool localAndRemoteBranchListHasUpdate;
+
+        [SerializeField] private List<GitBranch> localBranches;
+        [SerializeField] private List<GitBranch> remoteBranches;
+
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
             targetMode = mode;
-            Manager.CacheManager.SetupCache(BranchCache.Instance, Environment.Repository);
+        }
+
+        private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () =>
+                {
+                    lastLocalAndRemoteBranchListChangedEvent = cacheUpdateEvent;
+                    localAndRemoteBranchListHasUpdate = true;
+                    Redraw();
+                })
+                { Affinity = TaskAffinity.UI }.Start();
+            }
         }
 
         public override void OnEnable()
         {
             base.OnEnable();
             AttachHandlers(Repository);
-            if (!Application.isPlaying)
+            if (Repository != null)
             {
-                favoritesHasChanged = true;
+                Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
             }
         }
 
@@ -80,32 +94,17 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (treeLocals == null || !treeLocals.IsInitialized)
+            if (localAndRemoteBranchListHasUpdate)
             {
-                BuildTree(BranchCache.Instance.LocalBranches, BranchCache.Instance.RemoteBranches);
-            }
+                localAndRemoteBranchListHasUpdate = false;
 
-            if (favoritesHasChanged)
-            {
-                favoritesList = Manager.LocalSettings.Get(FavoritesSetting, new List<string>());
-                favoritesHasChanged = false;
+                localBranches = Repository.LocalBranches.ToList();
+                remoteBranches = Repository.RemoteBranches.ToList();
+
+                BuildTree();
             }
 
             disableDelete = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.IsActive;
-        }
-
-
-        public override void OnRepositoryChanged(IRepository oldRepository)
-        {
-            base.OnRepositoryChanged(oldRepository);
-            DetachHandlers(oldRepository);
-            AttachHandlers(Repository);
-        }
-
-        public override void Refresh()
-        {
-            base.Refresh();
-            RefreshBranchList();
         }
 
         public override void OnGUI()
@@ -118,37 +117,15 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
 
-            repository.OnLocalBranchListChanged += HandleDataUpdated;
-            repository.OnCurrentBranchChanged += HandleDataUpdated;
-            repository.OnCurrentRemoteChanged += HandleDataUpdated;
+            repository.LocalAndRemoteBranchListChanged += RepositoryOnLocalAndRemoteBranchListChanged;
         }
 
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
                 return;
-            repository.OnLocalBranchListChanged -= HandleDataUpdated;
-            repository.OnCurrentBranchChanged -= HandleDataUpdated;
-            repository.OnCurrentRemoteChanged -= HandleDataUpdated;
-        }
 
-        private void HandleDataUpdated()
-        {
-            new ActionTask(TaskManager.Token, Redraw) { Affinity = TaskAffinity.UI }.Start();
-        }
-
-        private void HandleDataUpdated(string obj)
-        {
-            HandleDataUpdated();
-        }
-
-        private void RefreshBranchList()
-        {
-            var localBranches = BranchCache.Instance.LocalBranches;
-            localBranches.Sort(CompareBranches);
-            var remoteBranches = BranchCache.Instance.RemoteBranches;
-            remoteBranches.Sort(CompareBranches);
-            BuildTree(localBranches, remoteBranches);
+            repository.LocalAndRemoteBranchListChanged -= RepositoryOnLocalAndRemoteBranchListChanged;
         }
 
         private void Render()
@@ -169,7 +146,7 @@ namespace GitHub.Unity
             GUILayout.EndScrollView();
         }
 
-        private void BuildTree(List<GitBranch> localBranches, List<GitBranch> remoteBranches)
+        private void BuildTree()
         {
             localBranches.Sort(CompareBranches);
             remoteBranches.Sort(CompareBranches);
@@ -185,8 +162,8 @@ namespace GitHub.Unity
             treeRemotes.RootFolderIcon = Styles.RootFolderIcon;
             treeRemotes.FolderIcon = Styles.FolderIcon;
 
-            treeLocals.Load(localBranches.Cast<ITreeData>(), LocalTitle);
-            treeRemotes.Load(remoteBranches.Cast<ITreeData>(), RemoteTitle);
+            treeLocals.Load(localBranches, LocalTitle);
+            treeRemotes.Load(remoteBranches, RemoteTitle);
             Redraw();
         }
 
@@ -304,9 +281,6 @@ namespace GitHub.Unity
 
         private void OnTreeGUI(Rect rect)
         {
-            if (!treeLocals.IsInitialized)
-                RefreshBranchList();
-
             if (treeLocals.FolderStyle == null)
             {
                 treeLocals.FolderStyle = Styles.Foldout;
@@ -478,10 +452,8 @@ namespace GitHub.Unity
             [SerializeField] public GUIStyle TreeNodeStyle;
             [SerializeField] public GUIStyle ActiveTreeNodeStyle;
 
-            [NonSerialized]
-            private Stack<bool> indents = new Stack<bool>();
-            [NonSerialized]
-            private Hashtable folders;
+            [NonSerialized] private Stack<bool> indents = new Stack<bool>();
+            [NonSerialized] private Hashtable folders;
 
             public bool IsInitialized { get { return nodes != null && nodes.Count > 0 && !String.IsNullOrEmpty(nodes[0].Name); } }
             public bool RequiresRepaint { get; private set; }
@@ -518,7 +490,7 @@ namespace GitHub.Unity
                 }
             }
 
-            public void Load(IEnumerable<ITreeData> data, string title)
+            public void Load(IEnumerable<GitBranch> data, string title)
             {
                 foldersKeys.Clear();
                 Folders.Clear();
@@ -586,6 +558,9 @@ namespace GitHub.Unity
 
             public Rect Render(Rect rect, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null)
             {
+                if (!nodes.Any())
+                    return rect;
+
                 RequiresRepaint = false;
                 rect = new Rect(0f, rect.y, rect.width, ItemHeight);
 

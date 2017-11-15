@@ -18,15 +18,13 @@ namespace UnitTests
                 null
             };
 
+            var name = "origin";
+            var host = "github.com";
+            var url = "https://github.com/github/VisualStudio.git";
+            var function = GitRemoteFunction.Both;
             AssertProcessOutput(output, new[]
             {
-                new GitRemote
-                {
-                    Function = GitRemoteFunction.Both,
-                    Name = "origin",
-                    Host = "github.com",
-                    Url = "https://github.com/github/VisualStudio.git",
-                }
+                new GitRemote(name, host, url, function)
             });
         }
 
@@ -39,15 +37,13 @@ namespace UnitTests
                 null
             };
 
+            var name = "origin";
+            var function = GitRemoteFunction.Fetch;
+            var host = "github.com";
+            var url = "https://github.com/github/VisualStudio.git";
             AssertProcessOutput(output, new[]
             {
-                new GitRemote
-                {
-                    Function = GitRemoteFunction.Fetch,
-                    Name = "origin",
-                    Host = "github.com",
-                    Url = "https://github.com/github/VisualStudio.git",
-                }
+                new GitRemote(name, host, url, function)
             });
         }
 
@@ -60,15 +56,13 @@ namespace UnitTests
                 null
             };
 
+            var name = "origin";
+            var function = GitRemoteFunction.Push;
+            var host = "github.com";
+            var url = "https://github.com/github/VisualStudio.git";
             AssertProcessOutput(output, new[]
             {
-                new GitRemote
-                {
-                    Function = GitRemoteFunction.Push,
-                    Name = "origin",
-                    Host = "github.com",
-                    Url = "https://github.com/github/VisualStudio.git",
-                }
+                new GitRemote(name, host, url, function)
             });
         }
 
@@ -82,16 +76,14 @@ namespace UnitTests
                 null
             };
 
+            var function = GitRemoteFunction.Both;
+            var name = "origin";
+            var host = "github.com";
+            var url = "github.com:StanleyGoldman/VisualStudio.git";
+            var user = "git";
             AssertProcessOutput(output, new[]
             {
-                new GitRemote
-                {
-                    Function = GitRemoteFunction.Both,
-                    Name = "origin",
-                    Host = "github.com",
-                    Url = "github.com:StanleyGoldman/VisualStudio.git",
-                    User = "git"
-                },
+                new GitRemote(name, host, url, function, user)
             });
         }
 
@@ -110,29 +102,9 @@ namespace UnitTests
 
             AssertProcessOutput(output, new[]
             {
-                new GitRemote
-                {
-                    Function = GitRemoteFunction.Both,
-                    Name = "origin",
-                    Host = "github.com",
-                    Url = "https://github.com/github/VisualStudio.git",
-                },
-                new GitRemote
-                {
-                    Function = GitRemoteFunction.Both,
-                    Name = "stanleygoldman",
-                    Host = "github.com",
-                    Url = "github.com:StanleyGoldman/VisualStudio.git",
-                    User = "git"
-                },
-                new GitRemote
-                {
-                    Function = GitRemoteFunction.Fetch,
-                    Name = "fetchOnly",
-                    Host = "github.com",
-                    Url = "github.com:StanleyGoldman/VisualStudio2.git",
-                    User = "git"
-                },
+                new GitRemote("origin", "github.com", "https://github.com/github/VisualStudio.git", GitRemoteFunction.Both),
+                new GitRemote("stanleygoldman", "github.com", "github.com:StanleyGoldman/VisualStudio.git", GitRemoteFunction.Both, "git"),
+                new GitRemote("fetchOnly", "github.com", "github.com:StanleyGoldman/VisualStudio2.git", GitRemoteFunction.Fetch,"git")
             });
         }
 

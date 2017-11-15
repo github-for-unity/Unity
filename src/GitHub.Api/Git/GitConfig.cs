@@ -216,16 +216,16 @@ namespace GitHub.Unity
             public int GetInt(string key)
             {
                 var value = this[key];
-                var result = 0;
-                var success = int.TryParse(value, out result);
+                int result = 0;
+                int.TryParse(value, out result);
                 return result;
             }
 
             public float GetFloat(string key)
             {
                 var value = this[key];
-                var result = 0F;
-                var success = float.TryParse(value, out result);
+                float result = 0F;
+                float.TryParse(value, out result);
                 return result;
             }
 

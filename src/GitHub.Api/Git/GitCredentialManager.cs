@@ -11,14 +11,12 @@ namespace GitHub.Unity
         private ICredential credential;
         private string credHelper = null;
 
-        private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
 
-        public GitCredentialManager(IEnvironment environment, IProcessManager processManager,
+        public GitCredentialManager(IProcessManager processManager,
             ITaskManager taskManager)
         {
-            this.environment = environment;
             this.processManager = processManager;
             this.taskManager = taskManager;
         }

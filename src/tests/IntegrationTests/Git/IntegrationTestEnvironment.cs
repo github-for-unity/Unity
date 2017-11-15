@@ -12,10 +12,10 @@ namespace IntegrationTests
 
         private DefaultEnvironment defaultEnvironment;
 
-        public IntegrationTestEnvironment(NPath repoPath, NPath solutionDirectory, NPath environmentPath = null,
+        public IntegrationTestEnvironment(ICacheContainer cacheContainer, NPath repoPath, NPath solutionDirectory, NPath environmentPath = null,
             bool enableTrace = false)
         {
-            defaultEnvironment = new DefaultEnvironment();
+            defaultEnvironment = new DefaultEnvironment(cacheContainer);
             defaultEnvironment.FileSystem.SetCurrentDirectory(repoPath);
             environmentPath = environmentPath ??
                 defaultEnvironment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)

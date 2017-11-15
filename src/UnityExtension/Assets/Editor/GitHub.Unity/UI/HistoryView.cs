@@ -1,19 +1,14 @@
-#pragma warning disable 649
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
     [Serializable]
     class HistoryView : Subview
     {
-        private const string HistoryFocusAll = "(All)";
-        private const string HistoryFocusSingle = "Focus: <b>{0}</b>";
         private const string PullButton = "Pull";
         private const string PullButtonCount = "Pull (<b>{0}</b>)";
         private const string PushButton = "Push";
@@ -35,35 +30,36 @@ namespace GitHub.Unity
         private const int HistoryExtraItemCount = 10;
         private const float MaxChangelistHeightRatio = .2f;
 
+        [NonSerialized] private bool currentLogHasUpdate;
+        [NonSerialized] private bool currentRemoteHasUpdate;
+        [NonSerialized] private bool currentStatusHasUpdate;
         [NonSerialized] private int historyStartIndex;
         [NonSerialized] private int historyStopIndex;
-        [NonSerialized] private float lastWidth;
         [NonSerialized] private int listID;
         [NonSerialized] private int newSelectionIndex;
         [NonSerialized] private float scrollOffset;
         [NonSerialized] private DateTimeOffset scrollTime = DateTimeOffset.Now;
         [NonSerialized] private int selectionIndex;
-        [NonSerialized] private bool logHasChanged;
         [NonSerialized] private bool useScrollTime;
-        [NonSerialized] private bool isBusy;
 
+        [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
+        [SerializeField] private string currentRemoteName;
         [SerializeField] private Vector2 detailsScroll;
-        [SerializeField] private Object historyTarget;
+        [SerializeField] private bool hasItemsToCommit;
+        [SerializeField] private bool hasRemote;
+        [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
+        [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastStatusChangedEvent;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string selectionID;
         [SerializeField] private int statusAhead;
         [SerializeField] private int statusBehind;
 
-        [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
-        [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
-        [SerializeField] private string currentRemote;
-        [SerializeField] private bool isPublished;
-
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
 
-            lastWidth = Position.width;
             selectionIndex = newSelectionIndex = -1;
 
             changesetTree.InitializeView(this);
@@ -74,7 +70,13 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             AttachHandlers(Repository);
-            CheckLogCache();
+
+            if (Repository != null)
+            {
+                Repository.CheckLogChangedEvent(lastLogChangedEvent);
+                Repository.CheckStatusChangedEvent(lastStatusChangedEvent);
+                Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
+            }
         }
 
         public override void OnDisable()
@@ -89,125 +91,9 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        public override void OnRepositoryChanged(IRepository oldRepository)
-        {
-            base.OnRepositoryChanged(oldRepository);
-
-            DetachHandlers(oldRepository);
-            AttachHandlers(Repository);
-        }
-
-        public override void OnSelectionChange()
-        {
-            if (!string.IsNullOrEmpty(AssetDatabase.GetAssetPath(Selection.activeObject)))
-            {
-                historyTarget = Selection.activeObject;
-            }
-        }
-
         public override void OnGUI()
         {
             OnEmbeddedGUI();
-        }
-
-        public void CheckLogCache()
-        {
-            string firstItemCommitID = null;
-            if (history.Any())
-            {
-                firstItemCommitID = history.First().CommitID;
-            }
-
-            var cachedList = GitLogCache.Instance.Log;
-
-            string firstCachedItemCommitID = null;
-            if (cachedList.Any())
-            {
-                firstCachedItemCommitID = cachedList.First().CommitID;
-            }
-
-            if (firstItemCommitID != firstCachedItemCommitID)
-            {
-                Logger.Trace("CommitID {0} != Cached CommitId {1}", firstItemCommitID ?? "[NULL]", firstCachedItemCommitID ?? "[NULL]");
-                logHasChanged = true;
-                Redraw();
-            }
-        }
-
-        private void AttachHandlers(IRepository repository)
-        {
-            if (repository == null)
-                return;
-            repository.OnStatusChanged += UpdateStatusOnMainThread;
-        }
-
-        private void DetachHandlers(IRepository repository)
-        {
-            if (repository == null)
-                return;
-            repository.OnStatusChanged -= UpdateStatusOnMainThread;
-        }
-
-        private void UpdateStatusOnMainThread(GitStatus status)
-        {
-            new ActionTask(TaskManager.Token, _ => UpdateStatus(status))
-                .ScheduleUI(TaskManager);
-        }
-
-        private void UpdateStatus(GitStatus status)
-        {
-            statusAhead = status.Ahead;
-            statusBehind = status.Behind;
-        }
-
-        private void MaybeUpdateData()
-        {
-            isPublished = Repository != null && Repository.CurrentRemote.HasValue;
-            currentRemote = isPublished ? Repository.CurrentRemote.Value.Name : "placeholder";
-
-            if (logHasChanged)
-            {
-                logHasChanged = false;
-
-                history = GitLogCache.Instance.Log;
-
-                if (history.Any())
-                {
-                    // Make sure that scroll as much as possible focuses the same time period in the new entry list
-                    if (useScrollTime)
-                    {
-                        var closestIndex = -1;
-                        double closestDifference = Mathf.Infinity;
-                        for (var index = 0; index < history.Count; ++index)
-                        {
-                            var diff = Math.Abs((history[index].Time - scrollTime).TotalSeconds);
-                            if (diff < closestDifference)
-                            {
-                                closestDifference = diff;
-                                closestIndex = index;
-                            }
-                        }
-
-                        ScrollTo(closestIndex, scrollOffset);
-                    }
-
-                    CullHistory();
-                }
-
-                // Restore selection index or clear it
-                newSelectionIndex = -1;
-                if (!string.IsNullOrEmpty(selectionID))
-                {
-                    selectionIndex = Enumerable.Range(1, history.Count + 1)
-                                               .FirstOrDefault(
-                                                   index => history[index - 1].CommitID.Equals(selectionID)) - 1;
-
-                    if (selectionIndex < 0)
-                    {
-                        selectionID = string.Empty;
-                    }
-                }
-            }
         }
 
         public void OnEmbeddedGUI()
@@ -215,25 +101,11 @@ namespace GitHub.Unity
             // History toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
-                // Target indicator / clear button
-                EditorGUI.BeginDisabledGroup(historyTarget == null);
-                {
-                    if (GUILayout.Button(
-                        historyTarget == null ? HistoryFocusAll : String.Format(HistoryFocusSingle, historyTarget.name),
-                        Styles.HistoryToolbarButtonStyle)
-                    )
-                    {
-                        historyTarget = null;
-                        Refresh();
-                    }
-                }
-                EditorGUI.EndDisabledGroup();
-
                 GUILayout.FlexibleSpace();
 
-                if (isPublished)
+                if (hasRemote)
                 {
-                    EditorGUI.BeginDisabledGroup(currentRemote == null);
+                    EditorGUI.BeginDisabledGroup(currentRemoteName == null);
                     {
                         // Fetch button
                         var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
@@ -248,7 +120,7 @@ namespace GitHub.Unity
 
                         if (pullClicked &&
                             EditorUtility.DisplayDialog(PullConfirmTitle,
-                                String.Format(PullConfirmDescription, currentRemote),
+                                String.Format(PullConfirmDescription, currentRemoteName),
                                 PullConfirmYes,
                                 PullConfirmCancel)
                         )
@@ -259,14 +131,14 @@ namespace GitHub.Unity
                     EditorGUI.EndDisabledGroup();
 
                     // Push button
-                    EditorGUI.BeginDisabledGroup(currentRemote == null || statusBehind != 0);
+                    EditorGUI.BeginDisabledGroup(currentRemoteName == null || statusBehind != 0);
                     {
                         var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
                         var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
 
                         if (pushClicked &&
                             EditorUtility.DisplayDialog(PushConfirmTitle,
-                                String.Format(PushConfirmDescription, currentRemote),
+                                String.Format(PushConfirmDescription, currentRemoteName),
                                 PushConfirmYes,
                                 PushConfirmCancel)
                         )
@@ -279,15 +151,11 @@ namespace GitHub.Unity
                 else
                 {
                     // Publishing a repo
-                    EditorGUI.BeginDisabledGroup(!Platform.Keychain.Connections.Any());
+                    var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
+                    if (publishedClicked)
                     {
-                        var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
-                        if (publishedClicked)
-                        {
-                            PopupWindow.Open(PopupWindow.PopupViewType.PublishView);
-                        }
+                        PopupWindow.OpenWindow(PopupWindow.PopupViewType.PublishView);
                     }
-                    EditorGUI.EndDisabledGroup();
                 }
             }
             GUILayout.EndHorizontal();
@@ -300,7 +168,7 @@ namespace GitHub.Unity
                 // Only update time scroll
                 var lastScroll = scroll;
                 scroll = GUILayout.BeginScrollView(scroll);
-                if (lastScroll != scroll && !logHasChanged)
+                if (lastScroll != scroll && !currentLogHasUpdate)
                 {
                     scrollTime = history[historyStartIndex].Time;
                     scrollOffset = scroll.y - historyStartIndex * EntryHeight;
@@ -406,7 +274,7 @@ namespace GitHub.Unity
             if (Event.current.type == EventType.Repaint)
             {
                 CullHistory();
-                logHasChanged = false;
+                currentLogHasUpdate = false;
 
                 if (newSelectionIndex >= 0 || newSelectionIndex == -2)
                 {
@@ -424,6 +292,138 @@ namespace GitHub.Unity
             }
         }
 
+        private void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastStatusChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () => {
+                    lastStatusChangedEvent = cacheUpdateEvent;
+                    currentStatusHasUpdate = true;
+                    Redraw();
+                }) { Affinity = TaskAffinity.UI }.Start();
+            }
+        }
+
+        private void RepositoryOnLogChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastLogChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () => {
+                    lastLogChangedEvent = cacheUpdateEvent;
+                    currentLogHasUpdate = true;
+                    Redraw();
+                }) { Affinity = TaskAffinity.UI }.Start();
+            }
+        }
+
+        private void RepositoryOnCurrentRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastCurrentRemoteChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () => {
+                    lastCurrentRemoteChangedEvent = cacheUpdateEvent;
+                    currentRemoteHasUpdate = true;
+                    Redraw();
+                }) { Affinity = TaskAffinity.UI }.Start();
+            }
+        }
+
+        private void AttachHandlers(IRepository repository)
+        {
+            if (repository == null)
+            {
+                return;
+            }
+
+            repository.StatusChanged += RepositoryOnStatusChanged;
+            repository.LogChanged += RepositoryOnLogChanged;
+            repository.CurrentRemoteChanged += RepositoryOnCurrentRemoteChanged;
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+            {
+                return;
+            }
+
+            repository.StatusChanged -= RepositoryOnStatusChanged;
+            repository.LogChanged -= RepositoryOnLogChanged;
+            repository.CurrentRemoteChanged -= RepositoryOnCurrentRemoteChanged;
+        }
+
+        private void MaybeUpdateData()
+        {
+            if (Repository == null)
+            {
+                return;
+            }
+
+            if (currentRemoteHasUpdate)
+            {
+                currentRemoteHasUpdate = false;
+
+                var currentRemote = Repository.CurrentRemote;
+                hasRemote = currentRemote.HasValue;
+                currentRemoteName = hasRemote ? currentRemote.Value.Name : "placeholder";
+            }
+
+            if (currentStatusHasUpdate)
+            {
+                currentStatusHasUpdate = false;
+
+                var currentStatus = Repository.CurrentStatus;
+                statusAhead = currentStatus.Ahead;
+                statusBehind = currentStatus.Behind;
+                hasItemsToCommit = currentStatus.Entries != null &&
+                    currentStatus.GetEntriesExcludingIgnoredAndUntracked().Any();
+            }
+
+            if (currentLogHasUpdate)
+            {
+                currentLogHasUpdate = false;
+
+                history = Repository.CurrentLog;
+
+                if (history.Any())
+                {
+                    // Make sure that scroll as much as possible focuses the same time period in the new entry list
+                    if (useScrollTime)
+                    {
+                        var closestIndex = -1;
+                        double closestDifference = Mathf.Infinity;
+                        for (var index = 0; index < history.Count; ++index)
+                        {
+                            var diff = Math.Abs((history[index].Time - scrollTime).TotalSeconds);
+                            if (diff < closestDifference)
+                            {
+                                closestDifference = diff;
+                                closestIndex = index;
+                            }
+                        }
+
+                        ScrollTo(closestIndex, scrollOffset);
+                    }
+
+                    CullHistory();
+                }
+
+                // Restore selection index or clear it
+                newSelectionIndex = -1;
+                if (!string.IsNullOrEmpty(selectionID))
+                {
+                    selectionIndex = Enumerable.Range(1, history.Count + 1)
+                                               .FirstOrDefault(
+                                                   index => history[index - 1].CommitID.Equals(selectionID)) - 1;
+
+                    if (selectionIndex < 0)
+                    {
+                        selectionID = string.Empty;
+                    }
+                }
+            }
+        }
+
         private void ScrollTo(int index, float offset = 0f)
         {
             scroll.Set(scroll.x, EntryHeight * index + offset);
@@ -431,7 +431,7 @@ namespace GitHub.Unity
 
         private LogEntryState GetEntryState(int index)
         {
-            return historyTarget == null ? (index < statusAhead ? LogEntryState.Local : LogEntryState.Normal) : LogEntryState.Normal;
+            return index < statusAhead ? LogEntryState.Local : LogEntryState.Normal;
         }
 
         /// <summary>
@@ -473,7 +473,6 @@ namespace GitHub.Unity
         private bool HistoryEntry(GitLogEntry entry, LogEntryState state, bool selected)
         {
             var entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
-            var timelineBarRect = new Rect(entryRect.x + Styles.BaseSpacing, 0, 2, Styles.HistoryDetailsHeight);
 
             if (Event.current.type == EventType.Repaint)
             {
@@ -481,7 +480,6 @@ namespace GitHub.Unity
 
                 var summaryRect = new Rect(entryRect.x, entryRect.y + (Styles.BaseSpacing / 2), entryRect.width, Styles.HistorySummaryHeight + Styles.BaseSpacing);
                 var timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight - (Styles.BaseSpacing / 2), entryRect.width, Styles.HistoryDetailsHeight);
-                var authorRect = new Rect(timestampRect.xMax, timestampRect.y, timestampRect.width, timestampRect.height);
 
                 var contentOffset = new Vector2(Styles.BaseSpacing * 2, 0);
 
@@ -569,14 +567,12 @@ namespace GitHub.Unity
 
         private void Pull()
         {
-            var status = Repository.CurrentStatus;
-            if (status.Entries != null && status.GetEntriesExcludingIgnoredAndUntracked().Any())
+            if (hasItemsToCommit)
             {
                 EditorUtility.DisplayDialog("Pull", "You need to commit your changes before pulling.", "Cancel");
             }
             else
             {
-                var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
                 Repository
                     .Pull()
                     // we need the error propagated from the original git command to handle things appropriately
@@ -592,7 +588,7 @@ namespace GitHub.Unity
                         if (success)
                         {
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
-                                String.Format(Localization.PullSuccessDescription, remote),
+                                String.Format(Localization.PullSuccessDescription, currentRemoteName),
                             Localization.Ok);
                         }
                         else
@@ -608,14 +604,13 @@ namespace GitHub.Unity
 
         private void Push()
         {
-            var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
             Repository
                 .Push()
                 .FinallyInUI((success, e) => {
                     if (success)
                     {
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
-                            String.Format(Localization.PushSuccessDescription, remote),
+                            String.Format(Localization.PushSuccessDescription, currentRemoteName),
                         Localization.Ok);
                     }
                     else
@@ -630,7 +625,6 @@ namespace GitHub.Unity
 
         private void Fetch()
         {
-            var remote = Repository.CurrentRemote.HasValue ? Repository.CurrentRemote.Value.Name : String.Empty;
             Repository
                 .Fetch()
                 .FinallyInUI((success, e) => {
@@ -675,7 +669,7 @@ namespace GitHub.Unity
 
         public override bool IsBusy
         {
-            get { return isBusy; }
+            get { return false; }
         }
 
         private float EntryHeight

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -14,11 +15,12 @@ namespace GitHub.Unity
 
         private static readonly List<string> guids = new List<string>();
         private static readonly List<string> guidsLocks = new List<string>();
-        private static bool initialized = false;
         private static IRepository repository;
         private static bool isBusy = false;
         private static ILogging logger;
         private static ILogging Logger { get { return logger = logger ?? Logging.GetLogger<ProjectWindowInterface>(); } }
+        private static CacheUpdateEvent lastRepositoryStatusChangedEvent;
+        private static CacheUpdateEvent lastLocksChangedEvent;
 
         public static void Initialize(IRepository repo)
         {
@@ -26,12 +28,45 @@ namespace GitHub.Unity
 
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
-            initialized = true;
+
             repository = repo;
+
             if (repository != null)
             {
-                repository.OnStatusChanged += RunStatusUpdateOnMainThread;
-                repository.OnLocksChanged += RunLocksUpdateOnMainThread;
+                repository.StatusChanged += RepositoryOnStatusChanged;
+                repository.LocksChanged += RepositoryOnLocksChanged;
+
+                repository.CheckStatusChangedEvent(lastRepositoryStatusChangedEvent);
+                repository.CheckLocksChangedEvent(lastLocksChangedEvent);
+            }
+        }
+
+        private static void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastRepositoryStatusChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(CancellationToken.None, () =>
+                {
+                    lastRepositoryStatusChangedEvent = cacheUpdateEvent;
+                    entries.Clear();
+                    entries.AddRange(repository.CurrentStatus.Entries);
+                    OnStatusUpdate();
+                })
+                { Affinity = TaskAffinity.UI }.Start();
+            }
+        }
+
+        private static void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastLocksChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(CancellationToken.None, () =>
+                {
+                    lastLocksChangedEvent = cacheUpdateEvent;
+                    locks = repository.CurrentLocks;
+                    OnLocksUpdate();
+                })
+                { Affinity = TaskAffinity.UI }.Start();
             }
         }
 
@@ -125,44 +160,14 @@ namespace GitHub.Unity
                 })
                 .Start();
         }
-        public static void Run()
-        {
-            Refresh();
-        }
 
-        private static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moveDestination, string[] moveSource)
+        private static void OnLocksUpdate()
         {
-            Refresh();
-        }
-
-        private static void Refresh()
-        {
-            if (repository == null)
-                return;
-            if (initialized)
-            {
-                if (!DefaultEnvironment.OnWindows)
-                {
-                    repository.Refresh();
-                }
-            }
-        }
-
-        private static void RunLocksUpdateOnMainThread(IEnumerable<GitLock> update)
-        {
-            new ActionTask(EntryPoint.ApplicationManager.TaskManager.Token, _ => OnLocksUpdate(update))
-            {
-                Affinity = TaskAffinity.UI
-            }.Start();
-        }
-
-        private static void OnLocksUpdate(IEnumerable<GitLock> update)
-        {
-            if (update == null)
+            if (locks == null)
             {
                 return;
             }
-            locks = update.ToList();
+            locks = locks.ToList();
 
             guidsLocks.Clear();
             foreach (var lck in locks)
@@ -177,24 +182,8 @@ namespace GitHub.Unity
             EditorApplication.RepaintProjectWindow();
         }
 
-        private static void RunStatusUpdateOnMainThread(GitStatus update)
+        private static void OnStatusUpdate()
         {
-            new ActionTask(EntryPoint.ApplicationManager.TaskManager.Token, _ => OnStatusUpdate(update))
-            {
-                Affinity = TaskAffinity.UI
-            }.Start();
-        }
-
-        private static void OnStatusUpdate(GitStatus update)
-        {
-            if (update.Entries == null)
-            {
-                return;
-            }
-
-            entries.Clear();
-            entries.AddRange(update.Entries);
-
             guids.Clear();
             for (var index = 0; index < entries.Count; ++index)
             {
