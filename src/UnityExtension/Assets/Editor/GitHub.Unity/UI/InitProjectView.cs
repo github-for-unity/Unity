@@ -96,12 +96,9 @@ namespace GitHub.Unity
             Logger.Trace("Checking for user");
             isBusy = true;
 
-            GitClient.GetConfigUserAndEmail().FinallyInUI((success, ex, strings) => {
-                var username = strings[0];
-                var email = strings[1];
-
+            GitClient.GetConfigUserAndEmail().FinallyInUI((success, ex, user) => {
                 isBusy = false;
-                isUserDataPresent = success && !String.IsNullOrEmpty(username) && !String.IsNullOrEmpty(email);
+                isUserDataPresent = success && !String.IsNullOrEmpty(user.Name) && !String.IsNullOrEmpty(user.Email);
                 hasCompletedInitialCheck = true;
 
                 Logger.Trace("User Present: {0}", isUserDataPresent);

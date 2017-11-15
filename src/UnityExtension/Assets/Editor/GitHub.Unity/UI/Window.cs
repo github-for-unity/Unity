@@ -129,9 +129,8 @@ namespace GitHub.Unity
             if (Repository != null && activeTab == SubTab.InitProject)
             {
                 changeTab = SubTab.History;
+                UpdateActiveTab();
             }
-
-            UpdateActiveTab();
         }
 
         public override void OnSelectionChange()
@@ -317,7 +316,6 @@ namespace GitHub.Unity
             // Subtabs & toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
-                changeTab = activeTab;
                 EditorGUI.BeginChangeCheck();
                 {
                     if (HasRepository)
@@ -352,7 +350,8 @@ namespace GitHub.Unity
             {
                 var fromView = ActiveView;
                 activeTab = changeTab;
-                SwitchView(fromView, ActiveView);
+                var toView = ActiveView;
+                SwitchView(fromView, toView);
             }
         }
 
@@ -363,6 +362,7 @@ namespace GitHub.Unity
             if (fromView != null)
                 fromView.OnDisable();
             toView.OnEnable();
+            toView.OnDataUpdate();
 
             // this triggers a repaint
             Repaint();
@@ -424,9 +424,9 @@ namespace GitHub.Unity
             base.ShowNotification(content);
         }
 
-        private static SubTab TabButton(SubTab tab, string title, SubTab activeTab)
+        private static SubTab TabButton(SubTab tab, string title, SubTab currentTab)
         {
-            return GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
+            return GUILayout.Toggle(currentTab == tab, title, EditorStyles.toolbarButton) ? tab : currentTab;
         }
 
         private Subview ToView(SubTab tab)

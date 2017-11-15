@@ -56,19 +56,6 @@ namespace GitHub.Unity
             targetMode = mode;
         }
 
-        private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)
-        {
-            if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))
-            {
-                new ActionTask(TaskManager.Token, () =>
-                {
-                    lastLocalAndRemoteBranchListChangedEvent = cacheUpdateEvent;
-                    localAndRemoteBranchListHasUpdate = true;
-                    Redraw();
-                })
-                { Affinity = TaskAffinity.UI }.Start();
-            }
-        }
 
         public override void OnEnable()
         {
@@ -77,6 +64,7 @@ namespace GitHub.Unity
             if (Repository != null)
             {
                 Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
+                Repository.UpdateConfigData();
             }
         }
 
@@ -90,6 +78,16 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
             MaybeUpdateData();
+        }
+
+        private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))
+            {
+                lastLocalAndRemoteBranchListChangedEvent = cacheUpdateEvent;
+                localAndRemoteBranchListHasUpdate = true;
+                Redraw();
+            }
         }
 
         private void MaybeUpdateData()
@@ -114,16 +112,11 @@ namespace GitHub.Unity
 
         private void AttachHandlers(IRepository repository)
         {
-            if (repository == null)
-                return;
-
             repository.LocalAndRemoteBranchListChanged += RepositoryOnLocalAndRemoteBranchListChanged;
         }
 
         private void DetachHandlers(IRepository repository)
         {
-            if (repository == null)
-                return;
 
             repository.LocalAndRemoteBranchListChanged -= RepositoryOnLocalAndRemoteBranchListChanged;
         }

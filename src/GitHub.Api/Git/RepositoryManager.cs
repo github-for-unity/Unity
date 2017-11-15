@@ -40,6 +40,7 @@ namespace GitHub.Unity
         ITask LockFile(string file);
         ITask UnlockFile(string file, bool force);
         int WaitForEvents();
+        void UpdateConfigData();
 
         IGitConfig Config { get; }
         IGitClient GitClient { get; }
@@ -296,21 +297,17 @@ namespace GitHub.Unity
             return HookupHandlers(task);
         }
 
+        public void UpdateConfigData()
+        {
+            UpdateConfigData(false);
+        }
+
         private void LoadGitUser()
         {
             GitClient.GetConfigUserAndEmail()
-                .Then((success, strings) => {
-                    var username = strings[0];
-                    var email = strings[1];
-
-                    var user = new User {
-                        Name = username,
-                        Email = email
-                    };
-
+                .Then((success, user) => {
                     Logger.Trace("OnGitUserLoaded: {0}", user);
                     OnGitUserLoaded?.Invoke(user);
-
                 }).Start();
         }
 

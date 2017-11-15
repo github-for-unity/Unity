@@ -23,7 +23,7 @@ namespace GitHub.Unity
         ITask<string> SetConfig(string key, string value, GitConfigSource configSource,
             IOutputProcessor<string> processor = null);
 
-        ITask<string[]> GetConfigUserAndEmail();
+        ITask<User> GetConfigUserAndEmail();
 
         ITask<List<GitLock>> ListLocks(bool local,
             BaseOutputListProcessor<GitLock> processor = null);
@@ -255,26 +255,28 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<string[]> GetConfigUserAndEmail()
+        public ITask<User> GetConfigUserAndEmail()
         {
             string username = null;
             string email = null;
 
-            return GetConfig("user.name", GitConfigSource.User).Then((success, value) => {
-                if (success)
-                {
-                    username = value;
-                }
-
-            }).Then(GetConfig("user.email", GitConfigSource.User).Then((success, value) => {
-                if (success)
-                {
-                    email = value;
-                }
-            })).Then(success => {
-                Logger.Trace("user.name:{1} user.email:{2}", success, username, email);
-                return new[] { username, email };
-            });
+            return GetConfig("user.name", GitConfigSource.User)
+                .Then((success, value) => {
+                    if (success)
+                    {
+                        username = value;
+                    }
+                })
+                .Then(GetConfig("user.email", GitConfigSource.User)
+                .Then((success, value) => {
+                    if (success)
+                    {
+                        email = value;
+                    }
+                })).Then(success => {
+                    Logger.Trace("{0}:{1} {2}:{3}", "user.name", username, "user.email", email);
+                    return new User { Name= username, Email = email };
+                });
         }
 
         public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null)
