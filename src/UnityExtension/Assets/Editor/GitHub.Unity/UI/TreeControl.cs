@@ -11,22 +11,32 @@ namespace GitHub.Unity
     [Serializable]
     public class Tree
     {
-        [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
-        [SerializeField] private TreeNode selectedNode = null;
-        [SerializeField] private TreeNode activeNode = null;
         [SerializeField] public float ItemHeight = EditorGUIUtility.singleLineHeight;
         [SerializeField] public float ItemSpacing = EditorGUIUtility.standardVerticalSpacing;
         [SerializeField] public float Indentation = 12f;
         [SerializeField] public Rect Margin = new Rect();
         [SerializeField] public Rect Padding = new Rect();
-        [SerializeField] private List<string> foldersKeys = new List<string>();
-        [SerializeField] public Texture2D ActiveNodeIcon;
-        [SerializeField] public Texture2D NodeIcon;
-        [SerializeField] public Texture2D FolderIcon;
-        [SerializeField] public Texture2D RootFolderIcon;
+
+        [SerializeField] private SerializableTexture2D activeNodeIcon = new SerializableTexture2D();
+        public Texture2D ActiveNodeIcon {  get { return activeNodeIcon.Texture; } set { activeNodeIcon.Texture = value; } }
+
+        [SerializeField] private SerializableTexture2D nodeIcon = new SerializableTexture2D();
+        public Texture2D NodeIcon {  get { return nodeIcon.Texture; } set { nodeIcon.Texture = value; } }
+
+        [SerializeField] private SerializableTexture2D folderIcon = new SerializableTexture2D();
+        public Texture2D FolderIcon {  get { return folderIcon.Texture; } set { folderIcon.Texture = value; } }
+
+        [SerializeField] private SerializableTexture2D rootFolderIcon = new SerializableTexture2D();
+        public Texture2D RootFolderIcon {  get { return rootFolderIcon.Texture; } set { rootFolderIcon.Texture = value; } }
+
         [SerializeField] public GUIStyle FolderStyle;
         [SerializeField] public GUIStyle TreeNodeStyle;
         [SerializeField] public GUIStyle ActiveTreeNodeStyle;
+
+        [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
+        [SerializeField] private TreeNode selectedNode = null;
+        [SerializeField] private TreeNode activeNode = null;
+        [SerializeField] private List<string> foldersKeys = new List<string>();
 
         [NonSerialized] private Stack<bool> indents = new Stack<bool>();
         [NonSerialized] private Hashtable folders;
@@ -105,19 +115,9 @@ namespace GitHub.Unity
                         if (node.IsActive)
                         {
                             activeNode = node;
-                            node.Icon = ActiveNodeIcon;
                         }
-                        else if (node.IsFolder)
-                        {
-                            if (node.Level == 1)
-                                node.Icon = RootFolderIcon;
-                            else
-                                node.Icon = FolderIcon;
-                        }
-                        else
-                        {
-                            node.Icon = NodeIcon;
-                        }
+
+                        ResetNodeIcons(node);
 
                         node.Load();
 
@@ -142,6 +142,7 @@ namespace GitHub.Unity
             rect = new Rect(0f, rect.y, rect.width, ItemHeight);
 
             var titleNode = nodes[0];
+            ResetNodeIcons(titleNode);
             bool selectionChanged = titleNode.Render(rect, 0f, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
 
             if (selectionChanged)
@@ -159,6 +160,7 @@ namespace GitHub.Unity
             for (; i < nodes.Count; i++)
             {
                 var node = nodes[i];
+                ResetNodeIcons(node);
 
                 if (node.Level > level && !node.IsHidden)
                 {
@@ -373,6 +375,26 @@ namespace GitHub.Unity
         private void Unindent()
         {
             indents.Pop();
+        }
+
+        private void ResetNodeIcons(TreeNode node)
+        {
+            if (node.IsActive)
+            {
+                node.Icon = ActiveNodeIcon;
+            }
+            else if (node.IsFolder)
+            {
+                if (node.Level == 1)
+                    node.Icon = RootFolderIcon;
+                else
+                    node.Icon = FolderIcon;
+            }
+            else
+            {
+                node.Icon = NodeIcon;
+            }
+            node.Load();
         }
     }
 
