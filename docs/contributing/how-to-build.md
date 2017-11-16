@@ -6,7 +6,7 @@ This repository is LFS-enabled. To clone it, you should use a git client that su
 
 ### Windows
 
-- Visual Studio 2015+ or Mono 4.x + bash shell (git bash).
+- Visual Studio 2015+ or [Mono 4.x](https://download.mono-project.com/archive/4.8.1/windows-installer/) + bash shell (git bash).
   - Mono 5.x will not work
 - `UnityEngine.dll` and `UnityEditor.dll`.
   - If you've installed Unity in the default location of `C:\Program Files\Unity` or `C:\Program Files (x86)\Unity`, the build will be able to reference these DLLs automatically. Otherwise, you'll need to copy these DLLs from `[Unity installation path]\Unity\Editor\Data\Managed` into the `lib` directory in order for the build to work
@@ -48,7 +48,7 @@ To build with Visual Studio 2015+, open the solution file `GitHub.Unity.sln`. Se
 
 ### Mono and Bash (windows and mac)
 
-To build with Mono 4.x and Bash execute `build.sh` in a bash shell.
+To build with Mono 4.x and Bash, add `C:\Program Files\Mono\bin\` to PATH and execute `build.sh` in a bash shell.
 
 ## Build Output
 
