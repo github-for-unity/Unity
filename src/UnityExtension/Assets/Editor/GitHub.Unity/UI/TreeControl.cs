@@ -197,7 +197,6 @@ namespace GitHub.Unity
 
             Unindent();
 
-            foldersKeys = Folders.Keys.Cast<string>().ToList();
             Profiler.EndSample();
             return rect;
         }
