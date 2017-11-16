@@ -60,11 +60,8 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             AttachHandlers(Repository);
-            if (Repository != null)
-            {
-                Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
-                Repository.UpdateConfigData();
-            }
+            Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
+            Repository.UpdateConfigData();
         }
 
         public override void OnDisable()
@@ -116,7 +113,6 @@ namespace GitHub.Unity
 
         private void DetachHandlers(IRepository repository)
         {
-
             repository.LocalAndRemoteBranchListChanged -= RepositoryOnLocalAndRemoteBranchListChanged;
         }
 
