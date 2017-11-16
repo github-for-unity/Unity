@@ -208,6 +208,10 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="IconsAndLogos\globe%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\globe.png" />
+  </ItemGroup>
   <Import Project="..\..\..\..\..\common\nativelibraries.props" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
