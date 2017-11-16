@@ -112,7 +112,8 @@ namespace GitHub.Unity
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
-
+            if (titleContent.image == null)
+                titleContent = new GUIContent(Title, Styles.SmallLogo);
             MaybeUpdateData();
 
             if (ActiveView != null)
