@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using Octokit;
 using UnityEditor;
 using UnityEngine;
 using Application = UnityEngine.Application;
@@ -183,14 +183,22 @@ namespace GitHub.Unity
             {
                 if (!lastUpdatedAtValue.HasValue)
                 {
-                    lastUpdatedAtValue = DateTimeOffset.Parse(LastUpdatedAtString);
+                    DateTimeOffset result;
+                    if (DateTimeOffset.TryParseExact(LastUpdatedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    {
+                        lastUpdatedAtValue = result;
+                    }
+                    else
+                    {
+                        lastUpdatedAtValue = DateTimeOffset.MinValue;
+                    }
                 }
 
                 return lastUpdatedAtValue.Value;
             }
             set
             {
-                LastUpdatedAtString = value.ToString();
+                LastUpdatedAtString = value.ToString(Constants.Iso8601Format);
                 lastUpdatedAtValue = null;
             }
         }
@@ -201,14 +209,22 @@ namespace GitHub.Unity
             {
                 if (!lastVerifiedAtValue.HasValue)
                 {
-                    lastVerifiedAtValue = DateTimeOffset.Parse(LastVerifiedAtString);
+                    DateTimeOffset result;
+                    if (DateTimeOffset.TryParseExact(LastVerifiedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    {
+                        lastVerifiedAtValue = result;
+                    }
+                    else
+                    {
+                        lastVerifiedAtValue = DateTimeOffset.MinValue;
+                    }
                 }
 
                 return lastVerifiedAtValue.Value;
             }
             set
             {
-                LastVerifiedAtString = value.ToString();
+                LastVerifiedAtString = value.ToString(Constants.Iso8601Format);
                 lastVerifiedAtValue = null;
             }
         }
