@@ -769,16 +769,20 @@ namespace GitHub.Unity
 
         private void UpdateUserAndEmail()
         {
-            Logger.Trace("UpdateUserAndEmail");
+            if (gitClient != null)
+            {
+                Logger.Trace("UpdateUserAndEmail");
 
-            gitClient.GetConfigUserAndEmail()
-                .ThenInUI((success, value) => {
-                    if (success)
+                gitClient.GetConfigUserAndEmail()
+                    .ThenInUI((success, value) =>
                     {
-                        Name = value.Name;
-                        Email = value.Email;
-                    }
-                }).Start();
+                        if (success)
+                        {
+                            Name = value.Name;
+                            Email = value.Email;
+                        }
+                    }).Start();
+            }
         }
         
         protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
