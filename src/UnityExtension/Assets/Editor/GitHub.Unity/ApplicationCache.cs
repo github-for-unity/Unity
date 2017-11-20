@@ -235,14 +235,22 @@ namespace GitHub.Unity
             {
                 if (!initializedAtValue.HasValue)
                 {
-                    initializedAtValue = DateTimeOffset.Parse(InitializedAtString);
+                    DateTimeOffset result;
+                    if (DateTimeOffset.TryParseExact(InitializedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    {
+                        initializedAtValue = result;
+                    }
+                    else
+                    {
+                        initializedAtValue = DateTimeOffset.MinValue;
+                    }
                 }
 
                 return initializedAtValue.Value;
             }
             set
             {
-                InitializedAtString = value.ToString();
+                InitializedAtString = value.ToString(Constants.Iso8601Format);
                 initializedAtValue = null;
             }
         }
