@@ -68,6 +68,7 @@ namespace GitHub.Unity
             if (Repository != null)
             {
                 Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
+                Repository.UpdateConfigData();
             }
         }
 
@@ -87,13 +88,9 @@ namespace GitHub.Unity
         {
             if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(TaskManager.Token, () =>
-                    {
-                        lastLocalAndRemoteBranchListChangedEvent = cacheUpdateEvent;
-                        localAndRemoteBranchListHasUpdate = true;
-                        Redraw();
-                    })
-                    { Affinity = TaskAffinity.UI }.Start();
+                lastLocalAndRemoteBranchListChangedEvent = cacheUpdateEvent;
+                localAndRemoteBranchListHasUpdate = true;
+                Redraw();
             }
         }
 
@@ -113,16 +110,11 @@ namespace GitHub.Unity
 
         private void AttachHandlers(IRepository repository)
         {
-            if (repository == null)
-                return;
-
             repository.LocalAndRemoteBranchListChanged += RepositoryOnLocalAndRemoteBranchListChanged;
         }
 
         private void DetachHandlers(IRepository repository)
         {
-            if (repository == null)
-                return;
 
             repository.LocalAndRemoteBranchListChanged -= RepositoryOnLocalAndRemoteBranchListChanged;
         }

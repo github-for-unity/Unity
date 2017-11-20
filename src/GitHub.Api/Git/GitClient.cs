@@ -23,7 +23,7 @@ namespace GitHub.Unity
         ITask<string> SetConfig(string key, string value, GitConfigSource configSource,
             IOutputProcessor<string> processor = null);
 
-        ITask<string[]> GetConfigUserAndEmail();
+        ITask<User> GetConfigUserAndEmail();
 
         ITask<List<GitLock>> ListLocks(bool local,
             BaseOutputListProcessor<GitLock> processor = null);
@@ -83,10 +83,14 @@ namespace GitHub.Unity
         ITask<Version> Version(IOutputProcessor<Version> processor = null);
 
         ITask<Version> LfsVersion(IOutputProcessor<Version> processor = null);
+
+        ITask<User> SetConfigUserAndEmail(string username, string email);
     }
 
     class GitClient : IGitClient
     {
+        private const string UserNameConfigKey = "user.name";
+        private const string UserEmailConfigKey = "user.email";
         private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
@@ -255,26 +259,35 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<string[]> GetConfigUserAndEmail()
+        public ITask<User> GetConfigUserAndEmail()
         {
             string username = null;
             string email = null;
 
-            return GetConfig("user.name", GitConfigSource.User).Then((success, value) => {
-                if (success)
-                {
-                    username = value;
-                }
-
-            }).Then(GetConfig("user.email", GitConfigSource.User).Then((success, value) => {
-                if (success)
-                {
-                    email = value;
-                }
-            })).Then(success => {
-                Logger.Trace("user.name:{1} user.email:{2}", success, username, email);
-                return new[] { username, email };
+            return GetConfig(UserNameConfigKey, GitConfigSource.User)
+                .Then((success, value) => {
+                    if (success)
+                    {
+                        username = value;
+                    }
+                })
+                .Then(GetConfig(UserEmailConfigKey, GitConfigSource.User)
+                .Then((success, value) => {
+                    if (success)
+                    {
+                        email = value;
+                    }
+                })).Then(success => {
+                Logger.Trace("{0}:{1} {2}:{3}", UserNameConfigKey, username, UserEmailConfigKey, email);
+                return new User { Name = username, Email = email };
             });
+        }
+
+        public ITask<User> SetConfigUserAndEmail(string username, string email)
+        {
+            return SetConfig(UserNameConfigKey, username, GitConfigSource.User)
+                .Then(SetConfig(UserEmailConfigKey, email, GitConfigSource.User))
+                .Then(b => new User { Name = username, Email = email });
         }
 
         public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null)

@@ -40,6 +40,7 @@ namespace GitHub.Unity
         ITask LockFile(string file);
         ITask UnlockFile(string file, bool force);
         int WaitForEvents();
+        void UpdateConfigData();
 
         IGitConfig Config { get; }
         IGitClient GitClient { get; }
@@ -95,7 +96,6 @@ namespace GitHub.Unity
         private readonly IGitClient gitClient;
         private readonly IPlatform platform;
         private readonly IRepositoryPathConfiguration repositoryPaths;
-        private readonly ITaskManager taskManager;
         private readonly IRepositoryWatcher watcher;
 
         private bool isBusy;
@@ -112,13 +112,12 @@ namespace GitHub.Unity
         public event Action<string, string> OnRemoteBranchRemoved;
         public event Action OnRepositoryUpdated;
 
-        public RepositoryManager(IPlatform platform, ITaskManager taskManager, IGitConfig gitConfig,
+        public RepositoryManager(IPlatform platform, IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
             IRepositoryPathConfiguration repositoryPaths)
         {
             this.repositoryPaths = repositoryPaths;
             this.platform = platform;
-            this.taskManager = taskManager;
             this.gitClient = gitClient;
             this.watcher = repositoryWatcher;
             this.config = gitConfig;
@@ -135,7 +134,7 @@ namespace GitHub.Unity
 
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
 
-            return new RepositoryManager(platform, taskManager, gitConfig, repositoryWatcher,
+            return new RepositoryManager(platform, gitConfig, repositoryWatcher,
                 gitClient, repositoryPathConfiguration);
         }
 
@@ -296,21 +295,17 @@ namespace GitHub.Unity
             return HookupHandlers(task);
         }
 
+        public void UpdateConfigData()
+        {
+            UpdateConfigData(false);
+        }
+
         private void LoadGitUser()
         {
             GitClient.GetConfigUserAndEmail()
-                .Then((success, strings) => {
-                    var username = strings[0];
-                    var email = strings[1];
-
-                    var user = new User {
-                        Name = username,
-                        Email = email
-                    };
-
+                .Then((success, user) => {
                     Logger.Trace("OnGitUserLoaded: {0}", user);
                     OnGitUserLoaded?.Invoke(user);
-
                 }).Start();
         }
 

@@ -329,8 +329,8 @@ namespace GitHub.Unity
                     Summary = summary,
                     Description = description,
                     CommitID = commitId,
-                    TimeString = time.Value.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = committerTime.Value.ToString(DateTimeFormatInfo.CurrentInfo)
+                    TimeString = time.Value.ToString(Constants.Iso8601Format),
+                    CommitTimeString = committerTime.Value.ToString(Constants.Iso8601Format)
                 });
             }
 
