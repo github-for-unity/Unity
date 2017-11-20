@@ -63,7 +63,7 @@ namespace GitHub.Unity
 
     }
 
-    public interface IRemoteConfigBranchDictionary : IDictionary<string, IDictionary<string, ConfigBranch>>
+    public interface IRemoteConfigBranchDictionary : IDictionary<string, Dictionary<string, ConfigBranch>>
     {
 
     }
