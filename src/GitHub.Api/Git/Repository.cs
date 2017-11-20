@@ -704,7 +704,7 @@ namespace GitHub.Unity
             {
                 var dateTimeOffset = managedCache.LastUpdatedAt;
                 var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
-                HandleGitLogCacheUpdatedEvent(updateEvent);
+                HandleUserCacheUpdatedEvent(updateEvent);
             }
         }
 
@@ -749,7 +749,7 @@ namespace GitHub.Unity
 
         private void GitUserCacheOnCacheUpdated(DateTimeOffset timeOffset)
         {
-            HandleGitLogCacheUpdatedEvent(new CacheUpdateEvent
+            HandleUserCacheUpdatedEvent(new CacheUpdateEvent
             {
                 UpdatedTimeString = timeOffset.ToString()
             });
@@ -761,7 +761,7 @@ namespace GitHub.Unity
             UpdateUserAndEmail();
         }
 
-        private void HandleGitLogCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
+        private void HandleUserCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             Logger.Trace("GitUserCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
             Changed?.Invoke(cacheUpdateEvent);
