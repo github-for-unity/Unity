@@ -84,7 +84,7 @@ namespace GitHub.Unity
 
         ITask<Version> LfsVersion(IOutputProcessor<Version> processor = null);
 
-        ITask<GitUser> SetConfigUserAndEmail(string username, string email);
+        ITask<GitUser> SetConfigNameAndEmail(string username, string email);
     }
 
     class GitClient : IGitClient
@@ -283,7 +283,7 @@ namespace GitHub.Unity
             });
         }
 
-        public ITask<GitUser> SetConfigUserAndEmail(string username, string email)
+        public ITask<GitUser> SetConfigNameAndEmail(string username, string email)
         {
             return SetConfig(UserNameConfigKey, username, GitConfigSource.User)
                 .Then(SetConfig(UserEmailConfigKey, email, GitConfigSource.User))

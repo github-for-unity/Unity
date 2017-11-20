@@ -63,7 +63,7 @@ namespace GitHub.Unity
                         GUI.FocusControl(null);
                         isBusy = true;
 
-                        GitClient.SetConfigUserAndEmail(newGitName, newGitEmail);
+                        User.SetNameAndEmail(newGitName, newGitEmail);
                     }
                 }
                 EditorGUI.EndDisabledGroup();
@@ -92,7 +92,7 @@ namespace GitHub.Unity
 
         private void UserOnUserChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            Logger.Trace("GitClientOnCurrentUserChanged");
+            Logger.Trace("UserOnUserChanged");
 
             if (!lastCheckUserChangedEvent.Equals(cacheUpdateEvent))
             {

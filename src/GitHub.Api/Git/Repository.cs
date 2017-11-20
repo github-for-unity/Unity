@@ -672,6 +672,8 @@ namespace GitHub.Unity
         string Email { get; }
         event Action<CacheUpdateEvent> UserChanged;
         void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent);
+        void Initialize(IGitClient client);
+        void SetNameAndEmail(string name, string email);
     }
 
     [Serializable]
@@ -704,6 +706,28 @@ namespace GitHub.Unity
                 var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
                 HandleGitLogCacheUpdatedEvent(updateEvent);
             }
+        }
+
+        public void Initialize(IGitClient client)
+        {
+            Guard.ArgumentNotNull(client, nameof(client));
+
+            Logger.Trace("Initialize");
+
+            gitClient = client;
+            UpdateUserAndEmail();
+        }
+
+        public void SetNameAndEmail(string name, string email)
+        {
+            gitClient.SetConfigNameAndEmail(name, email)
+                     .ThenInUI((success, value) => {
+                         if (success)
+                         {
+                             Name = value.Name;
+                             Email = value.Email;
+                         }
+                     }).Start();
         }
 
         public override string ToString()
