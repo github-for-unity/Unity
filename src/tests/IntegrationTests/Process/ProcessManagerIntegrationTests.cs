@@ -57,8 +57,8 @@ namespace IntegrationTests
                     CommitID = "018997938335742f8be694240a7c2b352ec0835f",
                     Description = "Moving project files where they should be kept",
                     Summary = "Moving project files where they should be kept",
-                    TimeString = firstCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = firstCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    TimeString = firstCommitTime.ToString(Constants.Iso8601Format),
+                    CommitTimeString = firstCommitTime.ToString(Constants.Iso8601Format),
                 },
                 new GitLogEntry
                 {
@@ -75,8 +75,8 @@ namespace IntegrationTests
                     CommitID = "03939ffb3eb8486dba0259b43db00842bbe6eca1",
                     Description = "Initial Commit",
                     Summary = "Initial Commit",
-                    TimeString = secondCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = secondCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    TimeString = secondCommitTime.ToString(Constants.Iso8601Format),
+                    CommitTimeString = secondCommitTime.ToString(Constants.Iso8601Format),
                 },
             });
         }
@@ -110,8 +110,8 @@ namespace IntegrationTests
                     CommitID = "06d6451d351626894a30e9134f551db12c74254b",
                     Description = "Я люблю github",
                     Summary = "Я люблю github",
-                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
+                    TimeString = commitTime.ToString(Constants.Iso8601Format),
+                    CommitTimeString = commitTime.ToString(Constants.Iso8601Format),
                 }
             });
         }
