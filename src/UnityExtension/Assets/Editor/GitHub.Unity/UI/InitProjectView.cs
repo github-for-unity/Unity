@@ -88,10 +88,10 @@ namespace GitHub.Unity
 
         private void AttachHandlers()
         {
-            User.UserChanged += UserOnUserChanged;
+            User.Changed += UserOnChanged;
         }
 
-        private void UserOnUserChanged(CacheUpdateEvent cacheUpdateEvent)
+        private void UserOnChanged(CacheUpdateEvent cacheUpdateEvent)
         {
             if (!lastCheckUserChangedEvent.Equals(cacheUpdateEvent))
             {
@@ -107,7 +107,7 @@ namespace GitHub.Unity
 
         private void DetachHandlers()
         {
-            User.UserChanged -= UserOnUserChanged;
+            User.Changed -= UserOnChanged;
         }
 
         private void MaybeUpdateData()

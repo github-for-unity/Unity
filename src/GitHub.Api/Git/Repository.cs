@@ -670,7 +670,7 @@ namespace GitHub.Unity
     {
         string Name { get; }
         string Email { get; }
-        event Action<CacheUpdateEvent> UserChanged;
+        event Action<CacheUpdateEvent> Changed;
         void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent);
         void Initialize(IGitClient client);
         void SetNameAndEmail(string name, string email);
@@ -682,7 +682,7 @@ namespace GitHub.Unity
         private ICacheContainer cacheContainer;
         private IGitClient gitClient;
 
-        public event Action<CacheUpdateEvent> UserChanged;
+        public event Action<CacheUpdateEvent> Changed;
 
         public User(ICacheContainer cacheContainer)
         {
@@ -764,7 +764,7 @@ namespace GitHub.Unity
         private void HandleGitLogCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             Logger.Trace("GitUserCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
-            UserChanged?.Invoke(cacheUpdateEvent);
+            Changed?.Invoke(cacheUpdateEvent);
         }
 
         private void UpdateUserAndEmail()
@@ -785,7 +785,7 @@ namespace GitHub.Unity
             }
         }
         
-        protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
+        protected static ILogging Logger { get; } = Logging.GetLogger<User>();
     }
 
     [Serializable]
