@@ -323,6 +323,9 @@ namespace GitHub.Unity
                 case CacheType.GitUserCache:
                     break;
 
+                case CacheType.RepositoryInfoCache:
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(cacheType), cacheType, null);
             }
