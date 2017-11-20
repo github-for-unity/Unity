@@ -1058,7 +1058,7 @@ namespace GitHub.Unity
 
                 Logger.Trace("Updating: {0} Name:{1}", now, value);
 
-                if (!gitName.Equals(value))
+                if (gitName != value)
                 {
                     gitName = value;
                     isUpdated = true;
@@ -1082,7 +1082,7 @@ namespace GitHub.Unity
 
                 Logger.Trace("Updating: {0} Email:{1}", now, value);
 
-                if (!gitEmail.Equals(value))
+                if (gitEmail != value)
                 {
                     gitEmail = value;
                     isUpdated = true;
