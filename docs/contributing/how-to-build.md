@@ -48,7 +48,7 @@ To build with Visual Studio 2015+, open the solution file `GitHub.Unity.sln`. Se
 
 ### Mono and Bash (windows and mac)
 
-To build with Mono 4.x and Bash, add `C:\Program Files\Mono\bin\` to PATH and execute `build.sh` in a bash shell.
+To build with Mono 4.x and Bash, first ensure Mono is added to PATH. Mono installs to `C:\Program Files\Mono\bin\` by default. Then execute `build.sh` in a bash shell.
 
 ## Build Output
 
