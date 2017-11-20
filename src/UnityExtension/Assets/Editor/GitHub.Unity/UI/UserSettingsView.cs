@@ -76,10 +76,7 @@ namespace GitHub.Unity
             base.OnEnable();
             AttachHandlers();
 
-            if (GitClient != null)
-            {
-                GitClient.CheckUserChangedEvent(lastCheckUserChangedEvent);
-            }
+            User.CheckUserChangedEvent(lastCheckUserChangedEvent);
         }
 
         public override void OnDisable()
@@ -90,13 +87,10 @@ namespace GitHub.Unity
         
         private void AttachHandlers()
         {
-            if (GitClient != null)
-            {
-                GitClient.CurrentUserChanged += GitClientOnCurrentUserChanged;
-            }
+            User.UserChanged += UserOnUserChanged;
         }
 
-        private void GitClientOnCurrentUserChanged(CacheUpdateEvent cacheUpdateEvent)
+        private void UserOnUserChanged(CacheUpdateEvent cacheUpdateEvent)
         {
             Logger.Trace("GitClientOnCurrentUserChanged");
 
@@ -114,10 +108,7 @@ namespace GitHub.Unity
 
         private void DetachHandlers()
         {
-            if (GitClient != null)
-            {
-                GitClient.CurrentUserChanged -= GitClientOnCurrentUserChanged;
-            }
+            User.UserChanged -= UserOnUserChanged;
         }
 
         private void MaybeUpdateData()
@@ -125,9 +116,8 @@ namespace GitHub.Unity
             if (userHasChanges)
             {
                 userHasChanges = false;
-                var currentUser = GitClient.CurrentUser;
-                gitName = newGitName = currentUser.Name;
-                gitEmail = newGitEmail = currentUser.Email;
+                gitName = newGitName = User.Name;
+                gitEmail = newGitEmail = User.Email;
             }
         }
 

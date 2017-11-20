@@ -668,15 +668,43 @@ namespace GitHub.Unity
 
     public interface IUser
     {
-        string Name { get; set; }
-        string Email { get; set; }
+        string Name { get; }
+        string Email { get; }
+        event Action<CacheUpdateEvent> UserChanged;
+        void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent);
     }
 
     [Serializable]
     public class User : IUser
     {
-        public string name;
-        public string email;
+        private ICacheContainer cacheContainer;
+        private IGitClient gitClient;
+
+        public event Action<CacheUpdateEvent> UserChanged;
+
+        public User(ICacheContainer cacheContainer)
+        {
+            this.cacheContainer = cacheContainer;
+
+            cacheContainer.GitUserCache.CacheInvalidated += GitUserCacheOnCacheInvalidated;
+            cacheContainer.GitUserCache.CacheUpdated += GitUserCacheOnCacheUpdated;
+        }
+
+        public void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            var managedCache = cacheContainer.GitUserCache;
+            var raiseEvent = managedCache.ShouldRaiseCacheEvent(cacheUpdateEvent);
+
+            Logger.Trace("Check GitUserCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
+                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+
+            if (raiseEvent)
+            {
+                var dateTimeOffset = managedCache.LastUpdatedAt;
+                var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
+                HandleGitLogCacheUpdatedEvent(updateEvent);
+            }
+        }
 
         public override string ToString()
         {
@@ -685,15 +713,54 @@ namespace GitHub.Unity
 
         public string Name
         {
-            get { return name; }
-            set { name = value; }
+            get { return cacheContainer.GitUserCache.User.Name; }
+            private set { cacheContainer.GitUserCache.User.Name = value; }
         }
 
         public string Email
         {
-            get { return email; }
-            set { email = value; }
+            get { return cacheContainer.GitUserCache.User.Email; }
+            private set { cacheContainer.GitUserCache.User.Email = value; }
         }
+
+        private void GitUserCacheOnCacheUpdated(DateTimeOffset timeOffset)
+        {
+            HandleGitLogCacheUpdatedEvent(new CacheUpdateEvent
+            {
+                UpdatedTimeString = timeOffset.ToString()
+            });
+        }
+
+        private void GitUserCacheOnCacheInvalidated()
+        {
+            Logger.Trace("GitUserCache Invalidated");
+            UpdateUserAndEmail();
+        }
+
+        private void HandleGitLogCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            Logger.Trace("GitUserCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
+            UserChanged?.Invoke(cacheUpdateEvent);
+        }
+
+        private void UpdateUserAndEmail()
+        {
+            Logger.Trace("UpdateUserAndEmail");
+
+            string username = null;
+            string email = null;
+
+            gitClient.GetConfigUserAndEmail()
+                .Then((success, value) => {
+                    if (success)
+                    {
+                        username = value.Name;
+                        email = value.Email;
+                    }
+                }).Start();
+        }
+        
+        protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
     }
 
     [Serializable]
