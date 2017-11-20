@@ -323,6 +323,9 @@ namespace GitHub.Unity
                 case CacheType.GitUserCache:
                     break;
 
+                case CacheType.RepositoryInfoCache:
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(cacheType), cacheType, null);
             }
@@ -442,7 +445,7 @@ namespace GitHub.Unity
                 {
                         CurrentConfigRemote = remote;
                         CurrentRemote = GetGitRemote(remote.Value);
-                        UpdateRepositoryInfo();
+                        ClearRepositoryInfo();
                 }
             }) { Affinity = TaskAffinity.UI }.Start();
         }
@@ -485,20 +488,10 @@ namespace GitHub.Unity
             LocalBranches = LocalConfigBranches.Values.Select(GetLocalGitBranch).ToArray();
         }
 
-        private void UpdateRepositoryInfo()
+        private void ClearRepositoryInfo()
         {
-            if (CurrentRemote.HasValue)
-            {
-                CloneUrl = new UriString(CurrentRemote.Value.Url);
-                Name = CloneUrl.RepositoryName;
-                Logger.Trace("CloneUrl: {0}", CloneUrl.ToString());
-            }
-            else
-            {
-                CloneUrl = null;
-                Name = LocalPath.FileName;
-                Logger.Trace("CloneUrl: [NULL]");
-            }
+            CloneUrl = null;
+            Name = null;
         }
 
         private void RepositoryManager_OnLocalBranchRemoved(string name)
