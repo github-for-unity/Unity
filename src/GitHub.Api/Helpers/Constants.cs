@@ -9,6 +9,7 @@ namespace GitHub.Unity
         public const string UsageFile = "usage.json";
         public const string GitInstallPathKey = "GitInstallPath";
         public const string TraceLoggingKey = "EnableTraceLogging";
+        public const string Iso8601Format = "o";
 
         public static readonly Version MinimumGitVersion = new Version(2, 11, 0);
         public static readonly Version MinimumGitLfsVersion = new Version(2, 3, 4);

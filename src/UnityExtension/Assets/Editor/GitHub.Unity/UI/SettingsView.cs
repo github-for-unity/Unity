@@ -51,12 +51,8 @@ namespace GitHub.Unity
             userSettingsView.OnEnable();
             AttachHandlers(Repository);
 
-            if (Repository != null)
-            {
-                Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
-                Repository.CheckLocksChangedEvent(lastLocksChangedEvent);
-            }
-
+            Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
+            Repository.CheckLocksChangedEvent(lastLocksChangedEvent);
             metricsHasChanged = true;
         }
 
