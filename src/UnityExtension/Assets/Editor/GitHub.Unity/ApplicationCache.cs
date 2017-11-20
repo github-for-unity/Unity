@@ -19,18 +19,7 @@ namespace GitHub.Unity
         {
             get
             {
-                if (!firstRunValue.HasValue)
-                {
-                    firstRunValue = firstRun;
-                }
-
-                if (firstRun)
-                {
-                    firstRun = false;
-                    FirstRunAt = DateTimeOffset.Now;
-                    Save(true);
-                }
-
+                EnsureFirstRun();
                 return firstRunValue.Value;
             }
         }
@@ -39,17 +28,34 @@ namespace GitHub.Unity
         {
             get
             {
+                EnsureFirstRun();
+
                 if (!firstRunAtValue.HasValue)
                 {
-                    firstRunAtValue = DateTimeOffset.Parse(firstRunAtString);
+                    firstRunAtValue = DateTimeOffset.ParseExact(firstRunAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture);
                 }
 
                 return firstRunAtValue.Value;
             }
             private set
             {
-                firstRunAtString = value.ToString();
-                firstRunAtValue = null;
+                firstRunAtString = value.ToString(Constants.Iso8601Format);
+                firstRunAtValue = value;
+            }
+        }
+
+        private void EnsureFirstRun()
+        {
+            if (!firstRunValue.HasValue)
+            {
+                firstRunValue = firstRun;
+            }
+
+            if (firstRun)
+            {
+                firstRun = false;
+                FirstRunAt = DateTimeOffset.Now;
+                Save(true);
             }
         }
     }
