@@ -199,7 +199,7 @@ namespace GitHub.Unity
             set
             {
                 LastUpdatedAtString = value.ToString(Constants.Iso8601Format);
-                lastUpdatedAtValue = null;
+                lastUpdatedAtValue = value;
             }
         }
 
@@ -225,7 +225,7 @@ namespace GitHub.Unity
             set
             {
                 LastVerifiedAtString = value.ToString(Constants.Iso8601Format);
-                lastVerifiedAtValue = null;
+                lastVerifiedAtValue = value;
             }
         }
 
@@ -251,7 +251,7 @@ namespace GitHub.Unity
             set
             {
                 InitializedAtString = value.ToString(Constants.Iso8601Format);
-                initializedAtValue = null;
+                initializedAtValue = value;
             }
         }
 
