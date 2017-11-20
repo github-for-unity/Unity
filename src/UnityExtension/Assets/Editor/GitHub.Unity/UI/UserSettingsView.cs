@@ -118,6 +118,7 @@ namespace GitHub.Unity
                 userHasChanges = false;
                 gitName = newGitName = User.Name;
                 gitEmail = newGitEmail = User.Email;
+                needsSaving = false;
             }
         }
 
