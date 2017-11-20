@@ -1008,28 +1008,53 @@ namespace GitHub.Unity
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private User user;
+        [SerializeField] private string gitName;
+        [SerializeField] private string gitEmail;
 
         public GitUserCache() : base(true)
         { }
 
-        public User User
+        public string Name
         {
             get
             {
                 ValidateData();
-                return user;
+                return gitName;
             }
             set
             {
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} user:{1}", now, value);
+                Logger.Trace("Updating: {0} Name:{1}", now, value);
 
-                if (!user.Equals(value))
+                if (!gitName.Equals(value))
                 {
-                    user = value;
+                    gitName = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public string Email
+        {
+            get
+            {
+                ValidateData();
+                return gitEmail;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} Email:{1}", now, value);
+
+                if (!gitEmail.Equals(value))
+                {
+                    gitEmail = value;
                     isUpdated = true;
                 }
 

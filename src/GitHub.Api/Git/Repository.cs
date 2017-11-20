@@ -713,14 +713,14 @@ namespace GitHub.Unity
 
         public string Name
         {
-            get { return cacheContainer.GitUserCache.User.Name; }
-            private set { cacheContainer.GitUserCache.User.Name = value; }
+            get { return cacheContainer.GitUserCache.Name; }
+            private set { cacheContainer.GitUserCache.Name = value; }
         }
 
         public string Email
         {
-            get { return cacheContainer.GitUserCache.User.Email; }
-            private set { cacheContainer.GitUserCache.User.Email = value; }
+            get { return cacheContainer.GitUserCache.Email; }
+            private set { cacheContainer.GitUserCache.Email = value; }
         }
 
         private void GitUserCacheOnCacheUpdated(DateTimeOffset timeOffset)
@@ -747,15 +747,12 @@ namespace GitHub.Unity
         {
             Logger.Trace("UpdateUserAndEmail");
 
-            string username = null;
-            string email = null;
-
             gitClient.GetConfigUserAndEmail()
-                .Then((success, value) => {
+                .ThenInUI((success, value) => {
                     if (success)
                     {
-                        username = value.Name;
-                        email = value.Email;
+                        Name = value.Name;
+                        Email = value.Email;
                     }
                 }).Start();
         }
