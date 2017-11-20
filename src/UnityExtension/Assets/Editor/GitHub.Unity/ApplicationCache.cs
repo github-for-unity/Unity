@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using Octokit;
 using UnityEditor;
 using UnityEngine;
 using Application = UnityEngine.Application;
@@ -19,18 +19,7 @@ namespace GitHub.Unity
         {
             get
             {
-                if (!firstRunValue.HasValue)
-                {
-                    firstRunValue = firstRun;
-                }
-
-                if (firstRun)
-                {
-                    firstRun = false;
-                    FirstRunAt = DateTimeOffset.Now;
-                    Save(true);
-                }
-
+                EnsureFirstRun();
                 return firstRunValue.Value;
             }
         }
@@ -39,17 +28,34 @@ namespace GitHub.Unity
         {
             get
             {
+                EnsureFirstRun();
+
                 if (!firstRunAtValue.HasValue)
                 {
-                    firstRunAtValue = DateTimeOffset.Parse(firstRunAtString);
+                    firstRunAtValue = DateTimeOffset.ParseExact(firstRunAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture);
                 }
 
                 return firstRunAtValue.Value;
             }
             private set
             {
-                firstRunAtString = value.ToString();
-                firstRunAtValue = null;
+                firstRunAtString = value.ToString(Constants.Iso8601Format);
+                firstRunAtValue = value;
+            }
+        }
+
+        private void EnsureFirstRun()
+        {
+            if (!firstRunValue.HasValue)
+            {
+                firstRunValue = firstRun;
+            }
+
+            if (firstRun)
+            {
+                firstRun = false;
+                FirstRunAt = DateTimeOffset.Now;
+                Save(true);
             }
         }
     }
@@ -183,15 +189,23 @@ namespace GitHub.Unity
             {
                 if (!lastUpdatedAtValue.HasValue)
                 {
-                    lastUpdatedAtValue = DateTimeOffset.Parse(LastUpdatedAtString);
+                    DateTimeOffset result;
+                    if (DateTimeOffset.TryParseExact(LastUpdatedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    {
+                        lastUpdatedAtValue = result;
+                    }
+                    else
+                    {
+                        lastUpdatedAtValue = DateTimeOffset.MinValue;
+                    }
                 }
 
                 return lastUpdatedAtValue.Value;
             }
             set
             {
-                LastUpdatedAtString = value.ToString();
-                lastUpdatedAtValue = null;
+                LastUpdatedAtString = value.ToString(Constants.Iso8601Format);
+                lastUpdatedAtValue = value;
             }
         }
 
@@ -201,15 +215,23 @@ namespace GitHub.Unity
             {
                 if (!lastVerifiedAtValue.HasValue)
                 {
-                    lastVerifiedAtValue = DateTimeOffset.Parse(LastVerifiedAtString);
+                    DateTimeOffset result;
+                    if (DateTimeOffset.TryParseExact(LastVerifiedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    {
+                        lastVerifiedAtValue = result;
+                    }
+                    else
+                    {
+                        lastVerifiedAtValue = DateTimeOffset.MinValue;
+                    }
                 }
 
                 return lastVerifiedAtValue.Value;
             }
             set
             {
-                LastVerifiedAtString = value.ToString();
-                lastVerifiedAtValue = null;
+                LastVerifiedAtString = value.ToString(Constants.Iso8601Format);
+                lastVerifiedAtValue = value;
             }
         }
 
@@ -219,15 +241,23 @@ namespace GitHub.Unity
             {
                 if (!initializedAtValue.HasValue)
                 {
-                    initializedAtValue = DateTimeOffset.Parse(InitializedAtString);
+                    DateTimeOffset result;
+                    if (DateTimeOffset.TryParseExact(InitializedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    {
+                        initializedAtValue = result;
+                    }
+                    else
+                    {
+                        initializedAtValue = DateTimeOffset.MinValue;
+                    }
                 }
 
                 return initializedAtValue.Value;
             }
             set
             {
-                InitializedAtString = value.ToString();
-                initializedAtValue = null;
+                InitializedAtString = value.ToString(Constants.Iso8601Format);
+                initializedAtValue = value;
             }
         }
 
