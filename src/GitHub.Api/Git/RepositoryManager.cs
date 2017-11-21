@@ -270,12 +270,25 @@ namespace GitHub.Unity
         public void UpdateGitLog()
         {
             var task = GitClient.Log();
-            HookupHandlers(task);
+            task = HookupHandlers(task, false, false);
             task.Then((success, logEntries) =>
             {
                 if (success)
                 {
                     GitLogUpdated?.Invoke(logEntries);
+                }
+            }).Start();
+        }
+
+        public void UpdateGitStatus()
+        {
+            var task = GitClient.Status();
+            task = HookupHandlers(task, true, false);
+            task.Then((success, status) =>
+            {
+                if (success)
+                {
+                    GitStatusUpdated?.Invoke(status);
                 }
             }).Start();
         }
@@ -321,7 +334,7 @@ namespace GitHub.Unity
         public void UpdateLocks()
         {
             var task = GitClient.ListLocks(false);
-            HookupHandlers(task);
+            HookupHandlers(task, false, false);
             task.Then((success, locks) =>
             {
                 if (success)
@@ -389,31 +402,6 @@ namespace GitHub.Unity
             Logger.Trace("CurrentBranch: {0}", branch.HasValue ? branch.Value.ToString() : "[NULL]");
             Logger.Trace("CurrentRemote: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
             CurrentBranchUpdated?.Invoke(branch, remote);
-        }
-
-        private ITask HookupHandlers(ITask task, bool disableWatcher = false)
-        {
-            task.OnStart += t => {
-                Logger.Trace("Start " + task.Name);
-                IsBusy = true;
-
-                if (disableWatcher)
-                {
-                    watcher.Stop();
-                }
-            };
-
-            task.OnEnd += t => {
-                if (disableWatcher)
-                {
-                    watcher.Start();
-                }
-
-                IsBusy = false;
-
-                Logger.Trace("Finish " + task.Name);
-            };
-            return task;
         }
 
         private void WatcherOnRemoteBranchesChanged()
