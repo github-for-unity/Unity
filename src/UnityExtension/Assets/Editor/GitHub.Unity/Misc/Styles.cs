@@ -69,6 +69,7 @@ namespace GitHub.Unity
                                 commitFileAreaStyle,
                                 commitButtonStyle,
                                 textFieldStyle,
+                                boldCenteredLabel,
                                 centeredLabel,
                                 commitDescriptionFieldStyle,
                                 toggleMixedStyle,
@@ -94,6 +95,7 @@ namespace GitHub.Unity
                                  localCommitIcon,
                                  repoIcon,
                                  lockIcon,
+                                 emptyStateInit,
                                  dropdownListIcon;
 
         public static Texture2D GetFileStatusIcon(GitFileStatus status, bool isLocked)
@@ -556,6 +558,22 @@ namespace GitHub.Unity
             }
         }
 
+        public static GUIStyle BoldCenteredLabel
+        {
+            get
+            {
+                if (boldCenteredLabel == null)
+                {
+                    boldCenteredLabel = new GUIStyle(EditorStyles.boldLabel);
+                    boldCenteredLabel.name = "BoldCenteredLabelStyle";
+                    boldCenteredLabel.alignment = TextAnchor.MiddleCenter;
+                    boldCenteredLabel.wordWrap = true;
+                }
+                return boldCenteredLabel;
+            }
+        }
+
+
         public static GUIStyle CommitDescriptionFieldStyle
         {
             get
@@ -591,7 +609,6 @@ namespace GitHub.Unity
                 {
                     authHeaderBoxStyle = new GUIStyle(HeaderBoxStyle);
                     authHeaderBoxStyle.name = "AuthHeaderBoxStyle";
-                    authHeaderBoxStyle.padding = new RectOffset(10, 10, 0, 5);
                 }
                 return authHeaderBoxStyle;
             }
@@ -786,6 +803,19 @@ namespace GitHub.Unity
                 }
                 return lockIcon;
             }
+        }
+
+        public static Texture2D EmptyStateInit
+        {
+          get
+          {
+            if (emptyStateInit == null)
+            {
+              emptyStateInit = Utility.GetIcon("empty-state-init.png", "empty-state-init@2x.png");
+            }
+            return emptyStateInit;
+          }
+
         }
 
         public static Texture2D DropdownListIcon

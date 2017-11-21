@@ -2,12 +2,12 @@ using System.Threading;
 
 namespace GitHub.Unity
 {
-    class GitStatusTask : ProcessTask<GitStatus?>
+    class GitStatusTask : ProcessTask<GitStatus>
     {
         private const string TaskName = "git status";
 
         public GitStatusTask(IGitObjectFactory gitObjectFactory,
-            CancellationToken token, IOutputProcessor<GitStatus?> processor = null)
+            CancellationToken token, IOutputProcessor<GitStatus> processor = null)
             : base(token, processor ?? new StatusOutputProcessor(gitObjectFactory))
         {
             Name = TaskName;

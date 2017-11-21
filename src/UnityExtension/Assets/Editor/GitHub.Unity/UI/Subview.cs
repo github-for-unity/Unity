@@ -48,9 +48,6 @@ namespace GitHub.Unity
             Parent.Finish(result);
         }
 
-        public virtual void OnRepositoryChanged(IRepository oldRepository)
-        {}
-
         protected IView Parent { get; private set; }
         public IApplicationManager Manager { get { return Parent.Manager; } }
         public IRepository Repository { get { return Parent.Repository; } }

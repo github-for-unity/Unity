@@ -22,7 +22,7 @@ namespace GitHub.Unity
         [SerializeField] private string gitEmail;
         [SerializeField] private string newGitName;
         [SerializeField] private string newGitEmail;
-        [SerializeField] private User cachedUser;
+        [SerializeField] private bool needsSaving;
 
         public override void InitializeView(IView parent)
         {
@@ -43,11 +43,17 @@ namespace GitHub.Unity
 
             EditorGUI.BeginDisabledGroup(IsBusy || Parent.IsBusy);
             {
-                newGitName = EditorGUILayout.TextField(GitConfigNameLabel, newGitName);
-                newGitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, newGitEmail);
+                EditorGUI.BeginChangeCheck();
+                {
+                    newGitName = EditorGUILayout.TextField(GitConfigNameLabel, newGitName);
+                    newGitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, newGitEmail);
+                }
 
-                var needsSaving = (newGitName != gitName || newGitEmail != gitEmail)
-                    && !(string.IsNullOrEmpty(newGitName) || string.IsNullOrEmpty(newGitEmail));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    needsSaving = !(string.IsNullOrEmpty(newGitName) || string.IsNullOrEmpty(newGitEmail))
+                        && (newGitName != gitName || newGitEmail != gitEmail);
+                }
 
                 EditorGUI.BeginDisabledGroup(!needsSaving);
                 {
@@ -56,48 +62,27 @@ namespace GitHub.Unity
                         GUI.FocusControl(null);
                         isBusy = true;
 
-                        GitClient.SetConfig("user.name", newGitName, GitConfigSource.User)
-                                 .Then((success, value) =>
-                                 {
+                        GitClient.SetConfigUserAndEmail(newGitName, newGitEmail)
+                                 .FinallyInUI((success, exception, user) => {
+                                     isBusy = false;
                                      if (success)
                                      {
                                          if (Repository != null)
                                          {
-                                             Repository.User.Name = newGitName;
+                                             Repository.User.Name = gitName = newGitName;
+                                             Repository.User.Email = gitEmail = newGitEmail;
                                          }
                                          else
                                          {
-                                             if (cachedUser == null)
-                                             {
-                                                 cachedUser = new User();
-                                             }
-                                             cachedUser.Name = newGitName;
+                                             gitName = newGitName;
+                                             gitEmail = newGitEmail;
                                          }
-                                     }
-                                 })
-                                 .Then(
-                                     GitClient.SetConfig("user.email", newGitEmail, GitConfigSource.User)
-                                              .Then((success, value) =>
-                                              {
-                                                  if (success)
-                                                  {
-                                                      if (Repository != null)
-                                                      {
-                                                          Repository.User.Email = newGitEmail;
-                                                      }
-                                                      else
-                                                      {
-                                                          cachedUser.Email = newGitEmail;
-                                                      }
 
-                                                      userDataHasChanged = true;
-                                                  }
-                                              }))
-                                 .FinallyInUI((_, __) =>
-                                 {
-                                     isBusy = false;
-                                     Redraw();
-                                     Finish(true);
+                                         needsSaving = false;
+
+                                         Redraw();
+                                         Finish(true);
+                                     }
                                  })
                                  .Start();
                     }
@@ -107,49 +92,55 @@ namespace GitHub.Unity
             EditorGUI.EndDisabledGroup();
         }
 
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            userDataHasChanged = true;
+        }
+
         private void MaybeUpdateData()
         {
-            if (Repository == null)
+            if (userDataHasChanged)
             {
-                if (!String.IsNullOrEmpty(EntryPoint.Environment.GitExecutablePath))
+                userDataHasChanged = false;
+
+                if (Repository == null)
                 {
-                    if ((cachedUser == null || String.IsNullOrEmpty(cachedUser.Name)) && GitClient != null)
-                    {
-                        GitClient.GetConfigUserAndEmail().FinallyInUI((success, ex, strings) => {
-                            var username = strings[0];
-                            var email = strings[1];
-
-                            if (success && !String.IsNullOrEmpty(username) && !String.IsNullOrEmpty(email))
-                            {
-                                cachedUser = new User {
-                                    Name = username,
-                                    Email = email
-                                };
-
-                                userDataHasChanged = true;
-                                Redraw();
-                            }
-                        }).Start();
-                    }
+                    UpdateUserDataFromClient();
                 }
-
-                if (userDataHasChanged)
+                else
                 {
-                    newGitName = gitName = cachedUser.Name;
-                    newGitEmail = gitEmail = cachedUser.Email;
-                    userDataHasChanged = false;
+                    newGitName = gitName = Repository.User.Name;
+                    newGitEmail = gitEmail = Repository.User.Email;
+                    needsSaving = false;
                 }
+            }
+        }
+
+        private void UpdateUserDataFromClient()
+        {
+            if (String.IsNullOrEmpty(EntryPoint.Environment.GitExecutablePath))
+            {
                 return;
             }
 
-            userDataHasChanged = Repository.User.Name != gitName || Repository.User.Email != gitEmail;
-
-            if (!userDataHasChanged)
+            if (GitClient == null)
+            {
                 return;
+            }
 
-            userDataHasChanged = false;
-            newGitName = gitName = Repository.User.Name;
-            newGitEmail = gitEmail = Repository.User.Email;
+            Logger.Trace("Update user data from GitClient");
+
+            GitClient.GetConfigUserAndEmail()
+                .ThenInUI((success, user) => {
+                    if (success && !String.IsNullOrEmpty(user.Name) && !String.IsNullOrEmpty(user.Email))
+                    {
+                        newGitName = gitName = user.Name;
+                        newGitEmail = gitEmail = user.Email;
+                        needsSaving = false;
+                        Redraw();
+                    }
+                }).Start();
         }
 
         public override bool IsBusy

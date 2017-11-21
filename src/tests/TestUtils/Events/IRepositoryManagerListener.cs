@@ -20,8 +20,7 @@ namespace TestUtils.Events
         void OnRemoteBranchAdded(string origin, string name);
         void OnRemoteBranchRemoved(string origin, string name);
         void OnGitUserLoaded(IUser user);
-        void OnCurrentBranchUpdated(ConfigBranch? configBranch);
-        void OnCurrentRemoteUpdated(ConfigRemote? configRemote);
+        void OnCurrentBranchAndRemoteUpdated(ConfigBranch? configBranch, ConfigRemote? configRemote);
     }
 
     class RepositoryManagerEvents
@@ -30,8 +29,7 @@ namespace TestUtils.Events
         public EventWaitHandle OnIsNotBusy { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnStatusUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnLocksUpdated { get; } = new AutoResetEvent(false);
-        public EventWaitHandle OnCurrentBranchUpdated { get; } = new AutoResetEvent(false);
-        public EventWaitHandle OnCurrentRemoteUpdated { get; } = new AutoResetEvent(false);
+        public EventWaitHandle OnCurrentBranchAndRemoteUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnHeadUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnLocalBranchListUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnRemoteBranchListUpdated { get; } = new AutoResetEvent(false);
@@ -48,8 +46,7 @@ namespace TestUtils.Events
             OnIsNotBusy.Reset();
             OnStatusUpdated.Reset();
             OnLocksUpdated.Reset();
-            OnCurrentBranchUpdated.Reset();
-            OnCurrentRemoteUpdated.Reset();
+            OnCurrentBranchAndRemoteUpdated.Reset();
             OnHeadUpdated.Reset();
             OnLocalBranchListUpdated.Reset();
             OnRemoteBranchListUpdated.Reset();
@@ -94,29 +91,10 @@ namespace TestUtils.Events
                     managerEvents?.OnIsNotBusy.Set();
             };
 
-            repositoryManager.OnStatusUpdated += status => {
-                logger?.Debug("OnStatusUpdated: {0}", status);
-                listener.OnStatusUpdated(status);
-                managerEvents?.OnStatusUpdated.Set();
-            };
-
-            repositoryManager.OnLocksUpdated += locks => {
-                var lockArray = locks.ToArray();
-                logger?.Trace("OnLocksUpdated Count:{0}", lockArray.Length);
-                listener.OnLocksUpdated(lockArray);
-                managerEvents?.OnLocksUpdated.Set();
-            };
-
-            repositoryManager.OnCurrentBranchUpdated += configBranch => {
-                logger?.Trace("OnCurrentBranchUpdated");
-                listener.OnCurrentBranchUpdated(configBranch);
-                managerEvents?.OnCurrentBranchUpdated.Set();
-            };
-
-            repositoryManager.OnCurrentRemoteUpdated += configRemote => {
-                logger?.Trace("OnCurrentRemoteUpdated");
-                listener.OnCurrentRemoteUpdated(configRemote);
-                managerEvents?.OnCurrentRemoteUpdated.Set();
+            repositoryManager.OnCurrentBranchAndRemoteUpdated += (configBranch, configRemote) => {
+                logger?.Trace("OnCurrentBranchAndRemoteUpdated");
+                listener.OnCurrentBranchAndRemoteUpdated(configBranch, configRemote);
+                managerEvents?.OnCurrentBranchAndRemoteUpdated.Set();
             };
 
             repositoryManager.OnLocalBranchListUpdated += branchList => {
@@ -173,8 +151,7 @@ namespace TestUtils.Events
             repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().OnStatusUpdated(Args.GitStatus);
             repositoryManagerListener.DidNotReceive().OnLocksUpdated(Args.EnumerableGitLock);
-            repositoryManagerListener.DidNotReceive().OnCurrentBranchUpdated(Arg.Any<ConfigBranch?>());
-            repositoryManagerListener.DidNotReceive().OnCurrentRemoteUpdated(Arg.Any<ConfigRemote?>());
+            repositoryManagerListener.DidNotReceive().OnCurrentBranchAndRemoteUpdated(Arg.Any<ConfigBranch?>(), Arg.Any<ConfigRemote?>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchListUpdated(Arg.Any<Dictionary<string, ConfigBranch>>());
             repositoryManagerListener.DidNotReceive().OnRemoteBranchListUpdated(Arg.Any<Dictionary<string, ConfigRemote>>(), Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>());
             repositoryManagerListener.DidNotReceive().OnLocalBranchUpdated(Args.String);

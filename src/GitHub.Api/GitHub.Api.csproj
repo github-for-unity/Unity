@@ -99,6 +99,9 @@
     <Compile Include="Application\ApplicationInfo.cs" />
     <Compile Include="Application\LoginResult.cs" />
     <Compile Include="Application\AppConfiguration.cs" />
+    <Compile Include="Application\OctokitExtensions.cs" />
+    <Compile Include="Application\Organization.cs" />
+    <Compile Include="Cache\CacheInterfaces.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />
     <Compile Include="Git\Tasks\GitVersionTask.cs" />
@@ -110,7 +113,6 @@
     <Compile Include="Authentication\ILoginManager.cs" />
     <Compile Include="Application\ApplicationManagerBase.cs" />
     <Compile Include="Helpers\Constants.cs" />
-    <Compile Include="Cache\IBranchCache.cs" />
     <Compile Include="Helpers\Validation.cs" />
     <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
     <Compile Include="OutputProcessors\VersionOutputProcessor.cs" />

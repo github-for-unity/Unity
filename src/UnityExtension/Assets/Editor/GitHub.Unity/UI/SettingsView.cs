@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,24 +18,23 @@ namespace GitHub.Unity
         private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
         private const string DefaultRepositoryRemoteName = "origin";
 
+        [NonSerialized] private bool currentLocksHasUpdate;
+        [NonSerialized] private bool currentRemoteHasUpdate;
         [NonSerialized] private bool isBusy;
+        [NonSerialized] private bool metricsHasChanged;
 
+        [SerializeField] private GitPathView gitPathView = new GitPathView();
+        [SerializeField] private bool hasRemote;
+        [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
         [SerializeField] private List<GitLock> lockedFiles = new List<GitLock>();
+        [SerializeField] private int lockedFileSelection = -1;
         [SerializeField] private Vector2 lockScrollPos;
+        [SerializeField] private bool metricsEnabled;
+        [SerializeField] private string newRepositoryRemoteUrl;
         [SerializeField] private string repositoryRemoteName;
         [SerializeField] private string repositoryRemoteUrl;
         [SerializeField] private Vector2 scroll;
-        [SerializeField] private int lockedFileSelection = -1;
-        [SerializeField] private bool hasRemote;
-        [NonSerialized] private bool remoteHasChanged;
-        [NonSerialized] private bool locksHaveChanged;
-
-        [SerializeField] private string newRepositoryRemoteUrl;
-        
-        [SerializeField] private bool metricsEnabled;
-        [NonSerialized] private bool metricsHasChanged;
-        
-        [SerializeField] private GitPathView gitPathView = new GitPathView();
         [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
 
         public override void InitializeView(IView parent)
@@ -47,7 +44,6 @@ namespace GitHub.Unity
             userSettingsView.InitializeView(this);
         }
 
-
         public override void OnEnable()
         {
             base.OnEnable();
@@ -55,9 +51,13 @@ namespace GitHub.Unity
             userSettingsView.OnEnable();
             AttachHandlers(Repository);
 
-            remoteHasChanged = true;
+            if (Repository != null)
+            {
+                Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
+                Repository.CheckLocksChangedEvent(lastLocksChangedEvent);
+            }
+
             metricsHasChanged = true;
-            locksHaveChanged = true;
         }
 
         public override void OnDisable()
@@ -77,47 +77,11 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        public override void OnRepositoryChanged(IRepository oldRepository)
-        {
-            base.OnRepositoryChanged(oldRepository);
-            gitPathView.OnRepositoryChanged(oldRepository);
-            userSettingsView.OnRepositoryChanged(oldRepository);
-
-            DetachHandlers(oldRepository);
-            AttachHandlers(Repository);
-
-            remoteHasChanged = true;
-
-            Refresh();
-        }
-
         public override void Refresh()
         {
             base.Refresh();
             gitPathView.Refresh();
             userSettingsView.Refresh();
-            if (Repository != null && Repository.CurrentRemote.HasValue)
-            {
-                Repository.ListLocks().Start();
-            }
-        }
-
-        private void AttachHandlers(IRepository repository)
-        {
-            if (repository == null)
-                return;
-
-            repository.OnCurrentRemoteChanged += Repository_OnActiveRemoteChanged;
-            repository.OnLocksChanged += RunLocksUpdateOnMainThread;
-        }
-
-        private void DetachHandlers(IRepository repository)
-        {
-            if (repository == null)
-                return;
-
-            repository.OnCurrentRemoteChanged -= Repository_OnActiveRemoteChanged;
-            repository.OnLocksChanged -= RunLocksUpdateOnMainThread;
         }
 
         public override void OnGUI()
@@ -147,6 +111,49 @@ namespace GitHub.Unity
             GUILayout.EndScrollView();
         }
 
+        private void AttachHandlers(IRepository repository)
+        {
+            if (repository == null)
+            {
+                return;
+            }
+
+            repository.CurrentRemoteChanged += RepositoryOnCurrentRemoteChanged;
+            repository.LocksChanged += RepositoryOnLocksChanged;
+        }
+
+        private void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastLocksChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () => {
+                    lastLocksChangedEvent = cacheUpdateEvent;
+                    currentLocksHasUpdate = true;
+                    Redraw();
+                }) { Affinity = TaskAffinity.UI }.Start();
+            }
+        }
+
+        private void RepositoryOnCurrentRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastCurrentRemoteChangedEvent.Equals(cacheUpdateEvent))
+            {
+                new ActionTask(TaskManager.Token, () => {
+                    lastCurrentRemoteChangedEvent = cacheUpdateEvent;
+                    currentRemoteHasUpdate = true;
+                    Redraw();
+                }) { Affinity = TaskAffinity.UI }.Start();
+            }
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+            {
+                return;
+            }
+        }
+
         private void MaybeUpdateData()
         {
             if (metricsHasChanged)
@@ -161,14 +168,11 @@ namespace GitHub.Unity
             if (Repository == null)
                 return;
 
-            if (!remoteHasChanged && !locksHaveChanged)
-                return;
-
-            if (remoteHasChanged)
+            if (currentRemoteHasUpdate)
             {
-                remoteHasChanged = false;
-                var activeRemote = Repository.CurrentRemote;
-                hasRemote = activeRemote.HasValue && !String.IsNullOrEmpty(activeRemote.Value.Url);
+                currentRemoteHasUpdate = false;
+                var currentRemote = Repository.CurrentRemote;
+                hasRemote = currentRemote.HasValue && !String.IsNullOrEmpty(currentRemote.Value.Url);
                 if (!hasRemote)
                 {
                     repositoryRemoteName = DefaultRepositoryRemoteName;
@@ -176,44 +180,19 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    repositoryRemoteName = activeRemote.Value.Name;
-                    newRepositoryRemoteUrl = repositoryRemoteUrl = activeRemote.Value.Url;
+                    repositoryRemoteName = currentRemote.Value.Name;
+                    newRepositoryRemoteUrl = repositoryRemoteUrl = currentRemote.Value.Url;
                 }
             }
 
-            if (locksHaveChanged)
+            if (currentLocksHasUpdate)
             {
-                locksHaveChanged = false;
+                currentLocksHasUpdate = false;
                 var repositoryCurrentLocks = Repository.CurrentLocks;
                 lockedFiles = repositoryCurrentLocks != null
                     ? repositoryCurrentLocks.ToList()
                     : new List<GitLock>();
             }
-        }
-
-        private void Repository_OnActiveRemoteChanged(string remote)
-        {
-            remoteHasChanged = true;
-        }
-
-        private void RunLocksUpdateOnMainThread(IEnumerable<GitLock> locks)
-        {
-            new ActionTask(TaskManager.Token, _ => OnLocksUpdate(locks))
-                .ScheduleUI(TaskManager);
-        }
-
-        private void OnLocksUpdate(IEnumerable<GitLock> update)
-        {
-            if (update == null)
-            {
-                return;
-            }
-            lockedFiles = update.ToList();
-            if (lockedFiles.Count <= lockedFileSelection)
-            {
-                lockedFileSelection = -1;
-            }
-            Redraw();
         }
 
         private void OnRepositorySettingsGUI()
