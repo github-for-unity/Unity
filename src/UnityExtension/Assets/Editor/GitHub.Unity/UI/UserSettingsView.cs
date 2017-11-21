@@ -22,6 +22,7 @@ namespace GitHub.Unity
         [SerializeField] private string gitEmail;
         [SerializeField] private string newGitName;
         [SerializeField] private string newGitEmail;
+        [SerializeField] private bool needsSaving;
 
         public override void InitializeView(IView parent)
         {
@@ -42,11 +43,17 @@ namespace GitHub.Unity
 
             EditorGUI.BeginDisabledGroup(IsBusy || Parent.IsBusy);
             {
-                newGitName = EditorGUILayout.TextField(GitConfigNameLabel, newGitName);
-                newGitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, newGitEmail);
+                EditorGUI.BeginChangeCheck();
+                {
+                    newGitName = EditorGUILayout.TextField(GitConfigNameLabel, newGitName);
+                    newGitEmail = EditorGUILayout.TextField(GitConfigEmailLabel, newGitEmail);
+                }
 
-                var needsSaving = (newGitName != gitName || newGitEmail != gitEmail)
-                    && !(string.IsNullOrEmpty(newGitName) || string.IsNullOrEmpty(newGitEmail));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    needsSaving = !(string.IsNullOrEmpty(newGitName) || string.IsNullOrEmpty(newGitEmail))
+                        && (newGitName != gitName || newGitEmail != gitEmail);
+                }
 
                 EditorGUI.BeginDisabledGroup(!needsSaving);
                 {
@@ -55,44 +62,27 @@ namespace GitHub.Unity
                         GUI.FocusControl(null);
                         isBusy = true;
 
-                        GitClient.SetConfig("user.name", newGitName, GitConfigSource.User)
-                                 .Then((success, value) =>
-                                 {
+                        GitClient.SetConfigUserAndEmail(newGitName, newGitEmail)
+                                 .FinallyInUI((success, exception, user) => {
+                                     isBusy = false;
                                      if (success)
                                      {
                                          if (Repository != null)
                                          {
                                              Repository.User.Name = gitName = newGitName;
+                                             Repository.User.Email = gitEmail = newGitEmail;
                                          }
                                          else
                                          {
                                              gitName = newGitName;
+                                             gitEmail = newGitEmail;
                                          }
-                                     }
-                                 })
-                                 .Then(
-                                     GitClient.SetConfig("user.email", newGitEmail, GitConfigSource.User)
-                                              .Then((success, value) =>
-                                              {
-                                                  if (success)
-                                                  {
-                                                      if (Repository != null)
-                                                      {
-                                                          Repository.User.Email = gitEmail = newGitEmail;
-                                                      }
-                                                      else
-                                                      {
-                                                          gitEmail = newGitEmail;
-                                                      }
 
-                                                      userDataHasChanged = true;
-                                                  }
-                                              }))
-                                 .FinallyInUI((_, __) =>
-                                 {
-                                     isBusy = false;
-                                     Redraw();
-                                     Finish(true);
+                                         needsSaving = false;
+
+                                         Redraw();
+                                         Finish(true);
+                                     }
                                  })
                                  .Start();
                     }
@@ -122,6 +112,7 @@ namespace GitHub.Unity
                 {
                     newGitName = gitName = Repository.User.Name;
                     newGitEmail = gitEmail = Repository.User.Email;
+                    needsSaving = false;
                 }
             }
         }
@@ -146,6 +137,7 @@ namespace GitHub.Unity
                     {
                         newGitName = gitName = user.Name;
                         newGitEmail = gitEmail = user.Email;
+                        needsSaving = false;
                         Redraw();
                     }
                 }).Start();
