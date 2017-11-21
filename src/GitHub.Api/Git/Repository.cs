@@ -148,7 +148,7 @@ namespace GitHub.Unity
         public void CheckLogChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.GitLogCache;
-            var raiseEvent = managedCache.ShouldRaiseCacheEvent(cacheUpdateEvent);
+            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
 
             Logger.Trace("Check GitLogCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
@@ -164,7 +164,7 @@ namespace GitHub.Unity
         public void CheckStatusChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.GitStatusCache;
-            var raiseEvent = managedCache.ShouldRaiseCacheEvent(cacheUpdateEvent);
+            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
 
             Logger.Trace("Check GitStatusCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
@@ -195,7 +195,7 @@ namespace GitHub.Unity
         private void CheckRepositoryInfoCacheEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.RepositoryInfoCache;
-            var raiseEvent = managedCache.ShouldRaiseCacheEvent(cacheUpdateEvent);
+            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
 
             Logger.Trace("Check RepositoryInfoCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
@@ -212,7 +212,7 @@ namespace GitHub.Unity
         {
             CacheUpdateEvent cacheUpdateEvent1 = cacheUpdateEvent;
             var managedCache = cacheContainer.GitLocksCache;
-            var raiseEvent = managedCache.ShouldRaiseCacheEvent(cacheUpdateEvent1);
+            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent1);
 
             Logger.Trace("Check GitLocksCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent1.UpdatedTimeString ?? "[NULL]", raiseEvent);
@@ -275,7 +275,7 @@ namespace GitHub.Unity
         private void CheckBranchCacheEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.BranchCache;
-            var raiseEvent = managedCache.ShouldRaiseCacheEvent(cacheUpdateEvent);
+            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
 
             Logger.Trace("Check BranchCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
@@ -685,7 +685,7 @@ namespace GitHub.Unity
         public void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.GitUserCache;
-            var raiseEvent = managedCache.ShouldRaiseCacheEvent(cacheUpdateEvent);
+            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
 
             Logger.Trace("Check GitUserCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
