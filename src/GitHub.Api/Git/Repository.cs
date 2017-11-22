@@ -35,7 +35,6 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(localPath, nameof(localPath));
 
             LocalPath = localPath;
-            User = new User();
 
             cacheContainer = container;
             cacheContainer.CacheInvalidated += CacheContainer_OnCacheInvalidated;
@@ -57,7 +56,6 @@ namespace GitHub.Unity
             repositoryManager.OnLocalBranchRemoved += RepositoryManager_OnLocalBranchRemoved;
             repositoryManager.OnRemoteBranchAdded += RepositoryManager_OnRemoteBranchAdded;
             repositoryManager.OnRemoteBranchRemoved += RepositoryManager_OnRemoteBranchRemoved;
-            repositoryManager.OnGitUserLoaded += user => User = user;
         }
 
         public ITask SetupRemote(string remote, string remoteUrl)
@@ -120,7 +118,7 @@ namespace GitHub.Unity
         public void CheckLogChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.GitLogCache;
-            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
+            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
 
             Logger.Trace("Check GitLogCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
@@ -136,7 +134,7 @@ namespace GitHub.Unity
         public void CheckStatusChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.GitStatusCache;
-            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
+            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
 
             Logger.Trace("Check GitStatusCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
@@ -167,7 +165,7 @@ namespace GitHub.Unity
         private void CheckRepositoryInfoCacheEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.RepositoryInfoCache;
-            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
+            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
 
             Logger.Trace("Check RepositoryInfoCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
@@ -184,7 +182,7 @@ namespace GitHub.Unity
         {
             CacheUpdateEvent cacheUpdateEvent1 = cacheUpdateEvent;
             var managedCache = cacheContainer.GitLocksCache;
-            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent1, managedCache);
+            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent1);
 
             Logger.Trace("Check GitLocksCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent1.UpdatedTimeString ?? "[NULL]", raiseEvent);
@@ -247,7 +245,7 @@ namespace GitHub.Unity
         private void CheckBranchCacheEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.BranchCache;
-            var raiseEvent = ShouldRaiseCacheEvent(cacheUpdateEvent, managedCache);
+            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
 
             Logger.Trace("Check BranchCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
@@ -258,20 +256,6 @@ namespace GitHub.Unity
                 var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
                 HandleBranchCacheUpdatedEvent(updateEvent);
             }
-        }
-
-        private static bool ShouldRaiseCacheEvent(CacheUpdateEvent cacheUpdateEvent, IManagedCache managedCache)
-        {
-            bool raiseEvent;
-            if (cacheUpdateEvent.UpdatedTimeString == null)
-            {
-                raiseEvent = managedCache.LastUpdatedAt != DateTimeOffset.MinValue;
-            }
-            else
-            {
-                raiseEvent = managedCache.LastUpdatedAt.ToString() != cacheUpdateEvent.UpdatedTimeString;
-            }
-            return raiseEvent;
         }
 
         private void CacheContainer_OnCacheInvalidated(CacheType cacheType)
@@ -642,27 +626,129 @@ namespace GitHub.Unity
             "{0} Owner: {1} Name: {2} CloneUrl: {3} LocalPath: {4} Branch: {5} Remote: {6}", GetHashCode(), Owner, Name,
             CloneUrl, LocalPath, CurrentBranch, CurrentRemote);
 
-        public IUser User { get; set; }
-
         protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
     }
 
     public interface IUser
     {
-        string Name { get; set; }
-        string Email { get; set; }
+        string Name { get; }
+        string Email { get; }
+        event Action<CacheUpdateEvent> Changed;
+        void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent);
+        void Initialize(IGitClient client);
+        void SetNameAndEmail(string name, string email);
     }
 
     [Serializable]
     public class User : IUser
     {
+        private ICacheContainer cacheContainer;
+        private IGitClient gitClient;
+
+        public event Action<CacheUpdateEvent> Changed;
+
+        public User(ICacheContainer cacheContainer)
+        {
+            this.cacheContainer = cacheContainer;
+
+            cacheContainer.GitUserCache.CacheInvalidated += GitUserCacheOnCacheInvalidated;
+            cacheContainer.GitUserCache.CacheUpdated += GitUserCacheOnCacheUpdated;
+        }
+
+        public void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            var managedCache = cacheContainer.GitUserCache;
+            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
+
+            Logger.Trace("Check GitUserCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
+                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+
+            if (raiseEvent)
+            {
+                var dateTimeOffset = managedCache.LastUpdatedAt;
+                var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
+                HandleUserCacheUpdatedEvent(updateEvent);
+            }
+        }
+
+        public void Initialize(IGitClient client)
+        {
+            Guard.ArgumentNotNull(client, nameof(client));
+
+            Logger.Trace("Initialize");
+
+            gitClient = client;
+            UpdateUserAndEmail();
+        }
+
+        public void SetNameAndEmail(string name, string email)
+        {
+            gitClient.SetConfigNameAndEmail(name, email)
+                     .ThenInUI((success, value) => {
+                         if (success)
+                         {
+                             Name = value.Name;
+                             Email = value.Email;
+                         }
+                     }).Start();
+        }
+
         public override string ToString()
         {
             return String.Format("Name: {0} Email: {1}", Name, Email);
         }
 
-        public string Name { get; set; }
-        public string Email { get; set; }
+        public string Name
+        {
+            get { return cacheContainer.GitUserCache.Name; }
+            private set { cacheContainer.GitUserCache.Name = value; }
+        }
+
+        public string Email
+        {
+            get { return cacheContainer.GitUserCache.Email; }
+            private set { cacheContainer.GitUserCache.Email = value; }
+        }
+
+        private void GitUserCacheOnCacheUpdated(DateTimeOffset timeOffset)
+        {
+            HandleUserCacheUpdatedEvent(new CacheUpdateEvent
+            {
+                UpdatedTimeString = timeOffset.ToString()
+            });
+        }
+
+        private void GitUserCacheOnCacheInvalidated()
+        {
+            Logger.Trace("GitUserCache Invalidated");
+            UpdateUserAndEmail();
+        }
+
+        private void HandleUserCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            Logger.Trace("GitUserCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
+            Changed?.Invoke(cacheUpdateEvent);
+        }
+
+        private void UpdateUserAndEmail()
+        {
+            if (gitClient != null)
+            {
+                Logger.Trace("UpdateUserAndEmail");
+
+                gitClient.GetConfigUserAndEmail()
+                    .ThenInUI((success, value) =>
+                    {
+                        if (success)
+                        {
+                            Name = value.Name;
+                            Email = value.Email;
+                        }
+                    }).Start();
+            }
+        }
+        
+        protected static ILogging Logger { get; } = Logging.GetLogger<User>();
     }
 
     [Serializable]

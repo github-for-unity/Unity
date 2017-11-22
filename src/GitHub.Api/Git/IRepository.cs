@@ -61,7 +61,6 @@ namespace GitHub.Unity
         GitRemote[] Remotes { get; }
         GitBranch[] LocalBranches { get; }
         GitBranch[] RemoteBranches { get; }
-        IUser User { get; set; }
         List<GitLock> CurrentLocks { get; }
         string CurrentBranchName { get; }
         List<GitLogEntry> CurrentLog { get; }
