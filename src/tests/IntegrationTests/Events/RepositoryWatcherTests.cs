@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
-    [TestFixture, Category("TimeSensitive")]
+    [TestFixture]
     class RepositoryWatcherTests : BaseGitEnvironmentTest
     {
-        [Test, Category("TimeSensitive")]
+        [Test]
         public async Task ShouldDetectFileChangesAndCommit()
         {
             await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);

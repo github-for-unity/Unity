@@ -25,6 +25,15 @@ namespace IntegrationTests
             Environment.GitExecutablePath = gitSetup.GitExecutablePath;
 
             Platform = new Platform(Environment);
+
+            Logger.Trace("Bleeding Events");
+            BleedEvents(TestRepoMasterCleanUnsynchronized);
+            BleedEvents(TestRepoMasterCleanUnsynchronizedRussianLanguage);
+            BleedEvents(TestRepoMasterCleanSynchronized);
+            BleedEvents(TestRepoMasterDirtyUnsynchronized);
+            BleedEvents(TestRepoMasterTwoRemotes);
+            Logger.Trace("Bled Events");
+
             GitEnvironment = Platform.GitEnvironment;
             ProcessManager = new ProcessManager(Environment, GitEnvironment, TaskManager.Token);
 
@@ -63,6 +72,20 @@ namespace IntegrationTests
             DotGitHead = DotGitPath.Combine("HEAD");
             DotGitConfig = DotGitPath.Combine("config");
             return Environment;
+        }
+
+        private void BleedEvents(NPath path)
+        {
+            using (var repositoryWatcher = new RepositoryWatcher(Platform, new RepositoryPathConfiguration(path), CancellationToken.None))
+            {
+                repositoryWatcher.Initialize();
+                repositoryWatcher.Start();
+                while (repositoryWatcher.CheckAndProcessEvents() != 0)
+                {
+                    Thread.Sleep(TimeSpan.FromSeconds(2));
+                }
+                repositoryWatcher.Stop();
+            }
         }
 
         public override void OnTearDown()

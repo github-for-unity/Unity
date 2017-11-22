@@ -56,7 +56,6 @@ test:
   categories:
     except:
     - DoNotRunOnAppVeyor
-    - TimeSensitive
 artifacts:
 - path: unity\PackageProject
   type: zip

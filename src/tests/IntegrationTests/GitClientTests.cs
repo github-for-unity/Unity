@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace IntegrationTests
 {
-    [TestFixture/*, Category("TimeSensitive")*/]
+    [TestFixture]
     class GitClientTests : BaseGitEnvironmentTest
     {
         [Test]
