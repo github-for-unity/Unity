@@ -23,7 +23,7 @@ namespace GitHub.Unity
         ITask<string> SetConfig(string key, string value, GitConfigSource configSource,
             IOutputProcessor<string> processor = null);
 
-        ITask<User> GetConfigUserAndEmail();
+        ITask<GitUser> GetConfigUserAndEmail();
 
         ITask<List<GitLock>> ListLocks(bool local,
             BaseOutputListProcessor<GitLock> processor = null);
@@ -84,7 +84,7 @@ namespace GitHub.Unity
 
         ITask<Version> LfsVersion(IOutputProcessor<Version> processor = null);
 
-        ITask<User> SetConfigUserAndEmail(string username, string email);
+        ITask<GitUser> SetConfigNameAndEmail(string username, string email);
     }
 
     class GitClient : IGitClient
@@ -259,7 +259,7 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<User> GetConfigUserAndEmail()
+        public ITask<GitUser> GetConfigUserAndEmail()
         {
             string username = null;
             string email = null;
@@ -279,15 +279,15 @@ namespace GitHub.Unity
                     }
                 })).Then(success => {
                 Logger.Trace("{0}:{1} {2}:{3}", UserNameConfigKey, username, UserEmailConfigKey, email);
-                return new User { Name = username, Email = email };
+                return new GitUser(username, email);
             });
         }
 
-        public ITask<User> SetConfigUserAndEmail(string username, string email)
+        public ITask<GitUser> SetConfigNameAndEmail(string username, string email)
         {
             return SetConfig(UserNameConfigKey, username, GitConfigSource.User)
                 .Then(SetConfig(UserEmailConfigKey, email, GitConfigSource.User))
-                .Then(b => new User { Name = username, Email = email });
+                .Then(b => new GitUser(username, email));
         }
 
         public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null)
@@ -463,5 +463,27 @@ namespace GitHub.Unity
         }
 
         protected static ILogging Logger { get; } = Logging.GetLogger<GitClient>();
+    }
+
+    public struct GitUser
+    {
+        public static GitUser Default = new GitUser();
+
+        public string name;
+        public string email;
+
+        public string Name { get { return name; } }
+        public string Email { get { return email; } }
+
+        public GitUser(string name, string email)
+        {
+            this.name = name;
+            this.email = email;
+        }
+
+        public override string ToString()
+        {
+            return $"Name:\"{Name}\" Email:\"{Email}\"";
+        }
     }
 }
