@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
-    [TestFixture]
+    [TestFixture, Category("DoNotRunOnAppVeyor")]
     class RepositoryWatcherTests : BaseGitEnvironmentTest
     {
         [Test]
