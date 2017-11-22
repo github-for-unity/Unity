@@ -109,6 +109,44 @@ namespace IntegrationTests
         }
 
         [Test]
+        public async Task ProcessOnStartOnEndTaskOrder()
+        {
+            var values = new List<string>();
+            string process1Value = null;
+            string process2Value = null;
+
+            var process1Task = new FirstNonNullLineProcessTask(Token, TestApp, @"-s 100 -d process1")
+                .Configure(ProcessManager, true).Then((b, s) => {
+                    process1Value = s;
+                    values.Add(s);
+                });
+
+            var process2Task = new FirstNonNullLineProcessTask(Token, TestApp, @"-s 100 -d process2")
+                .Configure(ProcessManager, true).Then((b, s) => {
+                    process2Value = s;
+                    values.Add(s);
+                });
+
+            var combinedTask = process1Task
+                .Then(process2Task);
+
+            combinedTask.OnStart += task => {
+                values.Add("OnStart");
+            };
+
+            combinedTask.OnEnd += task => {
+                values.Add("OnEnd");
+            };
+
+            await combinedTask
+                .StartAsAsync();
+
+            Assert.AreEqual(process1Value, "process1");
+            Assert.AreEqual(process2Value, "process2");
+            Assert.True(values.SequenceEqual(new []{ "process1", "OnStart", "process2", "OnEnd" }));
+        }
+
+        [Test]
         public async Task ProcessReturningErrorThrowsException()
         {
             var success = false;
