@@ -607,7 +607,6 @@ namespace GitHub.Unity
             Logger.Trace("Initialize");
 
             gitClient = client;
-            UpdateUserAndEmail();
         }
 
         public void SetNameAndEmail(string name, string email)
