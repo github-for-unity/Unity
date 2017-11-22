@@ -132,8 +132,23 @@ namespace GitHub.Unity
 
         public void ValidateData()
         {
-            if (ApplicationCache.Instance.FirstRunAt > InitializedAt)
+            var initialized = ValidateInitialized();
+            if (!initialized)
             {
+                if (DateTimeOffset.Now - LastUpdatedAt > DataTimeout)
+                {
+                    Logger.Trace("Timeout Invalidation");
+                    InvalidateData();
+                }
+            }
+        }
+
+        private bool ValidateInitialized()
+        {
+            var notInitialized = ApplicationCache.Instance.FirstRunAt > InitializedAt;
+            if (notInitialized)
+            {
+                Logger.Trace("Initialized");
                 InitializedAt = DateTimeOffset.Now;
                 Save(true);
 
@@ -143,11 +158,8 @@ namespace GitHub.Unity
                     InvalidateData();
                 }
             }
-            else if (DateTimeOffset.Now - LastUpdatedAt > DataTimeout)
-            {
-                Logger.Trace("Timeout Invalidation");
-                InvalidateData();
-            }
+
+            return notInitialized;
         }
 
         public void InvalidateData()
@@ -189,6 +201,8 @@ namespace GitHub.Unity
             {
                 if (!lastUpdatedAtValue.HasValue)
                 {
+                    ValidateInitialized();
+
                     DateTimeOffset result;
                     if (DateTimeOffset.TryParseExact(LastUpdatedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
@@ -215,6 +229,8 @@ namespace GitHub.Unity
             {
                 if (!lastVerifiedAtValue.HasValue)
                 {
+                    ValidateInitialized();
+
                     DateTimeOffset result;
                     if (DateTimeOffset.TryParseExact(LastVerifiedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
