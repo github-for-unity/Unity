@@ -259,15 +259,15 @@ namespace GitHub.Unity
                     break;
 
                 case CacheType.GitLogCache:
-                    repositoryManager.UpdateGitLog();
+                    repositoryManager?.UpdateGitLog();
                     break;
 
                 case CacheType.GitStatusCache:
-                    repositoryManager.UpdateGitStatus();
+                    repositoryManager?.UpdateGitStatus();
                     break;
 
                 case CacheType.GitLocksCache:
-                    repositoryManager.UpdateLocks();
+                    repositoryManager?.UpdateLocks();
                     break;
 
                 case CacheType.GitUserCache:
