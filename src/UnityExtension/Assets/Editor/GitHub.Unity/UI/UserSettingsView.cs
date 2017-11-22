@@ -63,7 +63,7 @@ namespace GitHub.Unity
                         GUI.FocusControl(null);
                         isBusy = true;
 
-                        GitClient.SetConfigUserAndEmail(newGitName, newGitEmail);
+                        User.SetNameAndEmail(newGitName, newGitEmail);
                     }
                 }
                 EditorGUI.EndDisabledGroup();
@@ -76,10 +76,7 @@ namespace GitHub.Unity
             base.OnEnable();
             AttachHandlers();
 
-            if (GitClient != null)
-            {
-                GitClient.CheckUserChangedEvent(lastCheckUserChangedEvent);
-            }
+            User.CheckUserChangedEvent(lastCheckUserChangedEvent);
         }
 
         public override void OnDisable()
@@ -90,15 +87,12 @@ namespace GitHub.Unity
         
         private void AttachHandlers()
         {
-            if (GitClient != null)
-            {
-                GitClient.CurrentUserChanged += GitClientOnCurrentUserChanged;
-            }
+            User.Changed += UserOnChanged;
         }
 
-        private void GitClientOnCurrentUserChanged(CacheUpdateEvent cacheUpdateEvent)
+        private void UserOnChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            Logger.Trace("GitClientOnCurrentUserChanged");
+            Logger.Trace("UserOnChanged");
 
             if (!lastCheckUserChangedEvent.Equals(cacheUpdateEvent))
             {
@@ -114,10 +108,7 @@ namespace GitHub.Unity
 
         private void DetachHandlers()
         {
-            if (GitClient != null)
-            {
-                GitClient.CurrentUserChanged -= GitClientOnCurrentUserChanged;
-            }
+            User.Changed -= UserOnChanged;
         }
 
         private void MaybeUpdateData()
@@ -125,9 +116,9 @@ namespace GitHub.Unity
             if (userHasChanges)
             {
                 userHasChanges = false;
-                var currentUser = GitClient.CurrentUser;
-                gitName = newGitName = currentUser.Name;
-                gitEmail = newGitEmail = currentUser.Email;
+                gitName = newGitName = User.Name;
+                gitEmail = newGitEmail = User.Email;
+                needsSaving = false;
             }
         }
 

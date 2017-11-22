@@ -118,6 +118,7 @@ namespace IntegrationTests
         public NPath GitInstallPath => defaultEnvironment.GitInstallPath;
 
         public IRepository Repository { get; set; }
+        public IUser User { get; set; }
         public IFileSystem FileSystem { get { return defaultEnvironment.FileSystem; } set { defaultEnvironment.FileSystem = value; } }
         public string ExecutableExtension { get { return defaultEnvironment.ExecutableExtension; } }
 

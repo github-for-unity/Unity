@@ -4,18 +4,18 @@ namespace GitHub.Unity
 {
     static class ManagedCacheExtensions
     {
-        public static bool ShouldRaiseCacheEvent(this IManagedCache managedCache, CacheUpdateEvent cacheUpdateEvent)
+        public static bool IsLastUpdatedTimeDifferent(this IManagedCache managedCache, CacheUpdateEvent cacheUpdateEvent)
         {
-            bool raiseEvent;
+            bool isDifferent;
             if (cacheUpdateEvent.UpdatedTimeString == null)
             {
-                raiseEvent = managedCache.LastUpdatedAt != DateTimeOffset.MinValue;
+                isDifferent = managedCache.LastUpdatedAt != DateTimeOffset.MinValue;
             }
             else
             {
-                raiseEvent = managedCache.LastUpdatedAt.ToString() != cacheUpdateEvent.UpdatedTimeString;
+                isDifferent = managedCache.LastUpdatedAt.ToString() != cacheUpdateEvent.UpdatedTimeString;
             }
-            return raiseEvent;
+            return isDifferent;
         }
     }
 }
