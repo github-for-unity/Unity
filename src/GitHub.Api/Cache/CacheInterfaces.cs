@@ -49,7 +49,8 @@ namespace GitHub.Unity
 
     public interface IGitUserCache : IManagedCache
     {
-        User User { get; }
+        string Name { get; set; }
+        string Email { get; set; }
     }
 
     public interface IGitStatusCache : IManagedCache

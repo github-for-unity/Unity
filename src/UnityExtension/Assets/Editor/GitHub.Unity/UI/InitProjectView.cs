@@ -13,12 +13,22 @@ namespace GitHub.Unity
         [NonSerialized] private bool isBusy;
         [NonSerialized] private bool isUserDataPresent;
         [NonSerialized] private bool hasCompletedInitialCheck;
-        [NonSerialized] private bool userDataHasChanged;
+
+        [SerializeField] private CacheUpdateEvent lastCheckUserChangedEvent;
+        [NonSerialized] private bool userHasChanges;
 
         public override void OnEnable()
         {
             base.OnEnable();
-            userDataHasChanged = Environment.GitExecutablePath != null;
+            AttachHandlers();
+
+            User.CheckUserChangedEvent(lastCheckUserChangedEvent);
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            DetachHandlers();
         }
 
         public override void OnGUI()
@@ -76,35 +86,39 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        private void MaybeUpdateData()
+        private void AttachHandlers()
         {
-            if (userDataHasChanged)
+            User.Changed += UserOnChanged;
+        }
+
+        private void UserOnChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastCheckUserChangedEvent.Equals(cacheUpdateEvent))
             {
-                userDataHasChanged = false;
-                CheckForUser();
+                new ActionTask(TaskManager.Token, () =>
+                    {
+                        lastCheckUserChangedEvent = cacheUpdateEvent;
+                        userHasChanges = true;
+                        Redraw();
+                    })
+                    { Affinity = TaskAffinity.UI }.Start();
             }
         }
 
-        private void CheckForUser()
+        private void DetachHandlers()
         {
-            if (string.IsNullOrEmpty(Environment.GitExecutablePath))
+            User.Changed -= UserOnChanged;
+        }
+
+        private void MaybeUpdateData()
+        {
+            if (userHasChanges)
             {
-                Logger.Warning("No git exec cannot check for user");
-                return;
-            }
-
-            Logger.Trace("Checking for user");
-            isBusy = true;
-
-            GitClient.GetConfigUserAndEmail().FinallyInUI((success, ex, user) => {
-                isBusy = false;
-                isUserDataPresent = success && !String.IsNullOrEmpty(user.Name) && !String.IsNullOrEmpty(user.Email);
+                userHasChanges = false;
+                isUserDataPresent = !string.IsNullOrEmpty(User.Name)
+                    && !string.IsNullOrEmpty(User.Email);
                 hasCompletedInitialCheck = true;
-
-                Logger.Trace("User Present: {0}", isUserDataPresent);
-
-                Redraw();
-            }).Start();
+            }
         }
 
         public override bool IsBusy

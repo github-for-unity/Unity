@@ -19,7 +19,6 @@ namespace TestUtils.Events
         void OnLocalBranchRemoved(string name);
         void OnRemoteBranchAdded(string origin, string name);
         void OnRemoteBranchRemoved(string origin, string name);
-        void OnGitUserLoaded(IUser user);
         void OnCurrentBranchAndRemoteUpdated(ConfigBranch? configBranch, ConfigRemote? configRemote);
     }
 
@@ -38,7 +37,6 @@ namespace TestUtils.Events
         public EventWaitHandle OnLocalBranchRemoved { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnRemoteBranchAdded { get; } = new AutoResetEvent(false);
         public EventWaitHandle OnRemoteBranchRemoved { get; } = new AutoResetEvent(false);
-        public EventWaitHandle OnGitUserLoaded { get; } = new AutoResetEvent(false);
 
         public void Reset()
         {
@@ -55,7 +53,6 @@ namespace TestUtils.Events
             OnLocalBranchRemoved.Reset();
             OnRemoteBranchAdded.Reset();
             OnRemoteBranchRemoved.Reset();
-            OnGitUserLoaded.Reset();
         }
 
         public void WaitForNotBusy(int seconds = 1)
@@ -137,12 +134,6 @@ namespace TestUtils.Events
                 logger?.Trace("OnRemoteBranchRemoved Origin:{0} Name:{1}", origin, name);
                 listener.OnRemoteBranchRemoved(origin, name);
                 managerEvents?.OnRemoteBranchRemoved.Set();
-            };
-
-            repositoryManager.OnGitUserLoaded += user => {
-                logger?.Trace("OnGitUserLoaded Name:{0}", user);
-                listener.OnGitUserLoaded(user);
-                managerEvents?.OnGitUserLoaded.Set();
             };
         }
 

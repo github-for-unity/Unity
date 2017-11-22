@@ -9,7 +9,6 @@ namespace GitHub.Unity
     public interface IRepositoryManager : IDisposable
     {
         event Action<ConfigBranch?, ConfigRemote?> OnCurrentBranchAndRemoteUpdated;
-        event Action<IUser> OnGitUserLoaded;
         event Action<bool> OnIsBusyChanged;
         event Action<string> OnLocalBranchAdded;
         event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
@@ -102,7 +101,6 @@ namespace GitHub.Unity
         private bool isBusy;
 
         public event Action<ConfigBranch?, ConfigRemote?> OnCurrentBranchAndRemoteUpdated;
-        public event Action<IUser> OnGitUserLoaded;
         public event Action<bool> OnIsBusyChanged;
         public event Action<string> OnLocalBranchAdded;
         public event Action<Dictionary<string, ConfigBranch>> OnLocalBranchListUpdated;
@@ -150,7 +148,6 @@ namespace GitHub.Unity
             Logger.Trace("Start");
 
             UpdateConfigData();
-            LoadGitUser();
             watcher.Start();
         }
 
@@ -297,15 +294,6 @@ namespace GitHub.Unity
         public void UpdateConfigData()
         {
             UpdateConfigData(false);
-        }
-
-        private void LoadGitUser()
-        {
-            GitClient.GetConfigUserAndEmail()
-                .Then((success, user) => {
-                    Logger.Trace("OnGitUserLoaded: {0}", user);
-                    OnGitUserLoaded?.Invoke(user);
-                }).Start();
         }
 
         private void SetupWatcher()
