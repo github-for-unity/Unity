@@ -27,7 +27,9 @@ namespace GitHub.Unity
         NPath SystemCachePath { get; set; }
         NPath LogPath { get; }
         IFileSystem FileSystem { get; set; }
+        IUser User { get; set; }
         IRepository Repository { get; set; }
         string ExecutableExtension { get; }
+        ICacheContainer CacheContainer { get; }
     }
 }

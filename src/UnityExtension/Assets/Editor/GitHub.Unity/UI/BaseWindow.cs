@@ -7,6 +7,7 @@ namespace GitHub.Unity
     abstract class BaseWindow :  EditorWindow, IView
     {
         [NonSerialized] private bool initialized = false;
+        [NonSerialized] private IUser cachedUser;
         [NonSerialized] private IRepository cachedRepository;
         [NonSerialized] private bool initializeWasCalled;
         [NonSerialized] private bool inLayout;
@@ -21,6 +22,7 @@ namespace GitHub.Unity
             initialized = true;
             initializeWasCalled = true;
             Manager = applicationManager;
+            cachedUser = Environment.User;
             cachedRepository = Environment.Repository;
             Initialize(applicationManager);
             if (requiresRedraw)
@@ -103,6 +105,8 @@ namespace GitHub.Unity
         public abstract bool IsBusy { get; }
         public IRepository Repository { get { return inLayout ? cachedRepository : Environment.Repository; } }
         public bool HasRepository { get { return Repository != null; } }
+        public IUser User { get { return cachedUser; } }
+        public bool HasUser { get { return User != null; } }
 
         protected ITaskManager TaskManager { get { return Manager.TaskManager; } }
         protected IGitClient GitClient { get { return Manager.GitClient; } }
