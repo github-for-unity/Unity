@@ -316,7 +316,7 @@ namespace GitHub.Unity
 
             rect.y += Styles.TreePadding;
 
-            treeRemotes.Render(rect, scroll, _ => {}, selectedNode =>
+            rect = treeRemotes.Render(rect, scroll, _ => {}, selectedNode =>
                 {
                     var indexOfFirstSlash = selectedNode.Name.IndexOf('/');
                     var originName = selectedNode.Name.Substring(0, indexOfFirstSlash);
