@@ -16,7 +16,9 @@ namespace IntegrationTests
             TestRepoMasterDirtyUnsynchronized = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_dirty_unsync");
             TestRepoMasterTwoRemotes = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_two_remotes");
 
+            Logger.Trace("Extracting Zip File to {0}", TestBasePath);
             ZipHelper.ExtractZipFile(TestZipFilePath, TestBasePath.ToString(), CancellationToken.None);
+            Logger.Trace("Extracted Zip File");
         }
 
         protected NPath TestRepoMasterCleanSynchronized { get; private set; }

@@ -61,7 +61,6 @@ namespace GitHub.Unity
             base.OnEnable();
             AttachHandlers(Repository);
             Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
-            Repository.UpdateConfigData();
         }
 
         public override void OnDisable()
