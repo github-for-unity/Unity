@@ -301,45 +301,8 @@ namespace GitHub.Unity
 
             rect = treeRemotes.Render(rect, scroll,
                 node => { },
-                selectedNode =>
-                {
-                    var indexOfFirstSlash = selectedNode.Name.IndexOf('/');
-                    var originName = selectedNode.Name.Substring(0, indexOfFirstSlash);
-                    var branchName = selectedNode.Name.Substring(indexOfFirstSlash + 1);
-
-                    if (Repository.LocalBranches.Any(localBranch => localBranch.Name == branchName))
-                    {
-                        EditorUtility.DisplayDialog(WarningCheckoutBranchExistsTitle,
-                            String.Format(WarningCheckoutBranchExistsMessage, branchName),
-                            WarningCheckoutBranchExistsOK);
-                    }
-                    else
-                    {
-                        var confirmCheckout = EditorUtility.DisplayDialog(ConfirmCheckoutBranchTitle,
-                            String.Format(ConfirmCheckoutBranchMessage, selectedNode.Name, originName),
-                            ConfirmCheckoutBranchOK,
-                            ConfirmCheckoutBranchCancel);
-
-                        if (confirmCheckout)
-                        {
-                            GitClient
-                                .CreateBranch(branchName, selectedNode.Name)
-                                .FinallyInUI((success, e) =>
-                                {
-                                    if (success)
-                                    {
-                                        Redraw();
-                                    }
-                                    else
-                                    {
-                                        EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
-                                            String.Format(Localization.SwitchBranchFailedDescription, selectedNode.Name),
-                                            Localization.Ok);
-                                    }
-                                })
-                                .Start();
-                        }
-                    }
+                selectedNode => {
+                    CheckoutRemoteBranch(selectedNode.Name);
                 },
                 node => {
                     GenericMenu menu = CreateContextMenuForRemoteBranchNode(node);
@@ -360,6 +323,40 @@ namespace GitHub.Unity
 
             //Debug.LogFormat("reserving: {0} {1} {2}", rect.y - initialRect.y, rect.y, initialRect.y);
             GUILayout.Space(rect.y - initialRect.y);
+        }
+
+        private void CheckoutRemoteBranch(string selectedNodeName)
+        {
+            var indexOfFirstSlash = selectedNodeName.IndexOf('/');
+            var originName = selectedNodeName.Substring(0, indexOfFirstSlash);
+            var branchName = selectedNodeName.Substring(indexOfFirstSlash + 1);
+
+            if (Repository.LocalBranches.Any(localBranch => localBranch.Name == branchName))
+            {
+                EditorUtility.DisplayDialog(WarningCheckoutBranchExistsTitle,
+                    String.Format(WarningCheckoutBranchExistsMessage, branchName), WarningCheckoutBranchExistsOK);
+            }
+            else
+            {
+                var confirmCheckout = EditorUtility.DisplayDialog(ConfirmCheckoutBranchTitle,
+                    String.Format(ConfirmCheckoutBranchMessage, selectedNodeName, originName), ConfirmCheckoutBranchOK,
+                    ConfirmCheckoutBranchCancel);
+
+                if (confirmCheckout)
+                {
+                    GitClient.CreateBranch(branchName, selectedNodeName).FinallyInUI((success, e) => {
+                        if (success)
+                        {
+                            Redraw();
+                        }
+                        else
+                        {
+                            EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
+                                String.Format(Localization.SwitchBranchFailedDescription, selectedNodeName), Localization.Ok);
+                        }
+                    }).Start();
+                }
+            }
         }
 
         private GenericMenu CreateContextMenuForLocalBranchNode(TreeNode node)
@@ -420,6 +417,12 @@ namespace GitHub.Unity
         {
             var genericMenu = new GenericMenu();
 
+            var checkoutGuiContent = new GUIContent("Checkout");
+            
+            genericMenu.AddItem(checkoutGuiContent, false, () => {
+                CheckoutRemoteBranch(node.Name);
+            });
+            
             return genericMenu;
         }
 
