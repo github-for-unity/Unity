@@ -68,7 +68,6 @@ namespace GitHub.Unity
             if (Repository != null)
             {
                 Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
-                Repository.UpdateConfigData();
             }
         }
 
