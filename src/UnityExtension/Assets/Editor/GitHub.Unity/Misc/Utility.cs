@@ -7,6 +7,40 @@ using UnityEngine;
 
 namespace GitHub.Unity
 {
+    [Serializable]
+    public class SerializableTexture2D
+    {
+        [SerializeField] private byte[] bytes;
+        [SerializeField] private int height;
+        [SerializeField] private int width;
+        [SerializeField] private TextureFormat format;
+        [SerializeField] private bool mipmap;
+        [SerializeField] private Texture2D texture;
+
+        public Texture2D Texture
+        {
+            get
+            {
+                if (texture == null)
+                {
+                    texture = new Texture2D(width, height, format, mipmap);
+                    texture.LoadRawTextureData(bytes);
+                    texture.Apply();
+                }
+                return texture;
+            }
+            set
+            {
+                texture = value;
+                bytes = value.GetRawTextureData();
+                height = value.height;
+                width = value.width;
+                format = value.format;
+                mipmap = value.mipmapCount > 1;
+            }
+        }
+    }
+
     class Utility : ScriptableObject
     {
         public static Texture2D GetIcon(string filename, string filename2x = "")
@@ -22,6 +56,18 @@ namespace GitHub.Unity
 
             var iconPath = EntryPoint.Environment.ExtensionInstallPath.Combine("IconsAndLogos", filename).ToString(SlashMode.Forward);
             return AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
+        }
+
+        public static Texture2D GetTextureFromColor(Color color)
+        {
+            Color[] pix = new Color[1];
+            pix[0] = color;
+
+            Texture2D result = new Texture2D(1, 1);
+            result.SetPixels(pix);
+            result.Apply();
+
+            return result;
         }
     }
 
