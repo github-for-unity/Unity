@@ -107,11 +107,9 @@ namespace GitHub.Unity
         {
             if (!lastStatusChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(TaskManager.Token, () => {
-                    lastStatusChangedEvent = cacheUpdateEvent;
-                    currentStatusHasUpdate = true;
-                    Redraw();
-                }) { Affinity = TaskAffinity.UI }.Start();
+                lastStatusChangedEvent = cacheUpdateEvent;
+                currentStatusHasUpdate = true;
+                Redraw();
             }
         }
 
@@ -119,11 +117,9 @@ namespace GitHub.Unity
         {
             if (!lastCurrentBranchChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(TaskManager.Token, () => {
-                    lastCurrentBranchChangedEvent = cacheUpdateEvent;
-                    currentBranchHasUpdate = true;
-                    Redraw();
-                }) { Affinity = TaskAffinity.UI }.Start();
+                lastCurrentBranchChangedEvent = cacheUpdateEvent;
+                currentBranchHasUpdate = true;
+                Redraw();
             }
         }
 
