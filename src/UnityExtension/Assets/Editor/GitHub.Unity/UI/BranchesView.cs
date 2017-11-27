@@ -305,9 +305,9 @@ namespace GitHub.Unity
                             }).Start();
                     }
                 },
-                node =>
-                {
-                    Debug.Log("Right Click");
+                node => {
+                    GenericMenu menu = CreateContextMenuForLocalBranchNode(node);
+                    menu.ShowAsContext();
                 });
 
             if (treeHadFocus && treeLocals.SelectedNode == null)
@@ -364,9 +364,9 @@ namespace GitHub.Unity
                         }
                     }
                 },
-                node =>
-                {
-                    Debug.Log("Right Click");
+                node => {
+                    GenericMenu menu = CreateContextMenuForRemoteBranchNode(node);
+                    menu.ShowAsContext();
                 });
 
             if (treeHadFocus && treeRemotes.SelectedNode == null)
@@ -383,6 +383,39 @@ namespace GitHub.Unity
 
             //Debug.LogFormat("reserving: {0} {1} {2}", rect.y - initialRect.y, rect.y, initialRect.y);
             GUILayout.Space(rect.y - initialRect.y);
+        }
+
+        private GenericMenu CreateContextMenuForLocalBranchNode(TreeNode node)
+        {
+            var genericMenu = new GenericMenu();
+
+            var deleteGuiContent = new GUIContent("Delete");
+            var switchGuiContent = new GUIContent("Switch");
+
+            if (node.IsActive)
+            {
+                genericMenu.AddDisabledItem(deleteGuiContent);
+                genericMenu.AddDisabledItem(switchGuiContent);
+            }
+            else
+            {
+                genericMenu.AddItem(deleteGuiContent, false, (userData) => {
+                    Debug.Log("Delete Branch");
+                }, node);
+
+                genericMenu.AddItem(switchGuiContent, false, (userData) => {
+                    Debug.Log("Switch Branch");
+                }, node);
+            }
+
+            return genericMenu;
+        }
+
+        private GenericMenu CreateContextMenuForRemoteBranchNode(TreeNode node)
+        {
+            var genericMenu = new GenericMenu();
+
+            return genericMenu;
         }
 
         private int CompareBranches(GitBranch a, GitBranch b)
