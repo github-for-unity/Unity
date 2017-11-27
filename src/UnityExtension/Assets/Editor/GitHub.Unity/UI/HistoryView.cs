@@ -296,11 +296,9 @@ namespace GitHub.Unity
         {
             if (!lastStatusChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(TaskManager.Token, () => {
-                    lastStatusChangedEvent = cacheUpdateEvent;
-                    currentStatusHasUpdate = true;
-                    Redraw();
-                }) { Affinity = TaskAffinity.UI }.Start();
+                lastStatusChangedEvent = cacheUpdateEvent;
+                currentStatusHasUpdate = true;
+                Redraw();
             }
         }
 
@@ -308,11 +306,9 @@ namespace GitHub.Unity
         {
             if (!lastLogChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(TaskManager.Token, () => {
-                    lastLogChangedEvent = cacheUpdateEvent;
-                    currentLogHasUpdate = true;
-                    Redraw();
-                }) { Affinity = TaskAffinity.UI }.Start();
+                lastLogChangedEvent = cacheUpdateEvent;
+                currentLogHasUpdate = true;
+                Redraw();
             }
         }
 
@@ -320,11 +316,9 @@ namespace GitHub.Unity
         {
             if (!lastCurrentRemoteChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(TaskManager.Token, () => {
-                    lastCurrentRemoteChangedEvent = cacheUpdateEvent;
-                    currentRemoteHasUpdate = true;
-                    Redraw();
-                }) { Affinity = TaskAffinity.UI }.Start();
+                lastCurrentRemoteChangedEvent = cacheUpdateEvent;
+                currentRemoteHasUpdate = true;
+                Redraw();
             }
         }
 
