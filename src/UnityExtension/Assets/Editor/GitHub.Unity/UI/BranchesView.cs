@@ -163,12 +163,7 @@ namespace GitHub.Unity
                 {
                     if (GUILayout.Button(DeleteBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                     {
-                        var selectedBranchName = treeLocals.SelectedNode.Name;
-                        var dialogMessage = string.Format(DeleteBranchMessageFormatString, selectedBranchName);
-                        if (EditorUtility.DisplayDialog(DeleteBranchTitle, dialogMessage, DeleteBranchButton, CancelButtonLabel))
-                        {
-                            GitClient.DeleteBranch(selectedBranchName, true).Start();
-                        }
+                        DeleteLocalBranch(treeLocals.SelectedNode.Name);
                     }
                 }
                 EditorGUI.EndDisabledGroup();
@@ -284,29 +279,11 @@ namespace GitHub.Unity
 
             rect = treeLocals.Render(rect, scroll,
                 node =>{ },
-                node =>
-                {
-                    if (EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, node.Name), ConfirmSwitchOK,
-                            ConfirmSwitchCancel))
-                    {
-                        GitClient.SwitchBranch(node.Name)
-                            .FinallyInUI((success, e) =>
-                            {
-                                if (success)
-                                {
-                                    Redraw();
-                                }
-                                else
-                                {
-                                    EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
-                                        String.Format(Localization.SwitchBranchFailedDescription, node.Name),
-                                    Localization.Ok);
-                                }
-                            }).Start();
-                    }
+                node => {
+                    SwitchBranch(node.Name);
                 },
                 node => {
-                    GenericMenu menu = CreateContextMenuForLocalBranchNode(node);
+                    var menu = CreateContextMenuForLocalBranchNode(node);
                     menu.ShowAsContext();
                 });
 
@@ -399,16 +376,44 @@ namespace GitHub.Unity
             }
             else
             {
-                genericMenu.AddItem(deleteGuiContent, false, (userData) => {
-                    Debug.Log("Delete Branch");
-                }, node);
+                genericMenu.AddItem(deleteGuiContent, false, () => {
+                    DeleteLocalBranch(node.Name);
+                });
 
-                genericMenu.AddItem(switchGuiContent, false, (userData) => {
-                    Debug.Log("Switch Branch");
-                }, node);
+                genericMenu.AddItem(switchGuiContent, false, () => {
+                    SwitchBranch(node.Name);
+                });
             }
 
             return genericMenu;
+        }
+
+        private void SwitchBranch(string branchName)
+        {
+            if (EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, branchName), ConfirmSwitchOK,
+                ConfirmSwitchCancel))
+            {
+                GitClient.SwitchBranch(branchName).FinallyInUI((success, e) => {
+                    if (success)
+                    {
+                        Redraw();
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
+                            String.Format(Localization.SwitchBranchFailedDescription, branchName), Localization.Ok);
+                    }
+                }).Start();
+            }
+        }
+
+        private void DeleteLocalBranch(string branchName)
+        {
+            var dialogMessage = string.Format(DeleteBranchMessageFormatString, branchName);
+            if (EditorUtility.DisplayDialog(DeleteBranchTitle, dialogMessage, DeleteBranchButton, CancelButtonLabel))
+            {
+                GitClient.DeleteBranch(branchName, true).Start();
+            }
         }
 
         private GenericMenu CreateContextMenuForRemoteBranchNode(TreeNode node)
