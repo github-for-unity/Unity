@@ -58,6 +58,15 @@ namespace GitHub.Unity
             EntryPoint.ApplicationManager.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
         }
 
+#if DEBUG 
+        [MenuItem("GitHub/Select Window")] 
+        public static void GitHub_SelectWindow() 
+        { 
+            var window = Resources.FindObjectsOfTypeAll(typeof(Window)).FirstOrDefault() as Window; 
+            Selection.activeObject = window; 
+        } 
+#endif 
+
         public static void ShowWindow(IApplicationManager applicationManager)
         {
             var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.InspectorWindow");
