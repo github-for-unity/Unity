@@ -293,6 +293,19 @@ namespace GitHub.Unity
             }).Start();
         }
 
+        public void UpdateLocks()
+        {
+            var task = GitClient.ListLocks(false);
+            HookupHandlers(task, false, false);
+            task.Then((success, locks) =>
+            {
+                if (success)
+                {
+                    GitLocksUpdated?.Invoke(locks);
+                }
+            }).Start();
+        }
+
         private ITask<T> HookupHandlers<T>(ITask<T> task, bool isExclusive, bool filesystemChangesExpected)
         {
             return new ActionTask(CancellationToken.None, () => {
@@ -329,19 +342,6 @@ namespace GitHub.Unity
 
                     throw exception;
                 });
-        }
-
-        public void UpdateLocks()
-        {
-            var task = GitClient.ListLocks(false);
-            HookupHandlers(task, false, false);
-            task.Then((success, locks) =>
-            {
-                if (success)
-                {
-                    GitLocksUpdated?.Invoke(locks);
-                }
-            }).Start();
         }
 
         private void SetupWatcher()
