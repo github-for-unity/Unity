@@ -280,9 +280,15 @@ namespace GitHub.Unity
             rect = treeLocals.Render(rect, scroll,
                 node =>{ },
                 node => {
+                    if (node.IsFolder)
+                        return;
+
                     SwitchBranch(node.Name);
                 },
                 node => {
+                    if (node.IsFolder)
+                        return;
+
                     var menu = CreateContextMenuForLocalBranchNode(node);
                     menu.ShowAsContext();
                 });
@@ -301,11 +307,17 @@ namespace GitHub.Unity
 
             rect = treeRemotes.Render(rect, scroll,
                 node => { },
-                selectedNode => {
-                    CheckoutRemoteBranch(selectedNode.Name);
+                node => {
+                    if (node.IsFolder)
+                        return;
+
+                    CheckoutRemoteBranch(node.Name);
                 },
                 node => {
-                    GenericMenu menu = CreateContextMenuForRemoteBranchNode(node);
+                    if (node.IsFolder)
+                       return;
+
+                    var menu = CreateContextMenuForRemoteBranchNode(node);
                     menu.ShowAsContext();
                 });
 
