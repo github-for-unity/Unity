@@ -282,7 +282,9 @@ namespace GitHub.Unity
 
             var treeHadFocus = treeLocals.SelectedNode != null;
 
-            rect = treeLocals.Render(rect, scroll, _ => { }, node =>
+            rect = treeLocals.Render(rect, scroll,
+                node =>{ },
+                node =>
                 {
                     if (EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, node.Name), ConfirmSwitchOK,
                             ConfirmSwitchCancel))
@@ -302,6 +304,10 @@ namespace GitHub.Unity
                                 }
                             }).Start();
                     }
+                },
+                node =>
+                {
+                    Debug.Log("Right Click");
                 });
 
             if (treeHadFocus && treeLocals.SelectedNode == null)
@@ -316,7 +322,9 @@ namespace GitHub.Unity
 
             rect.y += Styles.TreePadding;
 
-            rect = treeRemotes.Render(rect, scroll, _ => {}, selectedNode =>
+            rect = treeRemotes.Render(rect, scroll,
+                node => { },
+                selectedNode =>
                 {
                     var indexOfFirstSlash = selectedNode.Name.IndexOf('/');
                     var originName = selectedNode.Name.Substring(0, indexOfFirstSlash);
@@ -355,6 +363,10 @@ namespace GitHub.Unity
                                 .Start();
                         }
                     }
+                },
+                node =>
+                {
+                    Debug.Log("Right Click");
                 });
 
             if (treeHadFocus && treeRemotes.SelectedNode == null)
