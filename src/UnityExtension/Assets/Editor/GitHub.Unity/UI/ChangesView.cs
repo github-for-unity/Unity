@@ -113,19 +113,12 @@ namespace GitHub.Unity
                 treeChanges.ActiveTreeNodeStyle = Styles.TreeNodeActive;
             }
 
-            var treeHadFocus = treeChanges.SelectedNode != null;
-
             rect = treeChanges.Render(rect, scroll,
                 node => { },
                 node => {
                 },
                 node => {
                 });
-
-            if (treeHadFocus && treeChanges.SelectedNode == null)
-                treeChanges.Focus();
-            else if (!treeHadFocus && treeChanges.SelectedNode != null)
-                treeChanges.Blur();
 
             if (treeChanges.RequiresRepaint)
                 Redraw();
