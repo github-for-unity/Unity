@@ -20,6 +20,7 @@ namespace GitHub.Unity
         [SerializeField] public Rect Margin = new Rect();
         [SerializeField] public Rect Padding = new Rect();
 
+        [SerializeField] public string PathSeparator = "/";
         [SerializeField] public GUIStyle FolderStyle;
         [SerializeField] public GUIStyle TreeNodeStyle;
         [SerializeField] public GUIStyle ActiveTreeNodeStyle;
@@ -73,12 +74,12 @@ namespace GitHub.Unity
 
             foreach (var d in data)
             {
-                var parts = d.Name.Split('/');
+                var parts = d.Name.Split(new [] {PathSeparator}, StringSplitOptions.None);
                 for (int i = 0; i < parts.Length; i++)
                 {
                     var label = parts[i];
                     var level = i + 1;
-                    var name = String.Join("/", parts, 0, level);
+                    var name = String.Join(PathSeparator, parts, 0, level);
                     var isFolder = i < parts.Length - 1;
                     var alreadyExists = folders.ContainsKey(name);
                     if (!alreadyExists)
