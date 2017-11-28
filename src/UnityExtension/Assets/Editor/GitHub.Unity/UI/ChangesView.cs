@@ -85,12 +85,18 @@ namespace GitHub.Unity
             }
             GUILayout.EndHorizontal();
 
-            var rect = GUILayoutUtility.GetLastRect();
-            scroll = GUILayout.BeginScrollView(scroll);
+            GUILayout.BeginHorizontal();
+            GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
             {
-                OnTreeGUI(new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding));
+                var rect = GUILayoutUtility.GetLastRect();
+                scroll = GUILayout.BeginScrollView(scroll);
+                {
+                    OnTreeGUI(new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding));
+                }
+                GUILayout.EndScrollView();
             }
-            GUILayout.EndScrollView();
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
 
             // Do the commit details area
             OnCommitDetailsAreaGUI();
