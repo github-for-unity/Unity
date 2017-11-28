@@ -23,6 +23,7 @@ namespace GitHub.Unity
         [SerializeField] public string PathIgnoreRoot;
         [SerializeField] public string PathSeparator = "/";
         [SerializeField] public bool DisplayRootNode = true;
+        [SerializeField] public bool Selectable = false;
         [SerializeField] public GUIStyle FolderStyle;
         [SerializeField] public GUIStyle TreeNodeStyle;
         [SerializeField] public GUIStyle ActiveTreeNodeStyle;
@@ -69,7 +70,8 @@ namespace GitHub.Unity
                 Name = title,
                 Label = title,
                 Level = -1 + displayRootLevel,
-                IsFolder = true
+                IsFolder = true,
+                Selectable = Selectable
             };
             SetNodeIcon(titleNode);
             nodes.Add(titleNode);
@@ -105,7 +107,8 @@ namespace GitHub.Unity
                             IsActive = d.IsActive,
                             Label = label,
                             Level = i + displayRootLevel,
-                            IsFolder = isFolder
+                            IsFolder = isFolder,
+                            Selectable = Selectable
                         };
 
                         if (node.IsActive)
@@ -162,7 +165,7 @@ namespace GitHub.Unity
             if (DisplayRootNode)
             {
                 var titleNode = nodes[0];
-                var selectionChanged = titleNode.Render(rect, 0f, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                var selectionChanged = titleNode.Render(rect, Styles.TreeIndentation, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
 
                 if (selectionChanged)
                 {
@@ -428,52 +431,84 @@ namespace GitHub.Unity
         public bool IsActive;
         public GUIContent content;
         [NonSerialized] public Texture2D Icon;
+        public bool Selectable;
 
         public void Load()
         {
             content = new GUIContent(Label, Icon);
         }
 
-        public bool Render(Rect rect, float indentation, bool isSelected, GUIStyle folderStyle, GUIStyle nodeStyle, GUIStyle activeNodeStyle)
+        public bool Render(Rect rect, float indentation, bool isSelected, GUIStyle toggleStyle, GUIStyle nodeStyle, GUIStyle activeNodeStyle)
         {
             if (IsHidden)
                 return false;
 
-            GUIStyle style;
-            if (IsFolder)
+            var changed = false;
+            var fillRect = rect;
+            var nodeStartX = Level * indentation * (Selectable ? 2 : 1);
+
+            if (Selectable && Level > 0)
             {
-                style = folderStyle;
-            }
-            else
-            {
-                style = IsActive ? activeNodeStyle : nodeStyle;
+                nodeStartX += 2 * Level;
             }
 
-            bool changed = false;
-            var fillRect = rect;
-            var nodeRect = new Rect(Level * indentation, rect.y, rect.width, rect.height);
+            var nodeRect = new Rect(nodeStartX, rect.y, rect.width, rect.height);
+
+            var data = string.Format("Label: {0} ", Label);
+            data += string.Format("Start: {0} ", nodeStartX);
 
             if (Event.current.type == EventType.repaint)
             {
                 nodeStyle.Draw(fillRect, GUIContent.none, false, false, false, isSelected);
-                if (IsFolder)
-                {
-                    style.Draw(nodeRect, content, false, false, !IsCollapsed, isSelected);
-                }
-                else
-                {
-                    style.Draw(nodeRect, content, false, false, false, isSelected);
-                }
             }
 
+            var styleOn = false;
             if (IsFolder)
             {
-                var toggleRect = new Rect(nodeRect.x, nodeRect.y, style.border.horizontal, nodeRect.height);
+                data += string.Format("FolderStart: {0} ", nodeStartX);
+
+                var toggleRect = new Rect(nodeStartX, nodeRect.y, indentation, nodeRect.height);
+                nodeStartX += toggleRect.width;
+
+                styleOn = !IsCollapsed;
+
+                if (Event.current.type == EventType.repaint)
+                {
+                    toggleStyle.Draw(toggleRect, GUIContent.none, false, false, styleOn, isSelected);
+                }
 
                 EditorGUI.BeginChangeCheck();
-                GUI.Toggle(toggleRect, !IsCollapsed, GUIContent.none, GUIStyle.none);
+                {
+                    GUI.Toggle(toggleRect, !IsCollapsed, GUIContent.none, GUIStyle.none);
+                }
                 changed = EditorGUI.EndChangeCheck();
             }
+
+            if (Selectable)
+            {
+                data += string.Format("SelectStart: {0} ", nodeStartX);
+
+                var selectRect = new Rect(nodeStartX, nodeRect.y, indentation, nodeRect.height);
+
+                nodeStartX += selectRect.width + 2;
+
+                EditorGUI.BeginChangeCheck();
+                {
+                    GUI.Toggle(selectRect, false, GUIContent.none, Styles.ToggleMixedStyle);
+                }
+                EditorGUI.EndChangeCheck();
+            }
+
+            data += string.Format("ContentStart: {0} ", nodeStartX);
+            var contentStyle = IsActive ? activeNodeStyle : nodeStyle;
+
+            var contentRect = new Rect(nodeStartX, rect.y, rect.width, rect.height);
+            if (Event.current.type == EventType.repaint)
+            {
+                contentStyle.Draw(contentRect, content, false, false, styleOn, isSelected);
+            }
+
+            Debug.Log(data);
 
             return changed;
         }
