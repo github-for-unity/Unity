@@ -191,10 +191,10 @@ namespace GitHub.Unity
             if (treeChanges == null)
             {
                 treeChanges = new Tree();
-                treeChanges.ActiveNodeIcon = Styles.ActiveBranchIcon;
                 treeChanges.NodeIcon = Styles.BranchIcon;
                 treeChanges.FolderIcon = Styles.FolderIcon;
                 treeChanges.DisplayRootNode = false;
+                treeChanges.Selectable = true;
                 treeChanges.PathIgnoreRoot = Environment.RepositoryPath + Environment.FileSystem.DirectorySeparatorChar;
                 treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
             }
