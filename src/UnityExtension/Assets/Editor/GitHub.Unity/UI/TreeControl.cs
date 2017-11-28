@@ -20,6 +20,7 @@ namespace GitHub.Unity
         [SerializeField] public Rect Margin = new Rect();
         [SerializeField] public Rect Padding = new Rect();
 
+        [SerializeField] public string PathIgnoreRoot;
         [SerializeField] public string PathSeparator = "/";
         [SerializeField] public GUIStyle FolderStyle;
         [SerializeField] public GUIStyle TreeNodeStyle;
@@ -51,6 +52,7 @@ namespace GitHub.Unity
 
         public TreeNode ActiveNode { get { return activeNode; } }
 
+
         public void Load(IEnumerable<ITreeData> data, string title)
         {
             var collapsedFoldersEnumerable = folders.Where(pair => pair.Value.IsCollapsed).Select(pair => pair.Key);
@@ -74,7 +76,17 @@ namespace GitHub.Unity
 
             foreach (var d in data)
             {
-                var parts = d.Name.Split(new [] {PathSeparator}, StringSplitOptions.None);
+                var fullName = d.Name;
+                if (PathIgnoreRoot != null)
+                {
+                    var indexOf = fullName.IndexOf(PathIgnoreRoot);
+                    if (indexOf != -1)
+                    {
+                        fullName = fullName.Substring(indexOf + PathIgnoreRoot.Length);
+                    }
+                }
+
+                var parts = fullName.Split(new [] {PathSeparator}, StringSplitOptions.None);
                 for (int i = 0; i < parts.Length; i++)
                 {
                     var label = parts[i];
