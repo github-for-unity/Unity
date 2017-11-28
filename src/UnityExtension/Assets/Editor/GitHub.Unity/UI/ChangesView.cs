@@ -194,6 +194,7 @@ namespace GitHub.Unity
                 treeChanges.ActiveNodeIcon = Styles.ActiveBranchIcon;
                 treeChanges.NodeIcon = Styles.BranchIcon;
                 treeChanges.FolderIcon = Styles.FolderIcon;
+                treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
             }
 
             treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry)).Cast<ITreeData>(), "Changes");
