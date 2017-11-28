@@ -25,9 +25,11 @@ namespace GitHub.Unity
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
-        [SerializeField] private Vector2 horizontalScroll;
+        [SerializeField] private Vector2 scroll;
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusChangedEvent;
+        [SerializeField] private Tree treeChanges = new Tree();
+        [SerializeField] private List<GitStatusEntry> gitStatusEntries;
 
         public override void OnEnable()
         {
@@ -83,13 +85,46 @@ namespace GitHub.Unity
             }
             GUILayout.EndHorizontal();
 
-            horizontalScroll = GUILayout.BeginScrollView(horizontalScroll);
+            var rect = GUILayoutUtility.GetLastRect();
+            scroll = GUILayout.BeginScrollView(scroll);
             {
+                OnTreeGUI(new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding));
             }
             GUILayout.EndScrollView();
 
             // Do the commit details area
             OnCommitDetailsAreaGUI();
+        }
+
+        private void OnTreeGUI(Rect rect)
+        {
+            var initialRect = rect;
+
+            if (treeChanges.FolderStyle == null)
+            {
+                treeChanges.FolderStyle = Styles.Foldout;
+                treeChanges.TreeNodeStyle = Styles.TreeNode;
+                treeChanges.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+            }
+
+            var treeHadFocus = treeChanges.SelectedNode != null;
+
+            rect = treeChanges.Render(rect, scroll,
+                node => { },
+                node => {
+                },
+                node => {
+                });
+
+            if (treeHadFocus && treeChanges.SelectedNode == null)
+                treeChanges.Focus();
+            else if (!treeHadFocus && treeChanges.SelectedNode != null)
+                treeChanges.Blur();
+
+            if (treeChanges.RequiresRepaint)
+                Redraw();
+
+            GUILayout.Space(rect.y - initialRect.y);
         }
 
         private void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -145,7 +180,21 @@ namespace GitHub.Unity
             if (currentStatusHasUpdate)
             {
                 currentStatusHasUpdate = false;
+                gitStatusEntries = Repository.CurrentStatus.Entries;
+
+                BuildTree();
             }
+        }
+
+        private void BuildTree()
+        {
+            treeChanges = new Tree();
+            treeChanges.ActiveNodeIcon = Styles.ActiveBranchIcon;
+            treeChanges.NodeIcon = Styles.BranchIcon;
+            treeChanges.FolderIcon = Styles.FolderIcon;
+
+            treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry)).Cast<ITreeData>(), "Changes");
+            Redraw();
         }
 
         private void OnCommitDetailsAreaGUI()
