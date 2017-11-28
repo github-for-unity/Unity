@@ -9,6 +9,9 @@ using UnityEngine.Profiling;
 namespace GitHub.Unity
 {
     [Serializable]
+    public class TreeNodeDictionary : SerializableDictionary<string, TreeNode> { }
+
+    [Serializable]
     public class Tree
     {
         public static float ItemHeight { get { return EditorGUIUtility.singleLineHeight; } }
@@ -36,10 +39,9 @@ namespace GitHub.Unity
         [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
         [SerializeField] private TreeNode selectedNode = null;
         [SerializeField] private TreeNode activeNode = null;
-        [SerializeField] private List<string> foldersKeys = new List<string>();
+        [SerializeField] private TreeNodeDictionary folders = new TreeNodeDictionary();
 
         [NonSerialized] private Stack<bool> indents = new Stack<bool>();
-        [NonSerialized] private Hashtable folders;
 
         public bool IsInitialized { get { return nodes != null && nodes.Count > 0 && !String.IsNullOrEmpty(nodes[0].Name); } }
         public bool RequiresRepaint { get; private set; }
@@ -60,26 +62,9 @@ namespace GitHub.Unity
 
         public TreeNode ActiveNode { get { return activeNode; } }
 
-        private Hashtable Folders
-        {
-            get
-            {
-                if (folders == null)
-                {
-                    folders = new Hashtable();
-                    for (int i = 0; i < foldersKeys.Count; i++)
-                    {
-                        folders.Add(foldersKeys[i], null);
-                    }
-                }
-                return folders;
-            }
-        }
-
         public void Load(IEnumerable<ITreeData> data, string title)
         {
-            foldersKeys.Clear();
-            Folders.Clear();
+            folders.Clear();
             nodes.Clear();
 
             var titleNode = new TreeNode()
@@ -100,7 +85,7 @@ namespace GitHub.Unity
                     var label = parts[i];
                     var name = String.Join("/", parts, 0, i + 1);
                     var isFolder = i < parts.Length - 1;
-                    var alreadyExists = Folders.ContainsKey(name);
+                    var alreadyExists = folders.ContainsKey(name);
                     if (!alreadyExists)
                     {
                         var node = new TreeNode()
@@ -124,12 +109,11 @@ namespace GitHub.Unity
                         nodes.Add(node);
                         if (isFolder)
                         {
-                            Folders.Add(name, null);
+                            folders.Add(name, node);
                         }
                     }
                 }
             }
-            foldersKeys = Folders.Keys.Cast<string>().ToList();
         }
 
         public Rect Render(Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null)
