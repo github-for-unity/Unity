@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -27,13 +28,6 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 horizontalScroll;
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusChangedEvent;
-        [SerializeField] private ChangesetTreeView tree = new ChangesetTreeView();
-
-        public override void InitializeView(IView parent)
-        {
-            base.InitializeView(parent);
-            tree.InitializeView(this);
-        }
 
         public override void OnEnable()
         {
@@ -64,7 +58,7 @@ namespace GitHub.Unity
         {
             GUILayout.BeginHorizontal();
             {
-                EditorGUI.BeginDisabledGroup(tree.Entries.Count == 0);
+                EditorGUI.BeginDisabledGroup(false);
                 {
                     if (GUILayout.Button(SelectAllButton, EditorStyles.miniButtonLeft))
                     {
@@ -80,23 +74,18 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-                GUILayout.Label(
-                    tree.Entries.Count == 0
-                        ? NoChangedFilesLabel
-                        : tree.Entries.Count == 1
-                            ? OneChangedFileLabel
-                            : String.Format(ChangedFilesLabel, tree.Entries.Count), EditorStyles.miniLabel);
+//                GUILayout.Label(
+//                    tree.Entries.Count == 0
+//                        ? NoChangedFilesLabel
+//                        : tree.Entries.Count == 1
+//                            ? OneChangedFileLabel
+//                            : String.Format(ChangedFilesLabel, tree.Entries.Count), EditorStyles.miniLabel);
             }
             GUILayout.EndHorizontal();
 
             horizontalScroll = GUILayout.BeginScrollView(horizontalScroll);
-            GUILayout.BeginHorizontal();
-            GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
             {
-                tree.OnGUI();
             }
-            GUILayout.EndVertical();
-            GUILayout.EndHorizontal();
             GUILayout.EndScrollView();
 
             // Do the commit details area
@@ -156,8 +145,6 @@ namespace GitHub.Unity
             if (currentStatusHasUpdate)
             {
                 currentStatusHasUpdate = false;
-                var gitStatus = Repository.CurrentStatus;
-                tree.UpdateEntries(gitStatus.Entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
             }
         }
 
@@ -186,7 +173,8 @@ namespace GitHub.Unity
                     GUILayout.Space(Styles.CommitAreaPadding);
 
                     // Disable committing when already committing or if we don't have all the data needed
-                    EditorGUI.BeginDisabledGroup(isBusy || string.IsNullOrEmpty(commitMessage) || !tree.CommitTargets.Any(t => t.Any));
+                    //EditorGUI.BeginDisabledGroup(isBusy || string.IsNullOrEmpty(commitMessage) || !tree.CommitTargets.Any(t => t.Any));
+                    EditorGUI.BeginDisabledGroup(isBusy || string.IsNullOrEmpty(commitMessage));
                     {
                         GUILayout.BeginHorizontal();
                         {
@@ -212,48 +200,48 @@ namespace GitHub.Unity
 
         private void SelectAll()
         {
-            for (var index = 0; index < tree.CommitTargets.Count; ++index)
-            {
-                tree.CommitTargets[index].All = true;
-            }
+//            for (var index = 0; index < tree.CommitTargets.Count; ++index)
+//            {
+//                tree.CommitTargets[index].All = true;
+//            }
         }
 
         private void SelectNone()
         {
-            for (var index = 0; index < tree.CommitTargets.Count; ++index)
-            {
-                tree.CommitTargets[index].All = false;
-            }
+//            for (var index = 0; index < tree.CommitTargets.Count; ++index)
+//            {
+//                tree.CommitTargets[index].All = false;
+//            }
         }
 
         private void Commit()
         {
             // Do not allow new commits before we have received one successful update
-            isBusy = true;
-
-            var files = Enumerable.Range(0, tree.Entries.Count)
-                .Where(i => tree.CommitTargets[i].All)
-                .Select(i => tree.Entries[i].Path)
-                .ToList();
-
-            ITask addTask;
-
-            if (files.Count == tree.Entries.Count)
-            {
-                addTask = Repository.CommitAllFiles(commitMessage, commitBody);
-            }
-            else
-            {
-                addTask = Repository.CommitFiles(files, commitMessage, commitBody);
-            }
-
-            addTask
-                .FinallyInUI((b, exception) => 
-                    {
-                        commitMessage = "";
-                        commitBody = "";
-                        isBusy = false;
-                    }).Start();
+//            isBusy = true;
+//
+//            var files = Enumerable.Range(0, tree.Entries.Count)
+//                .Where(i => tree.CommitTargets[i].All)
+//                .Select(i => tree.Entries[i].Path)
+//                .ToList();
+//
+//            ITask addTask;
+//
+//            if (files.Count == tree.Entries.Count)
+//            {
+//                addTask = Repository.CommitAllFiles(commitMessage, commitBody);
+//            }
+//            else
+//            {
+//                addTask = Repository.CommitFiles(files, commitMessage, commitBody);
+//            }
+//
+//            addTask
+//                .FinallyInUI((b, exception) => 
+//                    {
+//                        commitMessage = "";
+//                        commitBody = "";
+//                        isBusy = false;
+//                    }).Start();
         }
 
         public override bool IsBusy
