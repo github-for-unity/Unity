@@ -85,10 +85,10 @@ namespace GitHub.Unity
             }
             GUILayout.EndHorizontal();
 
+            var rect = GUILayoutUtility.GetLastRect();
             GUILayout.BeginHorizontal();
             GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
             {
-                var rect = GUILayoutUtility.GetLastRect();
                 scroll = GUILayout.BeginScrollView(scroll);
                 {
                     OnTreeGUI(new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding));
