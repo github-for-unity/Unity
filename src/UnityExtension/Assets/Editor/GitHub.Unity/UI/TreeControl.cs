@@ -437,7 +437,7 @@ namespace GitHub.Unity
 
             if (Event.current.type == EventType.repaint)
             {
-                nodeStyle.Draw(fillRect, "", false, false, false, isSelected);
+                nodeStyle.Draw(fillRect, GUIContent.none, false, false, false, isSelected);
                 if (IsFolder)
                     style.Draw(nodeRect, content, false, false, !IsCollapsed, isSelected);
                 else
@@ -449,7 +449,7 @@ namespace GitHub.Unity
             if (IsFolder)
             {
                 EditorGUI.BeginChangeCheck();
-                GUI.Toggle(nodeRect, !IsCollapsed, "", GUIStyle.none);
+                GUI.Toggle(nodeRect, !IsCollapsed, GUIContent.none, GUIStyle.none);
                 changed = EditorGUI.EndChangeCheck();
             }
 
