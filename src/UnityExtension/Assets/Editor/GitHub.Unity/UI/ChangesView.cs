@@ -28,7 +28,7 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusChangedEvent;
-        [SerializeField] private Tree treeChanges = new Tree();
+        [SerializeField] private Tree treeChanges;
         [SerializeField] private List<GitStatusEntry> gitStatusEntries;
 
         public override void OnEnable()
@@ -188,10 +188,13 @@ namespace GitHub.Unity
 
         private void BuildTree()
         {
-            treeChanges = new Tree();
-            treeChanges.ActiveNodeIcon = Styles.ActiveBranchIcon;
-            treeChanges.NodeIcon = Styles.BranchIcon;
-            treeChanges.FolderIcon = Styles.FolderIcon;
+            if (treeChanges == null)
+            {
+                treeChanges = new Tree();
+                treeChanges.ActiveNodeIcon = Styles.ActiveBranchIcon;
+                treeChanges.NodeIcon = Styles.BranchIcon;
+                treeChanges.FolderIcon = Styles.FolderIcon;
+            }
 
             treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry)).Cast<ITreeData>(), "Changes");
             Redraw();
