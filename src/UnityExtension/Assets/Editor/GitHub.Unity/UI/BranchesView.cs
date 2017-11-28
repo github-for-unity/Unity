@@ -358,13 +358,9 @@ namespace GitHub.Unity
                 });
 
             if (treeHadFocus && treeRemotes.SelectedNode == null)
-            {
                 treeLocals.Focus();
-            }
             else if (!treeHadFocus && treeRemotes.SelectedNode != null)
-            {
                 treeLocals.Blur();
-            }
 
             if (treeRemotes.RequiresRepaint)
                 Redraw();
