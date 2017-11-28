@@ -13,7 +13,6 @@ namespace GitHub.Unity
     {
         [SerializeField] public float ItemHeight = EditorGUIUtility.singleLineHeight;
         [SerializeField] public float ItemSpacing = EditorGUIUtility.standardVerticalSpacing;
-        [SerializeField] public float Indentation = 12f;
         [SerializeField] public Rect Margin = new Rect();
         [SerializeField] public Rect Padding = new Rect();
 
@@ -169,7 +168,7 @@ namespace GitHub.Unity
 
                 if (visible)
                 {
-                    var changed = node.Render(rect, Indentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                    var changed = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
 
                     if (node.IsFolder && changed)
                     {
