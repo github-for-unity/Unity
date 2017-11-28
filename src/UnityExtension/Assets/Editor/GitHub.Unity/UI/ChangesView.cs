@@ -194,6 +194,7 @@ namespace GitHub.Unity
                 treeChanges.ActiveNodeIcon = Styles.ActiveBranchIcon;
                 treeChanges.NodeIcon = Styles.BranchIcon;
                 treeChanges.FolderIcon = Styles.FolderIcon;
+                treeChanges.DisplayRootNode = false;
                 treeChanges.PathIgnoreRoot = Environment.RepositoryPath + Environment.FileSystem.DirectorySeparatorChar;
                 treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
             }
