@@ -358,13 +358,9 @@ namespace GitHub.Unity
                 });
 
             if (treeHadFocus && treeRemotes.SelectedNode == null)
-            {
                 treeLocals.Focus();
-            }
             else if (!treeHadFocus && treeRemotes.SelectedNode != null)
-            {
                 treeLocals.Blur();
-            }
 
             if (treeRemotes.RequiresRepaint)
                 Redraw();
@@ -375,16 +371,6 @@ namespace GitHub.Unity
 
         private int CompareBranches(GitBranch a, GitBranch b)
         {
-            //if (IsFavorite(a.Name))
-            //{
-            //    return -1;
-            //}
-
-            //if (IsFavorite(b.Name))
-            //{
-            //    return 1;
-            //}
-
             if (a.Name.Equals("master"))
             {
                 return -1;
@@ -397,31 +383,6 @@ namespace GitHub.Unity
 
             return a.Name.CompareTo(b.Name);
         }
-
-        //private bool IsFavorite(string branchName)
-        //{
-        //    return !String.IsNullOrEmpty(branchName) && favoritesList.Contains(branchName);
-        //}
-
-        //private void SetFavorite(TreeNode branch, bool favorite)
-        //{
-        //    if (string.IsNullOrEmpty(branch.Name))
-        //    {
-        //        return;
-        //    }
-
-        //    if (!favorite)
-        //    {
-        //        favorites.Remove(branch);
-        //        Manager.LocalSettings.Set(FavoritesSetting, favorites.Select(x => x.Name).ToList());
-        //    }
-        //    else
-        //    {
-        //        favorites.Remove(branch);
-        //        favorites.Add(branch);
-        //        Manager.LocalSettings.Set(FavoritesSetting, favorites.Select(x => x.Name).ToList());
-        //    }
-        //}
 
         public override bool IsBusy
         {
