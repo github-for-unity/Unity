@@ -22,6 +22,7 @@ namespace GitHub.Unity
 
         [SerializeField] public string PathIgnoreRoot;
         [SerializeField] public string PathSeparator = "/";
+        [SerializeField] public bool DisplayRootNode = true;
         [SerializeField] public GUIStyle FolderStyle;
         [SerializeField] public GUIStyle TreeNodeStyle;
         [SerializeField] public GUIStyle ActiveTreeNodeStyle;
@@ -61,11 +62,13 @@ namespace GitHub.Unity
             folders.Clear();
             nodes.Clear();
 
+            var displayRootLevel = DisplayRootNode ? 1 : 0;
+
             var titleNode = new TreeNode()
             {
                 Name = title,
                 Label = title,
-                Level = 0,
+                Level = -1 + displayRootLevel,
                 IsFolder = true
             };
             SetNodeIcon(titleNode);
@@ -101,7 +104,7 @@ namespace GitHub.Unity
                             Name = name,
                             IsActive = d.IsActive,
                             Label = label,
-                            Level = level,
+                            Level = i + displayRootLevel,
                             IsFolder = isFolder
                         };
 
@@ -148,26 +151,31 @@ namespace GitHub.Unity
         public Rect Render(Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
         {
             Profiler.BeginSample("TreeControl");
-            bool visible = true;
+            var visible = true;
             var availableHeight = rect.y + rect.height;
 
             RequiresRepaint = false;
             rect = new Rect(0f, rect.y, rect.width, ItemHeight);
 
-            var titleNode = nodes[0];
-            bool selectionChanged = titleNode.Render(rect, 0f, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+            var level = 0;
 
-            if (selectionChanged)
+            if (DisplayRootNode)
             {
-                ToggleNodeVisibility(0, titleNode);
+                var titleNode = nodes[0];
+                var selectionChanged = titleNode.Render(rect, 0f, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+
+                if (selectionChanged)
+                {
+                    ToggleNodeVisibility(0, titleNode);
+                }
+
+                RequiresRepaint = HandleInput(rect, titleNode, 0);
+                rect.y += ItemHeight + ItemSpacing;
+
+                Indent();
+                level = 1;
             }
 
-            RequiresRepaint = HandleInput(rect, titleNode, 0);
-            rect.y += ItemHeight + ItemSpacing;
-
-            Indent();
-
-            int level = 1;
             int i = 1;
             for (; i < nodes.Count; i++)
             {
