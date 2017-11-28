@@ -11,8 +11,9 @@ namespace GitHub.Unity
     [Serializable]
     public class Tree
     {
-        [SerializeField] public float ItemHeight = EditorGUIUtility.singleLineHeight;
-        [SerializeField] public float ItemSpacing = EditorGUIUtility.standardVerticalSpacing;
+        public static float ItemHeight { get { return EditorGUIUtility.singleLineHeight; } }
+        public static float ItemSpacing { get { return EditorGUIUtility.standardVerticalSpacing; } }
+
         [SerializeField] public Rect Margin = new Rect();
         [SerializeField] public Rect Padding = new Rect();
 
