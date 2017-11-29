@@ -17,10 +17,6 @@ namespace GitHub.Unity
         public string tracking;
         public bool isActive;
 
-        public string Name { get { return name; } }
-        public string Tracking { get { return tracking; } }
-        public bool IsActive { get { return isActive; } }
-
         public GitBranch(string name, string tracking, bool active)
         {
             Guard.ArgumentNotNullOrWhiteSpace(name, "name");
@@ -29,6 +25,10 @@ namespace GitHub.Unity
             this.tracking = tracking;
             this.isActive = active;
         }
+
+        public string Name => name;
+        public string Tracking => tracking;
+        public bool IsActive => isActive;
 
         public override string ToString()
         {
