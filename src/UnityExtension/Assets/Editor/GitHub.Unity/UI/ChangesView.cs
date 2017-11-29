@@ -36,12 +36,8 @@ namespace GitHub.Unity
             base.OnEnable();
             UpdateTreeIcons();
             AttachHandlers(Repository);
-
-            if (Repository != null)
-            {
-                Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
-                Repository.CheckStatusChangedEvent(lastStatusChangedEvent);
-            }
+            Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
+            Repository.CheckStatusChangedEvent(lastStatusChangedEvent);
         }
 
         public override void OnDisable()
