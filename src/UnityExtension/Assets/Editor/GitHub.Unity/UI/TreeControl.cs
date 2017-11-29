@@ -64,6 +64,9 @@ namespace GitHub.Unity
 
         public void Load(IEnumerable<ITreeData> data, string title)
         {
+            var collapsedFoldersEnumerable = folders.Where(pair => pair.Value.IsCollapsed).Select(pair => pair.Key);
+            var collapsedFolders = new HashSet<string>(collapsedFoldersEnumerable);
+
             folders.Clear();
             nodes.Clear();
 
@@ -77,29 +80,45 @@ namespace GitHub.Unity
             titleNode.Load();
             nodes.Add(titleNode);
 
+            var hideChildren = false;
+            var hideChildrenBelowLevel = 0;
+
             foreach (var d in data)
             {
                 var parts = d.Name.Split('/');
                 for (int i = 0; i < parts.Length; i++)
                 {
                     var label = parts[i];
-                    var name = String.Join("/", parts, 0, i + 1);
+                    var level = i + 1;
+                    var name = String.Join("/", parts, 0, level);
                     var isFolder = i < parts.Length - 1;
                     var alreadyExists = folders.ContainsKey(name);
                     if (!alreadyExists)
                     {
-                        var node = new TreeNode()
+                        var node = new TreeNode
                         {
                             Name = name,
                             IsActive = d.IsActive,
                             Label = label,
-                            Level = i + 1,
+                            Level = level,
                             IsFolder = isFolder
                         };
 
                         if (node.IsActive)
                         {
                             activeNode = node;
+                        }
+
+                        if (hideChildren)
+                        {
+                            if (level <= hideChildrenBelowLevel)
+                            {
+                                hideChildren = false;
+                            }
+                            else
+                            {
+                                node.IsHidden = true;
+                            }
                         }
 
                         ResetNodeIcons(node);
@@ -109,6 +128,17 @@ namespace GitHub.Unity
                         nodes.Add(node);
                         if (isFolder)
                         {
+                            if (collapsedFolders.Contains(name))
+                            {
+                                node.IsCollapsed = true;
+
+                                if (!hideChildren)
+                                {
+                                    hideChildren = true;
+                                    hideChildrenBelowLevel = level;
+                                }
+                            }
+
                             folders.Add(name, node);
                         }
                     }
