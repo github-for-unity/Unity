@@ -2,7 +2,7 @@ using System;
 
 namespace GitHub.Unity
 {
-    interface ITreeData
+    public interface ITreeData
     {
         string Name { get; }
         bool IsActive { get; }

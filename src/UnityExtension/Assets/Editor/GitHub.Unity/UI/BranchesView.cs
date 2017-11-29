@@ -1,10 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using GitHub.Unity.Helpers;
 using UnityEditor;
 using UnityEngine;
-using Debug = System.Diagnostics.Debug;
 
 namespace GitHub.Unity
 {
@@ -33,26 +33,21 @@ namespace GitHub.Unity
         private const string DeleteBranchButton = "Delete";
         private const string CancelButtonLabel = "Cancel";
 
-        private bool showLocalBranches = true;
-        private bool showRemoteBranches = true;
-
         [NonSerialized] private int listID = -1;
-        [NonSerialized] private BranchTreeNode newNodeSelection;
         [NonSerialized] private BranchesMode targetMode;
 
-        [SerializeField] private BranchTreeNode activeBranchNode;
-        [SerializeField] private BranchTreeNode localRoot;
+        [SerializeField] private Tree treeLocals = new Tree();
+        [SerializeField] private Tree treeRemotes = new Tree();
         [SerializeField] private BranchesMode mode = BranchesMode.Default;
         [SerializeField] private string newBranchName;
-        [SerializeField] private List<Remote> remotes = new List<Remote>();
         [SerializeField] private Vector2 scroll;
-        [SerializeField] private BranchTreeNode selectedNode;
+        [SerializeField] private bool disableDelete;
 
         [SerializeField] private CacheUpdateEvent lastLocalAndRemoteBranchListChangedEvent;
         [NonSerialized] private bool localAndRemoteBranchListHasUpdate;
 
-        [SerializeField] private GitBranch[] localBranches;
-        [SerializeField] private GitBranch[] remoteBranches;
+        [SerializeField] private List<GitBranch> localBranches;
+        [SerializeField] private List<GitBranch> remoteBranches;
 
         public override void InitializeView(IView parent)
         {
@@ -60,15 +55,12 @@ namespace GitHub.Unity
             targetMode = mode;
         }
 
+
         public override void OnEnable()
         {
             base.OnEnable();
             AttachHandlers(Repository);
-
-            if (Repository != null)
-            {
-                Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
-            }
+            Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
         }
 
         public override void OnDisable()
@@ -99,12 +91,18 @@ namespace GitHub.Unity
             {
                 localAndRemoteBranchListHasUpdate = false;
 
-                localBranches = Repository.LocalBranches.ToArray();
-                remoteBranches = Repository.RemoteBranches.ToArray();
+                localBranches = Repository.LocalBranches.ToList();
+                remoteBranches = Repository.RemoteBranches.ToList();
 
-
-                BuildTree(localBranches, remoteBranches);
+                BuildTree();
             }
+
+            disableDelete = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.IsActive;
+        }
+
+        public override void OnGUI()
+        {
+            Render();
         }
 
         private void AttachHandlers(IRepository repository)
@@ -114,234 +112,45 @@ namespace GitHub.Unity
 
         private void DetachHandlers(IRepository repository)
         {
-
             repository.LocalAndRemoteBranchListChanged -= RepositoryOnLocalAndRemoteBranchListChanged;
         }
 
-        public override void OnGUI()
+        private void Render()
         {
-            OnEmbeddedGUI();
-        }
+            listID = GUIUtility.GetControlID(FocusType.Keyboard);
+            GUILayout.BeginHorizontal();
+            {
+                OnButtonBarGUI();
+            }
+            GUILayout.EndHorizontal();
 
-        public void OnEmbeddedGUI()
-        {
+            var rect = GUILayoutUtility.GetLastRect();
             scroll = GUILayout.BeginScrollView(scroll);
             {
-                listID = GUIUtility.GetControlID(FocusType.Keyboard);
-
-                GUILayout.BeginHorizontal();
-                {
-                    OnButtonBarGUI();
-                }
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
-                {
-                    // Local branches and "create branch" button
-                    showLocalBranches = EditorGUILayout.Foldout(showLocalBranches, LocalTitle);
-                    if (showLocalBranches)
-                    {
-                        GUILayout.BeginHorizontal();
-                        {
-                            GUILayout.BeginVertical();
-                            {
-                                OnTreeNodeChildrenGUI(localRoot);
-                            }
-                            GUILayout.EndVertical();
-                        }
-                        GUILayout.EndHorizontal();
-                    }
-
-                    // Remotes
-                    showRemoteBranches = EditorGUILayout.Foldout(showRemoteBranches, RemoteTitle);
-                    if (showRemoteBranches)
-                    {
-                        GUILayout.BeginHorizontal();
-                        {
-                            GUILayout.BeginVertical();
-                            for (var index = 0; index < remotes.Count; ++index)
-                            {
-                                var remote = remotes[index];
-                                GUILayout.Label(new GUIContent(remote.Name, Styles.FolderIcon), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
-
-                                // Branches of the remote
-                                GUILayout.BeginHorizontal();
-                                {
-                                    GUILayout.Space(Styles.TreeIndentation);
-                                    GUILayout.BeginVertical();
-                                    {
-                                        OnTreeNodeChildrenGUI(remote.Root);
-                                    }
-                                    GUILayout.EndVertical();
-                                }
-                                GUILayout.EndHorizontal();
-
-                                GUILayout.Space(Styles.BranchListSeperation);
-                            }
-
-                            GUILayout.EndVertical();
-                        }
-                        GUILayout.EndHorizontal();
-                    }
-
-                    GUILayout.FlexibleSpace();
-                }
-                GUILayout.EndVertical();
+                OnTreeGUI(new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding)); 
             }
-
             GUILayout.EndScrollView();
-
-            if (Event.current.type == EventType.Repaint)
-            {
-                // Effectuating selection
-                if (newNodeSelection != null)
-                {
-                    selectedNode = newNodeSelection;
-                    newNodeSelection = null;
-                    GUIUtility.keyboardControl = listID;
-                    Redraw();
-                }
-
-                // Effectuating mode switch
-                if (mode != targetMode)
-                {
-                    mode = targetMode;
-
-                    if (mode == BranchesMode.Create)
-                    {
-                        selectedNode = activeBranchNode;
-                    }
-
-                    Redraw();
-                }
-            }
         }
 
-        private int CompareBranches(GitBranch a, GitBranch b)
+        private void BuildTree()
         {
-            if (a.Name.Equals("master"))
-            {
-                return -1;
-            }
-
-            if (b.Name.Equals("master"))
-            {
-                return 1;
-            }
-
-            return 0;
-        }
-
-        private void BuildTree(IEnumerable<GitBranch> local, IEnumerable<GitBranch> remote)
-        {
-            //Clear the selected node
-            selectedNode = null;
- 
-            // Sort
-            var localBranches = new List<GitBranch>(local);
-            var remoteBranches = new List<GitBranch>(remote);
             localBranches.Sort(CompareBranches);
             remoteBranches.Sort(CompareBranches);
+            treeLocals = new Tree();
+            treeLocals.ActiveNodeIcon = Styles.ActiveBranchIcon;
+            treeLocals.NodeIcon = Styles.BranchIcon;
+            treeLocals.RootFolderIcon = Styles.RootFolderIcon;
+            treeLocals.FolderIcon = Styles.FolderIcon;
 
-            // Prepare for tracking
-            var tracking = new List<KeyValuePair<int, int>>();
-            var localBranchNodes = new List<BranchTreeNode>();
+            treeRemotes = new Tree();
+            treeRemotes.ActiveNodeIcon = Styles.ActiveBranchIcon;
+            treeRemotes.NodeIcon = Styles.BranchIcon;
+            treeRemotes.RootFolderIcon = Styles.RootFolderIcon;
+            treeRemotes.FolderIcon = Styles.FolderIcon;
 
-            // Just build directly on the local root, keep track of active branch
-            localRoot = new BranchTreeNode("", NodeType.Folder, false);
-            for (var index = 0; index < localBranches.Count; ++index)
-            {
-                var branch = localBranches[index];
-                var node = new BranchTreeNode(branch.Name, NodeType.LocalBranch, branch.IsActive);
-                localBranchNodes.Add(node);
-
-                // Keep active node for quick reference
-                if (branch.IsActive)
-                {
-                    activeBranchNode = node;
-                }
-
-                // Add to tracking
-                if (!string.IsNullOrEmpty(branch.Tracking))
-                {
-                    var trackingIndex = !remoteBranches.Any()
-                        ? -1
-                        : Enumerable.Range(0, remoteBranches.Count).FirstOrDefault(i => remoteBranches[i].Name.Equals(branch.Tracking));
-
-                    if (trackingIndex > -1)
-                    {
-                        tracking.Add(new KeyValuePair<int, int>(index, trackingIndex));
-                    }
-                }
-
-                // Build into tree
-                BuildTree(localRoot, node);
-            }
-
-            // Maintain list of remotes before building their roots, ignoring active state
-            remotes.Clear();
-            for (var index = 0; index < remoteBranches.Count; ++index)
-            {
-                var branch = remoteBranches[index];
-
-                // Remote name is always the first level
-                var remoteName = branch.Name.Substring(0, branch.Name.IndexOf('/'));
-
-                // Get or create this remote
-                var remoteIndex = Enumerable.Range(1, remotes.Count + 1)
-                    .FirstOrDefault(i => remotes.Count > i - 1 && remotes[i - 1].Name.Equals(remoteName)) - 1;
-                if (remoteIndex < 0)
-                {
-                    remotes.Add(new Remote { Name = remoteName, Root = new BranchTreeNode("", NodeType.Folder, false) });
-                    remoteIndex = remotes.Count - 1;
-                }
-
-                // Create the branch
-                var node = new BranchTreeNode(branch.Name, NodeType.RemoteBranch, false) {
-                    Label = branch.Name.Substring(remoteName.Length + 1)
-                };
-
-                // Establish tracking link
-                for (var trackingIndex = 0; trackingIndex < tracking.Count; ++trackingIndex)
-                {
-                    var pair = tracking[trackingIndex];
-
-                    if (pair.Value == index)
-                    {
-                        localBranchNodes[pair.Key].Tracking = node;
-                    }
-                }
-
-                // Build on the root of the remote, just like with locals
-                BuildTree(remotes[remoteIndex].Root, node);
-            }
-
+            treeLocals.Load(localBranches.Cast<ITreeData>(), LocalTitle);
+            treeRemotes.Load(remoteBranches.Cast<ITreeData>(), RemoteTitle);
             Redraw();
-        }
-
-        private void BuildTree(BranchTreeNode parent, BranchTreeNode child)
-        {
-            var firstSplit = child.Label.IndexOf('/');
-
-            // No nesting needed here, this is just a straight add
-            if (firstSplit < 0)
-            {
-                parent.Children.Add(child);
-                return;
-            }
-
-            // Get or create the next folder level
-            var folderName = child.Label.Substring(0, firstSplit);
-            var folder = parent.Children.FirstOrDefault(f => f.Label.Equals(folderName));
-            if (folder == null)
-            {
-                folder = new BranchTreeNode("", NodeType.Folder, false) { Label = folderName };
-                parent.Children.Add(folder);
-            }
-
-            // Pop the folder name from the front of the child label and add it to the folder
-            child.Label = child.Label.Substring(folderName.Length + 1);
-            BuildTree(folder, child);
         }
 
         private void OnButtonBarGUI()
@@ -350,12 +159,11 @@ namespace GitHub.Unity
             {
                 // Delete button
                 // If the current branch is selected, then do not enable the Delete button
-                var disableDelete = selectedNode == null || selectedNode.Type == NodeType.Folder || activeBranchNode == selectedNode;
                 EditorGUI.BeginDisabledGroup(disableDelete);
                 {
                     if (GUILayout.Button(DeleteBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                     {
-                        var selectedBranchName = selectedNode.Name;
+                        var selectedBranchName = treeLocals.SelectedNode.Name;
                         var dialogMessage = string.Format(DeleteBranchMessageFormatString, selectedBranchName);
                         if (EditorUtility.DisplayDialog(DeleteBranchTitle, dialogMessage, DeleteBranchButton, CancelButtonLabel))
                         {
@@ -379,8 +187,8 @@ namespace GitHub.Unity
                 {
                     var createBranch = false;
                     var cancelCreate = false;
-                    var cannotCreate = selectedNode == null ||
-                                       selectedNode.Type == NodeType.Folder ||
+                    var cannotCreate = treeLocals.SelectedNode == null ||
+                                       treeLocals.SelectedNode.IsFolder ||
                                        !Validation.IsBranchNameValid(newBranchName);
 
                     // Create on return/enter or cancel on escape
@@ -426,21 +234,22 @@ namespace GitHub.Unity
                     // Effectuate create
                     if (createBranch)
                     {
-                        GitClient.CreateBranch(newBranchName, selectedNode.Name)
-                            .FinallyInUI((success, e) => {
-                                     if (success)
-                                     {
-                                         Redraw();
-                                     }
-                                     else
-                                     {
-                                         var errorHeader = "fatal: ";
-                                         var errorMessage = e.Message.StartsWith(errorHeader) ? e.Message.Remove(0, errorHeader.Length) : e.Message;
+                        GitClient.CreateBranch(newBranchName, treeLocals.SelectedNode.Name)
+                            .FinallyInUI((success, e) =>
+                            {
+                                if (success)
+                                {
+                                    Redraw();
+                                }
+                                else
+                                {
+                                    var errorHeader = "fatal: ";
+                                    var errorMessage = e.Message.StartsWith(errorHeader) ? e.Message.Remove(0, errorHeader.Length) : e.Message;
 
-                                         EditorUtility.DisplayDialog(CreateBranchTitle,
-                                             errorMessage,
-                                             Localization.Ok);
-                                     }
+                                    EditorUtility.DisplayDialog(CreateBranchTitle,
+                                        errorMessage,
+                                        Localization.Ok);
+                                }
                             })
                             .Start();
                     }
@@ -457,76 +266,79 @@ namespace GitHub.Unity
             }
         }
 
-        private void OnTreeNodeGUI(BranchTreeNode node)
+        private void OnTreeGUI(Rect rect)
         {
-            // Content, style, and rects
+             var initialRect = rect;
 
-            Texture2D iconContent;
-
-            if (node.Active == true)
+            if (treeLocals.FolderStyle == null)
             {
-                iconContent = Styles.ActiveBranchIcon;
-            }
-            else
-            {
-                if (node.Children.Count > 0)
-                {
-                    iconContent = Styles.FolderIcon;
-                }
-                else
-                {
-                    iconContent = Styles.BranchIcon;
-                }
+                treeLocals.FolderStyle = Styles.Foldout;
+                treeLocals.TreeNodeStyle = Styles.TreeNode;
+                treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+                treeRemotes.FolderStyle = Styles.Foldout;
+                treeRemotes.TreeNodeStyle = Styles.TreeNode;
+                treeRemotes.ActiveTreeNodeStyle = Styles.TreeNodeActive;
             }
 
-            var content = new GUIContent(node.Label, iconContent);
-            var style = node.Active ? Styles.BoldLabel : Styles.Label;
-            var rect = GUILayoutUtility.GetRect(content, style, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
-            var clickRect = new Rect(0f, rect.y, Position.width, rect.height);
+            var treeHadFocus = treeLocals.SelectedNode != null;
 
-            var selected = selectedNode == node;
-            var keyboardFocus = GUIUtility.keyboardControl == listID;
-
-            // Selection highlight and favorite toggle
-            if (selected)
-            {
-                if (Event.current.type == EventType.Repaint)
+            rect = treeLocals.Render(rect, scroll, _ => { }, node =>
                 {
-                    style.Draw(clickRect, GUIContent.none, false, false, true, keyboardFocus);
-                }
-            }
-
-            // The actual icon and label
-            if (Event.current.type == EventType.Repaint)
-            {
-                style.Draw(rect, content, false, false, selected, keyboardFocus);
-            }
-
-            // Children
-            GUILayout.BeginHorizontal();
-            {
-                GUILayout.Space(Styles.TreeIndentation);
-                GUILayout.BeginVertical();
-                {
-                    OnTreeNodeChildrenGUI(node);
-                }
-                GUILayout.EndVertical();
-            }
-            GUILayout.EndHorizontal();
-
-            // Click selection of the node as well as branch switch
-            if (Event.current.type == EventType.MouseDown && clickRect.Contains(Event.current.mousePosition))
-            {
-                newNodeSelection = node;
-                Event.current.Use();
-
-                if (Event.current.clickCount > 1 && mode == BranchesMode.Default)
-                {
-                    if (node.Type == NodeType.LocalBranch)
+                    if (EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, node.Name), ConfirmSwitchOK,
+                            ConfirmSwitchCancel))
                     {
-                        if (EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, node.Name), ConfirmSwitchOK, ConfirmSwitchCancel))
+                        GitClient.SwitchBranch(node.Name)
+                            .FinallyInUI((success, e) =>
+                            {
+                                if (success)
+                                {
+                                    Redraw();
+                                }
+                                else
+                                {
+                                    EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
+                                        String.Format(Localization.SwitchBranchFailedDescription, node.Name),
+                                    Localization.Ok);
+                                }
+                            }).Start();
+                    }
+                });
+
+            if (treeHadFocus && treeLocals.SelectedNode == null)
+                treeRemotes.Focus();
+            else if (!treeHadFocus && treeLocals.SelectedNode != null)
+                treeRemotes.Blur();
+
+            if (treeLocals.RequiresRepaint)
+                Redraw();
+
+            treeHadFocus = treeRemotes.SelectedNode != null;
+
+            rect.y += Styles.TreePadding;
+
+            treeRemotes.Render(rect, scroll, _ => {}, selectedNode =>
+                {
+                    var indexOfFirstSlash = selectedNode.Name.IndexOf('/');
+                    var originName = selectedNode.Name.Substring(0, indexOfFirstSlash);
+                    var branchName = selectedNode.Name.Substring(indexOfFirstSlash + 1);
+
+                    if (Repository.LocalBranches.Any(localBranch => localBranch.Name == branchName))
+                    {
+                        EditorUtility.DisplayDialog(WarningCheckoutBranchExistsTitle,
+                            String.Format(WarningCheckoutBranchExistsMessage, branchName),
+                            WarningCheckoutBranchExistsOK);
+                    }
+                    else
+                    {
+                        var confirmCheckout = EditorUtility.DisplayDialog(ConfirmCheckoutBranchTitle,
+                            String.Format(ConfirmCheckoutBranchMessage, selectedNode.Name, originName),
+                            ConfirmCheckoutBranchOK,
+                            ConfirmCheckoutBranchCancel);
+
+                        if (confirmCheckout)
                         {
-                            GitClient.SwitchBranch(node.Name)
+                            GitClient
+                                .CreateBranch(branchName, selectedNode.Name)
                                 .FinallyInUI((success, e) =>
                                 {
                                     if (success)
@@ -536,94 +348,80 @@ namespace GitHub.Unity
                                     else
                                     {
                                         EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
-                                            String.Format(Localization.SwitchBranchFailedDescription, node.Name),
+                                            String.Format(Localization.SwitchBranchFailedDescription, selectedNode.Name),
                                             Localization.Ok);
                                     }
-                                }).Start();
+                                })
+                                .Start();
                         }
                     }
-                    else if (node.Type == NodeType.RemoteBranch)
-                    {
-                        var indexOfFirstSlash = selectedNode.Name.IndexOf('/');
-                        var originName = selectedNode.Name.Substring(0, indexOfFirstSlash);
-                        var branchName = selectedNode.Name.Substring(indexOfFirstSlash + 1);
+                });
 
-                        if (localBranches.Any(localBranch => localBranch.Name == branchName))
-                        {
-                            EditorUtility.DisplayDialog(WarningCheckoutBranchExistsTitle, 
-                                String.Format(WarningCheckoutBranchExistsMessage, branchName),
-                                WarningCheckoutBranchExistsOK);
-                        }
-                        else
-                        {
-                            var confirmCheckout = EditorUtility.DisplayDialog(ConfirmCheckoutBranchTitle, 
-                                String.Format(ConfirmCheckoutBranchMessage, node.Name, originName), 
-                                ConfirmCheckoutBranchOK, ConfirmCheckoutBranchCancel);
-
-                            if (confirmCheckout)
-                            {
-                                GitClient.CreateBranch(branchName, selectedNode.Name)
-                                    .FinallyInUI((success, e) =>
-                                    {
-                                        if (success)
-                                        {
-                                            Redraw();
-                                        }
-                                        else
-                                        {
-                                            EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
-                                                String.Format(Localization.SwitchBranchFailedDescription, node.Name),
-                                                Localization.Ok);
-                                        }
-                                    }).Start();
-                            }
-                        }
-                    }
-                }
+            if (treeHadFocus && treeRemotes.SelectedNode == null)
+            {
+                treeLocals.Focus();
             }
+            else if (!treeHadFocus && treeRemotes.SelectedNode != null)
+            {
+                treeLocals.Blur();
+            }
+
+            if (treeRemotes.RequiresRepaint)
+                Redraw();
+
+            //Debug.LogFormat("reserving: {0} {1} {2}", rect.y - initialRect.y, rect.y, initialRect.y);
+            GUILayout.Space(rect.y - initialRect.y);
         }
 
-        private void OnTreeNodeChildrenGUI(BranchTreeNode node)
+        private int CompareBranches(GitBranch a, GitBranch b)
         {
-            if (node == null || node.Children == null)
+            //if (IsFavorite(a.Name))
+            //{
+            //    return -1;
+            //}
+
+            //if (IsFavorite(b.Name))
+            //{
+            //    return 1;
+            //}
+
+            if (a.Name.Equals("master"))
             {
-                return;
+                return -1;
             }
 
-            for (var index = 0; index < node.Children.Count; ++index)
+            if (b.Name.Equals("master"))
             {
-                // The actual GUI of the child
-                OnTreeNodeGUI(node.Children[index]);
-
-                // Keyboard navigation if this child is the current selection
-                if (selectedNode == node.Children[index] && GUIUtility.keyboardControl == listID && Event.current.type == EventType.KeyDown)
-                {
-                    int directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0,
-                        directionX = Event.current.keyCode == KeyCode.LeftArrow ? -1 : Event.current.keyCode == KeyCode.RightArrow ? 1 : 0;
-
-                    if (directionY < 0 && index > 0)
-                    {
-                        newNodeSelection = node.Children[index - 1];
-                        Event.current.Use();
-                    }
-                    else if (directionY > 0 && index < node.Children.Count - 1)
-                    {
-                        newNodeSelection = node.Children[index + 1];
-                        Event.current.Use();
-                    }
-                    else if (directionX < 0)
-                    {
-                        newNodeSelection = node;
-                        Event.current.Use();
-                    }
-                    else if (directionX > 0 && node.Children[index].Children.Count > 0)
-                    {
-                        newNodeSelection = node.Children[index].Children[0];
-                        Event.current.Use();
-                    }
-                }
+                return 1;
             }
+
+            return a.Name.CompareTo(b.Name);
         }
+
+        //private bool IsFavorite(string branchName)
+        //{
+        //    return !String.IsNullOrEmpty(branchName) && favoritesList.Contains(branchName);
+        //}
+
+        //private void SetFavorite(TreeNode branch, bool favorite)
+        //{
+        //    if (string.IsNullOrEmpty(branch.Name))
+        //    {
+        //        return;
+        //    }
+
+        //    if (!favorite)
+        //    {
+        //        favorites.Remove(branch);
+        //        Manager.LocalSettings.Set(FavoritesSetting, favorites.Select(x => x.Name).ToList());
+        //    }
+        //    else
+        //    {
+        //        favorites.Remove(branch);
+        //        favorites.Add(branch);
+        //        Manager.LocalSettings.Set(FavoritesSetting, favorites.Select(x => x.Name).ToList());
+        //    }
+        //}
 
         public override bool IsBusy
         {
@@ -641,35 +439,6 @@ namespace GitHub.Unity
         {
             Default,
             Create
-        }
-
-        [Serializable]
-        private class BranchTreeNode
-        {
-            private readonly List<BranchTreeNode> children = new List<BranchTreeNode>();
-
-            public string Label;
-            public BranchTreeNode Tracking;
-
-            public BranchTreeNode(string name, NodeType type, bool active)
-            {
-                Label = Name = name;
-                Type = type;
-                Active = active;
-            }
-
-            public string Name { get; private set; }
-            public NodeType Type { get; private set; }
-            public bool Active { get; private set; }
-
-            public IList<BranchTreeNode> Children { get { return children; } }
-        }
-
-        private struct Remote
-        {
-            // TODO: Pull in and store more data from GitListRemotesTask
-            public string Name;
-            public BranchTreeNode Root;
         }
     }
 }
