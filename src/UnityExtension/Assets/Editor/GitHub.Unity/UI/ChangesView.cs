@@ -203,16 +203,19 @@ namespace GitHub.Unity
         {
             var loaded = false;
 
-            if (treeChanges.NodeIcon == null)
+            if (treeChanges != null)
             {
-                loaded = true;
-                treeChanges.NodeIcon = Styles.BranchIcon;
-            }
+                if (treeChanges.NodeIcon == null)
+                {
+                    loaded = true;
+                    treeChanges.NodeIcon = Styles.BranchIcon;
+                }
 
-            if (treeChanges.FolderIcon == null)
-            {
-                loaded = true;
-                treeChanges.FolderIcon = Styles.FolderIcon;
+                if (treeChanges.FolderIcon == null)
+                {
+                    loaded = true;
+                    treeChanges.FolderIcon = Styles.FolderIcon;
+                }
             }
 
             if (loaded)
