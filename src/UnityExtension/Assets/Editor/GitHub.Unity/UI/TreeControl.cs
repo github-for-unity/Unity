@@ -12,9 +12,11 @@ namespace GitHub.Unity
     public class BranchesTree: Tree
     {
         [NonSerialized] public Texture2D ActiveNodeIcon;
-        [NonSerialized] public Texture2D NodeIcon;
+        [NonSerialized] public Texture2D BranchIcon;
         [NonSerialized] public Texture2D FolderIcon;
-        [NonSerialized] public Texture2D RootFolderIcon;
+        [NonSerialized] public Texture2D RemoteIcon;
+
+        [SerializeField] public bool IsRemote;
 
         protected override Texture2D GetNodeIcon(TreeNode node)
         {
@@ -25,14 +27,13 @@ namespace GitHub.Unity
             }
             else if (node.IsFolder)
             {
-                if (node.Level == 1)
-                    nodeIcon = RootFolderIcon;
-                else
-                    nodeIcon = FolderIcon;
+                nodeIcon = IsRemote && node.Level == 1
+                    ? RemoteIcon
+                    : FolderIcon;
             }
             else
             {
-                nodeIcon = NodeIcon;
+                nodeIcon = BranchIcon;
             }
             return nodeIcon;
         }

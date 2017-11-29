@@ -141,7 +141,9 @@ namespace GitHub.Unity
             if (treeLocals == null)
             {
                 treeLocals = new BranchesTree();
+
                 treeRemotes = new BranchesTree();
+                treeRemotes.IsRemote = true;
 
                 UpdateTreeIcons();
             }
@@ -167,10 +169,10 @@ namespace GitHub.Unity
                     treeLocals.ActiveNodeIcon = Styles.ActiveBranchIcon;
                 }
 
-                if (treeLocals.NodeIcon == null)
+                if (treeLocals.BranchIcon == null)
                 {
                     localsLoaded = true;
-                    treeLocals.NodeIcon = Styles.BranchIcon;
+                    treeLocals.BranchIcon = Styles.BranchIcon;
                 }
 
                 if (treeLocals.FolderIcon == null)
@@ -188,16 +190,16 @@ namespace GitHub.Unity
                     treeRemotes.ActiveNodeIcon = Styles.ActiveBranchIcon;
                 }
 
-                if (treeRemotes.NodeIcon == null)
+                if (treeRemotes.BranchIcon == null)
                 {
                     remotesLoaded = true;
-                    treeRemotes.NodeIcon = Styles.BranchIcon;
+                    treeRemotes.BranchIcon = Styles.BranchIcon;
                 }
 
-                if (treeRemotes.RootFolderIcon == null)
+                if (treeRemotes.RemoteIcon == null)
                 {
                     remotesLoaded = true;
-                    treeRemotes.RootFolderIcon = Styles.RootFolderIcon;
+                    treeRemotes.RemoteIcon = Styles.RootFolderIcon;
                 }
 
                 if (treeRemotes.FolderIcon == null)
