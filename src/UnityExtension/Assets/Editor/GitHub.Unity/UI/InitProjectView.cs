@@ -95,13 +95,9 @@ namespace GitHub.Unity
         {
             if (!lastCheckUserChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(TaskManager.Token, () =>
-                    {
-                        lastCheckUserChangedEvent = cacheUpdateEvent;
-                        userHasChanges = true;
-                        Redraw();
-                    })
-                    { Affinity = TaskAffinity.UI }.Start();
+                lastCheckUserChangedEvent = cacheUpdateEvent;
+                userHasChanges = true;
+                Redraw();
             }
         }
 
