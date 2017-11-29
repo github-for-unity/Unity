@@ -188,7 +188,7 @@ namespace GitHub.Unity
             {
                 treeChanges = new Tree();
                 treeChanges.DisplayRootNode = false;
-                treeChanges.Selectable = true;
+                treeChanges.Checkable = true;
                 treeChanges.PathIgnoreRoot = Environment.RepositoryPath + Environment.FileSystem.DirectorySeparatorChar;
                 treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
 
