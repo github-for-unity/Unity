@@ -123,7 +123,7 @@ namespace GitHub.Unity
             foldersKeys = Folders.Keys.Cast<string>().ToList();
         }
 
-        public Rect Render(Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null)
+        public Rect Render(Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
         {
             Profiler.BeginSample("TreeControl");
             bool visible = true;
@@ -179,7 +179,7 @@ namespace GitHub.Unity
                 {
                     if (visible)
                     {
-                        RequiresRepaint = HandleInput(rect, node, i, singleClick, doubleClick);
+                        RequiresRepaint = HandleInput(rect, node, i, singleClick, doubleClick, rightClick);
                     }
                     rect.y += ItemHeight + ItemSpacing;
                 }
@@ -243,7 +243,7 @@ namespace GitHub.Unity
             return idx;
         }
 
-        private bool HandleInput(Rect rect, TreeNode currentNode, int index, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null)
+        private bool HandleInput(Rect rect, TreeNode currentNode, int index, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
         {
             bool selectionChanged = false;
             var clickRect = new Rect(0f, rect.y, rect.width, rect.height);
@@ -253,13 +253,19 @@ namespace GitHub.Unity
                 SelectedNode = currentNode;
                 selectionChanged = true;
                 var clickCount = Event.current.clickCount;
-                if (clickCount == 1 && singleClick != null)
+                var mouseButton = Event.current.button;
+
+                if (mouseButton == 0 && clickCount == 1 && singleClick != null)
                 {
                     singleClick(currentNode);
                 }
-                if (clickCount > 1 && doubleClick != null)
+                if (mouseButton == 0 && clickCount > 1 && doubleClick != null)
                 {
                     doubleClick(currentNode);
+                }
+                if (mouseButton == 1 && clickCount == 1 && rightClick != null)
+                {
+                    rightClick(currentNode);
                 }
             }
 
@@ -434,7 +440,9 @@ namespace GitHub.Unity
             {
                 nodeStyle.Draw(fillRect, GUIContent.none, false, false, false, isSelected);
                 if (IsFolder)
+                {
                     style.Draw(nodeRect, content, false, false, !IsCollapsed, isSelected);
+                }
                 else
                 {
                     style.Draw(nodeRect, content, false, false, false, isSelected);
@@ -443,8 +451,10 @@ namespace GitHub.Unity
 
             if (IsFolder)
             {
+                var toggleRect = new Rect(nodeRect.x, nodeRect.y, style.border.horizontal, nodeRect.height);
+
                 EditorGUI.BeginChangeCheck();
-                GUI.Toggle(nodeRect, !IsCollapsed, GUIContent.none, GUIStyle.none);
+                GUI.Toggle(toggleRect, !IsCollapsed, GUIContent.none, GUIStyle.none);
                 changed = EditorGUI.EndChangeCheck();
             }
 
