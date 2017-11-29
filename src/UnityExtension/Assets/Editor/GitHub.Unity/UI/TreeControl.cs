@@ -160,11 +160,15 @@ namespace GitHub.Unity
             if (DisplayRootNode)
             {
                 var titleNode = nodes[0];
-                var selectionChanged = titleNode.Render(rect, Styles.TreeIndentation, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                var renderResult = titleNode.Render(rect, Styles.TreeIndentation, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
 
-                if (selectionChanged)
+                if (renderResult == TreeNodeRenderResult.VisibilityChange)
                 {
                     ToggleNodeVisibility(0, titleNode);
+                }
+                else if (renderResult == TreeNodeRenderResult.SelectionChange)
+                {
+                    ToggleNodeSelection(0, titleNode);
                 }
 
                 RequiresRepaint = HandleInput(rect, titleNode, 0);
@@ -182,12 +186,15 @@ namespace GitHub.Unity
                 {
                     Indent();
                 }
-                var changed = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                var renderResult = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
 
-                if (node.IsFolder && changed)
+                if (renderResult == TreeNodeRenderResult.VisibilityChange)
                 {
-                    // toggle visibility for all the nodes under this one
                     ToggleNodeVisibility(i, node);
+                }
+                else if (renderResult == TreeNodeRenderResult.SelectionChange)
+                {
+                    ToggleNodeSelection(i, node);
                 }
 
                 if (node.Level < level)
@@ -241,7 +248,28 @@ namespace GitHub.Unity
             RequiresRepaint = true;
         }
 
-        private int ToggleNodeVisibility(int idx, TreeNode rootNode)
+        private void ToggleNodeSelection(int idx, TreeNode node)
+        {
+            if (node.IsFolder)
+            {
+                
+            }
+            else
+            {
+                switch (node.SelectionState)
+                {
+                    case SelectionState.Unselected:
+                        node.SelectionState = SelectionState.Selected;
+                        break;
+
+                    case SelectionState.Selected:
+                        node.SelectionState = SelectionState.Unselected;
+                        break;
+                }
+            }
+        }
+
+        private void ToggleNodeVisibility(int idx, TreeNode node)
         {
             var nodeLevel = node.Level;
             node.IsCollapsed = !node.IsCollapsed;
@@ -260,7 +288,6 @@ namespace GitHub.Unity
             {
                 SelectedNode = node;
             }
-            return idx;
         }
 
         private bool HandleInput(Rect rect, TreeNode currentNode, int index, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
@@ -417,20 +444,23 @@ namespace GitHub.Unity
         public bool IsHidden;
         public bool IsActive;
         public GUIContent content;
-        [NonSerialized] public Texture2D Icon;
         public bool Selectable;
+        public SelectionState SelectionState;
+
+        [NonSerialized] public Texture2D Icon;
 
         public void Load()
         {
             content = new GUIContent(Label, Icon);
         }
 
-        public bool Render(Rect rect, float indentation, bool isSelected, GUIStyle toggleStyle, GUIStyle nodeStyle, GUIStyle activeNodeStyle)
+        public TreeNodeRenderResult Render(Rect rect, float indentation, bool isSelected, GUIStyle toggleStyle, GUIStyle nodeStyle, GUIStyle activeNodeStyle)
         {
-            if (IsHidden)
-                return false;
+            var renderResult = TreeNodeRenderResult.None;
 
-            var changed = false;
+            if (IsHidden)
+                return renderResult;
+
             var fillRect = rect;
             var nodeStartX = Level * indentation * (Selectable ? 2 : 1);
 
@@ -468,7 +498,10 @@ namespace GitHub.Unity
                 {
                     GUI.Toggle(toggleRect, !IsCollapsed, GUIContent.none, GUIStyle.none);
                 }
-                changed = EditorGUI.EndChangeCheck();
+                if (EditorGUI.EndChangeCheck())
+                {
+                    renderResult = TreeNodeRenderResult.VisibilityChange;
+                }
             }
 
             if (Selectable)
@@ -479,11 +512,26 @@ namespace GitHub.Unity
 
                 nodeStartX += selectRect.width + 2;
 
+                var selectionStyle = GUI.skin.toggle;
+                var selectionValue = false;
+
+                if (SelectionState == SelectionState.Selected)
+                {
+                    selectionValue = true;
+                }
+                else if (SelectionState == SelectionState.Mixed)
+                {
+                    selectionStyle = Styles.ToggleMixedStyle;
+                }
+
                 EditorGUI.BeginChangeCheck();
                 {
-                    GUI.Toggle(selectRect, false, GUIContent.none, Styles.ToggleMixedStyle);
+                    GUI.Toggle(selectRect, selectionValue, GUIContent.none, selectionStyle);
                 }
-                EditorGUI.EndChangeCheck();
+                if (EditorGUI.EndChangeCheck())
+                {
+                    renderResult = TreeNodeRenderResult.SelectionChange;
+                }
             }
 
             data += string.Format("ContentStart: {0} ", nodeStartX);
@@ -497,7 +545,7 @@ namespace GitHub.Unity
 
             Debug.Log(data);
 
-            return changed;
+            return renderResult;
         }
 
         public override string ToString()
@@ -551,5 +599,19 @@ namespace GitHub.Unity
                 LoadNodeIcons();
             }
         }
+    }
+    
+    public enum TreeNodeRenderResult
+    {
+        None,
+        VisibilityChange,
+        SelectionChange
+    }
+
+    public enum SelectionState
+    {
+        Unselected,
+        Selected,
+        Mixed
     }
 }
