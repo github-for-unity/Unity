@@ -9,37 +9,6 @@ using UnityEngine.Profiling;
 namespace GitHub.Unity
 {
     [Serializable]
-    public class BranchesTree: Tree
-    {
-        [NonSerialized] public Texture2D ActiveNodeIcon;
-        [NonSerialized] public Texture2D BranchIcon;
-        [NonSerialized] public Texture2D FolderIcon;
-        [NonSerialized] public Texture2D RemoteIcon;
-
-        [SerializeField] public bool IsRemote;
-
-        protected override Texture2D GetNodeIcon(TreeNode node)
-        {
-            Texture2D nodeIcon;
-            if (node.IsActive)
-            {
-                nodeIcon = ActiveNodeIcon;
-            }
-            else if (node.IsFolder)
-            {
-                nodeIcon = IsRemote && node.Level == 1
-                    ? RemoteIcon
-                    : FolderIcon;
-            }
-            else
-            {
-                nodeIcon = BranchIcon;
-            }
-            return nodeIcon;
-        }
-    }
-
-    [Serializable]
     public abstract class Tree
     {
         public static float ItemHeight { get { return EditorGUIUtility.singleLineHeight; } }
@@ -403,7 +372,7 @@ namespace GitHub.Unity
 
         protected abstract Texture2D GetNodeIcon(TreeNode node);
 
-        public void LoadNodeIcons()
+        protected void LoadNodeIcons()
         {
             foreach (var treeNode in nodes)
             {
@@ -478,6 +447,72 @@ namespace GitHub.Unity
         {
             return String.Format("name:{0} label:{1} level:{2} isFolder:{3} isCollapsed:{4} isHidden:{5} isActive:{6}",
                 Name, Label, Level, IsFolder, IsCollapsed, IsHidden, IsActive);
+        }
+    }
+
+    [Serializable]
+    public class BranchesTree: Tree
+    {
+        [SerializeField] public bool IsRemote;
+        
+        [NonSerialized] public Texture2D ActiveNodeIcon;
+        [NonSerialized] public Texture2D BranchIcon;
+        [NonSerialized] public Texture2D FolderIcon;
+        [NonSerialized] public Texture2D RemoteIcon;
+
+        protected override Texture2D GetNodeIcon(TreeNode node)
+        {
+            Texture2D nodeIcon;
+            if (node.IsActive)
+            {
+                nodeIcon = ActiveNodeIcon;
+            }
+            else if (node.IsFolder)
+            {
+                nodeIcon = IsRemote && node.Level == 1
+                    ? RemoteIcon
+                    : FolderIcon;
+            }
+            else
+            {
+                nodeIcon = BranchIcon;
+            }
+            return nodeIcon;
+        }
+
+
+        public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D rootFolderIcon)
+        {
+            var localsLoaded = false;
+
+            if (ActiveNodeIcon == null)
+            {
+                localsLoaded = true;
+                ActiveNodeIcon = activeBranchIcon;
+            }
+
+            if (BranchIcon == null)
+            {
+                localsLoaded = true;
+                BranchIcon = branchIcon;
+            }
+
+            if (FolderIcon == null)
+            {
+                localsLoaded = true;
+                FolderIcon = folderIcon;
+            }
+
+            if (RemoteIcon == null)
+            {
+                localsLoaded = true;
+                RemoteIcon = rootFolderIcon;
+            }
+
+            if (localsLoaded)
+            {
+                LoadNodeIcons();
+            }
         }
     }
 }
