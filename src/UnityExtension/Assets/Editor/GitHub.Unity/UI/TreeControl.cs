@@ -17,17 +17,10 @@ namespace GitHub.Unity
         [SerializeField] public Rect Margin = new Rect();
         [SerializeField] public Rect Padding = new Rect();
 
-        [SerializeField] private SerializableTexture2D activeNodeIcon = new SerializableTexture2D();
-        public Texture2D ActiveNodeIcon {  get { return activeNodeIcon.Texture; } set { activeNodeIcon.Texture = value; } }
-
-        [SerializeField] private SerializableTexture2D nodeIcon = new SerializableTexture2D();
-        public Texture2D NodeIcon {  get { return nodeIcon.Texture; } set { nodeIcon.Texture = value; } }
-
-        [SerializeField] private SerializableTexture2D folderIcon = new SerializableTexture2D();
-        public Texture2D FolderIcon {  get { return folderIcon.Texture; } set { folderIcon.Texture = value; } }
-
-        [SerializeField] private SerializableTexture2D rootFolderIcon = new SerializableTexture2D();
-        public Texture2D RootFolderIcon {  get { return rootFolderIcon.Texture; } set { rootFolderIcon.Texture = value; } }
+        [SerializeField] public Texture2D ActiveNodeIcon;
+        [SerializeField] public Texture2D NodeIcon;
+        [SerializeField] public Texture2D FolderIcon;
+        [SerializeField] public Texture2D RootFolderIcon;
 
         [SerializeField] public GUIStyle FolderStyle;
         [SerializeField] public GUIStyle TreeNodeStyle;
@@ -160,7 +153,7 @@ namespace GitHub.Unity
             for (; i < nodes.Count; i++)
             {
                 var node = nodes[i];
-                ResetNodeIcons(node);
+//                ResetNodeIcons(node);
 
                 if (node.Level > level && !node.IsHidden)
                 {
