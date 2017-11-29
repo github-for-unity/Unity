@@ -481,34 +481,14 @@ namespace GitHub.Unity
 
         public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D rootFolderIcon)
         {
-            var localsLoaded = false;
-
-            if (ActiveNodeIcon == null)
+            var needsLoad = ActiveNodeIcon == null || NodeIcon == null || FolderIcon == null || RootFolderIcon == null;
+            if (needsLoad)
             {
-                localsLoaded = true;
                 ActiveNodeIcon = activeBranchIcon;
-            }
-
-            if (NodeIcon == null)
-            {
-                localsLoaded = true;
                 NodeIcon = branchIcon;
-            }
-
-            if (FolderIcon == null)
-            {
-                localsLoaded = true;
                 FolderIcon = folderIcon;
-            }
-
-            if (RootFolderIcon == null)
-            {
-                localsLoaded = true;
                 RootFolderIcon = rootFolderIcon;
-            }
 
-            if (localsLoaded)
-            {
                 LoadNodeIcons();
             }
         }
