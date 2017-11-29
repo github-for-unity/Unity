@@ -279,13 +279,9 @@ namespace GitHub.Unity
         {
             if (!lastCurrentBranchAndRemoteChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(TaskManager.Token, () =>
-                {
-                    lastCurrentBranchAndRemoteChangedEvent = cacheUpdateEvent;
-                    currentBranchAndRemoteHasUpdate = true;
-                    Redraw();
-                })
-                { Affinity = TaskAffinity.UI }.Start();
+                lastCurrentBranchAndRemoteChangedEvent = cacheUpdateEvent;
+                currentBranchAndRemoteHasUpdate = true;
+                Redraw();
             }
         }
 
