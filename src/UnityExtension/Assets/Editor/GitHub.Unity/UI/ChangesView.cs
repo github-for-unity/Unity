@@ -34,6 +34,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
+            UpdateTreeIcons();
             AttachHandlers(Repository);
 
             if (Repository != null)
@@ -190,16 +191,38 @@ namespace GitHub.Unity
             if (treeChanges == null)
             {
                 treeChanges = new Tree();
-                treeChanges.NodeIcon = Styles.BranchIcon;
-                treeChanges.FolderIcon = Styles.FolderIcon;
                 treeChanges.DisplayRootNode = false;
                 treeChanges.Selectable = true;
                 treeChanges.PathIgnoreRoot = Environment.RepositoryPath + Environment.FileSystem.DirectorySeparatorChar;
                 treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
+
+                UpdateTreeIcons();
             }
 
             treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry)).Cast<ITreeData>(), "Changes");
             Redraw();
+        }
+
+        private void UpdateTreeIcons()
+        {
+            var loaded = false;
+
+            if (treeChanges.NodeIcon == null)
+            {
+                loaded = true;
+                treeChanges.NodeIcon = Styles.BranchIcon;
+            }
+
+            if (treeChanges.FolderIcon == null)
+            {
+                loaded = true;
+                treeChanges.FolderIcon = Styles.FolderIcon;
+            }
+
+            if (loaded)
+            {
+                treeChanges.LoadNodeIcons();
+            }
         }
 
         private void OnCommitDetailsAreaGUI()
