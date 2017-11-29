@@ -455,22 +455,22 @@ namespace GitHub.Unity
     {
         [SerializeField] public bool IsRemote;
         
-        [NonSerialized] public Texture2D ActiveNodeIcon;
+        [NonSerialized] public Texture2D ActiveBranchIcon;
         [NonSerialized] public Texture2D BranchIcon;
         [NonSerialized] public Texture2D FolderIcon;
-        [NonSerialized] public Texture2D RemoteIcon;
+        [NonSerialized] public Texture2D GlobeIcon;
 
         protected override Texture2D GetNodeIcon(TreeNode node)
         {
             Texture2D nodeIcon;
             if (node.IsActive)
             {
-                nodeIcon = ActiveNodeIcon;
+                nodeIcon = ActiveBranchIcon;
             }
             else if (node.IsFolder)
             {
                 nodeIcon = IsRemote && node.Level == 1
-                    ? RemoteIcon
+                    ? GlobeIcon
                     : FolderIcon;
             }
             else
@@ -481,15 +481,15 @@ namespace GitHub.Unity
         }
 
 
-        public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D rootFolderIcon)
+        public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)
         {
-            var needsLoad = ActiveNodeIcon == null || BranchIcon == null || FolderIcon == null || RemoteIcon == null;
+            var needsLoad = ActiveBranchIcon == null || BranchIcon == null || FolderIcon == null || GlobeIcon == null;
             if (needsLoad)
             {
-                ActiveNodeIcon = activeBranchIcon;
+                ActiveBranchIcon = activeBranchIcon;
                 BranchIcon = branchIcon;
                 FolderIcon = folderIcon;
-                RemoteIcon = rootFolderIcon;
+                GlobeIcon = globeIcon;
 
                 LoadNodeIcons();
             }

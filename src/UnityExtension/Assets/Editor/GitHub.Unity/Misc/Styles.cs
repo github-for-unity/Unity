@@ -832,7 +832,7 @@ namespace GitHub.Unity
         }
 
         private static Texture2D rootFolderIcon;
-        public static Texture2D RootFolderIcon
+        public static Texture2D GlobeIcon
         {
             get
             {
