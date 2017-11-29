@@ -32,6 +32,9 @@ namespace GitHub.Unity
         private const string DeleteBranchTitle = "Delete Branch?";
         private const string DeleteBranchButton = "Delete";
         private const string CancelButtonLabel = "Cancel";
+        private const string DeleteBranchContextMenuLabel = "Delete";
+        private const string SwitchBranchContextMenuLabel = "Switch";
+        private const string CheckoutBranchContextMenuLabel = "Checkout";
 
         [NonSerialized] private int listID = -1;
         [NonSerialized] private BranchesMode targetMode;
@@ -337,8 +340,8 @@ namespace GitHub.Unity
         {
             var genericMenu = new GenericMenu();
 
-            var deleteGuiContent = new GUIContent("Delete");
-            var switchGuiContent = new GUIContent("Switch");
+            var deleteGuiContent = new GUIContent(DeleteBranchContextMenuLabel);
+            var switchGuiContent = new GUIContent(SwitchBranchContextMenuLabel);
 
             if (node.IsActive)
             {
@@ -363,7 +366,7 @@ namespace GitHub.Unity
         {
             var genericMenu = new GenericMenu();
 
-            var checkoutGuiContent = new GUIContent("Checkout");
+            var checkoutGuiContent = new GUIContent(CheckoutBranchContextMenuLabel);
             
             genericMenu.AddItem(checkoutGuiContent, false, () => {
                 CheckoutRemoteBranch(node.Name);
