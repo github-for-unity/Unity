@@ -39,8 +39,8 @@ namespace GitHub.Unity
         [NonSerialized] private int listID = -1;
         [NonSerialized] private BranchesMode targetMode;
 
-        [SerializeField] private Tree treeLocals = new Tree();
-        [SerializeField] private Tree treeRemotes = new Tree();
+        [SerializeField] private BranchesTree treeLocals = new BranchesTree();
+        [SerializeField] private BranchesTree treeRemotes = new BranchesTree();
         [SerializeField] private BranchesMode mode = BranchesMode.Default;
         [SerializeField] private string newBranchName;
         [SerializeField] private Vector2 scroll;
@@ -62,6 +62,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
+            UpdateTreeIcons();
             AttachHandlers(Repository);
             Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
         }
@@ -137,23 +138,85 @@ namespace GitHub.Unity
 
         private void BuildTree()
         {
+            if (treeLocals == null)
+            {
+                treeLocals = new BranchesTree();
+
+                treeRemotes = new BranchesTree();
+
+                UpdateTreeIcons();
+            }
+
             localBranches.Sort(CompareBranches);
             remoteBranches.Sort(CompareBranches);
-            treeLocals = new Tree();
-            treeLocals.ActiveNodeIcon = Styles.ActiveBranchIcon;
-            treeLocals.NodeIcon = Styles.BranchIcon;
-            treeLocals.RootFolderIcon = Styles.RootFolderIcon;
-            treeLocals.FolderIcon = Styles.FolderIcon;
-
-            treeRemotes = new Tree();
-            treeRemotes.ActiveNodeIcon = Styles.ActiveBranchIcon;
-            treeRemotes.NodeIcon = Styles.BranchIcon;
-            treeRemotes.RootFolderIcon = Styles.RootFolderIcon;
-            treeRemotes.FolderIcon = Styles.FolderIcon;
 
             treeLocals.Load(localBranches.Cast<ITreeData>(), LocalTitle);
             treeRemotes.Load(remoteBranches.Cast<ITreeData>(), RemoteTitle);
             Redraw();
+        }
+
+        private void UpdateTreeIcons()
+        {
+            var localsLoaded = false;
+            var remotesLoaded = false;
+
+            if (treeLocals != null)
+            {
+                if (treeLocals.ActiveNodeIcon == null)
+                {
+                    localsLoaded = true;
+                    treeLocals.ActiveNodeIcon = Styles.ActiveBranchIcon;
+                }
+
+                if (treeLocals.NodeIcon == null)
+                {
+                    localsLoaded = true;
+                    treeLocals.NodeIcon = Styles.BranchIcon;
+                }
+
+                if (treeLocals.FolderIcon == null)
+                {
+                    localsLoaded = true;
+                    treeLocals.FolderIcon = Styles.FolderIcon;
+                }
+            }
+
+            if (treeRemotes != null)
+            {
+                if (treeRemotes.ActiveNodeIcon == null)
+                {
+                    remotesLoaded = true;
+                    treeRemotes.ActiveNodeIcon = Styles.ActiveBranchIcon;
+                }
+
+                if (treeRemotes.NodeIcon == null)
+                {
+                    remotesLoaded = true;
+                    treeRemotes.NodeIcon = Styles.BranchIcon;
+                }
+
+                if (treeRemotes.RootFolderIcon == null)
+                {
+                    remotesLoaded = true;
+                    treeRemotes.RootFolderIcon = Styles.RootFolderIcon;
+                }
+
+                if (treeRemotes.FolderIcon == null)
+                {
+                    remotesLoaded = true;
+                    treeRemotes.FolderIcon = Styles.FolderIcon;
+                }
+            }
+
+            if (localsLoaded)
+            {
+                treeLocals.LoadNodeIcons();
+            }
+
+            if (remotesLoaded)
+            {
+                treeRemotes.LoadNodeIcons();
+            }
         }
 
         private void OnButtonBarGUI()
