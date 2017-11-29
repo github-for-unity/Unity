@@ -333,40 +333,6 @@ namespace GitHub.Unity
             GUILayout.Space(rect.y - initialRect.y);
         }
 
-        private void CheckoutRemoteBranch(string selectedNodeName)
-        {
-            var indexOfFirstSlash = selectedNodeName.IndexOf('/');
-            var originName = selectedNodeName.Substring(0, indexOfFirstSlash);
-            var branchName = selectedNodeName.Substring(indexOfFirstSlash + 1);
-
-            if (Repository.LocalBranches.Any(localBranch => localBranch.Name == branchName))
-            {
-                EditorUtility.DisplayDialog(WarningCheckoutBranchExistsTitle,
-                    String.Format(WarningCheckoutBranchExistsMessage, branchName), WarningCheckoutBranchExistsOK);
-            }
-            else
-            {
-                var confirmCheckout = EditorUtility.DisplayDialog(ConfirmCheckoutBranchTitle,
-                    String.Format(ConfirmCheckoutBranchMessage, selectedNodeName, originName), ConfirmCheckoutBranchOK,
-                    ConfirmCheckoutBranchCancel);
-
-                if (confirmCheckout)
-                {
-                    GitClient.CreateBranch(branchName, selectedNodeName).FinallyInUI((success, e) => {
-                        if (success)
-                        {
-                            Redraw();
-                        }
-                        else
-                        {
-                            EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
-                                String.Format(Localization.SwitchBranchFailedDescription, selectedNodeName), Localization.Ok);
-                        }
-                    }).Start();
-                }
-            }
-        }
-
         private GenericMenu CreateContextMenuForLocalBranchNode(TreeNode node)
         {
             var genericMenu = new GenericMenu();
@@ -393,34 +359,6 @@ namespace GitHub.Unity
             return genericMenu;
         }
 
-        private void SwitchBranch(string branchName)
-        {
-            if (EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, branchName), ConfirmSwitchOK,
-                ConfirmSwitchCancel))
-            {
-                GitClient.SwitchBranch(branchName).FinallyInUI((success, e) => {
-                    if (success)
-                    {
-                        Redraw();
-                    }
-                    else
-                    {
-                        EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
-                            String.Format(Localization.SwitchBranchFailedDescription, branchName), Localization.Ok);
-                    }
-                }).Start();
-            }
-        }
-
-        private void DeleteLocalBranch(string branchName)
-        {
-            var dialogMessage = string.Format(DeleteBranchMessageFormatString, branchName);
-            if (EditorUtility.DisplayDialog(DeleteBranchTitle, dialogMessage, DeleteBranchButton, CancelButtonLabel))
-            {
-                GitClient.DeleteBranch(branchName, true).Start();
-            }
-        }
-
         private GenericMenu CreateContextMenuForRemoteBranchNode(TreeNode node)
         {
             var genericMenu = new GenericMenu();
@@ -432,6 +370,68 @@ namespace GitHub.Unity
             });
             
             return genericMenu;
+        }
+
+        private void CheckoutRemoteBranch(string branch)
+        {
+            var indexOfFirstSlash = branch.IndexOf('/');
+            var originName = branch.Substring(0, indexOfFirstSlash);
+            var branchName = branch.Substring(indexOfFirstSlash + 1);
+
+            if (Repository.LocalBranches.Any(localBranch => localBranch.Name == branchName))
+            {
+                EditorUtility.DisplayDialog(WarningCheckoutBranchExistsTitle,
+                    String.Format(WarningCheckoutBranchExistsMessage, branchName), WarningCheckoutBranchExistsOK);
+            }
+            else
+            {
+                var confirmCheckout = EditorUtility.DisplayDialog(ConfirmCheckoutBranchTitle,
+                    String.Format(ConfirmCheckoutBranchMessage, branch, originName), ConfirmCheckoutBranchOK,
+                    ConfirmCheckoutBranchCancel);
+
+                if (confirmCheckout)
+                {
+                    GitClient.CreateBranch(branchName, branch).FinallyInUI((success, e) => {
+                        if (success)
+                        {
+                            Redraw();
+                        }
+                        else
+                        {
+                            EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
+                                String.Format(Localization.SwitchBranchFailedDescription, branch), Localization.Ok);
+                        }
+                    }).Start();
+                }
+            }
+        }
+
+        private void SwitchBranch(string branch)
+        {
+            if (EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, branch), ConfirmSwitchOK,
+                ConfirmSwitchCancel))
+            {
+                GitClient.SwitchBranch(branch).FinallyInUI((success, e) => {
+                    if (success)
+                    {
+                        Redraw();
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
+                            String.Format(Localization.SwitchBranchFailedDescription, branch), Localization.Ok);
+                    }
+                }).Start();
+            }
+        }
+
+        private void DeleteLocalBranch(string branch)
+        {
+            var dialogMessage = string.Format(DeleteBranchMessageFormatString, branch);
+            if (EditorUtility.DisplayDialog(DeleteBranchTitle, dialogMessage, DeleteBranchButton, CancelButtonLabel))
+            {
+                GitClient.DeleteBranch(branch, true).Start();
+            }
         }
 
         private int CompareBranches(GitBranch a, GitBranch b)
