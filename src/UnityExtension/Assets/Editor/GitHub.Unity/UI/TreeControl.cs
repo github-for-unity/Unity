@@ -9,70 +9,6 @@ using UnityEngine.Profiling;
 namespace GitHub.Unity
 {
     [Serializable]
-    public class BranchesTree: Tree
-    {
-        [NonSerialized] public Texture2D ActiveNodeIcon;
-        [NonSerialized] public Texture2D NodeIcon;
-        [NonSerialized] public Texture2D FolderIcon;
-        [NonSerialized] public Texture2D RootFolderIcon;
-
-        protected override Texture2D GetNodeIcon(TreeNode node)
-        {
-            Texture2D nodeIcon;
-            if (node.IsActive)
-            {
-                nodeIcon = ActiveNodeIcon;
-            }
-            else if (node.IsFolder)
-            {
-                if (node.Level == 1)
-                    nodeIcon = RootFolderIcon;
-                else
-                    nodeIcon = FolderIcon;
-            }
-            else
-            {
-                nodeIcon = NodeIcon;
-            }
-            return nodeIcon;
-        }
-
-        public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D rootFolderIcon)
-        {
-            var localsLoaded = false;
-
-            if (ActiveNodeIcon == null)
-            {
-                localsLoaded = true;
-                ActiveNodeIcon = activeBranchIcon;
-            }
-
-            if (NodeIcon == null)
-            {
-                localsLoaded = true;
-                NodeIcon = branchIcon;
-            }
-
-            if (FolderIcon == null)
-            {
-                localsLoaded = true;
-                FolderIcon = folderIcon;
-            }
-
-            if (RootFolderIcon == null)
-            {
-                localsLoaded = true;
-                RootFolderIcon = rootFolderIcon;
-            }
-
-            if (localsLoaded)
-            {
-                LoadNodeIcons();
-            }
-        }
-    }
-
-    [Serializable]
     public abstract class Tree
     {
         public static float ItemHeight { get { return EditorGUIUtility.singleLineHeight; } }
@@ -511,6 +447,70 @@ namespace GitHub.Unity
         {
             return String.Format("name:{0} label:{1} level:{2} isFolder:{3} isCollapsed:{4} isHidden:{5} isActive:{6}",
                 Name, Label, Level, IsFolder, IsCollapsed, IsHidden, IsActive);
+        }
+    }
+
+    [Serializable]
+    public class BranchesTree: Tree
+    {
+        [NonSerialized] public Texture2D ActiveNodeIcon;
+        [NonSerialized] public Texture2D NodeIcon;
+        [NonSerialized] public Texture2D FolderIcon;
+        [NonSerialized] public Texture2D RootFolderIcon;
+
+        protected override Texture2D GetNodeIcon(TreeNode node)
+        {
+            Texture2D nodeIcon;
+            if (node.IsActive)
+            {
+                nodeIcon = ActiveNodeIcon;
+            }
+            else if (node.IsFolder)
+            {
+                if (node.Level == 1)
+                    nodeIcon = RootFolderIcon;
+                else
+                    nodeIcon = FolderIcon;
+            }
+            else
+            {
+                nodeIcon = NodeIcon;
+            }
+            return nodeIcon;
+        }
+
+        public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D rootFolderIcon)
+        {
+            var localsLoaded = false;
+
+            if (ActiveNodeIcon == null)
+            {
+                localsLoaded = true;
+                ActiveNodeIcon = activeBranchIcon;
+            }
+
+            if (NodeIcon == null)
+            {
+                localsLoaded = true;
+                NodeIcon = branchIcon;
+            }
+
+            if (FolderIcon == null)
+            {
+                localsLoaded = true;
+                FolderIcon = folderIcon;
+            }
+
+            if (RootFolderIcon == null)
+            {
+                localsLoaded = true;
+                RootFolderIcon = rootFolderIcon;
+            }
+
+            if (localsLoaded)
+            {
+                LoadNodeIcons();
+            }
         }
     }
 }
