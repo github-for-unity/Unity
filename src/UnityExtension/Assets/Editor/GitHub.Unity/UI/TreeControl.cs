@@ -54,7 +54,6 @@ namespace GitHub.Unity
 
         public TreeNode ActiveNode { get { return activeNode; } }
 
-
         public void Load(IEnumerable<ITreeData> data, string title)
         {
             var collapsedFoldersEnumerable = folders.Where(pair => pair.Value.IsCollapsed).Select(pair => pair.Key);
@@ -153,10 +152,6 @@ namespace GitHub.Unity
 
         public Rect Render(Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
         {
-            Profiler.BeginSample("TreeControl");
-            var visible = true;
-            var availableHeight = rect.y + rect.height;
-
             RequiresRepaint = false;
             rect = new Rect(0f, rect.y, rect.width, ItemHeight);
 
@@ -187,16 +182,12 @@ namespace GitHub.Unity
                 {
                     Indent();
                 }
+                var changed = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
 
-                if (visible)
+                if (node.IsFolder && changed)
                 {
-                    var changed = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
-
-                    if (node.IsFolder && changed)
-                    {
-                        // toggle visibility for all the nodes under this one
-                        ToggleNodeVisibility(i, node);
-                    }
+                    // toggle visibility for all the nodes under this one
+                    ToggleNodeVisibility(i, node);
                 }
 
                 if (node.Level < level)
@@ -210,17 +201,13 @@ namespace GitHub.Unity
 
                 if (!node.IsHidden)
                 {
-                    if (visible)
-                    {
-                        RequiresRepaint = HandleInput(rect, node, i, singleClick, doubleClick, rightClick);
-                    }
+                    RequiresRepaint = HandleInput(rect, node, i, singleClick, doubleClick, rightClick);
                     rect.y += ItemHeight + ItemSpacing;
                 }
             }
 
             Unindent();
 
-            Profiler.EndSample();
             return rect;
         }
 
@@ -256,13 +243,13 @@ namespace GitHub.Unity
 
         private int ToggleNodeVisibility(int idx, TreeNode rootNode)
         {
-            var rootNodeLevel = rootNode.Level;
-            rootNode.IsCollapsed = !rootNode.IsCollapsed;
+            var nodeLevel = node.Level;
+            node.IsCollapsed = !node.IsCollapsed;
             idx++;
-            for (; idx < nodes.Count && nodes[idx].Level > rootNodeLevel; idx++)
+            for (; idx < nodes.Count && nodes[idx].Level > nodeLevel; idx++)
             {
-                nodes[idx].IsHidden = rootNode.IsCollapsed;
-                if (nodes[idx].IsFolder && !rootNode.IsCollapsed && nodes[idx].IsCollapsed)
+                nodes[idx].IsHidden = node.IsCollapsed;
+                if (nodes[idx].IsFolder && !node.IsCollapsed && nodes[idx].IsCollapsed)
                 {
                     var level = nodes[idx].Level;
                     for (idx++; idx < nodes.Count && nodes[idx].Level > level; idx++) { }
@@ -271,7 +258,7 @@ namespace GitHub.Unity
             }
             if (SelectedNode != null && SelectedNode.IsHidden)
             {
-                SelectedNode = rootNode;
+                SelectedNode = node;
             }
             return idx;
         }
