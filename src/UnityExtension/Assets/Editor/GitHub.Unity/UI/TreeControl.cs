@@ -11,9 +11,9 @@ namespace GitHub.Unity
     [Serializable]
     public class Tree
     {
-        [SerializeField] public float ItemHeight = EditorGUIUtility.singleLineHeight;
-        [SerializeField] public float ItemSpacing = EditorGUIUtility.standardVerticalSpacing;
-        [SerializeField] public float Indentation = 12f;
+        public static float ItemHeight { get { return EditorGUIUtility.singleLineHeight; } }
+        public static float ItemSpacing { get { return EditorGUIUtility.standardVerticalSpacing; } }
+
         [SerializeField] public Rect Margin = new Rect();
         [SerializeField] public Rect Padding = new Rect();
 
@@ -169,7 +169,7 @@ namespace GitHub.Unity
 
                 if (visible)
                 {
-                    var changed = node.Render(rect, Indentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                    var changed = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
 
                     if (node.IsFolder && changed)
                     {
@@ -210,20 +210,18 @@ namespace GitHub.Unity
             {
                 int directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0;
                 int directionX = Event.current.keyCode == KeyCode.LeftArrow ? -1 : Event.current.keyCode == KeyCode.RightArrow ? 1 : 0;
-                if (directionY != 0 || directionX != 0)
+
+                if (directionY < 0 || directionX < 0)
                 {
-                    if (directionY < 0 || directionY < 0)
-                    {
-                        SelectedNode = nodes[nodes.Count - 1];
-                        selectionChanged = true;
-                        Event.current.Use();
-                    }
-                    else if (directionY > 0 || directionX > 0)
-                    {
-                        SelectedNode = nodes[0];
-                        selectionChanged = true;
-                        Event.current.Use();
-                    }
+                    SelectedNode = nodes[nodes.Count - 1];
+                    selectionChanged = true;
+                    Event.current.Use();
+                }
+                else if (directionY > 0 || directionX > 0)
+                {
+                    SelectedNode = nodes[0];
+                    selectionChanged = true;
+                    Event.current.Use();
                 }
             }
             RequiresRepaint = selectionChanged;
@@ -443,9 +441,11 @@ namespace GitHub.Unity
 
             if (Event.current.type == EventType.repaint)
             {
-                nodeStyle.Draw(fillRect, "", false, false, false, isSelected);
+                nodeStyle.Draw(fillRect, GUIContent.none, false, false, false, isSelected);
                 if (IsFolder)
+                {
                     style.Draw(nodeRect, content, false, false, !IsCollapsed, isSelected);
+                }
                 else
                 {
                     style.Draw(nodeRect, content, false, false, false, isSelected);
@@ -455,7 +455,7 @@ namespace GitHub.Unity
             if (IsFolder)
             {
                 EditorGUI.BeginChangeCheck();
-                GUI.Toggle(nodeRect, !IsCollapsed, "", GUIStyle.none);
+                GUI.Toggle(nodeRect, !IsCollapsed, GUIContent.none, GUIStyle.none);
                 changed = EditorGUI.EndChangeCheck();
             }
 
