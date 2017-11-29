@@ -36,6 +36,40 @@ namespace GitHub.Unity
             }
             return nodeIcon;
         }
+
+        public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D rootFolderIcon)
+        {
+            var localsLoaded = false;
+
+            if (ActiveNodeIcon == null)
+            {
+                localsLoaded = true;
+                ActiveNodeIcon = activeBranchIcon;
+            }
+
+            if (NodeIcon == null)
+            {
+                localsLoaded = true;
+                NodeIcon = branchIcon;
+            }
+
+            if (FolderIcon == null)
+            {
+                localsLoaded = true;
+                FolderIcon = folderIcon;
+            }
+
+            if (RootFolderIcon == null)
+            {
+                localsLoaded = true;
+                RootFolderIcon = rootFolderIcon;
+            }
+
+            if (localsLoaded)
+            {
+                LoadNodeIcons();
+            }
+        }
     }
 
     [Serializable]
@@ -402,7 +436,7 @@ namespace GitHub.Unity
 
         protected abstract Texture2D GetNodeIcon(TreeNode node);
 
-        public void LoadNodeIcons()
+        protected void LoadNodeIcons()
         {
             foreach (var treeNode in nodes)
             {

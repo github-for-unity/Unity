@@ -156,65 +156,14 @@ namespace GitHub.Unity
 
         private void UpdateTreeIcons()
         {
-            var localsLoaded = false;
-            var remotesLoaded = false;
-
             if (treeLocals != null)
             {
-                if (treeLocals.ActiveNodeIcon == null)
-                {
-                    localsLoaded = true;
-                    treeLocals.ActiveNodeIcon = Styles.ActiveBranchIcon;
-                }
-
-                if (treeLocals.NodeIcon == null)
-                {
-                    localsLoaded = true;
-                    treeLocals.NodeIcon = Styles.BranchIcon;
-                }
-
-                if (treeLocals.FolderIcon == null)
-                {
-                    localsLoaded = true;
-                    treeLocals.FolderIcon = Styles.FolderIcon;
-                }
+                treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.RootFolderIcon);
             }
 
             if (treeRemotes != null)
             {
-                if (treeRemotes.ActiveNodeIcon == null)
-                {
-                    remotesLoaded = true;
-                    treeRemotes.ActiveNodeIcon = Styles.ActiveBranchIcon;
-                }
-
-                if (treeRemotes.NodeIcon == null)
-                {
-                    remotesLoaded = true;
-                    treeRemotes.NodeIcon = Styles.BranchIcon;
-                }
-
-                if (treeRemotes.RootFolderIcon == null)
-                {
-                    remotesLoaded = true;
-                    treeRemotes.RootFolderIcon = Styles.RootFolderIcon;
-                }
-
-                if (treeRemotes.FolderIcon == null)
-                {
-                    remotesLoaded = true;
-                    treeRemotes.FolderIcon = Styles.FolderIcon;
-                }
-            }
-
-            if (localsLoaded)
-            {
-                treeLocals.LoadNodeIcons();
-            }
-
-            if (remotesLoaded)
-            {
-                treeRemotes.LoadNodeIcons();
+                treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.RootFolderIcon);
             }
         }
 
