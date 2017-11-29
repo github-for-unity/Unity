@@ -23,7 +23,7 @@ namespace GitHub.Unity
         [SerializeField] public string PathIgnoreRoot;
         [SerializeField] public string PathSeparator = "/";
         [SerializeField] public bool DisplayRootNode = true;
-        [SerializeField] public bool Selectable = false;
+        [SerializeField] public bool Checkable = false;
         [SerializeField] public GUIStyle FolderStyle;
         [SerializeField] public GUIStyle TreeNodeStyle;
         [SerializeField] public GUIStyle ActiveTreeNodeStyle;
@@ -70,7 +70,7 @@ namespace GitHub.Unity
                 Label = title,
                 Level = -1 + displayRootLevel,
                 IsFolder = true,
-                Selectable = Selectable
+                Checkable = Checkable
             };
             SetNodeIcon(titleNode);
             nodes.Add(titleNode);
@@ -107,7 +107,7 @@ namespace GitHub.Unity
                             Label = label,
                             Level = i + displayRootLevel,
                             IsFolder = isFolder,
-                            Selectable = Selectable
+                            Checkable = Checkable
                         };
 
                         if (node.IsActive)
@@ -166,9 +166,9 @@ namespace GitHub.Unity
                 {
                     ToggleNodeVisibility(0, titleNode);
                 }
-                else if (renderResult == TreeNodeRenderResult.SelectionChange)
+                else if (renderResult == TreeNodeRenderResult.CheckChange)
                 {
-                    ToggleNodeSelection(0, titleNode);
+                    ToggleNodeCheck(0, titleNode);
                 }
 
                 RequiresRepaint = HandleInput(rect, titleNode, 0);
@@ -192,9 +192,9 @@ namespace GitHub.Unity
                 {
                     ToggleNodeVisibility(i, node);
                 }
-                else if (renderResult == TreeNodeRenderResult.SelectionChange)
+                else if (renderResult == TreeNodeRenderResult.CheckChange)
                 {
-                    ToggleNodeSelection(i, node);
+                    ToggleNodeCheck(i, node);
                 }
 
                 if (node.Level < level)
@@ -248,7 +248,7 @@ namespace GitHub.Unity
             RequiresRepaint = true;
         }
 
-        private void ToggleNodeSelection(int idx, TreeNode node)
+        private void ToggleNodeCheck(int idx, TreeNode node)
         {
             if (node.IsFolder)
             {
@@ -256,16 +256,18 @@ namespace GitHub.Unity
             }
             else
             {
-                switch (node.SelectionState)
+                switch (node.CheckState)
                 {
-                    case SelectionState.Unselected:
-                        node.SelectionState = SelectionState.Selected;
+                    case CheckState.Empty:
+                        node.CheckState = CheckState.Checked;
                         break;
 
-                    case SelectionState.Selected:
-                        node.SelectionState = SelectionState.Unselected;
+                    case CheckState.Checked:
+                        node.CheckState = CheckState.Empty;
                         break;
                 }
+
+                Debug.LogFormat("Ripple CheckState index:{0} level:{1}", idx, node.Level);
             }
         }
 
@@ -444,8 +446,8 @@ namespace GitHub.Unity
         public bool IsHidden;
         public bool IsActive;
         public GUIContent content;
-        public bool Selectable;
-        public SelectionState SelectionState;
+        public bool Checkable;
+        public CheckState CheckState;
 
         [NonSerialized] public Texture2D Icon;
 
@@ -462,9 +464,9 @@ namespace GitHub.Unity
                 return renderResult;
 
             var fillRect = rect;
-            var nodeStartX = Level * indentation * (Selectable ? 2 : 1);
+            var nodeStartX = Level * indentation * (Checkable ? 2 : 1);
 
-            if (Selectable && Level > 0)
+            if (Checkable && Level > 0)
             {
                 nodeStartX += 2 * Level;
             }
@@ -504,7 +506,7 @@ namespace GitHub.Unity
                 }
             }
 
-            if (Selectable)
+            if (Checkable)
             {
                 data += string.Format("SelectStart: {0} ", nodeStartX);
 
@@ -515,11 +517,11 @@ namespace GitHub.Unity
                 var selectionStyle = GUI.skin.toggle;
                 var selectionValue = false;
 
-                if (SelectionState == SelectionState.Selected)
+                if (CheckState == CheckState.Checked)
                 {
                     selectionValue = true;
                 }
-                else if (SelectionState == SelectionState.Mixed)
+                else if (CheckState == CheckState.Mixed)
                 {
                     selectionStyle = Styles.ToggleMixedStyle;
                 }
@@ -530,7 +532,7 @@ namespace GitHub.Unity
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
-                    renderResult = TreeNodeRenderResult.SelectionChange;
+                    renderResult = TreeNodeRenderResult.CheckChange;
                 }
             }
 
@@ -605,13 +607,13 @@ namespace GitHub.Unity
     {
         None,
         VisibilityChange,
-        SelectionChange
+        CheckChange
     }
 
-    public enum SelectionState
+    public enum CheckState
     {
-        Unselected,
-        Selected,
+        Empty,
+        Checked,
         Mixed
     }
 }
