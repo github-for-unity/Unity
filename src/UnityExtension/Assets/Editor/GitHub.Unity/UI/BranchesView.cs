@@ -39,8 +39,8 @@ namespace GitHub.Unity
         [NonSerialized] private int listID = -1;
         [NonSerialized] private BranchesMode targetMode;
 
-        [SerializeField] private Tree treeLocals = new Tree();
-        [SerializeField] private Tree treeRemotes = new Tree();
+        [SerializeField] private BranchesTree treeLocals = new BranchesTree();
+        [SerializeField] private BranchesTree treeRemotes = new BranchesTree();
         [SerializeField] private BranchesMode mode = BranchesMode.Default;
         [SerializeField] private string newBranchName;
         [SerializeField] private Vector2 scroll;
@@ -140,9 +140,9 @@ namespace GitHub.Unity
         {
             if (treeLocals == null)
             {
-                treeLocals = new Tree();
+                treeLocals = new BranchesTree();
 
-                treeRemotes = new Tree();
+                treeRemotes = new BranchesTree();
 
                 UpdateTreeIcons();
             }
