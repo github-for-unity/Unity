@@ -448,8 +448,10 @@ namespace GitHub.Unity
 
             if (IsFolder)
             {
+                var toggleRect = new Rect(nodeRect.x, nodeRect.y, style.border.horizontal, nodeRect.height);
+
                 EditorGUI.BeginChangeCheck();
-                GUI.Toggle(nodeRect, !IsCollapsed, GUIContent.none, GUIStyle.none);
+                GUI.Toggle(toggleRect, !IsCollapsed, GUIContent.none, GUIStyle.none);
                 changed = EditorGUI.EndChangeCheck();
             }
 
