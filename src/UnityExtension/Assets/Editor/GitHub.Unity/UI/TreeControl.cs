@@ -17,10 +17,10 @@ namespace GitHub.Unity
         [SerializeField] public Rect Margin = new Rect();
         [SerializeField] public Rect Padding = new Rect();
 
-        [SerializeField] public Texture2D ActiveNodeIcon;
-        [SerializeField] public Texture2D NodeIcon;
-        [SerializeField] public Texture2D FolderIcon;
-        [SerializeField] public Texture2D RootFolderIcon;
+        [NonSerialized] public Texture2D ActiveNodeIcon;
+        [NonSerialized] public Texture2D NodeIcon;
+        [NonSerialized] public Texture2D FolderIcon;
+        [NonSerialized] public Texture2D RootFolderIcon;
 
         [SerializeField] public GUIStyle FolderStyle;
         [SerializeField] public GUIStyle TreeNodeStyle;
@@ -82,7 +82,7 @@ namespace GitHub.Unity
                 Level = 0,
                 IsFolder = true
             };
-            titleNode.Load();
+            SetNodeIcons(titleNode);
             nodes.Add(titleNode);
 
             foreach (var d in data)
@@ -110,9 +110,7 @@ namespace GitHub.Unity
                             activeNode = node;
                         }
 
-                        ResetNodeIcons(node);
-
-                        node.Load();
+                        SetNodeIcons(node);
 
                         nodes.Add(node);
                         if (isFolder)
@@ -135,7 +133,6 @@ namespace GitHub.Unity
             rect = new Rect(0f, rect.y, rect.width, ItemHeight);
 
             var titleNode = nodes[0];
-            ResetNodeIcons(titleNode);
             bool selectionChanged = titleNode.Render(rect, 0f, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
 
             if (selectionChanged)
@@ -153,8 +150,6 @@ namespace GitHub.Unity
             for (; i < nodes.Count; i++)
             {
                 var node = nodes[i];
-//                ResetNodeIcons(node);
-
                 if (node.Level > level && !node.IsHidden)
                 {
                     Indent();
@@ -368,7 +363,7 @@ namespace GitHub.Unity
             indents.Pop();
         }
 
-        private void ResetNodeIcons(TreeNode node)
+        private void SetNodeIcons(TreeNode node)
         {
             if (node.IsActive)
             {
@@ -385,7 +380,16 @@ namespace GitHub.Unity
             {
                 node.Icon = NodeIcon;
             }
+
             node.Load();
+        }
+
+        public void LoadNodeIcons()
+        {
+            foreach (var treeNode in nodes)
+            {
+                SetNodeIcons(treeNode);
+            }
         }
     }
 
@@ -400,7 +404,7 @@ namespace GitHub.Unity
         public bool IsHidden;
         public bool IsActive;
         public GUIContent content;
-        public Texture2D Icon;
+        [NonSerialized] public Texture2D Icon;
 
         public void Load()
         {
