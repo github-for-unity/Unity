@@ -213,7 +213,10 @@ namespace GitHub.Unity
                 }
             }
 
-            Unindent();
+            if (DisplayRootNode)
+            {
+                Unindent();
+            }
 
             return rect;
         }
