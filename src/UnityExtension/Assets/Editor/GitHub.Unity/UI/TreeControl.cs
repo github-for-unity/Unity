@@ -210,20 +210,18 @@ namespace GitHub.Unity
             {
                 int directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0;
                 int directionX = Event.current.keyCode == KeyCode.LeftArrow ? -1 : Event.current.keyCode == KeyCode.RightArrow ? 1 : 0;
-                if (directionY != 0 || directionX != 0)
+
+                if (directionY < 0 || directionX < 0)
                 {
-                    if (directionY < 0 || directionY < 0)
-                    {
-                        SelectedNode = nodes[nodes.Count - 1];
-                        selectionChanged = true;
-                        Event.current.Use();
-                    }
-                    else if (directionY > 0 || directionX > 0)
-                    {
-                        SelectedNode = nodes[0];
-                        selectionChanged = true;
-                        Event.current.Use();
-                    }
+                    SelectedNode = nodes[nodes.Count - 1];
+                    selectionChanged = true;
+                    Event.current.Use();
+                }
+                else if (directionY > 0 || directionX > 0)
+                {
+                    SelectedNode = nodes[0];
+                    selectionChanged = true;
+                    Event.current.Use();
                 }
             }
             RequiresRepaint = selectionChanged;
