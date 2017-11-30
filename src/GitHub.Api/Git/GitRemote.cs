@@ -14,7 +14,7 @@ namespace GitHub.Unity
     [Serializable]
     public struct GitRemote
     {
-        public static GitRemote Default = new GitRemote();
+        public static GitRemote Default = new GitRemote(String.Empty, String.Empty, String.Empty, GitRemoteFunction.Unknown, string.Empty, string.Empty, string.Empty);
 
         public string name;
         public string url;
