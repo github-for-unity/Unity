@@ -358,8 +358,15 @@ namespace GitHub.Unity
                 currentRemoteHasUpdate = false;
 
                 var currentRemote = Repository.CurrentRemote;
-                hasRemote = currentRemote.HasValue;
-                currentRemoteName = hasRemote ? currentRemote.Value.Name : "placeholder";
+                if (currentRemote.HasValue && !string.IsNullOrEmpty(currentRemote.Value.name))
+                {
+                    hasRemote = true;
+                    currentRemoteName = currentRemote.Value.Name;
+                }
+                else
+                {
+                    currentRemoteName = null;
+                }
             }
 
             if (currentStatusHasUpdate)
