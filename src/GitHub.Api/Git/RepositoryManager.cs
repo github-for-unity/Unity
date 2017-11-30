@@ -360,6 +360,7 @@ namespace GitHub.Unity
             var head = repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
             Logger.Trace("UpdateHead: {0}", head ?? "[NULL]");
             UpdateCurrentBranchAndRemote(head);
+            UpdateGitLog();
         }
 
         private void UpdateCurrentBranchAndRemote(string head)
