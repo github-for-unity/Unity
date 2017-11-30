@@ -35,12 +35,14 @@ namespace GitHub.Unity
         ITask UnlockFile(string file, bool force);
         void UpdateGitLog();
         void UpdateGitStatus();
+        void UpdateGitAheadBehindStatus(string gitRef, string otherRef);
         void UpdateLocks();
         int WaitForEvents();
 
         IGitConfig Config { get; }
         IGitClient GitClient { get; }
         bool IsBusy { get; }
+        event Action<GitAheadBehindStatus> GitAheadBehindStatusUpdated;
     }
 
     interface IRepositoryPathConfiguration
@@ -101,6 +103,7 @@ namespace GitHub.Unity
         public event Action<ConfigBranch?, ConfigRemote?> CurrentBranchUpdated;
         public event Action<bool> IsBusyChanged;
         public event Action<GitStatus> GitStatusUpdated;
+        public event Action<GitAheadBehindStatus> GitAheadBehindStatusUpdated;
         public event Action<List<GitLock>> GitLocksUpdated;
         public event Action<List<GitLogEntry>> GitLogUpdated;
         public event Action<Dictionary<string, ConfigBranch>> LocalBranchesUpdated;
@@ -289,6 +292,19 @@ namespace GitHub.Unity
                 if (success)
                 {
                     GitStatusUpdated?.Invoke(status);
+                }
+            }).Start();
+        }
+
+        public void UpdateGitAheadBehindStatus(string gitRef, string otherRef)
+        {
+            var task = GitClient.AheadBehindStatus(gitRef, otherRef);
+            task = HookupHandlers(task, true, false);
+            task.Then((success, status) =>
+            {
+                if (success)
+                {
+                    GitAheadBehindStatusUpdated?.Invoke(status);
                 }
             }).Start();
         }

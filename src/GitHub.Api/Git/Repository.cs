@@ -49,6 +49,7 @@ namespace GitHub.Unity
             repositoryManager = initRepositoryManager;
             repositoryManager.CurrentBranchUpdated += RepositoryManagerOnCurrentBranchUpdated;
             repositoryManager.GitStatusUpdated += RepositoryManagerOnGitStatusUpdated;
+            repositoryManager.GitAheadBehindStatusUpdated += RepositoryManagerOnGitAheadBehindStatusUpdated;
             repositoryManager.GitLogUpdated += RepositoryManagerOnGitLogUpdated;
             repositoryManager.LocalBranchesUpdated += RepositoryManagerOnLocalBranchesUpdated;
             repositoryManager.RemoteBranchesUpdated += RepositoryManagerOnRemoteBranchesUpdated;
@@ -378,6 +379,15 @@ namespace GitHub.Unity
             }) { Affinity = TaskAffinity.UI }.Start();
         }
 
+        private void RepositoryManagerOnGitAheadBehindStatusUpdated(GitAheadBehindStatus aheadBehindStatus)
+        {
+            new ActionTask(CancellationToken.None, () => {
+                    CurrentAhead = aheadBehindStatus.Ahead;
+                    CurrentBehind = aheadBehindStatus.Behind;
+                })
+                { Affinity = TaskAffinity.UI }.Start();
+        }
+
         private void RepositoryManagerOnGitLogUpdated(List<GitLogEntry> gitLogEntries)
         {
             new ActionTask(CancellationToken.None, () => {
@@ -392,6 +402,12 @@ namespace GitHub.Unity
                 cacheContainer.BranchCache.SetRemotes(remotes, branches);
                 Remotes = ConfigRemotes.Values.Select(GetGitRemote).ToArray();
                 RemoteBranches = RemoteConfigBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch).ToArray();
+
+                var currentBranch = CurrentBranch;
+                if(!string.IsNullOrEmpty(currentBranch?.Tracking))
+                {
+                   repositoryManager.UpdateGitAheadBehindStatus(currentBranch.Value.name, currentBranch.Value.tracking); 
+                }
             }) { Affinity = TaskAffinity.UI }.Start();
         }
 
