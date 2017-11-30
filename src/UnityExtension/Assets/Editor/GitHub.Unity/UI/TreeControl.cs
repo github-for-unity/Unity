@@ -54,11 +54,35 @@ namespace GitHub.Unity
             }
         }
 
-        public string Title { get { return title; } set { title = value; } }
-        public bool DisplayRootNode { get { return displayRootNode; } }
-        public bool IsCheckable { get { return isCheckable; } }
-        public string PathSeparator { get { return pathSeparator; } }
-        public string PathIgnoreRoot { get { return pathIgnoreRoot; } }
+        public string Title
+        {
+            get { return title; }
+            set { title = value; }
+        }
+
+        public bool DisplayRootNode
+        {
+            get { return displayRootNode; }
+            set { displayRootNode = value; }
+        }
+
+        public bool IsCheckable
+        {
+            get { return isCheckable; }
+            set { isCheckable = value; }
+        }
+
+        public string PathSeparator
+        {
+            get { return pathSeparator; }
+            set { pathSeparator = value; }
+        }
+
+        public string PathIgnoreRoot
+        {
+            get { return pathIgnoreRoot; }
+            set { pathIgnoreRoot = value; }
+        }
 
         public void AddNode(string fullPath, string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed)
         {
