@@ -563,17 +563,12 @@ namespace GitHub.Unity
     [Serializable]
     public class BranchesTree : Tree
     {
-        [SerializeField]
-        public bool IsRemote;
+        [SerializeField] public bool IsRemote;
 
-        [NonSerialized]
-        public Texture2D ActiveBranchIcon;
-        [NonSerialized]
-        public Texture2D BranchIcon;
-        [NonSerialized]
-        public Texture2D FolderIcon;
-        [NonSerialized]
-        public Texture2D GlobeIcon;
+        [NonSerialized] public Texture2D ActiveBranchIcon;
+        [NonSerialized] public Texture2D BranchIcon;
+        [NonSerialized] public Texture2D FolderIcon;
+        [NonSerialized] public Texture2D GlobeIcon;
 
         protected override Texture2D GetNodeIcon(TreeNode node)
         {
@@ -610,37 +605,22 @@ namespace GitHub.Unity
             }
         }
     }
+
     [Serializable]
     public class ChangesTree : Tree
     {
-        [SerializeField]
-        public bool IsRemote;
-
-        [NonSerialized]
-        public Texture2D ActiveBranchIcon;
-        [NonSerialized]
-        public Texture2D BranchIcon;
-        [NonSerialized]
-        public Texture2D FolderIcon;
-        [NonSerialized]
-        public Texture2D GlobeIcon;
+        [NonSerialized] public Texture2D FolderIcon;
 
         protected override Texture2D GetNodeIcon(TreeNode node)
         {
-            Texture2D nodeIcon;
-            if (node.IsActive)
+            Texture2D nodeIcon = null;
+            if (node.IsFolder)
             {
-                nodeIcon = ActiveBranchIcon;
-            }
-            else if (node.IsFolder)
-            {
-                nodeIcon = IsRemote && node.Level == 1
-                    ? GlobeIcon
-                    : FolderIcon;
+                nodeIcon = FolderIcon;
             }
             else
             {
-                nodeIcon = BranchIcon;
+                //nodeIcon = AssetDatabase.GetCachedIcon(node.p);
             }
             return nodeIcon;
         }
@@ -648,13 +628,10 @@ namespace GitHub.Unity
 
         public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)
         {
-            var needsLoad = ActiveBranchIcon == null || BranchIcon == null || FolderIcon == null || GlobeIcon == null;
+            var needsLoad = FolderIcon == null;
             if (needsLoad)
             {
-                ActiveBranchIcon = activeBranchIcon;
-                BranchIcon = branchIcon;
                 FolderIcon = folderIcon;
-                GlobeIcon = globeIcon;
 
                 LoadNodeIcons();
             }
