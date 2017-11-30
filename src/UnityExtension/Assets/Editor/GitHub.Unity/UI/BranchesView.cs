@@ -151,8 +151,8 @@ namespace GitHub.Unity
             localBranches.Sort(CompareBranches);
             remoteBranches.Sort(CompareBranches);
 
-            Tree.Load(treeLocals, localBranches.Select(branch => (ITreeData) new GitBranchTreeData(branch)), LocalTitle);
-            Tree.Load(treeRemotes, remoteBranches.Select(branch => (ITreeData) new GitBranchTreeData(branch)), RemoteTitle);
+            TreeLoader.Load(treeLocals, localBranches.Select(branch => (ITreeData) new GitBranchTreeData(branch)), LocalTitle);
+            TreeLoader.Load(treeRemotes, remoteBranches.Select(branch => (ITreeData) new GitBranchTreeData(branch)), RemoteTitle);
             Redraw();
         }
 
