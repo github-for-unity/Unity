@@ -267,7 +267,7 @@ namespace GitHub.Unity
                     break;
 
                 case CacheType.GitLocksCache:
-                    repositoryManager?.UpdateLocks();
+                    UpdateLocks();
                     break;
 
                 case CacheType.GitUserCache:
@@ -399,6 +399,16 @@ namespace GitHub.Unity
                 cacheContainer.BranchCache.SetLocals(branches);
                 UpdateLocalBranches();
             }) { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private void UpdateLocks()
+        {
+            if (string.IsNullOrEmpty(CurrentRemote?.Url))
+            {
+                return;
+            }
+
+            repositoryManager?.UpdateLocks();
         }
 
         private void UpdateLocalBranches()
