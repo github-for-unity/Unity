@@ -13,12 +13,11 @@ namespace GitHub.Unity
         bool DisplayRootNode { get; }
         bool IsCheckable { get; }
         string PathSeparator { get; }
-        string PathIgnoreRoot { get; }
     }
 
     public static class TreeLoader
     {
-        public static void Load(ITree tree, IEnumerable<ITreeData> data)
+        public static void Load(ITree tree, IEnumerable<ITreeData> treeDatas)
         {
             var collapsedFolders = tree.GetCollapsedFolders();
 
@@ -33,19 +32,9 @@ namespace GitHub.Unity
 
             var folders = new HashSet<string>();
 
-            foreach (var d in data)
+            foreach (var treeData in treeDatas)
             {
-                var path = d.Path;
-                if (tree.PathIgnoreRoot != null)
-                {
-                    var indexOf = path.IndexOf(tree.PathIgnoreRoot);
-                    if (indexOf != -1)
-                    {
-                        path = path.Substring(indexOf + tree.PathIgnoreRoot.Length);
-                    }
-                }
-
-                var parts = path.Split(new[] { tree.PathSeparator }, StringSplitOptions.None);
+                var parts = treeData.Path.Split(new[] { tree.PathSeparator }, StringSplitOptions.None);
                 for (int i = 0; i < parts.Length; i++)
                 {
                     var label = parts[i];
@@ -86,7 +75,7 @@ namespace GitHub.Unity
 
                         }
 
-                        tree.AddNode(fullPath: d.FullPath, path: nodePath, label: label, level: i + displayRootLevel, isFolder: isFolder, isActive: d.IsActive, isHidden: nodeIsHidden, isCollapsed: nodeIsCollapsed);
+                        tree.AddNode(fullPath: treeData.FullPath, path: nodePath, label: label, level: i + displayRootLevel, isFolder: isFolder, isActive: treeData.IsActive, isHidden: nodeIsHidden, isCollapsed: nodeIsCollapsed);
                     }
                 }
             }
