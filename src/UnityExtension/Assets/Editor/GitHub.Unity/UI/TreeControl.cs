@@ -22,7 +22,6 @@ namespace GitHub.Unity
         [SerializeField] public Rect Padding = new Rect();
 
         [SerializeField] public string title;
-        [SerializeField] public string pathIgnoreRoot;
         [SerializeField] public string pathSeparator = "/";
         [SerializeField] public bool displayRootNode = true;
         [SerializeField] public bool isCheckable = false;
@@ -76,12 +75,6 @@ namespace GitHub.Unity
         {
             get { return pathSeparator; }
             set { pathSeparator = value; }
-        }
-
-        public string PathIgnoreRoot
-        {
-            get { return pathIgnoreRoot; }
-            set { pathIgnoreRoot = value; }
         }
 
         public void AddNode(string fullPath, string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed)
