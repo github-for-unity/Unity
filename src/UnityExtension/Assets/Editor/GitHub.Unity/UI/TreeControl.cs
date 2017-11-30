@@ -77,11 +77,10 @@ namespace GitHub.Unity
             set { pathSeparator = value; }
         }
 
-        public void AddNode(string fullPath, string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed)
+        public void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed)
         {
             var node = new TreeNode
             {
-                FullPath = fullPath,
                 Path = path,
                 Label = label,
                 Level = level,
@@ -409,7 +408,6 @@ namespace GitHub.Unity
     [Serializable]
     public class TreeNode
     {
-        public string FullPath;
         public string Path;
         public string Label;
         public int Level;

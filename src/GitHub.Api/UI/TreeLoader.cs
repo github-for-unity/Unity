@@ -6,7 +6,7 @@ namespace GitHub.Unity
 {
     public interface ITree
     {
-        void AddNode(string fullPath, string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed);
+        void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed);
         void Clear();
         HashSet<string> GetCollapsedFolders();
         string Title { get; }
@@ -25,7 +25,7 @@ namespace GitHub.Unity
 
             var displayRootLevel = tree.DisplayRootNode ? 1 : 0;
 
-            tree.AddNode(fullPath: tree.Title, path: tree.Title, label: tree.Title, level: -1 + displayRootLevel, isFolder: true, isActive: false, isHidden: false, isCollapsed: false);
+            tree.AddNode(path: tree.Title, label: tree.Title, level: -1 + displayRootLevel, isFolder: true, isActive: false, isHidden: false, isCollapsed: false);
 
             var hideChildren = false;
             var hideChildrenBelowLevel = 0;
@@ -75,7 +75,7 @@ namespace GitHub.Unity
 
                         }
 
-                        tree.AddNode(fullPath: treeData.FullPath, path: nodePath, label: label, level: i + displayRootLevel, isFolder: isFolder, isActive: treeData.IsActive, isHidden: nodeIsHidden, isCollapsed: nodeIsCollapsed);
+                        tree.AddNode(path: nodePath, label: label, level: i + displayRootLevel, isFolder: isFolder, isActive: treeData.IsActive, isHidden: nodeIsHidden, isCollapsed: nodeIsCollapsed);
                     }
                 }
             }
