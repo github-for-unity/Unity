@@ -831,16 +831,16 @@ namespace GitHub.Unity
             }
         }
 
-        private static Texture2D rootFolderIcon;
-        public static Texture2D RootFolderIcon
+        private static Texture2D globeIcon;
+        public static Texture2D GlobeIcon
         {
             get
             {
-                if (rootFolderIcon == null)
+                if (globeIcon == null)
                 {
-                    rootFolderIcon = Utility.GetIcon("globe.png", "globe@2x.png");
+                    globeIcon = Utility.GetIcon("globe.png", "globe@2x.png");
                 }
-                return rootFolderIcon;
+                return globeIcon;
             }
         }
 

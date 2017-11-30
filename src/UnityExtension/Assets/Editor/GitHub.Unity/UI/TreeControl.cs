@@ -467,41 +467,43 @@ namespace GitHub.Unity
     [Serializable]
     public class BranchesTree: Tree
     {
-        [NonSerialized] public Texture2D ActiveNodeIcon;
-        [NonSerialized] public Texture2D NodeIcon;
+        [SerializeField] public bool IsRemote;
+        
+        [NonSerialized] public Texture2D ActiveBranchIcon;
+        [NonSerialized] public Texture2D BranchIcon;
         [NonSerialized] public Texture2D FolderIcon;
-        [NonSerialized] public Texture2D RootFolderIcon;
+        [NonSerialized] public Texture2D GlobeIcon;
 
         protected override Texture2D GetNodeIcon(TreeNode node)
         {
             Texture2D nodeIcon;
             if (node.IsActive)
             {
-                nodeIcon = ActiveNodeIcon;
+                nodeIcon = ActiveBranchIcon;
             }
             else if (node.IsFolder)
             {
-                if (node.Level == 1)
-                    nodeIcon = RootFolderIcon;
-                else
-                    nodeIcon = FolderIcon;
+                nodeIcon = IsRemote && node.Level == 1
+                    ? GlobeIcon
+                    : FolderIcon;
             }
             else
             {
-                nodeIcon = NodeIcon;
+                nodeIcon = BranchIcon;
             }
             return nodeIcon;
         }
 
-        public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D rootFolderIcon)
+
+        public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)
         {
-            var needsLoad = ActiveNodeIcon == null || NodeIcon == null || FolderIcon == null || RootFolderIcon == null;
+            var needsLoad = ActiveBranchIcon == null || BranchIcon == null || FolderIcon == null || GlobeIcon == null;
             if (needsLoad)
             {
-                ActiveNodeIcon = activeBranchIcon;
-                NodeIcon = branchIcon;
+                ActiveBranchIcon = activeBranchIcon;
+                BranchIcon = branchIcon;
                 FolderIcon = folderIcon;
-                RootFolderIcon = rootFolderIcon;
+                GlobeIcon = globeIcon;
 
                 LoadNodeIcons();
             }

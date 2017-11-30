@@ -141,7 +141,9 @@ namespace GitHub.Unity
             if (treeLocals == null)
             {
                 treeLocals = new BranchesTree();
+
                 treeRemotes = new BranchesTree();
+                treeRemotes.IsRemote = true;
 
                 UpdateTreeIcons();
             }
@@ -158,12 +160,12 @@ namespace GitHub.Unity
         {
             if (treeLocals != null)
             {
-                treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.RootFolderIcon);
+                treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
 
             if (treeRemotes != null)
             {
-                treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.RootFolderIcon);
+                treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
         }
 
