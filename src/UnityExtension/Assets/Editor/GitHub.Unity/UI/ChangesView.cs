@@ -187,15 +187,16 @@ namespace GitHub.Unity
             if (treeChanges == null)
             {
                 treeChanges = new ChangesTree();
+                treeChanges.Title = "Changes";
                 treeChanges.DisplayRootNode = false;
-                treeChanges.Checkable = true;
+                treeChanges.IsCheckable = true;
                 treeChanges.PathIgnoreRoot = Environment.RepositoryPath + Environment.FileSystem.DirectorySeparatorChar;
                 treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
 
                 UpdateTreeIcons();
             }
 
-            treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry)).Cast<ITreeData>(), "Changes");
+            TreeLoader.Load(treeChanges, gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry)).Cast<ITreeData>());
             Redraw();
         }
 
