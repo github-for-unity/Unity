@@ -6,6 +6,8 @@ namespace GitHub.Unity
     {
         string Path { get; }
         bool IsActive { get; }
+        string CustomStringTag { get;}
+        int CustomIntTag { get; }
     }
 
     [Serializable]
@@ -22,5 +24,30 @@ namespace GitHub.Unity
 
         public string Path => GitBranch.Name;
         public bool IsActive => GitBranch.IsActive;
+
+        public string CustomStringTag => null;
+
+        public int CustomIntTag => 0;
+    }
+
+    [Serializable]
+    public struct GitStatusEntryTreeData : ITreeData
+    {
+        public static GitStatusEntryTreeData Default = new GitStatusEntryTreeData(GitStatusEntry.Default);
+
+        public GitStatusEntry gitStatusEntry;
+
+        public GitStatusEntryTreeData(GitStatusEntry gitStatusEntry)
+        {
+            this.gitStatusEntry = gitStatusEntry;
+        }
+
+        public string Path => gitStatusEntry.ProjectPath;
+        public bool IsActive => false;
+        public GitStatusEntry GitStatusEntry => gitStatusEntry;
+
+        public string CustomStringTag => gitStatusEntry.ProjectPath;
+
+        public int CustomIntTag => (int)gitStatusEntry.Status;
     }
 }

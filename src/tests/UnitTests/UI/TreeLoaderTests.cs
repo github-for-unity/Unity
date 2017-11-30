@@ -8,6 +8,8 @@ namespace UnitTests.UI
         public string FullPath { get; set; }
         public string Path { get; set; }
         public bool IsActive { get; set; }
+        public string CustomStringTag { get; set;  }
+        public int CustomIntTag { get; set; }
     }
 
     [TestFixture]

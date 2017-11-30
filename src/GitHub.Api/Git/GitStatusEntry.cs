@@ -47,21 +47,4 @@ namespace GitHub.Unity
             return $"Path:'{Path}' Status:'{Status}' FullPath:'{FullPath}' ProjectPath:'{ProjectPath}' OriginalPath:'{OriginalPath}' Staged:'{Staged}'";
         }
     }
-
-    [Serializable]
-    public struct GitStatusEntryTreeData : ITreeData
-    {
-        public static GitStatusEntryTreeData Default = new GitStatusEntryTreeData(GitStatusEntry.Default);
-
-        public GitStatusEntry gitStatusEntry;
-
-        public GitStatusEntryTreeData(GitStatusEntry gitStatusEntry)
-        {
-            this.gitStatusEntry = gitStatusEntry;
-        }
-
-        public string Name => gitStatusEntry.FullPath;
-        public bool IsActive => false;
-        public GitStatusEntry GitStatusEntry => gitStatusEntry;
-    }
 }

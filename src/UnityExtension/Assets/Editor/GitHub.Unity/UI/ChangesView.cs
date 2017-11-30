@@ -190,7 +190,6 @@ namespace GitHub.Unity
                 treeChanges.Title = "Changes";
                 treeChanges.DisplayRootNode = false;
                 treeChanges.IsCheckable = true;
-                treeChanges.PathIgnoreRoot = Environment.RepositoryPath + Environment.FileSystem.DirectorySeparatorChar;
                 treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
 
                 UpdateTreeIcons();

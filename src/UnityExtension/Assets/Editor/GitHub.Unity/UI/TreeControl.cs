@@ -77,7 +77,7 @@ namespace GitHub.Unity
             set { pathSeparator = value; }
         }
 
-        public void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed)
+        public void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, int customIntTag = 0, string customStringTag = (string)null)
         {
             var node = new TreeNode
             {
@@ -88,7 +88,9 @@ namespace GitHub.Unity
                 IsActive = isActive,
                 IsHidden = isHidden,
                 IsCollapsed = isCollapsed,
-                TreeIsCheckable = IsCheckable
+                TreeIsCheckable = IsCheckable,
+                CustomStringTag = customStringTag,
+                CustomIntTag = customIntTag
             };
 
             SetNodeIcon(node);
@@ -391,10 +393,12 @@ namespace GitHub.Unity
         private void SetNodeIcon(TreeNode node)
         {
             node.Icon = GetNodeIcon(node);
+            node.IconBadge = GetNodeIconBadge(node);
             node.Load();
         }
 
-        protected abstract Texture2D GetNodeIcon(TreeNode node);
+        protected abstract Texture GetNodeIcon(TreeNode node);
+        protected abstract Texture GetNodeIconBadge(TreeNode node);
 
         protected void LoadNodeIcons()
         {
@@ -419,7 +423,11 @@ namespace GitHub.Unity
         public bool TreeIsCheckable;
         public CheckState CheckState;
 
-        [NonSerialized] public Texture2D Icon;
+        public string CustomStringTag;
+        public int CustomIntTag;
+
+        [NonSerialized] public Texture Icon;
+        [NonSerialized] public Texture IconBadge;
 
         public void Load()
         {
@@ -515,6 +523,17 @@ namespace GitHub.Unity
                 contentStyle.Draw(contentRect, content, false, false, styleOn, isSelected);
             }
 
+            if (IconBadge != null)
+            {
+                var statusRect = new Rect(
+                    contentRect.x + 6,
+                    contentRect.yMax - 7,
+                    9,
+                    9);
+
+                GUI.DrawTexture(statusRect, IconBadge);
+            }
+
             Debug.Log(data);
 
             return renderResult;
@@ -537,7 +556,7 @@ namespace GitHub.Unity
         [NonSerialized] public Texture2D FolderIcon;
         [NonSerialized] public Texture2D GlobeIcon;
 
-        protected override Texture2D GetNodeIcon(TreeNode node)
+        protected override Texture GetNodeIcon(TreeNode node)
         {
             Texture2D nodeIcon;
             if (node.IsActive)
@@ -557,6 +576,10 @@ namespace GitHub.Unity
             return nodeIcon;
         }
 
+        protected override Texture GetNodeIconBadge(TreeNode node)
+        {
+            return null;
+        }
 
         public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)
         {
@@ -578,20 +601,43 @@ namespace GitHub.Unity
     {
         [NonSerialized] public Texture2D FolderIcon;
 
-        protected override Texture2D GetNodeIcon(TreeNode node)
+        protected override Texture GetNodeIcon(TreeNode node)
         {
-            Texture2D nodeIcon = null;
+            Texture nodeIcon = null;
             if (node.IsFolder)
             {
                 nodeIcon = FolderIcon;
             }
             else
             {
-                //nodeIcon = AssetDatabase.GetCachedIcon(node.p);
+                if (!string.IsNullOrEmpty(node.CustomStringTag))
+                {
+                    nodeIcon = AssetDatabase.GetCachedIcon(node.CustomStringTag);
+                }
+
+                if (nodeIcon != null)
+                {
+                    nodeIcon.hideFlags = HideFlags.HideAndDontSave;
+                }
+                else
+                {
+                    nodeIcon = Styles.DefaultAssetIcon;
+                }
             }
+            
             return nodeIcon;
         }
 
+        protected override Texture GetNodeIconBadge(TreeNode node)
+        {
+            if (node.IsFolder)
+            {
+                return null;
+            }
+
+            var gitFileStatus = (GitFileStatus)node.CustomIntTag;
+            return Styles.GetFileStatusIcon(gitFileStatus, false);
+        }
 
         public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)
         {
