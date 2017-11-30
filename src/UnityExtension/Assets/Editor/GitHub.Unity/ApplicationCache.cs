@@ -836,34 +836,12 @@ namespace GitHub.Unity
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private GitStatus status;
+        [SerializeField] private int ahead;
+        [SerializeField] private int behind;
+        [SerializeField] private List<GitStatusEntry> entries;
 
         public GitStatusCache() : base(true)
         { }
-
-        public GitStatus GitStatus
-        {
-            get
-            {
-                ValidateData();
-                return status;
-            }
-            set
-            {
-                var now = DateTimeOffset.Now;
-                var isUpdated = false;
-
-                Logger.Trace("Updating: {0} gitStatus:{1}", now, value);
-
-                if (!status.Equals(value))
-                {
-                    status = value;
-                    isUpdated = true;
-                }
-
-                SaveData(now, isUpdated);
-            }
-        }
 
         public override string LastUpdatedAtString
         {
@@ -886,6 +864,24 @@ namespace GitHub.Unity
         public override TimeSpan DataTimeout
         {
             get { return TimeSpan.FromMinutes(1); }
+        }
+
+        public int Ahead
+        {
+            get { return ahead; }
+            set { ahead = value; }
+        }
+
+        public int Behind
+        {
+            get { return behind; }
+            set { behind = value; }
+        }
+
+        public List<GitStatusEntry> Entries
+        {
+            get { return entries; }
+            set { entries = value; }
         }
     }
 
