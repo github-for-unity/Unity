@@ -9,6 +9,7 @@ namespace GitHub.Unity
         void AddNode(string fullPath, string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed);
         void Clear();
         HashSet<string> GetCollapsedFolders();
+        string Title { get; }
         bool DisplayRootNode { get; }
         bool IsCheckable { get; }
         string PathSeparator { get; }
@@ -17,7 +18,7 @@ namespace GitHub.Unity
 
     public static class TreeLoader
     {
-        public static void Load(ITree tree, IEnumerable<ITreeData> data, string title)
+        public static void Load(ITree tree, IEnumerable<ITreeData> data)
         {
             var collapsedFolders = tree.GetCollapsedFolders();
 
@@ -25,7 +26,7 @@ namespace GitHub.Unity
 
             var displayRootLevel = tree.DisplayRootNode ? 1 : 0;
 
-            tree.AddNode(fullPath: title, path: title, label: title, level: -1 + displayRootLevel, isFolder: true, isActive: false, isHidden: false, isCollapsed: false);
+            tree.AddNode(fullPath: tree.Title, path: tree.Title, label: tree.Title, level: -1 + displayRootLevel, isFolder: true, isActive: false, isHidden: false, isCollapsed: false);
 
             var hideChildren = false;
             var hideChildrenBelowLevel = 0;

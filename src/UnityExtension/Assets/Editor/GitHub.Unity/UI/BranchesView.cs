@@ -141,8 +141,10 @@ namespace GitHub.Unity
             if (treeLocals == null)
             {
                 treeLocals = new BranchesTree();
+                treeLocals.Title = LocalTitle;
 
                 treeRemotes = new BranchesTree();
+                treeRemotes.Title = RemoteTitle;
                 treeRemotes.IsRemote = true;
 
                 UpdateTreeIcons();
@@ -151,8 +153,8 @@ namespace GitHub.Unity
             localBranches.Sort(CompareBranches);
             remoteBranches.Sort(CompareBranches);
 
-            TreeLoader.Load(treeLocals, localBranches.Select(branch => (ITreeData) new GitBranchTreeData(branch)), LocalTitle);
-            TreeLoader.Load(treeRemotes, remoteBranches.Select(branch => (ITreeData) new GitBranchTreeData(branch)), RemoteTitle);
+            TreeLoader.Load(treeLocals, localBranches.Select(branch => (ITreeData) new GitBranchTreeData(branch)));
+            TreeLoader.Load(treeRemotes, remoteBranches.Select(branch => (ITreeData) new GitBranchTreeData(branch)));
             Redraw();
         }
 
