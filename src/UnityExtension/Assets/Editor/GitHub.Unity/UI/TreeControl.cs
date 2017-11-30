@@ -561,14 +561,19 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    public class BranchesTree: Tree
+    public class BranchesTree : Tree
     {
-        [SerializeField] public bool IsRemote;
-        
-        [NonSerialized] public Texture2D ActiveBranchIcon;
-        [NonSerialized] public Texture2D BranchIcon;
-        [NonSerialized] public Texture2D FolderIcon;
-        [NonSerialized] public Texture2D GlobeIcon;
+        [SerializeField]
+        public bool IsRemote;
+
+        [NonSerialized]
+        public Texture2D ActiveBranchIcon;
+        [NonSerialized]
+        public Texture2D BranchIcon;
+        [NonSerialized]
+        public Texture2D FolderIcon;
+        [NonSerialized]
+        public Texture2D GlobeIcon;
 
         protected override Texture2D GetNodeIcon(TreeNode node)
         {
@@ -605,7 +610,57 @@ namespace GitHub.Unity
             }
         }
     }
-    
+    [Serializable]
+    public class ChangesTree : Tree
+    {
+        [SerializeField]
+        public bool IsRemote;
+
+        [NonSerialized]
+        public Texture2D ActiveBranchIcon;
+        [NonSerialized]
+        public Texture2D BranchIcon;
+        [NonSerialized]
+        public Texture2D FolderIcon;
+        [NonSerialized]
+        public Texture2D GlobeIcon;
+
+        protected override Texture2D GetNodeIcon(TreeNode node)
+        {
+            Texture2D nodeIcon;
+            if (node.IsActive)
+            {
+                nodeIcon = ActiveBranchIcon;
+            }
+            else if (node.IsFolder)
+            {
+                nodeIcon = IsRemote && node.Level == 1
+                    ? GlobeIcon
+                    : FolderIcon;
+            }
+            else
+            {
+                nodeIcon = BranchIcon;
+            }
+            return nodeIcon;
+        }
+
+
+        public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)
+        {
+            var needsLoad = ActiveBranchIcon == null || BranchIcon == null || FolderIcon == null || GlobeIcon == null;
+            if (needsLoad)
+            {
+                ActiveBranchIcon = activeBranchIcon;
+                BranchIcon = branchIcon;
+                FolderIcon = folderIcon;
+                GlobeIcon = globeIcon;
+
+                LoadNodeIcons();
+            }
+        }
+    }
+
     public enum TreeNodeRenderResult
     {
         None,

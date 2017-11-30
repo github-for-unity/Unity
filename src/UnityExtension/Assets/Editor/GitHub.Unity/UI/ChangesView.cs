@@ -28,7 +28,7 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 scroll;
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusChangedEvent;
-        [SerializeField] private Tree treeChanges;
+        [SerializeField] private ChangesTree treeChanges;
         [SerializeField] private List<GitStatusEntry> gitStatusEntries;
 
         public override void OnEnable()
@@ -186,7 +186,7 @@ namespace GitHub.Unity
         {
             if (treeChanges == null)
             {
-                treeChanges = new Tree();
+                treeChanges = new ChangesTree();
                 treeChanges.DisplayRootNode = false;
                 treeChanges.Checkable = true;
                 treeChanges.PathIgnoreRoot = Environment.RepositoryPath + Environment.FileSystem.DirectorySeparatorChar;
@@ -201,26 +201,9 @@ namespace GitHub.Unity
 
         private void UpdateTreeIcons()
         {
-            var loaded = false;
-
             if (treeChanges != null)
             {
-                if (treeChanges.NodeIcon == null)
-                {
-                    loaded = true;
-                    treeChanges.NodeIcon = Styles.BranchIcon;
-                }
-
-                if (treeChanges.FolderIcon == null)
-                {
-                    loaded = true;
-                    treeChanges.FolderIcon = Styles.FolderIcon;
-                }
-            }
-
-            if (loaded)
-            {
-                treeChanges.LoadNodeIcons();
+                treeChanges.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
         }
 
