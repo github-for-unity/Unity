@@ -50,6 +50,7 @@ namespace GitHub.Unity
             repositoryManager.CurrentBranchUpdated += RepositoryManagerOnCurrentBranchUpdated;
             repositoryManager.GitStatusUpdated += RepositoryManagerOnGitStatusUpdated;
             repositoryManager.GitLogUpdated += RepositoryManagerOnGitLogUpdated;
+            repositoryManager.GitLocksUpdated += RepositoryManagerOnGitLocksUpdated;
             repositoryManager.LocalBranchesUpdated += RepositoryManagerOnLocalBranchesUpdated;
             repositoryManager.RemoteBranchesUpdated += RepositoryManagerOnRemoteBranchesUpdated;
         }
@@ -381,6 +382,14 @@ namespace GitHub.Unity
             new ActionTask(CancellationToken.None, () => {
                 CurrentLog = gitLogEntries;
             }) { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private void RepositoryManagerOnGitLocksUpdated(List<GitLock> gitLocks)
+        {
+            new ActionTask(CancellationToken.None, () => {
+                    CurrentLocks = gitLocks;
+                })
+                { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void RepositoryManagerOnRemoteBranchesUpdated(Dictionary<string, ConfigRemote> remotes,
