@@ -179,7 +179,7 @@ namespace GitHub.Unity
                 {
                     if (GUILayout.Button(DeleteBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                     {
-                        DeleteLocalBranch(treeLocals.SelectedNode.Name);
+                        DeleteLocalBranch(treeLocals.SelectedNode.Path);
                     }
                 }
                 EditorGUI.EndDisabledGroup();
@@ -245,7 +245,7 @@ namespace GitHub.Unity
                     // Effectuate create
                     if (createBranch)
                     {
-                        GitClient.CreateBranch(newBranchName, treeLocals.SelectedNode.Name)
+                        GitClient.CreateBranch(newBranchName, treeLocals.SelectedNode.Path)
                             .FinallyInUI((success, e) =>
                             {
                                 if (success)
@@ -299,7 +299,7 @@ namespace GitHub.Unity
                     if (node.IsFolder)
                         return;
 
-                    SwitchBranch(node.Name);
+                    SwitchBranch(node.Path);
                 },
                 node => {
                     if (node.IsFolder)
@@ -327,7 +327,7 @@ namespace GitHub.Unity
                     if (node.IsFolder)
                         return;
 
-                    CheckoutRemoteBranch(node.Name);
+                    CheckoutRemoteBranch(node.Path);
                 },
                 node => {
                     if (node.IsFolder)
@@ -364,11 +364,11 @@ namespace GitHub.Unity
             else
             {
                 genericMenu.AddItem(deleteGuiContent, false, () => {
-                    DeleteLocalBranch(node.Name);
+                    DeleteLocalBranch(node.Path);
                 });
 
                 genericMenu.AddItem(switchGuiContent, false, () => {
-                    SwitchBranch(node.Name);
+                    SwitchBranch(node.Path);
                 });
             }
 
@@ -382,7 +382,7 @@ namespace GitHub.Unity
             var checkoutGuiContent = new GUIContent(CheckoutBranchContextMenuLabel);
             
             genericMenu.AddItem(checkoutGuiContent, false, () => {
-                CheckoutRemoteBranch(node.Name);
+                CheckoutRemoteBranch(node.Path);
             });
             
             return genericMenu;

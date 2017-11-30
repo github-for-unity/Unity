@@ -4,7 +4,8 @@ namespace GitHub.Unity
 {
     public interface ITreeData
     {
-        string Name { get; }
+        string FullPath { get; }
+        string Path { get; }
         bool IsActive { get; }
     }
 
@@ -20,7 +21,8 @@ namespace GitHub.Unity
             GitBranch = gitBranch;
         }
 
-        public string Name => GitBranch.Name;
+        public string FullPath => GitBranch.Name;
+        public string Path => GitBranch.Name;
         public bool IsActive => GitBranch.IsActive;
     }
 }

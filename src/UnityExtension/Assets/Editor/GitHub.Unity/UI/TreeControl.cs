@@ -35,14 +35,14 @@ namespace GitHub.Unity
 
         [NonSerialized] private Stack<bool> indents = new Stack<bool>();
 
-        public bool IsInitialized { get { return nodes != null && nodes.Count > 0 && !String.IsNullOrEmpty(nodes[0].Name); } }
+        public bool IsInitialized { get { return nodes != null && nodes.Count > 0 && !String.IsNullOrEmpty(nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
 
         public TreeNode SelectedNode
         {
             get
             {
-                if (selectedNode != null && String.IsNullOrEmpty(selectedNode.Name))
+                if (selectedNode != null && String.IsNullOrEmpty(selectedNode.Path))
                     selectedNode = null;
                 return selectedNode;
             }
@@ -66,7 +66,7 @@ namespace GitHub.Unity
 
             var titleNode = new TreeNode()
             {
-                Name = title,
+                Path = title,
                 Label = title,
                 Level = -1 + displayRootLevel,
                 IsFolder = true,
@@ -80,29 +80,30 @@ namespace GitHub.Unity
 
             foreach (var d in data)
             {
-                var fullName = d.Name;
+                var path = d.Path;
                 if (PathIgnoreRoot != null)
                 {
-                    var indexOf = fullName.IndexOf(PathIgnoreRoot);
+                    var indexOf = path.IndexOf(PathIgnoreRoot);
                     if (indexOf != -1)
                     {
-                        fullName = fullName.Substring(indexOf + PathIgnoreRoot.Length);
+                        path = path.Substring(indexOf + PathIgnoreRoot.Length);
                     }
                 }
 
-                var parts = fullName.Split(new [] {PathSeparator}, StringSplitOptions.None);
+                var parts = path.Split(new [] {PathSeparator}, StringSplitOptions.None);
                 for (int i = 0; i < parts.Length; i++)
                 {
                     var label = parts[i];
                     var level = i + 1;
-                    var name = String.Join(PathSeparator, parts, 0, level);
+                    var nodePath = String.Join(PathSeparator, parts, 0, level);
                     var isFolder = i < parts.Length - 1;
-                    var alreadyExists = folders.ContainsKey(name);
+                    var alreadyExists = folders.ContainsKey(nodePath);
                     if (!alreadyExists)
                     {
                         var node = new TreeNode
                         {
-                            Name = name,
+                            FullPath = d.FullPath,
+                            Path = nodePath,
                             IsActive = d.IsActive,
                             Label = label,
                             Level = i + displayRootLevel,
@@ -132,7 +133,7 @@ namespace GitHub.Unity
                         nodes.Add(node);
                         if (isFolder)
                         {
-                            if (collapsedFolders.Contains(name))
+                            if (collapsedFolders.Contains(nodePath))
                             {
                                 node.IsCollapsed = true;
 
@@ -143,7 +144,7 @@ namespace GitHub.Unity
                                 }
                             }
 
-                            folders.Add(name, node);
+                            folders.Add(nodePath, node);
                         }
                     }
                 }
@@ -441,7 +442,8 @@ namespace GitHub.Unity
     [Serializable]
     public class TreeNode
     {
-        public string Name;
+        public string FullPath;
+        public string Path;
         public string Label;
         public int Level;
         public bool IsFolder;
@@ -555,8 +557,8 @@ namespace GitHub.Unity
 
         public override string ToString()
         {
-            return String.Format("name:{0} label:{1} level:{2} isFolder:{3} isCollapsed:{4} isHidden:{5} isActive:{6}",
-                Name, Label, Level, IsFolder, IsCollapsed, IsHidden, IsActive);
+            return String.Format("path:{0} label:{1} level:{2} isFolder:{3} isCollapsed:{4} isHidden:{5} isActive:{6}",
+                Path, Label, Level, IsFolder, IsCollapsed, IsHidden, IsActive);
         }
     }
 
