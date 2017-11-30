@@ -40,6 +40,8 @@ namespace GitHub.Unity
         [SerializeField] private CacheUpdateEvent lastCurrentBranchAndRemoteChangedEvent;
         [NonSerialized] private bool currentBranchAndRemoteHasUpdate;
 
+        [NonSerialized] private Texture2D smallLogo;
+
         [MenuItem(LaunchMenu)]
         public static void Window_GitHub()
         {
@@ -102,7 +104,11 @@ namespace GitHub.Unity
             Selection.activeObject = this;
 #endif
             // Set window title
-            titleContent = new GUIContent(Title, Styles.SmallLogo);
+            if (smallLogo == null)
+            {
+                smallLogo = Styles.SmallLogo;
+                titleContent = new GUIContent(Title, smallLogo);
+            }
 
             if (Repository != null)
                 Repository.CheckCurrentBranchAndRemoteChangedEvent(lastCurrentBranchAndRemoteChangedEvent);
