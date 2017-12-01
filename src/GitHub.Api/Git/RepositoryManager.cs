@@ -36,12 +36,14 @@ namespace GitHub.Unity
         ITask UnlockFile(string file, bool force);
         void UpdateGitLog();
         void UpdateGitStatus();
+        void UpdateGitAheadBehindStatus();
         void UpdateLocks();
         int WaitForEvents();
 
         IGitConfig Config { get; }
         IGitClient GitClient { get; }
         bool IsBusy { get; }
+        event Action<GitAheadBehindStatus> GitAheadBehindStatusUpdated;
     }
 
     interface IRepositoryPathConfiguration
@@ -102,6 +104,7 @@ namespace GitHub.Unity
         public event Action<ConfigBranch?, ConfigRemote?> CurrentBranchUpdated;
         public event Action<bool> IsBusyChanged;
         public event Action<GitStatus> GitStatusUpdated;
+        public event Action<GitAheadBehindStatus> GitAheadBehindStatusUpdated;
         public event Action<List<GitLock>> GitLocksUpdated;
         public event Action<List<GitLogEntry>> GitLogUpdated;
         public event Action<Dictionary<string, ConfigBranch>> LocalBranchesUpdated;
@@ -247,13 +250,13 @@ namespace GitHub.Unity
         public ITask LockFile(string file)
         {
             var task = GitClient.Lock(file);
-            return HookupHandlers(task, true, false);
+            return HookupHandlers(task, true, false).Then(UpdateLocks);
         }
 
         public ITask UnlockFile(string file, bool force)
         {
             var task = GitClient.Unlock(file, force);
-            return HookupHandlers(task, true, false);
+            return HookupHandlers(task, true, false).Then(UpdateLocks);
         }
 
         public void UpdateGitLog()
@@ -280,6 +283,33 @@ namespace GitHub.Unity
                     GitStatusUpdated?.Invoke(status);
                 }
             }).Start();
+        }
+
+        public void UpdateGitAheadBehindStatus()
+        {
+            ConfigBranch? configBranch;
+            ConfigRemote? configRemote;
+            GetCurrentBranchAndRemote(out configBranch, out configRemote);
+
+            if (configBranch.HasValue && configBranch.Value.Remote.HasValue)
+            {
+                var name = configBranch.Value.Name;
+                var trackingName = configBranch.Value.IsTracking ? configBranch.Value.Remote.Value.Name + "/" + name : "[None]";
+
+                var task = GitClient.AheadBehindStatus(name, trackingName);
+                task = HookupHandlers(task, true, false);
+                task.Then((success, status) =>
+                {
+                    if (success)
+                    {
+                        GitAheadBehindStatusUpdated?.Invoke(status);
+                    }
+                }).Start();
+            }
+            else
+            {
+                GitAheadBehindStatusUpdated?.Invoke(GitAheadBehindStatus.Default);
+            }
         }
 
         public void UpdateLocks()
@@ -346,16 +376,33 @@ namespace GitHub.Unity
 
         private void UpdateHead()
         {
-            var head = repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
-            Logger.Trace("UpdateHead: {0}", head ?? "[NULL]");
-            UpdateCurrentBranchAndRemote(head);
+            Logger.Trace("UpdateHead");
+            UpdateCurrentBranchAndRemote();
             UpdateGitLog();
         }
 
-        private void UpdateCurrentBranchAndRemote(string head)
+        private string GetCurrentHead()
         {
-            ConfigBranch? branch = null;
+            return repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
+        }
 
+        private void UpdateCurrentBranchAndRemote()
+        {
+            ConfigBranch? branch;
+            ConfigRemote? remote;
+            GetCurrentBranchAndRemote(out branch, out remote);
+
+            Logger.Trace("CurrentBranch: {0}", branch.HasValue ? branch.Value.ToString() : "[NULL]");
+            Logger.Trace("CurrentRemote: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
+            CurrentBranchUpdated?.Invoke(branch, remote);
+        }
+
+        private void GetCurrentBranchAndRemote(out ConfigBranch? branch, out ConfigRemote? remote)
+        {
+            branch = null;
+            remote = null;
+
+            var head = GetCurrentHead();
             if (head.StartsWith("ref:"))
             {
                 var branchName = head.Substring(head.IndexOf("refs/heads/") + "refs/heads/".Length);
@@ -368,7 +415,6 @@ namespace GitHub.Unity
             }
 
             var defaultRemote = "origin";
-            ConfigRemote? remote = null;
 
             if (branch.HasValue && branch.Value.IsTracking)
             {
@@ -388,10 +434,6 @@ namespace GitHub.Unity
                     remote = configRemotes.FirstOrDefault();
                 }
             }
-
-            Logger.Trace("CurrentBranch: {0}", branch.HasValue ? branch.Value.ToString() : "[NULL]");
-            Logger.Trace("CurrentRemote: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
-            CurrentBranchUpdated?.Invoke(branch, remote);
         }
 
         private void WatcherOnRemoteBranchesChanged()
@@ -410,6 +452,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("WatcherOnRepositoryCommitted");
             UpdateGitLog();
+            UpdateGitAheadBehindStatus();
         }
 
         private void WatcherOnRepositoryChanged()
@@ -508,6 +551,8 @@ namespace GitHub.Unity
 
             Logger.Trace("OnRemoteBranchListUpdated {0} remotes", remotes.Count);
             RemoteBranchesUpdated?.Invoke(remotes, remoteBranches);
+
+            UpdateGitAheadBehindStatus();
         }
 
         private bool disposed;
