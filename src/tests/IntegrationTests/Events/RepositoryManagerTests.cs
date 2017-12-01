@@ -42,6 +42,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
@@ -86,6 +87,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
@@ -133,6 +135,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
@@ -156,6 +159,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
@@ -203,6 +207,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
@@ -225,6 +230,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
@@ -267,6 +273,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
@@ -311,6 +318,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
@@ -354,6 +362,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
@@ -373,6 +382,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
@@ -417,6 +427,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
@@ -438,6 +449,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
@@ -483,6 +495,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
@@ -503,6 +516,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
@@ -545,6 +559,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
@@ -588,6 +603,7 @@ namespace IntegrationTests
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
