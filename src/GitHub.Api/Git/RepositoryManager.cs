@@ -361,16 +361,33 @@ namespace GitHub.Unity
 
         private void UpdateHead()
         {
-            var head = repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
-            Logger.Trace("UpdateHead: {0}", head ?? "[NULL]");
-            UpdateCurrentBranchAndRemote(head);
+            Logger.Trace("UpdateHead");
+            UpdateCurrentBranchAndRemote();
             UpdateGitLog();
         }
 
-        private void UpdateCurrentBranchAndRemote(string head)
+        private string GetCurrentHead()
         {
-            ConfigBranch? branch = null;
+            return repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
+        }
 
+        private void UpdateCurrentBranchAndRemote()
+        {
+            ConfigBranch? branch;
+            ConfigRemote? remote;
+            GetCurrentBranchAndRemote(out branch, out remote);
+
+            Logger.Trace("CurrentBranch: {0}", branch.HasValue ? branch.Value.ToString() : "[NULL]");
+            Logger.Trace("CurrentRemote: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
+            CurrentBranchUpdated?.Invoke(branch, remote);
+        }
+
+        private void GetCurrentBranchAndRemote(out ConfigBranch? branch, out ConfigRemote? remote)
+        {
+            branch = null;
+            remote = null;
+
+            var head = GetCurrentHead();
             if (head.StartsWith("ref:"))
             {
                 var branchName = head.Substring(head.IndexOf("refs/heads/") + "refs/heads/".Length);
@@ -383,7 +400,6 @@ namespace GitHub.Unity
             }
 
             var defaultRemote = "origin";
-            ConfigRemote? remote = null;
 
             if (branch.HasValue && branch.Value.IsTracking)
             {
@@ -403,10 +419,6 @@ namespace GitHub.Unity
                     remote = configRemotes.FirstOrDefault();
                 }
             }
-
-            Logger.Trace("CurrentBranch: {0}", branch.HasValue ? branch.Value.ToString() : "[NULL]");
-            Logger.Trace("CurrentRemote: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
-            CurrentBranchUpdated?.Invoke(branch, remote);
         }
 
         private void WatcherOnRemoteBranchesChanged()
@@ -523,6 +535,18 @@ namespace GitHub.Unity
 
             Logger.Trace("OnRemoteBranchListUpdated {0} remotes", remotes.Count);
             RemoteBranchesUpdated?.Invoke(remotes, remoteBranches);
+
+            ConfigBranch? configBranch;
+            ConfigRemote? configRemote;
+            GetCurrentBranchAndRemote(out configBranch,out configRemote);
+
+            if (configBranch.HasValue && configBranch.Value.Remote.HasValue)
+            {
+                var name = configBranch.Value.Name;
+                var trackingName = configBranch.Value.IsTracking ? configBranch.Value.Remote.Value.Name + "/" + name : "[None]";
+
+                UpdateGitAheadBehindStatus(name, trackingName);
+            }
         }
 
         private bool disposed;

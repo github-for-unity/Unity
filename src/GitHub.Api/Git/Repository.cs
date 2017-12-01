@@ -411,12 +411,6 @@ namespace GitHub.Unity
                 cacheContainer.BranchCache.SetRemotes(remotes, branches);
                 Remotes = ConfigRemotes.Values.Select(GetGitRemote).ToArray();
                 RemoteBranches = RemoteConfigBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch).ToArray();
-
-                var currentBranch = CurrentBranch;
-                if(!string.IsNullOrEmpty(currentBranch?.Tracking))
-                {
-                   repositoryManager.UpdateGitAheadBehindStatus(currentBranch.Value.name, currentBranch.Value.tracking); 
-                }
             }) { Affinity = TaskAffinity.UI }.Start();
         }
 
