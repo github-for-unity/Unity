@@ -836,28 +836,78 @@ namespace GitHub.Unity
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private GitStatus status;
+        [SerializeField] private int ahead;
+        [SerializeField] private int behind;
+        [SerializeField] private List<GitStatusEntry> entries = new List<GitStatusEntry>();
 
         public GitStatusCache() : base(true)
         { }
 
-        public GitStatus GitStatus
+        public int Ahead
         {
             get
             {
                 ValidateData();
-                return status;
+                return ahead;
             }
             set
             {
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} gitStatus:{1}", now, value);
+                Logger.Trace("Updating: {0} ahead:{1}", now, value);
 
-                if (!status.Equals(value))
+                if (ahead != value)
                 {
-                    status = value;
+                    ahead = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public int Behind
+        {
+            get
+            {
+                ValidateData();
+                return behind;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} behind:{1}", now, value);
+
+                if (behind != value)
+                {
+                    behind = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public List<GitStatusEntry> Entries
+        {
+            get
+            {
+                ValidateData();
+                return entries;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} entries:{1}", now, value.Count);
+
+                if (!entries.SequenceEqual(value))
+                {
+                    entries = value;
                     isUpdated = true;
                 }
 
