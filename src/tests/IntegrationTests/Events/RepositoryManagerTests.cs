@@ -469,10 +469,11 @@ namespace IntegrationTests
                 repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
                 repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
                 repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
+                repositoryManagerEvents.GitAheadBehindStatusUpdated.WaitOne(Timeout).Should().BeTrue();
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
+                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
@@ -492,10 +493,11 @@ namespace IntegrationTests
                 repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
                 repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
                 repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
+                repositoryManagerEvents.GitAheadBehindStatusUpdated.WaitOne(Timeout).Should().BeTrue();
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
+                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
                 repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);

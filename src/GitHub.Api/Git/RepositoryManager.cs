@@ -305,6 +305,10 @@ namespace GitHub.Unity
                     }
                 }).Start();
             }
+            else
+            {
+                GitAheadBehindStatusUpdated?.Invoke(GitAheadBehindStatus.Default);
+            }
         }
 
         public void UpdateLocks()

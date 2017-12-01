@@ -14,7 +14,7 @@ namespace GitHub.Unity
             var ahead = int.Parse(proc.ReadUntilWhitespace());
             var behind = int.Parse(proc.ReadToEnd());
 
-            RaiseOnEntry(new GitAheadBehindStatus { Ahead = ahead, Behind = behind });
+            RaiseOnEntry(new GitAheadBehindStatus { ahead = ahead, behind = behind });
         }
     }
 }
