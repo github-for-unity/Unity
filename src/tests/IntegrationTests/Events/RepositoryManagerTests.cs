@@ -468,13 +468,14 @@ namespace IntegrationTests
                 repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
                 repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
                 repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
+                repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
                 repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
-                repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+                repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
                 repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
                 repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
 
