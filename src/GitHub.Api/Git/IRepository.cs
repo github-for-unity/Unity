@@ -57,7 +57,9 @@ namespace GitHub.Unity
         /// Gets the current branch of the repository.
         /// </summary>
         GitBranch? CurrentBranch { get; }
-        GitStatus CurrentStatus { get; }
+        int CurrentAhead { get; }
+        int CurrentBehind { get; }
+        List<GitStatusEntry> CurrentChanges { get; }
         GitRemote[] Remotes { get; }
         GitBranch[] LocalBranches { get; }
         GitBranch[] RemoteBranches { get; }

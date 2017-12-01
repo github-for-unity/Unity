@@ -14,6 +14,7 @@ namespace TestUtils.Events
         void RemoteBranchesUpdated(Dictionary<string, ConfigRemote> remotesList, Dictionary<string, Dictionary<string, ConfigBranch>> remoteBranchList);
         void CurrentBranchUpdated(ConfigBranch? configBranch, ConfigRemote? configRemote);
         void GitLocksUpdated(List<GitLock> gitLocks);
+        void GitAheadBehindStatusUpdated(GitAheadBehindStatus gitAheadBehindStatus);
         void GitStatusUpdated(GitStatus gitStatus);
         void GitLogUpdated(List<GitLogEntry> gitLogEntries);
     }
@@ -23,6 +24,7 @@ namespace TestUtils.Events
         public EventWaitHandle IsBusy { get; } = new AutoResetEvent(false);
         public EventWaitHandle IsNotBusy { get; } = new AutoResetEvent(false);
         public EventWaitHandle CurrentBranchUpdated { get; } = new AutoResetEvent(false);
+        public EventWaitHandle GitAheadBehindStatusUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle GitStatusUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle GitLocksUpdated { get; } = new AutoResetEvent(false);
         public EventWaitHandle GitLogUpdated { get; } = new AutoResetEvent(false);
@@ -34,6 +36,7 @@ namespace TestUtils.Events
             IsBusy.Reset();
             IsNotBusy.Reset();
             CurrentBranchUpdated.Reset();
+            GitAheadBehindStatusUpdated.Reset();
             GitStatusUpdated.Reset();
             GitLocksUpdated.Reset();
             GitLogUpdated.Reset();
@@ -76,6 +79,12 @@ namespace TestUtils.Events
                 managerEvents?.GitLocksUpdated.Set();
             };
 
+            repositoryManager.GitAheadBehindStatusUpdated += gitAheadBehindStatus => {
+                logger?.Trace("GitAheadBehindStatusUpdated");
+                listener.GitAheadBehindStatusUpdated(gitAheadBehindStatus);
+                managerEvents?.GitAheadBehindStatusUpdated.Set();
+            };
+
             repositoryManager.GitStatusUpdated += gitStatus => {
                 logger?.Trace("GitStatusUpdated");
                 listener.GitStatusUpdated(gitStatus);
@@ -105,6 +114,7 @@ namespace TestUtils.Events
         {
             repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
             repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
             repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
             repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
             repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);

@@ -49,6 +49,7 @@ namespace GitHub.Unity
             repositoryManager = initRepositoryManager;
             repositoryManager.CurrentBranchUpdated += RepositoryManagerOnCurrentBranchUpdated;
             repositoryManager.GitStatusUpdated += RepositoryManagerOnGitStatusUpdated;
+            repositoryManager.GitAheadBehindStatusUpdated += RepositoryManagerOnGitAheadBehindStatusUpdated;
             repositoryManager.GitLogUpdated += RepositoryManagerOnGitLogUpdated;
             repositoryManager.GitLocksUpdated += RepositoryManagerOnGitLocksUpdated;
             repositoryManager.LocalBranchesUpdated += RepositoryManagerOnLocalBranchesUpdated;
@@ -373,7 +374,17 @@ namespace GitHub.Unity
         private void RepositoryManagerOnGitStatusUpdated(GitStatus gitStatus)
         {
             new ActionTask(CancellationToken.None, () => {
-                CurrentStatus = gitStatus;
+                CurrentChanges = gitStatus.Entries;
+                CurrentAhead = gitStatus.Ahead;
+                CurrentBehind = gitStatus.Behind;
+            }) { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private void RepositoryManagerOnGitAheadBehindStatusUpdated(GitAheadBehindStatus aheadBehindStatus)
+        {
+            new ActionTask(CancellationToken.None, () => {
+                CurrentAhead = aheadBehindStatus.Ahead;
+                CurrentBehind = aheadBehindStatus.Behind;
             }) { Affinity = TaskAffinity.UI }.Start();
         }
 
@@ -486,10 +497,22 @@ namespace GitHub.Unity
             set { cacheContainer.BranchCache.CurrentConfigRemote = value; }
         }
 
-        public GitStatus CurrentStatus
+        public int CurrentAhead
         {
-            get { return cacheContainer.GitStatusCache.GitStatus; }
-            private set { cacheContainer.GitStatusCache.GitStatus = value; }
+            get { return cacheContainer.GitStatusCache.Ahead; }
+            private set { cacheContainer.GitStatusCache.Ahead = value; }
+        }
+
+        public int CurrentBehind
+        {
+            get { return cacheContainer.GitStatusCache.Behind; }
+            private set { cacheContainer.GitStatusCache.Behind = value; }
+        }
+
+        public List<GitStatusEntry> CurrentChanges
+        {
+            get { return cacheContainer.GitStatusCache.Entries; }
+            private set { cacheContainer.GitStatusCache.Entries = value; }
         }
 
         public GitBranch? CurrentBranch
