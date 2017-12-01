@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Octokit;
 
 namespace GitHub.Unity
 {
@@ -362,7 +363,7 @@ namespace GitHub.Unity
 
                 if (!branch.HasValue)
                 {
-                    branch = new ConfigBranch { Name = branchName };
+                    branch = new ConfigBranch(branchName);
                 }
             }
 
@@ -469,7 +470,7 @@ namespace GitHub.Unity
                     configBranches.Where(x => x.Name == branchName).Select(x => x as ConfigBranch?).FirstOrDefault();
                 if (!branch.HasValue)
                 {
-                    branch = new ConfigBranch { Name = branchName };
+                    branch = new ConfigBranch(branchName);
                 }
                 branches.Add(branchName, branch.Value);
             }
@@ -498,7 +499,7 @@ namespace GitHub.Unity
                                .Select(x => x.RelativeTo(basedir))
                                .Select(x => x.ToString(SlashMode.Forward)))
                     {
-                        branchList.Add(branch, new ConfigBranch { Name = branch, Remote = remotes[remote] });
+                        branchList.Add(branch, new ConfigBranch(branch, remotes[remote]));
                     }
 
                     remoteBranches.Add(remote, branchList);
