@@ -358,15 +358,8 @@ namespace GitHub.Unity
                 currentRemoteHasUpdate = false;
 
                 var currentRemote = Repository.CurrentRemote;
-                if (currentRemote.HasValue && !string.IsNullOrEmpty(currentRemote.Value.name))
-                {
-                    hasRemote = true;
-                    currentRemoteName = currentRemote.Value.Name;
-                }
-                else
-                {
-                    currentRemoteName = null;
-                }
+                hasRemote = currentRemote.HasValue;
+                currentRemoteName = hasRemote ? currentRemote.Value.Name : "placeholder";
             }
 
             if (currentStatusHasUpdate)
@@ -375,8 +368,8 @@ namespace GitHub.Unity
 
                 statusAhead = Repository.CurrentAhead;
                 statusBehind = Repository.CurrentBehind;
-                var currentChanges = Repository.CurrentChanges;
 
+                var currentChanges = Repository.CurrentChanges;
                 hasItemsToCommit = currentChanges != null
                     && currentChanges.Any(entry => entry.Status != GitFileStatus.Ignored && !entry.Staged);
             }

@@ -843,29 +843,6 @@ namespace GitHub.Unity
         public GitStatusCache() : base(true)
         { }
 
-        public override string LastUpdatedAtString
-        {
-            get { return lastUpdatedAtString; }
-            protected set { lastUpdatedAtString = value; }
-        }
-
-        public override string LastVerifiedAtString
-        {
-            get { return lastVerifiedAtString; }
-            protected set { lastVerifiedAtString = value; }
-        }
-
-        public override string InitializedAtString
-        {
-            get { return initializedAtString; }
-            protected set { initializedAtString = value; }
-        }
-
-        public override TimeSpan DataTimeout
-        {
-            get { return TimeSpan.FromMinutes(1); }
-        }
-
         public int Ahead
         {
             get
@@ -936,6 +913,29 @@ namespace GitHub.Unity
 
                 SaveData(now, isUpdated);
             }
+        }
+
+        public override string LastUpdatedAtString
+        {
+            get { return lastUpdatedAtString; }
+            protected set { lastUpdatedAtString = value; }
+        }
+
+        public override string LastVerifiedAtString
+        {
+            get { return lastVerifiedAtString; }
+            protected set { lastVerifiedAtString = value; }
+        }
+
+        public override string InitializedAtString
+        {
+            get { return initializedAtString; }
+            protected set { initializedAtString = value; }
+        }
+
+        public override TimeSpan DataTimeout
+        {
+            get { return TimeSpan.FromMinutes(1); }
         }
     }
 
