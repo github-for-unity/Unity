@@ -35,7 +35,7 @@ namespace GitHub.Unity
         ITask UnlockFile(string file, bool force);
         void UpdateGitLog();
         void UpdateGitStatus();
-        void UpdateGitAheadBehindStatus(string gitRef, string otherRef);
+        void UpdateGitAheadBehindStatus();
         void UpdateLocks();
         int WaitForEvents();
 
@@ -284,17 +284,27 @@ namespace GitHub.Unity
             }).Start();
         }
 
-        public void UpdateGitAheadBehindStatus(string gitRef, string otherRef)
+        public void UpdateGitAheadBehindStatus()
         {
-            var task = GitClient.AheadBehindStatus(gitRef, otherRef);
-            task = HookupHandlers(task, true, false);
-            task.Then((success, status) =>
+            ConfigBranch? configBranch;
+            ConfigRemote? configRemote;
+            GetCurrentBranchAndRemote(out configBranch, out configRemote);
+
+            if (configBranch.HasValue && configBranch.Value.Remote.HasValue)
             {
-                if (success)
+                var name = configBranch.Value.Name;
+                var trackingName = configBranch.Value.IsTracking ? configBranch.Value.Remote.Value.Name + "/" + name : "[None]";
+
+                var task = GitClient.AheadBehindStatus(name, trackingName);
+                task = HookupHandlers(task, true, false);
+                task.Then((success, status) =>
                 {
-                    GitAheadBehindStatusUpdated?.Invoke(status);
-                }
-            }).Start();
+                    if (success)
+                    {
+                        GitAheadBehindStatusUpdated?.Invoke(status);
+                    }
+                }).Start();
+            }
         }
 
         public void UpdateLocks()
@@ -437,6 +447,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("WatcherOnRepositoryCommitted");
             UpdateGitLog();
+            UpdateGitAheadBehindStatus();
         }
 
         private void WatcherOnRepositoryChanged()
@@ -536,17 +547,7 @@ namespace GitHub.Unity
             Logger.Trace("OnRemoteBranchListUpdated {0} remotes", remotes.Count);
             RemoteBranchesUpdated?.Invoke(remotes, remoteBranches);
 
-            ConfigBranch? configBranch;
-            ConfigRemote? configRemote;
-            GetCurrentBranchAndRemote(out configBranch,out configRemote);
-
-            if (configBranch.HasValue && configBranch.Value.Remote.HasValue)
-            {
-                var name = configBranch.Value.Name;
-                var trackingName = configBranch.Value.IsTracking ? configBranch.Value.Remote.Value.Name + "/" + name : "[None]";
-
-                UpdateGitAheadBehindStatus(name, trackingName);
-            }
+            UpdateGitAheadBehindStatus();
         }
 
         private bool disposed;
