@@ -319,9 +319,9 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 repositoryManagerEvents.WaitForNotBusy();
 
-                repositoryManagerEvents.CurrentBranchUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-                repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
+                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
+                repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -365,7 +365,7 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 repositoryManagerEvents.WaitForNotBusy();
 
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -384,7 +384,7 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 repositoryManagerEvents.WaitForNotBusy();
 
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -564,7 +564,7 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 repositoryManagerEvents.WaitForNotBusy();
 
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
