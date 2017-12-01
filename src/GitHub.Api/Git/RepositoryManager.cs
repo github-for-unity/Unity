@@ -246,13 +246,13 @@ namespace GitHub.Unity
         public ITask LockFile(string file)
         {
             var task = GitClient.Lock(file);
-            return HookupHandlers(task, true, false);
+            return HookupHandlers(task, true, false).Then(UpdateLocks);
         }
 
         public ITask UnlockFile(string file, bool force)
         {
             var task = GitClient.Unlock(file, force);
-            return HookupHandlers(task, true, false);
+            return HookupHandlers(task, true, false).Then(UpdateLocks);
         }
 
         public void UpdateGitLog()
