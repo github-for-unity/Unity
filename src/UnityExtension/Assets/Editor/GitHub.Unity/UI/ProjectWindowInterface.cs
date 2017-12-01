@@ -47,7 +47,7 @@ namespace GitHub.Unity
             {
                 lastRepositoryStatusChangedEvent = cacheUpdateEvent;
                 entries.Clear();
-                entries.AddRange(repository.CurrentStatus.Entries);
+                entries.AddRange(repository.CurrentChanges);
                 OnStatusUpdate();
             }
         }
