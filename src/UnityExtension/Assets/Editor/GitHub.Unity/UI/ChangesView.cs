@@ -176,7 +176,7 @@ namespace GitHub.Unity
             if (currentStatusHasUpdate)
             {
                 currentStatusHasUpdate = false;
-                gitStatusEntries = Repository.CurrentStatus.Entries;
+                gitStatusEntries = Repository.CurrentChanges;
 
                 BuildTree();
             }
@@ -195,7 +195,7 @@ namespace GitHub.Unity
                 UpdateTreeIcons();
             }
 
-            TreeLoader.Load(treeChanges, gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry)).Cast<ITreeData>());
+            TreeLoader.Load(treeChanges, gitStatusEntries.Where(x => x.Status != GitFileStatus.Ignored).Select(entry => new GitStatusEntryTreeData(entry)).Cast<ITreeData>());
             Redraw();
         }
 
