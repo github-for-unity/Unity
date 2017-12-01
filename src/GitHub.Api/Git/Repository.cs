@@ -354,18 +354,18 @@ namespace GitHub.Unity
             new ActionTask(CancellationToken.None, () => {
                 if (!Nullable.Equals(CurrentConfigBranch, branch))
                 {
-                        var currentBranch = branch != null ? (GitBranch?)GetLocalGitBranch(branch.Value) : null;
+                    var currentBranch = branch != null ? (GitBranch?)GetLocalGitBranch(branch.Value) : null;
 
-                        CurrentConfigBranch = branch;
-                        CurrentBranch = currentBranch;
-                        UpdateLocalBranches();
+                    CurrentConfigBranch = branch;
+                    CurrentBranch = currentBranch;
+                    UpdateLocalBranches();
                 }
 
                 if (!Nullable.Equals(CurrentConfigRemote, remote))
                 {
-                        CurrentConfigRemote = remote;
-                        CurrentRemote = GetGitRemote(remote.Value);
-                        ClearRepositoryInfo();
+                    CurrentConfigRemote = remote;
+                    CurrentRemote = remote.HasValue ? (GitRemote?)GetGitRemote(remote.Value) : null;
+                    ClearRepositoryInfo();
                 }
             }) { Affinity = TaskAffinity.UI }.Start();
         }
@@ -412,12 +412,10 @@ namespace GitHub.Unity
 
         private void UpdateLocks()
         {
-            if (string.IsNullOrEmpty(CurrentRemote?.Url))
+            if (CurrentRemote.HasValue)
             {
-                return;
+                repositoryManager?.UpdateLocks();
             }
-
-            repositoryManager?.UpdateLocks();
         }
 
         private void UpdateLocalBranches()
