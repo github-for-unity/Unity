@@ -383,10 +383,9 @@ namespace GitHub.Unity
         private void RepositoryManagerOnGitAheadBehindStatusUpdated(GitAheadBehindStatus aheadBehindStatus)
         {
             new ActionTask(CancellationToken.None, () => {
-                    CurrentAhead = aheadBehindStatus.Ahead;
-                    CurrentBehind = aheadBehindStatus.Behind;
-                })
-                { Affinity = TaskAffinity.UI }.Start();
+                CurrentAhead = aheadBehindStatus.Ahead;
+                CurrentBehind = aheadBehindStatus.Behind;
+            }) { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void RepositoryManagerOnGitLogUpdated(List<GitLogEntry> gitLogEntries)
