@@ -209,12 +209,6 @@ namespace GitHub.Unity
         {
             var task = GitClient.RemoteAdd(remote, url);
             task = HookupHandlers(task, true, false);
-            if (!platform.Environment.IsWindows)
-            {
-                task.Then(_ => {
-                    UpdateConfigData(true);
-                });
-            }
             return task;
         }
 
@@ -222,12 +216,6 @@ namespace GitHub.Unity
         {
             var task = GitClient.RemoteRemove(remote);
             task = HookupHandlers(task, true, false);
-            if (!platform.Environment.IsWindows)
-            {
-                task.Then(_ => {
-                    UpdateConfigData(true);
-                });
-            }
             return task;
         }
 
@@ -258,13 +246,13 @@ namespace GitHub.Unity
         public ITask LockFile(string file)
         {
             var task = GitClient.Lock(file);
-            return HookupHandlers(task, true, false);
+            return HookupHandlers(task, true, false).Then(UpdateLocks);
         }
 
         public ITask UnlockFile(string file, bool force)
         {
             var task = GitClient.Unlock(file, force);
-            return HookupHandlers(task, true, false);
+            return HookupHandlers(task, true, false).Then(UpdateLocks);
         }
 
         public void UpdateGitLog()
@@ -360,6 +348,7 @@ namespace GitHub.Unity
             var head = repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
             Logger.Trace("UpdateHead: {0}", head ?? "[NULL]");
             UpdateCurrentBranchAndRemote(head);
+            UpdateGitLog();
         }
 
         private void UpdateCurrentBranchAndRemote(string head)
