@@ -55,7 +55,9 @@ namespace GitHub.Unity
 
     public interface IGitStatusCache : IManagedCache
     {
-        GitStatus GitStatus { get; set; }
+        int Ahead { get; set; }
+        int Behind { get; set; }
+        List<GitStatusEntry> Entries { get; set; }
     }
 
     public interface ILocalConfigBranchDictionary : IDictionary<string, ConfigBranch>
