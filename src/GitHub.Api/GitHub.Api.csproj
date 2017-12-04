@@ -103,7 +103,6 @@
     <Compile Include="Application\Organization.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
-    <Compile Include="Git\ManagedCacheExtensions.cs" />
     <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />
     <Compile Include="Git\Tasks\GitVersionTask.cs" />
     <Compile Include="Git\ValidateGitInstallResult.cs" />

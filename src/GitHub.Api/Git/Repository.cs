@@ -111,15 +111,15 @@ namespace GitHub.Unity
         public void CheckLogChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.GitLogCache;
-            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
+            var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
 
             Logger.Trace("Check GitLogCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTime, raiseEvent);
 
             if (raiseEvent)
             {
                 var dateTimeOffset = managedCache.LastUpdatedAt;
-                var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
+                var updateEvent = new CacheUpdateEvent { UpdatedTime = dateTimeOffset };
                 HandleGitLogCacheUpdatedEvent(updateEvent);
             }
         }
@@ -127,15 +127,15 @@ namespace GitHub.Unity
         public void CheckStatusChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.GitStatusCache;
-            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
+            var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
 
             Logger.Trace("Check GitStatusCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTime, raiseEvent);
 
             if (raiseEvent)
             {
                 var dateTimeOffset = managedCache.LastUpdatedAt;
-                var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
+                var updateEvent = new CacheUpdateEvent { UpdatedTime = dateTimeOffset };
                 HandleGitStatusCacheUpdatedEvent(updateEvent);
             }
         }
@@ -158,32 +158,31 @@ namespace GitHub.Unity
         private void CheckRepositoryInfoCacheEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.RepositoryInfoCache;
-            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
+            var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
 
             Logger.Trace("Check RepositoryInfoCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTime, raiseEvent);
 
             if (raiseEvent)
             {
                 var dateTimeOffset = managedCache.LastUpdatedAt;
-                var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
+                var updateEvent = new CacheUpdateEvent { UpdatedTime = dateTimeOffset};
                 HandleRepositoryInfoCacheUpdatedEvent(updateEvent);
             }
         }
 
         public void CheckLocksChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
-            CacheUpdateEvent cacheUpdateEvent1 = cacheUpdateEvent;
             var managedCache = cacheContainer.GitLocksCache;
-            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent1);
+            var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
 
             Logger.Trace("Check GitLocksCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent1.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTime, raiseEvent);
 
             if (raiseEvent)
             {
                 var dateTimeOffset = managedCache.LastUpdatedAt;
-                var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
+                var updateEvent = new CacheUpdateEvent { UpdatedTime = dateTimeOffset };
                 HandleGitLocksCacheUpdatedEvent(updateEvent);
             }
         }
@@ -238,15 +237,15 @@ namespace GitHub.Unity
         private void CheckBranchCacheEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.BranchCache;
-            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
+            var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
 
             Logger.Trace("Check BranchCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTime, raiseEvent);
 
             if (raiseEvent)
             {
                 var dateTimeOffset = managedCache.LastUpdatedAt;
-                var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
+                var updateEvent = new CacheUpdateEvent { UpdatedTime = dateTimeOffset };
                 HandleBranchCacheUpdatedEvent(updateEvent);
             }
         }
@@ -283,7 +282,7 @@ namespace GitHub.Unity
 
         private void CacheContainer_OnCacheUpdated(CacheType cacheType, DateTimeOffset offset)
         {
-            var cacheUpdateEvent = new CacheUpdateEvent { UpdatedTimeString = offset.ToString() };
+            var cacheUpdateEvent = new CacheUpdateEvent { UpdatedTime = offset };
             switch (cacheType)
             {
                 case CacheType.BranchCache:
@@ -587,15 +586,15 @@ namespace GitHub.Unity
         public void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.GitUserCache;
-            var raiseEvent = managedCache.IsLastUpdatedTimeDifferent(cacheUpdateEvent);
+            var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
 
             Logger.Trace("Check GitUserCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTime, raiseEvent);
 
             if (raiseEvent)
             {
                 var dateTimeOffset = managedCache.LastUpdatedAt;
-                var updateEvent = new CacheUpdateEvent { UpdatedTimeString = dateTimeOffset.ToString() };
+                var updateEvent = new CacheUpdateEvent { UpdatedTime = dateTimeOffset };
                 HandleUserCacheUpdatedEvent(updateEvent);
             }
         }
@@ -642,7 +641,7 @@ namespace GitHub.Unity
         {
             HandleUserCacheUpdatedEvent(new CacheUpdateEvent
             {
-                UpdatedTimeString = timeOffset.ToString()
+                UpdatedTime = timeOffset
             });
         }
 
@@ -654,7 +653,7 @@ namespace GitHub.Unity
 
         private void HandleUserCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
-            Logger.Trace("GitUserCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
+            Logger.Trace("GitUserCache Updated {0}", cacheUpdateEvent.UpdatedTime);
             Changed?.Invoke(cacheUpdateEvent);
         }
 
@@ -682,6 +681,39 @@ namespace GitHub.Unity
     [Serializable]
     public struct CacheUpdateEvent
     {
-        public string UpdatedTimeString;
+        [NonSerialized] private DateTimeOffset? updatedTimeValue;
+        public string updatedTimeString;
+
+        public DateTimeOffset UpdatedTime
+        {
+            get
+            {
+                if (!updatedTimeValue.HasValue)
+                {
+                    DateTimeOffset result;
+                    if (DateTimeOffset.TryParseExact(updatedTimeString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    {
+                        updatedTimeValue = result;
+                    }
+                    else
+                    {
+                        UpdatedTime = DateTimeOffset.MinValue;
+                    }
+                }
+
+                return updatedTimeValue.Value;
+            }
+            set
+            {
+                updatedTimeValue = value;
+                UpdatedTimeString = value.ToString(Constants.Iso8601Format);
+            }
+        }
+
+        public string UpdatedTimeString
+        {
+            get { return updatedTimeString; }
+            private set { updatedTimeString = value; }
+        }
     }
 }
