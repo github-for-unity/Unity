@@ -156,8 +156,8 @@ namespace GitHub.Unity
             if (currentStatusHasUpdate)
             {
                 currentStatusHasUpdate = false;
-                var gitStatus = Repository.CurrentStatus;
-                tree.UpdateEntries(gitStatus.Entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
+                var entries = Repository.CurrentChanges;
+                tree.UpdateEntries(entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
             }
         }
 

@@ -16,6 +16,7 @@ namespace TestUtils
         public static GitFileStatus GitFileStatus { get { return Arg.Any<GitFileStatus>(); } }
         public static GitConfigSource GitConfigSource { get { return Arg.Any<GitConfigSource>(); } }
         public static List<GitLogEntry> GitLogs { get { return Arg.Any<List<GitLogEntry>>(); } }
+        public static GitAheadBehindStatus GitAheadBehindStatus { get { return Arg.Any<GitAheadBehindStatus>(); } }
         public static GitStatus GitStatus { get { return Arg.Any<GitStatus>(); } }
         public static List<GitLock> GitLocks { get { return Arg.Any<List<GitLock>>(); } }
         public static IEnumerable<GitLock> EnumerableGitLock { get { return Arg.Any<IEnumerable<GitLock>>(); } }
