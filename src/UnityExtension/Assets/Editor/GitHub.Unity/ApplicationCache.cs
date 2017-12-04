@@ -148,13 +148,10 @@ namespace GitHub.Unity
             var notInitialized = ApplicationCache.Instance.FirstRunAt > InitializedAt;
             if (notInitialized)
             {
-                Logger.Trace("Initialized");
-                InitializedAt = DateTimeOffset.Now;
-                Save(true);
+                Logger.Trace("Not Initialized");
 
                 if (invalidOnFirstRun)
                 {
-                    Logger.Trace("FirstRun Invalidation");
                     InvalidateData();
                 }
             }
@@ -166,11 +163,15 @@ namespace GitHub.Unity
         {
             Logger.Trace("Invalidate");
             CacheInvalidated.SafeInvoke();
-            SaveData(DateTimeOffset.Now, false);
         }
 
         protected void SaveData(DateTimeOffset now, bool isUpdated)
         {
+            if (InitializedAt == DateTimeOffset.MinValue)
+            {
+                InitializedAt = now;
+            }
+
             if (isUpdated)
             {
                 LastUpdatedAt = now;
