@@ -646,6 +646,7 @@ namespace GitHub.Unity
             Logger.Trace("Initialize");
 
             gitClient = client;
+            cacheContainer.GitUserCache.ValidateData();
         }
 
         public void SetNameAndEmail(string name, string email)
@@ -699,20 +700,23 @@ namespace GitHub.Unity
 
         private void UpdateUserAndEmail()
         {
-            if (gitClient != null)
-            {
-                Logger.Trace("UpdateUserAndEmail");
+            Logger.Trace("UpdateUserAndEmail");
 
-                gitClient.GetConfigUserAndEmail()
-                    .ThenInUI((success, value) =>
-                    {
-                        if (success)
-                        {
-                            Name = value.Name;
-                            Email = value.Email;
-                        }
-                    }).Start();
+            if (gitClient == null)
+            {
+                Logger.Trace("GitClient is null");
+                return;
             }
+
+            gitClient.GetConfigUserAndEmail()
+                     .ThenInUI((success, value) =>
+                     {
+                         if (success)
+                         {
+                             Name = value.Name;
+                             Email = value.Email;
+                         }
+                     }).Start();
         }
         
         protected static ILogging Logger { get; } = Logging.GetLogger<User>();
