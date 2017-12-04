@@ -16,7 +16,8 @@ namespace GitHub.Unity
         private string name;
 
         public event Action<CacheUpdateEvent> LogChanged;
-        public event Action<CacheUpdateEvent> StatusChanged;
+        public event Action<CacheUpdateEvent> TrackingStatusChanged;
+        public event Action<CacheUpdateEvent> StatusEntriesChanged;
         public event Action<CacheUpdateEvent> CurrentBranchChanged;
         public event Action<CacheUpdateEvent> CurrentRemoteChanged;
         public event Action<CacheUpdateEvent> CurrentBranchAndRemoteChanged;
@@ -116,7 +117,7 @@ namespace GitHub.Unity
             var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
 
             Logger.Trace("Check GitLogCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTime, raiseEvent);
 
             if (raiseEvent)
             {
@@ -128,17 +129,33 @@ namespace GitHub.Unity
 
         public void CheckStatusChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
-            var managedCache = cacheContainer.GitStatusCache;
+            var managedCache = cacheContainer.GitTrackingStatusCache;
             var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
 
             Logger.Trace("Check GitStatusCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTime, raiseEvent);
 
             if (raiseEvent)
             {
                 var dateTimeOffset = managedCache.LastUpdatedAt;
                 var updateEvent = new CacheUpdateEvent { UpdatedTime = dateTimeOffset };
-                HandleGitStatusCacheUpdatedEvent(updateEvent);
+                HandleGitTrackingStatusCacheUpdatedEvent(updateEvent);
+            }
+        }
+
+        public void CheckStatusEntriesChangedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            var managedCache = cacheContainer.GitStatusEntriesCache;
+            var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
+
+            Logger.Trace("Check GitStatusEntriesCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
+                cacheUpdateEvent.UpdatedTime, raiseEvent);
+
+            if (raiseEvent)
+            {
+                var dateTimeOffset = managedCache.LastUpdatedAt;
+                var updateEvent = new CacheUpdateEvent { UpdatedTime = dateTimeOffset };
+                HandleGitStatusEntriesCacheUpdatedEvent(updateEvent);
             }
         }
 
@@ -163,7 +180,7 @@ namespace GitHub.Unity
             var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
 
             Logger.Trace("Check RepositoryInfoCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTime, raiseEvent);
 
             if (raiseEvent)
             {
@@ -179,7 +196,7 @@ namespace GitHub.Unity
             var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
 
             Logger.Trace("Check GitLocksCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTime, raiseEvent);
 
             if (raiseEvent)
             {
@@ -242,7 +259,7 @@ namespace GitHub.Unity
             var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
 
             Logger.Trace("Check BranchCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTime, raiseEvent);
 
             if (raiseEvent)
             {
@@ -263,8 +280,8 @@ namespace GitHub.Unity
                     repositoryManager?.UpdateGitLog();
                     break;
 
-                case CacheType.GitStatusCache:
-                    repositoryManager?.UpdateGitStatus();
+                case CacheType.GitTrackingStatusCache:
+                    repositoryManager?.UpdateGitAheadBehindStatus();
                     break;
 
                 case CacheType.GitLocksCache:
@@ -275,6 +292,10 @@ namespace GitHub.Unity
                     break;
 
                 case CacheType.RepositoryInfoCache:
+                    break;
+
+                case CacheType.GitStatusEntriesCache:
+                    repositoryManager?.UpdateGitStatus();
                     break;
 
                 default:
@@ -295,8 +316,8 @@ namespace GitHub.Unity
                     HandleGitLogCacheUpdatedEvent(cacheUpdateEvent);
                     break;
 
-                case CacheType.GitStatusCache:
-                    HandleGitStatusCacheUpdatedEvent(cacheUpdateEvent);
+                case CacheType.GitTrackingStatusCache:
+                    HandleGitTrackingStatusCacheUpdatedEvent(cacheUpdateEvent);
                     break;
 
                 case CacheType.GitLocksCache:
@@ -308,6 +329,10 @@ namespace GitHub.Unity
 
                 case CacheType.RepositoryInfoCache:
                     HandleRepositoryInfoCacheUpdatedEvent(cacheUpdateEvent);
+                    break;
+
+                case CacheType.GitStatusEntriesCache:
+                    HandleGitStatusEntriesCacheUpdatedEvent(cacheUpdateEvent);
                     break;
 
                 default:
@@ -329,10 +354,16 @@ namespace GitHub.Unity
             LocksChanged?.Invoke(cacheUpdateEvent);
         }
 
-        private void HandleGitStatusCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
+        private void HandleGitTrackingStatusCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
-            Logger.Trace("GitStatusCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
-            StatusChanged?.Invoke(cacheUpdateEvent);
+            Logger.Trace("GitTrackingStatusCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
+            TrackingStatusChanged?.Invoke(cacheUpdateEvent);
+        }
+
+        private void HandleGitStatusEntriesCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
+        {
+            Logger.Trace("GitStatusEntriesCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
+            StatusEntriesChanged?.Invoke(cacheUpdateEvent);
         }
 
         private void HandleGitLogCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
@@ -498,20 +529,20 @@ namespace GitHub.Unity
 
         public int CurrentAhead
         {
-            get { return cacheContainer.GitStatusCache.Ahead; }
-            private set { cacheContainer.GitStatusCache.Ahead = value; }
+            get { return cacheContainer.GitTrackingStatusCache.Ahead; }
+            private set { cacheContainer.GitTrackingStatusCache.Ahead = value; }
         }
 
         public int CurrentBehind
         {
-            get { return cacheContainer.GitStatusCache.Behind; }
-            private set { cacheContainer.GitStatusCache.Behind = value; }
+            get { return cacheContainer.GitTrackingStatusCache.Behind; }
+            private set { cacheContainer.GitTrackingStatusCache.Behind = value; }
         }
 
         public List<GitStatusEntry> CurrentChanges
         {
-            get { return cacheContainer.GitStatusCache.Entries; }
-            private set { cacheContainer.GitStatusCache.Entries = value; }
+            get { return cacheContainer.GitStatusEntriesCache.Entries; }
+            private set { cacheContainer.GitStatusEntriesCache.Entries = value; }
         }
 
         public GitBranch? CurrentBranch
@@ -629,7 +660,7 @@ namespace GitHub.Unity
             var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
 
             Logger.Trace("Check GitUserCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTimeString ?? "[NULL]", raiseEvent);
+                cacheUpdateEvent.UpdatedTime, raiseEvent);
 
             if (raiseEvent)
             {
@@ -694,7 +725,7 @@ namespace GitHub.Unity
 
         private void HandleUserCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
-            Logger.Trace("GitUserCache Updated {0}", cacheUpdateEvent.UpdatedTimeString);
+            Logger.Trace("GitUserCache Updated {0}", cacheUpdateEvent.UpdatedTime);
             Changed?.Invoke(cacheUpdateEvent);
         }
 
@@ -726,7 +757,7 @@ namespace GitHub.Unity
     public struct CacheUpdateEvent
     {
         [NonSerialized] private DateTimeOffset? updatedTimeValue;
-        private string updatedTimeString;
+        public string updatedTimeString;
 
         public DateTimeOffset UpdatedTime
         {
@@ -734,7 +765,15 @@ namespace GitHub.Unity
             {
                 if (!updatedTimeValue.HasValue)
                 {
-                    UpdatedTime = DateTimeOffset.MinValue;
+                    DateTimeOffset result;
+                    if (DateTimeOffset.TryParseExact(updatedTimeString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    {
+                        updatedTimeValue = result;
+                    }
+                    else
+                    {
+                        UpdatedTime = DateTimeOffset.MinValue;
+                    }
                 }
 
                 return updatedTimeValue.Value;

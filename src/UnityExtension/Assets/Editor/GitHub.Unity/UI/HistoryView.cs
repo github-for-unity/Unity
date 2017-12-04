@@ -32,7 +32,7 @@ namespace GitHub.Unity
 
         [NonSerialized] private bool currentLogHasUpdate;
         [NonSerialized] private bool currentRemoteHasUpdate;
-        [NonSerialized] private bool currentStatusHasUpdate;
+        [NonSerialized] private bool currentTrackingStatusHasUpdate;
         [NonSerialized] private int historyStartIndex;
         [NonSerialized] private int historyStopIndex;
         [NonSerialized] private int listID;
@@ -50,7 +50,7 @@ namespace GitHub.Unity
         [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
         [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
         [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
-        [SerializeField] private CacheUpdateEvent lastStatusChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastTrackingStatusChangedEvent;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private string selectionID;
         [SerializeField] private int statusAhead;
@@ -74,7 +74,7 @@ namespace GitHub.Unity
             if (Repository != null)
             {
                 Repository.CheckLogChangedEvent(lastLogChangedEvent);
-                Repository.CheckStatusChangedEvent(lastStatusChangedEvent);
+                Repository.CheckStatusChangedEvent(lastTrackingStatusChangedEvent);
                 Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
             }
         }
@@ -292,12 +292,12 @@ namespace GitHub.Unity
             }
         }
 
-        private void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
+        private void RepositoryTrackingOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!lastStatusChangedEvent.Equals(cacheUpdateEvent))
+            if (!lastTrackingStatusChangedEvent.Equals(cacheUpdateEvent))
             {
-                lastStatusChangedEvent = cacheUpdateEvent;
-                currentStatusHasUpdate = true;
+                lastTrackingStatusChangedEvent = cacheUpdateEvent;
+                currentTrackingStatusHasUpdate = true;
                 Redraw();
             }
         }
@@ -329,7 +329,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            repository.StatusChanged += RepositoryOnStatusChanged;
+            repository.TrackingStatusChanged += RepositoryTrackingOnStatusChanged;
             repository.LogChanged += RepositoryOnLogChanged;
             repository.CurrentRemoteChanged += RepositoryOnCurrentRemoteChanged;
         }
@@ -341,7 +341,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            repository.StatusChanged -= RepositoryOnStatusChanged;
+            repository.TrackingStatusChanged -= RepositoryTrackingOnStatusChanged;
             repository.LogChanged -= RepositoryOnLogChanged;
             repository.CurrentRemoteChanged -= RepositoryOnCurrentRemoteChanged;
         }
@@ -362,9 +362,9 @@ namespace GitHub.Unity
                 currentRemoteName = hasRemote ? currentRemote.Value.Name : "placeholder";
             }
 
-            if (currentStatusHasUpdate)
+            if (currentTrackingStatusHasUpdate)
             {
-                currentStatusHasUpdate = false;
+                currentTrackingStatusHasUpdate = false;
 
                 statusAhead = Repository.CurrentAhead;
                 statusBehind = Repository.CurrentBehind;

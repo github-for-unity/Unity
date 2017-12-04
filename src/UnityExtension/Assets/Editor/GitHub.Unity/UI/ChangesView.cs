@@ -26,7 +26,7 @@ namespace GitHub.Unity
         [SerializeField] private string currentBranch = "[unknown]";
         [SerializeField] private Vector2 horizontalScroll;
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
-        [SerializeField] private CacheUpdateEvent lastStatusChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
         [SerializeField] private ChangesetTreeView tree = new ChangesetTreeView();
 
         public override void InitializeView(IView parent)
@@ -43,7 +43,7 @@ namespace GitHub.Unity
             if (Repository != null)
             {
                 Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
-                Repository.CheckStatusChangedEvent(lastStatusChangedEvent);
+                Repository.CheckStatusEntriesChangedEvent(lastStatusEntriesChangedEvent);
             }
         }
 
@@ -103,11 +103,11 @@ namespace GitHub.Unity
             OnCommitDetailsAreaGUI();
         }
 
-        private void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
+        private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!lastStatusChangedEvent.Equals(cacheUpdateEvent))
+            if (!lastStatusEntriesChangedEvent.Equals(cacheUpdateEvent))
             {
-                lastStatusChangedEvent = cacheUpdateEvent;
+                lastStatusEntriesChangedEvent = cacheUpdateEvent;
                 currentStatusHasUpdate = true;
                 Redraw();
             }
@@ -131,7 +131,7 @@ namespace GitHub.Unity
             }
 
             repository.CurrentBranchChanged += RepositoryOnCurrentBranchChanged;
-            repository.StatusChanged += RepositoryOnStatusChanged;
+            repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -142,7 +142,7 @@ namespace GitHub.Unity
             }
 
             repository.CurrentBranchChanged -= RepositoryOnCurrentBranchChanged;
-            repository.StatusChanged -= RepositoryOnStatusChanged;
+            repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
         }
 
         private void MaybeUpdateData()
