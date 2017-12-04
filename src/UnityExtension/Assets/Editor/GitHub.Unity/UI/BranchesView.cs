@@ -63,7 +63,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            UpdateTreeIcons();
+            UpdateTreeIconAndStyles();
             AttachHandlers(Repository);
             Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
         }
@@ -157,7 +157,7 @@ namespace GitHub.Unity
                 treeRemotes = new BranchesTree();
                 treeRemotes.IsRemote = true;
 
-                UpdateTreeIcons();
+                UpdateTreeIconAndStyles();
             }
 
             localBranches.Sort(CompareBranches);
@@ -168,16 +168,22 @@ namespace GitHub.Unity
             Redraw();
         }
 
-        private void UpdateTreeIcons()
+        private void UpdateTreeIconAndStyles()
         {
             if (treeLocals != null)
             {
                 treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
+                treeLocals.FolderStyle = Styles.Foldout;
+                treeLocals.TreeNodeStyle = Styles.TreeNode;
+                treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
             }
 
             if (treeRemotes != null)
             {
                 treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
+                treeRemotes.FolderStyle = Styles.Foldout;
+                treeRemotes.TreeNodeStyle = Styles.TreeNode;
+                treeRemotes.ActiveTreeNodeStyle = Styles.TreeNodeActive;
             }
         }
 
@@ -295,18 +301,7 @@ namespace GitHub.Unity
 
         private void OnTreeGUI(Rect rect)
         {
-             var initialRect = rect;
-
-            if (treeLocals.FolderStyle == null)
-            {
-                treeLocals.FolderStyle = Styles.Foldout;
-                treeLocals.TreeNodeStyle = Styles.TreeNode;
-                treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
-                treeRemotes.FolderStyle = Styles.Foldout;
-                treeRemotes.TreeNodeStyle = Styles.TreeNode;
-                treeRemotes.ActiveTreeNodeStyle = Styles.TreeNodeActive;
-            }
-
+            var initialRect = rect;
             var treeHadFocus = treeLocals.SelectedNode != null;
 
             rect = treeLocals.Render(rect, scroll,
