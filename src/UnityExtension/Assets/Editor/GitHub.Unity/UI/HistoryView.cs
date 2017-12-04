@@ -366,11 +366,12 @@ namespace GitHub.Unity
             {
                 currentStatusHasUpdate = false;
 
-                var currentStatus = Repository.CurrentStatus;
-                statusAhead = currentStatus.Ahead;
-                statusBehind = currentStatus.Behind;
-                hasItemsToCommit = currentStatus.Entries != null &&
-                    currentStatus.GetEntriesExcludingIgnoredAndUntracked().Any();
+                statusAhead = Repository.CurrentAhead;
+                statusBehind = Repository.CurrentBehind;
+
+                var currentChanges = Repository.CurrentChanges;
+                hasItemsToCommit = currentChanges != null
+                    && currentChanges.Any(entry => entry.Status != GitFileStatus.Ignored && !entry.Staged);
             }
 
             if (currentLogHasUpdate)

@@ -49,7 +49,9 @@ namespace GitHub.Unity
             repositoryManager = initRepositoryManager;
             repositoryManager.CurrentBranchUpdated += RepositoryManagerOnCurrentBranchUpdated;
             repositoryManager.GitStatusUpdated += RepositoryManagerOnGitStatusUpdated;
+            repositoryManager.GitAheadBehindStatusUpdated += RepositoryManagerOnGitAheadBehindStatusUpdated;
             repositoryManager.GitLogUpdated += RepositoryManagerOnGitLogUpdated;
+            repositoryManager.GitLocksUpdated += RepositoryManagerOnGitLocksUpdated;
             repositoryManager.LocalBranchesUpdated += RepositoryManagerOnLocalBranchesUpdated;
             repositoryManager.RemoteBranchesUpdated += RepositoryManagerOnRemoteBranchesUpdated;
         }
@@ -266,7 +268,7 @@ namespace GitHub.Unity
                     break;
 
                 case CacheType.GitLocksCache:
-                    repositoryManager?.UpdateLocks();
+                    UpdateLocks();
                     break;
 
                 case CacheType.GitUserCache:
@@ -352,18 +354,18 @@ namespace GitHub.Unity
             new ActionTask(CancellationToken.None, () => {
                 if (!Nullable.Equals(CurrentConfigBranch, branch))
                 {
-                        var currentBranch = branch != null ? (GitBranch?)GetLocalGitBranch(branch.Value) : null;
+                    var currentBranch = branch != null ? (GitBranch?)GetLocalGitBranch(branch.Value) : null;
 
-                        CurrentConfigBranch = branch;
-                        CurrentBranch = currentBranch;
-                        UpdateLocalBranches();
+                    CurrentConfigBranch = branch;
+                    CurrentBranch = currentBranch;
+                    UpdateLocalBranches();
                 }
 
                 if (!Nullable.Equals(CurrentConfigRemote, remote))
                 {
-                        CurrentConfigRemote = remote;
-                        CurrentRemote = GetGitRemote(remote.Value);
-                        ClearRepositoryInfo();
+                    CurrentConfigRemote = remote;
+                    CurrentRemote = remote.HasValue ? (GitRemote?)GetGitRemote(remote.Value) : null;
+                    ClearRepositoryInfo();
                 }
             }) { Affinity = TaskAffinity.UI }.Start();
         }
@@ -371,7 +373,17 @@ namespace GitHub.Unity
         private void RepositoryManagerOnGitStatusUpdated(GitStatus gitStatus)
         {
             new ActionTask(CancellationToken.None, () => {
-                CurrentStatus = gitStatus;
+                CurrentChanges = gitStatus.Entries;
+                CurrentAhead = gitStatus.Ahead;
+                CurrentBehind = gitStatus.Behind;
+            }) { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private void RepositoryManagerOnGitAheadBehindStatusUpdated(GitAheadBehindStatus aheadBehindStatus)
+        {
+            new ActionTask(CancellationToken.None, () => {
+                CurrentAhead = aheadBehindStatus.Ahead;
+                CurrentBehind = aheadBehindStatus.Behind;
             }) { Affinity = TaskAffinity.UI }.Start();
         }
 
@@ -380,6 +392,14 @@ namespace GitHub.Unity
             new ActionTask(CancellationToken.None, () => {
                 CurrentLog = gitLogEntries;
             }) { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private void RepositoryManagerOnGitLocksUpdated(List<GitLock> gitLocks)
+        {
+            new ActionTask(CancellationToken.None, () => {
+                    CurrentLocks = gitLocks;
+                })
+                { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void RepositoryManagerOnRemoteBranchesUpdated(Dictionary<string, ConfigRemote> remotes,
@@ -398,6 +418,14 @@ namespace GitHub.Unity
                 cacheContainer.BranchCache.SetLocals(branches);
                 UpdateLocalBranches();
             }) { Affinity = TaskAffinity.UI }.Start();
+        }
+
+        private void UpdateLocks()
+        {
+            if (CurrentRemote.HasValue)
+            {
+                repositoryManager?.UpdateLocks();
+            }
         }
 
         private void UpdateLocalBranches()
@@ -468,10 +496,22 @@ namespace GitHub.Unity
             set { cacheContainer.BranchCache.CurrentConfigRemote = value; }
         }
 
-        public GitStatus CurrentStatus
+        public int CurrentAhead
         {
-            get { return cacheContainer.GitStatusCache.GitStatus; }
-            private set { cacheContainer.GitStatusCache.GitStatus = value; }
+            get { return cacheContainer.GitStatusCache.Ahead; }
+            private set { cacheContainer.GitStatusCache.Ahead = value; }
+        }
+
+        public int CurrentBehind
+        {
+            get { return cacheContainer.GitStatusCache.Behind; }
+            private set { cacheContainer.GitStatusCache.Behind = value; }
+        }
+
+        public List<GitStatusEntry> CurrentChanges
+        {
+            get { return cacheContainer.GitStatusCache.Entries; }
+            private set { cacheContainer.GitStatusCache.Entries = value; }
         }
 
         public GitBranch? CurrentBranch

@@ -9,25 +9,56 @@ namespace GitHub.Unity
     [Serializable]
     public struct ConfigRemote
     {
-        public string Name;
-        public string Url;
+        public static ConfigRemote Default = new ConfigRemote(String.Empty, String.Empty);
+
+        public string name;
+        public string url;
+
+        public ConfigRemote(string name, string url)
+        {
+            this.name = name;
+            this.url = url;
+        }
+
+        public string Name => name;
+
+        public string Url => url;
 
         public override string ToString()
         {
-            return String.Format("{{Remote {0} {1}}}", Name, Url);
+            return $"{{Remote {Name} {Url}}}";
         }
     }
 
     [Serializable]
     public struct ConfigBranch
     {
-        public string Name;
-        public ConfigRemote? Remote;
-        public bool IsTracking => Remote.HasValue;
+        public static ConfigBranch Default = new ConfigBranch(String.Empty);
+
+        public string name;
+        public ConfigRemote remote;
+
+        public ConfigBranch(string name)
+        {
+            this.name = name;
+            remote = ConfigRemote.Default;
+        }
+
+        public ConfigBranch(string name, ConfigRemote? remote)
+        {
+            this.name = name;
+            this.remote = remote ?? ConfigRemote.Default;
+        }
+
+        public bool IsTracking => !remote.Equals(ConfigRemote.Default);
+
+        public string Name => name;
+
+        public ConfigRemote? Remote => remote;
 
         public override string ToString()
         {
-            return String.Format("{{Branch {0} {1}}}", Name, Remote?.ToString() ?? "Untracked");
+            return $"{{Branch {Name} {Remote?.ToString() ?? "Untracked"}}}";
         }
     }
 
@@ -74,11 +105,7 @@ namespace GitHub.Unity
             return groups
                 .Where(x => x.Key == "branch")
                 .SelectMany(x => x.Value)
-                .Select(x => new ConfigBranch
-                {
-                    Name = x.Key,
-                    Remote = GetRemote(x.Value.TryGetString("remote"))
-                });
+                .Select(x => new ConfigBranch(x.Key, GetRemote(x.Value.TryGetString("remote"))));
         }
 
         public IEnumerable<ConfigRemote> GetRemotes()
@@ -87,11 +114,7 @@ namespace GitHub.Unity
                 .Where(x => x.Key == "remote")
                 .SelectMany(x => x.Value)
                 .Where(x => x.Value.TryGetString("url") != null)
-                .Select(x => new ConfigRemote
-                {
-                    Name = x.Key,
-                    Url = x.Value.TryGetString("url")
-                });
+                .Select(x => new ConfigRemote(x.Key, x.Value.TryGetString("url")));
         }
 
         public ConfigRemote? GetRemote(string remote)
@@ -100,11 +123,7 @@ namespace GitHub.Unity
                 .Where(x => x.Key == "remote")
                 .SelectMany(x => x.Value)
                 .Where(x => x.Key == remote && x.Value.TryGetString("url") != null)
-                .Select(x => new ConfigRemote
-                {
-                    Name = x.Key,
-                    Url = x.Value.GetString("url")
-                } as ConfigRemote?)
+                .Select(x => new ConfigRemote(x.Key,x.Value.GetString("url")) as ConfigRemote?)
                 .FirstOrDefault();
         }
 
@@ -114,11 +133,7 @@ namespace GitHub.Unity
                 .Where(x => x.Key == "branch")
                 .SelectMany(x => x.Value)
                 .Where(x => x.Key == branch)
-                .Select(x => new ConfigBranch
-                {
-                    Name = x.Key,
-                    Remote = GetRemote(x.Value.TryGetString("remote"))
-                } as ConfigBranch?)
+                .Select(x => new ConfigBranch(x.Key,GetRemote(x.Value.TryGetString("remote"))) as ConfigBranch?)
                 .FirstOrDefault();
         }
 
