@@ -498,9 +498,6 @@ namespace GitHub.Unity
     [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class BranchCache : ManagedCacheBase<BranchCache>, IBranchCache
     {
-        public static readonly ConfigBranch DefaultConfigBranch = new ConfigBranch();
-        public static readonly ConfigRemote DefaultConfigRemote = new ConfigRemote();
-
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
@@ -524,7 +521,7 @@ namespace GitHub.Unity
             get
             {
                 ValidateData();
-                return gitConfigRemote.Equals(DefaultConfigRemote) ? (ConfigRemote?)null : gitConfigRemote;
+                return gitConfigRemote.Equals(ConfigRemote.Default) ? (ConfigRemote?)null : gitConfigRemote;
             }
             set
             {
@@ -535,7 +532,7 @@ namespace GitHub.Unity
 
                 if (!Nullable.Equals(gitConfigRemote, value))
                 {
-                    gitConfigRemote = value ?? DefaultConfigRemote;
+                    gitConfigRemote = value ?? ConfigRemote.Default;
                     isUpdated = true;
                 }
 
@@ -548,7 +545,7 @@ namespace GitHub.Unity
             get
             {
                 ValidateData();
-                return gitConfigBranch.Equals(DefaultConfigBranch) ? (ConfigBranch?)null : gitConfigBranch;
+                return gitConfigBranch.Equals(ConfigBranch.Default) ? (ConfigBranch?)null : gitConfigBranch;
             }
             set
             {
@@ -559,7 +556,7 @@ namespace GitHub.Unity
 
                 if (!Nullable.Equals(gitConfigBranch, value))
                 {
-                    gitConfigBranch = value ?? DefaultConfigBranch;
+                    gitConfigBranch = value ?? ConfigBranch.Default;
                     isUpdated = true;
                 }
 
@@ -674,7 +671,7 @@ namespace GitHub.Unity
             if (!LocalConfigBranches.ContainsKey(branch))
             {
                 var now = DateTimeOffset.Now;
-                LocalConfigBranches.Add(branch, new ConfigBranch { Name = branch });
+                LocalConfigBranches.Add(branch, new ConfigBranch(branch));
                 Logger.Trace("AddLocalBranch {0} branch:{1} ", now, branch);
                 SaveData(now, true);
             }
@@ -692,7 +689,7 @@ namespace GitHub.Unity
                 if (!branchList.ContainsKey(branch))
                 {
                     var now = DateTimeOffset.Now;
-                    branchList.Add(branch, new ConfigBranch { Name = branch, Remote = ConfigRemotes[remote] });
+                    branchList.Add(branch, new ConfigBranch(branch,ConfigRemotes[remote]));
                     Logger.Trace("AddRemoteBranch {0} remote:{1} branch:{2} ", now, remote, branch);
                     SaveData(now, true);
                 }
@@ -836,28 +833,78 @@ namespace GitHub.Unity
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
         [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private GitStatus status;
+        [SerializeField] private int ahead;
+        [SerializeField] private int behind;
+        [SerializeField] private List<GitStatusEntry> entries = new List<GitStatusEntry>();
 
         public GitStatusCache() : base(true)
         { }
 
-        public GitStatus GitStatus
+        public int Ahead
         {
             get
             {
                 ValidateData();
-                return status;
+                return ahead;
             }
             set
             {
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} gitStatus:{1}", now, value);
+                Logger.Trace("Updating: {0} ahead:{1}", now, value);
 
-                if (!status.Equals(value))
+                if (ahead != value)
                 {
-                    status = value;
+                    ahead = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public int Behind
+        {
+            get
+            {
+                ValidateData();
+                return behind;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} behind:{1}", now, value);
+
+                if (behind != value)
+                {
+                    behind = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public List<GitStatusEntry> Entries
+        {
+            get
+            {
+                ValidateData();
+                return entries;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} entries:{1}", now, value.Count);
+
+                if (!entries.SequenceEqual(value))
+                {
+                    entries = value;
                     isUpdated = true;
                 }
 
