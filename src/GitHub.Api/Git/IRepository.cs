@@ -21,6 +21,7 @@ namespace GitHub.Unity
 
         void CheckLogChangedEvent(CacheUpdateEvent gitLogCacheUpdateEvent);
         void CheckStatusChangedEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckStatusEntriesChangedEvent(CacheUpdateEvent cacheUpdateEvent);
         void CheckCurrentBranchChangedEvent(CacheUpdateEvent cacheUpdateEvent);
         void CheckCurrentRemoteChangedEvent(CacheUpdateEvent cacheUpdateEvent);
         void CheckCurrentBranchAndRemoteChangedEvent(CacheUpdateEvent cacheUpdateEvent);
@@ -68,7 +69,8 @@ namespace GitHub.Unity
         List<GitLogEntry> CurrentLog { get; }
 
         event Action<CacheUpdateEvent> LogChanged;
-        event Action<CacheUpdateEvent> StatusChanged;
+        event Action<CacheUpdateEvent> TrackingStatusChanged;
+        event Action<CacheUpdateEvent> StatusEntriesChanged;
         event Action<CacheUpdateEvent> CurrentBranchChanged;
         event Action<CacheUpdateEvent> CurrentRemoteChanged;
         event Action<CacheUpdateEvent> CurrentBranchAndRemoteChanged;
