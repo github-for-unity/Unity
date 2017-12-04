@@ -50,11 +50,11 @@ namespace GitHub.Unity
             this.remote = remote ?? ConfigRemote.Default;
         }
 
-        public bool IsTracking => !remote.Equals(ConfigRemote.Default);
+        public bool IsTracking => Remote.HasValue;
 
         public string Name => name;
 
-        public ConfigRemote? Remote => remote;
+        public ConfigRemote? Remote => Equals(remote, ConfigRemote.Default) ? (ConfigRemote?) null : remote;
 
         public override string ToString()
         {
