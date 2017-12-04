@@ -45,6 +45,7 @@ namespace GitHub.Unity
         [SerializeField] private string newBranchName;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private bool disableDelete;
+        [SerializeField] private bool disableCreate;
 
         [SerializeField] private CacheUpdateEvent lastLocalAndRemoteBranchListChangedEvent;
         [NonSerialized] private bool localAndRemoteBranchListHasUpdate;
@@ -102,6 +103,7 @@ namespace GitHub.Unity
             }
 
             disableDelete = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.IsActive;
+            disableCreate = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.Level == 0;
         }
 
         public override void OnGUI()
@@ -134,6 +136,16 @@ namespace GitHub.Unity
                 OnTreeGUI(new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding)); 
             }
             GUILayout.EndScrollView();
+
+            if (Event.current.type == EventType.Repaint)
+            {
+                // Effectuating mode switch
+                if (mode != targetMode)
+                {
+                    mode = targetMode;
+                    Redraw();
+                }
+            }
         }
 
         private void BuildTree()
@@ -186,10 +198,14 @@ namespace GitHub.Unity
 
                 // Create button
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button(CreateBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                EditorGUI.BeginDisabledGroup(disableCreate);
                 {
-                    targetMode = BranchesMode.Create;
+                    if (GUILayout.Button(CreateBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                    {
+                        targetMode = BranchesMode.Create;
+                    }
                 }
+                EditorGUI.EndDisabledGroup();
             }
             // Branch name + cancel + create
             else if (mode == BranchesMode.Create)
