@@ -312,10 +312,10 @@ namespace GitHub.Unity
 
         private void OnTreeGUI(Rect rect)
         {
+            UpdateTreeStyles();
+
             var initialRect = rect;
             var treeHadFocus = treeLocals.SelectedNode != null;
-
-            UpdateTreeStyles();
 
             rect = treeLocals.Render(rect, scroll,
                 node =>{ },
