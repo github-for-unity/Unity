@@ -323,6 +323,9 @@ namespace GitHub.Unity
                     if (node.IsFolder)
                         return;
 
+                    if(node.IsActive)
+                        return;
+
                     SwitchBranch(node.Name);
                 },
                 node => {
