@@ -30,6 +30,8 @@ namespace GitHub.Unity
         [SerializeField] private TreeNodeDictionary folders = new TreeNodeDictionary();
 
         [NonSerialized] private Stack<bool> indents = new Stack<bool>();
+        [NonSerialized] private Action<TreeNode> rightClickNextRender;
+        [NonSerialized] private TreeNode rightClickNextRenderNode;
 
         public bool IsInitialized { get { return nodes != null && nodes.Count > 0 && !String.IsNullOrEmpty(nodes[0].Name); } }
         public bool RequiresRepaint { get; private set; }
@@ -134,6 +136,16 @@ namespace GitHub.Unity
 
         public Rect Render(Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
         {
+            if (Event.current.type != EventType.Repaint)
+            {
+                if (rightClickNextRender != null)
+                {
+                    rightClickNextRender.Invoke(rightClickNextRenderNode);
+                    rightClickNextRender = null;
+                    rightClickNextRenderNode = null;
+                }
+            }
+
             Profiler.BeginSample("TreeControl");
             bool visible = true;
             var availableHeight = rect.y + rect.height;
@@ -274,7 +286,8 @@ namespace GitHub.Unity
                 }
                 if (mouseButton == 1 && clickCount == 1 && rightClick != null)
                 {
-                    rightClick(currentNode);
+                    rightClickNextRender = rightClick;
+                    rightClickNextRenderNode = currentNode;
                 }
             }
 
