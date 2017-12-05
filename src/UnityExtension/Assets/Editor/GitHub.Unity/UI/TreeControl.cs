@@ -55,6 +55,11 @@ namespace GitHub.Unity
             }
         }
 
+        public string SelectedNodeName
+        {
+            get { return SelectedNode != null ? SelectedNode.Path : null; }
+        }
+
         public string Title
         {
             get { return title; }
@@ -79,7 +84,7 @@ namespace GitHub.Unity
             set { pathSeparator = value; }
         }
 
-        public void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed)
+        public void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isSelected)
         {
             var node = new TreeNode
             {
@@ -101,6 +106,11 @@ namespace GitHub.Unity
                 activeNode = node;
             }
 
+            if (isSelected)
+            {
+                SelectedNode = node;
+            }
+
             if (isFolder)
             {
                 folders.Add(node.Path, node);
@@ -111,6 +121,7 @@ namespace GitHub.Unity
         {
             folders.Clear();
             nodes.Clear();
+            SelectedNode = null;
         }
 
         public HashSet<string> GetCollapsedFolders()
@@ -119,7 +130,7 @@ namespace GitHub.Unity
             return new HashSet<string>(collapsedFoldersEnumerable);
         }
 
-        public Rect Render(Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
+        public Rect Render(Rect containingRect, Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
         {
             if (Event.current.type != EventType.Repaint)
             {
@@ -131,6 +142,9 @@ namespace GitHub.Unity
                 }
             }
 
+            var startDisplay = scroll.y;
+            var endDisplay = scroll.y + containingRect.height;
+
             RequiresRepaint = false;
             rect = new Rect(0f, rect.y, rect.width, ItemHeight);
 
@@ -139,7 +153,13 @@ namespace GitHub.Unity
             if (DisplayRootNode)
             {
                 var titleNode = nodes[0];
-                var renderResult = titleNode.Render(rect, Styles.TreeIndentation, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                var renderResult = TreeNodeRenderResult.None;
+
+                var titleDisplay = !(rect.y > endDisplay || rect.yMax < startDisplay);
+                if (titleDisplay)
+                {
+                    renderResult = titleNode.Render(rect, Styles.TreeIndentation, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
                 {
@@ -165,7 +185,14 @@ namespace GitHub.Unity
                 {
                     Indent();
                 }
-                var renderResult = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+
+                var renderResult = TreeNodeRenderResult.None;
+
+                var display = !(rect.y > endDisplay || rect.yMax < startDisplay);
+                if (display)
+                {
+                    renderResult = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
                 {
