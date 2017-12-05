@@ -56,6 +56,12 @@ namespace GitHub.Unity
         {
             var collapsedFoldersEnumerable = folders.Where(pair => pair.Value.IsCollapsed).Select(pair => pair.Key);
             var collapsedFolders = new HashSet<string>(collapsedFoldersEnumerable);
+            string selectedNodeName = null;
+            if (SelectedNode != null)
+            {
+                selectedNodeName = SelectedNode.Name;
+                SelectedNode = null;
+            }
 
             folders.Clear();
             nodes.Clear();
@@ -93,6 +99,11 @@ namespace GitHub.Unity
                             Level = level,
                             IsFolder = isFolder
                         };
+
+                        if (selectedNodeName != null && name == selectedNodeName)
+                        {
+                            SelectedNode = node;
+                        }
 
                         if (node.IsActive)
                         {
