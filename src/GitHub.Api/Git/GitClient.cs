@@ -15,6 +15,9 @@ namespace GitHub.Unity
 
         ITask LfsInstall(IOutputProcessor<string> processor = null);
 
+        ITask<GitAheadBehindStatus> AheadBehindStatus(string gitRef, string otherRef, 
+            IOutputProcessor<GitAheadBehindStatus> processor = null);
+
         ITask<GitStatus> Status(IOutputProcessor<GitStatus> processor = null);
 
         ITask<string> GetConfig(string key, GitConfigSource configSource,
@@ -216,6 +219,14 @@ namespace GitHub.Unity
             Logger.Trace("Status");
 
             return new GitStatusTask(new GitObjectFactory(environment), cancellationToken, processor)
+                .Configure(processManager);
+        }
+
+        public ITask<GitAheadBehindStatus> AheadBehindStatus(string gitRef, string otherRef, IOutputProcessor<GitAheadBehindStatus> processor = null)
+        {
+            Logger.Trace("AheadBehindStatus");
+
+            return new GitAheadBehindStatusTask(gitRef, otherRef, cancellationToken, processor)
                 .Configure(processManager);
         }
 
