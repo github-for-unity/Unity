@@ -14,7 +14,9 @@ namespace GitHub.Unity
 
         private IGitLogCache gitLogCache;
 
-        private IGitStatusCache gitStatusCache;
+        private IGitTrackingStatusCache gitTrackingStatusCache;
+
+        private IGitStatusEntriesCache gitStatusEntriesCache;
 
         private IGitUserCache gitUserCache;
 
@@ -32,8 +34,11 @@ namespace GitHub.Unity
                 case CacheType.GitLogCache:
                     return GitLogCache;
 
-                case CacheType.GitStatusCache:
-                    return GitStatusCache;
+                case CacheType.GitTrackingStatusCache:
+                    return GitTrackingStatusCache;
+
+                case CacheType.GitStatusEntriesCache:
+                    return GitStatusEntriesCache;
 
                 case CacheType.GitLocksCache:
                     return GitLocksCache;
@@ -55,7 +60,7 @@ namespace GitHub.Unity
         {
             BranchCache.ValidateData();
             GitLogCache.ValidateData();
-            GitStatusCache.ValidateData();
+            GitTrackingStatusCache.ValidateData();
             GitLocksCache.ValidateData();
             GitUserCache.ValidateData();
         }
@@ -69,7 +74,7 @@ namespace GitHub.Unity
         {
             BranchCache.InvalidateData();
             GitLogCache.InvalidateData();
-            GitStatusCache.InvalidateData();
+            GitTrackingStatusCache.InvalidateData();
             GitLocksCache.InvalidateData();
             GitUserCache.InvalidateData();
         }
@@ -116,17 +121,31 @@ namespace GitHub.Unity
             }
         }
 
-        public IGitStatusCache GitStatusCache
+        public IGitTrackingStatusCache GitTrackingStatusCache
         {
             get
             {
-                if (gitStatusCache == null)
+                if (gitTrackingStatusCache == null)
                 {
-                    gitStatusCache = Unity.GitStatusCache.Instance;
-                    gitStatusCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.GitStatusCache);
-                    gitStatusCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.GitStatusCache, datetime);
+                    gitTrackingStatusCache = Unity.GitTrackingStatusCache.Instance;
+                    gitTrackingStatusCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.GitTrackingStatusCache);
+                    gitTrackingStatusCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.GitTrackingStatusCache, datetime);
                 }
-                return gitStatusCache;
+                return gitTrackingStatusCache;
+            }
+        }
+
+        public IGitStatusEntriesCache GitStatusEntriesCache
+        {
+            get
+            {
+                if (gitStatusEntriesCache == null)
+                {
+                    gitStatusEntriesCache = Unity.GitStatusEntriesCache.Instance;
+                    gitStatusEntriesCache.CacheInvalidated += () => OnCacheInvalidated(CacheType.GitStatusEntriesCache);
+                    gitStatusEntriesCache.CacheUpdated += datetime => OnCacheUpdated(CacheType.GitStatusEntriesCache, datetime);
+                }
+                return gitStatusEntriesCache;
             }
         }
 

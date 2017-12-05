@@ -45,6 +45,7 @@ namespace GitHub.Unity
         [SerializeField] private string newBranchName;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private bool disableDelete;
+        [SerializeField] private bool disableCreate;
 
         [SerializeField] private CacheUpdateEvent lastLocalAndRemoteBranchListChangedEvent;
         [NonSerialized] private bool localAndRemoteBranchListHasUpdate;
@@ -102,6 +103,7 @@ namespace GitHub.Unity
             }
 
             disableDelete = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.IsActive;
+            disableCreate = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.Level == 0;
         }
 
         public override void OnGUI()
@@ -134,6 +136,16 @@ namespace GitHub.Unity
                 OnTreeGUI(new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding)); 
             }
             GUILayout.EndScrollView();
+
+            if (Event.current.type == EventType.Repaint)
+            {
+                // Effectuating mode switch
+                if (mode != targetMode)
+                {
+                    mode = targetMode;
+                    Redraw();
+                }
+            }
         }
 
         private void BuildTree()
@@ -171,6 +183,23 @@ namespace GitHub.Unity
             }
         }
 
+        private void UpdateTreeStyles()
+        {
+            if (treeLocals != null && treeLocals.FolderStyle == null)
+            {
+                treeLocals.FolderStyle = Styles.Foldout;
+                treeLocals.TreeNodeStyle = Styles.TreeNode;
+                treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+            }
+
+            if (treeRemotes != null && treeRemotes.FolderStyle == null)
+            {
+                treeRemotes.FolderStyle = Styles.Foldout;
+                treeRemotes.TreeNodeStyle = Styles.TreeNode;
+                treeRemotes.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+            }
+        }
+
         private void OnButtonBarGUI()
         {
             if (mode == BranchesMode.Default)
@@ -188,10 +217,14 @@ namespace GitHub.Unity
 
                 // Create button
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button(CreateBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                EditorGUI.BeginDisabledGroup(disableCreate);
                 {
-                    targetMode = BranchesMode.Create;
+                    if (GUILayout.Button(CreateBranchButton, EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                    {
+                        targetMode = BranchesMode.Create;
+                    }
                 }
+                EditorGUI.EndDisabledGroup();
             }
             // Branch name + cancel + create
             else if (mode == BranchesMode.Create)
@@ -281,18 +314,9 @@ namespace GitHub.Unity
 
         private void OnTreeGUI(Rect rect)
         {
-             var initialRect = rect;
+            UpdateTreeStyles();
 
-            if (treeLocals.FolderStyle == null)
-            {
-                treeLocals.FolderStyle = Styles.Foldout;
-                treeLocals.TreeNodeStyle = Styles.TreeNode;
-                treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
-                treeRemotes.FolderStyle = Styles.Foldout;
-                treeRemotes.TreeNodeStyle = Styles.TreeNode;
-                treeRemotes.ActiveTreeNodeStyle = Styles.TreeNodeActive;
-            }
-
+            var initialRect = rect;
             var treeHadFocus = treeLocals.SelectedNode != null;
 
             rect = treeLocals.Render(rect, scroll,

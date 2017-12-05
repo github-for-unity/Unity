@@ -25,9 +25,9 @@ namespace GitHub.Unity
         [SerializeField] public string pathSeparator = "/";
         [SerializeField] public bool displayRootNode = true;
         [SerializeField] public bool isCheckable = false;
-        [SerializeField] public GUIStyle FolderStyle;
-        [SerializeField] public GUIStyle TreeNodeStyle;
-        [SerializeField] public GUIStyle ActiveTreeNodeStyle;
+        [NonSerialized] public GUIStyle FolderStyle;
+        [NonSerialized] public GUIStyle TreeNodeStyle;
+        [NonSerialized] public GUIStyle ActiveTreeNodeStyle;
 
         [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
         [SerializeField] private TreeNode selectedNode = null;
@@ -35,6 +35,8 @@ namespace GitHub.Unity
         [SerializeField] private TreeNodeDictionary folders = new TreeNodeDictionary();
 
         [NonSerialized] private Stack<bool> indents = new Stack<bool>();
+        [NonSerialized] private Action<TreeNode> rightClickNextRender;
+        [NonSerialized] private TreeNode rightClickNextRenderNode;
 
         public bool IsInitialized { get { return nodes != null && nodes.Count > 0 && !String.IsNullOrEmpty(nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
@@ -119,6 +121,16 @@ namespace GitHub.Unity
 
         public Rect Render(Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
         {
+            if (Event.current.type != EventType.Repaint)
+            {
+                if (rightClickNextRender != null)
+                {
+                    rightClickNextRender.Invoke(rightClickNextRenderNode);
+                    rightClickNextRender = null;
+                    rightClickNextRenderNode = null;
+                }
+            }
+
             RequiresRepaint = false;
             rect = new Rect(0f, rect.y, rect.width, ItemHeight);
 
@@ -284,7 +296,8 @@ namespace GitHub.Unity
                 }
                 if (mouseButton == 1 && clickCount == 1 && rightClick != null)
                 {
-                    rightClick(currentNode);
+                    rightClickNextRender = rightClick;
+                    rightClickNextRenderNode = currentNode;
                 }
             }
 
