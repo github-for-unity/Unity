@@ -43,6 +43,7 @@ namespace GitHub.Unity
             pix[0] = color;
 
             Texture2D result = new Texture2D(1, 1);
+            result.hideFlags = HideFlags.HideAndDontSave;
             result.SetPixels(pix);
             result.Apply();
 
