@@ -18,7 +18,7 @@ namespace GitHub.Unity
         private const string NoChangedFilesLabel = "No changed files";
 
         [NonSerialized] private bool currentBranchHasUpdate;
-        [NonSerialized] private bool currentStatusHasUpdate;
+        [NonSerialized] private bool currentStatusEntriesHasUpdate;
         [NonSerialized] private bool isBusy;
 
         [SerializeField] private string commitBody = "";
@@ -40,11 +40,9 @@ namespace GitHub.Unity
             base.OnEnable();
             AttachHandlers(Repository);
 
-            if (Repository != null)
-            {
-                Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
-                Repository.CheckStatusEntriesChangedEvent(lastStatusEntriesChangedEvent);
-            }
+            Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
+
+            currentStatusEntriesHasUpdate = true;
         }
 
         public override void OnDisable()
@@ -108,7 +106,7 @@ namespace GitHub.Unity
             if (!lastStatusEntriesChangedEvent.Equals(cacheUpdateEvent))
             {
                 lastStatusEntriesChangedEvent = cacheUpdateEvent;
-                currentStatusHasUpdate = true;
+                currentStatusEntriesHasUpdate = true;
                 Redraw();
             }
         }
@@ -153,9 +151,9 @@ namespace GitHub.Unity
                 currentBranch = string.Format("[{0}]", Repository.CurrentBranchName);
             }
 
-            if (currentStatusHasUpdate)
+            if (currentStatusEntriesHasUpdate)
             {
-                currentStatusHasUpdate = false;
+                currentStatusEntriesHasUpdate = false;
                 var entries = Repository.CurrentChanges;
                 tree.UpdateEntries(entries.Where(x => x.Status != GitFileStatus.Ignored).ToList());
             }
