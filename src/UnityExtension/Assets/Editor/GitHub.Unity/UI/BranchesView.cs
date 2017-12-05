@@ -63,7 +63,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            UpdateTreeIconAndStyles();
+            UpdateTreeIcons();
             AttachHandlers(Repository);
             Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
         }
@@ -157,7 +157,7 @@ namespace GitHub.Unity
                 treeRemotes = new BranchesTree();
                 treeRemotes.IsRemote = true;
 
-                UpdateTreeIconAndStyles();
+                UpdateTreeIcons();
             }
 
             localBranches.Sort(CompareBranches);
@@ -168,19 +168,30 @@ namespace GitHub.Unity
             Redraw();
         }
 
-        private void UpdateTreeIconAndStyles()
+        private void UpdateTreeIcons()
         {
             if (treeLocals != null)
             {
                 treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
-                treeLocals.FolderStyle = Styles.Foldout;
-                treeLocals.TreeNodeStyle = Styles.TreeNode;
-                treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
             }
 
             if (treeRemotes != null)
             {
                 treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
+            }
+        }
+
+        private void UpdateTreeStyles()
+        {
+            if (treeLocals != null && treeLocals.FolderStyle == null)
+            {
+                treeLocals.FolderStyle = Styles.Foldout;
+                treeLocals.TreeNodeStyle = Styles.TreeNode;
+                treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+            }
+
+            if (treeRemotes != null && treeRemotes.FolderStyle == null)
+            {
                 treeRemotes.FolderStyle = Styles.Foldout;
                 treeRemotes.TreeNodeStyle = Styles.TreeNode;
                 treeRemotes.ActiveTreeNodeStyle = Styles.TreeNodeActive;
@@ -303,6 +314,8 @@ namespace GitHub.Unity
         {
             var initialRect = rect;
             var treeHadFocus = treeLocals.SelectedNode != null;
+
+            UpdateTreeStyles();
 
             rect = treeLocals.Render(rect, scroll,
                 node =>{ },

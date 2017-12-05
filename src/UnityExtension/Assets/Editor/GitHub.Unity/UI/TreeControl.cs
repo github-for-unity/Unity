@@ -20,9 +20,9 @@ namespace GitHub.Unity
         [SerializeField] public Rect Margin = new Rect();
         [SerializeField] public Rect Padding = new Rect();
 
-        [SerializeField] public GUIStyle FolderStyle;
-        [SerializeField] public GUIStyle TreeNodeStyle;
-        [SerializeField] public GUIStyle ActiveTreeNodeStyle;
+        [NonSerialized] public GUIStyle FolderStyle;
+        [NonSerialized] public GUIStyle TreeNodeStyle;
+        [NonSerialized] public GUIStyle ActiveTreeNodeStyle;
 
         [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
         [SerializeField] private TreeNode selectedNode = null;
