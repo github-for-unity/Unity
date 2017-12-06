@@ -283,6 +283,10 @@ namespace GitHub.Unity
                 {
                     checkedFileNodes.Add(node.Path, node);
                 }
+                else
+                {
+                    checkedFileNodes.Remove(node.Path);
+                }
             }
 
             ToggleParentFoldersChecked(idx, node, isChecked);
@@ -309,6 +313,10 @@ namespace GitHub.Unity
                     if (isChecked)
                     {
                         checkedFileNodes.Add(node.Path, node);
+                    }
+                    else
+                    {
+                        checkedFileNodes.Remove(node.Path);
                     }
                 }
             }
