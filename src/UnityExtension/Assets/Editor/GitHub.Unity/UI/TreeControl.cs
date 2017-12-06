@@ -259,24 +259,83 @@ namespace GitHub.Unity
 
         private void ToggleNodeCheck(int idx, TreeNode node)
         {
+            var isChecked = false;
+
+            switch (node.CheckState)
+            {
+                case CheckState.Mixed:
+                case CheckState.Empty:
+                    node.CheckState = CheckState.Checked;
+                    isChecked = true;
+                    break;
+
+                case CheckState.Checked:
+                    node.CheckState = CheckState.Empty;
+                    break;
+            }
+
             if (node.IsFolder)
             {
-                
-            }
-            else
-            {
-                switch (node.CheckState)
-                {
-                    case CheckState.Empty:
-                        node.CheckState = CheckState.Checked;
-                        break;
 
-                    case CheckState.Checked:
-                        node.CheckState = CheckState.Empty;
-                        break;
+            }
+
+            ToggleParentFolders(idx, node, isChecked);
+        }
+
+        private void ToggleParentFolders(int idx, TreeNode node, bool isChecked)
+        {
+            while (true)
+            {
+                if (node.Level > 0)
+                {
+                    Debug.Log("ToggleParentFolders");
+
+                    var siblingsInSameState = true;
+                    var firstSiblingIndex = idx;
+
+                    Debug.LogFormat("Ripple CheckState index:{0} level:{1}", idx, node.Level);
+
+                    for (var i = idx - 1; i > 0 && nodes[i].Level == node.Level; i--)
+                    {
+                        firstSiblingIndex = i;
+                        var siblingIsChecked = nodes[i].CheckState == CheckState.Checked;
+                        Debug.LogFormat("Previous Sibling - idx:{0} name:{1} checked:{2}", i, nodes[i].Path, siblingIsChecked);
+
+                        if (isChecked != siblingIsChecked)
+                        {
+                            siblingsInSameState = false;
+                            //break;
+                        }
+                    }
+
+                    //if (siblingsInSameState)
+                    {
+                        for (var i = idx + 1; i < nodes.Count && nodes[i].Level == node.Level; i++)
+                        {
+                            var siblingIsChecked = nodes[i].CheckState == CheckState.Checked;
+                            Debug.LogFormat("Next Siblings    - idx:{0} name:{1} checked:{2}", i, nodes[i].Path, siblingIsChecked);
+                        }
+                    }
+
+                    Debug.LogFormat("Siblings in same state = {0}", siblingsInSameState);
+
+                    var parentIndex = firstSiblingIndex - 1;
+                    var parentNode = nodes[parentIndex];
+                    if (siblingsInSameState)
+                    {
+                        parentNode.CheckState = isChecked ? CheckState.Checked : CheckState.Empty;
+                    }
+                    else
+                    {
+                        parentNode.CheckState = CheckState.Mixed;
+                    }
+
+                    idx = parentIndex;
+                    node = parentNode;
+                    continue;
                 }
 
-                Debug.LogFormat("Ripple CheckState index:{0} level:{1}", idx, node.Level);
+                break;
             }
         }
 
