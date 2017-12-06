@@ -195,7 +195,7 @@ namespace GitHub.Unity
                     label = new GUIStyle(GUI.skin.label);
                     label.name = "CustomLabel";
 
-                    GUIStyle hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
                     label.onNormal.background = hierarchyStyle.onNormal.background;
                     label.onNormal.textColor = hierarchyStyle.onNormal.textColor;
                     label.onFocused.background = hierarchyStyle.onFocused.background;
