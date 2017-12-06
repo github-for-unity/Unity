@@ -11,7 +11,6 @@ namespace GitHub.Unity
     [Serializable]
     public class TreeNodeDictionary : SerializableDictionary<string, TreeNode> { }
 
-
     [Serializable]
     public abstract class Tree: ITree
     {

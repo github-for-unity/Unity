@@ -49,7 +49,6 @@ namespace GitHub.Unity
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
-
             MaybeUpdateData();
         }
 
@@ -101,15 +100,9 @@ namespace GitHub.Unity
 
         private void OnTreeGUI(Rect rect)
         {
+            UpdateTreeStyles();
+
             var initialRect = rect;
-
-            if (treeChanges.FolderStyle == null)
-            {
-                treeChanges.FolderStyle = Styles.Foldout;
-                treeChanges.TreeNodeStyle = Styles.TreeNode;
-                treeChanges.ActiveTreeNodeStyle = Styles.TreeNodeActive;
-            }
-
             rect = treeChanges.Render(initialRect, rect, scroll,
                 node => { },
                 node => {
@@ -121,6 +114,16 @@ namespace GitHub.Unity
                 Redraw();
 
             GUILayout.Space(rect.y - initialRect.y);
+        }
+
+        private void UpdateTreeStyles()
+        {
+            if (treeChanges.FolderStyle == null)
+            {
+                treeChanges.FolderStyle = Styles.Foldout;
+                treeChanges.TreeNodeStyle = Styles.TreeNode;
+                treeChanges.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+            }
         }
 
         private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
