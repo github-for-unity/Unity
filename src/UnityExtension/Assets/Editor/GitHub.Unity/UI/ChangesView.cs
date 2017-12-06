@@ -118,7 +118,7 @@ namespace GitHub.Unity
 
         private void UpdateTreeStyles()
         {
-            if (treeChanges.FolderStyle == null)
+            if (treeChanges != null && treeChanges.FolderStyle == null)
             {
                 treeChanges.FolderStyle = Styles.Foldout;
                 treeChanges.TreeNodeStyle = Styles.TreeNode;
