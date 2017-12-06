@@ -60,6 +60,7 @@ namespace GitHub.Unity
                             }
                         }
 
+                        var isActive = false;
                         var nodeIsCollapsed = false;
                         string customStringTag = null;
                         var customIntTag = 0;
@@ -81,12 +82,13 @@ namespace GitHub.Unity
                         }
                         else
                         {
+                            isActive = treeData.IsActive;
                             customStringTag = treeData.CustomStringTag;
                             customIntTag = treeData.CustomIntTag;
                         }
 
                         isSelected = selectedNodePath != null && nodePath == selectedNodePath;
-                        tree.AddNode(path: nodePath, label: label, level: i + displayRootLevel, isFolder: isFolder, isActive: treeData.IsActive, isHidden: nodeIsHidden, isCollapsed: nodeIsCollapsed, isSelected: isSelected, customStringTag: customStringTag, customIntTag: customIntTag);
+                        tree.AddNode(path: nodePath, label: label, level: i + displayRootLevel, isFolder: isFolder, isActive: isActive, isHidden: nodeIsHidden, isCollapsed: nodeIsCollapsed, isSelected: isSelected, customStringTag: customStringTag, customIntTag: customIntTag);
                     }
                 }
             }
