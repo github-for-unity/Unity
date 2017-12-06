@@ -29,7 +29,6 @@ namespace GitHub.Unity
 
         [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
         [SerializeField] private TreeNode selectedNode = null;
-        [SerializeField] private TreeNode activeNode = null;
         [SerializeField] private TreeNodeDictionary folders = new TreeNodeDictionary();
 
         [NonSerialized] private Stack<bool> indents = new Stack<bool>();
@@ -98,11 +97,6 @@ namespace GitHub.Unity
 
             SetNodeIcon(node);
             nodes.Add(node);
-
-            if (isActive)
-            {
-                activeNode = node;
-            }
 
             if (isSelected)
             {
