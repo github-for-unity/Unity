@@ -59,7 +59,6 @@ namespace GitHub.Unity
             targetMode = mode;
         }
 
-
         public override void OnEnable()
         {
             base.OnEnable();
