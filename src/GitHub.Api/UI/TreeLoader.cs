@@ -13,7 +13,7 @@ namespace GitHub.Unity
         bool DisplayRootNode { get; }
         bool IsCheckable { get; }
         string PathSeparator { get; }
-        string SelectedNodeName { get; }
+        string SelectedNodePath { get; }
     }
 
     public static class TreeLoader
@@ -21,13 +21,13 @@ namespace GitHub.Unity
         public static void Load(ITree tree, IEnumerable<ITreeData> treeDatas)
         {
             var collapsedFolders = tree.GetCollapsedFolders();
-            var selectedNodeName = tree.SelectedNodeName;
+            var selectedNodePath = tree.SelectedNodePath;
             
             tree.Clear();
 
             var displayRootLevel = tree.DisplayRootNode ? 1 : 0;
 
-            var isSelected = selectedNodeName != null && tree.Title == selectedNodeName;
+            var isSelected = selectedNodePath != null && tree.Title == selectedNodePath;
             tree.AddNode(path: tree.Title, label: tree.Title, level: -1 + displayRootLevel, isFolder: true, isActive: false, isHidden: false, isCollapsed: false, isSelected: isSelected);
 
             var hideChildren = false;
@@ -77,7 +77,7 @@ namespace GitHub.Unity
                             }
                         }
 
-                        isSelected = selectedNodeName != null && nodePath == selectedNodeName;
+                        isSelected = selectedNodePath != null && nodePath == selectedNodePath;
                         tree.AddNode(path: nodePath, label: label, level: i + displayRootLevel, isFolder: isFolder, isActive: treeData.IsActive, isHidden: nodeIsHidden, isCollapsed: nodeIsCollapsed, isSelected: isSelected);
                     }
                 }

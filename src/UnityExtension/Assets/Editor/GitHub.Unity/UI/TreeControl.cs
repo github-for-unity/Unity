@@ -55,7 +55,7 @@ namespace GitHub.Unity
             }
         }
 
-        public string SelectedNodeName
+        public string SelectedNodePath
         {
             get { return SelectedNode != null ? SelectedNode.Path : null; }
         }
