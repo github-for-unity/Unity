@@ -185,14 +185,14 @@ namespace GitHub.Unity
 
         private void UpdateTreeStyles()
         {
-            if (treeLocals.FolderStyle == null)
+            if (treeLocals != null && treeLocals.FolderStyle == null)
             {
                 treeLocals.FolderStyle = Styles.Foldout;
                 treeLocals.TreeNodeStyle = Styles.TreeNode;
                 treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
             }
 
-            if (treeRemotes.FolderStyle == null)
+            if (treeRemotes != null && treeRemotes.FolderStyle == null)
             {
                 treeRemotes.FolderStyle = Styles.Foldout;
                 treeRemotes.TreeNodeStyle = Styles.TreeNode;
