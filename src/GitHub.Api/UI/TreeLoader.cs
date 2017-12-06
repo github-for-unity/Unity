@@ -6,13 +6,14 @@ namespace GitHub.Unity
 {
     public interface ITree
     {
-        void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, int customIntTag = 0, string customStringTag = (string)null);
+        void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isSelected, int customIntTag = 0, string customStringTag = (string)null);
         void Clear();
         HashSet<string> GetCollapsedFolders();
         string Title { get; }
         bool DisplayRootNode { get; }
         bool IsCheckable { get; }
         string PathSeparator { get; }
+        string SelectedNodePath { get; }
     }
 
     public static class TreeLoader
@@ -20,12 +21,14 @@ namespace GitHub.Unity
         public static void Load(ITree tree, IEnumerable<ITreeData> treeDatas)
         {
             var collapsedFolders = tree.GetCollapsedFolders();
-
+            var selectedNodePath = tree.SelectedNodePath;
+            
             tree.Clear();
 
             var displayRootLevel = tree.DisplayRootNode ? 1 : 0;
 
-            tree.AddNode(path: tree.Title, label: tree.Title, level: -1 + displayRootLevel, isFolder: true, isActive: false, isHidden: false, isCollapsed: false);
+            var isSelected = selectedNodePath != null && tree.Title == selectedNodePath;
+            tree.AddNode(path: tree.Title, label: tree.Title, level: -1 + displayRootLevel, isFolder: true, isActive: false, isHidden: false, isCollapsed: false, isSelected: isSelected);
 
             var hideChildren = false;
             var hideChildrenBelowLevel = 0;
@@ -75,7 +78,6 @@ namespace GitHub.Unity
                                     hideChildrenBelowLevel = level;
                                 }
                             }
-
                         }
                         else
                         {
@@ -83,11 +85,11 @@ namespace GitHub.Unity
                             customIntTag = treeData.CustomIntTag;
                         }
 
-                        tree.AddNode(path: nodePath, label: label, level: i + displayRootLevel, isFolder: isFolder, isActive: treeData.IsActive, isHidden: nodeIsHidden, isCollapsed: nodeIsCollapsed, customStringTag: customStringTag, customIntTag: customIntTag);
+                        isSelected = selectedNodePath != null && nodePath == selectedNodePath;
+                        tree.AddNode(path: nodePath, label: label, level: i + displayRootLevel, isFolder: isFolder, isActive: treeData.IsActive, isHidden: nodeIsHidden, isCollapsed: nodeIsCollapsed, isSelected: isSelected, customStringTag: customStringTag, customIntTag: customIntTag);
                     }
                 }
             }
         }
-
     }
 }

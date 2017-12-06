@@ -19,7 +19,7 @@ namespace GitHub.Unity
         private const string NoChangedFilesLabel = "No changed files";
 
         [NonSerialized] private bool currentBranchHasUpdate;
-        [NonSerialized] private bool currentStatusHasUpdate;
+        [NonSerialized] private bool currentStatusEntriesHasUpdate;
         [NonSerialized] private bool isBusy;
 
         [SerializeField] private string commitBody = "";
@@ -27,7 +27,7 @@ namespace GitHub.Unity
         [SerializeField] private string currentBranch = "[unknown]";
         [SerializeField] private Vector2 scroll;
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
-        [SerializeField] private CacheUpdateEvent lastStatusChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
         [SerializeField] private ChangesTree treeChanges;
         [SerializeField] private List<GitStatusEntry> gitStatusEntries;
 
@@ -37,7 +37,7 @@ namespace GitHub.Unity
             UpdateTreeIcons();
             AttachHandlers(Repository);
             Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
-            Repository.CheckStatusChangedEvent(lastStatusChangedEvent);
+            Repository.CheckStatusEntriesChangedEvent(lastStatusEntriesChangedEvent);
         }
 
         public override void OnDisable()
@@ -123,12 +123,12 @@ namespace GitHub.Unity
             GUILayout.Space(rect.y - initialRect.y);
         }
 
-        private void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
+        private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!lastStatusChangedEvent.Equals(cacheUpdateEvent))
+            if (!lastStatusEntriesChangedEvent.Equals(cacheUpdateEvent))
             {
-                lastStatusChangedEvent = cacheUpdateEvent;
-                currentStatusHasUpdate = true;
+                lastStatusEntriesChangedEvent = cacheUpdateEvent;
+                currentStatusEntriesHasUpdate = true;
                 Redraw();
             }
         }
@@ -151,7 +151,7 @@ namespace GitHub.Unity
             }
 
             repository.CurrentBranchChanged += RepositoryOnCurrentBranchChanged;
-            repository.StatusChanged += RepositoryOnStatusChanged;
+            repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -162,7 +162,7 @@ namespace GitHub.Unity
             }
 
             repository.CurrentBranchChanged -= RepositoryOnCurrentBranchChanged;
-            repository.StatusChanged -= RepositoryOnStatusChanged;
+            repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
         }
 
         private void MaybeUpdateData()
@@ -173,9 +173,9 @@ namespace GitHub.Unity
                 currentBranch = string.Format("[{0}]", Repository.CurrentBranchName);
             }
 
-            if (currentStatusHasUpdate)
+            if (currentStatusEntriesHasUpdate)
             {
-                currentStatusHasUpdate = false;
+                currentStatusEntriesHasUpdate = false;
                 gitStatusEntries = Repository.CurrentChanges;
 
                 BuildTree();
