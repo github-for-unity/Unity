@@ -20,9 +20,9 @@ namespace GitHub.Unity
         [SerializeField] public Rect Margin = new Rect();
         [SerializeField] public Rect Padding = new Rect();
 
-        [SerializeField] public GUIStyle FolderStyle;
-        [SerializeField] public GUIStyle TreeNodeStyle;
-        [SerializeField] public GUIStyle ActiveTreeNodeStyle;
+        [NonSerialized] public GUIStyle FolderStyle;
+        [NonSerialized] public GUIStyle TreeNodeStyle;
+        [NonSerialized] public GUIStyle ActiveTreeNodeStyle;
 
         [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
         [SerializeField] private TreeNode selectedNode = null;
@@ -30,6 +30,8 @@ namespace GitHub.Unity
         [SerializeField] private TreeNodeDictionary folders = new TreeNodeDictionary();
 
         [NonSerialized] private Stack<bool> indents = new Stack<bool>();
+        [NonSerialized] private Action<TreeNode> rightClickNextRender;
+        [NonSerialized] private TreeNode rightClickNextRenderNode;
 
         public bool IsInitialized { get { return nodes != null && nodes.Count > 0 && !String.IsNullOrEmpty(nodes[0].Name); } }
         public bool RequiresRepaint { get; private set; }
@@ -54,6 +56,12 @@ namespace GitHub.Unity
         {
             var collapsedFoldersEnumerable = folders.Where(pair => pair.Value.IsCollapsed).Select(pair => pair.Key);
             var collapsedFolders = new HashSet<string>(collapsedFoldersEnumerable);
+            string selectedNodeName = null;
+            if (SelectedNode != null)
+            {
+                selectedNodeName = SelectedNode.Name;
+                SelectedNode = null;
+            }
 
             folders.Clear();
             nodes.Clear();
@@ -91,6 +99,11 @@ namespace GitHub.Unity
                             Level = level,
                             IsFolder = isFolder
                         };
+
+                        if (selectedNodeName != null && name == selectedNodeName)
+                        {
+                            SelectedNode = node;
+                        }
 
                         if (node.IsActive)
                         {
@@ -132,17 +145,32 @@ namespace GitHub.Unity
             }
         }
 
-        public Rect Render(Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
+        public Rect Render(Rect containingRect, Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
         {
-            Profiler.BeginSample("TreeControl");
-            bool visible = true;
-            var availableHeight = rect.y + rect.height;
+            if (Event.current.type != EventType.Repaint)
+            {
+                if (rightClickNextRender != null)
+                {
+                    rightClickNextRender.Invoke(rightClickNextRenderNode);
+                    rightClickNextRender = null;
+                    rightClickNextRenderNode = null;
+                }
+            }
+
+            var startDisplay = scroll.y;
+            var endDisplay = scroll.y + containingRect.height;
 
             RequiresRepaint = false;
             rect = new Rect(0f, rect.y, rect.width, ItemHeight);
 
             var titleNode = nodes[0];
-            bool selectionChanged = titleNode.Render(rect, 0f, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+            var selectionChanged = false;
+
+            var titleDisplay = !(rect.y > endDisplay || rect.yMax < startDisplay);
+            if (titleDisplay)
+            {
+                selectionChanged = titleNode.Render(rect, Styles.TreeIndentation, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+            }
 
             if (selectionChanged)
             {
@@ -164,15 +192,18 @@ namespace GitHub.Unity
                     Indent();
                 }
 
-                if (visible)
-                {
-                    var changed = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                var changed = false;
 
-                    if (node.IsFolder && changed)
-                    {
-                        // toggle visibility for all the nodes under this one
-                        ToggleNodeVisibility(i, node);
-                    }
+                var display = !(rect.y > endDisplay || rect.yMax < startDisplay);
+                if (display)
+                {
+                    changed = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                }
+
+                if (node.IsFolder && changed)
+                {
+                    // toggle visibility for all the nodes under this one
+                    ToggleNodeVisibility(i, node);
                 }
 
                 if (node.Level < level)
@@ -186,10 +217,7 @@ namespace GitHub.Unity
 
                 if (!node.IsHidden)
                 {
-                    if (visible)
-                    {
-                        RequiresRepaint = HandleInput(rect, node, i, singleClick, doubleClick, rightClick);
-                    }
+                    RequiresRepaint = HandleInput(rect, node, i, singleClick, doubleClick, rightClick);
                     rect.y += ItemHeight + ItemSpacing;
                 }
             }
@@ -274,7 +302,8 @@ namespace GitHub.Unity
                 }
                 if (mouseButton == 1 && clickCount == 1 && rightClick != null)
                 {
-                    rightClick(currentNode);
+                    rightClickNextRender = rightClick;
+                    rightClickNextRenderNode = currentNode;
                 }
             }
 

@@ -181,6 +181,23 @@ namespace GitHub.Unity
             }
         }
 
+        private void UpdateTreeStyles()
+        {
+            if (treeLocals != null && treeLocals.FolderStyle == null)
+            {
+                treeLocals.FolderStyle = Styles.Foldout;
+                treeLocals.TreeNodeStyle = Styles.TreeNode;
+                treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+            }
+
+            if (treeRemotes != null && treeRemotes.FolderStyle == null)
+            {
+                treeRemotes.FolderStyle = Styles.Foldout;
+                treeRemotes.TreeNodeStyle = Styles.TreeNode;
+                treeRemotes.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+            }
+        }
+
         private void OnButtonBarGUI()
         {
             if (mode == BranchesMode.Default)
@@ -295,24 +312,18 @@ namespace GitHub.Unity
 
         private void OnTreeGUI(Rect rect)
         {
-             var initialRect = rect;
+            UpdateTreeStyles();
 
-            if (treeLocals.FolderStyle == null)
-            {
-                treeLocals.FolderStyle = Styles.Foldout;
-                treeLocals.TreeNodeStyle = Styles.TreeNode;
-                treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
-                treeRemotes.FolderStyle = Styles.Foldout;
-                treeRemotes.TreeNodeStyle = Styles.TreeNode;
-                treeRemotes.ActiveTreeNodeStyle = Styles.TreeNodeActive;
-            }
-
+            var initialRect = rect;
             var treeHadFocus = treeLocals.SelectedNode != null;
 
-            rect = treeLocals.Render(rect, scroll,
+            rect = treeLocals.Render(initialRect, rect, scroll,
                 node =>{ },
                 node => {
                     if (node.IsFolder)
+                        return;
+
+                    if(node.IsActive)
                         return;
 
                     SwitchBranch(node.Name);
@@ -337,7 +348,7 @@ namespace GitHub.Unity
 
             rect.y += Styles.TreePadding;
 
-            rect = treeRemotes.Render(rect, scroll,
+            rect = treeRemotes.Render(initialRect, rect, scroll,
                 node => { },
                 node => {
                     if (node.IsFolder)
@@ -347,7 +358,7 @@ namespace GitHub.Unity
                 },
                 node => {
                     if (node.IsFolder)
-                       return;
+                        return;
 
                     var menu = CreateContextMenuForRemoteBranchNode(node);
                     menu.ShowAsContext();
