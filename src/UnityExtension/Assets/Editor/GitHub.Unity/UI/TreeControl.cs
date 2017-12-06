@@ -296,6 +296,7 @@ namespace GitHub.Unity
             for (var i = idx + 1; i < nodes.Count && node.Level < nodes[i].Level; i++)
             {
                 var childNode = nodes[i];
+                var wasChecked = childNode.CheckState == CheckState.Checked;
                 childNode.CheckState = isChecked ? CheckState.Checked : CheckState.Empty;
 
                 if (childNode.IsFolder)
@@ -304,11 +305,11 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    if (isChecked)
+                    if (isChecked && !wasChecked)
                     {
                         checkedFileNodes.Add(childNode.Path, childNode);
                     }
-                    else
+                    else if(!isChecked && wasChecked)
                     {
                         checkedFileNodes.Remove(childNode.Path);
                     }
