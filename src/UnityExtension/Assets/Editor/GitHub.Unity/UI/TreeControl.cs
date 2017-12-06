@@ -295,8 +295,13 @@ namespace GitHub.Unity
 
                     Debug.LogFormat("Ripple CheckState index:{0} level:{1}", idx, node.Level);
 
-                    for (var i = idx - 1; i > 0 && nodes[i].Level == node.Level; i--)
+                    for (var i = idx - 1; i > 0 && node.Level <= nodes[i].Level; i--)
                     {
+                        if (node.Level < nodes[i].Level)
+                        {
+                            continue;
+                        }
+
                         firstSiblingIndex = i;
                         var siblingIsChecked = nodes[i].CheckState == CheckState.Checked;
                         Debug.LogFormat("Previous Sibling - idx:{0} name:{1} checked:{2}", i, nodes[i].Path, siblingIsChecked);
@@ -310,8 +315,13 @@ namespace GitHub.Unity
 
                     //if (siblingsInSameState)
                     {
-                        for (var i = idx + 1; i < nodes.Count && nodes[i].Level == node.Level; i++)
+                        for (var i = idx + 1; i < nodes.Count && node.Level <= nodes[i].Level; i++)
                         {
+                            if (node.Level < nodes[i].Level)
+                            {
+                                continue;
+                            }
+
                             var siblingIsChecked = nodes[i].CheckState == CheckState.Checked;
                             Debug.LogFormat("Next Siblings    - idx:{0} name:{1} checked:{2}", i, nodes[i].Path, siblingIsChecked);
                         }
