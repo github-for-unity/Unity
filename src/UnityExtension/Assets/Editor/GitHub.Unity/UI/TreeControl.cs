@@ -391,13 +391,13 @@ namespace GitHub.Unity
 
         private bool HandleInput(Rect rect, TreeNode currentNode, int index, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
         {
-            bool selectionChanged = false;
+            var requiresRepaint = false;
             var clickRect = new Rect(0f, rect.y, rect.width, rect.height);
             if (Event.current.type == EventType.MouseDown && clickRect.Contains(Event.current.mousePosition))
             {
                 Event.current.Use();
                 SelectedNode = currentNode;
-                selectionChanged = true;
+                requiresRepaint = true;
                 var clickCount = Event.current.clickCount;
                 var mouseButton = Event.current.button;
 
@@ -423,24 +423,25 @@ namespace GitHub.Unity
                 int directionX = Event.current.keyCode == KeyCode.LeftArrow ? -1 : Event.current.keyCode == KeyCode.RightArrow ? 1 : 0;
                 if (directionY != 0 || directionX != 0)
                 {
+                    Event.current.Use();
+
                     if (directionY > 0)
                     {
-                        selectionChanged = SelectNext(index, false) != index;
+                        requiresRepaint = SelectNext(index, false) != index;
                     }
                     else if (directionY < 0)
                     {
-                        selectionChanged = SelectPrevious(index, false) != index;
+                        requiresRepaint = SelectPrevious(index, false) != index;
                     }
                     else if (directionX > 0)
                     {
                         if (currentNode.IsFolder && currentNode.IsCollapsed)
                         {
                             ToggleNodeVisibility(index, currentNode);
-                            Event.current.Use();
                         }
                         else
                         {
-                            selectionChanged = SelectNext(index, true) != index;
+                            requiresRepaint = SelectNext(index, true) != index;
                         }
                     }
                     else if (directionX < 0)
@@ -448,16 +449,24 @@ namespace GitHub.Unity
                         if (currentNode.IsFolder && !currentNode.IsCollapsed)
                         {
                             ToggleNodeVisibility(index, currentNode);
-                            Event.current.Use();
                         }
                         else
                         {
-                            selectionChanged = SelectPrevious(index, true) != index;
+                            requiresRepaint = SelectPrevious(index, true) != index;
                         }
                     }
                 }
+
+                if (IsCheckable && Event.current.keyCode == KeyCode.Space)
+                {
+                    Event.current.Use();
+
+                    ToggleNodeChecked(index, currentNode);
+                    requiresRepaint = true;
+                }
             }
-            return selectionChanged;
+
+            return requiresRepaint;
         }
 
         private int SelectNext(int index, bool foldersOnly)
