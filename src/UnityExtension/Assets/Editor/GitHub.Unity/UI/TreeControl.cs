@@ -312,11 +312,11 @@ namespace GitHub.Unity
                 {
                     if (isChecked)
                     {
-                        checkedFileNodes.Add(node.Path, node);
+                        checkedFileNodes.Add(childNode.Path, childNode);
                     }
                     else
                     {
-                        checkedFileNodes.Remove(node.Path);
+                        checkedFileNodes.Remove(childNode.Path);
                     }
                 }
             }
