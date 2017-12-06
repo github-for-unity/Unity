@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 namespace GitHub.Unity
 {
@@ -167,7 +165,7 @@ namespace GitHub.Unity
                 }
                 else if (renderResult == TreeNodeRenderResult.CheckChange)
                 {
-                    ToggleNodeCheck(0, titleNode);
+                    ToggleNodeChecked(0, titleNode);
                 }
 
                 RequiresRepaint = HandleInput(rect, titleNode, 0);
@@ -200,7 +198,7 @@ namespace GitHub.Unity
                 }
                 else if (renderResult == TreeNodeRenderResult.CheckChange)
                 {
-                    ToggleNodeCheck(i, node);
+                    ToggleNodeChecked(i, node);
                 }
 
                 if (node.Level < level)
@@ -257,7 +255,7 @@ namespace GitHub.Unity
             RequiresRepaint = true;
         }
 
-        private void ToggleNodeCheck(int idx, TreeNode node)
+        private void ToggleNodeChecked(int idx, TreeNode node)
         {
             var isChecked = false;
 
@@ -276,24 +274,39 @@ namespace GitHub.Unity
 
             if (node.IsFolder)
             {
-
+                ToggleChildrenChecked(idx, node, isChecked);
             }
 
-            ToggleParentFolders(idx, node, isChecked);
+            ToggleParentFoldersChecked(idx, node, isChecked);
         }
 
-        private void ToggleParentFolders(int idx, TreeNode node, bool isChecked)
+        private void ToggleChildrenChecked(int idx, TreeNode node, bool isChecked)
+        {
+            for (var i = idx + 1; i < nodes.Count && node.Level <= nodes[i].Level; i++)
+            {
+                var childNode = nodes[i];
+                if (node.Level == childNode.Level)
+                {
+                    continue;
+                }
+
+                childNode.CheckState = isChecked ? CheckState.Checked : CheckState.Empty;
+
+                if (childNode.IsFolder)
+                {
+                    ToggleChildrenChecked(i, childNode, isChecked);
+                }
+            }
+        }
+
+        private void ToggleParentFoldersChecked(int idx, TreeNode node, bool isChecked)
         {
             while (true)
             {
                 if (node.Level > 0)
                 {
-                    Debug.Log("ToggleParentFolders");
-
                     var siblingsInSameState = true;
                     var firstSiblingIndex = idx;
-
-                    Debug.LogFormat("Ripple CheckState index:{0} level:{1}", idx, node.Level);
 
                     for (var i = idx - 1; i > 0 && node.Level <= nodes[i].Level; i--)
                     {
@@ -304,16 +317,15 @@ namespace GitHub.Unity
 
                         firstSiblingIndex = i;
                         var siblingIsChecked = nodes[i].CheckState == CheckState.Checked;
-                        Debug.LogFormat("Previous Sibling - idx:{0} name:{1} checked:{2}", i, nodes[i].Path, siblingIsChecked);
 
                         if (isChecked != siblingIsChecked)
                         {
                             siblingsInSameState = false;
-                            //break;
+                            break;
                         }
                     }
 
-                    //if (siblingsInSameState)
+                    if (siblingsInSameState)
                     {
                         for (var i = idx + 1; i < nodes.Count && node.Level <= nodes[i].Level; i++)
                         {
@@ -323,11 +335,14 @@ namespace GitHub.Unity
                             }
 
                             var siblingIsChecked = nodes[i].CheckState == CheckState.Checked;
-                            Debug.LogFormat("Next Siblings    - idx:{0} name:{1} checked:{2}", i, nodes[i].Path, siblingIsChecked);
+
+                            if (isChecked != siblingIsChecked)
+                            {
+                                siblingsInSameState = false;
+                                break;
+                            }
                         }
                     }
-
-                    Debug.LogFormat("Siblings in same state = {0}", siblingsInSameState);
 
                     var parentIndex = firstSiblingIndex - 1;
                     var parentNode = nodes[parentIndex];
