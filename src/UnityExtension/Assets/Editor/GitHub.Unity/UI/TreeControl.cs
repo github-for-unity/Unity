@@ -91,10 +91,16 @@ namespace GitHub.Unity
                     var alreadyExists = folders.ContainsKey(name);
                     if (!alreadyExists)
                     {
+                        var isActive = false;
+                        if (name == d.Name)
+                        {
+                            isActive = d.IsActive;
+                        }
+
                         var node = new TreeNode
                         {
                             Name = name,
-                            IsActive = d.IsActive,
+                            IsActive = isActive,
                             Label = label,
                             Level = level,
                             IsFolder = isFolder
