@@ -27,13 +27,14 @@ namespace GitHub.Unity
                            MinCommitTreePadding = 20f,
                            FoldoutWidth = 11f,
                            FoldoutIndentation = -2f,
+                           TreePadding = 12f,
                            TreeIndentation = 12f,
                            TreeRootIndentation = -5f,
                            TreeVerticalSpacing = 3f,
                            CommitIconSize = 16f,
                            CommitIconHorizontalPadding = -5f,
                            BranchListIndentation = 20f,
-                           BranchListSeperation = 15f,
+                           BranchListSeparation = 15f,
                            RemotesTotalHorizontalMargin = 37f,
                            RemotesNameRatio = .2f,
                            RemotesUserRatio = .2f,
@@ -829,5 +830,79 @@ namespace GitHub.Unity
                 return dropdownListIcon;
             }
         }
+
+        private static Texture2D globeIcon;
+        public static Texture2D GlobeIcon
+        {
+            get
+            {
+                if (globeIcon == null)
+                {
+                    globeIcon = Utility.GetIcon("globe.png", "globe@2x.png");
+                }
+                return globeIcon;
+            }
+        }
+
+        private static GUIStyle foldout;
+        public static GUIStyle Foldout
+        {
+            get
+            {
+                if (foldout == null)
+                {
+                    foldout = new GUIStyle(EditorStyles.foldout);
+                    foldout.name = "CustomFoldout";
+
+                    foldout.focused.textColor = Color.white;
+                    foldout.onFocused.textColor = Color.white;
+                    foldout.focused.background = foldout.active.background;
+                    foldout.onFocused.background = foldout.onActive.background;
+                }
+
+                return foldout;
+            }
+        }
+
+        private static GUIStyle treeNode;
+        public static GUIStyle TreeNode
+        {
+            get
+            {
+                if (treeNode == null)
+                {
+                    treeNode = new GUIStyle(GUI.skin.label);
+                    treeNode.name = "Custom TreeNode";
+
+                    var color = new Color(62f / 255f, 125f / 255f, 231f / 255f);
+                    var texture = Utility.GetTextureFromColor(color);
+                    treeNode.focused.background = texture;
+                    treeNode.onFocused.background = texture;
+                    treeNode.focused.textColor = Color.white;
+                    treeNode.onFocused.textColor = Color.white;
+                }
+
+                return treeNode;
+            }
+        }
+
+        private static GUIStyle treeNodeActive;
+        public static GUIStyle TreeNodeActive
+        {
+            get
+            {
+                if (treeNodeActive == null)
+                {
+                    treeNodeActive = new GUIStyle(TreeNode);
+                    treeNodeActive.name = "Custom TreeNode Active";
+                    treeNodeActive.fontStyle = FontStyle.Bold;
+                    treeNodeActive.focused.textColor = Color.white;
+                    treeNodeActive.active.textColor = Color.white;
+                }
+
+                return treeNodeActive;
+            }
+        }
+
     }
 }
