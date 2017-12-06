@@ -310,18 +310,22 @@ namespace GitHub.Unity
 
                     for (var i = idx - 1; i > 0 && node.Level <= nodes[i].Level; i--)
                     {
-                        if (node.Level < nodes[i].Level)
+                        var previousNode = nodes[i];
+                        if (node.Level < previousNode.Level)
                         {
                             continue;
                         }
 
                         firstSiblingIndex = i;
-                        var siblingIsChecked = nodes[i].CheckState == CheckState.Checked;
 
-                        if (isChecked != siblingIsChecked)
+                        if (siblingsInSameState)
                         {
-                            siblingsInSameState = false;
-                            break;
+                            var previousNodeIsChecked = previousNode.CheckState == CheckState.Checked;
+
+                            if (isChecked != previousNodeIsChecked)
+                            {
+                                siblingsInSameState = false;
+                            }
                         }
                     }
 
@@ -329,14 +333,14 @@ namespace GitHub.Unity
                     {
                         for (var i = idx + 1; i < nodes.Count && node.Level <= nodes[i].Level; i++)
                         {
-                            if (node.Level < nodes[i].Level)
+                            var followingNode = nodes[i];
+                            if (node.Level < followingNode.Level)
                             {
                                 continue;
                             }
 
-                            var siblingIsChecked = nodes[i].CheckState == CheckState.Checked;
-
-                            if (isChecked != siblingIsChecked)
+                            var followingNodeIsChecked = followingNode.CheckState == CheckState.Checked;
+                            if (isChecked != followingNodeIsChecked)
                             {
                                 siblingsInSameState = false;
                                 break;
