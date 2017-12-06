@@ -317,7 +317,7 @@ namespace GitHub.Unity
             var initialRect = rect;
             var treeHadFocus = treeLocals.SelectedNode != null;
 
-            rect = treeLocals.Render(rect, scroll,
+            rect = treeLocals.Render(initialRect, rect, scroll,
                 node =>{ },
                 node => {
                     if (node.IsFolder)
@@ -348,7 +348,7 @@ namespace GitHub.Unity
 
             rect.y += Styles.TreePadding;
 
-            rect = treeRemotes.Render(rect, scroll,
+            rect = treeRemotes.Render(initialRect, rect, scroll,
                 node => { },
                 node => {
                     if (node.IsFolder)
@@ -358,7 +358,7 @@ namespace GitHub.Unity
                 },
                 node => {
                     if (node.IsFolder)
-                       return;
+                        return;
 
                     var menu = CreateContextMenuForRemoteBranchNode(node);
                     menu.ShowAsContext();

@@ -145,7 +145,7 @@ namespace GitHub.Unity
             }
         }
 
-        public Rect Render(Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
+        public Rect Render(Rect containingRect, Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
         {
             if (Event.current.type != EventType.Repaint)
             {
@@ -157,15 +157,20 @@ namespace GitHub.Unity
                 }
             }
 
-            Profiler.BeginSample("TreeControl");
-            bool visible = true;
-            var availableHeight = rect.y + rect.height;
+            var startDisplay = scroll.y;
+            var endDisplay = scroll.y + containingRect.height;
 
             RequiresRepaint = false;
             rect = new Rect(0f, rect.y, rect.width, ItemHeight);
 
             var titleNode = nodes[0];
-            bool selectionChanged = titleNode.Render(rect, 0f, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+            var selectionChanged = false;
+
+            var titleDisplay = !(rect.y > endDisplay || rect.yMax < startDisplay);
+            if (titleDisplay)
+            {
+                selectionChanged = titleNode.Render(rect, Styles.TreeIndentation, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+            }
 
             if (selectionChanged)
             {
@@ -187,15 +192,18 @@ namespace GitHub.Unity
                     Indent();
                 }
 
-                if (visible)
-                {
-                    var changed = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                var changed = false;
 
-                    if (node.IsFolder && changed)
-                    {
-                        // toggle visibility for all the nodes under this one
-                        ToggleNodeVisibility(i, node);
-                    }
+                var display = !(rect.y > endDisplay || rect.yMax < startDisplay);
+                if (display)
+                {
+                    changed = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                }
+
+                if (node.IsFolder && changed)
+                {
+                    // toggle visibility for all the nodes under this one
+                    ToggleNodeVisibility(i, node);
                 }
 
                 if (node.Level < level)
@@ -209,10 +217,7 @@ namespace GitHub.Unity
 
                 if (!node.IsHidden)
                 {
-                    if (visible)
-                    {
-                        RequiresRepaint = HandleInput(rect, node, i, singleClick, doubleClick, rightClick);
-                    }
+                    RequiresRepaint = HandleInput(rect, node, i, singleClick, doubleClick, rightClick);
                     rect.y += ItemHeight + ItemSpacing;
                 }
             }
