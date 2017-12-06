@@ -77,8 +77,14 @@ namespace GitHub.Unity
                             }
                         }
 
+                        var isActive = false;
+                        if (nodePath == treeData.Path)
+                        {
+                            isActive = treeData.IsActive;
+                        }
+
                         isSelected = selectedNodePath != null && nodePath == selectedNodePath;
-                        tree.AddNode(path: nodePath, label: label, level: i + displayRootLevel, isFolder: isFolder, isActive: treeData.IsActive, isHidden: nodeIsHidden, isCollapsed: nodeIsCollapsed, isSelected: isSelected);
+                        tree.AddNode(path: nodePath, label: label, level: i + displayRootLevel, isFolder: isFolder, isActive: isActive, isHidden: nodeIsHidden, isCollapsed: nodeIsCollapsed, isSelected: isSelected);
                     }
                 }
             }
