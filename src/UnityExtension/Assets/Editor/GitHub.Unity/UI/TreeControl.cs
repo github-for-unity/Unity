@@ -293,14 +293,9 @@ namespace GitHub.Unity
 
         private void ToggleChildrenChecked(int idx, TreeNode node, bool isChecked)
         {
-            for (var i = idx + 1; i < nodes.Count && node.Level <= nodes[i].Level; i++)
+            for (var i = idx + 1; i < nodes.Count && node.Level < nodes[i].Level; i++)
             {
                 var childNode = nodes[i];
-                if (node.Level == childNode.Level)
-                {
-                    continue;
-                }
-
                 childNode.CheckState = isChecked ? CheckState.Checked : CheckState.Empty;
 
                 if (childNode.IsFolder)
