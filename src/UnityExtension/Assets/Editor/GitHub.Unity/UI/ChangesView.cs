@@ -41,8 +41,7 @@ namespace GitHub.Unity
             AttachHandlers(Repository);
 
             Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
-
-            currentStatusEntriesHasUpdate = true;
+            Repository.CheckStatusEntriesChangedEvent(lastStatusEntriesChangedEvent);
         }
 
         public override void OnDisable()
