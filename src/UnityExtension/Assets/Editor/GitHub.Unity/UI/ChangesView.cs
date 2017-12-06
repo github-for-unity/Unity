@@ -30,6 +30,7 @@ namespace GitHub.Unity
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
         [SerializeField] private ChangesTree treeChanges;
         [SerializeField] private List<GitStatusEntry> gitStatusEntries;
+        [SerializeField] private string changedFilesText = NoChangedFilesLabel;
 
         public override void OnEnable()
         {
@@ -72,12 +73,7 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-//                GUILayout.Label(
-//                    tree.Entries.Count == 0
-//                        ? NoChangedFilesLabel
-//                        : tree.Entries.Count == 1
-//                            ? OneChangedFileLabel
-//                            : String.Format(ChangedFilesLabel, tree.Entries.Count), EditorStyles.miniLabel);
+                GUILayout.Label(changedFilesText, EditorStyles.miniLabel);
             }
             GUILayout.EndHorizontal();
 
@@ -179,7 +175,13 @@ namespace GitHub.Unity
             if (currentStatusEntriesHasUpdate)
             {
                 currentStatusEntriesHasUpdate = false;
-                gitStatusEntries = Repository.CurrentChanges;
+                gitStatusEntries = Repository.CurrentChanges.Where(x => x.Status != GitFileStatus.Ignored).ToList();
+
+                changedFilesText = gitStatusEntries.Count == 0
+                    ? NoChangedFilesLabel
+                    : gitStatusEntries.Count == 1
+                        ? OneChangedFileLabel
+                        : String.Format(ChangedFilesLabel, gitStatusEntries.Count);
 
                 BuildTree();
             }
@@ -198,7 +200,7 @@ namespace GitHub.Unity
                 UpdateTreeIcons();
             }
 
-            TreeLoader.Load(treeChanges, gitStatusEntries.Where(x => x.Status != GitFileStatus.Ignored).Select(entry => new GitStatusEntryTreeData(entry)).Cast<ITreeData>());
+            TreeLoader.Load(treeChanges, gitStatusEntries.Select(entry => (ITreeData) new GitStatusEntryTreeData(entry)));
             Redraw();
         }
 
