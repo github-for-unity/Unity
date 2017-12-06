@@ -483,9 +483,6 @@ namespace GitHub.Unity
 
             var nodeRect = new Rect(nodeStartX, rect.y, rect.width, rect.height);
 
-            var data = string.Format("Label: {0} ", Label);
-            data += string.Format("Start: {0} ", nodeStartX);
-
             if (Event.current.type == EventType.repaint)
             {
                 nodeStyle.Draw(fillRect, GUIContent.none, false, false, false, isSelected);
@@ -494,8 +491,6 @@ namespace GitHub.Unity
             var styleOn = false;
             if (IsFolder)
             {
-                data += string.Format("FolderStart: {0} ", nodeStartX);
-
                 var toggleRect = new Rect(nodeStartX, nodeRect.y, indentation, nodeRect.height);
                 nodeStartX += toggleRect.width;
 
@@ -518,8 +513,6 @@ namespace GitHub.Unity
 
             if (TreeIsCheckable)
             {
-                data += string.Format("SelectStart: {0} ", nodeStartX);
-
                 var selectRect = new Rect(nodeStartX, nodeRect.y, indentation, nodeRect.height);
 
                 nodeStartX += selectRect.width + 2;
@@ -546,7 +539,6 @@ namespace GitHub.Unity
                 }
             }
 
-            data += string.Format("ContentStart: {0} ", nodeStartX);
             var contentStyle = IsActive ? activeNodeStyle : nodeStyle;
 
             var contentRect = new Rect(nodeStartX, rect.y, rect.width, rect.height);
@@ -554,8 +546,6 @@ namespace GitHub.Unity
             {
                 contentStyle.Draw(contentRect, content, false, false, styleOn, isSelected);
             }
-
-            Debug.Log(data);
 
             return renderResult;
         }
