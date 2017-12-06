@@ -182,23 +182,6 @@ namespace GitHub.Unity
             }
         }
 
-        private void UpdateTreeStyles()
-        {
-            if (treeLocals != null && treeLocals.FolderStyle == null)
-            {
-                treeLocals.FolderStyle = Styles.Foldout;
-                treeLocals.TreeNodeStyle = Styles.TreeNode;
-                treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
-            }
-
-            if (treeRemotes != null && treeRemotes.FolderStyle == null)
-            {
-                treeRemotes.FolderStyle = Styles.Foldout;
-                treeRemotes.TreeNodeStyle = Styles.TreeNode;
-                treeRemotes.ActiveTreeNodeStyle = Styles.TreeNodeActive;
-            }
-        }
-
         private void OnButtonBarGUI()
         {
             if (mode == BranchesMode.Default)
@@ -313,23 +296,28 @@ namespace GitHub.Unity
 
         private void OnTreeGUI(Rect rect)
         {
-            UpdateTreeStyles();
-
             var initialRect = rect;
-            var treeHadFocus = treeLocals.SelectedNode != null;
+            if (treeLocals != null && treeRemotes != null)
+            {
+                treeLocals.FolderStyle = Styles.Foldout;
+                treeLocals.TreeNodeStyle = Styles.TreeNode;
+                treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
 
-            rect = treeLocals.Render(initialRect, rect, scroll,
-                node =>{ },
-                node => {
+                treeRemotes.FolderStyle = Styles.Foldout;
+                treeRemotes.TreeNodeStyle = Styles.TreeNode;
+                treeRemotes.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+
+                var treeHadFocus = treeLocals.SelectedNode != null;
+
+                rect = treeLocals.Render(initialRect, rect, scroll, node => { }, node => {
                     if (node.IsFolder)
                         return;
 
-                    if(node.IsActive)
+                    if (node.IsActive)
                         return;
 
                     SwitchBranch(node.Path);
-                },
-                node => {
+                }, node => {
                     if (node.IsFolder)
                         return;
 
@@ -337,27 +325,24 @@ namespace GitHub.Unity
                     menu.ShowAsContext();
                 });
 
-            if (treeHadFocus && treeLocals.SelectedNode == null)
-                treeRemotes.Focus();
-            else if (!treeHadFocus && treeLocals.SelectedNode != null)
-                treeRemotes.Blur();
+                if (treeHadFocus && treeLocals.SelectedNode == null)
+                    treeRemotes.Focus();
+                else if (!treeHadFocus && treeLocals.SelectedNode != null)
+                    treeRemotes.Blur();
 
-            if (treeLocals.RequiresRepaint)
-                Redraw();
+                if (treeLocals.RequiresRepaint)
+                    Redraw();
 
-            treeHadFocus = treeRemotes.SelectedNode != null;
+                treeHadFocus = treeRemotes.SelectedNode != null;
 
-            rect.y += Styles.TreePadding;
+                rect.y += Styles.TreePadding;
 
-            rect = treeRemotes.Render(initialRect, rect, scroll,
-                node => { },
-                node => {
+                rect = treeRemotes.Render(initialRect, rect, scroll, node => { }, node => {
                     if (node.IsFolder)
                         return;
 
                     CheckoutRemoteBranch(node.Path);
-                },
-                node => {
+                }, node => {
                     if (node.IsFolder)
                         return;
 
@@ -365,15 +350,15 @@ namespace GitHub.Unity
                     menu.ShowAsContext();
                 });
 
-            if (treeHadFocus && treeRemotes.SelectedNode == null)
-                treeLocals.Focus();
-            else if (!treeHadFocus && treeRemotes.SelectedNode != null)
-                treeLocals.Blur();
+                if (treeHadFocus && treeRemotes.SelectedNode == null)
+                    treeLocals.Focus();
+                else if (!treeHadFocus && treeRemotes.SelectedNode != null)
+                    treeLocals.Blur();
 
-            if (treeRemotes.RequiresRepaint)
-                Redraw();
+                if (treeRemotes.RequiresRepaint)
+                    Redraw();
 
-            //Debug.LogFormat("reserving: {0} {1} {2}", rect.y - initialRect.y, rect.y, initialRect.y);
+            }
             GUILayout.Space(rect.y - initialRect.y);
         }
 

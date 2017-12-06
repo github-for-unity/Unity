@@ -96,30 +96,25 @@ namespace GitHub.Unity
 
         private void OnTreeGUI(Rect rect)
         {
-            UpdateTreeStyles();
-
             var initialRect = rect;
-            rect = treeChanges.Render(initialRect, rect, scroll,
-                node => { },
-                node => {
-                },
-                node => {
-                });
-
-            if (treeChanges.RequiresRepaint)
-                Redraw();
-
-            GUILayout.Space(rect.y - initialRect.y);
-        }
-
-        private void UpdateTreeStyles()
-        {
-            if (treeChanges != null && treeChanges.FolderStyle == null)
+            if (treeChanges != null)
             {
                 treeChanges.FolderStyle = Styles.Foldout;
                 treeChanges.TreeNodeStyle = Styles.TreeNode;
                 treeChanges.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+
+                rect = treeChanges.Render(initialRect, rect, scroll,
+                    node => { },
+                    node => {
+                    },
+                    node => {
+                    });
+
+                if (treeChanges.RequiresRepaint)
+                    Redraw();
             }
+
+            GUILayout.Space(rect.y - initialRect.y);
         }
 
         private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
