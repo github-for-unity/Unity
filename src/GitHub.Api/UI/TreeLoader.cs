@@ -8,7 +8,8 @@ namespace GitHub.Unity
     {
         void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isSelected);
         void Clear();
-        HashSet<string> GetCollapsedFolders();
+        IEnumerable<string> GetCollapsedFolders();
+        IEnumerable<string> GetCheckedFiles();
         string Title { get; }
         bool DisplayRootNode { get; }
         bool IsCheckable { get; }
@@ -20,7 +21,7 @@ namespace GitHub.Unity
     {
         public static void Load(ITree tree, IEnumerable<ITreeData> treeDatas)
         {
-            var collapsedFolders = tree.GetCollapsedFolders();
+            var collapsedFolders = new HashSet<string>(tree.GetCollapsedFolders());
             var selectedNodePath = tree.SelectedNodePath;
             
             tree.Clear();
