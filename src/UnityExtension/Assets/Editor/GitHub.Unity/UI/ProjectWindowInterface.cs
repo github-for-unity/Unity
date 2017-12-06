@@ -33,7 +33,7 @@ namespace GitHub.Unity
 
             if (repository != null)
             {
-                repository.StatusChanged += RepositoryOnStatusChanged;
+                repository.TrackingStatusChanged += RepositoryOnStatusChanged;
                 repository.LocksChanged += RepositoryOnLocksChanged;
 
                 repository.CheckStatusChangedEvent(lastRepositoryStatusChangedEvent);

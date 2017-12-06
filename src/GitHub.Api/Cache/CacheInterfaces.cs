@@ -8,7 +8,8 @@ namespace GitHub.Unity
         RepositoryInfoCache,
         BranchCache,
         GitLogCache,
-        GitStatusCache,
+        GitTrackingStatusCache,
+        GitStatusEntriesCache,
         GitLocksCache,
         GitUserCache
     }
@@ -20,7 +21,8 @@ namespace GitHub.Unity
 
         IBranchCache BranchCache { get; }
         IGitLogCache GitLogCache { get; }
-        IGitStatusCache GitStatusCache { get; }
+        IGitTrackingStatusCache GitTrackingStatusCache { get; }
+        IGitStatusEntriesCache GitStatusEntriesCache { get; }
         IGitLocksCache GitLocksCache { get; }
         IGitUserCache GitUserCache { get; }
         IRepositoryInfoCache RepositoryInfoCache { get; }
@@ -53,10 +55,14 @@ namespace GitHub.Unity
         string Email { get; set; }
     }
 
-    public interface IGitStatusCache : IManagedCache
+    public interface IGitTrackingStatusCache : IManagedCache
     {
         int Ahead { get; set; }
         int Behind { get; set; }
+    }
+
+    public interface IGitStatusEntriesCache : IManagedCache
+    {
         List<GitStatusEntry> Entries { get; set; }
     }
 
