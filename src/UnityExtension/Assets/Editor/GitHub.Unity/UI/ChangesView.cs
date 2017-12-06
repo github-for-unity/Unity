@@ -110,7 +110,7 @@ namespace GitHub.Unity
                 treeChanges.ActiveTreeNodeStyle = Styles.TreeNodeActive;
             }
 
-            rect = treeChanges.Render(rect, scroll,
+            rect = treeChanges.Render(initialRect, rect, scroll,
                 node => { },
                 node => {
                 },
