@@ -419,7 +419,7 @@ namespace GitHub.Unity
             set { treeIsCheckable = value; }
         }
 
-        public CheckState State
+        public CheckState CheckState
         {
             get { return checkState; }
             set { checkState = value; }
@@ -484,11 +484,11 @@ namespace GitHub.Unity
                 var selectionStyle = GUI.skin.toggle;
                 var selectionValue = false;
 
-                if (State == CheckState.Checked)
+                if (CheckState == CheckState.Checked)
                 {
                     selectionValue = true;
                 }
-                else if (State == CheckState.Mixed)
+                else if (CheckState == CheckState.Mixed)
                 {
                     selectionStyle = Styles.ToggleMixedStyle;
                 }
@@ -618,7 +618,7 @@ namespace GitHub.Unity
 
         public override IEnumerable<string> GetCheckedFiles()
         {
-            return checkedFileNodes.Where(pair => pair.Value.State == CheckState.Checked).Select(pair => pair.Key);
+            return checkedFileNodes.Where(pair => pair.Value.CheckState == CheckState.Checked).Select(pair => pair.Key);
         }
 
         protected override void RemoveCheckedNode(TreeNode node)

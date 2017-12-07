@@ -20,7 +20,7 @@ namespace GitHub.Unity
         bool IsHidden { get; set; }
         bool IsActive { get; set; }
         bool TreeIsCheckable { get; set; }
-        CheckState State { get; set; }
+        CheckState CheckState { get; set; }
     }
 
     public abstract class TreeBase<TNode, TData> where TNode : class, ITreeNode where TData : struct, ITreeData
@@ -164,16 +164,16 @@ namespace GitHub.Unity
         {
             var isChecked = false;
 
-            switch (node.State)
+            switch (node.CheckState)
             {
                 case CheckState.Mixed:
                 case CheckState.Empty:
-                    node.State = CheckState.Checked;
+                    node.CheckState = CheckState.Checked;
                     isChecked = true;
                     break;
 
                 case CheckState.Checked:
-                    node.State = CheckState.Empty;
+                    node.CheckState = CheckState.Empty;
                     break;
             }
 
@@ -201,8 +201,8 @@ namespace GitHub.Unity
             for (var i = idx + 1; i < Nodes.Count && node.Level < Nodes[i].Level; i++)
             {
                 var childNode = Nodes[i];
-                var wasChecked = childNode.State == CheckState.Checked;
-                childNode.State = isChecked ? CheckState.Checked : CheckState.Empty;
+                var wasChecked = childNode.CheckState == CheckState.Checked;
+                childNode.CheckState = isChecked ? CheckState.Checked : CheckState.Empty;
 
                 if (childNode.IsFolder)
                 {
@@ -243,7 +243,7 @@ namespace GitHub.Unity
 
                         if (siblingsInSameState)
                         {
-                            var previousNodeIsChecked = previousNode.State == CheckState.Checked;
+                            var previousNodeIsChecked = previousNode.CheckState == CheckState.Checked;
 
                             if (isChecked != previousNodeIsChecked)
                             {
@@ -262,7 +262,7 @@ namespace GitHub.Unity
                                 continue;
                             }
 
-                            var followingNodeIsChecked = followingNode.State == CheckState.Checked;
+                            var followingNodeIsChecked = followingNode.CheckState == CheckState.Checked;
                             if (isChecked != followingNodeIsChecked)
                             {
                                 siblingsInSameState = false;
@@ -275,11 +275,11 @@ namespace GitHub.Unity
                     var parentNode = Nodes[parentIndex];
                     if (siblingsInSameState)
                     {
-                        parentNode.State = isChecked ? CheckState.Checked : CheckState.Empty;
+                        parentNode.CheckState = isChecked ? CheckState.Checked : CheckState.Empty;
                     }
                     else
                     {
-                        parentNode.State = CheckState.Mixed;
+                        parentNode.CheckState = CheckState.Mixed;
                     }
 
                     idx = parentIndex;
