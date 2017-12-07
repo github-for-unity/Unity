@@ -31,13 +31,10 @@ namespace GitHub.Unity
     [Serializable]
     public class ChangesTree : Tree<ChangesTreeNode, GitStatusEntryTreeData>
     {
-        [SerializeField]
-        public ChangesTreeNodeDictionary folders = new ChangesTreeNodeDictionary();
-        [SerializeField]
-        public ChangesTreeNodeDictionary checkedFileNodes = new ChangesTreeNodeDictionary();
+        [SerializeField] public ChangesTreeNodeDictionary folders = new ChangesTreeNodeDictionary();
+        [SerializeField] public ChangesTreeNodeDictionary checkedFileNodes = new ChangesTreeNodeDictionary();
 
-        [NonSerialized]
-        public Texture2D FolderIcon;
+        [NonSerialized] public Texture2D FolderIcon;
 
         public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)
         {
