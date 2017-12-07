@@ -238,8 +238,8 @@
     <Compile Include="Git\GitCredentialManager.cs" />
     <Compile Include="UI\FileTreeNode.cs" />
     <Compile Include="UI\GitCommitTarget.cs" />
+    <Compile Include="UI\TreeBase.cs" />
     <Compile Include="UI\TreeBuilder.cs" />
-    <Compile Include="UI\TreeLoader.cs" />
   </ItemGroup>
   <Choose>
     <When Condition="$(Buildtype) == 'Internal'">

@@ -10,7 +10,9 @@ namespace GitHub.Unity
     public class TreeNodeDictionary : SerializableDictionary<string, TreeNode> { }
 
     [Serializable]
-    public abstract class Tree: ITree
+    public abstract class Tree<TNode, TData>: TreeBase<TNode, TData>
+        where TNode : TreeNode 
+        where TData : struct, ITreeData
     {
         public static float ItemHeight { get { return EditorGUIUtility.singleLineHeight; } }
         public static float ItemSpacing { get { return EditorGUIUtility.standardVerticalSpacing; } }
@@ -26,19 +28,17 @@ namespace GitHub.Unity
         [NonSerialized] public GUIStyle TreeNodeStyle;
         [NonSerialized] public GUIStyle ActiveTreeNodeStyle;
 
-        [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
-        [SerializeField] private TreeNode selectedNode = null;
-        [SerializeField] private TreeNodeDictionary folders = new TreeNodeDictionary();
-        [SerializeField] private TreeNodeDictionary checkedFileNodes = new TreeNodeDictionary();
+        [SerializeField] private List<TNode> nodes = new List<TNode>();
+        [SerializeField] private TNode selectedNode = null;
 
         [NonSerialized] private Stack<bool> indents = new Stack<bool>();
-        [NonSerialized] private Action<TreeNode> rightClickNextRender;
-        [NonSerialized] private TreeNode rightClickNextRenderNode;
+        [NonSerialized] private Action<TNode> rightClickNextRender;
+        [NonSerialized] private TNode rightClickNextRenderNode;
 
-        public bool IsInitialized { get { return nodes != null && nodes.Count > 0 && !String.IsNullOrEmpty(nodes[0].Path); } }
+        public bool IsInitialized { get { return Nodes != null && Nodes.Count > 0 && !String.IsNullOrEmpty(Nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
 
-        public TreeNode SelectedNode
+        public override TNode SelectedNode
         {
             get
             {
@@ -46,90 +46,42 @@ namespace GitHub.Unity
                     selectedNode = null;
                 return selectedNode;
             }
-            private set
+            set
             {
                 selectedNode = value;
             }
         }
 
-        public string SelectedNodePath
-        {
-            get { return SelectedNode != null ? SelectedNode.Path : null; }
-        }
-
-        public string Title
+        public override string Title
         {
             get { return title; }
             set { title = value; }
         }
 
-        public bool DisplayRootNode
+        public override bool DisplayRootNode
         {
             get { return displayRootNode; }
             set { displayRootNode = value; }
         }
 
-        public bool IsCheckable
+        public override bool IsCheckable
         {
             get { return isCheckable; }
             set { isCheckable = value; }
         }
 
-        public string PathSeparator
+        public override string PathSeparator
         {
             get { return pathSeparator; }
             set { pathSeparator = value; }
         }
 
-        public void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isSelected, int customIntTag = 0, string customStringTag = (string)null)
+        protected override List<TNode> Nodes
         {
-            var node = new TreeNode
-            {
-                Path = path,
-                Label = label,
-                Level = level,
-                IsFolder = isFolder,
-                IsActive = isActive,
-                IsHidden = isHidden,
-                IsCollapsed = isCollapsed,
-                TreeIsCheckable = IsCheckable,
-                CustomStringTag = customStringTag,
-                CustomIntTag = customIntTag
-            };
-
-            SetNodeIcon(node);
-            nodes.Add(node);
-
-            if (isSelected)
-            {
-                SelectedNode = node;
-            }
-
-            if (isFolder)
-            {
-                folders.Add(node.Path, node);
-            }
+            get { return nodes; }
         }
 
-        public void Clear()
-        {
-            folders.Clear();
-            checkedFileNodes.Clear();
-            nodes.Clear();
-            SelectedNode = null;
-        }
-
-        public IEnumerable<string> GetCollapsedFolders()
-        {
-            return folders.Where(pair => pair.Value.IsCollapsed).Select(pair => pair.Key);
-        }
-
-        public IEnumerable<string> GetCheckedFiles()
-        {
-            return checkedFileNodes.Where(pair => pair.Value.CheckState == CheckState.Checked).Select(pair => pair.Key);
-        }
-
-        public Rect Render(Rect containingRect, Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
+        public Rect Render(Rect containingRect, Rect rect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
         {
             if (Event.current.type != EventType.Repaint)
             {
@@ -151,7 +103,7 @@ namespace GitHub.Unity
 
             if (DisplayRootNode)
             {
-                var titleNode = nodes[0];
+                var titleNode = Nodes[0];
                 var renderResult = TreeNodeRenderResult.None;
 
                 var titleDisplay = !(rect.y > endDisplay || rect.yMax < startDisplay);
@@ -177,9 +129,9 @@ namespace GitHub.Unity
             }
 
             int i = 1;
-            for (; i < nodes.Count; i++)
+            for (; i < Nodes.Count; i++)
             {
-                var node = nodes[i];
+                var node = Nodes[i];
                 if (node.Level > level && !node.IsHidden)
                 {
                     Indent();
@@ -236,13 +188,13 @@ namespace GitHub.Unity
 
                 if (directionY < 0 || directionX < 0)
                 {
-                    SelectedNode = nodes[nodes.Count - 1];
+                    SelectedNode = Nodes[Nodes.Count - 1];
                     selectionChanged = true;
                     Event.current.Use();
                 }
                 else if (directionY > 0 || directionX > 0)
                 {
-                    SelectedNode = nodes[0];
+                    SelectedNode = Nodes[0];
                     selectionChanged = true;
                     Event.current.Use();
                 }
@@ -256,159 +208,7 @@ namespace GitHub.Unity
             RequiresRepaint = true;
         }
 
-        private void ToggleNodeChecked(int idx, TreeNode node)
-        {
-            var isChecked = false;
-
-            switch (node.CheckState)
-            {
-                case CheckState.Mixed:
-                case CheckState.Empty:
-                    node.CheckState = CheckState.Checked;
-                    isChecked = true;
-                    break;
-
-                case CheckState.Checked:
-                    node.CheckState = CheckState.Empty;
-                    break;
-            }
-
-            if (node.IsFolder)
-            {
-                ToggleChildrenChecked(idx, node, isChecked);
-            }
-            else
-            {
-                if (isChecked)
-                {
-                    checkedFileNodes.Add(node.Path, node);
-                }
-                else
-                {
-                    checkedFileNodes.Remove(node.Path);
-                }
-            }
-
-            ToggleParentFoldersChecked(idx, node, isChecked);
-        }
-
-        private void ToggleChildrenChecked(int idx, TreeNode node, bool isChecked)
-        {
-            for (var i = idx + 1; i < nodes.Count && node.Level < nodes[i].Level; i++)
-            {
-                var childNode = nodes[i];
-                var wasChecked = childNode.CheckState == CheckState.Checked;
-                childNode.CheckState = isChecked ? CheckState.Checked : CheckState.Empty;
-
-                if (childNode.IsFolder)
-                {
-                    ToggleChildrenChecked(i, childNode, isChecked);
-                }
-                else
-                {
-                    if (isChecked && !wasChecked)
-                    {
-                        checkedFileNodes.Add(childNode.Path, childNode);
-                    }
-                    else if(!isChecked && wasChecked)
-                    {
-                        checkedFileNodes.Remove(childNode.Path);
-                    }
-                }
-            }
-        }
-
-        private void ToggleParentFoldersChecked(int idx, TreeNode node, bool isChecked)
-        {
-            while (true)
-            {
-                if (node.Level > 0)
-                {
-                    var siblingsInSameState = true;
-                    var firstSiblingIndex = idx;
-
-                    for (var i = idx - 1; i > 0 && node.Level <= nodes[i].Level; i--)
-                    {
-                        var previousNode = nodes[i];
-                        if (node.Level < previousNode.Level)
-                        {
-                            continue;
-                        }
-
-                        firstSiblingIndex = i;
-
-                        if (siblingsInSameState)
-                        {
-                            var previousNodeIsChecked = previousNode.CheckState == CheckState.Checked;
-
-                            if (isChecked != previousNodeIsChecked)
-                            {
-                                siblingsInSameState = false;
-                            }
-                        }
-                    }
-
-                    if (siblingsInSameState)
-                    {
-                        for (var i = idx + 1; i < nodes.Count && node.Level <= nodes[i].Level; i++)
-                        {
-                            var followingNode = nodes[i];
-                            if (node.Level < followingNode.Level)
-                            {
-                                continue;
-                            }
-
-                            var followingNodeIsChecked = followingNode.CheckState == CheckState.Checked;
-                            if (isChecked != followingNodeIsChecked)
-                            {
-                                siblingsInSameState = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    var parentIndex = firstSiblingIndex - 1;
-                    var parentNode = nodes[parentIndex];
-                    if (siblingsInSameState)
-                    {
-                        parentNode.CheckState = isChecked ? CheckState.Checked : CheckState.Empty;
-                    }
-                    else
-                    {
-                        parentNode.CheckState = CheckState.Mixed;
-                    }
-
-                    idx = parentIndex;
-                    node = parentNode;
-                    continue;
-                }
-
-                break;
-            }
-        }
-
-        private void ToggleNodeVisibility(int idx, TreeNode node)
-        {
-            var nodeLevel = node.Level;
-            node.IsCollapsed = !node.IsCollapsed;
-            idx++;
-            for (; idx < nodes.Count && nodes[idx].Level > nodeLevel; idx++)
-            {
-                nodes[idx].IsHidden = node.IsCollapsed;
-                if (nodes[idx].IsFolder && !node.IsCollapsed && nodes[idx].IsCollapsed)
-                {
-                    var level = nodes[idx].Level;
-                    for (idx++; idx < nodes.Count && nodes[idx].Level > level; idx++) { }
-                    idx--;
-                }
-            }
-            if (SelectedNode != null && SelectedNode.IsHidden)
-            {
-                SelectedNode = node;
-            }
-        }
-
-        private bool HandleInput(Rect rect, TreeNode currentNode, int index, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
+        private bool HandleInput(Rect rect, TNode currentNode, int index, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
         {
             var requiresRepaint = false;
             var clickRect = new Rect(0f, rect.y, rect.width, rect.height);
@@ -490,18 +290,18 @@ namespace GitHub.Unity
 
         private int SelectNext(int index, bool foldersOnly)
         {
-            for (index++; index < nodes.Count; index++)
+            for (index++; index < Nodes.Count; index++)
             {
-                if (nodes[index].IsHidden)
+                if (Nodes[index].IsHidden)
                     continue;
-                if (!nodes[index].IsFolder && foldersOnly)
+                if (!Nodes[index].IsFolder && foldersOnly)
                     continue;
                 break;
             }
 
-            if (index < nodes.Count)
+            if (index < Nodes.Count)
             {
-                SelectedNode = nodes[index];
+                SelectedNode = Nodes[index];
                 Event.current.Use();
             }
             else
@@ -515,16 +315,16 @@ namespace GitHub.Unity
         {
             for (index--; index >= 0; index--)
             {
-                if (nodes[index].IsHidden)
+                if (Nodes[index].IsHidden)
                     continue;
-                if (!nodes[index].IsFolder && foldersOnly)
+                if (!Nodes[index].IsFolder && foldersOnly)
                     continue;
                 break;
             }
 
             if (index >= 0)
             {
-                SelectedNode = nodes[index];
+                SelectedNode = Nodes[index];
                 Event.current.Use();
             }
             else
@@ -544,19 +344,10 @@ namespace GitHub.Unity
             indents.Pop();
         }
 
-        private void SetNodeIcon(TreeNode node)
-        {
-            node.Icon = GetNodeIcon(node);
-            node.IconBadge = GetNodeIconBadge(node);
-            node.Load();
-        }
-
-        protected abstract Texture GetNodeIcon(TreeNode node);
-        protected abstract Texture GetNodeIconBadge(TreeNode node);
 
         protected void LoadNodeIcons()
         {
-            foreach (var treeNode in nodes)
+            foreach (var treeNode in Nodes)
             {
                 SetNodeIcon(treeNode);
             }
@@ -564,24 +355,75 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    public class TreeNode
+    public class TreeNode : ITreeNode
     {
-        public string Path;
-        public string Label;
-        public int Level;
-        public bool IsFolder;
-        public bool IsCollapsed;
-        public bool IsHidden;
-        public bool IsActive;
-        public GUIContent content;
-        public bool TreeIsCheckable;
-        public CheckState CheckState;
+        public string path;
+        public string label;
+        public int level;
+        public bool isFolder;
+        public bool isCollapsed;
+        public bool isHidden;
+        public bool isActive;
+        public bool treeIsCheckable;
+        public CheckState checkState;
 
-        public string CustomStringTag;
-        public int CustomIntTag;
-
+        [NonSerialized] public GUIContent content;
         [NonSerialized] public Texture Icon;
         [NonSerialized] public Texture IconBadge;
+
+        public string Path
+        {
+            get { return path; }
+            set { path = value; }
+        }
+
+        public string Label
+        {
+            get { return label; }
+            set { label = value; }
+        }
+
+        public int Level
+        {
+            get { return level; }
+            set { level = value; }
+        }
+
+        public bool IsFolder
+        {
+            get { return isFolder; }
+            set { isFolder = value; }
+        }
+
+        public bool IsCollapsed
+        {
+            get { return isCollapsed; }
+            set { isCollapsed = value; }
+        }
+
+        public bool IsHidden
+        {
+            get { return isHidden; }
+            set { isHidden = value; }
+        }
+
+        public bool IsActive
+        {
+            get { return isActive; }
+            set { isActive = value; }
+        }
+
+        public bool TreeIsCheckable
+        {
+            get { return treeIsCheckable; }
+            set { treeIsCheckable = value; }
+        }
+
+        public CheckState State
+        {
+            get { return checkState; }
+            set { checkState = value; }
+        }
 
         public void Load()
         {
@@ -642,11 +484,11 @@ namespace GitHub.Unity
                 var selectionStyle = GUI.skin.toggle;
                 var selectionValue = false;
 
-                if (CheckState == CheckState.Checked)
+                if (State == CheckState.Checked)
                 {
                     selectionValue = true;
                 }
-                else if (CheckState == CheckState.Mixed)
+                else if (State == CheckState.Mixed)
                 {
                     selectionStyle = Styles.ToggleMixedStyle;
                 }
@@ -691,16 +533,38 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    public class BranchesTree : Tree
+    public class BranchesTree : Tree<TreeNode, GitBranchTreeData>
     {
         [SerializeField] public bool IsRemote;
+        [SerializeField] public TreeNodeDictionary folders = new TreeNodeDictionary();
+        [SerializeField] public TreeNodeDictionary checkedFileNodes = new TreeNodeDictionary();
 
         [NonSerialized] public Texture2D ActiveBranchIcon;
         [NonSerialized] public Texture2D BranchIcon;
         [NonSerialized] public Texture2D FolderIcon;
         [NonSerialized] public Texture2D GlobeIcon;
 
-        protected override Texture GetNodeIcon(TreeNode node)
+        public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)
+        {
+            var needsLoad = ActiveBranchIcon == null || BranchIcon == null || FolderIcon == null || GlobeIcon == null;
+            if (needsLoad)
+            {
+                ActiveBranchIcon = activeBranchIcon;
+                BranchIcon = branchIcon;
+                FolderIcon = folderIcon;
+                GlobeIcon = globeIcon;
+
+                LoadNodeIcons();
+            }
+        }
+
+        protected override void SetNodeIcon(TreeNode node)
+        {
+            node.Icon = GetNodeIcon(node);
+            node.Load();
+        }
+
+        protected Texture GetNodeIcon(TreeNode node)
         {
             Texture2D nodeIcon;
             if (node.IsActive)
@@ -720,78 +584,51 @@ namespace GitHub.Unity
             return nodeIcon;
         }
 
-        protected override Texture GetNodeIconBadge(TreeNode node)
+        protected override TreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, GitBranchTreeData? treeData)
         {
-            return null;
+            var node = new TreeNode {
+                Path = path,
+                Label = label,
+                Level = level,
+                IsFolder = isFolder,
+                IsActive = isActive,
+                IsHidden = isHidden,
+                IsCollapsed = isCollapsed,
+                TreeIsCheckable = IsCheckable
+            };
+
+            if (isFolder)
+            {
+                folders.Add(node.Path, node);
+            }
+
+            return node;
         }
 
-        public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)
+        protected override void OnClear()
         {
-            var needsLoad = ActiveBranchIcon == null || BranchIcon == null || FolderIcon == null || GlobeIcon == null;
-            if (needsLoad)
-            {
-                ActiveBranchIcon = activeBranchIcon;
-                BranchIcon = branchIcon;
-                FolderIcon = folderIcon;
-                GlobeIcon = globeIcon;
-
-                LoadNodeIcons();
-            }
-        }
-    }
-
-    [Serializable]
-    public class ChangesTree : Tree
-    {
-        [NonSerialized] public Texture2D FolderIcon;
-
-        protected override Texture GetNodeIcon(TreeNode node)
-        {
-            Texture nodeIcon = null;
-            if (node.IsFolder)
-            {
-                nodeIcon = FolderIcon;
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(node.CustomStringTag))
-                {
-                    nodeIcon = AssetDatabase.GetCachedIcon(node.CustomStringTag);
-                }
-
-                if (nodeIcon != null)
-                {
-                    nodeIcon.hideFlags = HideFlags.HideAndDontSave;
-                }
-                else
-                {
-                    nodeIcon = Styles.DefaultAssetIcon;
-                }
-            }
-            
-            return nodeIcon;
+            folders.Clear();
+            checkedFileNodes.Clear();
         }
 
-        protected override Texture GetNodeIconBadge(TreeNode node)
+        protected override IEnumerable<string> GetCollapsedFolders()
         {
-            if (node.IsFolder)
-            {
-                return null;
-            }
-
-            var gitFileStatus = (GitFileStatus)node.CustomIntTag;
-            return Styles.GetFileStatusIcon(gitFileStatus, false);
+            return folders.Where(pair => pair.Value.IsCollapsed).Select(pair => pair.Key);
         }
 
-        public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)
+        public override IEnumerable<string> GetCheckedFiles()
         {
-            var needsLoad = FolderIcon == null;
-            if (needsLoad)
-            {
-                FolderIcon = folderIcon;
+            return checkedFileNodes.Where(pair => pair.Value.State == CheckState.Checked).Select(pair => pair.Key);
+        }
 
-                LoadNodeIcons();
-            }
+        protected override void RemoveCheckedNode(TreeNode node)
+        {
+            checkedFileNodes.Remove(((ITreeNode)node).Path);
+        }
+
+        protected override void AddCheckedNode(TreeNode node)
+        {
+            checkedFileNodes.Add(((ITreeNode)node).Path, node);
         }
     }
 
@@ -800,12 +637,5 @@ namespace GitHub.Unity
         None,
         VisibilityChange,
         CheckChange
-    }
-
-    public enum CheckState
-    {
-        Empty,
-        Checked,
-        Mixed
     }
 }

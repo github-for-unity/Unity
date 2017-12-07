@@ -195,7 +195,7 @@ namespace GitHub.Unity
                 UpdateTreeIcons();
             }
 
-            TreeLoader.Load(treeChanges, gitStatusEntries.Select(entry => (ITreeData) new GitStatusEntryTreeData(entry)));
+            treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry)));
             Redraw();
         }
 

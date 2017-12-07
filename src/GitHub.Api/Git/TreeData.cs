@@ -6,8 +6,6 @@ namespace GitHub.Unity
     {
         string Path { get; }
         bool IsActive { get; }
-        string CustomStringTag { get;}
-        int CustomIntTag { get; }
     }
 
     [Serializable]
@@ -46,8 +44,8 @@ namespace GitHub.Unity
         public bool IsActive => false;
         public GitStatusEntry GitStatusEntry => gitStatusEntry;
 
-        public string CustomStringTag => gitStatusEntry.ProjectPath;
+        public string ProjectPath => gitStatusEntry.ProjectPath;
 
-        public int CustomIntTag => (int)gitStatusEntry.Status;
+        public GitFileStatus FileStatus => gitStatusEntry.Status;
     }
 }
