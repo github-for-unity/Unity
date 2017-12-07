@@ -102,6 +102,24 @@ namespace GitHub.Unity
             }
         }
 
+        public void CheckAll(bool isChecked)
+        {
+            var nodeCheckState = isChecked ? CheckState.Checked : CheckState.Empty;
+            foreach (var node in Nodes)
+            {
+                var wasChecked = node.CheckState == CheckState.Checked;
+                node.CheckState = nodeCheckState;
+                if (isChecked && !wasChecked)
+                {
+                    AddCheckedNode(node);
+                }
+                else if (!isChecked && wasChecked)
+                {
+                    RemoveCheckedNode(node);
+                }
+            }
+        }
+
         protected abstract IEnumerable<string> GetCollapsedFolders();
 
         protected void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden,

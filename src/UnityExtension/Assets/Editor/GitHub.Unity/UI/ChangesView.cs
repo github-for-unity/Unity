@@ -57,7 +57,7 @@ namespace GitHub.Unity
         {
             GUILayout.BeginHorizontal();
             {
-                EditorGUI.BeginDisabledGroup(false);
+                EditorGUI.BeginDisabledGroup(gitStatusEntries == null || !gitStatusEntries.Any());
                 {
                     if (GUILayout.Button(SelectAllButton, EditorStyles.miniButtonLeft))
                     {
@@ -258,48 +258,38 @@ namespace GitHub.Unity
 
         private void SelectAll()
         {
-//            for (var index = 0; index < tree.CommitTargets.Count; ++index)
-//            {
-//                tree.CommitTargets[index].All = true;
-//            }
+            this.treeChanges.CheckAll(true);
         }
 
         private void SelectNone()
         {
-//            for (var index = 0; index < tree.CommitTargets.Count; ++index)
-//            {
-//                tree.CommitTargets[index].All = false;
-//            }
+            this.treeChanges.CheckAll(false);
         }
 
         private void Commit()
         {
             // Do not allow new commits before we have received one successful update
-//            isBusy = true;
-//
-//            var files = Enumerable.Range(0, tree.Entries.Count)
-//                .Where(i => tree.CommitTargets[i].All)
-//                .Select(i => tree.Entries[i].Path)
-//                .ToList();
-//
-//            ITask addTask;
-//
-//            if (files.Count == tree.Entries.Count)
-//            {
-//                addTask = Repository.CommitAllFiles(commitMessage, commitBody);
-//            }
-//            else
-//            {
-//                addTask = Repository.CommitFiles(files, commitMessage, commitBody);
-//            }
-//
-//            addTask
-//                .FinallyInUI((b, exception) => 
-//                    {
-//                        commitMessage = "";
-//                        commitBody = "";
-//                        isBusy = false;
-//                    }).Start();
+            isBusy = true;
+
+            var files = treeChanges.GetCheckedFiles().ToList();
+            ITask addTask;
+
+            if (files.Count == gitStatusEntries.Count)
+            {
+                addTask = Repository.CommitAllFiles(commitMessage, commitBody);
+            }
+            else
+            {
+                addTask = Repository.CommitFiles(files, commitMessage, commitBody);
+            }
+
+            addTask
+                .FinallyInUI((b, exception) => 
+                    {
+                        commitMessage = "";
+                        commitBody = "";
+                        isBusy = false;
+                    }).Start();
         }
 
         public override bool IsBusy
