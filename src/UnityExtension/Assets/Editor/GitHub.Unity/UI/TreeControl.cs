@@ -371,6 +371,12 @@ namespace GitHub.Unity
         [NonSerialized] public Texture Icon;
         [NonSerialized] public Texture IconBadge;
 
+//        [NonSerialized] private GUIStyle blackStyle;
+//        [NonSerialized] private GUIStyle greenStyle;
+//        [NonSerialized] private GUIStyle blueStyle;
+//        [NonSerialized] private GUIStyle yellowStyle;
+//        [NonSerialized] private GUIStyle magentaStyle;
+
         public string Path
         {
             get { return path; }
@@ -438,14 +444,55 @@ namespace GitHub.Unity
                 return renderResult;
 
             var fillRect = rect;
-            var nodeStartX = Level * indentation * (TreeIsCheckable ? 2 : 1);
+            var nodeStartX = Level * indentation;
+            nodeStartX += 2 * level;
 
-            if (TreeIsCheckable && Level > 0)
+            var nodeRect = new Rect(nodeStartX, rect.y, fillRect.width - nodeStartX, rect.height);
+
+            var reserveToggleSpace = TreeIsCheckable || isFolder;
+            var toggleRect = new Rect(nodeStartX, nodeRect.y, reserveToggleSpace ? indentation : 0, nodeRect.height);
+
+            nodeStartX += toggleRect.width;
+            if (reserveToggleSpace)
             {
-                nodeStartX += 2 * Level;
+                nodeStartX += 2;
             }
 
-            var nodeRect = new Rect(nodeStartX, rect.y, rect.width, rect.height);
+            var checkRect = new Rect(nodeStartX, nodeRect.y, TreeIsCheckable ? indentation : 0, nodeRect.height);
+
+            nodeStartX += checkRect.width;
+            if (TreeIsCheckable)
+            {
+                nodeStartX += 2;
+            }
+
+            var iconRect = new Rect(nodeStartX, nodeRect.y, fillRect.width - nodeStartX, nodeRect.height);
+            var statusRect = new Rect(iconRect.x + 6, iconRect.yMax - 9, 9, 9);
+
+//            if (Event.current.type == EventType.repaint)
+//            {
+//                if (blackStyle == null)
+//                    blackStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.black) } };
+//            
+//                if (greenStyle == null)
+//                    greenStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.green) } };
+//            
+//                if (blueStyle == null)
+//                    blueStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.blue) } };
+//            
+//                if (yellowStyle == null)
+//                    yellowStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.yellow) } };
+//            
+//                if (magentaStyle == null)
+//                    magentaStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.magenta) } };
+//            
+//                GUI.Box(nodeRect, GUIContent.none, blackStyle);
+//            
+//                GUI.Box(toggleRect, GUIContent.none, isFolder ? greenStyle : blueStyle);
+//            
+//                GUI.Box(checkRect, GUIContent.none, yellowStyle);
+//                GUI.Box(iconRect, GUIContent.none, magentaStyle);
+//            }
 
             if (Event.current.type == EventType.repaint)
             {
@@ -455,9 +502,6 @@ namespace GitHub.Unity
             var styleOn = false;
             if (IsFolder)
             {
-                var toggleRect = new Rect(nodeStartX, nodeRect.y, indentation, nodeRect.height);
-                nodeStartX += toggleRect.width;
-
                 styleOn = !IsCollapsed;
 
                 if (Event.current.type == EventType.repaint)
@@ -477,10 +521,6 @@ namespace GitHub.Unity
 
             if (TreeIsCheckable)
             {
-                var selectRect = new Rect(nodeStartX, nodeRect.y, indentation, nodeRect.height);
-
-                nodeStartX += selectRect.width + 2;
-
                 var selectionStyle = GUI.skin.toggle;
                 var selectionValue = false;
 
@@ -495,7 +535,7 @@ namespace GitHub.Unity
 
                 EditorGUI.BeginChangeCheck();
                 {
-                    GUI.Toggle(selectRect, selectionValue, GUIContent.none, selectionStyle);
+                    GUI.Toggle(checkRect, selectionValue, GUIContent.none, selectionStyle);
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -505,20 +545,13 @@ namespace GitHub.Unity
 
             var contentStyle = IsActive ? activeNodeStyle : nodeStyle;
 
-            var contentRect = new Rect(nodeStartX, rect.y, rect.width, rect.height);
             if (Event.current.type == EventType.repaint)
             {
-                contentStyle.Draw(contentRect, content, false, false, styleOn, isSelected);
+                contentStyle.Draw(iconRect, content, false, false, styleOn, isSelected);
             }
 
             if (IconBadge != null)
             {
-                var statusRect = new Rect(
-                    contentRect.x + 6,
-                    contentRect.yMax - 7,
-                    9,
-                    9);
-
                 GUI.DrawTexture(statusRect, IconBadge);
             }
 
