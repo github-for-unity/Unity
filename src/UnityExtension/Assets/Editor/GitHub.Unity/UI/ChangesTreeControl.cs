@@ -132,7 +132,7 @@ namespace GitHub.Unity
 
         public override IEnumerable<string> GetCheckedFiles()
         {
-            return checkedFileNodes.Where(pair => pair.Value.State == CheckState.Checked).Select(pair => pair.Key);
+            return checkedFileNodes.Where(pair => pair.Value.CheckState == CheckState.Checked).Select(pair => pair.Key);
         }
 
         protected override void RemoveCheckedNode(ChangesTreeNode node)
