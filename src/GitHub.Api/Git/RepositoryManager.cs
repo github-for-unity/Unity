@@ -453,7 +453,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("WatcherOnRepositoryCommitted");
             UpdateGitLog();
-            UpdateGitAheadBehindStatus();
+            UpdateGitStatus();
         }
 
         private void WatcherOnRepositoryChanged()
