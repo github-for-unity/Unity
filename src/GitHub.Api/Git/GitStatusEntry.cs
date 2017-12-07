@@ -20,7 +20,6 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNullOrWhiteSpace(path, "path");
             Guard.ArgumentNotNullOrWhiteSpace(fullPath, "fullPath");
-            Guard.ArgumentNotNullOrWhiteSpace(projectPath, "projectPath");
 
             this.path = path;
             this.status = status;
