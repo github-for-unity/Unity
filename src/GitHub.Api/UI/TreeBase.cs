@@ -109,13 +109,17 @@ namespace GitHub.Unity
             {
                 var wasChecked = node.CheckState == CheckState.Checked;
                 node.CheckState = nodeCheckState;
-                if (isChecked && !wasChecked)
+
+                if (!node.IsFolder)
                 {
-                    AddCheckedNode(node);
-                }
-                else if (!isChecked && wasChecked)
-                {
-                    RemoveCheckedNode(node);
+                    if (isChecked && !wasChecked)
+                    {
+                        AddCheckedNode(node);
+                    }
+                    else if (!isChecked && wasChecked)
+                    {
+                        RemoveCheckedNode(node);
+                    }
                 }
             }
         }
