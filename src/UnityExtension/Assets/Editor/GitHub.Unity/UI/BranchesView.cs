@@ -309,21 +309,24 @@ namespace GitHub.Unity
 
                 var treeHadFocus = treeLocals.SelectedNode != null;
 
-                rect = treeLocals.Render(initialRect, rect, scroll, node => { }, node => {
-                    if (node.IsFolder)
-                        return;
+                rect = treeLocals.Render(initialRect, rect, scroll,
+                    node => { },
+                    node => {
+                        if (node.IsFolder)
+                            return;
 
-                    if (node.IsActive)
-                        return;
+                        if (node.IsActive)
+                            return;
 
-                    SwitchBranch(node.Path);
-                }, node => {
-                    if (node.IsFolder)
-                        return;
+                        SwitchBranch(node.Path);
+                    },
+                    node => {
+                        if (node.IsFolder)
+                            return;
 
-                    var menu = CreateContextMenuForLocalBranchNode(node);
-                    menu.ShowAsContext();
-                });
+                        var menu = CreateContextMenuForLocalBranchNode(node);
+                        menu.ShowAsContext();
+                    });
 
                 if (treeHadFocus && treeLocals.SelectedNode == null)
                     treeRemotes.Focus();
@@ -337,18 +340,21 @@ namespace GitHub.Unity
 
                 rect.y += Styles.TreePadding;
 
-                rect = treeRemotes.Render(initialRect, rect, scroll, node => { }, node => {
-                    if (node.IsFolder)
-                        return;
+                rect = treeRemotes.Render(initialRect, rect, scroll,
+                    node => { },
+                    node => {
+                        if (node.IsFolder)
+                            return;
 
-                    CheckoutRemoteBranch(node.Path);
-                }, node => {
-                    if (node.IsFolder)
-                        return;
+                        CheckoutRemoteBranch(node.Path);
+                    },
+                    node => {
+                        if (node.IsFolder)
+                            return;
 
-                    var menu = CreateContextMenuForRemoteBranchNode(node);
-                    menu.ShowAsContext();
-                });
+                        var menu = CreateContextMenuForRemoteBranchNode(node);
+                        menu.ShowAsContext();
+                    });
 
                 if (treeHadFocus && treeRemotes.SelectedNode == null)
                     treeLocals.Focus();
@@ -357,8 +363,8 @@ namespace GitHub.Unity
 
                 if (treeRemotes.RequiresRepaint)
                     Redraw();
-
             }
+
             GUILayout.Space(rect.y - initialRect.y);
         }
 
