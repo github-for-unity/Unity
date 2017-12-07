@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 namespace GitHub.Unity
 {
@@ -31,8 +29,8 @@ namespace GitHub.Unity
 
         [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
         [SerializeField] private TreeNode selectedNode = null;
-        [SerializeField] private TreeNode activeNode = null;
         [SerializeField] private TreeNodeDictionary folders = new TreeNodeDictionary();
+        [SerializeField] private TreeNodeDictionary checkedFileNodes = new TreeNodeDictionary();
 
         [NonSerialized] private Stack<bool> indents = new Stack<bool>();
         [NonSerialized] private Action<TreeNode> rightClickNextRender;
@@ -101,11 +99,6 @@ namespace GitHub.Unity
             SetNodeIcon(node);
             nodes.Add(node);
 
-            if (isActive)
-            {
-                activeNode = node;
-            }
-
             if (isSelected)
             {
                 SelectedNode = node;
@@ -120,14 +113,19 @@ namespace GitHub.Unity
         public void Clear()
         {
             folders.Clear();
+            checkedFileNodes.Clear();
             nodes.Clear();
             SelectedNode = null;
         }
 
-        public HashSet<string> GetCollapsedFolders()
+        public IEnumerable<string> GetCollapsedFolders()
         {
-            var collapsedFoldersEnumerable = folders.Where(pair => pair.Value.IsCollapsed).Select(pair => pair.Key);
-            return new HashSet<string>(collapsedFoldersEnumerable);
+            return folders.Where(pair => pair.Value.IsCollapsed).Select(pair => pair.Key);
+        }
+
+        public IEnumerable<string> GetCheckedFiles()
+        {
+            return checkedFileNodes.Where(pair => pair.Value.CheckState == CheckState.Checked).Select(pair => pair.Key);
         }
 
         public Rect Render(Rect containingRect, Rect rect, Vector2 scroll, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
@@ -167,7 +165,7 @@ namespace GitHub.Unity
                 }
                 else if (renderResult == TreeNodeRenderResult.CheckChange)
                 {
-                    ToggleNodeCheck(0, titleNode);
+                    ToggleNodeChecked(0, titleNode);
                 }
 
                 RequiresRepaint = HandleInput(rect, titleNode, 0);
@@ -200,7 +198,7 @@ namespace GitHub.Unity
                 }
                 else if (renderResult == TreeNodeRenderResult.CheckChange)
                 {
-                    ToggleNodeCheck(i, node);
+                    ToggleNodeChecked(i, node);
                 }
 
                 if (node.Level < level)
@@ -257,26 +255,134 @@ namespace GitHub.Unity
             RequiresRepaint = true;
         }
 
-        private void ToggleNodeCheck(int idx, TreeNode node)
+        private void ToggleNodeChecked(int idx, TreeNode node)
         {
+            var isChecked = false;
+
+            switch (node.CheckState)
+            {
+                case CheckState.Mixed:
+                case CheckState.Empty:
+                    node.CheckState = CheckState.Checked;
+                    isChecked = true;
+                    break;
+
+                case CheckState.Checked:
+                    node.CheckState = CheckState.Empty;
+                    break;
+            }
+
             if (node.IsFolder)
             {
-                
+                ToggleChildrenChecked(idx, node, isChecked);
             }
             else
             {
-                switch (node.CheckState)
+                if (isChecked)
                 {
-                    case CheckState.Empty:
-                        node.CheckState = CheckState.Checked;
-                        break;
+                    checkedFileNodes.Add(node.Path, node);
+                }
+                else
+                {
+                    checkedFileNodes.Remove(node.Path);
+                }
+            }
 
-                    case CheckState.Checked:
-                        node.CheckState = CheckState.Empty;
-                        break;
+            ToggleParentFoldersChecked(idx, node, isChecked);
+        }
+
+        private void ToggleChildrenChecked(int idx, TreeNode node, bool isChecked)
+        {
+            for (var i = idx + 1; i < nodes.Count && node.Level < nodes[i].Level; i++)
+            {
+                var childNode = nodes[i];
+                var wasChecked = childNode.CheckState == CheckState.Checked;
+                childNode.CheckState = isChecked ? CheckState.Checked : CheckState.Empty;
+
+                if (childNode.IsFolder)
+                {
+                    ToggleChildrenChecked(i, childNode, isChecked);
+                }
+                else
+                {
+                    if (isChecked && !wasChecked)
+                    {
+                        checkedFileNodes.Add(childNode.Path, childNode);
+                    }
+                    else if(!isChecked && wasChecked)
+                    {
+                        checkedFileNodes.Remove(childNode.Path);
+                    }
+                }
+            }
+        }
+
+        private void ToggleParentFoldersChecked(int idx, TreeNode node, bool isChecked)
+        {
+            while (true)
+            {
+                if (node.Level > 0)
+                {
+                    var siblingsInSameState = true;
+                    var firstSiblingIndex = idx;
+
+                    for (var i = idx - 1; i > 0 && node.Level <= nodes[i].Level; i--)
+                    {
+                        var previousNode = nodes[i];
+                        if (node.Level < previousNode.Level)
+                        {
+                            continue;
+                        }
+
+                        firstSiblingIndex = i;
+
+                        if (siblingsInSameState)
+                        {
+                            var previousNodeIsChecked = previousNode.CheckState == CheckState.Checked;
+
+                            if (isChecked != previousNodeIsChecked)
+                            {
+                                siblingsInSameState = false;
+                            }
+                        }
+                    }
+
+                    if (siblingsInSameState)
+                    {
+                        for (var i = idx + 1; i < nodes.Count && node.Level <= nodes[i].Level; i++)
+                        {
+                            var followingNode = nodes[i];
+                            if (node.Level < followingNode.Level)
+                            {
+                                continue;
+                            }
+
+                            var followingNodeIsChecked = followingNode.CheckState == CheckState.Checked;
+                            if (isChecked != followingNodeIsChecked)
+                            {
+                                siblingsInSameState = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    var parentIndex = firstSiblingIndex - 1;
+                    var parentNode = nodes[parentIndex];
+                    if (siblingsInSameState)
+                    {
+                        parentNode.CheckState = isChecked ? CheckState.Checked : CheckState.Empty;
+                    }
+                    else
+                    {
+                        parentNode.CheckState = CheckState.Mixed;
+                    }
+
+                    idx = parentIndex;
+                    node = parentNode;
+                    continue;
                 }
 
-                Debug.LogFormat("Ripple CheckState index:{0} level:{1}", idx, node.Level);
+                break;
             }
         }
 
@@ -303,13 +409,13 @@ namespace GitHub.Unity
 
         private bool HandleInput(Rect rect, TreeNode currentNode, int index, Action<TreeNode> singleClick = null, Action<TreeNode> doubleClick = null, Action<TreeNode> rightClick = null)
         {
-            bool selectionChanged = false;
+            var requiresRepaint = false;
             var clickRect = new Rect(0f, rect.y, rect.width, rect.height);
             if (Event.current.type == EventType.MouseDown && clickRect.Contains(Event.current.mousePosition))
             {
                 Event.current.Use();
                 SelectedNode = currentNode;
-                selectionChanged = true;
+                requiresRepaint = true;
                 var clickCount = Event.current.clickCount;
                 var mouseButton = Event.current.button;
 
@@ -335,24 +441,25 @@ namespace GitHub.Unity
                 int directionX = Event.current.keyCode == KeyCode.LeftArrow ? -1 : Event.current.keyCode == KeyCode.RightArrow ? 1 : 0;
                 if (directionY != 0 || directionX != 0)
                 {
+                    Event.current.Use();
+
                     if (directionY > 0)
                     {
-                        selectionChanged = SelectNext(index, false) != index;
+                        requiresRepaint = SelectNext(index, false) != index;
                     }
                     else if (directionY < 0)
                     {
-                        selectionChanged = SelectPrevious(index, false) != index;
+                        requiresRepaint = SelectPrevious(index, false) != index;
                     }
                     else if (directionX > 0)
                     {
                         if (currentNode.IsFolder && currentNode.IsCollapsed)
                         {
                             ToggleNodeVisibility(index, currentNode);
-                            Event.current.Use();
                         }
                         else
                         {
-                            selectionChanged = SelectNext(index, true) != index;
+                            requiresRepaint = SelectNext(index, true) != index;
                         }
                     }
                     else if (directionX < 0)
@@ -360,16 +467,24 @@ namespace GitHub.Unity
                         if (currentNode.IsFolder && !currentNode.IsCollapsed)
                         {
                             ToggleNodeVisibility(index, currentNode);
-                            Event.current.Use();
                         }
                         else
                         {
-                            selectionChanged = SelectPrevious(index, true) != index;
+                            requiresRepaint = SelectPrevious(index, true) != index;
                         }
                     }
                 }
+
+                if (IsCheckable && Event.current.keyCode == KeyCode.Space)
+                {
+                    Event.current.Use();
+
+                    ToggleNodeChecked(index, currentNode);
+                    requiresRepaint = true;
+                }
             }
-            return selectionChanged;
+
+            return requiresRepaint;
         }
 
         private int SelectNext(int index, bool foldersOnly)
