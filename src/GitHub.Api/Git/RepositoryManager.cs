@@ -446,6 +446,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("WatcherOnLocalBranchesChanged");
             UpdateLocalBranches();
+            UpdateGitLog();
         }
 
         private void WatcherOnRepositoryCommitted()
