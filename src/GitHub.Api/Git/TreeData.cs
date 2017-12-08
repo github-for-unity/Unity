@@ -23,4 +23,24 @@ namespace GitHub.Unity
         public string Path => GitBranch.Name;
         public bool IsActive => GitBranch.IsActive;
     }
+
+    [Serializable]
+    public struct GitStatusEntryTreeData : ITreeData
+    {
+        public static GitStatusEntryTreeData Default = new GitStatusEntryTreeData(GitStatusEntry.Default);
+
+        public GitStatusEntry gitStatusEntry;
+
+        public GitStatusEntryTreeData(GitStatusEntry gitStatusEntry)
+        {
+            this.gitStatusEntry = gitStatusEntry;
+        }
+
+        public string Path => gitStatusEntry.Path;
+        public string ProjectPath => gitStatusEntry.ProjectPath;
+        public bool IsActive => false;
+        public GitStatusEntry GitStatusEntry => gitStatusEntry;
+
+        public GitFileStatus FileStatus => gitStatusEntry.Status;
+    }
 }

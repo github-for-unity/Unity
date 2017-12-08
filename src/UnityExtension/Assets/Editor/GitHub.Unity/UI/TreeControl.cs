@@ -190,13 +190,11 @@ namespace GitHub.Unity
                 {
                     SelectedNode = Nodes[Nodes.Count - 1];
                     selectionChanged = true;
-                    Event.current.Use();
                 }
                 else if (directionY > 0 || directionX > 0)
                 {
                     SelectedNode = Nodes[0];
                     selectionChanged = true;
-                    Event.current.Use();
                 }
             }
             RequiresRepaint = selectionChanged;
@@ -302,7 +300,6 @@ namespace GitHub.Unity
             if (index < Nodes.Count)
             {
                 SelectedNode = Nodes[index];
-                Event.current.Use();
             }
             else
             {
@@ -325,7 +322,6 @@ namespace GitHub.Unity
             if (index >= 0)
             {
                 SelectedNode = Nodes[index];
-                Event.current.Use();
             }
             else
             {
@@ -438,14 +434,30 @@ namespace GitHub.Unity
                 return renderResult;
 
             var fillRect = rect;
-            var nodeStartX = Level * indentation * (TreeIsCheckable ? 2 : 1);
+            var nodeStartX = Level * indentation;
+            nodeStartX += 2 * level;
 
-            if (TreeIsCheckable && Level > 0)
+            var nodeRect = new Rect(nodeStartX, rect.y, fillRect.width - nodeStartX, rect.height);
+
+            var reserveToggleSpace = TreeIsCheckable || isFolder;
+            var toggleRect = new Rect(nodeStartX, nodeRect.y, reserveToggleSpace ? indentation : 0, nodeRect.height);
+
+            nodeStartX += toggleRect.width;
+            if (reserveToggleSpace)
             {
-                nodeStartX += 2 * Level;
+                nodeStartX += 2;
             }
 
-            var nodeRect = new Rect(nodeStartX, rect.y, rect.width, rect.height);
+            var checkRect = new Rect(nodeStartX, nodeRect.y, TreeIsCheckable ? indentation : 0, nodeRect.height);
+
+            nodeStartX += checkRect.width;
+            if (TreeIsCheckable)
+            {
+                nodeStartX += 2;
+            }
+
+            var iconRect = new Rect(nodeStartX, nodeRect.y, fillRect.width - nodeStartX, nodeRect.height);
+            var statusRect = new Rect(iconRect.x + 6, iconRect.yMax - 9, 9, 9);
 
             if (Event.current.type == EventType.repaint)
             {
@@ -455,9 +467,6 @@ namespace GitHub.Unity
             var styleOn = false;
             if (IsFolder)
             {
-                var toggleRect = new Rect(nodeStartX, nodeRect.y, indentation, nodeRect.height);
-                nodeStartX += toggleRect.width;
-
                 styleOn = !IsCollapsed;
 
                 if (Event.current.type == EventType.repaint)
@@ -477,10 +486,6 @@ namespace GitHub.Unity
 
             if (TreeIsCheckable)
             {
-                var selectRect = new Rect(nodeStartX, nodeRect.y, indentation, nodeRect.height);
-
-                nodeStartX += selectRect.width + 2;
-
                 var selectionStyle = GUI.skin.toggle;
                 var selectionValue = false;
 
@@ -495,7 +500,7 @@ namespace GitHub.Unity
 
                 EditorGUI.BeginChangeCheck();
                 {
-                    GUI.Toggle(selectRect, selectionValue, GUIContent.none, selectionStyle);
+                    GUI.Toggle(checkRect, selectionValue, GUIContent.none, selectionStyle);
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -505,20 +510,13 @@ namespace GitHub.Unity
 
             var contentStyle = IsActive ? activeNodeStyle : nodeStyle;
 
-            var contentRect = new Rect(nodeStartX, rect.y, rect.width, rect.height);
             if (Event.current.type == EventType.repaint)
             {
-                contentStyle.Draw(contentRect, content, false, false, styleOn, isSelected);
+                contentStyle.Draw(iconRect, content, false, false, styleOn, isSelected);
             }
 
             if (IconBadge != null)
             {
-                var statusRect = new Rect(
-                    contentRect.x + 6,
-                    contentRect.yMax - 7,
-                    9,
-                    9);
-
                 GUI.DrawTexture(statusRect, IconBadge);
             }
 
