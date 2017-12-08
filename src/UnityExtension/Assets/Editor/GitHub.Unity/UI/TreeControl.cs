@@ -37,8 +37,13 @@ namespace GitHub.Unity
 
         public Rect Render(Rect containingRect, Rect rect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
         {
+            if (Selection.activeObject != selectionObject)
+            {
+                SelectedNode = null;
+            }
+
             controlId = GUIUtility.GetControlID(FocusType.Keyboard);
-            var treeHasFocus = GUIUtility.keyboardControl == controlId && Selection.activeObject == selectionObject;
+            var treeHasFocus = GUIUtility.keyboardControl == controlId;
 
             if (!Nodes.Any())
                 return new Rect(0f, rect.y, 0f, 0f);
@@ -78,7 +83,7 @@ namespace GitHub.Unity
                 var titleDisplay = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (titleDisplay)
                 {
-                    var isSelected = SelectedNode == titleNode && treeHasFocus;
+                    var isSelected = SelectedNode == titleNode;
                     renderResult = titleNode.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
@@ -112,7 +117,7 @@ namespace GitHub.Unity
                 var display = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (display)
                 {
-                    var isSelected = SelectedNode == node && treeHasFocus;
+                    var isSelected = SelectedNode == node;
                     renderResult = node.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
