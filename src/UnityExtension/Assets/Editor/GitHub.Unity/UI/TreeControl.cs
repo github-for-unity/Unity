@@ -25,13 +25,12 @@ namespace GitHub.Unity
         [NonSerialized] public GUIStyle FocusedTreeNodeStyle;
         [NonSerialized] public GUIStyle FocusedActiveTreeNodeStyle;
 
-
         [NonSerialized] private Stack<bool> indents = new Stack<bool>();
         [NonSerialized] private Action<TNode> rightClickNextRender;
         [NonSerialized] private TNode rightClickNextRenderNode;
 
         [NonSerialized] private int controlId;
-        [NonSerialized] private TreeSelection selectionObject;
+        [NonSerialized] protected TreeSelection selectionObject;
 
         public bool IsInitialized { get { return Nodes != null && Nodes.Count > 0 && !String.IsNullOrEmpty(Nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
@@ -79,7 +78,8 @@ namespace GitHub.Unity
                 var titleDisplay = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (titleDisplay)
                 {
-                    renderResult = titleNode.Render(rect, Styles.TreeIndentation, SelectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                    var isSelected = SelectedNode == titleNode && treeHasFocus;
+                    renderResult = titleNode.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
@@ -112,7 +112,8 @@ namespace GitHub.Unity
                 var display = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (display)
                 {
-                    renderResult = node.Render(rect, Styles.TreeIndentation, SelectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                    var isSelected = SelectedNode == node && treeHasFocus;
+                    renderResult = node.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
@@ -206,7 +207,7 @@ namespace GitHub.Unity
             }
 
             // Keyboard navigation if this child is the current selection
-            if (currentNode == SelectedNode && Event.current.type == EventType.KeyDown)
+            if (GUIUtility.keyboardControl == controlId && currentNode == SelectedNode && Event.current.type == EventType.KeyDown)
             {
                 int directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0;
                 int directionX = Event.current.keyCode == KeyCode.LeftArrow ? -1 : Event.current.keyCode == KeyCode.RightArrow ? 1 : 0;
@@ -563,6 +564,10 @@ namespace GitHub.Unity
             set
             {
                 selectedNode = value;
+                if (value != null && selectionObject)
+                {
+                    Selection.activeObject = selectionObject;
+                }
             }
         }
 
