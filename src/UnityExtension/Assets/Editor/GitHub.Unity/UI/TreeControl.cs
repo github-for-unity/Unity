@@ -19,80 +19,22 @@ namespace GitHub.Unity
         public static float ItemHeight { get { return EditorGUIUtility.singleLineHeight; } }
         public static float ItemSpacing { get { return EditorGUIUtility.standardVerticalSpacing; } }
 
-        [SerializeField] public Rect Margin = new Rect();
-        [SerializeField] public Rect Padding = new Rect();
-
-        [SerializeField] public string title = string.Empty;
-        [SerializeField] public string pathSeparator = "/";
-        [SerializeField] public bool displayRootNode = true;
-        [SerializeField] public bool isCheckable = false;
-
         [NonSerialized] public GUIStyle FolderStyle;
         [NonSerialized] public GUIStyle TreeNodeStyle;
         [NonSerialized] public GUIStyle ActiveTreeNodeStyle;
         [NonSerialized] public GUIStyle FocusedTreeNodeStyle;
         [NonSerialized] public GUIStyle FocusedActiveTreeNodeStyle;
 
-        [SerializeField] private List<TNode> nodes = new List<TNode>();
-        [SerializeField] private TNode selectedNode = null;
 
         [NonSerialized] private Stack<bool> indents = new Stack<bool>();
         [NonSerialized] private Action<TNode> rightClickNextRender;
         [NonSerialized] private TNode rightClickNextRenderNode;
-        [NonSerialized] private int controlId;
 
+        [NonSerialized] private int controlId;
         [NonSerialized] private TreeSelection selectionObject;
 
         public bool IsInitialized { get { return Nodes != null && Nodes.Count > 0 && !String.IsNullOrEmpty(Nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
-
-        public override TNode SelectedNode
-        {
-            get
-            {
-                if (selectedNode != null && String.IsNullOrEmpty(selectedNode.Path))
-                    selectedNode = null;
-
-                return selectedNode;
-            }
-            set
-            {
-                selectedNode = value;
-                if (value != null && selectionObject)
-                {
-                    Selection.activeObject = selectionObject;
-                }
-            }
-        }
-
-        public override string Title
-        {
-            get { return title; }
-            set { title = value; }
-        }
-
-        public override bool DisplayRootNode
-        {
-            get { return displayRootNode; }
-            set { displayRootNode = value; }
-        }
-
-        public override bool IsCheckable
-        {
-            get { return isCheckable; }
-            set { isCheckable = value; }
-        }
-
-        public override string PathSeparator
-        {
-            get { return pathSeparator; }
-            set { pathSeparator = value; }
-        }
-
-        protected override List<TNode> Nodes
-        {
-            get { return nodes; }
-        }
 
         public Rect Render(Rect containingRect, Rect rect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
         {
@@ -137,8 +79,7 @@ namespace GitHub.Unity
                 var titleDisplay = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (titleDisplay)
                 {
-                    var isSelected = selectedNode == titleNode && treeHasFocus;
-                    renderResult = titleNode.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
+                    renderResult = titleNode.Render(rect, Styles.TreeIndentation, SelectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
                 }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
@@ -171,8 +112,7 @@ namespace GitHub.Unity
                 var display = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (display)
                 {
-                    var isSelected = selectedNode == node && treeHasFocus;
-                    renderResult = node.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
+                    renderResult = node.Render(rect, Styles.TreeIndentation, SelectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
                 }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
@@ -266,7 +206,7 @@ namespace GitHub.Unity
             }
 
             // Keyboard navigation if this child is the current selection
-            if (GUIUtility.keyboardControl == controlId && currentNode == selectedNode && Event.current.type == EventType.KeyDown)
+            if (currentNode == SelectedNode && Event.current.type == EventType.KeyDown)
             {
                 int directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0;
                 int directionX = Event.current.keyCode == KeyCode.LeftArrow ? -1 : Event.current.keyCode == KeyCode.RightArrow ? 1 : 0;
@@ -580,6 +520,56 @@ namespace GitHub.Unity
         [NonSerialized] public Texture2D BranchIcon;
         [NonSerialized] public Texture2D FolderIcon;
         [NonSerialized] public Texture2D GlobeIcon;
+        [SerializeField] public string title = string.Empty;
+        [SerializeField] public string pathSeparator = "/";
+        [SerializeField] public bool displayRootNode = true;
+        [SerializeField] public bool isCheckable = false;
+        [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
+        [SerializeField] private TreeNode selectedNode = null;
+
+        public override string Title
+        {
+            get { return title; }
+            set { title = value; }
+        }
+
+        public override bool DisplayRootNode
+        {
+            get { return displayRootNode; }
+            set { displayRootNode = value; }
+        }
+
+        public override bool IsCheckable
+        {
+            get { return isCheckable; }
+            set { isCheckable = value; }
+        }
+
+        public override string PathSeparator
+        {
+            get { return pathSeparator; }
+            set { pathSeparator = value; }
+        }
+
+        public override TreeNode SelectedNode
+        {
+            get
+            {
+                if (selectedNode != null && String.IsNullOrEmpty(selectedNode.Path))
+                    selectedNode = null;
+
+                return selectedNode;
+            }
+            set
+            {
+                selectedNode = value;
+            }
+        }
+
+        protected override List<TreeNode> Nodes
+        {
+            get { return nodes; }
+        }
 
         public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)
         {

@@ -35,6 +35,56 @@ namespace GitHub.Unity
         [SerializeField] public ChangesTreeNodeDictionary checkedFileNodes = new ChangesTreeNodeDictionary();
 
         [NonSerialized] public Texture2D FolderIcon;
+        [SerializeField] public string title = string.Empty;
+        [SerializeField] public string pathSeparator = "/";
+        [SerializeField] public bool displayRootNode = true;
+        [SerializeField] public bool isCheckable = false;
+        [SerializeField] private List<ChangesTreeNode> nodes = new List<ChangesTreeNode>();
+        [SerializeField] private ChangesTreeNode selectedNode = null;
+
+        public override string Title
+        {
+            get { return title; }
+            set { title = value; }
+        }
+
+        public override bool DisplayRootNode
+        {
+            get { return displayRootNode; }
+            set { displayRootNode = value; }
+        }
+
+        public override bool IsCheckable
+        {
+            get { return isCheckable; }
+            set { isCheckable = value; }
+        }
+
+        public override string PathSeparator
+        {
+            get { return pathSeparator; }
+            set { pathSeparator = value; }
+        }
+
+        public override ChangesTreeNode SelectedNode
+        {
+            get
+            {
+                if (selectedNode != null && String.IsNullOrEmpty(selectedNode.Path))
+                    selectedNode = null;
+
+                return selectedNode;
+            }
+            set
+            {
+                selectedNode = value;
+            }
+        }
+
+        protected override List<ChangesTreeNode> Nodes
+        {
+            get { return nodes; }
+        }
 
         public void UpdateIcons(Texture2D folderIcon)
         {
