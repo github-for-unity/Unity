@@ -203,7 +203,7 @@ namespace GitHub.Unity
         {
             if (treeChanges != null)
             {
-                treeChanges.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
+                treeChanges.UpdateIcons(Styles.FolderIcon);
             }
         }
 
