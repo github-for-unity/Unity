@@ -62,7 +62,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            UpdateTreeIcons();
+            TreeOnEnable();
             AttachHandlers(Repository);
             Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
         }
@@ -77,6 +77,12 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
             MaybeUpdateData();
+        }
+
+        public override void OnSelectionChange()
+        {
+            base.OnSelectionChange();
+            Redraw();
         }
 
         private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -158,7 +164,7 @@ namespace GitHub.Unity
                 treeRemotes.Title = RemoteTitle;
                 treeRemotes.IsRemote = true;
 
-                UpdateTreeIcons();
+                TreeOnEnable();
             }
 
             localBranches.Sort(CompareBranches);
@@ -169,15 +175,17 @@ namespace GitHub.Unity
             Redraw();
         }
 
-        private void UpdateTreeIcons()
+        private void TreeOnEnable()
         {
             if (treeLocals != null)
             {
+                treeLocals.OnEnable();
                 treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
 
             if (treeRemotes != null)
             {
+                treeRemotes.OnEnable();
                 treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
         }
@@ -301,11 +309,15 @@ namespace GitHub.Unity
             {
                 treeLocals.FolderStyle = Styles.Foldout;
                 treeLocals.TreeNodeStyle = Styles.TreeNode;
-                treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+                treeLocals.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
+                treeLocals.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
+                treeLocals.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
                 treeRemotes.FolderStyle = Styles.Foldout;
                 treeRemotes.TreeNodeStyle = Styles.TreeNode;
-                treeRemotes.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+                treeRemotes.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
+                treeRemotes.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
+                treeRemotes.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
                 var treeHadFocus = treeLocals.SelectedNode != null;
 

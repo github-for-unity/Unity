@@ -874,35 +874,68 @@ namespace GitHub.Unity
                     treeNode = new GUIStyle(GUI.skin.label);
                     treeNode.name = "Custom TreeNode";
 
-                    var color = new Color(62f / 255f, 125f / 255f, 231f / 255f);
-                    var texture = Utility.GetTextureFromColor(color);
-                    treeNode.focused.background = texture;
-                    treeNode.onFocused.background = texture;
+                    var greyTexture = Utility.GetTextureFromColor(Color.gray);
+
+                    treeNode.focused.background = greyTexture;
                     treeNode.focused.textColor = Color.white;
-                    treeNode.onFocused.textColor = Color.white;
                 }
 
                 return treeNode;
             }
         }
 
-        private static GUIStyle treeNodeActive;
-        public static GUIStyle TreeNodeActive
+        private static GUIStyle activeTreeNode;
+        public static GUIStyle ActiveTreeNode
         {
             get
             {
-                if (treeNodeActive == null)
+                if (activeTreeNode == null)
                 {
-                    treeNodeActive = new GUIStyle(TreeNode);
-                    treeNodeActive.name = "Custom TreeNode Active";
-                    treeNodeActive.fontStyle = FontStyle.Bold;
-                    treeNodeActive.focused.textColor = Color.white;
-                    treeNodeActive.active.textColor = Color.white;
+                    activeTreeNode = new GUIStyle(TreeNode);
+                    activeTreeNode.name = "Custom Active TreeNode";
+
+                    activeTreeNode.fontStyle = FontStyle.Bold;
                 }
 
-                return treeNodeActive;
+                return activeTreeNode;
             }
         }
 
+        private static GUIStyle focusedTreeNode;
+        public static GUIStyle FocusedTreeNode
+        {
+            get
+            {
+                if (focusedTreeNode == null)
+                {
+                    focusedTreeNode = new GUIStyle(TreeNode);
+                    focusedTreeNode.name = "Custom Focused TreeNode";
+
+                    var blueColor = new Color(62f / 255f, 125f / 255f, 231f / 255f);
+                    var blueTexture = Utility.GetTextureFromColor(blueColor);
+
+                    focusedTreeNode.focused.background = blueTexture;
+                }
+
+                return focusedTreeNode;
+            }
+        }
+
+        private static GUIStyle focusedActiveTreeNode;
+        public static GUIStyle FocusedActiveTreeNode
+        {
+            get
+            {
+                if (focusedActiveTreeNode == null)
+                {
+                    focusedActiveTreeNode = new GUIStyle(FocusedTreeNode);
+                    focusedActiveTreeNode.name = "Custom Focused Active TreeNode";
+
+                    focusedActiveTreeNode.fontStyle = FontStyle.Bold;
+                }
+
+                return focusedActiveTreeNode;
+            }
+        }
     }
 }

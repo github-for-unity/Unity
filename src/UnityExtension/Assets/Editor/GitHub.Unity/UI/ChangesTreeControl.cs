@@ -78,6 +78,10 @@ namespace GitHub.Unity
             set
             {
                 selectedNode = value;
+                if (value != null && selectionObject)
+                {
+                    Selection.activeObject = selectionObject;
+                }
             }
         }
 

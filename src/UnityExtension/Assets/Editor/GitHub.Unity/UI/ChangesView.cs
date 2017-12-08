@@ -35,7 +35,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            UpdateTreeIcons();
+            TreeOnEnable();
             AttachHandlers(Repository);
             Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
             Repository.CheckStatusEntriesChangedEvent(lastStatusEntriesChangedEvent);
@@ -94,6 +94,12 @@ namespace GitHub.Unity
             OnCommitDetailsAreaGUI();
         }
 
+        public override void OnSelectionChange()
+        {
+            base.OnSelectionChange();
+            Redraw();
+        }
+
         private void OnTreeGUI(Rect rect)
         {
             var initialRect = rect;
@@ -101,7 +107,9 @@ namespace GitHub.Unity
             {
                 treeChanges.FolderStyle = Styles.Foldout;
                 treeChanges.TreeNodeStyle = Styles.TreeNode;
-                treeChanges.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+                treeChanges.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
+                treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
+                treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
                 rect = treeChanges.Render(initialRect, rect, scroll,
                     node => { },
@@ -192,17 +200,18 @@ namespace GitHub.Unity
                 treeChanges.IsCheckable = true;
                 treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
 
-                UpdateTreeIcons();
+                TreeOnEnable();
             }
 
             treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry)));
             Redraw();
         }
 
-        private void UpdateTreeIcons()
+        private void TreeOnEnable()
         {
             if (treeChanges != null)
             {
+                treeChanges.OnEnable();
                 treeChanges.UpdateIcons(Styles.FolderIcon);
             }
         }
