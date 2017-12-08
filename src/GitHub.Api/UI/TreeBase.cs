@@ -102,7 +102,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void CheckAll(bool isChecked)
+        public void SetCheckStateOnAll(bool isChecked)
         {
             var nodeCheckState = isChecked ? CheckState.Checked : CheckState.Empty;
             foreach (var node in Nodes)
