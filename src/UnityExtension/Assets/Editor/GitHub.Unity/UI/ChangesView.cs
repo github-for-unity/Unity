@@ -258,12 +258,12 @@ namespace GitHub.Unity
 
         private void SelectAll()
         {
-            this.treeChanges.CheckAll(true);
+            this.treeChanges.SetCheckStateOnAll(true);
         }
 
         private void SelectNone()
         {
-            this.treeChanges.CheckAll(false);
+            this.treeChanges.SetCheckStateOnAll(false);
         }
 
         private void Commit()
