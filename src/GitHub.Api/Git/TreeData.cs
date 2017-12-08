@@ -36,7 +36,8 @@ namespace GitHub.Unity
             this.gitStatusEntry = gitStatusEntry;
         }
 
-        public string Path => gitStatusEntry.ProjectPath;
+        public string Path => gitStatusEntry.Path;
+        public string ProjectPath => gitStatusEntry.ProjectPath;
         public bool IsActive => false;
         public GitStatusEntry GitStatusEntry => gitStatusEntry;
 
