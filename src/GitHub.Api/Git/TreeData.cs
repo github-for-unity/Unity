@@ -22,10 +22,6 @@ namespace GitHub.Unity
 
         public string Path => GitBranch.Name;
         public bool IsActive => GitBranch.IsActive;
-
-        public string CustomStringTag => null;
-
-        public int CustomIntTag => 0;
     }
 
     [Serializable]
@@ -43,8 +39,6 @@ namespace GitHub.Unity
         public string Path => gitStatusEntry.ProjectPath;
         public bool IsActive => false;
         public GitStatusEntry GitStatusEntry => gitStatusEntry;
-
-        public string ProjectPath => gitStatusEntry.ProjectPath;
 
         public GitFileStatus FileStatus => gitStatusEntry.Status;
     }

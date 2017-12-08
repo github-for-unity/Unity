@@ -386,12 +386,6 @@ namespace GitHub.Unity
         [NonSerialized] public Texture Icon;
         [NonSerialized] public Texture IconBadge;
 
-//        [NonSerialized] private GUIStyle blackStyle;
-//        [NonSerialized] private GUIStyle greenStyle;
-//        [NonSerialized] private GUIStyle blueStyle;
-//        [NonSerialized] private GUIStyle yellowStyle;
-//        [NonSerialized] private GUIStyle magentaStyle;
-
         public string Path
         {
             get { return path; }
@@ -483,31 +477,6 @@ namespace GitHub.Unity
 
             var iconRect = new Rect(nodeStartX, nodeRect.y, fillRect.width - nodeStartX, nodeRect.height);
             var statusRect = new Rect(iconRect.x + 6, iconRect.yMax - 9, 9, 9);
-
-            //if (Event.current.type == EventType.repaint)
-            //{
-            //    if (blackStyle == null)
-            //        blackStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.black) } };
-            //                        
-            //    if (greenStyle == null)
-            //        greenStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.green) } };
-            //                        
-            //    if (blueStyle == null)
-            //        blueStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.blue) } };
-            //                        
-            //    if (yellowStyle == null)
-            //        yellowStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.yellow) } };
-            //                        
-            //    if (magentaStyle == null)
-            //        magentaStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.magenta) } };
-            //                        
-            //    GUI.Box(nodeRect, GUIContent.none, blackStyle);
-            //                        
-            //    GUI.Box(toggleRect, GUIContent.none, isFolder ? greenStyle : blueStyle);
-            //                        
-            //    GUI.Box(checkRect, GUIContent.none, yellowStyle);
-            //    GUI.Box(iconRect, GUIContent.none, magentaStyle);
-            //}
 
             var contentStyle = IsActive ? activeNodeStyle : nodeStyle;
 
