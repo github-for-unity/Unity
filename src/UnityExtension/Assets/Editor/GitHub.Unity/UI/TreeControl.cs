@@ -9,6 +9,8 @@ namespace GitHub.Unity
     [Serializable]
     public class TreeNodeDictionary : SerializableDictionary<string, TreeNode> { }
 
+    public class TreeSelection : ScriptableObject { }
+
     [Serializable]
     public abstract class Tree<TNode, TData>: TreeBase<TNode, TData>
         where TNode : TreeNode 
@@ -39,6 +41,8 @@ namespace GitHub.Unity
         [NonSerialized] private TNode rightClickNextRenderNode;
         [NonSerialized] private int controlId;
 
+        [SerializeField] private TreeSelection selectionObject = ScriptableObject.CreateInstance<TreeSelection>();
+
         public bool IsInitialized { get { return Nodes != null && Nodes.Count > 0 && !String.IsNullOrEmpty(Nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
 
@@ -53,7 +57,7 @@ namespace GitHub.Unity
             set
             {
                 selectedNode = value;
-                Selection.activeObject = value;
+                Selection.activeObject = selectionObject;
             }
         }
 
@@ -89,7 +93,7 @@ namespace GitHub.Unity
         public Rect Render(Rect containingRect, Rect rect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
         {
             controlId = GUIUtility.GetControlID(FocusType.Keyboard);
-            var treeHasFocus = GUIUtility.keyboardControl == controlId && Selection.activeObject == selectedNode;
+            var treeHasFocus = GUIUtility.keyboardControl == controlId && Selection.activeObject == selectionObject;
 
             if (!Nodes.Any())
                 return new Rect(0f, rect.y, 0f, 0f);
@@ -373,7 +377,7 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    public class TreeNode : ScriptableObject, ITreeNode
+    public class TreeNode : ITreeNode
     {
         public string path;
         public string label;
@@ -606,15 +610,16 @@ namespace GitHub.Unity
 
         protected override TreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, GitBranchTreeData? treeData)
         {
-            var node = ScriptableObject.CreateInstance<TreeNode>();
-            node.Path = path;
-            node.Label = label;
-            node.Level = level;
-            node.IsFolder = isFolder;
-            node.IsActive = isActive;
-            node.IsHidden = isHidden;
-            node.IsCollapsed = isCollapsed;
-            node.TreeIsCheckable = IsCheckable;
+            var node = new TreeNode {
+                Path = path,
+                Label = label,
+                Level = level,
+                IsFolder = isFolder,
+                IsActive = isActive,
+                IsHidden = isHidden,
+                IsCollapsed = isCollapsed,
+                TreeIsCheckable = IsCheckable
+            };
 
             if (isFolder)
             {
