@@ -62,7 +62,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            UpdateTreeIcons();
+            TreeOnEnable();
             AttachHandlers(Repository);
             Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
         }
@@ -164,7 +164,7 @@ namespace GitHub.Unity
                 treeRemotes.Title = RemoteTitle;
                 treeRemotes.IsRemote = true;
 
-                UpdateTreeIcons();
+                TreeOnEnable();
             }
 
             localBranches.Sort(CompareBranches);
@@ -175,15 +175,17 @@ namespace GitHub.Unity
             Redraw();
         }
 
-        private void UpdateTreeIcons()
+        private void TreeOnEnable()
         {
             if (treeLocals != null)
             {
+                treeLocals.OnEnable();
                 treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
 
             if (treeRemotes != null)
             {
+                treeRemotes.OnEnable();
                 treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
         }

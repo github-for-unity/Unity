@@ -35,7 +35,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            UpdateTreeIcons();
+            TreeOnEnable();
             AttachHandlers(Repository);
             Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
             Repository.CheckStatusEntriesChangedEvent(lastStatusEntriesChangedEvent);
@@ -200,17 +200,18 @@ namespace GitHub.Unity
                 treeChanges.IsCheckable = true;
                 treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
 
-                UpdateTreeIcons();
+                TreeOnEnable();
             }
 
             treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry)));
             Redraw();
         }
 
-        private void UpdateTreeIcons()
+        private void TreeOnEnable()
         {
             if (treeChanges != null)
             {
+                treeChanges.OnEnable();
                 treeChanges.UpdateIcons(Styles.FolderIcon);
             }
         }

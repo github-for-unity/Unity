@@ -41,7 +41,7 @@ namespace GitHub.Unity
         [NonSerialized] private TNode rightClickNextRenderNode;
         [NonSerialized] private int controlId;
 
-        [SerializeField] private TreeSelection selectionObject = ScriptableObject.CreateInstance<TreeSelection>();
+        [NonSerialized] private TreeSelection selectionObject;
 
         public bool IsInitialized { get { return Nodes != null && Nodes.Count > 0 && !String.IsNullOrEmpty(Nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
@@ -52,12 +52,16 @@ namespace GitHub.Unity
             {
                 if (selectedNode != null && String.IsNullOrEmpty(selectedNode.Path))
                     selectedNode = null;
+
                 return selectedNode;
             }
             set
             {
                 selectedNode = value;
-                Selection.activeObject = selectionObject;
+                if (value != null && selectionObject)
+                {
+                    Selection.activeObject = selectionObject;
+                }
             }
         }
 
@@ -133,7 +137,7 @@ namespace GitHub.Unity
                 var titleDisplay = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (titleDisplay)
                 {
-                    var isSelected = selectedNode == titleNode;
+                    var isSelected = selectedNode == titleNode && treeHasFocus;
                     renderResult = titleNode.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
@@ -167,7 +171,8 @@ namespace GitHub.Unity
                 var display = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (display)
                 {
-                    renderResult = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
+                    var isSelected = selectedNode == node && treeHasFocus;
+                    renderResult = node.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
@@ -372,6 +377,14 @@ namespace GitHub.Unity
             foreach (var treeNode in Nodes)
             {
                 SetNodeIcon(treeNode);
+            }
+        }
+
+        public void OnEnable()
+        {
+            if (!selectionObject)
+            {
+                selectionObject = ScriptableObject.CreateInstance<TreeSelection>();
             }
         }
     }
