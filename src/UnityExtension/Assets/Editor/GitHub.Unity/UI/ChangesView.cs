@@ -101,7 +101,9 @@ namespace GitHub.Unity
             {
                 treeChanges.FolderStyle = Styles.Foldout;
                 treeChanges.TreeNodeStyle = Styles.TreeNode;
-                treeChanges.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+                treeChanges.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
+                treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
+                treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
                 rect = treeChanges.Render(initialRect, rect, scroll,
                     node => { },

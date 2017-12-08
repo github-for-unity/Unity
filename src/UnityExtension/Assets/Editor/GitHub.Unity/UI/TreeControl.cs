@@ -24,9 +24,12 @@ namespace GitHub.Unity
         [SerializeField] public string pathSeparator = "/";
         [SerializeField] public bool displayRootNode = true;
         [SerializeField] public bool isCheckable = false;
+
         [NonSerialized] public GUIStyle FolderStyle;
         [NonSerialized] public GUIStyle TreeNodeStyle;
         [NonSerialized] public GUIStyle ActiveTreeNodeStyle;
+        [NonSerialized] public GUIStyle FocusedTreeNodeStyle;
+        [NonSerialized] public GUIStyle FocusedActiveTreeNodeStyle;
 
         [SerializeField] private List<TNode> nodes = new List<TNode>();
         [SerializeField] private TNode selectedNode = null;
@@ -34,6 +37,7 @@ namespace GitHub.Unity
         [NonSerialized] private Stack<bool> indents = new Stack<bool>();
         [NonSerialized] private Action<TNode> rightClickNextRender;
         [NonSerialized] private TNode rightClickNextRenderNode;
+        [NonSerialized] private int controlId;
 
         public bool IsInitialized { get { return Nodes != null && Nodes.Count > 0 && !String.IsNullOrEmpty(Nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
@@ -83,6 +87,18 @@ namespace GitHub.Unity
 
         public Rect Render(Rect containingRect, Rect rect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
         {
+            controlId = GUIUtility.GetControlID(FocusType.Keyboard);
+
+            var treeNodeStyle = TreeNodeStyle;
+            var activeTreeNodeStyle = ActiveTreeNodeStyle;
+
+            var treeHasFocus = GUIUtility.keyboardControl == controlId;
+            if (treeHasFocus)
+            {
+                treeNodeStyle = FocusedTreeNodeStyle;
+                activeTreeNodeStyle = FocusedActiveTreeNodeStyle;
+            }
+
             if (Event.current.type != EventType.Repaint)
             {
                 if (rightClickNextRender != null)
@@ -109,7 +125,8 @@ namespace GitHub.Unity
                 var titleDisplay = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (titleDisplay)
                 {
-                    renderResult = titleNode.Render(rect, Styles.TreeIndentation, selectedNode == titleNode, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                    var isSelected = selectedNode == titleNode;
+                    renderResult = titleNode.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
@@ -142,7 +159,7 @@ namespace GitHub.Unity
                 var display = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (display)
                 {
-                    renderResult = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, TreeNodeStyle, ActiveTreeNodeStyle);
+                    renderResult = node.Render(rect, Styles.TreeIndentation, selectedNode == node, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
@@ -213,6 +230,8 @@ namespace GitHub.Unity
             if (Event.current.type == EventType.MouseDown && clickRect.Contains(Event.current.mousePosition))
             {
                 Event.current.Use();
+                GUIUtility.keyboardControl = controlId;
+
                 SelectedNode = currentNode;
                 requiresRepaint = true;
                 var clickCount = Event.current.clickCount;
@@ -234,7 +253,7 @@ namespace GitHub.Unity
             }
 
             // Keyboard navigation if this child is the current selection
-            if (currentNode == selectedNode && Event.current.type == EventType.KeyDown)
+            if (GUIUtility.keyboardControl == controlId && currentNode == selectedNode && Event.current.type == EventType.KeyDown)
             {
                 int directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0;
                 int directionX = Event.current.keyCode == KeyCode.LeftArrow ? -1 : Event.current.keyCode == KeyCode.RightArrow ? 1 : 0;
@@ -465,34 +484,36 @@ namespace GitHub.Unity
             var iconRect = new Rect(nodeStartX, nodeRect.y, fillRect.width - nodeStartX, nodeRect.height);
             var statusRect = new Rect(iconRect.x + 6, iconRect.yMax - 9, 9, 9);
 
-//            if (Event.current.type == EventType.repaint)
-//            {
-//                if (blackStyle == null)
-//                    blackStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.black) } };
-//            
-//                if (greenStyle == null)
-//                    greenStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.green) } };
-//            
-//                if (blueStyle == null)
-//                    blueStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.blue) } };
-//            
-//                if (yellowStyle == null)
-//                    yellowStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.yellow) } };
-//            
-//                if (magentaStyle == null)
-//                    magentaStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.magenta) } };
-//            
-//                GUI.Box(nodeRect, GUIContent.none, blackStyle);
-//            
-//                GUI.Box(toggleRect, GUIContent.none, isFolder ? greenStyle : blueStyle);
-//            
-//                GUI.Box(checkRect, GUIContent.none, yellowStyle);
-//                GUI.Box(iconRect, GUIContent.none, magentaStyle);
-//            }
+            //if (Event.current.type == EventType.repaint)
+            //{
+            //    if (blackStyle == null)
+            //        blackStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.black) } };
+            //                        
+            //    if (greenStyle == null)
+            //        greenStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.green) } };
+            //                        
+            //    if (blueStyle == null)
+            //        blueStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.blue) } };
+            //                        
+            //    if (yellowStyle == null)
+            //        yellowStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.yellow) } };
+            //                        
+            //    if (magentaStyle == null)
+            //        magentaStyle = new GUIStyle { normal = { background = Utility.GetTextureFromColor(Color.magenta) } };
+            //                        
+            //    GUI.Box(nodeRect, GUIContent.none, blackStyle);
+            //                        
+            //    GUI.Box(toggleRect, GUIContent.none, isFolder ? greenStyle : blueStyle);
+            //                        
+            //    GUI.Box(checkRect, GUIContent.none, yellowStyle);
+            //    GUI.Box(iconRect, GUIContent.none, magentaStyle);
+            //}
+
+            var contentStyle = IsActive ? activeNodeStyle : nodeStyle;
 
             if (Event.current.type == EventType.repaint)
             {
-                nodeStyle.Draw(fillRect, GUIContent.none, false, false, false, isSelected);
+                contentStyle.Draw(fillRect, GUIContent.none, false, false, false, isSelected);
             }
 
             var styleOn = false;
@@ -539,11 +560,9 @@ namespace GitHub.Unity
                 }
             }
 
-            var contentStyle = IsActive ? activeNodeStyle : nodeStyle;
-
             if (Event.current.type == EventType.repaint)
             {
-                contentStyle.Draw(iconRect, content, false, false, styleOn, isSelected);
+                contentStyle.Draw(iconRect, content, false, false, false, isSelected);
             }
 
             if (IconBadge != null)

@@ -301,11 +301,15 @@ namespace GitHub.Unity
             {
                 treeLocals.FolderStyle = Styles.Foldout;
                 treeLocals.TreeNodeStyle = Styles.TreeNode;
-                treeLocals.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+                treeLocals.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
+                treeLocals.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
+                treeLocals.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
                 treeRemotes.FolderStyle = Styles.Foldout;
                 treeRemotes.TreeNodeStyle = Styles.TreeNode;
-                treeRemotes.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+                treeRemotes.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
+                treeRemotes.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
+                treeRemotes.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
                 var treeHadFocus = treeLocals.SelectedNode != null;
 
