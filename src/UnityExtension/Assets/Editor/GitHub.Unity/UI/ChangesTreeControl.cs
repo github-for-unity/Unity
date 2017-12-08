@@ -36,7 +36,7 @@ namespace GitHub.Unity
 
         [NonSerialized] public Texture2D FolderIcon;
 
-        public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)
+        public void UpdateIcons(Texture2D folderIcon)
         {
             var needsLoad = FolderIcon == null;
             if (needsLoad)
