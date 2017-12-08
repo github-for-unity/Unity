@@ -190,13 +190,11 @@ namespace GitHub.Unity
                 {
                     SelectedNode = Nodes[Nodes.Count - 1];
                     selectionChanged = true;
-                    Event.current.Use();
                 }
                 else if (directionY > 0 || directionX > 0)
                 {
                     SelectedNode = Nodes[0];
                     selectionChanged = true;
-                    Event.current.Use();
                 }
             }
             RequiresRepaint = selectionChanged;
@@ -302,7 +300,6 @@ namespace GitHub.Unity
             if (index < Nodes.Count)
             {
                 SelectedNode = Nodes[index];
-                Event.current.Use();
             }
             else
             {
@@ -325,7 +322,6 @@ namespace GitHub.Unity
             if (index >= 0)
             {
                 SelectedNode = Nodes[index];
-                Event.current.Use();
             }
             else
             {
