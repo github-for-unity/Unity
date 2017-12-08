@@ -94,6 +94,12 @@ namespace GitHub.Unity
             OnCommitDetailsAreaGUI();
         }
 
+        public override void OnSelectionChange()
+        {
+            base.OnSelectionChange();
+            Redraw();
+        }
+
         private void OnTreeGUI(Rect rect)
         {
             var initialRect = rect;

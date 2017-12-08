@@ -53,6 +53,7 @@ namespace GitHub.Unity
             set
             {
                 selectedNode = value;
+                Selection.activeObject = value;
             }
         }
 
@@ -88,11 +89,14 @@ namespace GitHub.Unity
         public Rect Render(Rect containingRect, Rect rect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
         {
             controlId = GUIUtility.GetControlID(FocusType.Keyboard);
+            var treeHasFocus = GUIUtility.keyboardControl == controlId && Selection.activeObject == selectedNode;
+
+            if (!Nodes.Any())
+                return new Rect(0f, rect.y, 0f, 0f);
 
             var treeNodeStyle = TreeNodeStyle;
             var activeTreeNodeStyle = ActiveTreeNodeStyle;
 
-            var treeHasFocus = GUIUtility.keyboardControl == controlId;
             if (treeHasFocus)
             {
                 treeNodeStyle = FocusedTreeNodeStyle;
@@ -359,7 +363,6 @@ namespace GitHub.Unity
             indents.Pop();
         }
 
-
         protected void LoadNodeIcons()
         {
             foreach (var treeNode in Nodes)
@@ -370,7 +373,7 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    public class TreeNode : ITreeNode
+    public class TreeNode : ScriptableObject, ITreeNode
     {
         public string path;
         public string label;
@@ -603,16 +606,15 @@ namespace GitHub.Unity
 
         protected override TreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, GitBranchTreeData? treeData)
         {
-            var node = new TreeNode {
-                Path = path,
-                Label = label,
-                Level = level,
-                IsFolder = isFolder,
-                IsActive = isActive,
-                IsHidden = isHidden,
-                IsCollapsed = isCollapsed,
-                TreeIsCheckable = IsCheckable
-            };
+            var node = ScriptableObject.CreateInstance<TreeNode>();
+            node.Path = path;
+            node.Label = label;
+            node.Level = level;
+            node.IsFolder = isFolder;
+            node.IsActive = isActive;
+            node.IsHidden = isHidden;
+            node.IsCollapsed = isCollapsed;
+            node.TreeIsCheckable = IsCheckable;
 
             if (isFolder)
             {

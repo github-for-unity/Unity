@@ -79,6 +79,12 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
+        public override void OnSelectionChange()
+        {
+            base.OnSelectionChange();
+            Redraw();
+        }
+
         private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)
         {
             if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))

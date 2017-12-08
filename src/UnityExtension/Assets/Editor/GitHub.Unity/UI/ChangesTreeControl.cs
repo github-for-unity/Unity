@@ -94,19 +94,17 @@ namespace GitHub.Unity
 
         protected override ChangesTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, GitStatusEntryTreeData? treeData)
         {
-            var node = new ChangesTreeNode
-            {
-                Path = path,
-                Label = label,
-                Level = level,
-                IsFolder = isFolder,
-                IsActive = isActive,
-                IsHidden = isHidden,
-                IsCollapsed = isCollapsed,
-                TreeIsCheckable = IsCheckable,
-                GitFileStatus = treeData.HasValue ? treeData.Value.FileStatus : GitFileStatus.None,
-                ProjectPath = treeData.HasValue ? treeData.Value.ProjectPath : null
-            };
+            var node = ScriptableObject.CreateInstance<ChangesTreeNode>();
+            node.Path = path;
+            node.Label = label;
+            node.Level = level;
+            node.IsFolder = isFolder;
+            node.IsActive = isActive;
+            node.IsHidden = isHidden;
+            node.IsCollapsed = isCollapsed;
+            node.TreeIsCheckable = IsCheckable;
+            node.GitFileStatus = treeData.HasValue ? treeData.Value.FileStatus : GitFileStatus.None;
+            node.ProjectPath = treeData.HasValue ? treeData.Value.ProjectPath : null;
 
             if (isFolder)
             {
