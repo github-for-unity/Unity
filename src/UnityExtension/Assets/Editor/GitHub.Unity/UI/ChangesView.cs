@@ -30,11 +30,12 @@ namespace GitHub.Unity
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
         [SerializeField] private ChangesTree treeChanges;
         [SerializeField] private List<GitStatusEntry> gitStatusEntries;
+        [SerializeField] private string changedFilesText = NoChangedFilesLabel;
 
         public override void OnEnable()
         {
             base.OnEnable();
-            UpdateTreeIcons();
+            TreeOnEnable();
             AttachHandlers(Repository);
             Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
             Repository.CheckStatusEntriesChangedEvent(lastStatusEntriesChangedEvent);
@@ -49,7 +50,6 @@ namespace GitHub.Unity
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
-
             MaybeUpdateData();
         }
 
@@ -57,7 +57,7 @@ namespace GitHub.Unity
         {
             GUILayout.BeginHorizontal();
             {
-                EditorGUI.BeginDisabledGroup(false);
+                EditorGUI.BeginDisabledGroup(gitStatusEntries == null || !gitStatusEntries.Any());
                 {
                     if (GUILayout.Button(SelectAllButton, EditorStyles.miniButtonLeft))
                     {
@@ -73,12 +73,7 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-//                GUILayout.Label(
-//                    tree.Entries.Count == 0
-//                        ? NoChangedFilesLabel
-//                        : tree.Entries.Count == 1
-//                            ? OneChangedFileLabel
-//                            : String.Format(ChangedFilesLabel, tree.Entries.Count), EditorStyles.miniLabel);
+                GUILayout.Label(changedFilesText, EditorStyles.miniLabel);
             }
             GUILayout.EndHorizontal();
 
@@ -99,26 +94,33 @@ namespace GitHub.Unity
             OnCommitDetailsAreaGUI();
         }
 
+        public override void OnSelectionChange()
+        {
+            base.OnSelectionChange();
+            Redraw();
+        }
+
         private void OnTreeGUI(Rect rect)
         {
             var initialRect = rect;
-
-            if (treeChanges.FolderStyle == null)
+            if (treeChanges != null)
             {
                 treeChanges.FolderStyle = Styles.Foldout;
                 treeChanges.TreeNodeStyle = Styles.TreeNode;
-                treeChanges.ActiveTreeNodeStyle = Styles.TreeNodeActive;
+                treeChanges.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
+                treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
+                treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
+
+                rect = treeChanges.Render(initialRect, rect, scroll,
+                    node => { },
+                    node => {
+                    },
+                    node => {
+                    });
+
+                if (treeChanges.RequiresRepaint)
+                    Redraw();
             }
-
-            rect = treeChanges.Render(rect, scroll,
-                node => { },
-                node => {
-                },
-                node => {
-                });
-
-            if (treeChanges.RequiresRepaint)
-                Redraw();
 
             GUILayout.Space(rect.y - initialRect.y);
         }
@@ -176,7 +178,13 @@ namespace GitHub.Unity
             if (currentStatusEntriesHasUpdate)
             {
                 currentStatusEntriesHasUpdate = false;
-                gitStatusEntries = Repository.CurrentChanges;
+                gitStatusEntries = Repository.CurrentChanges.Where(x => x.Status != GitFileStatus.Ignored).ToList();
+
+                changedFilesText = gitStatusEntries.Count == 0
+                    ? NoChangedFilesLabel
+                    : gitStatusEntries.Count == 1
+                        ? OneChangedFileLabel
+                        : String.Format(ChangedFilesLabel, gitStatusEntries.Count);
 
                 BuildTree();
             }
@@ -192,18 +200,19 @@ namespace GitHub.Unity
                 treeChanges.IsCheckable = true;
                 treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
 
-                UpdateTreeIcons();
+                TreeOnEnable();
             }
 
-            TreeLoader.Load(treeChanges, gitStatusEntries.Where(x => x.Status != GitFileStatus.Ignored).Select(entry => new GitStatusEntryTreeData(entry)).Cast<ITreeData>());
+            treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry)));
             Redraw();
         }
 
-        private void UpdateTreeIcons()
+        private void TreeOnEnable()
         {
             if (treeChanges != null)
             {
-                treeChanges.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
+                treeChanges.OnEnable();
+                treeChanges.UpdateIcons(Styles.FolderIcon);
             }
         }
 
@@ -232,8 +241,7 @@ namespace GitHub.Unity
                     GUILayout.Space(Styles.CommitAreaPadding);
 
                     // Disable committing when already committing or if we don't have all the data needed
-                    //EditorGUI.BeginDisabledGroup(isBusy || string.IsNullOrEmpty(commitMessage) || !tree.CommitTargets.Any(t => t.Any));
-                    EditorGUI.BeginDisabledGroup(isBusy || string.IsNullOrEmpty(commitMessage));
+                    EditorGUI.BeginDisabledGroup(isBusy || string.IsNullOrEmpty(commitMessage) || !treeChanges.GetCheckedFiles().Any());
                     {
                         GUILayout.BeginHorizontal();
                         {
@@ -259,48 +267,38 @@ namespace GitHub.Unity
 
         private void SelectAll()
         {
-//            for (var index = 0; index < tree.CommitTargets.Count; ++index)
-//            {
-//                tree.CommitTargets[index].All = true;
-//            }
+            this.treeChanges.SetCheckStateOnAll(true);
         }
 
         private void SelectNone()
         {
-//            for (var index = 0; index < tree.CommitTargets.Count; ++index)
-//            {
-//                tree.CommitTargets[index].All = false;
-//            }
+            this.treeChanges.SetCheckStateOnAll(false);
         }
 
         private void Commit()
         {
             // Do not allow new commits before we have received one successful update
-//            isBusy = true;
-//
-//            var files = Enumerable.Range(0, tree.Entries.Count)
-//                .Where(i => tree.CommitTargets[i].All)
-//                .Select(i => tree.Entries[i].Path)
-//                .ToList();
-//
-//            ITask addTask;
-//
-//            if (files.Count == tree.Entries.Count)
-//            {
-//                addTask = Repository.CommitAllFiles(commitMessage, commitBody);
-//            }
-//            else
-//            {
-//                addTask = Repository.CommitFiles(files, commitMessage, commitBody);
-//            }
-//
-//            addTask
-//                .FinallyInUI((b, exception) => 
-//                    {
-//                        commitMessage = "";
-//                        commitBody = "";
-//                        isBusy = false;
-//                    }).Start();
+            isBusy = true;
+
+            var files = treeChanges.GetCheckedFiles().ToList();
+            ITask addTask;
+
+            if (files.Count == gitStatusEntries.Count)
+            {
+                addTask = Repository.CommitAllFiles(commitMessage, commitBody);
+            }
+            else
+            {
+                addTask = Repository.CommitFiles(files, commitMessage, commitBody);
+            }
+
+            addTask
+                .FinallyInUI((b, exception) => 
+                    {
+                        commitMessage = "";
+                        commitBody = "";
+                        isBusy = false;
+                    }).Start();
         }
 
         public override bool IsBusy

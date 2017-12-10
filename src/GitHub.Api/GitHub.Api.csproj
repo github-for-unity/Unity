@@ -236,7 +236,7 @@
     <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="Platform\Platform.cs" />
     <Compile Include="Git\GitCredentialManager.cs" />
-    <Compile Include="UI\TreeLoader.cs" />
+    <Compile Include="UI\TreeBase.cs" />
   </ItemGroup>
   <Choose>
     <When Condition="$(Buildtype) == 'Internal'">
