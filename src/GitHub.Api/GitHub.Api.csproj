@@ -107,6 +107,7 @@
     <Compile Include="Git\Tasks\GitAheadBehindStatusTask.cs" />
     <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />
     <Compile Include="Git\Tasks\GitVersionTask.cs" />
+    <Compile Include="Git\TreeData.cs" />
     <Compile Include="Git\ValidateGitInstallResult.cs" />
     <Compile Include="Helpers\AssemblyResources.cs" />
     <Compile Include="Authentication\IKeychain.cs" />
@@ -237,6 +238,7 @@
     <Compile Include="Git\GitCredentialManager.cs" />
     <Compile Include="UI\FileTreeNode.cs" />
     <Compile Include="UI\GitCommitTarget.cs" />
+    <Compile Include="UI\TreeBase.cs" />
     <Compile Include="UI\TreeBuilder.cs" />
   </ItemGroup>
   <Choose>
@@ -294,6 +296,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

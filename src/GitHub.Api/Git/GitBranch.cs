@@ -2,14 +2,8 @@ using System;
 
 namespace GitHub.Unity
 {
-    public interface ITreeData
-    {
-        string Name { get; }
-        bool IsActive { get; }
-    }
-
     [Serializable]
-    public struct GitBranch : ITreeData
+    public struct GitBranch
     {
         public static GitBranch Default = new GitBranch();
 
