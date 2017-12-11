@@ -32,22 +32,19 @@ namespace UnitTests
         public void NullListShouldNotEqualListOf1()
         {
             var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
+
             var entries = new[]
             {
-                new GitLogEntry
-                {
-                    AuthorName = "AuthorName",
-                    AuthorEmail = "AuthorEmail",
-                    MergeA = "MergeA",
-                    MergeB = "MergeB",
-                    Changes = new List<GitStatusEntry>(),
-                    CommitID = "CommitID",
-                    Summary = "Summary",
-                    Description = "Description",
-                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                }
+                new GitLogEntry("CommitID",
+                    "AuthorName", "AuthorEmail", 
+                    "AuthorName", "AuthorEmail", 
+                    "Summary",
+                    "Description", 
+                    commitTime, commitTime, 
+                    new List<GitStatusEntry>(), 
+                    "MergeA", "MergeB")
             };
+
             GitLogEntry[] otherEntries = null;
 
             entries.AssertNotEqual(otherEntries);
@@ -57,22 +54,19 @@ namespace UnitTests
         public void EmptyListShouldNotEqualListOf1()
         {
             var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
+
             var entries = new[]
             {
-                new GitLogEntry
-                {
-                    AuthorName = "AuthorName",
-                    AuthorEmail = "AuthorEmail",
-                    MergeA = "MergeA",
-                    MergeB = "MergeB",
-                    Changes = new List<GitStatusEntry>(),
-                    CommitID = "CommitID",
-                    Summary = "Summary",
-                    Description = "Description",
-                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                }
+                new GitLogEntry("CommitID", 
+                    "AuthorName", "AuthorEmail", 
+                    "AuthorName", "AuthorEmail",
+                    "Summary", 
+                    "Description", 
+                    commitTime, commitTime,
+                    new List<GitStatusEntry>(), 
+                    "MergeA", "MergeB")
             };
+
             GitLogEntry[] otherEntries = new GitLogEntry[0];
 
             entries.AssertNotEqual(otherEntries);
@@ -82,46 +76,37 @@ namespace UnitTests
         public void ListOf1ShouldEqualListOf1()
         {
             var commitTime = new DateTimeOffset(1921, 12, 23, 1, 3, 6, 23, TimeSpan.Zero);
+
             var entries = new[]
             {
-                new GitLogEntry
-                {
-                    AuthorName = "AuthorName",
-                    AuthorEmail = "AuthorEmail",
-                    MergeA = "MergeA",
-                    MergeB = "MergeB",
-                    Changes = new List<GitStatusEntry>(new[]
+                new GitLogEntry("CommitID", 
+                    "AuthorName", "AuthorEmail", 
+                    "AuthorName", "AuthorEmail",
+                    "Summary", 
+                    "Description", 
+                    commitTime, commitTime,
+                    new List<GitStatusEntry>(new[]
                     {
                         new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,
                             "SomeOriginalPath"),
                     }),
-                    CommitID = "CommitID",
-                    Summary = "Summary",
-                    Description = "Description",
-                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                }
+                    "MergeA", "MergeB")
             };
 
             var otherEntries = new[]
             {
-                new GitLogEntry
-                {
-                    AuthorName = "AuthorName",
-                    AuthorEmail = "AuthorEmail",
-                    MergeA = "MergeA",
-                    MergeB = "MergeB",
-                    Changes = new List<GitStatusEntry>(new[]
+                new GitLogEntry("CommitID",
+                    "AuthorName", "AuthorEmail", 
+                    "AuthorName", "AuthorEmail", 
+                    "Summary", 
+                    "Description", 
+                    commitTime, commitTime,
+                    new List<GitStatusEntry>(new[]
                     {
                         new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,
                             "SomeOriginalPath"),
-                    }),
-                    CommitID = "CommitID",
-                    Summary = "Summary",
-                    Description = "Description",
-                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                }
+                    }), 
+                    "MergeA", "MergeB")
             };
 
             entries.AssertEqual(otherEntries);
@@ -135,70 +120,49 @@ namespace UnitTests
 
             var entries = new[]
             {
-                new GitLogEntry
-                {
-                    AuthorName = "AuthorName",
-                    AuthorEmail = "AuthorEmail",
-                    MergeA = "MergeA",
-                    MergeB = "MergeB",
-                    Changes = new List<GitStatusEntry>(new[]
+                new GitLogEntry("CommitID",
+                    "AuthorName", "AuthorEmail",
+                    "AuthorName", "AuthorEmail",
+                    "Summary", "Description", 
+                    commitTime, commitTime,
+                    new List<GitStatusEntry>(new[]
                     {
                         new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,
                             "SomeOriginalPath"),
                     }),
-                    CommitID = "CommitID",
-                    Summary = "Summary",
-                    Description = "Description",
-                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                },
-                new GitLogEntry
-                {
-                    AuthorName = "OtherAuthorName",
-                    AuthorEmail = "OtherAuthorEmail",
-                    MergeA = "OtherMergeA",
-                    MergeB = "OtherMergeB",
-                    Changes = new List<GitStatusEntry>(),
-                    CommitID = "OtherCommitID",
-                    Summary = "OtherSummary",
-                    Description = "OtherDescription",
-                    TimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                }
+                    "MergeA", "MergeB"),
+                new GitLogEntry("`CommitID",
+                    "`AuthorName", "`AuthorEmail", 
+                    "`AuthorName", "`AuthorEmail", 
+                    "`Summary", 
+                    "`Description",
+                    commitTime, commitTime,
+                    new List<GitStatusEntry>(),
+                    "`MergeA", "`MergeB"),
             };
 
             var otherEntries = new[]
             {
-                new GitLogEntry
-                {
-                    AuthorName = "AuthorName",
-                    AuthorEmail = "AuthorEmail",
-                    MergeA = "MergeA",
-                    MergeB = "MergeB",
-                    Changes = new List<GitStatusEntry>(new[]
+                new GitLogEntry("`CommitID",
+                    "`AuthorName", "`AuthorEmail", 
+                    "`AuthorName", "`AuthorEmail", 
+                    "`Summary", 
+                    "`Description", 
+                    commitTime, commitTime,
+                    new List<GitStatusEntry>(new[]
                     {
                         new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,
                             "SomeOriginalPath"),
                     }),
-                    CommitID = "CommitID",
-                    Summary = "Summary",
-                    Description = "Description",
-                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                },
-                new GitLogEntry
-                {
-                    AuthorName = "OtherAuthorName",
-                    AuthorEmail = "OtherAuthorEmail",
-                    MergeA = "OtherMergeA",
-                    MergeB = "OtherMergeB",
-                    Changes = new List<GitStatusEntry>(),
-                    CommitID = "OtherCommitID",
-                    Summary = "OtherSummary",
-                    Description = "OtherDescription",
-                    TimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                }
+                    "`MergeA", "`MergeB"),
+                new GitLogEntry("CommitID", 
+                    "AuthorName", "AuthorEmail",
+                    "AuthorName", "AuthorEmail", 
+                    "Summary", 
+                    "Description", 
+                    commitTime, commitTime,
+                    new List<GitStatusEntry>(), 
+                    "MergeA", "MergeB")
             };
 
             entries.AssertEqual(otherEntries);
@@ -212,70 +176,50 @@ namespace UnitTests
 
             var entries = new[]
             {
-                new GitLogEntry
-                {
-                    AuthorName = "AuthorName",
-                    AuthorEmail = "AuthorEmail",
-                    MergeA = "MergeA",
-                    MergeB = "MergeB",
-                    Changes = new List<GitStatusEntry>(new[]
+                new GitLogEntry("CommitID",
+                    "AuthorName", "AuthorEmail",
+                    "AuthorName", "AuthorEmail",
+                    "Summary",
+                    "Description", 
+                    commitTime, commitTime,
+                    new List<GitStatusEntry>(new[]
                     {
                         new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,
                             "SomeOriginalPath"),
                     }),
-                    CommitID = "CommitID",
-                    Summary = "Summary",
-                    Description = "Description",
-                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                },
-                new GitLogEntry
-                {
-                    AuthorName = "OtherAuthorName",
-                    AuthorEmail = "OtherAuthorEmail",
-                    MergeA = "OtherMergeA",
-                    MergeB = "OtherMergeB",
-                    Changes = new List<GitStatusEntry>(),
-                    CommitID = "OtherCommitID",
-                    Summary = "OtherSummary",
-                    Description = "OtherDescription",
-                    TimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                }
+                    "MergeA", "MergeB"),
+                new GitLogEntry("`CommitID", 
+                    "`AuthorName", "`AuthorEmail", 
+                    "`AuthorName", "`AuthorEmail", 
+                    "`Summary", 
+                    "`Description", 
+                    commitTime, commitTime,
+                    new List<GitStatusEntry>(),
+                    "`MergeA", "`MergeB"),
             };
 
             var otherEntries = new[]
             {
-                new GitLogEntry
-                {
-                    AuthorName = "OtherAuthorName",
-                    AuthorEmail = "OtherAuthorEmail",
-                    MergeA = "OtherMergeA",
-                    MergeB = "OtherMergeB",
-                    Changes = new List<GitStatusEntry>(),
-                    CommitID = "OtherCommitID",
-                    Summary = "OtherSummary",
-                    Description = "OtherDescription",
-                    TimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = otherCommitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                },
-                new GitLogEntry
-                {
-                    AuthorName = "AuthorName",
-                    AuthorEmail = "AuthorEmail",
-                    MergeA = "MergeA",
-                    MergeB = "MergeB",
-                    Changes = new List<GitStatusEntry>(new[]
+                new GitLogEntry("`CommitID", 
+                    "`AuthorName", "`AuthorEmail", 
+                    "`AuthorName", "`AuthorEmail", 
+                    "`Summary",
+                    "`Description", 
+                    otherCommitTime, otherCommitTime,
+                    new List<GitStatusEntry>(), 
+                    "`MergeA", "`MergeB"),
+                new GitLogEntry("CommitID", 
+                    "AuthorName", "AuthorEmail", 
+                    "AuthorName", "AuthorEmail",
+                    "Summary",
+                    "Description", 
+                    otherCommitTime, otherCommitTime,
+                    new List<GitStatusEntry>(new[]
                     {
                         new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,
                             "SomeOriginalPath"),
-                    }),
-                    CommitID = "CommitID",
-                    Summary = "Summary",
-                    Description = "Description",
-                    TimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = commitTime.ToString(DateTimeFormatInfo.CurrentInfo),
-                }
+                    }), 
+                    "MergeA", "MergeB")
             };
 
             entries.AssertNotEqual(otherEntries);
