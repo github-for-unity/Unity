@@ -730,6 +730,7 @@ namespace GitHub.Unity
             {
                 treeChanges = new ChangesTree();
                 treeChanges.Title = "Changes";
+                treeChanges.IsSelectable = false;
                 treeChanges.DisplayRootNode = false;
                 treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
 
