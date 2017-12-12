@@ -225,25 +225,44 @@ namespace GitHub.Unity
         public void Load(int loadAhead, List<GitLogEntry> loadEntries)
         {
             var selectedCommitId = SelectedGitLogEntry.CommitID;
+            var scrollValue = scroll.y;
+
+            var previousCount = entries.Count;
+
+            var scrollIndex = (int)(scrollValue / Styles.HistoryEntryHeight);
 
             statusAhead = loadAhead;
             entries = loadEntries;
 
-            var changed = false;
+            var selectionPresent = false;
             for (var index = 0; index < entries.Count; index++)
             {
                 var gitLogEntry = entries[index];
                 if (gitLogEntry.CommitID.Equals(selectedCommitId))
                 {
                     selectedIndex = index;
-                    changed = true;
+                    selectionPresent = true;
                     break;
                 }
             }
 
-            if (!changed)
+            if (!selectionPresent)
             {
                 selectedIndex = -1;
+            }
+
+            if (scrollIndex > entries.Count)
+            {
+                ScrollTo(0);
+            }
+            else
+            {
+                var scrollOffset = scrollValue % Styles.HistoryEntryHeight;
+
+                var scrollIndexFromBottom = previousCount - scrollIndex;
+                var newScrollIndex = entries.Count - scrollIndexFromBottom;
+
+                ScrollTo(newScrollIndex, scrollOffset);
             }
         }
 
@@ -279,9 +298,9 @@ namespace GitHub.Unity
             return index;
         }
 
-        public void ScrollTo(int index)
+        public void ScrollTo(int index, float offset = 0f)
         {
-            scroll.Set(scroll.x, Styles.HistoryEntryHeight * index);
+            scroll.Set(scroll.x, Styles.HistoryEntryHeight * index + offset);
         }
     }
 
