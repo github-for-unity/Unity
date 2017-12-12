@@ -11,7 +11,7 @@ namespace GitHub.Unity
         private const string Today = "Today";
         private const string Yesterday = "Yesterday";
 
-        public static GitLogEntry Default = new GitLogEntry(String.Empty, String.Empty, String.Empty, String.Empty, String.Empty, String.Empty, String.Empty, String.Empty, String.Empty, new List<GitStatusEntry>(), String.Empty, String.Empty);
+        public static GitLogEntry Default = new GitLogEntry(String.Empty, String.Empty, String.Empty, String.Empty, String.Empty, String.Empty, String.Empty, DateTimeOffset.MinValue, DateTimeOffset.MinValue, new List<GitStatusEntry>(), String.Empty, String.Empty);
 
         public string commitID;
         public string mergeA;
@@ -61,43 +61,6 @@ namespace GitHub.Unity
             this.mergeB = mergeB ?? string.Empty;
         }
 
-        public GitLogEntry(string commitID, 
-            string authorName, string authorEmail, 
-            string commitName, string commitEmail, 
-            string summary, 
-            string description, 
-            string timeString, string commitTimeString, 
-            List<GitStatusEntry> changes, 
-            string mergeA = null, string mergeB = null) : this()
-        {
-            Guard.ArgumentNotNull(commitID, "commitID");
-            Guard.ArgumentNotNull(authorName, "authorName");
-            Guard.ArgumentNotNull(authorEmail, "authorEmail");
-            Guard.ArgumentNotNull(commitEmail, "commitEmail");
-            Guard.ArgumentNotNull(commitName, "commitName");
-            Guard.ArgumentNotNull(summary, "summary");
-            Guard.ArgumentNotNull(description, "description");
-            Guard.ArgumentNotNull(timeString, "timeString");
-            Guard.ArgumentNotNull(commitTimeString, "commitTimeString");
-            Guard.ArgumentNotNull(changes, "changes");
-
-            this.commitID = commitID;
-            this.authorName = authorName;
-            this.authorEmail = authorEmail;
-            this.commitEmail = commitEmail;
-            this.commitName = commitName;
-            this.summary = summary;
-            this.description = description;
-
-            this.timeString = timeString;
-            this.commitTimeString = commitTimeString;
-
-            this.changes = changes;
-
-            this.mergeA = mergeA ?? string.Empty;
-            this.mergeB = mergeB ?? string.Empty;
-        }
-
         public string PrettyTimeString
         {
             get
@@ -118,7 +81,15 @@ namespace GitHub.Unity
             {
                 if (!timeValue.HasValue)
                 {
-                    timeValue = DateTimeOffset.ParseExact(TimeString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None);
+                    DateTimeOffset result;
+                    if (DateTimeOffset.TryParseExact(TimeString, Constants.Iso8601Format, CultureInfo.InvariantCulture,DateTimeStyles.None, out result))
+                    {
+                        timeValue = result;
+                    }
+                    else
+                    {
+                        Time = DateTimeOffset.MinValue;
+                    }
                 }
                 
                 return timeValue.Value;
@@ -137,7 +108,15 @@ namespace GitHub.Unity
             {
                 if (!commitTimeValue.HasValue)
                 {
-                    commitTimeValue = DateTimeOffset.ParseExact(CommitTimeString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None);
+                    DateTimeOffset result;
+                    if (DateTimeOffset.TryParseExact(CommitTimeString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    {
+                        commitTimeValue = result;
+                    }
+                    else
+                    {
+                        CommitTime = DateTimeOffset.MinValue;
+                    }
                 }
 
                 return commitTimeValue.Value;
