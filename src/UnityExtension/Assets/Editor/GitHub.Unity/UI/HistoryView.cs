@@ -6,75 +6,86 @@ using UnityEngine;
 
 namespace GitHub.Unity
 {
-    struct HistoryControlRenderResult
-    {
-        public Rect Rect;
-        public bool RequiresRepaint;
-    }
-
     [Serializable]
     class HistoryControl
     {
         private const string HistoryEntryDetailFormat = "{0}     {1}";
 
+        [SerializeField] private Vector2 scroll;
         [SerializeField] private List<GitLogEntry> entries = new List<GitLogEntry>();
         [SerializeField] private int statusAhead;
-        [SerializeField] private int selectedIndex;
+        [SerializeField] private int selectedIndex = -1;
 
         [NonSerialized] private Action<GitLogEntry> rightClickNextRender;
         [NonSerialized] private GitLogEntry rightClickNextRenderEntry;
         [NonSerialized] private int controlId;
 
-        public HistoryControlRenderResult Render(Rect containingRect, Rect rect, Vector2 scroll, Action<GitLogEntry> singleClick = null,
+        public int SelectedIndex
+        {
+            get { return selectedIndex; }
+            set { selectedIndex = value; }
+        }
+
+        public GitLogEntry SelectedGitLogEntry
+        {
+            get { return SelectedIndex < 0 ? GitLogEntry.Default : entries[SelectedIndex]; }
+        }
+
+        public bool Render(Rect containingRect, Action<GitLogEntry> singleClick = null,
             Action<GitLogEntry> doubleClick = null, Action<GitLogEntry> rightClick = null)
         {
             var requiresRepaint = false;
+            var rect = Rect.zero;
 
-            controlId = GUIUtility.GetControlID(FocusType.Keyboard);
-
-            if (Event.current.type != EventType.Repaint)
+            scroll = GUILayout.BeginScrollView(scroll);
             {
-                if (rightClickNextRender != null)
+                controlId = GUIUtility.GetControlID(FocusType.Keyboard);
+
+                if (Event.current.type != EventType.Repaint)
                 {
-                    rightClickNextRender.Invoke(rightClickNextRenderEntry);
-                    rightClickNextRender = null;
-                    rightClickNextRenderEntry = GitLogEntry.Default;
+                    if (rightClickNextRender != null)
+                    {
+                        rightClickNextRender.Invoke(rightClickNextRenderEntry);
+                        rightClickNextRender = null;
+                        rightClickNextRenderEntry = GitLogEntry.Default;
+                    }
+                }
+
+                var startDisplay = scroll.y;
+                var endDisplay = scroll.y + containingRect.height;
+
+                rect = new Rect(containingRect.x, containingRect.y, containingRect.width, 0);
+
+                for (var index = 0; index < entries.Count; index++)
+                {
+                    var entry = entries[index];
+
+                    var entryRect = new Rect(rect.x, rect.y, rect.width, Styles.HistoryEntryHeight);
+
+                    var shouldRenderEntry = !(entryRect.y > endDisplay || entryRect.yMax < startDisplay);
+                    if (shouldRenderEntry && Event.current.type == EventType.Repaint)
+                    {
+                        RenderEntry(entryRect, entry, index);
+                    }
+
+                    var entryRequiresRepaint = HandleInput(entryRect, entry, index, singleClick, doubleClick, rightClick);
+                    requiresRepaint = requiresRepaint || entryRequiresRepaint;
+
+                    rect.y += Styles.HistoryEntryHeight;
                 }
             }
 
-            var startDisplay = scroll.y;
-            var endDisplay = scroll.y + containingRect.height;
+            GUILayout.Space(rect.y - containingRect.y);
 
-            rect = new Rect(rect.x, rect.y, rect.width, 0);
+            GUILayout.EndScrollView();
 
-            for (var index = 0; index < entries.Count; index++)
-            {
-                var entry = entries[index];
-
-                var entryRect = new Rect(rect.x, rect.y, rect.width, Styles.HistoryEntryHeight);
-
-                var shouldRenderEntry = !(entryRect.y > endDisplay || entryRect.yMax < startDisplay);
-                if (shouldRenderEntry && Event.current.type == EventType.Repaint)
-                {
-                    RenderEntry(entryRect, entry, index);
-                }
-
-                var entryRequiresRepaint = HandleInput(entryRect, entry, index, singleClick, doubleClick, rightClick);
-                requiresRepaint = requiresRepaint || entryRequiresRepaint;
-
-                rect.y += Styles.HistoryEntryHeight;
-            }
-
-            return new HistoryControlRenderResult {
-                Rect = rect,
-                RequiresRepaint = requiresRepaint
-            };
+            return requiresRepaint;
         }
 
         private void RenderEntry(Rect entryRect, GitLogEntry entry, int index)
         {
             var isLocalCommit = index < statusAhead;
-            var isSelected = index == selectedIndex;
+            var isSelected = index == SelectedIndex;
             var summaryRect = new Rect(entryRect.x, entryRect.y + Styles.BaseSpacing / 2, entryRect.width, Styles.HistorySummaryHeight + Styles.BaseSpacing);
             var timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight - Styles.BaseSpacing / 2, entryRect.width, Styles.HistoryDetailsHeight);
 
@@ -139,7 +150,7 @@ namespace GitHub.Unity
                 Event.current.Use();
                 GUIUtility.keyboardControl = controlId;
 
-                selectedIndex = index;
+                SelectedIndex = index;
                 requiresRepaint = true;
                 var clickCount = Event.current.clickCount;
                 var mouseButton = Event.current.button;
@@ -160,7 +171,7 @@ namespace GitHub.Unity
             }
 
             // Keyboard navigation if this child is the current selection
-            if (GUIUtility.keyboardControl == controlId && index == selectedIndex && Event.current.type == EventType.KeyDown)
+            if (GUIUtility.keyboardControl == controlId && index == SelectedIndex && Event.current.type == EventType.KeyDown)
             {
                 var directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0;
                 if (directionY != 0)
@@ -213,8 +224,27 @@ namespace GitHub.Unity
 
         public void Load(int loadAhead, List<GitLogEntry> loadEntries)
         {
+            var selectedCommitId = SelectedGitLogEntry.CommitID;
+
             statusAhead = loadAhead;
             entries = loadEntries;
+
+            var changed = false;
+            for (var index = 0; index < entries.Count; index++)
+            {
+                var gitLogEntry = entries[index];
+                if (gitLogEntry.CommitID.Equals(selectedCommitId))
+                {
+                    selectedIndex = index;
+                    changed = true;
+                    break;
+                }
+            }
+
+            if (!changed)
+            {
+                selectedIndex = -1;
+            }
         }
 
         private int SelectNext(int index)
@@ -223,7 +253,7 @@ namespace GitHub.Unity
 
             if (index < entries.Count)
             {
-                selectedIndex = index;
+                SelectedIndex = index;
             }
             else
             {
@@ -239,14 +269,19 @@ namespace GitHub.Unity
 
             if (index >= 0)
             {
-                selectedIndex = index;
+                SelectedIndex = index;
             }
             else
             {
-                selectedIndex = -1;
+                SelectedIndex = -1;
             }
 
             return index;
+        }
+
+        public void ScrollTo(int index)
+        {
+            scroll.Set(scroll.x, Styles.HistoryEntryHeight * index);
         }
     }
 
@@ -286,8 +321,10 @@ namespace GitHub.Unity
         [SerializeField] private bool hasRemote;
         [SerializeField] private string currentRemoteName;
 
-        [SerializeField] private Vector2 historyScroll;
         [SerializeField] private HistoryControl historyControl;
+        [SerializeField] private GitLogEntry selectedEntry = GitLogEntry.Default;
+
+        [SerializeField] private Vector2 detailsScroll;
 
         [SerializeField] private List<GitLogEntry> logEntries = new List<GitLogEntry>();
 
@@ -393,30 +430,74 @@ namespace GitHub.Unity
             GUILayout.EndHorizontal();
 
             var rect = GUILayoutUtility.GetLastRect();
-            historyScroll = GUILayout.BeginScrollView(historyScroll);
-            {
-                OnHistoryGUI(new Rect(0f, 0f, Position.width, Position.height - rect.height));
-            }
-            GUILayout.EndScrollView();
-        }
-
-        private void OnHistoryGUI(Rect rect)
-        {
-            var initialRect = rect;
             if (historyControl != null)
             {
-                var renderResult = historyControl.Render(initialRect, rect, historyScroll,
-                    entry => { },
+                var historyControlRect = new Rect(0f, 0f, Position.width, Position.height - rect.height);
+
+                var requiresRepaint = historyControl.Render(historyControlRect,  
+                    entry => {
+                        selectedEntry = entry;
+                    },
                     entry => { },
                     entry => { });
 
-                rect = renderResult.Rect;
-
-                if (renderResult.RequiresRepaint)
+                if (requiresRepaint)
                     Redraw();
             }
 
-            GUILayout.Space(rect.y - initialRect.y);
+            if (!selectedEntry.Equals(GitLogEntry.Default))
+            {
+                // Top bar for scrolling to selection or clearing it
+                GUILayout.BeginHorizontal(EditorStyles.toolbar);
+                {
+                    if (GUILayout.Button(CommitDetailsTitle, Styles.HistoryToolbarButtonStyle))
+                    {
+                        historyControl.ScrollTo(historyControl.SelectedIndex);
+                    }
+                    if (GUILayout.Button(ClearSelectionButton, Styles.HistoryToolbarButtonStyle, GUILayout.ExpandWidth(false)))
+                    {
+                        selectedEntry = GitLogEntry.Default;
+                        historyControl.SelectedIndex = -1;
+                    }
+                }
+                GUILayout.EndHorizontal();
+
+                // Log entry details - including changeset tree (if any changes are found)
+                detailsScroll = GUILayout.BeginScrollView(detailsScroll, GUILayout.Height(250));
+                {
+                    HistoryDetailsEntry(selectedEntry);
+
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                    GUILayout.Label("Files changed", EditorStyles.boldLabel);
+                    GUILayout.Space(-5);
+
+                    GUILayout.BeginHorizontal(Styles.HistoryFileTreeBoxStyle);
+                    {
+                        //changesetTree.OnGUI();
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                }
+                GUILayout.EndScrollView();
+            }
+        }
+
+        private void HistoryDetailsEntry(GitLogEntry entry)
+        {
+            GUILayout.BeginVertical(Styles.HeaderBoxStyle);
+            GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle, GUILayout.Width(Position.width));
+
+            GUILayout.Space(-5);
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(entry.PrettyTimeString, Styles.HistoryDetailsMetaInfoStyle);
+            GUILayout.Label(entry.AuthorName, Styles.HistoryDetailsMetaInfoStyle);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(3);
+            GUILayout.EndVertical();
         }
 
         private void RepositoryTrackingOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -519,6 +600,11 @@ namespace GitHub.Unity
             }
 
             historyControl.Load(statusAhead, logEntries);
+            if (!selectedEntry.Equals(GitLogEntry.Default) 
+                && selectedEntry.CommitID != historyControl.SelectedGitLogEntry.CommitID)
+            {
+                selectedEntry = GitLogEntry.Default;
+            }
         }
 
         private void Pull()
