@@ -41,26 +41,21 @@ namespace UnitTests
             };
 
             var commitTime = new DateTimeOffset(2017, 1, 6, 15, 36, 57, TimeSpan.FromHours(1));
+
             var expected = new[]
             {
-                new GitLogEntry
-                {
-                    CommitID = "1cd4b9154a88bc8c7b09cb8cacc79bf1d5bde8cf",
-                    AuthorEmail = "author@example.com",
-                    AuthorName = "Author Person",
-                    CommitEmail = "author@example.com",
-                    CommitName = "Author Person",
-                    Changes = new List<GitStatusEntry>
+                new GitLogEntry("1cd4b9154a88bc8c7b09cb8cacc79bf1d5bde8cf",
+                    "Author Person", "author@example.com", 
+                    "Author Person",  "author@example.com",
+                    "Rename RepositoryModelBase to RepositoryModel",
+                    "Rename RepositoryModelBase to RepositoryModel",
+                    commitTime, commitTime, 
+                    new List<GitStatusEntry>
                     {
                         new GitStatusEntry("src/GitHub.App/Models/RemoteRepositoryModel.cs",
                             TestRootPath + @"\src/GitHub.App/Models/RemoteRepositoryModel.cs", null,
                             GitFileStatus.Modified),
-                    },
-                    Summary = "Rename RepositoryModelBase to RepositoryModel",
-                    Description = "Rename RepositoryModelBase to RepositoryModel",
-                    TimeString = commitTime.ToString(Constants.Iso8601Format),
-                    CommitTimeString = commitTime.ToString(Constants.Iso8601Format),
-                },
+                    })
             };
 
             AssertProcessOutput(output, expected);
