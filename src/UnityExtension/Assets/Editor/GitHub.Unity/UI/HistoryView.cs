@@ -32,28 +32,32 @@ namespace GitHub.Unity
 
             controlId = GUIUtility.GetControlID(FocusType.Keyboard);
 
-            var treeHasFocus = GUIUtility.keyboardControl == controlId;
             if (Event.current.type != EventType.Repaint)
             {
                 if (rightClickNextRender != null)
                 {
                     rightClickNextRender.Invoke(rightClickNextRenderEntry);
                     rightClickNextRender = null;
-                    //TODO: Default GitLogEntry
-                    rightClickNextRenderEntry = new GitLogEntry();
+                    rightClickNextRenderEntry = GitLogEntry.Default;
                 }
             }
+
+            var startDisplay = scroll.y;
+            var endDisplay = scroll.y + containingRect.height;
 
             rect = new Rect(rect.x, rect.y, rect.width, 0);
 
             for (var index = 0; index < entries.Count; index++)
             {
                 var entry = entries[index];
-                var isLocalCommit = index < statusAhead;
 
                 var entryRect = new Rect(rect.x, rect.y, rect.width, Styles.HistoryEntryHeight);
 
-                RenderEntry(entryRect, entry, isLocalCommit, index == selectedIndex);
+                var shouldRenderEntry = !(entryRect.y > endDisplay || entryRect.yMax < startDisplay);
+                if (shouldRenderEntry && Event.current.type == EventType.Repaint)
+                {
+                    RenderEntry(entryRect, entry, index);
+                }
 
                 var entryRequiresRepaint = HandleInput(entryRect, entry, index, singleClick, doubleClick, rightClick);
                 requiresRepaint = requiresRepaint || entryRequiresRepaint;
@@ -65,6 +69,64 @@ namespace GitHub.Unity
                 Rect = rect,
                 RequiresRepaint = requiresRepaint
             };
+        }
+
+        private void RenderEntry(Rect entryRect, GitLogEntry entry, int index)
+        {
+            var isLocalCommit = index < statusAhead;
+            var isSelected = index == selectedIndex;
+            var summaryRect = new Rect(entryRect.x, entryRect.y + Styles.BaseSpacing / 2, entryRect.width, Styles.HistorySummaryHeight + Styles.BaseSpacing);
+            var timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight - Styles.BaseSpacing / 2, entryRect.width, Styles.HistoryDetailsHeight);
+
+            var hasKeyboardFocus = GUIUtility.keyboardControl == controlId; 
+
+            Styles.Label.Draw(entryRect, GUIContent.none, false, false, isSelected, hasKeyboardFocus);
+            Styles.HistoryEntrySummaryStyle.Draw(summaryRect, entry.Summary, false, false, isSelected, hasKeyboardFocus);
+
+            var historyEntryDetail = string.Format(HistoryEntryDetailFormat, entry.PrettyTimeString, entry.AuthorName);
+            Styles.HistoryEntryDetailsStyle.Draw(timestampRect, historyEntryDetail, false, false, isSelected, hasKeyboardFocus);
+
+            if (!string.IsNullOrEmpty(entry.MergeA))
+            {
+                const float MergeIndicatorWidth = 10.28f;
+                const float MergeIndicatorHeight = 12f;
+                var mergeIndicatorRect = new Rect(entryRect.x + 7, summaryRect.y, MergeIndicatorWidth, MergeIndicatorHeight);
+
+                GUI.DrawTexture(mergeIndicatorRect, Styles.MergeIcon);
+
+                DrawTimelineRectAroundIconRect(entryRect, mergeIndicatorRect);
+
+                summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorWidth,
+                    summaryRect.height);
+            }
+            else
+            {
+                if (isLocalCommit)
+                {
+                    const float LocalIndicatorSize = 6f;
+                    var localIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2), summaryRect.y + 5, LocalIndicatorSize,
+                        LocalIndicatorSize);
+
+                    DrawTimelineRectAroundIconRect(entryRect, localIndicatorRect);
+
+                    GUI.DrawTexture(localIndicatorRect, Styles.LocalCommitIcon);
+
+                    summaryRect.Set(localIndicatorRect.xMax, summaryRect.y, summaryRect.width - LocalIndicatorSize,
+                        summaryRect.height);
+                }
+                else
+                {
+                    const float NormalIndicatorWidth = 6f;
+                    const float NormalIndicatorHeight = 6f;
+
+                    var normalIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2), summaryRect.y + 5,
+                        NormalIndicatorWidth, NormalIndicatorHeight);
+
+                    DrawTimelineRectAroundIconRect(entryRect, normalIndicatorRect);
+
+                    GUI.DrawTexture(normalIndicatorRect, Styles.DotIcon);
+                }
+            }
         }
 
         private bool HandleInput(Rect rect, GitLogEntry entry, int index, Action<GitLogEntry> singleClick = null,
@@ -117,64 +179,6 @@ namespace GitHub.Unity
             }
 
             return requiresRepaint;
-        }
-
-        private void RenderEntry(Rect entryRect, GitLogEntry entry, bool isLocalCommit, bool isSelected)
-        {
-            if (Event.current.type == EventType.Repaint)
-            {
-                var summaryRect = new Rect(entryRect.x, entryRect.y + Styles.BaseSpacing / 2, entryRect.width, Styles.HistorySummaryHeight + Styles.BaseSpacing);
-                var timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight - Styles.BaseSpacing / 2, entryRect.width, Styles.HistoryDetailsHeight);
-
-                var hasKeyboardFocus = false;
-
-                Styles.Label.Draw(entryRect, GUIContent.none, false, false, isSelected, hasKeyboardFocus);
-                Styles.HistoryEntrySummaryStyle.Draw(summaryRect, entry.Summary, false, false, isSelected, hasKeyboardFocus);
-
-                var historyEntryDetail = string.Format(HistoryEntryDetailFormat, entry.PrettyTimeString, entry.AuthorName);
-                Styles.HistoryEntryDetailsStyle.Draw(timestampRect, historyEntryDetail, false, false, isSelected, hasKeyboardFocus);
-
-                if (!string.IsNullOrEmpty(entry.MergeA))
-                {
-                    const float MergeIndicatorWidth = 10.28f;
-                    const float MergeIndicatorHeight = 12f;
-                    var mergeIndicatorRect = new Rect(entryRect.x + 7, summaryRect.y, MergeIndicatorWidth, MergeIndicatorHeight);
-
-                    GUI.DrawTexture(mergeIndicatorRect, Styles.MergeIcon);
-
-                    DrawTimelineRectAroundIconRect(entryRect, mergeIndicatorRect);
-
-                    summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorWidth,
-                        summaryRect.height);
-                }
-
-                if (isLocalCommit && string.IsNullOrEmpty(entry.MergeA))
-                {
-                    const float LocalIndicatorSize = 6f;
-                    var localIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2), summaryRect.y + 5, LocalIndicatorSize,
-                        LocalIndicatorSize);
-
-                    DrawTimelineRectAroundIconRect(entryRect, localIndicatorRect);
-
-                    GUI.DrawTexture(localIndicatorRect, Styles.LocalCommitIcon);
-
-                    summaryRect.Set(localIndicatorRect.xMax, summaryRect.y, summaryRect.width - LocalIndicatorSize,
-                        summaryRect.height);
-                }
-
-                if (!isLocalCommit && string.IsNullOrEmpty(entry.MergeA))
-                {
-                    const float NormalIndicatorWidth = 6f;
-                    const float NormalIndicatorHeight = 6f;
-
-                    Rect normalIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2), summaryRect.y + 5,
-                        NormalIndicatorWidth, NormalIndicatorHeight);
-
-                    DrawTimelineRectAroundIconRect(entryRect, normalIndicatorRect);
-
-                    GUI.DrawTexture(normalIndicatorRect, Styles.DotIcon);
-                }
-            }
         }
 
         private void DrawTimelineRectAroundIconRect(Rect parentRect, Rect iconRect)
@@ -273,8 +277,6 @@ namespace GitHub.Unity
         private const string FetchActionTitle = "Fetch Changes";
         private const string FetchButtonText = "Fetch";
         private const string FetchFailureDescription = "Could not fetch changes";
-        private const int HistoryExtraItemCount = 10;
-        private const float MaxChangelistHeightRatio = .2f;
 
         [NonSerialized] private bool currentLogHasUpdate;
         [NonSerialized] private bool currentRemoteHasUpdate;
