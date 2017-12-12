@@ -36,7 +36,7 @@ namespace GitHub.Unity
 
             var displayRootLevel = DisplayRootNode ? 1 : 0;
 
-            var isSelected = selectedNodePath != null && Title == selectedNodePath;
+            var isSelected = IsSelectable && selectedNodePath != null && Title == selectedNodePath;
             AddNode(Title, Title, -1 + displayRootLevel, true, false, false, false, isSelected, null);
 
             var hideChildren = false;
@@ -318,6 +318,7 @@ namespace GitHub.Unity
         protected abstract List<TNode> Nodes { get; }
         public abstract string Title { get; set; }
         public abstract bool DisplayRootNode { get; set; }
+        public abstract bool IsSelectable { get; set; }
         public abstract bool IsCheckable { get; set; }
         public abstract string PathSeparator { get; set; }
     }
