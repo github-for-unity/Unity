@@ -350,7 +350,6 @@ namespace GitHub.Unity
         [SerializeField] private int statusAhead;
         [SerializeField] private int statusBehind;
 
-        [SerializeField] private Vector2 treeScroll;
         [SerializeField] private ChangesTree treeChanges;
         
         [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
@@ -493,32 +492,28 @@ namespace GitHub.Unity
                     rect = GUILayoutUtility.GetLastRect();
                     GUILayout.BeginHorizontal(Styles.HistoryFileTreeBoxStyle);
                     {
-                        treeScroll = GUILayout.BeginScrollView(treeScroll);
+                        var treeControlRect = new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding);
+                        var treeRect = Rect.zero;
+                        if (treeChanges != null)
                         {
-                            var treeControlRect = new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding);
-                            var treeRect = Rect.zero;
-                            if (treeChanges != null)
-                            {
-                                treeChanges.FolderStyle = Styles.Foldout;
-                                treeChanges.TreeNodeStyle = Styles.TreeNode;
-                                treeChanges.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
-                                treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
-                                treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
+                            treeChanges.FolderStyle = Styles.Foldout;
+                            treeChanges.TreeNodeStyle = Styles.TreeNode;
+                            treeChanges.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
+                            treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
+                            treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
-                                treeRect = treeChanges.Render(treeControlRect, treeControlRect, treeScroll,
-                                    node => { },
-                                    node => {
-                                    },
-                                    node => {
-                                    });
+                            treeRect = treeChanges.Render(treeControlRect, treeControlRect, detailsScroll,
+                                node => { },
+                                node => {
+                                },
+                                node => {
+                                });
 
-                                if (treeChanges.RequiresRepaint)
-                                    Redraw();
-                            }
-
-                            GUILayout.Space(treeRect.y - treeControlRect.y);
+                            if (treeChanges.RequiresRepaint)
+                                Redraw();
                         }
-                        GUILayout.EndScrollView();
+
+                        GUILayout.Space(treeRect.y - treeControlRect.y);
                     }
                     GUILayout.EndHorizontal();
 
