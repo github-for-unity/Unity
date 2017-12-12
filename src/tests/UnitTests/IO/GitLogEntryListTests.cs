@@ -85,11 +85,10 @@ namespace UnitTests
                     "Summary", 
                     "Description", 
                     commitTime, commitTime,
-                    new List<GitStatusEntry>(new[]
+                    new List<GitStatusEntry>
                     {
-                        new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,
-                            "SomeOriginalPath"),
-                    }),
+                        new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added, "SomeOriginalPath"),
+                    },
                     "MergeA", "MergeB")
             };
 
@@ -125,11 +124,10 @@ namespace UnitTests
                     "AuthorName", "AuthorEmail",
                     "Summary", "Description", 
                     commitTime, commitTime,
-                    new List<GitStatusEntry>(new[]
+                    new List<GitStatusEntry>
                     {
-                        new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,
-                            "SomeOriginalPath"),
-                    }),
+                        new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added, "SomeOriginalPath"),
+                    },
                     "MergeA", "MergeB"),
                 new GitLogEntry("`CommitID",
                     "`AuthorName", "`AuthorEmail", 
@@ -143,27 +141,26 @@ namespace UnitTests
 
             var otherEntries = new[]
             {
-                new GitLogEntry("`CommitID",
-                    "`AuthorName", "`AuthorEmail", 
-                    "`AuthorName", "`AuthorEmail", 
-                    "`Summary", 
-                    "`Description", 
-                    commitTime, commitTime,
-                    new List<GitStatusEntry>(new[]
-                    {
-                        new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,
-                            "SomeOriginalPath"),
-                    }),
-                    "`MergeA", "`MergeB"),
                 new GitLogEntry("CommitID", 
                     "AuthorName", "AuthorEmail",
                     "AuthorName", "AuthorEmail", 
                     "Summary", 
                     "Description", 
                     commitTime, commitTime,
-                    new List<GitStatusEntry>(), 
-                    "MergeA", "MergeB")
+                    new List<GitStatusEntry> {
+                        new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added, "SomeOriginalPath")
+                    }, 
+                    "MergeA", "MergeB"),
+                new GitLogEntry("`CommitID",
+                    "`AuthorName", "`AuthorEmail", 
+                    "`AuthorName", "`AuthorEmail", 
+                    "`Summary", 
+                    "`Description", 
+                    commitTime, commitTime,
+                    new List<GitStatusEntry>(),
+                    "`MergeA", "`MergeB")
             };
+
 
             entries.AssertEqual(otherEntries);
         }
