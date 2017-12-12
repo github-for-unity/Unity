@@ -349,6 +349,9 @@ namespace GitHub.Unity
 
         [SerializeField] private int statusAhead;
         [SerializeField] private int statusBehind;
+
+        [SerializeField] private Vector2 treeScroll;
+        [SerializeField] private ChangesTree treeChanges;
         
         [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
         [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
@@ -357,6 +360,7 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
+            TreeOnEnable();
             AttachHandlers(Repository);
 
             if (Repository != null)
@@ -380,11 +384,6 @@ namespace GitHub.Unity
         }
 
         public override void OnGUI()
-        {
-            OnEmbeddedGUI();
-        }
-
-        public void OnEmbeddedGUI()
         {
             // History toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -456,6 +455,7 @@ namespace GitHub.Unity
                 var requiresRepaint = historyControl.Render(historyControlRect,  
                     entry => {
                         selectedEntry = entry;
+                        BuildTree();
                     },
                     entry => { },
                     entry => { });
@@ -490,9 +490,35 @@ namespace GitHub.Unity
                     GUILayout.Label("Files changed", EditorStyles.boldLabel);
                     GUILayout.Space(-5);
 
+                    rect = GUILayoutUtility.GetLastRect();
                     GUILayout.BeginHorizontal(Styles.HistoryFileTreeBoxStyle);
                     {
-                        //changesetTree.OnGUI();
+                        treeScroll = GUILayout.BeginScrollView(treeScroll);
+                        {
+                            var treeControlRect = new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding);
+                            var treeRect = Rect.zero;
+                            if (treeChanges != null)
+                            {
+                                treeChanges.FolderStyle = Styles.Foldout;
+                                treeChanges.TreeNodeStyle = Styles.TreeNode;
+                                treeChanges.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
+                                treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
+                                treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
+
+                                treeRect = treeChanges.Render(treeControlRect, treeControlRect, treeScroll,
+                                    node => { },
+                                    node => {
+                                    },
+                                    node => {
+                                    });
+
+                                if (treeChanges.RequiresRepaint)
+                                    Redraw();
+                            }
+
+                            GUILayout.Space(treeRect.y - treeControlRect.y);
+                        }
+                        GUILayout.EndScrollView();
                     }
                     GUILayout.EndHorizontal();
 
@@ -696,6 +722,31 @@ namespace GitHub.Unity
                     }
                 })
                 .Start();
+        }
+
+        private void BuildTree()
+        {
+            if (treeChanges == null)
+            {
+                treeChanges = new ChangesTree();
+                treeChanges.Title = "Changes";
+                treeChanges.DisplayRootNode = false;
+                treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
+
+                TreeOnEnable();
+            }
+
+            treeChanges.Load(selectedEntry.changes.Select(entry => new GitStatusEntryTreeData(entry)));
+            Redraw();
+        }
+
+        private void TreeOnEnable()
+        {
+            if (treeChanges != null)
+            {
+                treeChanges.OnEnable();
+                treeChanges.UpdateIcons(Styles.FolderIcon);
+            }
         }
 
         public override bool IsBusy
