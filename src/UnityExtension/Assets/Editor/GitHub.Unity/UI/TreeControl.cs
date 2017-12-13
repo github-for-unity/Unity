@@ -632,7 +632,7 @@ namespace GitHub.Unity
             return nodeIcon;
         }
 
-        protected override TreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, GitBranchTreeData? treeData)
+        protected override TreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, GitBranchTreeData? treeData)
         {
             var node = new TreeNode {
                 Path = path,
@@ -642,10 +642,11 @@ namespace GitHub.Unity
                 IsActive = isActive,
                 IsHidden = isHidden,
                 IsCollapsed = isCollapsed,
-                TreeIsCheckable = IsCheckable
+                TreeIsCheckable = IsCheckable,
+                CheckState = isChecked ? CheckState.Checked: CheckState.Empty
             };
 
-            if (isFolder)
+            if (isFolder && level >= 0)
             {
                 folders.Add(node.Path, node);
             }

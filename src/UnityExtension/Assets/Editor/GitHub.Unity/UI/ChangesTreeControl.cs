@@ -153,7 +153,7 @@ namespace GitHub.Unity
             return Styles.GetFileStatusIcon(gitFileStatus, false);
         }
 
-        protected override ChangesTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, GitStatusEntryTreeData? treeData)
+        protected override ChangesTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, GitStatusEntryTreeData? treeData)
         {
             var node = new ChangesTreeNode
             {
@@ -165,11 +165,12 @@ namespace GitHub.Unity
                 IsHidden = isHidden,
                 IsCollapsed = isCollapsed,
                 TreeIsCheckable = IsCheckable,
+                CheckState = isChecked ? CheckState.Checked : CheckState.Empty,
                 GitFileStatus = treeData.HasValue ? treeData.Value.FileStatus : GitFileStatus.None,
                 ProjectPath = treeData.HasValue ? treeData.Value.ProjectPath : null
             };
 
-            if (isFolder)
+            if (isFolder && level >= 0)
             {
                 folders.Add(node.Path, node);
             }
