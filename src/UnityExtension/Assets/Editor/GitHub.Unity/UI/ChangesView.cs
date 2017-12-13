@@ -28,7 +28,7 @@ namespace GitHub.Unity
         [SerializeField] private string currentBranch = "[unknown]";
 
         [SerializeField] private Vector2 treeScroll;
-        [SerializeField] private ChangesTree treeChanges;
+        [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false, IsCheckable = true };
 
         [SerializeField] private HashSet<string> gitLocks;
         [SerializeField] private List<GitStatusEntry> gitStatusEntries;
@@ -212,17 +212,7 @@ namespace GitHub.Unity
 
         private void BuildTree()
         {
-            if (treeChanges == null)
-            {
-                treeChanges = new ChangesTree();
-                treeChanges.Title = "Changes";
-                treeChanges.DisplayRootNode = false;
-                treeChanges.IsCheckable = true;
-                treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
-
-                TreeOnEnable();
-            }
-
+            treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
             treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry, gitLocks.Contains(entry.Path))));
             Redraw();
         }

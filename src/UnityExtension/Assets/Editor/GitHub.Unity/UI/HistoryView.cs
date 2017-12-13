@@ -342,7 +342,7 @@ namespace GitHub.Unity
         [SerializeField] private int statusAhead;
         [SerializeField] private int statusBehind;
 
-        [SerializeField] private ChangesTree treeChanges;
+        [SerializeField] private ChangesTree treeChanges = new ChangesTree { IsSelectable = false, DisplayRootNode = false };
         
         [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
         [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
@@ -716,17 +716,7 @@ namespace GitHub.Unity
 
         private void BuildTree()
         {
-            if (treeChanges == null)
-            {
-                treeChanges = new ChangesTree();
-                treeChanges.Title = "Changes";
-                treeChanges.IsSelectable = false;
-                treeChanges.DisplayRootNode = false;
-                treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
-
-                TreeOnEnable();
-            }
-
+            treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
             treeChanges.Load(selectedEntry.changes.Select(entry => new GitStatusEntryTreeData(entry)));
             Redraw();
         }
