@@ -30,9 +30,11 @@ namespace GitHub.Unity
         public static GitStatusEntryTreeData Default = new GitStatusEntryTreeData(GitStatusEntry.Default);
 
         public GitStatusEntry gitStatusEntry;
+        public bool isLocked;
 
-        public GitStatusEntryTreeData(GitStatusEntry gitStatusEntry)
+        public GitStatusEntryTreeData(GitStatusEntry gitStatusEntry, bool isLocked = false)
         {
+            this.isLocked = isLocked;
             this.gitStatusEntry = gitStatusEntry;
         }
 
@@ -40,7 +42,7 @@ namespace GitHub.Unity
         public string ProjectPath => gitStatusEntry.ProjectPath;
         public bool IsActive => false;
         public GitStatusEntry GitStatusEntry => gitStatusEntry;
-
         public GitFileStatus FileStatus => gitStatusEntry.Status;
+        public bool IsLocked => isLocked;
     }
 }
