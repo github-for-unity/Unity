@@ -483,8 +483,10 @@ namespace GitHub.Unity
 
                     rect = GUILayoutUtility.GetLastRect();
                     GUILayout.BeginHorizontal(Styles.HistoryFileTreeBoxStyle);
+                    GUILayout.BeginVertical();
                     {
-                        var treeControlRect = new Rect(rect.x, rect.y, Position.width, Position.height - rect.height + Styles.CommitAreaPadding);
+                        var borderLeft = Styles.Label.margin.left;
+                        var treeControlRect = new Rect(rect.x + borderLeft, rect.y, Position.width - borderLeft * 2, Position.height - rect.height + Styles.CommitAreaPadding);
                         var treeRect = Rect.zero;
                         if (treeChanges != null)
                         {
@@ -507,6 +509,7 @@ namespace GitHub.Unity
 
                         GUILayout.Space(treeRect.y - treeControlRect.y);
                     }
+                    GUILayout.EndVertical();
                     GUILayout.EndHorizontal();
 
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
@@ -518,7 +521,7 @@ namespace GitHub.Unity
         private void HistoryDetailsEntry(GitLogEntry entry)
         {
             GUILayout.BeginVertical(Styles.HeaderBoxStyle);
-            GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle, GUILayout.Width(Position.width));
+            GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle);
 
             GUILayout.Space(-5);
 

@@ -424,7 +424,7 @@ namespace GitHub.Unity
                 return renderResult;
 
             var fillRect = rect;
-            var nodeStartX = Level * indentation;
+            var nodeStartX = Level * indentation + rect.x;
             nodeStartX += 2 * level;
 
             var nodeRect = new Rect(nodeStartX, rect.y, fillRect.width - nodeStartX, rect.height);
