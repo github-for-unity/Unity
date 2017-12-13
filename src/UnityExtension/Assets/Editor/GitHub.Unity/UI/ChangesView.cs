@@ -110,9 +110,10 @@ namespace GitHub.Unity
                 treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
                 treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
-                var treeRenderRect = treeChanges.Render(rect, scroll, node => { }, node => {
-                }, node => {
-                });
+                var treeRenderRect = treeChanges.Render(rect, scroll, 
+                    node => { }, 
+                    node => { },
+                    node => { });
 
                 if (treeChanges.RequiresRepaint)
                     Redraw();
