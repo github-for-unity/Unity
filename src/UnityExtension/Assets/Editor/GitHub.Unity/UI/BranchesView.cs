@@ -155,14 +155,10 @@ namespace GitHub.Unity
 
         private void BuildTree()
         {
-            if (treeLocals == null)
+            if (treeLocals == null || treeRemotes == null)
             {
                 treeLocals = new BranchesTree();
-                treeLocals.Title = LocalTitle;
-
                 treeRemotes = new BranchesTree();
-                treeRemotes.Title = RemoteTitle;
-                treeRemotes.IsRemote = true;
 
                 TreeOnEnable();
             }
@@ -179,12 +175,17 @@ namespace GitHub.Unity
         {
             if (treeLocals != null)
             {
+                treeLocals.Title = LocalTitle;
+
                 treeLocals.OnEnable();
                 treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
 
             if (treeRemotes != null)
             {
+                treeRemotes.Title = RemoteTitle;
+                treeRemotes.IsRemote = true;
+
                 treeRemotes.OnEnable();
                 treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
