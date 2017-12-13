@@ -35,8 +35,6 @@ namespace GitHub.Unity
             Action<GitLogEntry> doubleClick = null, Action<GitLogEntry> rightClick = null)
         {
             var requiresRepaint = false;
-            var rect = Rect.zero;
-
             scroll = GUILayout.BeginScrollView(scroll);
             {
                 controlId = GUIUtility.GetControlID(FocusType.Keyboard);
@@ -54,7 +52,7 @@ namespace GitHub.Unity
                 var startDisplay = scroll.y;
                 var endDisplay = scroll.y + containingRect.height;
 
-                rect = new Rect(containingRect.x, containingRect.y, containingRect.width, 0);
+                var rect = new Rect(containingRect.x, containingRect.y, containingRect.width, 0);
 
                 for (var index = 0; index < entries.Count; index++)
                 {
@@ -68,15 +66,15 @@ namespace GitHub.Unity
                         RenderEntry(entryRect, entry, index);
                     }
 
-                    var entryRequiresRepaint = HandleInput(entryRect, entry, index, singleClick, doubleClick, rightClick);
+                    var entryRequiresRepaint =
+                        HandleInput(entryRect, entry, index, singleClick, doubleClick, rightClick);
                     requiresRepaint = requiresRepaint || entryRequiresRepaint;
 
                     rect.y += Styles.HistoryEntryHeight;
                 }
+
+                GUILayout.Space(rect.y - containingRect.y);
             }
-
-            GUILayout.Space(rect.y - containingRect.y);
-
             GUILayout.EndScrollView();
 
             return requiresRepaint;
