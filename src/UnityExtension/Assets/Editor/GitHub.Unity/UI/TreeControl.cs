@@ -35,7 +35,7 @@ namespace GitHub.Unity
         public bool IsInitialized { get { return Nodes != null && Nodes.Count > 0 && !String.IsNullOrEmpty(Nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
 
-        public Rect Render(Rect containingRect, Rect rect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
+        public Rect Render(Rect treeDisplayRect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
         {
             if (Selection.activeObject != selectionObject)
             {
@@ -46,7 +46,7 @@ namespace GitHub.Unity
             var treeHasFocus = GUIUtility.keyboardControl == controlId;
 
             if (!Nodes.Any())
-                return new Rect(0f, rect.y, 0f, 0f);
+                return new Rect(treeDisplayRect.x, treeDisplayRect.y, 0f, 0f);
 
             var treeNodeStyle = TreeNodeStyle;
             var activeTreeNodeStyle = ActiveTreeNodeStyle;
@@ -68,10 +68,10 @@ namespace GitHub.Unity
             }
 
             var startDisplay = scroll.y;
-            var endDisplay = scroll.y + containingRect.height;
+            var endDisplay = scroll.y + treeDisplayRect.height;
 
             RequiresRepaint = false;
-            rect = new Rect(0f, rect.y, rect.width, ItemHeight);
+            var rect = new Rect(treeDisplayRect.x, treeDisplayRect.y, treeDisplayRect.width, ItemHeight);
 
             var level = 0;
 
@@ -84,7 +84,8 @@ namespace GitHub.Unity
                 if (titleDisplay)
                 {
                     var isSelected = SelectedNode == titleNode;
-                    renderResult = titleNode.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
+                    renderResult = titleNode.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle,
+                        activeTreeNodeStyle);
                 }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
@@ -118,7 +119,8 @@ namespace GitHub.Unity
                 if (display)
                 {
                     var isSelected = SelectedNode == node;
-                    renderResult = node.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
+                    renderResult = node.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle,
+                        activeTreeNodeStyle);
                 }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
@@ -137,6 +139,7 @@ namespace GitHub.Unity
                         Unindent();
                     }
                 }
+
                 level = node.Level;
 
                 if (!node.IsHidden)
