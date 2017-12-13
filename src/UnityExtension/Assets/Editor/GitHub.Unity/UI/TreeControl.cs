@@ -160,7 +160,7 @@ namespace GitHub.Unity
         public void Focus()
         {
             bool selectionChanged = false;
-            if (Event.current.type == EventType.KeyDown)
+            if (IsSelectable && Event.current.type == EventType.KeyDown)
             {
                 int directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0;
                 int directionX = Event.current.keyCode == KeyCode.LeftArrow ? -1 : Event.current.keyCode == KeyCode.RightArrow ? 1 : 0;
@@ -194,7 +194,11 @@ namespace GitHub.Unity
                 Event.current.Use();
                 GUIUtility.keyboardControl = controlId;
 
-                SelectedNode = currentNode;
+                if (IsSelectable)
+                {
+                    SelectedNode = currentNode;
+                }
+
                 requiresRepaint = true;
                 var clickCount = Event.current.clickCount;
                 var mouseButton = Event.current.button;
@@ -215,7 +219,7 @@ namespace GitHub.Unity
             }
 
             // Keyboard navigation if this child is the current selection
-            if (GUIUtility.keyboardControl == controlId && currentNode == SelectedNode && Event.current.type == EventType.KeyDown)
+            if (IsSelectable && GUIUtility.keyboardControl == controlId && currentNode == SelectedNode && Event.current.type == EventType.KeyDown)
             {
                 int directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0;
                 int directionX = Event.current.keyCode == KeyCode.LeftArrow ? -1 : Event.current.keyCode == KeyCode.RightArrow ? 1 : 0;
@@ -532,6 +536,7 @@ namespace GitHub.Unity
         [SerializeField] public string title = string.Empty;
         [SerializeField] public string pathSeparator = "/";
         [SerializeField] public bool displayRootNode = true;
+        [SerializeField] public bool isSelectable = true;
         [SerializeField] public bool isCheckable = false;
         [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
         [SerializeField] private TreeNode selectedNode = null;
@@ -552,6 +557,12 @@ namespace GitHub.Unity
         {
             get { return isCheckable; }
             set { isCheckable = value; }
+        }
+
+        public override bool IsSelectable
+        {
+            get { return isSelectable; }
+            set { isSelectable = value; }
         }
 
         public override string PathSeparator

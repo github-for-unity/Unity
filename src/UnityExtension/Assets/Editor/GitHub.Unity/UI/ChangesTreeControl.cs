@@ -38,6 +38,7 @@ namespace GitHub.Unity
         [SerializeField] public string title = string.Empty;
         [SerializeField] public string pathSeparator = "/";
         [SerializeField] public bool displayRootNode = true;
+        [SerializeField] public bool isSelectable = true;
         [SerializeField] public bool isCheckable = false;
         [SerializeField] private List<ChangesTreeNode> nodes = new List<ChangesTreeNode>();
         [SerializeField] private ChangesTreeNode selectedNode = null;
@@ -58,6 +59,12 @@ namespace GitHub.Unity
         {
             get { return isCheckable; }
             set { isCheckable = value; }
+        }
+
+        public override bool IsSelectable
+        {
+            get { return isSelectable; }
+            set { isSelectable = value; }
         }
 
         public override string PathSeparator
