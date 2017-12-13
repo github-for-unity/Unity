@@ -25,12 +25,16 @@ namespace GitHub.Unity
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
-        [SerializeField] private Vector2 scroll;
+
+        [SerializeField] private Vector2 treeScroll;
+        [SerializeField] private ChangesTree treeChanges;
+
+        [SerializeField] private List<GitStatusEntry> gitStatusEntries;
+
+        [SerializeField] private string changedFilesText = NoChangedFilesLabel;
+
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
-        [SerializeField] private ChangesTree treeChanges;
-        [SerializeField] private List<GitStatusEntry> gitStatusEntries;
-        [SerializeField] private string changedFilesText = NoChangedFilesLabel;
 
         public override void OnEnable()
         {
@@ -81,7 +85,7 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal();
             GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
             {
-                scroll = GUILayout.BeginScrollView(scroll);
+                treeScroll = GUILayout.BeginScrollView(treeScroll);
                 {
                     OnTreeGUI(new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding));
                 }
@@ -110,7 +114,7 @@ namespace GitHub.Unity
                 treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
                 treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
-                var treeRenderRect = treeChanges.Render(rect, scroll, 
+                var treeRenderRect = treeChanges.Render(rect, treeScroll, 
                     node => { }, 
                     node => { },
                     node => { });
