@@ -484,7 +484,7 @@ namespace GitHub.Unity
                     rect = GUILayoutUtility.GetLastRect();
                     GUILayout.BeginHorizontal(Styles.HistoryFileTreeBoxStyle);
                     {
-                        var treeControlRect = new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding);
+                        var treeControlRect = new Rect(rect.x, rect.y, Position.width, Position.height - rect.height + Styles.CommitAreaPadding);
                         var treeRect = Rect.zero;
                         if (treeChanges != null)
                         {
