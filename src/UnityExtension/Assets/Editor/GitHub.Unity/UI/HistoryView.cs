@@ -304,12 +304,6 @@ namespace GitHub.Unity
         }
     }
 
-    enum LogEntryState
-    {
-        Normal,
-        Local
-    }
-
     [Serializable]
     class HistoryView : Subview
     {
