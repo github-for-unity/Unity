@@ -185,6 +185,7 @@ namespace GitHub.Unity
             {
                 currentLocksHasUpdate = false;
                 var repositoryCurrentLocks = Repository.CurrentLocks;
+                lockedFileSelection = -1;
                 lockedFiles = repositoryCurrentLocks != null
                     ? repositoryCurrentLocks.ToList()
                     : new List<GitLock>();

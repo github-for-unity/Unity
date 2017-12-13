@@ -20,6 +20,7 @@ namespace GitHub.Unity
 
         [NonSerialized] private bool currentBranchHasUpdate;
         [NonSerialized] private bool currentStatusEntriesHasUpdate;
+        [NonSerialized] private bool currentLocksHasUpdate;
         [NonSerialized] private bool isBusy;
 
         [SerializeField] private string commitBody = "";
@@ -29,12 +30,14 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 treeScroll;
         [SerializeField] private ChangesTree treeChanges;
 
+        [SerializeField] private HashSet<string> gitLocks;
         [SerializeField] private List<GitStatusEntry> gitStatusEntries;
 
         [SerializeField] private string changedFilesText = NoChangedFilesLabel;
 
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
 
         public override void OnEnable()
         {
@@ -43,6 +46,7 @@ namespace GitHub.Unity
             AttachHandlers(Repository);
             Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
             Repository.CheckStatusEntriesChangedEvent(lastStatusEntriesChangedEvent);
+            Repository.CheckLocksChangedEvent(lastLocksChangedEvent);
         }
 
         public override void OnDisable()
@@ -146,6 +150,16 @@ namespace GitHub.Unity
             }
         }
 
+        private void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastLocksChangedEvent.Equals(cacheUpdateEvent))
+            {
+                lastLocksChangedEvent = cacheUpdateEvent;
+                currentLocksHasUpdate = true;
+                Redraw();
+            }
+        }
+
         private void AttachHandlers(IRepository repository)
         {
             if (repository == null)
@@ -155,6 +169,7 @@ namespace GitHub.Unity
 
             repository.CurrentBranchChanged += RepositoryOnCurrentBranchChanged;
             repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
+            repository.LocksChanged += RepositoryOnLocksChanged;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -166,6 +181,7 @@ namespace GitHub.Unity
 
             repository.CurrentBranchChanged -= RepositoryOnCurrentBranchChanged;
             repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
+            repository.LocksChanged -= RepositoryOnLocksChanged;
         }
 
         private void MaybeUpdateData()
@@ -176,9 +192,12 @@ namespace GitHub.Unity
                 currentBranch = string.Format("[{0}]", Repository.CurrentBranchName);
             }
 
-            if (currentStatusEntriesHasUpdate)
+            if (currentStatusEntriesHasUpdate || currentLocksHasUpdate)
             {
                 currentStatusEntriesHasUpdate = false;
+                currentLocksHasUpdate = false;
+
+                gitLocks = new HashSet<string>(Repository.CurrentLocks.Select(gitLock => gitLock.Path));
                 gitStatusEntries = Repository.CurrentChanges.Where(x => x.Status != GitFileStatus.Ignored).ToList();
 
                 changedFilesText = gitStatusEntries.Count == 0
@@ -204,7 +223,7 @@ namespace GitHub.Unity
                 TreeOnEnable();
             }
 
-            treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry)));
+            treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry, gitLocks.Contains(entry.Path))));
             Redraw();
         }
 
