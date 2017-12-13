@@ -84,8 +84,7 @@ namespace GitHub.Unity
                 if (titleDisplay)
                 {
                     var isSelected = SelectedNode == titleNode;
-                    renderResult = titleNode.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle,
-                        activeTreeNodeStyle);
+                    renderResult = titleNode.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
@@ -119,8 +118,7 @@ namespace GitHub.Unity
                 if (display)
                 {
                     var isSelected = SelectedNode == node;
-                    renderResult = node.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle,
-                        activeTreeNodeStyle);
+                    renderResult = node.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
