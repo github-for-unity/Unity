@@ -102,7 +102,6 @@ namespace GitHub.Unity
 
         private void OnTreeGUI(Rect rect)
         {
-            var initialRect = rect;
             if (treeChanges != null)
             {
                 treeChanges.FolderStyle = Styles.Foldout;
@@ -111,18 +110,15 @@ namespace GitHub.Unity
                 treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
                 treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
-                rect = treeChanges.Render(initialRect, rect, scroll,
-                    node => { },
-                    node => {
-                    },
-                    node => {
-                    });
+                var treeRenderRect = treeChanges.Render(rect, scroll, node => { }, node => {
+                }, node => {
+                });
 
                 if (treeChanges.RequiresRepaint)
                     Redraw();
-            }
 
-            GUILayout.Space(rect.y - initialRect.y);
+                GUILayout.Space(treeRenderRect.y - rect.y);
+            }
         }
 
         private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)

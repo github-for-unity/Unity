@@ -304,7 +304,7 @@ namespace GitHub.Unity
 
         private void OnTreeGUI(Rect rect)
         {
-            var initialRect = rect;
+            var treeRenderRect = Rect.zero;
             if (treeLocals != null && treeRemotes != null)
             {
                 treeLocals.FolderStyle = Styles.Foldout;
@@ -321,7 +321,7 @@ namespace GitHub.Unity
 
                 var treeHadFocus = treeLocals.SelectedNode != null;
 
-                rect = treeLocals.Render(initialRect, rect, scroll,
+                treeRenderRect = treeLocals.Render(rect, scroll,
                     node => { },
                     node => {
                         if (node.IsFolder)
@@ -350,10 +350,11 @@ namespace GitHub.Unity
 
                 treeHadFocus = treeRemotes.SelectedNode != null;
 
-                rect.y += Styles.TreePadding;
+                treeRenderRect.y += Styles.TreePadding;
 
-                rect = treeRemotes.Render(initialRect, rect, scroll,
-                    node => { },
+                var treeRemoteDisplayRect = new Rect(rect.x, treeRenderRect.y, rect.width, rect.height);
+                treeRenderRect = treeRemotes.Render(treeRemoteDisplayRect, scroll, 
+                    node => { }, 
                     node => {
                         if (node.IsFolder)
                             return;
@@ -377,7 +378,7 @@ namespace GitHub.Unity
                     Redraw();
             }
 
-            GUILayout.Space(rect.y - initialRect.y);
+            GUILayout.Space(treeRenderRect.y - rect.y);
         }
 
         private GenericMenu CreateContextMenuForLocalBranchNode(TreeNode node)
