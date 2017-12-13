@@ -719,10 +719,6 @@ namespace GitHub.Unity
             if (treeChanges == null)
             {
                 treeChanges = new ChangesTree();
-                treeChanges.Title = "Changes";
-                treeChanges.IsSelectable = false;
-                treeChanges.DisplayRootNode = false;
-                treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
 
                 TreeOnEnable();
             }
@@ -735,6 +731,11 @@ namespace GitHub.Unity
         {
             if (treeChanges != null)
             {
+                treeChanges.Title = "Changes";
+                treeChanges.IsSelectable = false;
+                treeChanges.DisplayRootNode = false;
+                treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
+
                 treeChanges.OnEnable();
                 treeChanges.UpdateIcons(Styles.FolderIcon);
             }
