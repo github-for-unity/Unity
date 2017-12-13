@@ -494,7 +494,7 @@ namespace GitHub.Unity
                             treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
                             treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
-                            treeRect = treeChanges.Render(treeControlRect, treeControlRect, detailsScroll,
+                            treeRect = treeChanges.Render(treeControlRect, detailsScroll,
                                 node => { },
                                 node => {
                                 },
