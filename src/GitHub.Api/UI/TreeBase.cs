@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GitHub.Unity
 {
@@ -31,13 +32,14 @@ namespace GitHub.Unity
         {
             var collapsedFolders = new HashSet<string>(GetCollapsedFolders());
             var selectedNodePath = SelectedNodePath;
+            var checkedFiles = new HashSet<string>(GetCheckedFiles());
 
             Clear();
 
             var displayRootLevel = DisplayRootNode ? 1 : 0;
 
             var isSelected = IsSelectable && selectedNodePath != null && Title == selectedNodePath;
-            AddNode(Title, Title, -1 + displayRootLevel, true, false, false, false, isSelected, null);
+            AddNode(Title, Title, -1 + displayRootLevel, true, false, false, false, isSelected, false, null);
 
             var hideChildren = false;
             var hideChildrenBelowLevel = 0;
@@ -70,6 +72,7 @@ namespace GitHub.Unity
                         }
 
                         var isActive = false;
+                        var isChecked = false;
                         var nodeIsCollapsed = false;
                         TData? treeNodeTreeData = null;
 
@@ -92,11 +95,42 @@ namespace GitHub.Unity
                         {
                             isActive = treeData.IsActive;
                             treeNodeTreeData = treeData;
+                            isChecked = checkedFiles.Contains(nodePath);
                         }
 
                         isSelected = selectedNodePath != null && nodePath == selectedNodePath;
                         AddNode(nodePath, label, i + displayRootLevel, isFolder, isActive, nodeIsHidden,
-                            nodeIsCollapsed, isSelected, treeNodeTreeData);
+                            nodeIsCollapsed, isSelected, isChecked, treeNodeTreeData);
+                    }
+                }
+            }
+
+            if (IsCheckable && checkedFiles.Any())
+            {
+                for (var index = Nodes.Count - 1; index >= 0; index--)
+                {
+                    var node = Nodes[index];
+                    if (node.Level >= 0 && node.IsFolder)
+                    {
+                        bool? anyChecked = null;
+                        bool? allChecked = null;
+
+                        for (var i = index + 1; i < Nodes.Count; i++)
+                        {
+                            var nodeCompare = Nodes[i];
+                            if (nodeCompare.Level < node.Level + 1)
+                            {
+                                break;
+                            }
+
+                            var nodeIsChecked = nodeCompare.CheckState == CheckState.Checked;
+                            allChecked = (allChecked ?? true) && nodeIsChecked;
+                            anyChecked = (anyChecked ?? false) || nodeIsChecked;
+                        }
+
+                        node.CheckState = anyChecked.Value 
+                            ? (allChecked.Value ? CheckState.Checked : CheckState.Mixed)
+                            : CheckState.Empty;
                     }
                 }
             }
@@ -126,10 +160,9 @@ namespace GitHub.Unity
 
         protected abstract IEnumerable<string> GetCollapsedFolders();
 
-        protected void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden,
-            bool isCollapsed, bool isSelected, TData? treeData)
+        protected void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isSelected, bool isChecked, TData? treeData)
         {
-            var node = CreateTreeNode(path, label, level, isFolder, isActive, isHidden, isCollapsed, treeData);
+            var node = CreateTreeNode(path, label, level, isFolder, isActive, isHidden, isCollapsed, isChecked, treeData);
 
             SetNodeIcon(node);
             Nodes.Add(node);
@@ -151,8 +184,7 @@ namespace GitHub.Unity
 
         protected abstract void AddCheckedNode(TNode node);
 
-        protected abstract TNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive,
-            bool isHidden, bool isCollapsed, TData? treeData);
+        protected abstract TNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, TData? treeData);
 
         protected abstract void OnClear();
 

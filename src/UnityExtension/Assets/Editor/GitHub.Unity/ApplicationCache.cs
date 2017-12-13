@@ -133,7 +133,7 @@ namespace GitHub.Unity
         public void ValidateData()
         {
             var initialized = ValidateInitialized();
-            if (!initialized)
+            if (initialized)
             {
                 if (DateTimeOffset.Now - LastUpdatedAt > DataTimeout)
                 {
@@ -145,8 +145,8 @@ namespace GitHub.Unity
 
         private bool ValidateInitialized()
         {
-            var notInitialized = ApplicationCache.Instance.FirstRunAt > InitializedAt;
-            if (notInitialized)
+            var isInitialized = IsInitialized;
+            if (!isInitialized)
             {
                 Logger.Trace("Not Initialized");
 
@@ -156,7 +156,7 @@ namespace GitHub.Unity
                 }
             }
 
-            return notInitialized;
+            return isInitialized;
         }
 
         public void InvalidateData()
@@ -167,7 +167,7 @@ namespace GitHub.Unity
 
         protected void SaveData(DateTimeOffset now, bool isUpdated)
         {
-            if (InitializedAt == DateTimeOffset.MinValue)
+            if (!IsInitialized)
             {
                 InitializedAt = now;
             }
@@ -195,6 +195,11 @@ namespace GitHub.Unity
         public abstract string LastUpdatedAtString { get; protected set; }
         public abstract string LastVerifiedAtString { get; protected set; }
         public abstract string InitializedAtString { get; protected set; }
+
+        public bool IsInitialized
+        {
+            get { return ApplicationCache.Instance.FirstRunAt <= InitializedAt; }
+        }
 
         public DateTimeOffset LastUpdatedAt
         {
