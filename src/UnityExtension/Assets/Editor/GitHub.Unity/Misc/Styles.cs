@@ -64,6 +64,7 @@ namespace GitHub.Unity
                                 headerDescriptionStyle,
                                 historyToolbarButtonStyle,
                                 historyLockStyle,
+                                historyEntrySummaryStyle,
                                 historyEntryDetailsStyle,
                                 historyEntryDetailsRightStyle,
                                 historyFileTreeBoxStyle,
@@ -396,6 +397,20 @@ namespace GitHub.Unity
                 return historyLockStyle;
             }
         }
+        public static GUIStyle HistoryEntrySummaryStyle
+        {
+            get
+            {
+                if (historyEntrySummaryStyle == null)
+                {
+                    historyEntrySummaryStyle = new GUIStyle(Label);
+                    historyEntrySummaryStyle.name = "HistoryEntrySummaryStyle";
+
+                    historyEntrySummaryStyle.contentOffset = new Vector2(BaseSpacing * 2, 0);
+                }
+                return historyEntrySummaryStyle;
+            }
+        }
 
         public static GUIStyle HistoryEntryDetailsStyle
         {
@@ -412,6 +427,8 @@ namespace GitHub.Unity
                     historyEntryDetailsStyle.onNormal.textColor = Label.onNormal.textColor;
                     historyEntryDetailsStyle.onFocused.background = Label.onFocused.background;
                     historyEntryDetailsStyle.onFocused.textColor = Label.onFocused.textColor;
+
+                    historyEntryDetailsStyle.contentOffset = new Vector2(BaseSpacing * 2, 0);
                 }
                 return historyEntryDetailsStyle;
             }

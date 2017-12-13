@@ -35,7 +35,7 @@ namespace GitHub.Unity
         public bool IsInitialized { get { return Nodes != null && Nodes.Count > 0 && !String.IsNullOrEmpty(Nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
 
-        public Rect Render(Rect containingRect, Rect rect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
+        public Rect Render(Rect treeDisplayRect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
         {
             if (Selection.activeObject != selectionObject)
             {
@@ -46,7 +46,7 @@ namespace GitHub.Unity
             var treeHasFocus = GUIUtility.keyboardControl == controlId;
 
             if (!Nodes.Any())
-                return new Rect(0f, rect.y, 0f, 0f);
+                return new Rect(treeDisplayRect.x, treeDisplayRect.y, 0f, 0f);
 
             var treeNodeStyle = TreeNodeStyle;
             var activeTreeNodeStyle = ActiveTreeNodeStyle;
@@ -68,10 +68,10 @@ namespace GitHub.Unity
             }
 
             var startDisplay = scroll.y;
-            var endDisplay = scroll.y + containingRect.height;
+            var endDisplay = scroll.y + treeDisplayRect.height;
 
             RequiresRepaint = false;
-            rect = new Rect(0f, rect.y, rect.width, ItemHeight);
+            var rect = new Rect(treeDisplayRect.x, treeDisplayRect.y, treeDisplayRect.width, ItemHeight);
 
             var level = 0;
 
@@ -137,6 +137,7 @@ namespace GitHub.Unity
                         Unindent();
                     }
                 }
+
                 level = node.Level;
 
                 if (!node.IsHidden)
@@ -157,7 +158,7 @@ namespace GitHub.Unity
         public void Focus()
         {
             bool selectionChanged = false;
-            if (Event.current.type == EventType.KeyDown)
+            if (IsSelectable && Event.current.type == EventType.KeyDown)
             {
                 int directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0;
                 int directionX = Event.current.keyCode == KeyCode.LeftArrow ? -1 : Event.current.keyCode == KeyCode.RightArrow ? 1 : 0;
@@ -191,7 +192,11 @@ namespace GitHub.Unity
                 Event.current.Use();
                 GUIUtility.keyboardControl = controlId;
 
-                SelectedNode = currentNode;
+                if (IsSelectable)
+                {
+                    SelectedNode = currentNode;
+                }
+
                 requiresRepaint = true;
                 var clickCount = Event.current.clickCount;
                 var mouseButton = Event.current.button;
@@ -212,7 +217,7 @@ namespace GitHub.Unity
             }
 
             // Keyboard navigation if this child is the current selection
-            if (GUIUtility.keyboardControl == controlId && currentNode == SelectedNode && Event.current.type == EventType.KeyDown)
+            if (IsSelectable && GUIUtility.keyboardControl == controlId && currentNode == SelectedNode && Event.current.type == EventType.KeyDown)
             {
                 int directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0;
                 int directionX = Event.current.keyCode == KeyCode.LeftArrow ? -1 : Event.current.keyCode == KeyCode.RightArrow ? 1 : 0;
@@ -419,7 +424,7 @@ namespace GitHub.Unity
                 return renderResult;
 
             var fillRect = rect;
-            var nodeStartX = Level * indentation;
+            var nodeStartX = Level * indentation + rect.x;
             nodeStartX += 2 * level;
 
             var nodeRect = new Rect(nodeStartX, rect.y, fillRect.width - nodeStartX, rect.height);
@@ -529,6 +534,7 @@ namespace GitHub.Unity
         [SerializeField] public string title = string.Empty;
         [SerializeField] public string pathSeparator = "/";
         [SerializeField] public bool displayRootNode = true;
+        [SerializeField] public bool isSelectable = true;
         [SerializeField] public bool isCheckable = false;
         [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
         [SerializeField] private TreeNode selectedNode = null;
@@ -549,6 +555,12 @@ namespace GitHub.Unity
         {
             get { return isCheckable; }
             set { isCheckable = value; }
+        }
+
+        public override bool IsSelectable
+        {
+            get { return isSelectable; }
+            set { isSelectable = value; }
         }
 
         public override string PathSeparator

@@ -25,12 +25,16 @@ namespace GitHub.Unity
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
-        [SerializeField] private Vector2 scroll;
+
+        [SerializeField] private Vector2 treeScroll;
+        [SerializeField] private ChangesTree treeChanges;
+
+        [SerializeField] private List<GitStatusEntry> gitStatusEntries;
+
+        [SerializeField] private string changedFilesText = NoChangedFilesLabel;
+
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
-        [SerializeField] private ChangesTree treeChanges;
-        [SerializeField] private List<GitStatusEntry> gitStatusEntries;
-        [SerializeField] private string changedFilesText = NoChangedFilesLabel;
 
         public override void OnEnable()
         {
@@ -81,7 +85,7 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal();
             GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
             {
-                scroll = GUILayout.BeginScrollView(scroll);
+                treeScroll = GUILayout.BeginScrollView(treeScroll);
                 {
                     OnTreeGUI(new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding));
                 }
@@ -102,7 +106,6 @@ namespace GitHub.Unity
 
         private void OnTreeGUI(Rect rect)
         {
-            var initialRect = rect;
             if (treeChanges != null)
             {
                 treeChanges.FolderStyle = Styles.Foldout;
@@ -111,18 +114,16 @@ namespace GitHub.Unity
                 treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
                 treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
-                rect = treeChanges.Render(initialRect, rect, scroll,
+                var treeRenderRect = treeChanges.Render(rect, treeScroll, 
+                    node => { }, 
                     node => { },
-                    node => {
-                    },
-                    node => {
-                    });
+                    node => { });
 
                 if (treeChanges.RequiresRepaint)
                     Redraw();
-            }
 
-            GUILayout.Space(rect.y - initialRect.y);
+                GUILayout.Space(treeRenderRect.y - rect.y);
+            }
         }
 
         private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
