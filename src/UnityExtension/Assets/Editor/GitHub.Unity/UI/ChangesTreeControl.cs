@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
@@ -38,6 +39,7 @@ namespace GitHub.Unity
     [Serializable]
     public class ChangesTree : Tree<ChangesTreeNode, GitStatusEntryTreeData>
     {
+        [SerializeField] public ChangesTreeNodeDictionary assets = new ChangesTreeNodeDictionary();
         [SerializeField] public ChangesTreeNodeDictionary folders = new ChangesTreeNodeDictionary();
         [SerializeField] public ChangesTreeNodeDictionary checkedFileNodes = new ChangesTreeNodeDictionary();
 
@@ -47,8 +49,11 @@ namespace GitHub.Unity
         [SerializeField] public bool displayRootNode = true;
         [SerializeField] public bool isSelectable = true;
         [SerializeField] public bool isCheckable = false;
+        [SerializeField] public bool isUsingGlobalSelection = false;
         [SerializeField] private List<ChangesTreeNode> nodes = new List<ChangesTreeNode>();
         [SerializeField] private ChangesTreeNode selectedNode = null;
+        [NonSerialized] private bool viewHasFocus;
+        [NonSerialized] private Object lastActivatedObject;
 
         public override string Title
         {
@@ -92,9 +97,21 @@ namespace GitHub.Unity
             set
             {
                 selectedNode = value;
-                if (value != null && selectionObject)
+
+                if (!IsUsingGlobalSelection)
                 {
-                    Selection.activeObject = selectionObject;
+                    return;
+                }
+
+                var activeObject = selectedNode != null
+                    ? AssetDatabase.LoadMainAssetAtPath(selectedNode.Path)
+                    : null;
+
+                lastActivatedObject = activeObject;
+
+                if (TreeHasFocus)
+                {
+                    Selection.activeObject = activeObject;
                 }
             }
         }
@@ -102,6 +119,18 @@ namespace GitHub.Unity
         protected override List<ChangesTreeNode> Nodes
         {
             get { return nodes; }
+        }
+
+        public bool IsUsingGlobalSelection
+        {
+            get { return isUsingGlobalSelection; }
+            set { isUsingGlobalSelection = value; }
+        }
+
+        public override bool ViewHasFocus
+        {
+            get { return viewHasFocus; }
+            set { viewHasFocus = value; }
         }
 
         public void UpdateIcons(Texture2D folderIcon)
@@ -186,7 +215,7 @@ namespace GitHub.Unity
                 CheckState = isChecked ? CheckState.Checked : CheckState.Empty,
                 GitFileStatus = gitFileStatus,
                 ProjectPath = projectPath,
-                IsLocked = isLocked
+                IsLocked = isLocked,
             };
 
             if (isFolder && level >= 0)
@@ -194,11 +223,25 @@ namespace GitHub.Unity
                 folders.Add(node.Path, node);
             }
 
+            if (IsUsingGlobalSelection)
+            {
+                if (node.Path != null)
+                {
+                    var assetGuid = AssetDatabase.AssetPathToGUID(node.Path);
+
+                    if (!string.IsNullOrEmpty(assetGuid))
+                    {
+                        assets.Add(assetGuid, node);
+                    }
+                }
+            }
+
             return node;
         }
 
         protected override void OnClear()
         {
+            assets.Clear();
             folders.Clear();
             checkedFileNodes.Clear();
         }
@@ -221,6 +264,27 @@ namespace GitHub.Unity
         protected override void AddCheckedNode(ChangesTreeNode node)
         {
             checkedFileNodes.Add(((ITreeNode)node).Path, node);
+        }
+
+        public bool OnSelectionChange()
+        {
+            if (IsUsingGlobalSelection && !TreeHasFocus)
+            {
+                ChangesTreeNode assetNode = null;
+
+                if (Selection.activeObject != lastActivatedObject)
+                {
+                    var activeAssetPath = AssetDatabase.GetAssetPath(Selection.activeObject);
+                    var activeAssetGuid = AssetDatabase.AssetPathToGUID(activeAssetPath);
+
+                    assets.TryGetValue(activeAssetGuid, out assetNode);
+                }
+
+                SelectedNode = assetNode;
+                return true;
+            }
+
+            return false;
         }
     }
 }

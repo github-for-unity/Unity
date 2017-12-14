@@ -94,6 +94,21 @@ namespace GitHub.Unity
             }
         }
 
+        private void OnFocus()
+        {
+            HasFocus = true;
+            OnFocusChanged();
+        }
+
+        private void OnLostFocus()
+        {
+            HasFocus = false;
+            OnFocusChanged();
+        }
+
+        public virtual void OnFocusChanged()
+        {}
+
         public virtual void OnDestroy()
         {}
 
@@ -103,6 +118,7 @@ namespace GitHub.Unity
         public Rect Position { get { return position; } }
         public IApplicationManager Manager { get; private set; }
         public abstract bool IsBusy { get; }
+        public bool HasFocus { get; private set; }
         public IRepository Repository { get { return inLayout ? cachedRepository : Environment.Repository; } }
         public bool HasRepository { get { return Repository != null; } }
         public IUser User { get { return cachedUser; } }

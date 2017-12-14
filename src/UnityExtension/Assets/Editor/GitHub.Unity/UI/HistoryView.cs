@@ -7,6 +7,302 @@ using UnityEngine;
 namespace GitHub.Unity
 {
     [Serializable]
+    class HistoryControl
+    {
+        private const string HistoryEntryDetailFormat = "{0}     {1}";
+
+        [SerializeField] private Vector2 scroll;
+        [SerializeField] private List<GitLogEntry> entries = new List<GitLogEntry>();
+        [SerializeField] private int statusAhead;
+        [SerializeField] private int selectedIndex = -1;
+
+        [NonSerialized] private Action<GitLogEntry> rightClickNextRender;
+        [NonSerialized] private GitLogEntry rightClickNextRenderEntry;
+        [NonSerialized] private int controlId;
+
+        public int SelectedIndex
+        {
+            get { return selectedIndex; }
+            set { selectedIndex = value; }
+        }
+
+        public GitLogEntry SelectedGitLogEntry
+        {
+            get { return SelectedIndex < 0 ? GitLogEntry.Default : entries[SelectedIndex]; }
+        }
+
+        public bool Render(Rect containingRect, Action<GitLogEntry> singleClick = null,
+            Action<GitLogEntry> doubleClick = null, Action<GitLogEntry> rightClick = null)
+        {
+            var requiresRepaint = false;
+            scroll = GUILayout.BeginScrollView(scroll);
+            {
+                controlId = GUIUtility.GetControlID(FocusType.Keyboard);
+
+                if (Event.current.type != EventType.Repaint)
+                {
+                    if (rightClickNextRender != null)
+                    {
+                        rightClickNextRender.Invoke(rightClickNextRenderEntry);
+                        rightClickNextRender = null;
+                        rightClickNextRenderEntry = GitLogEntry.Default;
+                    }
+                }
+
+                var startDisplay = scroll.y;
+                var endDisplay = scroll.y + containingRect.height;
+
+                var rect = new Rect(containingRect.x, containingRect.y, containingRect.width, 0);
+
+                for (var index = 0; index < entries.Count; index++)
+                {
+                    var entry = entries[index];
+
+                    var entryRect = new Rect(rect.x, rect.y, rect.width, Styles.HistoryEntryHeight);
+
+                    var shouldRenderEntry = !(entryRect.y > endDisplay || entryRect.yMax < startDisplay);
+                    if (shouldRenderEntry && Event.current.type == EventType.Repaint)
+                    {
+                        RenderEntry(entryRect, entry, index);
+                    }
+
+                    var entryRequiresRepaint =
+                        HandleInput(entryRect, entry, index, singleClick, doubleClick, rightClick);
+                    requiresRepaint = requiresRepaint || entryRequiresRepaint;
+
+                    rect.y += Styles.HistoryEntryHeight;
+                }
+
+                GUILayout.Space(rect.y - containingRect.y);
+            }
+            GUILayout.EndScrollView();
+
+            return requiresRepaint;
+        }
+
+        private void RenderEntry(Rect entryRect, GitLogEntry entry, int index)
+        {
+            var isLocalCommit = index < statusAhead;
+            var isSelected = index == SelectedIndex;
+            var summaryRect = new Rect(entryRect.x, entryRect.y + Styles.BaseSpacing / 2, entryRect.width, Styles.HistorySummaryHeight + Styles.BaseSpacing);
+            var timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight - Styles.BaseSpacing / 2, entryRect.width, Styles.HistoryDetailsHeight);
+
+            var hasKeyboardFocus = GUIUtility.keyboardControl == controlId; 
+
+            Styles.Label.Draw(entryRect, GUIContent.none, false, false, isSelected, hasKeyboardFocus);
+            Styles.HistoryEntrySummaryStyle.Draw(summaryRect, entry.Summary, false, false, isSelected, hasKeyboardFocus);
+
+            var historyEntryDetail = string.Format(HistoryEntryDetailFormat, entry.PrettyTimeString, entry.AuthorName);
+            Styles.HistoryEntryDetailsStyle.Draw(timestampRect, historyEntryDetail, false, false, isSelected, hasKeyboardFocus);
+
+            if (!string.IsNullOrEmpty(entry.MergeA))
+            {
+                const float MergeIndicatorWidth = 10.28f;
+                const float MergeIndicatorHeight = 12f;
+                var mergeIndicatorRect = new Rect(entryRect.x + 7, summaryRect.y, MergeIndicatorWidth, MergeIndicatorHeight);
+
+                GUI.DrawTexture(mergeIndicatorRect, Styles.MergeIcon);
+
+                DrawTimelineRectAroundIconRect(entryRect, mergeIndicatorRect);
+
+                summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorWidth,
+                    summaryRect.height);
+            }
+            else
+            {
+                if (isLocalCommit)
+                {
+                    const float LocalIndicatorSize = 6f;
+                    var localIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2), summaryRect.y + 5, LocalIndicatorSize,
+                        LocalIndicatorSize);
+
+                    DrawTimelineRectAroundIconRect(entryRect, localIndicatorRect);
+
+                    GUI.DrawTexture(localIndicatorRect, Styles.LocalCommitIcon);
+
+                    summaryRect.Set(localIndicatorRect.xMax, summaryRect.y, summaryRect.width - LocalIndicatorSize,
+                        summaryRect.height);
+                }
+                else
+                {
+                    const float NormalIndicatorWidth = 6f;
+                    const float NormalIndicatorHeight = 6f;
+
+                    var normalIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2), summaryRect.y + 5,
+                        NormalIndicatorWidth, NormalIndicatorHeight);
+
+                    DrawTimelineRectAroundIconRect(entryRect, normalIndicatorRect);
+
+                    GUI.DrawTexture(normalIndicatorRect, Styles.DotIcon);
+                }
+            }
+        }
+
+        private bool HandleInput(Rect rect, GitLogEntry entry, int index, Action<GitLogEntry> singleClick = null,
+            Action<GitLogEntry> doubleClick = null, Action<GitLogEntry> rightClick = null)
+        {
+            var requiresRepaint = false;
+            var clickRect = new Rect(0f, rect.y, rect.width, rect.height);
+            if (Event.current.type == EventType.MouseDown && clickRect.Contains(Event.current.mousePosition))
+            {
+                Event.current.Use();
+                GUIUtility.keyboardControl = controlId;
+
+                SelectedIndex = index;
+                requiresRepaint = true;
+                var clickCount = Event.current.clickCount;
+                var mouseButton = Event.current.button;
+
+                if (mouseButton == 0 && clickCount == 1 && singleClick != null)
+                {
+                    singleClick(entry);
+                }
+                if (mouseButton == 0 && clickCount > 1 && doubleClick != null)
+                {
+                    doubleClick(entry);
+                }
+                if (mouseButton == 1 && clickCount == 1 && rightClick != null)
+                {
+                    rightClickNextRender = rightClick;
+                    rightClickNextRenderEntry = entry;
+                }
+            }
+
+            // Keyboard navigation if this child is the current selection
+            if (GUIUtility.keyboardControl == controlId && index == SelectedIndex && Event.current.type == EventType.KeyDown)
+            {
+                var directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0;
+                if (directionY != 0)
+                {
+                    Event.current.Use();
+
+                    if (directionY > 0)
+                    {
+                        requiresRepaint = SelectNext(index) != index;
+                    }
+                    else
+                    {
+                        requiresRepaint = SelectPrevious(index) != index;
+                    }
+                }
+            }
+
+            return requiresRepaint;
+        }
+
+        private void DrawTimelineRectAroundIconRect(Rect parentRect, Rect iconRect)
+        {
+            Color timelineBarColor = new Color(0.51F, 0.51F, 0.51F, 0.2F);
+
+            // Draw them lines
+            //
+            // First I need to figure out how large to make the top one:
+            // I'll subtract the entryRect.y from the mergeIndicatorRect.y to
+            // get the difference in length. then subtract a little more for padding
+            float topTimelineRectHeight = iconRect.y - parentRect.y - 2;
+            // Now let's create the rect
+            Rect topTimelineRect = new Rect(
+                parentRect.x + Styles.BaseSpacing,
+                parentRect.y,
+                2,
+                topTimelineRectHeight);
+
+            // And draw it
+            EditorGUI.DrawRect(topTimelineRect, timelineBarColor);
+
+            // Let's do the same for the bottom
+            float bottomTimelineRectHeight = parentRect.yMax - iconRect.yMax - 2;
+            Rect bottomTimelineRect = new Rect(
+                parentRect.x + Styles.BaseSpacing,
+                parentRect.yMax - bottomTimelineRectHeight,
+                2,
+                bottomTimelineRectHeight);
+            EditorGUI.DrawRect(bottomTimelineRect, timelineBarColor);
+        }
+
+        public void Load(int loadAhead, List<GitLogEntry> loadEntries)
+        {
+            var selectedCommitId = SelectedGitLogEntry.CommitID;
+            var scrollValue = scroll.y;
+
+            var previousCount = entries.Count;
+
+            var scrollIndex = (int)(scrollValue / Styles.HistoryEntryHeight);
+
+            statusAhead = loadAhead;
+            entries = loadEntries;
+
+            var selectionPresent = false;
+            for (var index = 0; index < entries.Count; index++)
+            {
+                var gitLogEntry = entries[index];
+                if (gitLogEntry.CommitID.Equals(selectedCommitId))
+                {
+                    selectedIndex = index;
+                    selectionPresent = true;
+                    break;
+                }
+            }
+
+            if (!selectionPresent)
+            {
+                selectedIndex = -1;
+            }
+
+            if (scrollIndex > entries.Count)
+            {
+                ScrollTo(0);
+            }
+            else
+            {
+                var scrollOffset = scrollValue % Styles.HistoryEntryHeight;
+
+                var scrollIndexFromBottom = previousCount - scrollIndex;
+                var newScrollIndex = entries.Count - scrollIndexFromBottom;
+
+                ScrollTo(newScrollIndex, scrollOffset);
+            }
+        }
+
+        private int SelectNext(int index)
+        {
+            index++;
+
+            if (index < entries.Count)
+            {
+                SelectedIndex = index;
+            }
+            else
+            {
+                index = -1;
+            }
+
+            return index;
+        }
+
+        private int SelectPrevious(int index)
+        {
+            index--;
+
+            if (index >= 0)
+            {
+                SelectedIndex = index;
+            }
+            else
+            {
+                SelectedIndex = -1;
+            }
+
+            return index;
+        }
+
+        public void ScrollTo(int index, float offset = 0f)
+        {
+            scroll.Set(scroll.x, Styles.HistoryEntryHeight * index + offset);
+        }
+    }
+
+    [Serializable]
     class HistoryView : Subview
     {
         private const string PullButton = "Pull";
@@ -27,48 +323,41 @@ namespace GitHub.Unity
         private const string FetchActionTitle = "Fetch Changes";
         private const string FetchButtonText = "Fetch";
         private const string FetchFailureDescription = "Could not fetch changes";
-        private const int HistoryExtraItemCount = 10;
-        private const float MaxChangelistHeightRatio = .2f;
 
         [NonSerialized] private bool currentLogHasUpdate;
         [NonSerialized] private bool currentRemoteHasUpdate;
         [NonSerialized] private bool currentTrackingStatusHasUpdate;
-        [NonSerialized] private int historyStartIndex;
-        [NonSerialized] private int historyStopIndex;
-        [NonSerialized] private int listID;
-        [NonSerialized] private int newSelectionIndex;
-        [NonSerialized] private float scrollOffset;
-        [NonSerialized] private DateTimeOffset scrollTime = DateTimeOffset.Now;
-        [NonSerialized] private int selectionIndex;
-        [NonSerialized] private bool useScrollTime;
 
-        [SerializeField] private ChangesetTreeView changesetTree = new ChangesetTreeView();
-        [SerializeField] private string currentRemoteName;
-        [SerializeField] private Vector2 detailsScroll;
         [SerializeField] private bool hasItemsToCommit;
         [SerializeField] private bool hasRemote;
-        [SerializeField] private List<GitLogEntry> history = new List<GitLogEntry>();
-        [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
-        [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
-        [SerializeField] private CacheUpdateEvent lastTrackingStatusChangedEvent;
-        [SerializeField] private Vector2 scroll;
-        [SerializeField] private string selectionID;
+        [SerializeField] private string currentRemoteName;
+
+        [SerializeField] private HistoryControl historyControl;
+        [SerializeField] private GitLogEntry selectedEntry = GitLogEntry.Default;
+
+        [SerializeField] private Vector2 detailsScroll;
+
+        [SerializeField] private List<GitLogEntry> logEntries = new List<GitLogEntry>();
+
         [SerializeField] private int statusAhead;
         [SerializeField] private int statusBehind;
 
-        public override void InitializeView(IView parent)
-        {
-            base.InitializeView(parent);
-
-            selectionIndex = newSelectionIndex = -1;
-
-            changesetTree.InitializeView(this);
-            changesetTree.Readonly = true;
-        }
+        [SerializeField] private ChangesTree treeChanges = new ChangesTree { IsSelectable = false, DisplayRootNode = false };
+        
+        [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastTrackingStatusChangedEvent;
 
         public override void OnEnable()
         {
             base.OnEnable();
+
+            if (treeChanges != null)
+            {
+                treeChanges.ViewHasFocus = HasFocus;
+                treeChanges.UpdateIcons(Styles.FolderIcon);
+            }
+
             AttachHandlers(Repository);
 
             if (Repository != null)
@@ -91,12 +380,18 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        public override void OnGUI()
+        public override void OnFocusChanged()
         {
-            OnEmbeddedGUI();
+            base.OnFocusChanged();
+            var hasFocus = HasFocus;
+            if (treeChanges.ViewHasFocus != hasFocus)
+            {
+                treeChanges.ViewHasFocus = hasFocus;
+                Redraw();
+            }
         }
 
-        public void OnEmbeddedGUI()
+        public override void OnGUI()
         {
             // History toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -160,136 +455,101 @@ namespace GitHub.Unity
             }
             GUILayout.EndHorizontal();
 
-            // When history scroll actually changes, store time value of topmost visible entry. This is the value we use to reposition scroll on log update - not the pixel value.
-            if (history.Any())
+            var rect = GUILayoutUtility.GetLastRect();
+            if (historyControl != null)
             {
-                listID = GUIUtility.GetControlID(FocusType.Keyboard);
+                var historyControlRect = new Rect(0f, 0f, Position.width, Position.height - rect.height);
 
-                // Only update time scroll
-                var lastScroll = scroll;
-                scroll = GUILayout.BeginScrollView(scroll);
-                if (lastScroll != scroll && !currentLogHasUpdate)
-                {
-                    scrollTime = history[historyStartIndex].Time;
-                    scrollOffset = scroll.y - historyStartIndex * EntryHeight;
-                    useScrollTime = true;
-                }
-                // Handle only the selected range of history items - adding spacing for the rest
-                var start = Mathf.Max(0, historyStartIndex - HistoryExtraItemCount);
-                var stop = Mathf.Min(historyStopIndex + HistoryExtraItemCount, history.Count);
-                GUILayout.Space(start * EntryHeight);
-                for (var index = start; index < stop; ++index)
-                {
-                    if (HistoryEntry(history[index], GetEntryState(index), selectionIndex == index))
-                    {
-                        newSelectionIndex = index;
-                        GUIUtility.keyboardControl = listID;
-                    }
-                }
+                var requiresRepaint = historyControl.Render(historyControlRect,  
+                    entry => {
+                        selectedEntry = entry;
+                        BuildTree();
+                    },
+                    entry => { },
+                    entry => { });
 
-                GUILayout.Space((history.Count - stop) * EntryHeight);
-
-                // Keyboard control
-                if (GUIUtility.keyboardControl == listID && Event.current.type == EventType.KeyDown)
-                {
-                    var change = 0;
-
-                    if (Event.current.keyCode == KeyCode.DownArrow)
-                    {
-                        change = 1;
-                    }
-                    else if (Event.current.keyCode == KeyCode.UpArrow)
-                    {
-                        change = -1;
-                    }
-
-                    if (change != 0)
-                    {
-                        newSelectionIndex = (selectionIndex + change) % history.Count;
-                        if (newSelectionIndex < historyStartIndex || newSelectionIndex > historyStopIndex)
-                        {
-                            ScrollTo(newSelectionIndex,
-                                (Position.height - Position.height * MaxChangelistHeightRatio - 30f - EntryHeight) * -.5f);
-                        }
-                        Event.current.Use();
-                    }
-                }
-            }
-            else
-            {
-                GUILayout.BeginScrollView(scroll);
+                if (requiresRepaint)
+                    Redraw();
             }
 
-            GUILayout.EndScrollView();
-
-            // Selection info
-            if (selectionIndex >= 0 && history.Count > selectionIndex)
+            if (!selectedEntry.Equals(GitLogEntry.Default))
             {
-                var selection = history[selectionIndex];
-
                 // Top bar for scrolling to selection or clearing it
                 GUILayout.BeginHorizontal(EditorStyles.toolbar);
                 {
                     if (GUILayout.Button(CommitDetailsTitle, Styles.HistoryToolbarButtonStyle))
                     {
-                        ScrollTo(selectionIndex);
+                        historyControl.ScrollTo(historyControl.SelectedIndex);
                     }
                     if (GUILayout.Button(ClearSelectionButton, Styles.HistoryToolbarButtonStyle, GUILayout.ExpandWidth(false)))
                     {
-                        newSelectionIndex = -2;
+                        selectedEntry = GitLogEntry.Default;
+                        historyControl.SelectedIndex = -1;
                     }
                 }
                 GUILayout.EndHorizontal();
 
                 // Log entry details - including changeset tree (if any changes are found)
-                if (changesetTree.Entries.Any())
+                detailsScroll = GUILayout.BeginScrollView(detailsScroll, GUILayout.Height(250));
                 {
-                    detailsScroll = GUILayout.BeginScrollView(detailsScroll, GUILayout.Height(250));
+                    HistoryDetailsEntry(selectedEntry);
+
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                    GUILayout.Label("Files changed", EditorStyles.boldLabel);
+                    GUILayout.Space(-5);
+
+                    rect = GUILayoutUtility.GetLastRect();
+                    GUILayout.BeginHorizontal(Styles.HistoryFileTreeBoxStyle);
+                    GUILayout.BeginVertical();
                     {
-                        HistoryDetailsEntry(selection);
-
-                        GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-                        GUILayout.Label("Files changed", EditorStyles.boldLabel);
-                        GUILayout.Space(-5);
-
-                        GUILayout.BeginHorizontal(Styles.HistoryFileTreeBoxStyle);
+                        var borderLeft = Styles.Label.margin.left;
+                        var treeControlRect = new Rect(rect.x + borderLeft, rect.y, Position.width - borderLeft * 2, Position.height - rect.height + Styles.CommitAreaPadding);
+                        var treeRect = Rect.zero;
+                        if (treeChanges != null)
                         {
-                            changesetTree.OnGUI();
+                            treeChanges.FolderStyle = Styles.Foldout;
+                            treeChanges.TreeNodeStyle = Styles.TreeNode;
+                            treeChanges.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
+                            treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
+                            treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
+
+                            treeRect = treeChanges.Render(treeControlRect, detailsScroll,
+                                node => { },
+                                node => {
+                                },
+                                node => {
+                                });
+
+                            if (treeChanges.RequiresRepaint)
+                                Redraw();
                         }
-                        GUILayout.EndHorizontal();
 
-                        GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                        GUILayout.Space(treeRect.y - treeControlRect.y);
                     }
-                    GUILayout.EndScrollView();
+                    GUILayout.EndVertical();
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
                 }
-                else
-                {
-                    detailsScroll = GUILayout.BeginScrollView(detailsScroll, GUILayout.Height(246));
-                    HistoryDetailsEntry(selection);
-                    GUILayout.EndScrollView();
-                }
+                GUILayout.EndScrollView();
             }
+        }
 
-            // Handle culling and selection changes at the end of the last GUI frame
-            if (Event.current.type == EventType.Repaint)
-            {
-                CullHistory();
-                currentLogHasUpdate = false;
+        private void HistoryDetailsEntry(GitLogEntry entry)
+        {
+            GUILayout.BeginVertical(Styles.HeaderBoxStyle);
+            GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle);
 
-                if (newSelectionIndex >= 0 || newSelectionIndex == -2)
-                {
-                    selectionIndex = newSelectionIndex == -2 ? -1 : newSelectionIndex;
-                    newSelectionIndex = -1;
-                    detailsScroll = Vector2.zero;
+            GUILayout.Space(-5);
 
-                    if (selectionIndex >= 0)
-                    {
-                        changesetTree.UpdateEntries(history[selectionIndex].Changes);
-                    }
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(entry.PrettyTimeString, Styles.HistoryDetailsMetaInfoStyle);
+            GUILayout.Label(entry.AuthorName, Styles.HistoryDetailsMetaInfoStyle);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
 
-                    Redraw();
-                }
-            }
+            GUILayout.Space(3);
+            GUILayout.EndVertical();
         }
 
         private void RepositoryTrackingOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -378,186 +638,25 @@ namespace GitHub.Unity
             {
                 currentLogHasUpdate = false;
 
-                history = Repository.CurrentLog;
+                logEntries = Repository.CurrentLog;
 
-                if (history.Any())
-                {
-                    // Make sure that scroll as much as possible focuses the same time period in the new entry list
-                    if (useScrollTime)
-                    {
-                        var closestIndex = -1;
-                        double closestDifference = Mathf.Infinity;
-                        for (var index = 0; index < history.Count; ++index)
-                        {
-                            var diff = Math.Abs((history[index].Time - scrollTime).TotalSeconds);
-                            if (diff < closestDifference)
-                            {
-                                closestDifference = diff;
-                                closestIndex = index;
-                            }
-                        }
-
-                        ScrollTo(closestIndex, scrollOffset);
-                    }
-
-                    CullHistory();
-                }
-
-                // Restore selection index or clear it
-                newSelectionIndex = -1;
-                if (!string.IsNullOrEmpty(selectionID))
-                {
-                    selectionIndex = Enumerable.Range(1, history.Count + 1)
-                                               .FirstOrDefault(
-                                                   index => history[index - 1].CommitID.Equals(selectionID)) - 1;
-
-                    if (selectionIndex < 0)
-                    {
-                        selectionID = string.Empty;
-                    }
-                }
+                BuildHistoryControl();
             }
         }
 
-        private void ScrollTo(int index, float offset = 0f)
+        private void BuildHistoryControl()
         {
-            scroll.Set(scroll.x, EntryHeight * index + offset);
-        }
-
-        private LogEntryState GetEntryState(int index)
-        {
-            return index < statusAhead ? LogEntryState.Local : LogEntryState.Normal;
-        }
-
-        /// <summary>
-        /// Recalculate the range of history items to handle - based on what is visible, plus a bit of padding for fast scrolling
-        /// </summary>
-        private void CullHistory()
-        {
-            historyStartIndex = (int)Mathf.Clamp(scroll.y / EntryHeight, 0, history.Count);
-            historyStopIndex =
-                (int)
-                    Mathf.Clamp(
-                        historyStartIndex +
-                            (Position.height - 2f * Mathf.Min(changesetTree.Height, Position.height * MaxChangelistHeightRatio)) /
-                                EntryHeight + 1, 0, history.Count);
-        }
-
-        private void RevertCommit()
-        {
-            var selection = history[selectionIndex];
-
-            var dialogTitle = "Revert commit";
-            var dialogBody = string.Format(@"Are you sure you want to revert the following commit:""{0}""", selection.Summary);
-
-            if (EditorUtility.DisplayDialog(dialogTitle, dialogBody, "Revert", "Cancel"))
+            if (historyControl == null)
             {
-                Repository
-                    .Revert(selection.CommitID)
-                    .FinallyInUI((success, e) => {
-                        if (!success)
-                        {
-                            EditorUtility.DisplayDialog(dialogTitle,
-                                "Error reverting commit: " + e.Message, Localization.Cancel);
-                        }
-                    })
-                    .Start();
+                historyControl = new HistoryControl();
             }
-        }
 
-        private bool HistoryEntry(GitLogEntry entry, LogEntryState state, bool selected)
-        {
-            var entryRect = GUILayoutUtility.GetRect(Styles.HistoryEntryHeight, Styles.HistoryEntryHeight);
-
-            if (Event.current.type == EventType.Repaint)
+            historyControl.Load(statusAhead, logEntries);
+            if (!selectedEntry.Equals(GitLogEntry.Default) 
+                && selectedEntry.CommitID != historyControl.SelectedGitLogEntry.CommitID)
             {
-                var keyboardFocus = GUIUtility.keyboardControl == listID;
-
-                var summaryRect = new Rect(entryRect.x, entryRect.y + (Styles.BaseSpacing / 2), entryRect.width, Styles.HistorySummaryHeight + Styles.BaseSpacing);
-                var timestampRect = new Rect(entryRect.x, entryRect.yMax - Styles.HistoryDetailsHeight - (Styles.BaseSpacing / 2), entryRect.width, Styles.HistoryDetailsHeight);
-
-                var contentOffset = new Vector2(Styles.BaseSpacing * 2, 0);
-
-                Styles.Label.Draw(entryRect, "", false, false, selected, keyboardFocus);
-
-                Styles.Label.contentOffset = contentOffset;
-                Styles.HistoryEntryDetailsStyle.contentOffset = contentOffset;
-
-                Styles.Label.Draw(summaryRect, entry.Summary, false, false, selected, keyboardFocus);
-                Styles.HistoryEntryDetailsStyle.Draw(timestampRect, entry.PrettyTimeString + "     " + entry.AuthorName, false, false, selected, keyboardFocus);
-
-                if (!string.IsNullOrEmpty(entry.MergeA))
-                {
-                    const float MergeIndicatorWidth = 10.28f;
-                    const float MergeIndicatorHeight = 12f;
-                    var mergeIndicatorRect = new Rect(entryRect.x + 7, summaryRect.y, MergeIndicatorWidth, MergeIndicatorHeight);
-
-                    GUI.DrawTexture(mergeIndicatorRect, Styles.MergeIcon);
-
-                    DrawTimelineRectAroundIconRect(entryRect, mergeIndicatorRect);
-
-                    summaryRect.Set(mergeIndicatorRect.xMax, summaryRect.y, summaryRect.width - MergeIndicatorWidth, summaryRect.height);
-                }
-
-                if (state == LogEntryState.Local && string.IsNullOrEmpty(entry.MergeA))
-                {
-                    const float LocalIndicatorSize = 6f;
-                    var localIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2), summaryRect.y + 5, LocalIndicatorSize, LocalIndicatorSize);
-
-                    DrawTimelineRectAroundIconRect(entryRect, localIndicatorRect);
-
-                    GUI.DrawTexture(localIndicatorRect, Styles.LocalCommitIcon);
-
-                    summaryRect.Set(localIndicatorRect.xMax, summaryRect.y, summaryRect.width - LocalIndicatorSize, summaryRect.height);
-                }
-
-                if (state == LogEntryState.Normal && string.IsNullOrEmpty(entry.MergeA))
-                {
-                    const float NormalIndicatorWidth = 6f;
-                    const float NormalIndicatorHeight = 6f;
-
-                    Rect normalIndicatorRect = new Rect(entryRect.x + (Styles.BaseSpacing - 2),
-                        summaryRect.y + 5,
-                        NormalIndicatorWidth,
-                        NormalIndicatorHeight);
-
-                    DrawTimelineRectAroundIconRect(entryRect, normalIndicatorRect);
-
-                    GUI.DrawTexture(normalIndicatorRect, Styles.DotIcon);
-                }
+                selectedEntry = GitLogEntry.Default;
             }
-            else if (Event.current.type == EventType.ContextClick && entryRect.Contains(Event.current.mousePosition))
-            {
-                GenericMenu menu = new GenericMenu();
-                menu.AddItem(new GUIContent("Revert"), false, RevertCommit);
-                menu.ShowAsContext();
-
-                Event.current.Use();
-            }
-            else if (Event.current.type == EventType.MouseDown && entryRect.Contains(Event.current.mousePosition))
-            {
-                Event.current.Use();
-                return true;
-            }
-
-            return false;
-        }
-
-        private void HistoryDetailsEntry(GitLogEntry entry)
-        {
-            GUILayout.BeginVertical(Styles.HeaderBoxStyle);
-            GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle, GUILayout.Width(Position.width));
-
-            GUILayout.Space(-5);
-
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(entry.PrettyTimeString, Styles.HistoryDetailsMetaInfoStyle);
-            GUILayout.Label(entry.AuthorName, Styles.HistoryDetailsMetaInfoStyle);
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-
-            GUILayout.Space(3);
-            GUILayout.EndVertical();
         }
 
         private void Pull()
@@ -632,51 +731,16 @@ namespace GitHub.Unity
                 .Start();
         }
 
-        private void DrawTimelineRectAroundIconRect(Rect parentRect, Rect iconRect)
+        private void BuildTree()
         {
-            Color timelineBarColor = new Color(0.51F, 0.51F, 0.51F, 0.2F);
-
-            // Draw them lines
-            //
-            // First I need to figure out how large to make the top one:
-            // I'll subtract the entryRect.y from the mergeIndicatorRect.y to
-            // get the difference in length. then subtract a little more for padding
-            float topTimelineRectHeight = iconRect.y - parentRect.y - 2;
-            // Now let's create the rect
-            Rect topTimelineRect = new Rect(
-                parentRect.x + Styles.BaseSpacing,
-                parentRect.y,
-                2,
-                topTimelineRectHeight);
-
-            // And draw it
-            EditorGUI.DrawRect(topTimelineRect, timelineBarColor);
-
-            // Let's do the same for the bottom
-            float bottomTimelineRectHeight = parentRect.yMax - iconRect.yMax - 2;
-            Rect bottomTimelineRect = new Rect(
-                parentRect.x + Styles.BaseSpacing,
-                parentRect.yMax - bottomTimelineRectHeight,
-                2,
-                bottomTimelineRectHeight);
-            EditorGUI.DrawRect(bottomTimelineRect, timelineBarColor);
+            treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
+            treeChanges.Load(selectedEntry.changes.Select(entry => new GitStatusEntryTreeData(entry)));
+            Redraw();
         }
 
         public override bool IsBusy
         {
             get { return false; }
-        }
-
-        private float EntryHeight
-        {
-            get { return Styles.HistoryEntryHeight + Styles.HistoryEntryPadding; }
-        }
-
-        private enum LogEntryState
-        {
-            Normal,
-            Local,
-            Remote
         }
     }
 }

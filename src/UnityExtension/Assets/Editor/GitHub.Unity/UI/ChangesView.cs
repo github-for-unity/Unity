@@ -26,19 +26,29 @@ namespace GitHub.Unity
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
-        [SerializeField] private Vector2 scroll;
+
+        [SerializeField] private Vector2 treeScroll;
+        [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false, IsCheckable = true, IsUsingGlobalSelection = true };
+
+        [SerializeField] private HashSet<string> gitLocks;
+        [SerializeField] private List<GitStatusEntry> gitStatusEntries;
+
+        [SerializeField] private string changedFilesText = NoChangedFilesLabel;
+
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
         [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
-        [SerializeField] private ChangesTree treeChanges;
-        [SerializeField] private HashSet<string> gitLocks;
-        [SerializeField] private List<GitStatusEntry> gitStatusEntries;
-        [SerializeField] private string changedFilesText = NoChangedFilesLabel;
 
         public override void OnEnable()
         {
             base.OnEnable();
-            TreeOnEnable();
+
+            if (treeChanges != null)
+            {
+                treeChanges.ViewHasFocus = HasFocus;
+                treeChanges.UpdateIcons(Styles.FolderIcon);
+            }
+
             AttachHandlers(Repository);
             Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
             Repository.CheckStatusEntriesChangedEvent(lastStatusEntriesChangedEvent);
@@ -85,7 +95,7 @@ namespace GitHub.Unity
             GUILayout.BeginHorizontal();
             GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
             {
-                scroll = GUILayout.BeginScrollView(scroll);
+                treeScroll = GUILayout.BeginScrollView(treeScroll);
                 {
                     OnTreeGUI(new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding));
                 }
@@ -101,7 +111,23 @@ namespace GitHub.Unity
         public override void OnSelectionChange()
         {
             base.OnSelectionChange();
-            Redraw();
+            if (treeChanges.OnSelectionChange())
+            {
+                Redraw();
+            }
+        }
+
+        public override void OnFocusChanged()
+        {
+            Logger.Debug("OnFocusChanged: {0}", HasFocus);
+
+            base.OnFocusChanged();
+            var hasFocus = HasFocus;
+            if (treeChanges.ViewHasFocus != hasFocus)
+            {
+                treeChanges.ViewHasFocus = hasFocus;
+                Redraw();
+            }
         }
 
         private void OnTreeGUI(Rect rect)
@@ -114,7 +140,7 @@ namespace GitHub.Unity
                 treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
                 treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
-                var treeRenderRect = treeChanges.Render(rect, scroll, 
+                var treeRenderRect = treeChanges.Render(rect, treeScroll, 
                     node => { }, 
                     node => { },
                     node => { });
@@ -208,28 +234,9 @@ namespace GitHub.Unity
 
         private void BuildTree()
         {
-            if (treeChanges == null)
-            {
-                treeChanges = new ChangesTree();
-                treeChanges.Title = "Changes";
-                treeChanges.DisplayRootNode = false;
-                treeChanges.IsCheckable = true;
-                treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
-
-                TreeOnEnable();
-            }
-
+            treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
             treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry, gitLocks.Contains(entry.Path))));
             Redraw();
-        }
-
-        private void TreeOnEnable()
-        {
-            if (treeChanges != null)
-            {
-                treeChanges.OnEnable();
-                treeChanges.UpdateIcons(Styles.FolderIcon);
-            }
         }
 
         private void OnCommitDetailsAreaGUI()
@@ -257,7 +264,7 @@ namespace GitHub.Unity
                     GUILayout.Space(Styles.CommitAreaPadding);
 
                     // Disable committing when already committing or if we don't have all the data needed
-                    EditorGUI.BeginDisabledGroup(isBusy || string.IsNullOrEmpty(commitMessage) || !treeChanges.GetCheckedFiles().Any());
+                    EditorGUI.BeginDisabledGroup(IsBusy || string.IsNullOrEmpty(commitMessage) || !treeChanges.GetCheckedFiles().Any());
                     {
                         GUILayout.BeginHorizontal();
                         {
@@ -294,7 +301,7 @@ namespace GitHub.Unity
         private void Commit()
         {
             // Do not allow new commits before we have received one successful update
-            isBusy = true;
+            SetBusy(true);
 
             var files = treeChanges.GetCheckedFiles().ToList();
             ITask addTask;
@@ -313,8 +320,14 @@ namespace GitHub.Unity
                     {
                         commitMessage = "";
                         commitBody = "";
-                        isBusy = false;
+                        SetBusy(false);
                     }).Start();
+        }
+
+        private void SetBusy(bool value)
+        {
+            treeChanges.IsBusy = value;
+            isBusy = value;
         }
 
         public override bool IsBusy
