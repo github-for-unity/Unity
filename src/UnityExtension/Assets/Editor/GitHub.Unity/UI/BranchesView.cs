@@ -62,7 +62,17 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            TreeOnEnable();
+
+            if (treeLocals != null)
+            {
+                treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
+            }
+
+            if (treeRemotes != null)
+            {
+                treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
+            }
+
             AttachHandlers(Repository);
             Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
         }
@@ -161,19 +171,6 @@ namespace GitHub.Unity
             treeLocals.Load(localBranches.Select(branch => new GitBranchTreeData(branch)));
             treeRemotes.Load(remoteBranches.Select(branch => new GitBranchTreeData(branch)));
             Redraw();
-        }
-
-        private void TreeOnEnable()
-        {
-            if (treeLocals != null)
-            {
-                treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
-            }
-
-            if (treeRemotes != null)
-            {
-                treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
-            }
         }
 
         private void OnButtonBarGUI()
