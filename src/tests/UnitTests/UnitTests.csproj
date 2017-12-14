@@ -96,7 +96,6 @@
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="SetUpFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UI\TreeBuilderTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\src\GitHub.Api\GitHub.Api.csproj">
