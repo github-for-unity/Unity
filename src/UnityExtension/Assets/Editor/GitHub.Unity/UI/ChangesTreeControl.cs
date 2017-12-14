@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace GitHub.Unity
 {
@@ -47,8 +48,10 @@ namespace GitHub.Unity
         [SerializeField] public bool displayRootNode = true;
         [SerializeField] public bool isSelectable = true;
         [SerializeField] public bool isCheckable = false;
+        [SerializeField] public bool isUsingGlobalSelection = false;
         [SerializeField] private List<ChangesTreeNode> nodes = new List<ChangesTreeNode>();
         [SerializeField] private ChangesTreeNode selectedNode = null;
+        [NonSerialized] private Object lastActiveObject;
 
         public override string Title
         {
@@ -92,12 +95,39 @@ namespace GitHub.Unity
             set
             {
                 selectedNode = value;
+
+                if (!IsUsingGlobalSelection)
+                {
+                    return;
+                }
+
+                Object activeObject = null;
+                if (selectedNode != null)
+                {
+                    var projectPath = selectedNode.ProjectPath;
+                    if (projectPath.StartsWith("Assets"))
+                    {
+                        var assetGuid = AssetDatabase.AssetPathToGUID(projectPath);
+                        activeObject = !string.IsNullOrEmpty(assetGuid)
+                            ? AssetDatabase.LoadMainAssetAtPath(projectPath)
+                            : null;
+                    }
+                }
+
+                lastActiveObject = activeObject;
+                Selection.activeObject = activeObject;
             }
         }
 
         protected override List<ChangesTreeNode> Nodes
         {
             get { return nodes; }
+        }
+
+        public bool IsUsingGlobalSelection
+        {
+            get { return isUsingGlobalSelection; }
+            set { isUsingGlobalSelection = value; }
         }
 
         public void UpdateIcons(Texture2D folderIcon)
@@ -217,6 +247,17 @@ namespace GitHub.Unity
         protected override void AddCheckedNode(ChangesTreeNode node)
         {
             checkedFileNodes.Add(((ITreeNode)node).Path, node);
+        }
+
+        public override Rect Render(Rect treeDisplayRect, Vector2 scroll, Action<ChangesTreeNode> singleClick = null, Action<ChangesTreeNode> doubleClick = null,
+            Action<ChangesTreeNode> rightClick = null)
+        {
+            if (IsUsingGlobalSelection && lastActiveObject != null && Selection.activeObject != lastActiveObject)
+            {
+                SelectedNode = null;
+            }
+
+            return base.Render(treeDisplayRect, scroll, singleClick, doubleClick, rightClick);
         }
     }
 }

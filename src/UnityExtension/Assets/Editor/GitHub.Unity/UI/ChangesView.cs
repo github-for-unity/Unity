@@ -227,7 +227,6 @@ namespace GitHub.Unity
         {
             if (treeChanges != null)
             {
-                treeChanges.OnEnable();
                 treeChanges.UpdateIcons(Styles.FolderIcon);
             }
         }

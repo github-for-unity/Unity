@@ -32,7 +32,7 @@ namespace GitHub.Unity
         public bool IsInitialized { get { return Nodes != null && Nodes.Count > 0 && !String.IsNullOrEmpty(Nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
 
-        public Rect Render(Rect treeDisplayRect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
+        public virtual Rect Render(Rect treeDisplayRect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
         {
             controlId = GUIUtility.GetControlID(FocusType.Keyboard);
             var treeHasFocus = GUIUtility.keyboardControl == controlId;
@@ -321,11 +321,6 @@ namespace GitHub.Unity
             {
                 SetNodeIcon(treeNode);
             }
-        }
-
-        public void OnEnable()
-        {
-            
         }
     }
 

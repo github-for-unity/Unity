@@ -179,13 +179,11 @@ namespace GitHub.Unity
         {
             if (treeLocals != null)
             {
-                treeLocals.OnEnable();
                 treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
 
             if (treeRemotes != null)
             {
-                treeRemotes.OnEnable();
                 treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
         }
