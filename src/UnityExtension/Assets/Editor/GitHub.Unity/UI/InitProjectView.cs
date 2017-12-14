@@ -10,11 +10,12 @@ namespace GitHub.Unity
         private const string NoRepoTitle = "To begin using GitHub, initialize a git repository";
         private const string NoUserOrEmailError = "Name and email not set in git. Go into the settings tab and enter the missing information";
 
-        [NonSerialized] private bool isBusy;
-        [NonSerialized] private bool isUserDataPresent;
-        [NonSerialized] private bool hasCompletedInitialCheck;
+        [SerializeField] private bool hasCompletedInitialCheck;
+        [SerializeField] private bool isUserDataPresent;
 
         [SerializeField] private CacheUpdateEvent lastCheckUserChangedEvent;
+
+        [NonSerialized] private bool isBusy;
         [NonSerialized] private bool userHasChanges;
 
         public override void OnEnable()
