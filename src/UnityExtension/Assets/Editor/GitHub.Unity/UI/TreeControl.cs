@@ -465,7 +465,7 @@ namespace GitHub.Unity
 
                 if (Event.current.type == EventType.repaint)
                 {
-                    toggleStyle.Draw(toggleRect, GUIContent.none, isHover: false, isActive: false, @on: styleOn, hasKeyboardFocus: isSelected);
+                    toggleStyle.Draw(toggleRect, GUIContent.none, false, false, styleOn, isSelected);
                 }
 
                 EditorGUI.BeginChangeCheck();
