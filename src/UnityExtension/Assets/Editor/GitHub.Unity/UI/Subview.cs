@@ -28,10 +28,13 @@ namespace GitHub.Unity
         {}
 
         public virtual void OnGUI()
-        {}
+        { }
 
         public virtual void OnSelectionChange()
-        {}
+        { }
+
+        public virtual void OnFocusChanged()
+        { }
 
         public virtual void Refresh()
         {
@@ -54,6 +57,7 @@ namespace GitHub.Unity
         public bool HasRepository { get { return Parent.HasRepository; } }
         public IUser User { get { return Parent.User; } }
         public bool HasUser { get { return Parent.HasUser; } }
+        public bool HasFocus { get { return Parent != null && Parent.HasFocus; } }
         public abstract bool IsBusy { get; }
         protected ITaskManager TaskManager { get { return Manager.TaskManager; } }
         protected IGitClient GitClient { get { return Manager.GitClient; } }
@@ -64,6 +68,7 @@ namespace GitHub.Unity
         public Vector2 Size { get; protected set; }
 
         private ILogging logger;
+
         protected ILogging Logger
         {
             get

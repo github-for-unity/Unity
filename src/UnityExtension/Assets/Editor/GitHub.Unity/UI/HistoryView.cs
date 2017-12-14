@@ -341,6 +341,8 @@ namespace GitHub.Unity
 
         [SerializeField] private int statusAhead;
         [SerializeField] private int statusBehind;
+
+        [SerializeField] private ChangesTree treeChanges = new ChangesTree { IsSelectable = false, DisplayRootNode = false };
         
         [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
         [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
@@ -349,6 +351,13 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
+
+            if (treeChanges != null)
+            {
+                treeChanges.ViewHasFocus = HasFocus;
+                treeChanges.UpdateIcons(Styles.FolderIcon);
+            }
+
             AttachHandlers(Repository);
 
             if (Repository != null)
@@ -371,12 +380,18 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        public override void OnGUI()
+        public override void OnFocusChanged()
         {
-            OnEmbeddedGUI();
+            base.OnFocusChanged();
+            var hasFocus = HasFocus;
+            if (treeChanges.ViewHasFocus != hasFocus)
+            {
+                treeChanges.ViewHasFocus = hasFocus;
+                Redraw();
+            }
         }
 
-        public void OnEmbeddedGUI()
+        public override void OnGUI()
         {
             // History toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -448,6 +463,7 @@ namespace GitHub.Unity
                 var requiresRepaint = historyControl.Render(historyControlRect,  
                     entry => {
                         selectedEntry = entry;
+                        BuildTree();
                     },
                     entry => { },
                     entry => { });
@@ -482,10 +498,35 @@ namespace GitHub.Unity
                     GUILayout.Label("Files changed", EditorStyles.boldLabel);
                     GUILayout.Space(-5);
 
+                    rect = GUILayoutUtility.GetLastRect();
                     GUILayout.BeginHorizontal(Styles.HistoryFileTreeBoxStyle);
+                    GUILayout.BeginVertical();
                     {
-                        //changesetTree.OnGUI();
+                        var borderLeft = Styles.Label.margin.left;
+                        var treeControlRect = new Rect(rect.x + borderLeft, rect.y, Position.width - borderLeft * 2, Position.height - rect.height + Styles.CommitAreaPadding);
+                        var treeRect = Rect.zero;
+                        if (treeChanges != null)
+                        {
+                            treeChanges.FolderStyle = Styles.Foldout;
+                            treeChanges.TreeNodeStyle = Styles.TreeNode;
+                            treeChanges.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
+                            treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
+                            treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
+
+                            treeRect = treeChanges.Render(treeControlRect, detailsScroll,
+                                node => { },
+                                node => {
+                                },
+                                node => {
+                                });
+
+                            if (treeChanges.RequiresRepaint)
+                                Redraw();
+                        }
+
+                        GUILayout.Space(treeRect.y - treeControlRect.y);
                     }
+                    GUILayout.EndVertical();
                     GUILayout.EndHorizontal();
 
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
@@ -497,7 +538,7 @@ namespace GitHub.Unity
         private void HistoryDetailsEntry(GitLogEntry entry)
         {
             GUILayout.BeginVertical(Styles.HeaderBoxStyle);
-            GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle, GUILayout.Width(Position.width));
+            GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle);
 
             GUILayout.Space(-5);
 
@@ -688,6 +729,13 @@ namespace GitHub.Unity
                     }
                 })
                 .Start();
+        }
+
+        private void BuildTree()
+        {
+            treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
+            treeChanges.Load(selectedEntry.changes.Select(entry => new GitStatusEntryTreeData(entry)));
+            Redraw();
         }
 
         public override bool IsBusy

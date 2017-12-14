@@ -39,8 +39,8 @@ namespace GitHub.Unity
         [NonSerialized] private int listID = -1;
         [NonSerialized] private BranchesMode targetMode;
 
-        [SerializeField] private BranchesTree treeLocals;
-        [SerializeField] private BranchesTree treeRemotes;
+        [SerializeField] private BranchesTree treeLocals = new BranchesTree { Title = LocalTitle };
+        [SerializeField] private BranchesTree treeRemotes = new BranchesTree { Title = RemoteTitle, IsRemote = true };
         [SerializeField] private BranchesMode mode = BranchesMode.Default;
         [SerializeField] private string newBranchName;
         [SerializeField] private Vector2 scroll;
@@ -62,7 +62,20 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            TreeOnEnable();
+
+            var hasFocus = HasFocus;
+            if (treeLocals != null)
+            {
+                treeLocals.ViewHasFocus = hasFocus;
+                treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
+            }
+
+            if (treeRemotes != null)
+            {
+                treeRemotes.ViewHasFocus = hasFocus;
+                treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
+            }
+
             AttachHandlers(Repository);
             Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
         }
@@ -83,6 +96,17 @@ namespace GitHub.Unity
         {
             base.OnSelectionChange();
             Redraw();
+        }
+
+        public override void OnFocusChanged()
+        {
+            base.OnFocusChanged();
+            if(treeLocals.ViewHasFocus != HasFocus || treeRemotes.ViewHasFocus != HasFocus)
+            { 
+                treeLocals.ViewHasFocus = HasFocus;
+                treeRemotes.ViewHasFocus = HasFocus;
+                Redraw();
+            }
         }
 
         private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -155,39 +179,12 @@ namespace GitHub.Unity
 
         private void BuildTree()
         {
-            if (treeLocals == null)
-            {
-                treeLocals = new BranchesTree();
-                treeLocals.Title = LocalTitle;
-
-                treeRemotes = new BranchesTree();
-                treeRemotes.Title = RemoteTitle;
-                treeRemotes.IsRemote = true;
-
-                TreeOnEnable();
-            }
-
             localBranches.Sort(CompareBranches);
             remoteBranches.Sort(CompareBranches);
 
             treeLocals.Load(localBranches.Select(branch => new GitBranchTreeData(branch)));
             treeRemotes.Load(remoteBranches.Select(branch => new GitBranchTreeData(branch)));
             Redraw();
-        }
-
-        private void TreeOnEnable()
-        {
-            if (treeLocals != null)
-            {
-                treeLocals.OnEnable();
-                treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
-            }
-
-            if (treeRemotes != null)
-            {
-                treeRemotes.OnEnable();
-                treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
-            }
         }
 
         private void OnButtonBarGUI()

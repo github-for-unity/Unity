@@ -126,6 +126,12 @@ namespace GitHub.Unity
                 ActiveView.OnDataUpdate();
         }
 
+        public override void OnFocusChanged()
+        {
+            if (ActiveView != null)
+                ActiveView.OnFocusChanged();
+        }
+
         public override void OnRepositoryChanged(IRepository oldRepository)
         {
             base.OnRepositoryChanged(oldRepository);
