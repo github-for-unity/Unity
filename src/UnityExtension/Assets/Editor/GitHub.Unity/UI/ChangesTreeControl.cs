@@ -39,6 +39,7 @@ namespace GitHub.Unity
     [Serializable]
     public class ChangesTree : Tree<ChangesTreeNode, GitStatusEntryTreeData>
     {
+        [SerializeField] public ChangesTreeNodeDictionary assets = new ChangesTreeNodeDictionary();
         [SerializeField] public ChangesTreeNodeDictionary folders = new ChangesTreeNodeDictionary();
         [SerializeField] public ChangesTreeNodeDictionary checkedFileNodes = new ChangesTreeNodeDictionary();
 
@@ -51,7 +52,8 @@ namespace GitHub.Unity
         [SerializeField] public bool isUsingGlobalSelection = false;
         [SerializeField] private List<ChangesTreeNode> nodes = new List<ChangesTreeNode>();
         [SerializeField] private ChangesTreeNode selectedNode = null;
-        [NonSerialized] private Object lastActiveObject;
+        [NonSerialized] private bool viewHasFocus;
+        [NonSerialized] private Object lastActivatedObject;
 
         public override string Title
         {
@@ -101,22 +103,13 @@ namespace GitHub.Unity
                     return;
                 }
 
-                Object activeObject = null;
-                if (selectedNode != null)
-                {
-                    var path = selectedNode.Path;
-                    if (path != null && path.StartsWith("Assets"))
-                    {
-                        var assetGuid = AssetDatabase.AssetPathToGUID(path);
-                        activeObject = !string.IsNullOrEmpty(assetGuid)
-                            ? AssetDatabase.LoadMainAssetAtPath(path)
-                            : null;
-                    }
-                }
+                var activeObject = selectedNode != null
+                    ? AssetDatabase.LoadMainAssetAtPath(selectedNode.Path)
+                    : null;
 
-                lastActiveObject = activeObject;
+                lastActivatedObject = activeObject;
 
-                if (activeObject != null)
+                if (TreeHasFocus)
                 {
                     Selection.activeObject = activeObject;
                 }
@@ -132,6 +125,12 @@ namespace GitHub.Unity
         {
             get { return isUsingGlobalSelection; }
             set { isUsingGlobalSelection = value; }
+        }
+
+        public override bool ViewHasFocus
+        {
+            get { return viewHasFocus; }
+            set { viewHasFocus = value; }
         }
 
         public void UpdateIcons(Texture2D folderIcon)
@@ -216,7 +215,7 @@ namespace GitHub.Unity
                 CheckState = isChecked ? CheckState.Checked : CheckState.Empty,
                 GitFileStatus = gitFileStatus,
                 ProjectPath = projectPath,
-                IsLocked = isLocked
+                IsLocked = isLocked,
             };
 
             if (isFolder && level >= 0)
@@ -224,11 +223,25 @@ namespace GitHub.Unity
                 folders.Add(node.Path, node);
             }
 
+            if (IsUsingGlobalSelection)
+            {
+                if (node.Path != null)
+                {
+                    var assetGuid = AssetDatabase.AssetPathToGUID(node.Path);
+
+                    if (!string.IsNullOrEmpty(assetGuid))
+                    {
+                        assets.Add(assetGuid, node);
+                    }
+                }
+            }
+
             return node;
         }
 
         protected override void OnClear()
         {
+            assets.Clear();
             folders.Clear();
             checkedFileNodes.Clear();
         }
@@ -253,23 +266,25 @@ namespace GitHub.Unity
             checkedFileNodes.Add(((ITreeNode)node).Path, node);
         }
 
-        public override Rect Render(Rect treeDisplayRect, Vector2 scroll, Action<ChangesTreeNode> singleClick = null, Action<ChangesTreeNode> doubleClick = null,
-            Action<ChangesTreeNode> rightClick = null)
+        public bool OnSelectionChange()
         {
-            if (IsUsingGlobalSelection)
+            if (IsUsingGlobalSelection && !TreeHasFocus)
             {
-                if (lastActiveObject != null && Selection.activeObject != lastActiveObject)
+                ChangesTreeNode assetNode = null;
+
+                if (Selection.activeObject != lastActivatedObject)
                 {
-                    SelectedNode = null;
+                    var activeAssetPath = AssetDatabase.GetAssetPath(Selection.activeObject);
+                    var activeAssetGuid = AssetDatabase.AssetPathToGUID(activeAssetPath);
+
+                    assets.TryGetValue(activeAssetGuid, out assetNode);
                 }
 
-                if (Selection.activeObject != null)
-                {
-                    
-                }
+                SelectedNode = assetNode;
+                return true;
             }
 
-            return base.Render(treeDisplayRect, scroll, singleClick, doubleClick, rightClick);
+            return false;
         }
     }
 }

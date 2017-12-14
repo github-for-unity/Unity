@@ -32,10 +32,9 @@ namespace GitHub.Unity
         public bool IsInitialized { get { return Nodes != null && Nodes.Count > 0 && !String.IsNullOrEmpty(Nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
 
-        public virtual Rect Render(Rect treeDisplayRect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
+        public Rect Render(Rect treeDisplayRect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
         {
             controlId = GUIUtility.GetControlID(FocusType.Keyboard);
-            var treeHasFocus = GUIUtility.keyboardControl == controlId;
 
             if (!Nodes.Any())
                 return new Rect(treeDisplayRect.x, treeDisplayRect.y, 0f, 0f);
@@ -43,7 +42,7 @@ namespace GitHub.Unity
             var treeNodeStyle = TreeNodeStyle;
             var activeTreeNodeStyle = ActiveTreeNodeStyle;
 
-            if (treeHasFocus)
+            if (ViewHasFocus && TreeHasFocus)
             {
                 treeNodeStyle = FocusedTreeNodeStyle;
                 activeTreeNodeStyle = FocusedActiveTreeNodeStyle;
@@ -75,7 +74,7 @@ namespace GitHub.Unity
                 var titleDisplay = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (titleDisplay)
                 {
-                    var isSelected = SelectedNode == titleNode;
+                    var isSelected = SelectedNode != null && SelectedNode.Path == titleNode.Path;
                     renderResult = titleNode.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
@@ -109,7 +108,7 @@ namespace GitHub.Unity
                 var display = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (display)
                 {
-                    var isSelected = SelectedNode == node;
+                    var isSelected = SelectedNode != null && SelectedNode.Path == node.Path;
                     renderResult = node.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
@@ -146,6 +145,13 @@ namespace GitHub.Unity
 
             return rect;
         }
+
+        protected bool TreeHasFocus
+        {
+            get { return GUIUtility.keyboardControl == controlId; }
+        }
+
+        public abstract bool ViewHasFocus { get; set; }
 
         public void Focus()
         {
@@ -522,6 +528,7 @@ namespace GitHub.Unity
         [SerializeField] public bool isCheckable = false;
         [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
         [SerializeField] private TreeNode selectedNode = null;
+        [NonSerialized] private bool viewFocus;
 
         public override string Title
         {
@@ -571,6 +578,12 @@ namespace GitHub.Unity
         protected override List<TreeNode> Nodes
         {
             get { return nodes; }
+        }
+
+        public override bool ViewHasFocus
+        {
+            get { return viewFocus; }
+            set { viewFocus = value; }
         }
 
         public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)

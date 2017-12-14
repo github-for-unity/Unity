@@ -18,5 +18,6 @@ namespace GitHub.Unity
         bool HasUser { get; }
         IApplicationManager Manager { get; }
         bool IsBusy { get; }
+        bool HasFocus { get; }
     }
 }

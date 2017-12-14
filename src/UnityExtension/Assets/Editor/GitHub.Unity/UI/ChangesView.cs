@@ -45,6 +45,7 @@ namespace GitHub.Unity
 
             if (treeChanges != null)
             {
+                treeChanges.ViewHasFocus = HasFocus;
                 treeChanges.UpdateIcons(Styles.FolderIcon);
             }
 
@@ -110,7 +111,23 @@ namespace GitHub.Unity
         public override void OnSelectionChange()
         {
             base.OnSelectionChange();
-            Redraw();
+            if (treeChanges.OnSelectionChange())
+            {
+                Redraw();
+            }
+        }
+
+        public override void OnFocusChanged()
+        {
+            Logger.Debug("OnFocusChanged: {0}", HasFocus);
+
+            base.OnFocusChanged();
+            var hasFocus = HasFocus;
+            if (treeChanges.ViewHasFocus != hasFocus)
+            {
+                treeChanges.ViewHasFocus = hasFocus;
+                Redraw();
+            }
         }
 
         private void OnTreeGUI(Rect rect)

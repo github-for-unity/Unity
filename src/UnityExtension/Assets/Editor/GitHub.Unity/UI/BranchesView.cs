@@ -63,13 +63,16 @@ namespace GitHub.Unity
         {
             base.OnEnable();
 
+            var hasFocus = HasFocus;
             if (treeLocals != null)
             {
+                treeLocals.ViewHasFocus = hasFocus;
                 treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
 
             if (treeRemotes != null)
             {
+                treeRemotes.ViewHasFocus = hasFocus;
                 treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
 
@@ -93,6 +96,17 @@ namespace GitHub.Unity
         {
             base.OnSelectionChange();
             Redraw();
+        }
+
+        public override void OnFocusChanged()
+        {
+            base.OnFocusChanged();
+            if(treeLocals.ViewHasFocus != HasFocus || treeRemotes.ViewHasFocus != HasFocus)
+            { 
+                treeLocals.ViewHasFocus = HasFocus;
+                treeRemotes.ViewHasFocus = HasFocus;
+                Redraw();
+            }
         }
 
         private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)

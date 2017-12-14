@@ -354,6 +354,7 @@ namespace GitHub.Unity
 
             if (treeChanges != null)
             {
+                treeChanges.ViewHasFocus = HasFocus;
                 treeChanges.UpdateIcons(Styles.FolderIcon);
             }
 
@@ -377,6 +378,17 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
             MaybeUpdateData();
+        }
+
+        public override void OnFocusChanged()
+        {
+            base.OnFocusChanged();
+            var hasFocus = HasFocus;
+            if (treeChanges.ViewHasFocus != hasFocus)
+            {
+                treeChanges.ViewHasFocus = hasFocus;
+                Redraw();
+            }
         }
 
         public override void OnGUI()
