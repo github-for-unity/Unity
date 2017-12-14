@@ -9,8 +9,6 @@ namespace GitHub.Unity
     [Serializable]
     public class TreeNodeDictionary : SerializableDictionary<string, TreeNode> { }
 
-    public class TreeSelection : ScriptableObject { }
-
     [Serializable]
     public abstract class Tree<TNode, TData>: TreeBase<TNode, TData>
         where TNode : TreeNode 
@@ -30,18 +28,12 @@ namespace GitHub.Unity
         [NonSerialized] private TNode rightClickNextRenderNode;
 
         [NonSerialized] private int controlId;
-        [NonSerialized] protected TreeSelection selectionObject;
 
         public bool IsInitialized { get { return Nodes != null && Nodes.Count > 0 && !String.IsNullOrEmpty(Nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
 
         public Rect Render(Rect treeDisplayRect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
         {
-            if (Selection.activeObject != selectionObject)
-            {
-                SelectedNode = null;
-            }
-
             controlId = GUIUtility.GetControlID(FocusType.Keyboard);
             var treeHasFocus = GUIUtility.keyboardControl == controlId;
 
@@ -333,10 +325,7 @@ namespace GitHub.Unity
 
         public void OnEnable()
         {
-            if (!selectionObject)
-            {
-                selectionObject = ScriptableObject.CreateInstance<TreeSelection>();
-            }
+            
         }
     }
 
@@ -581,10 +570,6 @@ namespace GitHub.Unity
             set
             {
                 selectedNode = value;
-                if (value != null && selectionObject)
-                {
-                    Selection.activeObject = selectionObject;
-                }
             }
         }
 
