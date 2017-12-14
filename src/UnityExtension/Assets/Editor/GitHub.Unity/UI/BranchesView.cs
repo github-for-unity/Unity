@@ -39,8 +39,8 @@ namespace GitHub.Unity
         [NonSerialized] private int listID = -1;
         [NonSerialized] private BranchesMode targetMode;
 
-        [SerializeField] private BranchesTree treeLocals;
-        [SerializeField] private BranchesTree treeRemotes;
+        [SerializeField] private BranchesTree treeLocals = new BranchesTree { Title = LocalTitle };
+        [SerializeField] private BranchesTree treeRemotes = new BranchesTree { Title = RemoteTitle, IsRemote = true };
         [SerializeField] private BranchesMode mode = BranchesMode.Default;
         [SerializeField] private string newBranchName;
         [SerializeField] private Vector2 scroll;
@@ -155,18 +155,6 @@ namespace GitHub.Unity
 
         private void BuildTree()
         {
-            if (treeLocals == null)
-            {
-                treeLocals = new BranchesTree();
-                treeLocals.Title = LocalTitle;
-
-                treeRemotes = new BranchesTree();
-                treeRemotes.Title = RemoteTitle;
-                treeRemotes.IsRemote = true;
-
-                TreeOnEnable();
-            }
-
             localBranches.Sort(CompareBranches);
             remoteBranches.Sort(CompareBranches);
 
