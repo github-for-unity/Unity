@@ -28,7 +28,7 @@ namespace GitHub.Unity
         [SerializeField] private string currentBranch = "[unknown]";
 
         [SerializeField] private Vector2 treeScroll;
-        [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false, IsCheckable = true };
+        [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false, IsCheckable = true, IsUsingGlobalSelection = true };
 
         [SerializeField] private HashSet<string> gitLocks;
         [SerializeField] private List<GitStatusEntry> gitStatusEntries;
