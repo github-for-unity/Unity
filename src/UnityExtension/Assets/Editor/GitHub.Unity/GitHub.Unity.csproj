@@ -96,7 +96,6 @@
     <Compile Include="Tools\MozRoots.cs" />
     <Compile Include="UI\AuthenticationView.cs" />
     <Compile Include="UI\BranchesView.cs" />
-    <Compile Include="UI\ChangesetTreeView.cs" />
     <Compile Include="UI\ChangesView.cs" />
     <Compile Include="UI\HistoryView.cs" />
     <Compile Include="UI\IView.cs" />
