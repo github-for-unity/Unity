@@ -104,18 +104,22 @@ namespace GitHub.Unity
                 Object activeObject = null;
                 if (selectedNode != null)
                 {
-                    var projectPath = selectedNode.ProjectPath;
-                    if (projectPath.StartsWith("Assets"))
+                    var path = selectedNode.Path;
+                    if (path != null && path.StartsWith("Assets"))
                     {
-                        var assetGuid = AssetDatabase.AssetPathToGUID(projectPath);
+                        var assetGuid = AssetDatabase.AssetPathToGUID(path);
                         activeObject = !string.IsNullOrEmpty(assetGuid)
-                            ? AssetDatabase.LoadMainAssetAtPath(projectPath)
+                            ? AssetDatabase.LoadMainAssetAtPath(path)
                             : null;
                     }
                 }
 
                 lastActiveObject = activeObject;
-                Selection.activeObject = activeObject;
+
+                if (activeObject != null)
+                {
+                    Selection.activeObject = activeObject;
+                }
             }
         }
 
@@ -252,9 +256,17 @@ namespace GitHub.Unity
         public override Rect Render(Rect treeDisplayRect, Vector2 scroll, Action<ChangesTreeNode> singleClick = null, Action<ChangesTreeNode> doubleClick = null,
             Action<ChangesTreeNode> rightClick = null)
         {
-            if (IsUsingGlobalSelection && lastActiveObject != null && Selection.activeObject != lastActiveObject)
+            if (IsUsingGlobalSelection)
             {
-                SelectedNode = null;
+                if (lastActiveObject != null && Selection.activeObject != lastActiveObject)
+                {
+                    SelectedNode = null;
+                }
+
+                if (Selection.activeObject != null)
+                {
+                    
+                }
             }
 
             return base.Render(treeDisplayRect, scroll, singleClick, doubleClick, rightClick);
