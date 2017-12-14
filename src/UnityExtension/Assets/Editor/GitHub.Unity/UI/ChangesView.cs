@@ -28,7 +28,7 @@ namespace GitHub.Unity
         [SerializeField] private string currentBranch = "[unknown]";
 
         [SerializeField] private Vector2 treeScroll;
-        [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false, IsCheckable = true };
+        [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false, IsCheckable = true, IsUsingGlobalSelection = true };
 
         [SerializeField] private HashSet<string> gitLocks;
         [SerializeField] private List<GitStatusEntry> gitStatusEntries;
@@ -42,7 +42,13 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            TreeOnEnable();
+
+            if (treeChanges != null)
+            {
+                treeChanges.ViewHasFocus = HasFocus;
+                treeChanges.UpdateIcons(Styles.FolderIcon);
+            }
+
             AttachHandlers(Repository);
             Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
             Repository.CheckStatusEntriesChangedEvent(lastStatusEntriesChangedEvent);
@@ -105,7 +111,23 @@ namespace GitHub.Unity
         public override void OnSelectionChange()
         {
             base.OnSelectionChange();
-            Redraw();
+            if (treeChanges.OnSelectionChange())
+            {
+                Redraw();
+            }
+        }
+
+        public override void OnFocusChanged()
+        {
+            Logger.Debug("OnFocusChanged: {0}", HasFocus);
+
+            base.OnFocusChanged();
+            var hasFocus = HasFocus;
+            if (treeChanges.ViewHasFocus != hasFocus)
+            {
+                treeChanges.ViewHasFocus = hasFocus;
+                Redraw();
+            }
         }
 
         private void OnTreeGUI(Rect rect)
@@ -215,15 +237,6 @@ namespace GitHub.Unity
             treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
             treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry, gitLocks.Contains(entry.Path))));
             Redraw();
-        }
-
-        private void TreeOnEnable()
-        {
-            if (treeChanges != null)
-            {
-                treeChanges.OnEnable();
-                treeChanges.UpdateIcons(Styles.FolderIcon);
-            }
         }
 
         private void OnCommitDetailsAreaGUI()

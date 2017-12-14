@@ -9,8 +9,6 @@ namespace GitHub.Unity
     [Serializable]
     public class TreeNodeDictionary : SerializableDictionary<string, TreeNode> { }
 
-    public class TreeSelection : ScriptableObject { }
-
     [Serializable]
     public abstract class Tree<TNode, TData>: TreeBase<TNode, TData>
         where TNode : TreeNode 
@@ -30,20 +28,13 @@ namespace GitHub.Unity
         [NonSerialized] private TNode rightClickNextRenderNode;
 
         [NonSerialized] private int controlId;
-        [NonSerialized] protected TreeSelection selectionObject;
 
         public bool IsInitialized { get { return Nodes != null && Nodes.Count > 0 && !String.IsNullOrEmpty(Nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
 
         public Rect Render(Rect treeDisplayRect, Vector2 scroll, Action<TNode> singleClick = null, Action<TNode> doubleClick = null, Action<TNode> rightClick = null)
         {
-            if (Selection.activeObject != selectionObject)
-            {
-                SelectedNode = null;
-            }
-
             controlId = GUIUtility.GetControlID(FocusType.Keyboard);
-            var treeHasFocus = GUIUtility.keyboardControl == controlId;
 
             if (!Nodes.Any())
                 return new Rect(treeDisplayRect.x, treeDisplayRect.y, 0f, 0f);
@@ -51,7 +42,7 @@ namespace GitHub.Unity
             var treeNodeStyle = TreeNodeStyle;
             var activeTreeNodeStyle = ActiveTreeNodeStyle;
 
-            if (treeHasFocus)
+            if (ViewHasFocus && TreeHasFocus)
             {
                 treeNodeStyle = FocusedTreeNodeStyle;
                 activeTreeNodeStyle = FocusedActiveTreeNodeStyle;
@@ -83,7 +74,7 @@ namespace GitHub.Unity
                 var titleDisplay = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (titleDisplay)
                 {
-                    var isSelected = SelectedNode == titleNode;
+                    var isSelected = SelectedNode != null && SelectedNode.Path == titleNode.Path;
                     renderResult = titleNode.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
@@ -117,7 +108,7 @@ namespace GitHub.Unity
                 var display = !(rect.y > endDisplay || rect.yMax < startDisplay);
                 if (display)
                 {
-                    var isSelected = SelectedNode == node;
+                    var isSelected = SelectedNode != null && SelectedNode.Path == node.Path;
                     renderResult = node.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
@@ -154,6 +145,13 @@ namespace GitHub.Unity
 
             return rect;
         }
+
+        protected bool TreeHasFocus
+        {
+            get { return GUIUtility.keyboardControl == controlId; }
+        }
+
+        public abstract bool ViewHasFocus { get; set; }
 
         public void Focus()
         {
@@ -328,14 +326,6 @@ namespace GitHub.Unity
             foreach (var treeNode in Nodes)
             {
                 SetNodeIcon(treeNode);
-            }
-        }
-
-        public void OnEnable()
-        {
-            if (!selectionObject)
-            {
-                selectionObject = ScriptableObject.CreateInstance<TreeSelection>();
             }
         }
     }
@@ -538,6 +528,7 @@ namespace GitHub.Unity
         [SerializeField] public bool isCheckable = false;
         [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
         [SerializeField] private TreeNode selectedNode = null;
+        [NonSerialized] private bool viewFocus;
 
         public override string Title
         {
@@ -581,16 +572,18 @@ namespace GitHub.Unity
             set
             {
                 selectedNode = value;
-                if (value != null && selectionObject)
-                {
-                    Selection.activeObject = selectionObject;
-                }
             }
         }
 
         protected override List<TreeNode> Nodes
         {
             get { return nodes; }
+        }
+
+        public override bool ViewHasFocus
+        {
+            get { return viewFocus; }
+            set { viewFocus = value; }
         }
 
         public void UpdateIcons(Texture2D activeBranchIcon, Texture2D branchIcon, Texture2D folderIcon, Texture2D globeIcon)

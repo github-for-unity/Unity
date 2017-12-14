@@ -351,7 +351,13 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            TreeOnEnable();
+
+            if (treeChanges != null)
+            {
+                treeChanges.ViewHasFocus = HasFocus;
+                treeChanges.UpdateIcons(Styles.FolderIcon);
+            }
+
             AttachHandlers(Repository);
 
             if (Repository != null)
@@ -372,6 +378,17 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
             MaybeUpdateData();
+        }
+
+        public override void OnFocusChanged()
+        {
+            base.OnFocusChanged();
+            var hasFocus = HasFocus;
+            if (treeChanges.ViewHasFocus != hasFocus)
+            {
+                treeChanges.ViewHasFocus = hasFocus;
+                Redraw();
+            }
         }
 
         public override void OnGUI()
@@ -719,15 +736,6 @@ namespace GitHub.Unity
             treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
             treeChanges.Load(selectedEntry.changes.Select(entry => new GitStatusEntryTreeData(entry)));
             Redraw();
-        }
-
-        private void TreeOnEnable()
-        {
-            if (treeChanges != null)
-            {
-                treeChanges.OnEnable();
-                treeChanges.UpdateIcons(Styles.FolderIcon);
-            }
         }
 
         public override bool IsBusy
