@@ -264,7 +264,7 @@ namespace GitHub.Unity
                     GUILayout.Space(Styles.CommitAreaPadding);
 
                     // Disable committing when already committing or if we don't have all the data needed
-                    EditorGUI.BeginDisabledGroup(isBusy || string.IsNullOrEmpty(commitMessage) || !treeChanges.GetCheckedFiles().Any());
+                    EditorGUI.BeginDisabledGroup(IsBusy || string.IsNullOrEmpty(commitMessage) || !treeChanges.GetCheckedFiles().Any());
                     {
                         GUILayout.BeginHorizontal();
                         {
@@ -301,7 +301,7 @@ namespace GitHub.Unity
         private void Commit()
         {
             // Do not allow new commits before we have received one successful update
-            isBusy = true;
+            SetBusy(true);
 
             var files = treeChanges.GetCheckedFiles().ToList();
             ITask addTask;
@@ -320,8 +320,14 @@ namespace GitHub.Unity
                     {
                         commitMessage = "";
                         commitBody = "";
-                        isBusy = false;
+                        SetBusy(false);
                     }).Start();
+        }
+
+        private void SetBusy(bool value)
+        {
+            treeChanges.IsBusy = value;
+            isBusy = value;
         }
 
         public override bool IsBusy

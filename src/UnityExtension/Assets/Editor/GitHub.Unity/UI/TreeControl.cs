@@ -28,6 +28,7 @@ namespace GitHub.Unity
         [NonSerialized] private TNode rightClickNextRenderNode;
 
         [NonSerialized] private int controlId;
+        [NonSerialized] private bool isBusy;
 
         public bool IsInitialized { get { return Nodes != null && Nodes.Count > 0 && !String.IsNullOrEmpty(Nodes[0].Path); } }
         public bool RequiresRepaint { get; private set; }
@@ -75,7 +76,7 @@ namespace GitHub.Unity
                 if (titleDisplay)
                 {
                     var isSelected = SelectedNode != null && SelectedNode.Path == titleNode.Path;
-                    renderResult = titleNode.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
+                    renderResult = titleNode.Render(rect, Styles.TreeIndentation, isSelected, IsBusy, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
@@ -109,7 +110,7 @@ namespace GitHub.Unity
                 if (display)
                 {
                     var isSelected = SelectedNode != null && SelectedNode.Path == node.Path;
-                    renderResult = node.Render(rect, Styles.TreeIndentation, isSelected, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
+                    renderResult = node.Render(rect, Styles.TreeIndentation, isSelected, IsBusy, FolderStyle, treeNodeStyle, activeTreeNodeStyle);
                 }
 
                 if (renderResult == TreeNodeRenderResult.VisibilityChange)
@@ -152,6 +153,12 @@ namespace GitHub.Unity
         }
 
         public abstract bool ViewHasFocus { get; set; }
+
+        public bool IsBusy
+        {
+            get { return isBusy; }
+            set { isBusy = value; }
+        }
 
         public void Focus()
         {
@@ -406,9 +413,14 @@ namespace GitHub.Unity
             content = new GUIContent(Label, Icon);
         }
 
-        public TreeNodeRenderResult Render(Rect rect, float indentation, bool isSelected, GUIStyle toggleStyle, GUIStyle nodeStyle, GUIStyle activeNodeStyle)
+        public TreeNodeRenderResult Render(Rect rect, float indentation, bool isSelected, bool treeIsBusy, GUIStyle toggleStyle, GUIStyle nodeStyle, GUIStyle activeNodeStyle)
         {
             var renderResult = TreeNodeRenderResult.None;
+
+            if (treeIsBusy)
+            {
+                GUI.enabled = false;
+            }
 
             if (IsHidden)
                 return renderResult;
@@ -498,6 +510,11 @@ namespace GitHub.Unity
             if (IconBadge != null)
             {
                 GUI.DrawTexture(statusRect, IconBadge);
+            }
+
+            if (treeIsBusy)
+            {
+                GUI.enabled = true;
             }
 
             return renderResult;
