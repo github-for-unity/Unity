@@ -14,7 +14,13 @@ namespace UnitTests
         public string Path { get; set; }
         public string Label { get; set; }
         public int Level { get; set; }
+
+        public bool IsContainer { get; set; }
+
         public bool IsFolder { get; set; }
+
+        public bool IsFolderOrContainer => IsFolder || IsContainer;
+
         public bool IsCollapsed { get; set; }
         public bool IsHidden { get; set; }
         public bool IsActive { get; set; }
@@ -106,8 +112,7 @@ namespace UnitTests
             TestTreeListener.AddCheckedNode(node);
         }
 
-        protected override TestTreeNode CreateTreeNode(string path, string label, int level, bool isFolder,
-            bool isActive, bool isHidden, bool isCollapsed, bool isChecked, TestTreeData? treeData)
+        protected override TestTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, TestTreeData? treeData, bool isContainer)
         {
             if (traceLogging)
             {
@@ -470,7 +475,6 @@ namespace UnitTests
                 }
             });
         }
-
 
         [Test]
         public void ShouldPopulateTreeWithTwoEntriesInPath()
