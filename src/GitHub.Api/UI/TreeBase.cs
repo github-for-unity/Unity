@@ -26,10 +26,19 @@ namespace GitHub.Unity
 
     public abstract class TreeBase<TNode, TData> where TNode : class, ITreeNode where TData : struct, ITreeData
     {
+        protected ILogging Logger { get; }
+
+        protected TreeBase()
+        {
+            Logger = Logging.GetLogger(GetType());
+        }
+
         public abstract IEnumerable<string> GetCheckedFiles();
 
         public void Load(IEnumerable<TData> treeDatas)
         {
+            Logger.Trace("Load");
+
             var collapsedFolders = new HashSet<string>(GetCollapsedFolders());
             var selectedNodePath = SelectedNodePath;
             var checkedFiles = new HashSet<string>(GetCheckedFiles());
