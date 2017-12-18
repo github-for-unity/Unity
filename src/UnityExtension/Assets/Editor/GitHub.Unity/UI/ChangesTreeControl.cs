@@ -85,6 +85,11 @@ namespace GitHub.Unity
             set { pathSeparator = value; }
         }
 
+        protected override bool PromoteMetaFiles
+        {
+            get { return true; }
+        }
+
         public override ChangesTreeNode SelectedNode
         {
             get

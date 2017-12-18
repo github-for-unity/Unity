@@ -60,22 +60,38 @@ namespace GitHub.Unity
 
             var folders = new HashSet<string>();
 
+            TNode lastAddedNode = null;
             foreach (var treeData in treeDatas)
             {
                 var parts = treeData.Path.Split(new[] { pathSeparator }, StringSplitOptions.None);
-                for (var i = 0; i < parts.Length; i++)
+                for (var level = 0; level < parts.Length; level++)
                 {
-                    var label = parts[i];
-                    var level = i + 1;
-                    var nodePath = String.Join(pathSeparator, parts, 0, level);
-                    var isFolder = i < parts.Length - 1;
+                    var label = parts[level];
+                    var nodePath = String.Join(pathSeparator, parts, 0, level + 1);
+                    var isFolder = level < parts.Length - 1;
+                    var parentIsPromoted = false;
+
+                    if (lastAddedNode != null)
+                    {
+                        if (!lastAddedNode.IsFolder)
+                        {
+                            if (PromoteNode(lastAddedNode, label))
+                            {
+                                Logger.Trace("Promoting Node Label:{0}", lastAddedNode.Label);
+
+                                parentIsPromoted = true;
+                                lastAddedNode.IsContainer = true;
+                            }
+                        }
+                    }
+
                     var alreadyExists = folders.Contains(nodePath);
                     if (!alreadyExists)
                     {
                         var nodeIsHidden = false;
                         if (hideChildren)
                         {
-                            if (level <= hideChildrenBelowLevel)
+                            if (level + 1 <= hideChildrenBelowLevel)
                             {
                                 hideChildren = false;
                             }
@@ -101,7 +117,7 @@ namespace GitHub.Unity
                                 if (!hideChildren)
                                 {
                                     hideChildren = true;
-                                    hideChildrenBelowLevel = level;
+                                    hideChildrenBelowLevel = level + 1;
                                 }
                             }
                         }
@@ -113,7 +129,8 @@ namespace GitHub.Unity
                         }
 
                         isSelected = selectedNodePath != null && nodePath == selectedNodePath;
-                        AddNode(nodePath, label, i + displayRootLevel, isFolder, isActive, nodeIsHidden,
+
+                        lastAddedNode = AddNode(nodePath, label, level + displayRootLevel + (parentIsPromoted ? 1 : 0), isFolder, isActive, nodeIsHidden,
                             nodeIsCollapsed, isSelected, isChecked, treeNodeTreeData, false);
                     }
                 }
@@ -151,6 +168,27 @@ namespace GitHub.Unity
             }
         }
 
+        protected bool PromoteNode(TNode previouslyAddedNode, string nextLabel)
+        {
+            if (!PromoteMetaFiles)
+            {
+                return false;
+            }
+
+            if (previouslyAddedNode == null)
+            {
+                return false;
+            }
+
+            if (!nextLabel.EndsWith(".meta"))
+            {
+                return false;
+            }
+
+            var substring = nextLabel.Substring(0, nextLabel.Length - 5);
+            return previouslyAddedNode.Label == substring;
+        }
+
         public void SetCheckStateOnAll(bool isChecked)
         {
             var nodeCheckState = isChecked ? CheckState.Checked : CheckState.Empty;
@@ -175,7 +213,7 @@ namespace GitHub.Unity
 
         protected abstract IEnumerable<string> GetCollapsedFolders();
 
-        protected void AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isSelected, bool isChecked, TData? treeData, bool isContainer)
+        protected TNode AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isSelected, bool isChecked, TData? treeData, bool isContainer)
         {
             var node = CreateTreeNode(path, label, level, isFolder, isActive, isHidden, isCollapsed, isChecked, treeData, isContainer);
 
@@ -186,6 +224,8 @@ namespace GitHub.Unity
             {
                 SelectedNode = node;
             }
+
+            return node;
         }
 
         protected void Clear()
@@ -370,5 +410,6 @@ namespace GitHub.Unity
         public abstract bool IsSelectable { get; set; }
         public abstract bool IsCheckable { get; set; }
         public abstract string PathSeparator { get; set; }
+        protected abstract bool PromoteMetaFiles { get; }
     }
 }
