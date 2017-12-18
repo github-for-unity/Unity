@@ -535,6 +535,64 @@ namespace UnitTests
         }
 
         [Test]
+        public void ShouldPopulateTreeWithSingleEntryWithMetaInPath()
+        {
+            var testTree = new TestTree(true);
+            var testTreeListener = testTree.TestTreeListener;
+
+            testTreeListener.GetCollapsedFolders().Returns(new string[0]);
+            testTreeListener.SelectedNode.Returns((TestTreeNode)null);
+            testTreeListener.GetCheckedFiles().Returns(new string[0]);
+            testTreeListener.Nodes.Returns(new List<TestTreeNode>());
+            testTreeListener.PathSeparator.Returns(@"\");
+            testTreeListener.DisplayRootNode.Returns(true);
+            testTreeListener.IsSelectable.Returns(false);
+            testTreeListener.Title.Returns("Test Tree");
+
+            var testTreeData = new[] {
+                new TestTreeData {
+                    Path = "Folder\\test.txt"
+                },
+                new TestTreeData {
+                    Path = "Folder\\test.txt.meta"
+                }
+            };
+            testTree.Load(testTreeData);
+
+            testTreeListener.Received(1).OnClear();
+            testTreeListener.Received(1).SelectedNode = null;
+
+            testTreeListener.Received(4).CreateTreeNode(Args.String, Args.String, Args.Int, Args.Bool, Args.Bool, Args.Bool, Args.Bool, Args.Bool, Arg.Any<TestTreeData?>());
+            testTreeListener.Received(4).SetNodeIcon(Arg.Any<TestTreeNode>());
+
+            testTree.CreatedTreeNodes.ShouldAllBeEquivalentTo(new[] {
+                new TestTreeNode {
+                    Path = "Test Tree",
+                    Label = "Test Tree",
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "Folder",
+                    Label = "Folder",
+                    Level = 1,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "Folder\\test.txt",
+                    Label = "test.txt",
+                    Level = 2,
+                    TreeData = testTreeData[0]
+                },
+                new TestTreeNode {
+                    Path = "Folder\\test.txt.meta",
+                    Label = "test.txt.meta",
+                    Level = 2,
+                    TreeData = testTreeData[1]
+                }
+            });
+        }
+
+        [Test]
         public void ShouldPopulateTreeWithSingleEntryInDeepPath()
         {
             var testTree = new TestTree(true);
