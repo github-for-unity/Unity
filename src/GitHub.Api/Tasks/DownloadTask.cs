@@ -97,7 +97,7 @@ namespace GitHub.Unity
     class DownloadTask: TaskBase<DownloadResult>
     {
         private long bytes;
-        private WebRequest request;
+        private WebRequest webRequest;
         private bool restarted;
 
         public float Progress { get; set; }
@@ -119,8 +119,6 @@ namespace GitHub.Unity
             try
             {
                 Logger.Trace("Downloading");
-
-                InitializeDownload();
                 RunDownload();
 
                 Logger.Trace("Downloaded");
@@ -146,38 +144,70 @@ namespace GitHub.Unity
 
         public bool RunDownload()
         {
+            var fileInfo = new FileInfo(Destination);
+            if (fileInfo.Exists)
+            {
+                if (fileInfo.Length > 0)
+                {
+                    bytes = fileInfo.Length;
+                    restarted = true;
+                }
+                else if (fileInfo.Length == 0)
+                {
+                    fileInfo.Delete();
+                }
+            }
+
+            webRequest = WebRequest.Create(Url);
+            var httpWebRequest = webRequest as HttpWebRequest;
+            if (httpWebRequest != null)
+            {
+                if (bytes > 0)
+                {
+                    // TODO: fix classlibs to take long overloads
+                    httpWebRequest.AddRange((int)bytes);
+                }
+            }
+
+            webRequest.Method = "GET";
+            webRequest.Timeout = 3000;
+
             if (restarted && bytes > 0)
                 Logger.Trace($"Resuming download of {Url} to {Destination}");
             else
                 Logger.Trace($"Downloading {Url} to {Destination}");
 
-            using (WebResponse response = request.GetResponseWithoutException())
+            using (var webResponse = webRequest.GetResponseWithoutException())
             {
-                if (response == null)
+                if (webResponse == null)
                     return false;
 
-                if (restarted && bytes > 0 && response is HttpWebResponse)
-                {
-                    var httpStatusCode = ((HttpWebResponse)response).StatusCode;
-                    if (httpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
-                    {
-                        UpdateProgress(1);
-                        return true;
-                    }
-
-                    if (!(httpStatusCode == HttpStatusCode.OK || httpStatusCode == HttpStatusCode.PartialContent))
-                    {
-                        return false;
-                    }
-                }
-
-                var responseLength = response.ContentLength;
                 if (restarted && bytes > 0)
                 {
-                    UpdateProgress(bytes / responseLength);
+                    var httpWebResponse = webResponse as HttpWebResponse;
+                    if (httpWebResponse != null)
+                    {
+                        var httpStatusCode = httpWebResponse.StatusCode;
+                        if (httpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
+                        {
+                            UpdateProgress(1);
+                            return true;
+                        }
+
+                        if (!(httpStatusCode == HttpStatusCode.OK || httpStatusCode == HttpStatusCode.PartialContent))
+                        {
+                            return false;
+                        }
+                    }
                 }
 
-                using (var responseStream = response.GetResponseStream())
+                var responseLength =  webResponse.ContentLength;
+                if (restarted && bytes > 0)
+                {
+                    UpdateProgress(bytes / (float) responseLength);
+                }
+
+                using (var responseStream = webResponse.GetResponseStream())
                 {
                     using (Stream destinationStream = new FileStream(Destination, FileMode.Append))
                     {
@@ -193,34 +223,5 @@ namespace GitHub.Unity
         protected string Url { get; }
 
         protected string Destination { get; }
-
-        private void InitializeDownload()
-        {
-            var fi = new FileInfo(Destination);
-            if (fi.Exists)
-            {
-                if (fi.Length > 0)
-                {
-                    bytes = fi.Length;
-                    restarted = true;
-                }
-                else if (fi.Length == 0)
-                {
-                    fi.Delete();
-                }
-            }
-
-            request = WebRequest.Create(Url);
-            if (request is HttpWebRequest)
-            {
-                //((HttpWebRequest)request).UserAgent = "Unity PackageManager v" + PackageManager.Instance.Version;
-
-                if (bytes > 0)
-                    ((HttpWebRequest)request).AddRange((int)bytes); // TODO: fix classlibs to take long overloads
-            }
-
-            request.Method = "GET";
-            request.Timeout = 3000;
-        }
     }
 }
