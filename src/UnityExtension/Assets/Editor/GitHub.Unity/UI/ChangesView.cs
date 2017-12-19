@@ -23,6 +23,9 @@ namespace GitHub.Unity
         [NonSerialized] private bool currentLocksHasUpdate;
         [NonSerialized] private bool isBusy;
 
+        [NonSerialized] private GUIContent revertGuiContent;
+        [NonSerialized] private GUIContent deleteGuiContent;
+
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
@@ -143,13 +146,61 @@ namespace GitHub.Unity
                 var treeRenderRect = treeChanges.Render(rect, treeScroll, 
                     node => { }, 
                     node => { },
-                    node => { });
+                    node => {
+                        var menu = CreateContextMenu(node);
+                        menu.ShowAsContext();
+                    });
 
                 if (treeChanges.RequiresRepaint)
                     Redraw();
 
                 GUILayout.Space(treeRenderRect.y - rect.y);
             }
+        }
+
+        private GenericMenu CreateContextMenu(ChangesTreeNode node)
+        {
+            var genericMenu = new GenericMenu();
+            var canRevert = false;
+            var canDelete = false;
+
+            if (!node.isFolder)
+            {
+                canRevert = node.GitFileStatus == GitFileStatus.Added
+                    || node.GitFileStatus == GitFileStatus.Modified
+                    || node.GitFileStatus == GitFileStatus.Deleted
+                    || node.GitFileStatus == GitFileStatus.Renamed;
+
+                canDelete = node.GitFileStatus == GitFileStatus.Untracked;
+            }
+
+            if (canRevert)
+            {
+                if (revertGuiContent == null)
+                {
+                    revertGuiContent = new GUIContent("Revert");
+                }
+
+                genericMenu.AddItem(revertGuiContent, false, () => {
+                    Repository.DiscardChanges(new List<string> { node.Path })
+                        .Start();
+                });
+            }
+
+            if (canDelete)
+            {
+                if (deleteGuiContent == null)
+                {
+                    deleteGuiContent = new GUIContent("Delete");
+                }
+
+                genericMenu.AddItem(deleteGuiContent, false, () => {
+                    Repository.DeleteFiles(new List<string> { node.Path })
+                              .Start();
+                });
+            }
+
+            return genericMenu;
         }
 
         private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)

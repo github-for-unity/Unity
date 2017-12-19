@@ -19,6 +19,7 @@ namespace GitHub.Unity
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
         ITask DiscardChanges(List<string> files);
+        ITask DeleteFiles(List<string> list);
 
         void CheckLogChangedEvent(CacheUpdateEvent gitLogCacheUpdateEvent);
         void CheckStatusChangedEvent(CacheUpdateEvent cacheUpdateEvent);
