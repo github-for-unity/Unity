@@ -171,20 +171,20 @@ namespace GitHub.Unity
                     }
                 }
 
-                long respSize = response.ContentLength;
+                var responseLength = response.ContentLength;
                 if (restarted && bytes > 0)
                 {
-                    UpdateProgress(bytes / respSize);
+                    UpdateProgress(bytes / responseLength);
                 }
 
-                using (Stream rStream = response.GetResponseStream())
+                using (var responseStream = response.GetResponseStream())
                 {
-                    using (Stream localStream = new FileStream(Destination, FileMode.Append))
+                    using (Stream destinationStream = new FileStream(Destination, FileMode.Append))
                     {
                         if (Token.IsCancellationRequested)
                             return false;
 
-                        return Utils.Copy(rStream, localStream, 8192, respSize, null, 100);
+                        return Utils.Copy(responseStream, destinationStream, 8192, responseLength, null, 100);
                     }
                 }
             }
