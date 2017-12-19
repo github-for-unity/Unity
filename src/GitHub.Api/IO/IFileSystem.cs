@@ -41,5 +41,6 @@ namespace GitHub.Unity
         char DirectorySeparatorChar { get; }
         bool ExistingPathIsDirectory(string path);
         void SetCurrentDirectory(string currentDirectory);
+        byte[] ReadAllBytes(string path);
     }
 }

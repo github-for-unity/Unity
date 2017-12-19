@@ -139,6 +139,7 @@
     <Compile Include="Tasks\BaseOutputProcessor.cs" />
     <Compile Include="Tasks\ConcurrentExclusiveInterleave.cs" />
     <Compile Include="Tasks\ConfigOutputProcessor.cs" />
+    <Compile Include="Tasks\DownloadTask.cs" />
     <Compile Include="Tasks\ITaskManager.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskBase.cs" />
