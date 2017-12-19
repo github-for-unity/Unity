@@ -41,24 +41,24 @@ namespace IntegrationTests
         [TearDown]
         public virtual void OnTearDown()
         {
-            TaskManager.Instance?.Dispose();
-            Logger.Debug("Deleting TestBasePath: {0}", TestBasePath.ToString());
-            for (var i = 0; i < 5; i++)
-            {
-                try
-                {
-                    TestBasePath.Delete();
-                    break;
-                }
-                catch (Exception)
-                {
-                    Thread.Sleep(100);
-                }
-            }
-            if (TestBasePath.Exists())
-                Logger.Warning("Error deleting TestBasePath: {0}", TestBasePath.ToString());
-
-            NPath.FileSystem = null;
+//            TaskManager.Instance?.Dispose();
+//            Logger.Debug("Deleting TestBasePath: {0}", TestBasePath.ToString());
+//            for (var i = 0; i < 5; i++)
+//            {
+//                try
+//                {
+//                    TestBasePath.Delete();
+//                    break;
+//                }
+//                catch (Exception)
+//                {
+//                    Thread.Sleep(100);
+//                }
+//            }
+//            if (TestBasePath.Exists())
+//                Logger.Warning("Error deleting TestBasePath: {0}", TestBasePath.ToString());
+//
+//            NPath.FileSystem = null;
         }
     }
 }

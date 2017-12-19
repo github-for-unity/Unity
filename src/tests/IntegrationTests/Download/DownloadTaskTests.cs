@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,28 +16,39 @@ namespace IntegrationTests.Download
         private const string TestDownloadMD5 = "b3215c06647bc550406a9c8ccc378756";
 
         [Test]
-        public async Task Blah()
+        public async Task TestDownloadTask()
         {
             InitializeTaskManager();
 
+            var fileSystem = new FileSystem();
+
             var downloadPath = TestBasePath.Combine("5MB.zip");
-            var downloadDetails = new DownloadDetails(TestDownload, downloadPath, false, TestDownloadMD5);
+            var downloadHalfPath = TestBasePath.Combine("5MB-split.zip");
 
-            var downloadTask = new DownloadTask(CancellationToken.None, downloadDetails);
-            var downloadResult = await downloadTask.StartAwait();
+            var downloadTask = new DownloadTask(CancellationToken.None, TestDownload, downloadPath);
+            await downloadTask.StartAwait();
 
-            var resultBytes = downloadPath.ReadAllBytes();
+            var downloadPathBytes = fileSystem.ReadAllBytes(downloadPath);
+            Logger.Trace("File size {0} bytes", downloadPathBytes.Length);
 
-            string computedHash;
-            using (var md5 = MD5.Create())
-            {
-                var computedHashBytes = md5.ComputeHash(resultBytes);
-                computedHash = BitConverter.ToString(computedHashBytes)
-                    .ToLower()
-                    .Replace("-", string.Empty);
-            }
+            var computedHash = fileSystem.CalculateMD5(downloadPath);
+            computedHash.Should().Be(TestDownloadMD5.ToUpperInvariant());
 
-            computedHash.Should().Be(TestDownloadMD5);
+            var takeCount = downloadPathBytes.Length / 2;
+
+            Logger.Trace("Cutting {0} Bytes", downloadPathBytes.Length - takeCount);
+
+            var cutDownloadPathBytes = downloadPathBytes.Take(takeCount).ToArray();
+            fileSystem.WriteAllBytes(downloadHalfPath, cutDownloadPathBytes);
+
+            downloadTask = new DownloadTask(CancellationToken.None, TestDownload, downloadHalfPath);
+            await downloadTask.StartAwait();
+
+            var downloadHalfPathBytes = fileSystem.ReadAllBytes(downloadHalfPath);
+            Logger.Trace("File size {0} Bytes", downloadHalfPathBytes.Length);
+
+            computedHash = fileSystem.CalculateMD5(downloadHalfPath);
+            computedHash.Should().Be(TestDownloadMD5.ToUpperInvariant());
         }
     }
 }

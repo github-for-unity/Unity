@@ -74,22 +74,6 @@ namespace GitHub.Unity
         }
     }
 
-    public class DownloadDetails
-    {
-        public string Url { get; }
-        public string Destination { get; }
-        public bool Restart { get; }
-        public string Md5Sum { get; }
-
-        public DownloadDetails(string url, string destination, bool restart = false, string md5sum = null)
-        {
-            Url = url;
-            Restart = restart;
-            Destination = destination;
-            Md5Sum = md5sum;
-        }
-    }
-
     public class DownloadResult
     {
 
@@ -112,16 +96,17 @@ namespace GitHub.Unity
 
     class DownloadTask: TaskBase<DownloadResult>
     {
-        private readonly DownloadDetails downloadDetails;
         private long bytes;
         private WebRequest request;
+        private bool restarted;
 
         public float Progress { get; set; }
 
-        public DownloadTask(CancellationToken token, DownloadDetails downloadDetails)
+        public DownloadTask(CancellationToken token, string url, string destination)
             : base(token)
         {
-            this.downloadDetails = downloadDetails;
+            Url = url;
+            Destination = destination;
             Name = "DownloadTask";
         }
 
@@ -161,7 +146,7 @@ namespace GitHub.Unity
 
         public bool RunDownload()
         {
-            if (Restarted && bytes > 0)
+            if (restarted && bytes > 0)
                 Logger.Trace($"Resuming download of {Url} to {Destination}");
             else
                 Logger.Trace($"Downloading {Url} to {Destination}");
@@ -171,7 +156,7 @@ namespace GitHub.Unity
                 if (response == null)
                     return false;
 
-                else if (Restarted && bytes > 0 && response is HttpWebResponse)
+                else if (restarted && bytes > 0 && response is HttpWebResponse)
                 {
                     if ((int)(((HttpWebResponse)response).StatusCode) == 416)
                     {
@@ -185,7 +170,7 @@ namespace GitHub.Unity
                 }
 
                 long respSize = response.ContentLength;
-                if (Restarted && bytes > 0)
+                if (restarted && bytes > 0)
                 {
                     UpdateProgress(bytes / respSize);
                     if (bytes == respSize)
@@ -205,19 +190,20 @@ namespace GitHub.Unity
             }
         }
 
-        public bool Restarted => downloadDetails.Restart;
+        protected string Url { get; }
 
-        private string Url => downloadDetails.Url;
-
-        private string Destination => downloadDetails.Destination;
+        protected string Destination { get; }
 
         private void InitializeDownload()
         {
-            if (Restarted)
+            var fi = new FileInfo(Destination);
+            if (fi.Exists)
             {
-                var fi = new FileInfo(Destination);
-                if (fi.Exists && fi.Length > 0)
+                if (fi.Length > 0)
+                {
                     bytes = fi.Length;
+                    restarted = true;
+                }
                 else if (fi.Length == 0)
                     fi.Delete();
             }
