@@ -34,9 +34,10 @@ namespace IntegrationTests.Download
             var computedHash = fileSystem.CalculateMD5(downloadPath);
             computedHash.Should().Be(TestDownloadMD5.ToUpperInvariant());
 
-            var takeCount = downloadPathBytes.Length / 2;
+            var random = new Random();
+            var takeCount = random.Next(downloadPathBytes.Length);
 
-            Logger.Trace("Cutting {0} Bytes", downloadPathBytes.Length - takeCount);
+            Logger.Trace("Cutting the first {0} Bytes", downloadPathBytes.Length - takeCount);
 
             var cutDownloadPathBytes = downloadPathBytes.Take(takeCount).ToArray();
             fileSystem.WriteAllBytes(downloadHalfPath, cutDownloadPathBytes);

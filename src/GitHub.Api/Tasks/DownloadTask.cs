@@ -156,14 +156,16 @@ namespace GitHub.Unity
                 if (response == null)
                     return false;
 
-                else if (restarted && bytes > 0 && response is HttpWebResponse)
+                if (restarted && bytes > 0 && response is HttpWebResponse)
                 {
-                    if ((int)(((HttpWebResponse)response).StatusCode) == 416)
+                    var httpStatusCode = ((HttpWebResponse)response).StatusCode;
+                    if (httpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
                     {
                         UpdateProgress(1);
                         return true;
                     }
-                    else if ((int)(((HttpWebResponse)response).StatusCode) != 200)
+
+                    if (!(httpStatusCode == HttpStatusCode.OK || httpStatusCode == HttpStatusCode.PartialContent))
                     {
                         return false;
                     }
@@ -173,8 +175,6 @@ namespace GitHub.Unity
                 if (restarted && bytes > 0)
                 {
                     UpdateProgress(bytes / respSize);
-                    if (bytes == respSize)
-                        return true;
                 }
 
                 using (Stream rStream = response.GetResponseStream())
@@ -205,7 +205,9 @@ namespace GitHub.Unity
                     restarted = true;
                 }
                 else if (fi.Length == 0)
+                {
                     fi.Delete();
+                }
             }
 
             request = WebRequest.Create(Url);
