@@ -1,26 +1,21 @@
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using GitHub.Unity;
 using NSubstitute;
 
 namespace IntegrationTests
 {
-    class BasePlatformIntegrationTest : BaseIntegrationTest
+    class BasePlatformIntegrationTest : BaseTaskManagerTest
     {
         protected IPlatform Platform { get; private set; }
         protected IProcessManager ProcessManager { get; private set; }
-        protected ITaskManager TaskManager { get; private set; }
         protected IProcessEnvironment GitEnvironment { get; private set; }
         protected IGitClient GitClient { get; set; }
-        protected SynchronizationContext SyncContext { get; set; }
         public ICacheContainer CacheContainer { get;  set; }
 
         protected async Task InitializePlatform(NPath repoPath, NPath environmentPath, bool enableEnvironmentTrace)
         {
-            TaskManager = new TaskManager();
-            SyncContext = new ThreadSynchronizationContext(TaskManager.Token);
-            TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(SyncContext);
+            InitializeTaskManager();
 
             CacheContainer = Substitute.For<ICacheContainer>();
             Environment = new IntegrationTestEnvironment(CacheContainer, repoPath, SolutionDirectory, environmentPath,
