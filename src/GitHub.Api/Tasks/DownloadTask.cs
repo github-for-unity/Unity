@@ -76,7 +76,13 @@ namespace GitHub.Unity
 
     public class DownloadResult
     {
+        public bool Success { get; set; }
 
+        public string Url { get; set; }
+
+        public string Destination { get; set; }
+
+        public string MD5Sum { get; set; }
     }
 
     public static class WebRequestExtensions
@@ -96,15 +102,17 @@ namespace GitHub.Unity
 
     class DownloadTask: TaskBase<DownloadResult>
     {
+        private IFileSystem fileSystem;
         private long bytes;
         private WebRequest webRequest;
         private bool restarted;
 
         public float Progress { get; set; }
 
-        public DownloadTask(CancellationToken token, string url, string destination)
+        public DownloadTask(CancellationToken token, IFileSystem fileSystem, string url, string destination)
             : base(token)
         {
+            this.fileSystem = fileSystem;
             Url = url;
             Destination = destination;
             Name = "DownloadTask";
@@ -112,16 +120,19 @@ namespace GitHub.Unity
 
         protected override DownloadResult RunWithReturn(bool success)
         {
-            DownloadResult result = base.RunWithReturn(success);
-
+            base.RunWithReturn(success);
+            
             RaiseOnStart();
+
+            var downloadResult = new DownloadResult {
+                Url = Url,
+                Destination = Destination
+            };
 
             try
             {
-                Logger.Trace("Downloading");
-                RunDownload();
-
-                Logger.Trace("Downloaded");
+                downloadResult.Success = Download();
+                downloadResult.MD5Sum = fileSystem.CalculateMD5(Destination);
             }
             catch (Exception ex)
             {
@@ -131,10 +142,10 @@ namespace GitHub.Unity
             }
             finally
             {
-                RaiseOnEnd(result);
+                RaiseOnEnd(downloadResult);
             }
 
-            return result;
+            return downloadResult;
         }
 
         protected virtual void UpdateProgress(float progress)
@@ -142,19 +153,20 @@ namespace GitHub.Unity
             Progress = progress;
         }
 
-        public bool RunDownload()
+        public bool Download()
         {
-            var fileInfo = new FileInfo(Destination);
-            if (fileInfo.Exists)
+            FileInfo fileInfo = new FileInfo(Destination);
+            if (fileSystem.FileExists(Destination))
             {
-                if (fileInfo.Length > 0)
+                var fileLength = fileSystem.FileLength(Destination);
+                if (fileLength > 0)
                 {
                     bytes = fileInfo.Length;
                     restarted = true;
                 }
-                else if (fileInfo.Length == 0)
+                else if (fileLength == 0)
                 {
-                    fileInfo.Delete();
+                    fileSystem.FileDelete(Destination);
                 }
             }
 
@@ -209,7 +221,7 @@ namespace GitHub.Unity
 
                 using (var responseStream = webResponse.GetResponseStream())
                 {
-                    using (Stream destinationStream = new FileStream(Destination, FileMode.Append))
+                    using (var destinationStream = fileSystem.OpenWrite(Destination, FileMode.Append))
                     {
                         if (Token.IsCancellationRequested)
                             return false;

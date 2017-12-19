@@ -25,14 +25,13 @@ namespace IntegrationTests.Download
             var downloadPath = TestBasePath.Combine("5MB.zip");
             var downloadHalfPath = TestBasePath.Combine("5MB-split.zip");
 
-            var downloadTask = new DownloadTask(CancellationToken.None, TestDownload, downloadPath);
-            await downloadTask.StartAwait();
+            var downloadTask = new DownloadTask(CancellationToken.None, fileSystem, TestDownload, downloadPath);
+            var downloadResult = await downloadTask.StartAwait();
 
             var downloadPathBytes = fileSystem.ReadAllBytes(downloadPath);
             Logger.Trace("File size {0} bytes", downloadPathBytes.Length);
 
-            var computedHash = fileSystem.CalculateMD5(downloadPath);
-            computedHash.Should().Be(TestDownloadMD5.ToUpperInvariant());
+            downloadResult.MD5Sum.Should().Be(TestDownloadMD5.ToUpperInvariant());
 
             var random = new Random();
             var takeCount = random.Next(downloadPathBytes.Length);
@@ -42,14 +41,13 @@ namespace IntegrationTests.Download
             var cutDownloadPathBytes = downloadPathBytes.Take(takeCount).ToArray();
             fileSystem.WriteAllBytes(downloadHalfPath, cutDownloadPathBytes);
 
-            downloadTask = new DownloadTask(CancellationToken.None, TestDownload, downloadHalfPath);
-            await downloadTask.StartAwait();
+            downloadTask = new DownloadTask(CancellationToken.None, fileSystem, TestDownload, downloadHalfPath);
+            downloadResult = await downloadTask.StartAwait();
 
             var downloadHalfPathBytes = fileSystem.ReadAllBytes(downloadHalfPath);
             Logger.Trace("File size {0} Bytes", downloadHalfPathBytes.Length);
 
-            computedHash = fileSystem.CalculateMD5(downloadHalfPath);
-            computedHash.Should().Be(TestDownloadMD5.ToUpperInvariant());
+            downloadResult.MD5Sum.Should().Be(TestDownloadMD5.ToUpperInvariant());
         }
     }
 }
