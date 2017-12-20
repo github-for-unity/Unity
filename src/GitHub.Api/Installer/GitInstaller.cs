@@ -17,18 +17,19 @@ namespace GitHub.Unity
 
         private readonly CancellationToken cancellationToken;
         private readonly IEnvironment environment;
+        private readonly IDownloadManager downloadManager;
         private readonly ILogging logger;
 
         private delegate void ExtractZipFile(string archive, string outFolder, CancellationToken cancellationToken,
             IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null);
         private ExtractZipFile extractCallback;
 
-        public GitInstaller(IEnvironment environment, CancellationToken cancellationToken)
-            : this(environment, null, cancellationToken)
+        public GitInstaller(IEnvironment environment, IDownloadManager downloadManager, CancellationToken cancellationToken)
+            : this(environment, downloadManager, null, cancellationToken)
         {
         }
 
-        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, CancellationToken cancellationToken)
+        public GitInstaller(IEnvironment environment, IDownloadManager downloadManager, IZipHelper sharpZipLibHelper, CancellationToken cancellationToken)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));
 
@@ -36,6 +37,7 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
 
             this.environment = environment;
+            this.downloadManager = downloadManager;
             this.extractCallback = sharpZipLibHelper != null
                  ? (ExtractZipFile)sharpZipLibHelper.Extract
                  : ZipHelper.ExtractZipFile;
@@ -162,6 +164,8 @@ namespace GitHub.Unity
             }
 
             cancellationToken.ThrowIfCancellationRequested();
+
+            downloadManager.DownloadFile();
 
             var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitZipFile, tempPath, environment);
             if (!archiveFilePath.FileExists())

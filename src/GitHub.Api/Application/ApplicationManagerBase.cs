@@ -12,6 +12,7 @@ namespace GitHub.Unity
         protected static ILogging Logger { get; } = Logging.GetLogger<IApplicationManager>();
 
         private RepositoryManager repositoryManager;
+        private DownloadManager downloadManager;
 
         public ApplicationManagerBase(SynchronizationContext synchronizationContext)
         {
@@ -45,10 +46,17 @@ namespace GitHub.Unity
 
         public void Run(bool firstRun)
         {
-            new ActionTask(SetupGit())
+            new ActionTask(CancellationToken, SetupDownloadManager)
+                .Then(new ActionTask(SetupGit()))
                 .Then(RestartRepository)
                 .ThenInUI(InitializeUI)
                 .Start();
+        }
+
+        private void SetupDownloadManager()
+        {
+            Logger.Trace("Setup Download Manager");
+            downloadManager = new DownloadManager(Environment, ProcessManager, CancellationToken);
         }
 
         private async Task SetupGit()
@@ -145,7 +153,7 @@ namespace GitHub.Unity
                 return gitExecutablePath;
             }
 
-            var gitInstaller = new GitInstaller(Environment, CancellationToken);
+            var gitInstaller = new GitInstaller(Environment, DownloadManager, CancellationToken);
             var setupDone = await gitInstaller.SetupIfNeeded(progress?.Percentage, progress?.Remaining);
             if (setupDone)
             {
@@ -188,6 +196,7 @@ namespace GitHub.Unity
         protected abstract void SetProjectToTextSerialization();
 
         private bool disposed = false;
+
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -219,5 +228,30 @@ namespace GitHub.Unity
         protected TaskScheduler UIScheduler { get; private set; }
         protected SynchronizationContext SynchronizationContext { get; private set; }
         protected IRepositoryManager RepositoryManager { get { return repositoryManager; } }
+        protected IDownloadManager DownloadManager { get { return downloadManager; } }
+    }
+
+    class DownloadManager: IDownloadManager
+    {
+        private readonly IEnvironment environment;
+        private readonly IProcessManager processManager;
+        private readonly CancellationToken cancellationToken;
+
+        public DownloadManager(IEnvironment environment, IProcessManager processManager, CancellationToken cancellationToken)
+        {
+            this.environment = environment;
+            this.processManager = processManager;
+            this.cancellationToken = cancellationToken;
+        }
+
+        public void DownloadFile()
+        {
+            //new DownloadTask(cancellationToken,)
+        }
+    }
+
+    interface IDownloadManager
+    {
+        void DownloadFile();
     }
 }
