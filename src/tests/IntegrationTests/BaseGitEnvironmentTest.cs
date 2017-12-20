@@ -1,39 +1,22 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
-using GitHub.Unity;
 using System.Threading.Tasks;
-using NSubstitute;
+using GitHub.Unity;
 
 namespace IntegrationTests
 {
-    class BaseGitEnvironmentTest : BaseGitRepoTest
+    class BaseGitEnvironmentTest : BasePlatformIntegrationTest
     {
         protected async Task<IEnvironment> Initialize(NPath repoPath, NPath environmentPath = null,
-            bool enableEnvironmentTrace = false, bool initializeRepository = true, Action<RepositoryManager> onRepositoryManagerCreated = null)
+            bool enableEnvironmentTrace = false, bool initializeRepository = true,
+            Action<RepositoryManager> onRepositoryManagerCreated = null)
         {
-            TaskManager = new TaskManager();
-            SyncContext = new ThreadSynchronizationContext(TaskManager.Token);
-            TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(SyncContext);
+            await InitializePlatform(repoPath, environmentPath, enableEnvironmentTrace);
 
-            //TODO: Mock CacheContainer
-            ICacheContainer cacheContainer = Substitute.For<ICacheContainer>();
-            Environment = new IntegrationTestEnvironment(cacheContainer, repoPath, SolutionDirectory, environmentPath, enableEnvironmentTrace);
-
-            var gitSetup = new GitInstaller(Environment, TaskManager.Token);
-            await gitSetup.SetupIfNeeded();
-            Environment.GitExecutablePath = gitSetup.GitExecutablePath;
-
-            Platform = new Platform(Environment);
-
-            GitEnvironment = Platform.GitEnvironment;
-            ProcessManager = new ProcessManager(Environment, GitEnvironment, TaskManager.Token);
-
-            Platform.Initialize(ProcessManager, TaskManager);
-
-            GitClient = new GitClient(Environment, ProcessManager, TaskManager);
-
-            var repositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
+            var repositoryManager =
+                GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
             onRepositoryManagerCreated?.Invoke(repositoryManager);
 
             RepositoryManager = repositoryManager;
@@ -41,7 +24,7 @@ namespace IntegrationTests
 
             if (initializeRepository)
             {
-                Environment.Repository = new Repository(repoPath, cacheContainer);
+                Environment.Repository = new Repository(repoPath, CacheContainer);
                 Environment.Repository.Initialize(RepositoryManager);
             }
 
@@ -51,11 +34,8 @@ namespace IntegrationTests
 
             if (DotGitPath.FileExists())
             {
-                DotGitPath =
-                    DotGitPath.ReadAllLines()
-                              .Where(x => x.StartsWith("gitdir:"))
-                              .Select(x => x.Substring(7).Trim().ToNPath())
-                              .First();
+                DotGitPath = DotGitPath.ReadAllLines().Where(x => x.StartsWith("gitdir:"))
+                                       .Select(x => x.Substring(7).Trim().ToNPath()).First();
             }
 
             BranchesPath = DotGitPath.Combine("refs", "heads");
@@ -64,6 +44,21 @@ namespace IntegrationTests
             DotGitHead = DotGitPath.Combine("HEAD");
             DotGitConfig = DotGitPath.Combine("config");
             return Environment;
+        }
+
+        public override void OnSetup()
+        {
+            base.OnSetup();
+
+            TestRepoMasterCleanUnsynchronized = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_clean_unsync");
+            TestRepoMasterCleanUnsynchronizedRussianLanguage = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_clean_sync_with_russian_language");
+            TestRepoMasterCleanSynchronized = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_clean_sync");
+            TestRepoMasterDirtyUnsynchronized = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_dirty_unsync");
+            TestRepoMasterTwoRemotes = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_two_remotes");
+
+            Logger.Trace("Extracting Zip File to {0}", TestBasePath);
+            ZipHelper.ExtractZipFile(TestZipFilePath, TestBasePath.ToString(), CancellationToken.None);
+            Logger.Trace("Extracted Zip File");
         }
 
         public override void OnTearDown()
@@ -76,14 +71,7 @@ namespace IntegrationTests
 
         public IRepositoryManager RepositoryManager { get; private set; }
 
-        protected IPlatform Platform { get; private set; }
         protected IApplicationManager ApplicationManager { get; set; }
-        protected IProcessManager ProcessManager { get; private set; }
-        protected ITaskManager TaskManager { get; private set; }
-
-        protected IProcessEnvironment GitEnvironment { get; private set; }
-        protected IGitClient GitClient { get; set; }
-        protected SynchronizationContext SyncContext { get; set; }
 
         protected NPath DotGitConfig { get; private set; }
 
@@ -96,5 +84,17 @@ namespace IntegrationTests
         protected NPath BranchesPath { get; private set; }
 
         protected NPath DotGitPath { get; private set; }
+
+        protected NPath TestRepoMasterCleanSynchronized { get; private set; }
+
+        protected NPath TestRepoMasterCleanUnsynchronized { get; private set; }
+
+        protected NPath TestRepoMasterCleanUnsynchronizedRussianLanguage { get; private set; }
+
+        protected NPath TestRepoMasterDirtyUnsynchronized { get; private set; }
+
+        protected NPath TestRepoMasterTwoRemotes { get; private set; }
+
+        private static string TestZipFilePath => Path.Combine(SolutionDirectory, "IOTestsRepo.zip");
     }
 }
