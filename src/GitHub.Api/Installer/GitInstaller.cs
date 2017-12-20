@@ -150,7 +150,7 @@ namespace GitHub.Unity
             }
         }
 
-        public Task<bool> SetupGitIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
+        public async Task<bool> SetupGitIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,
             IProgress<long> estimatedDurationProgress = null)
         {
             logger.Trace("SetupGitIfNeeded");
@@ -160,12 +160,13 @@ namespace GitHub.Unity
             if (IsPortableGitExtracted())
             {
                 logger.Trace("Already extracted {0}, returning", GitInstallationPath);
-                return TaskEx.FromResult(true);
+                return true;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            downloadManager.DownloadFile();
+            var downloadFile = downloadManager.DownloadFile("http://ipv4.download.thinkbroadband.com/5MB.zip", tempPath.Combine("5MB.zip"));
+            var downloadResult = await downloadFile.Task;
 
             var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, GitZipFile, tempPath, environment);
             if (!archiveFilePath.FileExists())
@@ -176,7 +177,7 @@ namespace GitHub.Unity
                 if (!archiveFilePath.FileExists())
                 {
                     logger.Warning("Archive \"{0}\" missing, returning", archiveFilePath.ToString());
-                    return TaskEx.FromResult(false);
+                    return false;
                 }
             }
 
@@ -194,7 +195,7 @@ namespace GitHub.Unity
             catch (Exception ex)
             {
                 logger.Error(ex, "Error ExtractingArchive Source:\"{0}\" OutDir:\"{1}\"", archiveFilePath, tempPath);
-                return TaskEx.FromResult(false);
+                return false;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -211,10 +212,10 @@ namespace GitHub.Unity
             catch (Exception ex)
             {
                 logger.Error(ex, "Error Moving \"{0}\" to \"{1}\"", tempPath, GitInstallationPath);
-                return TaskEx.FromResult(false);
+                return false;
             }
             unzipPath.DeleteIfExists();
-            return TaskEx.FromResult(true);
+            return true;
         }
 
         public Task<bool> SetupGitLfsIfNeeded(NPath tempPath, IProgress<float> zipFileProgress = null,

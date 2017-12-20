@@ -244,14 +244,15 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
         }
 
-        public void DownloadFile()
+        public ITask<DownloadResult> DownloadFile(string url, string destination)
         {
-            //new DownloadTask(cancellationToken,)
+            var downloadTask = new DownloadTask(cancellationToken, environment.FileSystem, url, destination);
+            return downloadTask.Start();
         }
     }
 
     interface IDownloadManager
     {
-        void DownloadFile();
+        ITask<DownloadResult> DownloadFile(string url, string destination);
     }
 }

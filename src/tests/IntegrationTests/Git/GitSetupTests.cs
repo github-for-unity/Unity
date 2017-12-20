@@ -16,7 +16,7 @@ namespace IntegrationTests
             var environmentPath = NPath.CreateTempDirectory("integration-test-environment");
             var environment = await Initialize(TestRepoMasterDirtyUnsynchronized, environmentPath);
 
-            var gitSetup = new GitInstaller(environment, TaskManager.Token);
+            var gitSetup = new GitInstaller(environment, DownloadManager, TaskManager.Token);
             var expectedPath = gitSetup.GitInstallationPath;
 
             var setupDone = false;

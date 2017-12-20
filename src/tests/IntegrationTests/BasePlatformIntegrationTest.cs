@@ -9,7 +9,8 @@ namespace IntegrationTests
     {
         protected IPlatform Platform { get; private set; }
         protected IProcessManager ProcessManager { get; private set; }
-        protected IProcessEnvironment GitEnvironment { get; private set; }
+        protected IDownloadManager DownloadManager { get; private set; }
+        protected IProcessEnvironment GitEnvironment => Platform.GitEnvironment;
         protected IGitClient GitClient { get; set; }
         public ICacheContainer CacheContainer { get;  set; }
 
@@ -18,17 +19,15 @@ namespace IntegrationTests
             InitializeTaskManager();
 
             CacheContainer = Substitute.For<ICacheContainer>();
-            Environment = new IntegrationTestEnvironment(CacheContainer, repoPath, SolutionDirectory, environmentPath,
-                enableEnvironmentTrace);
-
-            var gitSetup = new GitInstaller(Environment, TaskManager.Token);
-            await gitSetup.SetupIfNeeded();
-            Environment.GitExecutablePath = gitSetup.GitExecutablePath;
+            Environment = new IntegrationTestEnvironment(CacheContainer, repoPath, SolutionDirectory, environmentPath, enableEnvironmentTrace);
 
             Platform = new Platform(Environment);
-
-            GitEnvironment = Platform.GitEnvironment;
             ProcessManager = new ProcessManager(Environment, GitEnvironment, TaskManager.Token);
+            DownloadManager = new DownloadManager(Environment, ProcessManager, TaskManager.Token);
+
+            var gitInstaller = new GitInstaller(Environment, DownloadManager, TaskManager.Token);
+            await gitInstaller.SetupIfNeeded();
+            Environment.GitExecutablePath = gitInstaller.GitExecutablePath;
 
             Platform.Initialize(ProcessManager, TaskManager);
 
