@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEditor;
 using UnityEngine;
 
@@ -667,32 +668,34 @@ namespace GitHub.Unity
             }
             else
             {
+                EditorUtility.DisplayProgressBar("Pull", "Pulling", 0f);
+
+                var autoResetEvent = new AutoResetEvent(false);
+                var success = false;
+
                 Repository
                     .Pull()
-                    // we need the error propagated from the original git command to handle things appropriately
-                    .Then(success => {
-                        if (!success)
-                        {
-                            // if Pull fails we need to parse the output of the command, figure out
-                            // whether pull triggered a merge or a rebase, and abort the operation accordingly
-                            // (either git rebase --abort or git merge --abort)
-                        }
-                    }, true)
-                    .FinallyInUI((success, e) => {
-                        if (success)
-                        {
-                            EditorUtility.DisplayDialog(Localization.PullActionTitle,
-                                String.Format(Localization.PullSuccessDescription, currentRemoteName),
-                            Localization.Ok);
-                        }
-                        else
-                        {
-                            EditorUtility.DisplayDialog(Localization.PullActionTitle,
-                                Localization.PullFailureDescription,
-                            Localization.Ok);
-                        }
+                    .Then(b => {
+                        success = b;
+                        autoResetEvent.Set();
                     })
                     .Start();
+
+                autoResetEvent.WaitOne();
+                EditorUtility.ClearProgressBar();
+
+                if (success)
+                {
+                    EditorUtility.DisplayDialog(Localization.PullActionTitle,
+                        String.Format(Localization.PullSuccessDescription, currentRemoteName),
+                        Localization.Ok);
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog(Localization.PullActionTitle,
+                        Localization.PullFailureDescription,
+                        Localization.Ok);
+                }
             }
         }
 
