@@ -41,6 +41,8 @@ namespace GitHub.Unity
         {
             //https://stackoverflow.com/questions/3625658/creating-hash-for-folder
 
+            Logging.Trace("Calculating MD5 for folder: {0}", path);
+
             var filePaths = fileSystem.GetFiles(path, "*", SearchOption.AllDirectories)
                 .OrderBy(p => p)
                 .ToArray();
@@ -61,6 +63,8 @@ namespace GitHub.Unity
 
                 //Handles empty filePaths case
                 md5.TransformFinalBlock(new byte[0], 0, 0);
+
+                Logging.Trace("Completed Calculating MD5 for folder: {0}", path);
 
                 return BitConverter.ToString(md5.Hash).Replace("-", "").ToLower();
             }

@@ -18,7 +18,19 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            
+            GUILayout.BeginVertical();
+            {
+                GUILayout.FlexibleSpace();
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Label(WindowTitle);
+                    GUILayout.FlexibleSpace();
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.FlexibleSpace();
+            }
+            GUILayout.EndVertical();
         }
 
         public override bool IsBusy

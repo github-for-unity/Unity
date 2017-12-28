@@ -23,6 +23,7 @@ namespace GitHub.Unity
         {
             base.InitializeView(parent);
             gitExecutableIsSet = Environment.GitExecutablePath != null;
+            Redraw();
         }
 
         public override void OnEnable()
