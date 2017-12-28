@@ -6,12 +6,10 @@ namespace GitHub.Unity
 {
     class UnzipTask: TaskBase
     {
-        protected static ILogging Logger { get; } = Logging.GetLogger<UnzipTask>();
-
-        private string archiveFilePath;
-        private string extractedPath;
-        private IProgress<float> zipFileProgress;
-        private IProgress<long> estimatedDurationProgress;
+        private readonly string archiveFilePath;
+        private readonly string extractedPath;
+        private readonly IProgress<float> zipFileProgress;
+        private readonly IProgress<long> estimatedDurationProgress;
 
         public UnzipTask(CancellationToken token, string archiveFilePath, string extractedPath, IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
             : base(token)
