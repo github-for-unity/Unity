@@ -30,6 +30,13 @@ namespace GitHub.Unity
 
         [NonSerialized] private bool isBusy;
         [NonSerialized] private bool gitExecHasChanged;
+        [NonSerialized] private bool gitExecutableIsSet;
+
+        public override void InitializeView(IView parent)
+        {
+            base.InitializeView(parent);
+            gitExecutableIsSet = Environment.GitExecutablePath != null;
+        }
 
         public override void OnEnable()
         {
@@ -48,7 +55,7 @@ namespace GitHub.Unity
             // Install path
             GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(IsBusy || Parent.IsBusy);
+            EditorGUI.BeginDisabledGroup(!gitExecutableIsSet || IsBusy || Parent.IsBusy);
             {
                 // Install path field
                 GUILayout.BeginHorizontal();
