@@ -2,18 +2,17 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using GitHub.Unity;
 
 namespace IntegrationTests
 {
     class BaseGitEnvironmentTest : BasePlatformIntegrationTest
     {
-        protected async Task<IEnvironment> Initialize(NPath repoPath, NPath environmentPath = null,
+        protected IEnvironment Initialize(NPath repoPath, NPath environmentPath = null,
             bool enableEnvironmentTrace = false, bool initializeRepository = true,
             Action<RepositoryManager> onRepositoryManagerCreated = null)
         {
-            await InitializePlatform(repoPath, environmentPath, enableEnvironmentTrace);
+            InitializePlatform(repoPath, environmentPath, enableEnvironmentTrace);
 
             var repositoryManager =
                 GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);

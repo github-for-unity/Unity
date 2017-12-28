@@ -19,7 +19,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -117,7 +117,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -174,7 +174,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -229,7 +229,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -305,7 +305,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -381,7 +381,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -435,7 +435,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanUnsynchronized, initializeRepository: false);
+                Initialize(TestRepoMasterCleanUnsynchronized, initializeRepository: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanUnsynchronized))
                 {

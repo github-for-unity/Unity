@@ -167,6 +167,11 @@ namespace GitHub.Unity
             File.WriteAllText(path, contents, encoding);
         }
 
+        public byte[] ReadAllBytes(string path)
+        {
+            return File.ReadAllBytes(path);
+        }
+
         public string ReadAllText(string path)
         {
             return File.ReadAllText(path);

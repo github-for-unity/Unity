@@ -79,14 +79,16 @@
     <Compile Include="BaseGitEnvironmentTest.cs" />
     <Compile Include="BasePlatformIntegrationTest.cs" />
     <Compile Include="BaseIntegrationTest.cs" />
-    <Compile Include="GitClientTests.cs" />
-    <Compile Include="Git\GitSetupTests.cs" />
-    <Compile Include="Git\IntegrationTestEnvironment.cs" />
+    <Compile Include="Git\GitClientTests.cs" />
+    <Compile Include="IntegrationTestEnvironment.cs" />
+    <Compile Include="Installer\PortableGitInstallTaskTests.cs" />
+    <Compile Include="Installer\ShortCircuitTaskTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="Process\ProcessManagerIntegrationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SetUpFixture.cs" />
     <Compile Include="ThreadSynchronizationContext.cs" />
+    <Compile Include="UnzipTaskTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)src\GitHub.Api\GitHub.Api.csproj">
