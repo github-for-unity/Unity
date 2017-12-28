@@ -18,17 +18,14 @@ namespace GitHub.Unity
         private readonly CancellationToken cancellationToken;
         private readonly IEnvironment environment;
         private readonly ILogging logger;
-
-        private delegate void ExtractZipFile(string archive, string outFolder, CancellationToken cancellationToken,
-            IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null);
-        private ExtractZipFile extractCallback;
+        private readonly IZipHelper zipHelper;
 
         public GitInstaller(IEnvironment environment, CancellationToken cancellationToken)
-            : this(environment, null, cancellationToken)
+            : this(environment, ZipHelper.Instance, cancellationToken)
         {
         }
 
-        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, CancellationToken cancellationToken)
+        public GitInstaller(IEnvironment environment, IZipHelper zipHelper, CancellationToken cancellationToken)
         {
             Guard.ArgumentNotNull(environment, nameof(environment));
 
@@ -36,10 +33,7 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
 
             this.environment = environment;
-            this.extractCallback = sharpZipLibHelper != null
-                 ? (ExtractZipFile)sharpZipLibHelper.Extract
-                 : ZipHelper.ExtractZipFile;
-
+            this.zipHelper = zipHelper;
 
             GitInstallationPath = environment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
                 .ToNPath().Combine(ApplicationInfo.ApplicationName, PackageNameWithVersion);
@@ -184,7 +178,7 @@ namespace GitHub.Unity
             {
                 logger.Trace("Extracting \"{0}\" to \"{1}\"", archiveFilePath, unzipPath);
 
-                extractCallback(archiveFilePath, unzipPath, cancellationToken, zipFileProgress,
+                zipHelper.Extract(archiveFilePath, unzipPath, cancellationToken, zipFileProgress,
                     estimatedDurationProgress);
             }
             catch (Exception ex)
@@ -249,7 +243,7 @@ namespace GitHub.Unity
             {
                 logger.Trace("Extracting \"{0}\" to \"{1}\"", archiveFilePath, unzipPath);
 
-                extractCallback(archiveFilePath, unzipPath, cancellationToken, zipFileProgress,
+                zipHelper.Extract(archiveFilePath, unzipPath, cancellationToken, zipFileProgress,
                     estimatedDurationProgress);
             }
             catch (Exception ex)

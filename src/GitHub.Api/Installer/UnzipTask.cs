@@ -8,14 +8,23 @@ namespace GitHub.Unity
     {
         private readonly string archiveFilePath;
         private readonly string extractedPath;
+        private readonly IZipHelper zipHelper;
         private readonly IProgress<float> zipFileProgress;
         private readonly IProgress<long> estimatedDurationProgress;
 
-        public UnzipTask(CancellationToken token, string archiveFilePath, string extractedPath, IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+        public UnzipTask(CancellationToken token, string archiveFilePath, string extractedPath,
+            IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null) :
+            this(token, archiveFilePath, extractedPath, ZipHelper.Instance, zipFileProgress, estimatedDurationProgress)
+        {
+            
+        }
+
+        public UnzipTask(CancellationToken token, string archiveFilePath, string extractedPath, IZipHelper zipHelper, IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
             : base(token)
         {
             this.archiveFilePath = archiveFilePath;
             this.extractedPath = extractedPath;
+            this.zipHelper = zipHelper;
             this.zipFileProgress = zipFileProgress;
             this.estimatedDurationProgress = estimatedDurationProgress;
         }
@@ -32,7 +41,7 @@ namespace GitHub.Unity
             Logger.Trace("Zip File: {0}", archiveFilePath);
             Logger.Trace("Target Path: {0}", extractedPath);
 
-            ZipHelper.ExtractZipFile(archiveFilePath, extractedPath, Token, zipFileProgress, estimatedDurationProgress);
+            zipHelper.Extract(archiveFilePath, extractedPath, Token, zipFileProgress, estimatedDurationProgress);
 
             Logger.Trace("Completed");
         }
