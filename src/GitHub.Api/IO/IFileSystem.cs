@@ -34,6 +34,7 @@ namespace GitHub.Unity
         void WriteAllText(string path, string contents);
         void WriteAllText(string path, string contents, Encoding encoding);
         void WriteAllLines(string path, string[] contents);
+        byte[] ReadAllBytes(string path);
         string ReadAllText(string path);
         string ReadAllText(string path, Encoding encoding);
         Stream OpenRead(string path);
