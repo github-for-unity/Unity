@@ -24,7 +24,7 @@ namespace IntegrationTests
         }
 
         [Test]
-        public async Task ShouldPerformBasicInitialize()
+        public void ShouldPerformBasicInitialize()
         {
             Logger.Trace("Starting ShouldPerformBasicInitialize");
 
@@ -32,7 +32,7 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
@@ -69,7 +69,7 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
@@ -119,7 +119,7 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
@@ -197,7 +197,7 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
@@ -275,7 +275,7 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
@@ -325,7 +325,7 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
@@ -377,7 +377,7 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
@@ -446,7 +446,7 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
@@ -522,7 +522,7 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                await Initialize(TestRepoMasterTwoRemotes, initializeRepository: false,
+                Initialize(TestRepoMasterTwoRemotes, initializeRepository: false,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
@@ -598,7 +598,7 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
@@ -647,7 +647,7 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                await Initialize(TestRepoMasterCleanUnsynchronized, initializeRepository: false,
+                Initialize(TestRepoMasterCleanUnsynchronized, initializeRepository: false,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
