@@ -24,8 +24,8 @@ namespace IntegrationTests
 
             gitInstallTask.Start().Wait();
 
-            var calculateFolderMd5 = Environment.FileSystem.CalculateFolderMD5(gitInstallDetails.GitInstallPath);
-            calculateFolderMd5.Should().Be(PortableGitInstallDetails.ExtractedMD5);
+            Environment.FileSystem.CalculateFolderMD5(gitInstallDetails.GitInstallPath).Should().Be(PortableGitInstallDetails.ExtractedMD5);
+            Environment.FileSystem.CalculateFolderMD5(gitInstallDetails.GitInstallPath, false).Should().Be(PortableGitInstallDetails.FileListMD5);
 
             new PortableGitInstallTask(CancellationToken.None, Environment, gitInstallDetails)
                 .Then(new PortableGitInstallTask(CancellationToken.None, Environment, gitInstallDetails))

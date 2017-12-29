@@ -12,13 +12,17 @@ namespace GitHub.Unity
         public NPath GitLfsExecPath { get; }
 
         public const string ExtractedMD5 = "65fd0575d3b47d8207b9e19d02faca4f";
+        public const string FileListMD5 = "a152a216b2e76f6c127053251187a278";
 
-        private const string ExpectedVersion = "f02737a78695063deace08e96d5042710d3e32db";
+        private const string PackageVersion = "f02737a78695063deace08e96d5042710d3e32db";
         private const string PackageName = "PortableGit";
-        private const string PackageNameWithVersion = PackageName + "_" + ExpectedVersion;
+        private const string PackageNameWithVersion = PackageName + "_" + PackageVersion;
+
+        private readonly bool onWindows;
 
         public PortableGitInstallDetails(NPath targetInstallPath, bool onWindows)
         {
+            this.onWindows = onWindows;
             var gitInstallPath = targetInstallPath.Combine(ApplicationInfo.ApplicationName, PackageNameWithVersion);
             GitInstallPath = gitInstallPath;
 
@@ -28,7 +32,6 @@ namespace GitHub.Unity
                 GitLfsExec += "git-lfs.exe";
 
                 GitExecPath = gitInstallPath.Combine("cmd", GitExec);
-                GitLfsExecPath = gitInstallPath.Combine("mingw32", "libexec", "git-core", GitLfsExec);
             }
             else
             {
@@ -36,8 +39,16 @@ namespace GitHub.Unity
                 GitLfsExec = "git-lfs";
 
                 GitExecPath = gitInstallPath.Combine("bin", GitExec);
-                GitLfsExecPath = gitInstallPath.Combine("libexec", "git-core", GitLfsExec);
             }
+
+            GitLfsExecPath = GetGitLfsExecPath(gitInstallPath);
+        }
+
+        public NPath GetGitLfsExecPath(NPath gitInstallRoot)
+        {
+            return onWindows
+                ? gitInstallRoot.Combine("mingw32", "libexec", "git-core", GitLfsExec)
+                : gitInstallRoot.Combine("libexec", "git-core", GitLfsExec);
         }
     }
 
@@ -64,20 +75,74 @@ namespace GitHub.Unity
                 return installDetails.GitExecPath;
             }
 
-            var installGit = InstallGit();
-            if (installGit)
+            Token.ThrowIfCancellationRequested();
+
+            installDetails.GitInstallPath.DeleteIfExists();
+            installDetails.GitInstallPath.EnsureParentDirectoryExists();
+
+            Token.ThrowIfCancellationRequested();
+
+            var extractTarget = NPath.CreateTempDirectory("git_install_task");
+            var installGit = InstallGit(extractTarget);
+            if (!installGit)
             {
-                var installGitLfs = InstallGitLfs();
-                if (installGitLfs)
-                {
-                    Logger.Trace("Completed PortableGitInstallTask");
-                    return installDetails.GitExecPath;
-                }
+                Logger.Warning("Failed PortableGitInstallTask");
+                return null;
             }
 
-            Logger.Warning("Unsuccessful PortableGitInstallTask");
+            Token.ThrowIfCancellationRequested();
 
-            return null;
+            var installGitLfs = InstallGitLfs(extractTarget);
+            if (!installGitLfs)
+            {
+                Logger.Warning("Failed PortableGitInstallTask");
+                return null;
+            }
+
+            Token.ThrowIfCancellationRequested();
+
+            var extractedMD5 = environment.FileSystem.CalculateFolderMD5(extractTarget);
+            if (!extractedMD5.Equals(PortableGitInstallDetails.ExtractedMD5, StringComparison.InvariantCultureIgnoreCase))
+            {
+                Logger.Warning("MD5 {0} does not match expected {1}", extractedMD5, PortableGitInstallDetails.ExtractedMD5);
+                Logger.Warning("Failed PortableGitInstallTask");
+                return null;
+            }
+
+            var moveSuccessful = MoveExtractTarget(extractTarget);
+            if (!moveSuccessful)
+            {
+                Logger.Warning("Failed PortableGitInstallTask");
+                return null;
+            }
+
+            Logger.Trace("Completed PortableGitInstallTask");
+            return installDetails.GitExecPath;
+        }
+
+        private bool MoveExtractTarget(NPath extractTarget)
+        {
+            try
+            {
+                Logger.Trace("Moving tempDirectory:\"{0}\" to extractTarget:\"{1}\"", extractTarget,
+                    installDetails.GitInstallPath);
+
+                extractTarget.Move(installDetails.GitInstallPath);
+
+                Logger.Trace("Deleting extractTarget:\"{0}\"", extractTarget);
+                extractTarget.DeleteIfExists();
+
+                Logger.Trace("Completed PortableGitInstallTask");
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning(ex, "Error Moving tempDirectory:\"{0}\" to extractTarget:\"{1}\"", extractTarget,
+                    installDetails.GitInstallPath);
+
+                return false;
+            }
+
+            return true;
         }
 
         private bool IsPortableGitExtracted()
@@ -88,10 +153,10 @@ namespace GitHub.Unity
                 return false;
             }
 
-            var installMD5 = environment.FileSystem.CalculateFolderMD5(installDetails.GitInstallPath);
-            if (!installMD5.Equals(PortableGitInstallDetails.ExtractedMD5, StringComparison.InvariantCultureIgnoreCase))
+            var fileListMD5 = environment.FileSystem.CalculateFolderMD5(installDetails.GitInstallPath, false);
+            if (!fileListMD5.Equals(PortableGitInstallDetails.FileListMD5, StringComparison.InvariantCultureIgnoreCase))
             {
-                Logger.Trace("MD5 {0} does not match expected {1}", installMD5, PortableGitInstallDetails.ExtractedMD5);
+                Logger.Trace("MD5 {0} does not match expected {1}", fileListMD5, PortableGitInstallDetails.FileListMD5);
                 return false;
             }
 
@@ -99,11 +164,11 @@ namespace GitHub.Unity
             return true;
         }
 
-        private bool InstallGit()
+        private bool InstallGit(NPath targetPath)
         {
             Logger.Trace("InstallGit");
 
-            var tempPath = NPath.GetTempFilename();
+            var tempPath = NPath.CreateTempDirectory("git_zip_path");
             var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", tempPath, environment);
 
             if (!environment.FileSystem.FileExists(gitArchivePath))
@@ -115,54 +180,31 @@ namespace GitHub.Unity
 
             Token.ThrowIfCancellationRequested();
 
-            var tempDirectory = NPath.CreateTempDirectory("git_install_task");
-
             try
             {
-                Logger.Trace("Extracting gitArchivePath:\"{0}\" tempDirectory:\"{1}\"",
-                    gitArchivePath, tempDirectory);
+                Logger.Trace("Extracting gitArchivePath:\"{0}\" targetPath:\"{1}\"",
+                    gitArchivePath, targetPath);
 
-                ZipHelper.ExtractZipFile(gitArchivePath, tempDirectory, Token);
+                ZipHelper.ExtractZipFile(gitArchivePath, targetPath, Token);
             }
             catch (Exception ex)
             {
                 Logger.Warning(ex, "Error Extracting gitArchivePath:\"{0}\" tempDirectory:\"{1}\"", 
-                    gitArchivePath, tempDirectory);
+                    gitArchivePath, targetPath);
 
                 return false;
             }
 
-            Token.ThrowIfCancellationRequested();
-
-            try
-            {
-                installDetails.GitInstallPath.DeleteIfExists();
-                installDetails.GitInstallPath.EnsureParentDirectoryExists();
-
-                Logger.Trace("Moving tempDirectory:\"{0}\" to gitInstallPath:\"{1}\"",
-                    tempDirectory, installDetails.GitInstallPath);
-
-                tempDirectory.Move(installDetails.GitInstallPath);
-            }
-            catch (Exception ex)
-            {
-                Logger.Warning(ex, "Error Moving tempDirectory:\"{0}\" to gitInstallPath:\"{1}\"", 
-                    tempDirectory, installDetails.GitInstallPath);
-
-                return false;
-            }
-
-            Logger.Trace("Deleting tempDirectory:\"{0}\"", tempDirectory);
-            tempDirectory.DeleteIfExists();
+            tempPath.DeleteIfExists();
 
             return true;
         }
 
-        private bool InstallGitLfs()
+        private bool InstallGitLfs(NPath targetPath)
         {
             Logger.Trace("InstallGitLfs");
 
-            var tempPath = NPath.GetTempFilename();
+            var tempPath = NPath.CreateTempDirectory("git_lfs_zip_path");
             var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", tempPath, environment);
 
             if (!environment.FileSystem.FileExists(gitLfsArchivePath))
@@ -173,7 +215,7 @@ namespace GitHub.Unity
 
             Token.ThrowIfCancellationRequested();
 
-            var tempDirectory = NPath.CreateTempDirectory("git_install_task");
+            var tempDirectory = NPath.CreateTempDirectory("git_lfs_extract_path");
 
             try
             {
@@ -182,7 +224,7 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Logger.Warning($"Error Extracting gitLfsArchivePath:\"{gitLfsArchivePath}\" tempDirectory:\"{tempDirectory}\"", ex);
+                Logger.Warning(ex, $"Error Extracting gitLfsArchivePath:\"{gitLfsArchivePath}\" tempDirectory:\"{tempDirectory}\"");
                 return false;
             }
 
@@ -190,14 +232,15 @@ namespace GitHub.Unity
 
             var tempDirectoryGitLfsExec = tempDirectory.Combine(installDetails.GitLfsExec);
 
+            var targetLfsExecPath = installDetails.GetGitLfsExecPath(targetPath);
             try
             {
-                Logger.Trace("Moving tempDirectoryGitLfsExec:\"{0}\" to gitLfsExecFullPath:\"{1}\"", tempDirectoryGitLfsExec, installDetails.GitLfsExecPath);
-                tempDirectoryGitLfsExec.Move(installDetails.GitLfsExecPath);
+                Logger.Trace("Moving tempDirectoryGitLfsExec:\"{0}\" to targetLfsExecPath:\"{1}\"", tempDirectoryGitLfsExec, targetLfsExecPath);
+                tempDirectoryGitLfsExec.Move(targetLfsExecPath);
             }
             catch (Exception ex)
             {
-                Logger.Warning($"Error Moving tempDirectoryGitLfsExec:\"{tempDirectoryGitLfsExec}\" to gitLfsExecFullPath:\"{installDetails.GitLfsExecPath}\"", ex);
+                Logger.Warning(ex, $"Error Moving tempDirectoryGitLfsExec:\"{tempDirectoryGitLfsExec}\" to targetLfsExecPath:\"{targetLfsExecPath}\"");
                 return false;
             }
 
