@@ -8,21 +8,6 @@ namespace GitHub.Unity
 {
     static class FileSystemExtensions
     {
-        public static string CalculateMD5(this IFileSystem fileSystem, string path)
-        {
-            if (fileSystem.DirectoryExists(path))
-            {
-                return fileSystem.CalculateFolderMD5(path);
-            }
-
-            if (fileSystem.FileExists(path))
-            {
-                return fileSystem.CalculateFileMD5(path);
-            }
-
-            throw new ArgumentException($@"Path does not exist: ""{path}""");
-        }
-
         public static string CalculateFileMD5(this IFileSystem fileSystem, string file)
         {
             byte[] computeHash;
