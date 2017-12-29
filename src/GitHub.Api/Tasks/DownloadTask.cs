@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading;
 
 namespace GitHub.Unity
@@ -100,7 +101,7 @@ namespace GitHub.Unity
         }
     }
 
-    class DownloadTask: TaskBase<DownloadResult>
+    class DownloadTask : TaskBase<DownloadResult>
     {
         private IFileSystem fileSystem;
         private long bytes;
@@ -121,10 +122,11 @@ namespace GitHub.Unity
         protected override DownloadResult RunWithReturn(bool success)
         {
             base.RunWithReturn(success);
-            
+
             RaiseOnStart();
 
-            var downloadResult = new DownloadResult {
+            var downloadResult = new DownloadResult
+            {
                 Url = Url,
                 Destination = Destination
             };
@@ -213,10 +215,10 @@ namespace GitHub.Unity
                     }
                 }
 
-                var responseLength =  webResponse.ContentLength;
+                var responseLength = webResponse.ContentLength;
                 if (restarted && bytes > 0)
                 {
-                    UpdateProgress(bytes / (float) responseLength);
+                    UpdateProgress(bytes / (float)responseLength);
                 }
 
                 using (var responseStream = webResponse.GetResponseStream())
@@ -235,5 +237,45 @@ namespace GitHub.Unity
         protected string Url { get; }
 
         protected string Destination { get; }
+    }
+
+    class DownloadTextTask : TaskBase<string>
+    {
+        public float Progress { get; set; }
+
+        public DownloadTextTask(CancellationToken token, string url)
+            : base(token)
+        {
+            Url = url;
+            Name = "DownloadTask";
+        }
+
+        protected override string RunWithReturn(bool success)
+        {
+            base.RunWithReturn(success);
+
+            RaiseOnStart();
+
+            var webRequest = WebRequest.Create(Url);
+            webRequest.Method = "GET";
+            webRequest.Timeout = 3000;
+
+            using (var webResponse = (HttpWebResponse) webRequest.GetResponseWithoutException())
+            {
+                var webResponseCharacterSet = webResponse.CharacterSet ?? Encoding.UTF8.BodyName;
+                var encoding = Encoding.GetEncoding(webResponseCharacterSet);
+
+                using (var responseStream = webResponse.GetResponseStream())
+                using (var reader = new StreamReader(responseStream, encoding))
+                    return reader.ReadToEnd();
+            }
+        }
+
+        protected virtual void UpdateProgress(float progress)
+        {
+            Progress = progress;
+        }
+
+        protected string Url { get; }
     }
 }

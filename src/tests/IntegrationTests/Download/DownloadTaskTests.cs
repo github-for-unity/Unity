@@ -49,5 +49,16 @@ namespace IntegrationTests.Download
 
             downloadResult.MD5Sum.Should().Be(TestDownloadMD5.ToUpperInvariant());
         }
+
+        [Test]
+        public void TestDownloadTextTask()
+        {
+            InitializeTaskManager();
+
+            var downloadTask = new DownloadTextTask(CancellationToken.None, "https://github.com/robots.txt");
+            var result = downloadTask.Start().Result;
+            var resultLines = result.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            resultLines[0].Should().Be("# If you would like to crawl GitHub contact us at support@github.com.");
+        }
     }
 }
