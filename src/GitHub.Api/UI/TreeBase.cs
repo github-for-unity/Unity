@@ -26,17 +26,29 @@ namespace GitHub.Unity
 
     public abstract class TreeBase<TNode, TData> where TNode : class, ITreeNode where TData : struct, ITreeData
     {
+        protected ILogging Logger { get; }
+
+        protected TreeBase()
+        {
+            Logger = Logging.GetLogger(GetType());
+        }
+
         public abstract IEnumerable<string> GetCheckedFiles();
 
         public void Load(IEnumerable<TData> treeDatas)
         {
+            Logger.Trace("Load");
+
             var collapsedFolders = new HashSet<string>(GetCollapsedFolders());
             var selectedNodePath = SelectedNodePath;
             var checkedFiles = new HashSet<string>(GetCheckedFiles());
+            var pathSeparator = PathSeparator;
 
             Clear();
 
             var displayRootLevel = DisplayRootNode ? 1 : 0;
+
+            var isCheckable = IsCheckable;
 
             var isSelected = IsSelectable && selectedNodePath != null && Title == selectedNodePath;
             AddNode(Title, Title, -1 + displayRootLevel, true, false, false, false, isSelected, false, null);
@@ -48,12 +60,12 @@ namespace GitHub.Unity
 
             foreach (var treeData in treeDatas)
             {
-                var parts = treeData.Path.Split(new[] { PathSeparator }, StringSplitOptions.None);
+                var parts = treeData.Path.Split(new[] { pathSeparator }, StringSplitOptions.None);
                 for (var i = 0; i < parts.Length; i++)
                 {
                     var label = parts[i];
                     var level = i + 1;
-                    var nodePath = String.Join(PathSeparator, parts, 0, level);
+                    var nodePath = String.Join(pathSeparator, parts, 0, level);
                     var isFolder = i < parts.Length - 1;
                     var alreadyExists = folders.Contains(nodePath);
                     if (!alreadyExists)
@@ -95,7 +107,7 @@ namespace GitHub.Unity
                         {
                             isActive = treeData.IsActive;
                             treeNodeTreeData = treeData;
-                            isChecked = checkedFiles.Contains(nodePath);
+                            isChecked = isCheckable && checkedFiles.Contains(nodePath);
                         }
 
                         isSelected = selectedNodePath != null && nodePath == selectedNodePath;
@@ -105,19 +117,20 @@ namespace GitHub.Unity
                 }
             }
 
-            if (IsCheckable && checkedFiles.Any())
+            if (isCheckable && checkedFiles.Any())
             {
-                for (var index = Nodes.Count - 1; index >= 0; index--)
+                var nodes = Nodes;
+                for (var index = nodes.Count - 1; index >= 0; index--)
                 {
-                    var node = Nodes[index];
+                    var node = nodes[index];
                     if (node.Level >= 0 && node.IsFolder)
                     {
                         bool? anyChecked = null;
                         bool? allChecked = null;
 
-                        for (var i = index + 1; i < Nodes.Count; i++)
+                        for (var i = index + 1; i < nodes.Count; i++)
                         {
-                            var nodeCompare = Nodes[i];
+                            var nodeCompare = nodes[i];
                             if (nodeCompare.Level < node.Level + 1)
                             {
                                 break;
