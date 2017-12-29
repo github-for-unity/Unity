@@ -19,13 +19,13 @@ namespace IntegrationTests
             var cacheContainer = Substitute.For<ICacheContainer>();
             Environment = new IntegrationTestEnvironment(cacheContainer, TestBasePath, SolutionDirectory);
 
-            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", TestBasePath.Combine("gip_zip_extracted"), Environment);
+            var destinationPath = TestBasePath.Combine("git_zip").CreateDirectory();
+            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", destinationPath, Environment);
 
             Logger.Trace("ArchiveFilePath: {0}", archiveFilePath);
             Logger.Trace("TestBasePath: {0}", TestBasePath);
 
-            var extractedPath = TestBasePath.Combine("git_zip_extracted");
-            extractedPath.CreateDirectory();
+            var extractedPath = TestBasePath.Combine("git_zip_extracted").CreateDirectory();
 
             var zipProgress = 0;
             Logger.Trace("Pct Complete {0}%", zipProgress);
