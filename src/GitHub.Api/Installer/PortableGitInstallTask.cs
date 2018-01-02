@@ -56,10 +56,14 @@ namespace GitHub.Unity
     {
         private readonly PortableGitInstallDetails installDetails;
         private readonly IEnvironment environment;
+        private readonly string gitArchivePath;
+        private readonly string gitLfsArchivePath;
 
-        public PortableGitInstallTask(CancellationToken token, IEnvironment environment, PortableGitInstallDetails installDetails) : base(token)
+        public PortableGitInstallTask(CancellationToken token, IEnvironment environment, string gitArchivePath, string gitLfsArchivePath, PortableGitInstallDetails installDetails) : base(token)
         {
             this.environment = environment;
+            this.gitArchivePath = gitArchivePath;
+            this.gitLfsArchivePath = gitLfsArchivePath;
             this.installDetails = installDetails;
         }
 
@@ -168,9 +172,6 @@ namespace GitHub.Unity
         {
             Logger.Trace("InstallGit");
 
-            var tempZipPath = NPath.CreateTempDirectory("git_zip_path");
-            var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", tempZipPath, environment);
-
             if (!environment.FileSystem.FileExists(gitArchivePath))
             {
                 Logger.Warning("Archive \"{0}\" missing", gitArchivePath);
@@ -195,17 +196,12 @@ namespace GitHub.Unity
                 return false;
             }
 
-            tempZipPath.DeleteIfExists();
-
             return true;
         }
 
         private bool InstallGitLfs(NPath targetPath)
         {
             Logger.Trace("InstallGitLfs");
-
-            var tempZipPath = NPath.CreateTempDirectory("git_lfs_zip_path");
-            var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", tempZipPath, environment);
 
             if (!environment.FileSystem.FileExists(gitLfsArchivePath))
             {
@@ -243,8 +239,6 @@ namespace GitHub.Unity
                 Logger.Warning(ex, $"Error Moving tempDirectoryGitLfsExec:\"{tempDirectoryGitLfsExec}\" to targetLfsExecPath:\"{targetLfsExecPath}\"");
                 return false;
             }
-
-            tempZipPath.DeleteIfExists();
             tempZipExtractPath.DeleteIfExists();
 
             return true;
