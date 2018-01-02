@@ -90,7 +90,7 @@ namespace GitHub.Unity
         }
     }
 
-    class DownloadTask : TaskBase
+    class DownloadTask : TaskBase<bool>
     {
         private IFileSystem fileSystem;
         private long bytes;
@@ -108,22 +108,16 @@ namespace GitHub.Unity
             Name = "DownloadTask";
         }
 
-        protected override void Run(bool success)
+        protected override bool RunWithReturn(bool success)
         {
-            base.Run(success);
+            base.RunWithReturn(success);
 
             RaiseOnStart();
 
-            var downloadResult = new DownloadResult
-            {
-                Url = Url,
-                Destination = Destination
-            };
-
+            var result = false;
             try
             {
-                downloadResult.Success = Download();
-                downloadResult.MD5Sum = fileSystem.CalculateMD5(Destination);
+                result = Download();
             }
             catch (Exception ex)
             {
@@ -133,8 +127,10 @@ namespace GitHub.Unity
             }
             finally
             {
-                RaiseOnEnd();
+                RaiseOnEnd(result);
             }
+
+            return result;
         }
 
         protected virtual void UpdateProgress(float progress)
@@ -144,7 +140,7 @@ namespace GitHub.Unity
 
         public bool Download()
         {
-            FileInfo fileInfo = new FileInfo(Destination);
+            var fileInfo = new FileInfo(Destination);
             if (fileSystem.FileExists(Destination))
             {
                 var fileLength = fileSystem.FileLength(Destination);

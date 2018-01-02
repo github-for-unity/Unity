@@ -26,7 +26,9 @@ namespace IntegrationTests.Download
             var downloadHalfPath = TestBasePath.Combine("5MB-split.zip");
 
             var downloadTask = new DownloadTask(CancellationToken.None, fileSystem, TestDownload, downloadPath);
-            await downloadTask.StartAwait();
+            var downloadResult = await downloadTask.StartAwait();
+
+            downloadResult.Should().BeTrue();
 
             var downloadPathBytes = fileSystem.ReadAllBytes(downloadPath);
             Logger.Trace("File size {0} bytes", downloadPathBytes.Length);
@@ -43,7 +45,9 @@ namespace IntegrationTests.Download
             fileSystem.WriteAllBytes(downloadHalfPath, cutDownloadPathBytes);
 
             downloadTask = new DownloadTask(CancellationToken.None, fileSystem, TestDownload, downloadHalfPath);
-            await downloadTask.StartAwait();
+            downloadResult = await downloadTask.StartAwait();
+
+            downloadResult.Should().BeTrue();
 
             var downloadHalfPathBytes = fileSystem.ReadAllBytes(downloadHalfPath);
             Logger.Trace("File size {0} Bytes", downloadHalfPathBytes.Length);
