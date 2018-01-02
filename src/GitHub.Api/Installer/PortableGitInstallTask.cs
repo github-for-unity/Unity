@@ -168,8 +168,8 @@ namespace GitHub.Unity
         {
             Logger.Trace("InstallGit");
 
-            var tempPath = NPath.CreateTempDirectory("git_zip_path");
-            var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", tempPath, environment);
+            var tempZipPath = NPath.CreateTempDirectory("git_zip_path");
+            var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", tempZipPath, environment);
 
             if (!environment.FileSystem.FileExists(gitArchivePath))
             {
@@ -195,7 +195,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            tempPath.DeleteIfExists();
+            tempZipPath.DeleteIfExists();
 
             return true;
         }
@@ -204,8 +204,8 @@ namespace GitHub.Unity
         {
             Logger.Trace("InstallGitLfs");
 
-            var tempPath = NPath.CreateTempDirectory("git_lfs_zip_path");
-            var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", tempPath, environment);
+            var tempZipPath = NPath.CreateTempDirectory("git_lfs_zip_path");
+            var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", tempZipPath, environment);
 
             if (!environment.FileSystem.FileExists(gitLfsArchivePath))
             {
@@ -215,22 +215,22 @@ namespace GitHub.Unity
 
             Token.ThrowIfCancellationRequested();
 
-            var tempDirectory = NPath.CreateTempDirectory("git_lfs_extract_path");
+            var tempZipExtractPath = NPath.CreateTempDirectory("git_lfs_extract_path");
 
             try
             {
-                Logger.Trace("Extracting gitLfsArchivePath:\"{0}\" tempDirectory:\"{1}\"", gitLfsArchivePath, tempDirectory);
-                ZipHelper.ExtractZipFile(gitLfsArchivePath, tempDirectory, Token);
+                Logger.Trace("Extracting gitLfsArchivePath:\"{0}\" tempDirectory:\"{1}\"", gitLfsArchivePath, tempZipExtractPath);
+                ZipHelper.ExtractZipFile(gitLfsArchivePath, tempZipExtractPath, Token);
             }
             catch (Exception ex)
             {
-                Logger.Warning(ex, $"Error Extracting gitLfsArchivePath:\"{gitLfsArchivePath}\" tempDirectory:\"{tempDirectory}\"");
+                Logger.Warning(ex, $"Error Extracting gitLfsArchivePath:\"{gitLfsArchivePath}\" tempDirectory:\"{tempZipExtractPath}\"");
                 return false;
             }
 
             Token.ThrowIfCancellationRequested();
 
-            var tempDirectoryGitLfsExec = tempDirectory.Combine(installDetails.GitLfsExec);
+            var tempDirectoryGitLfsExec = tempZipExtractPath.Combine(installDetails.GitLfsExec);
 
             var targetLfsExecPath = installDetails.GetGitLfsExecPath(targetPath);
             try
@@ -244,8 +244,9 @@ namespace GitHub.Unity
                 return false;
             }
 
-            Logger.Trace("Deleting tempDirectory:\"{0}\"", tempDirectory);
-            tempDirectory.DeleteIfExists();
+            tempZipPath.DeleteIfExists();
+            tempZipExtractPath.DeleteIfExists();
+
             return true;
         }
     }
