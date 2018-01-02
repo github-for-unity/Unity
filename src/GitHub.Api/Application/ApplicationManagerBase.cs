@@ -116,10 +116,6 @@ namespace GitHub.Unity
                 var gitArchivePath = zipArchivesPath.Combine("git.zip");
                 var gitLfsArchivePath = zipArchivesPath.Combine("git-lfs.zip");
 
-                //                var zipArchivesPath = NPath.CreateTempDirectory("portable_git_zip").CreateDirectory();
-                //                var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
-                //                var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
-
                 var downloadGitMd5Task = new DownloadTextTask(CancellationToken,
                     "https://github-vs-s3.amazonaws.com/github-vs/unity/portable_git/git.zip.MD5");
 
@@ -136,11 +132,12 @@ namespace GitHub.Unity
                 var downloadGitLfsTask = new DownloadTask(CancellationToken, Environment.FileSystem,
                     "https://github-vs-s3.amazonaws.com/github-vs/unity/portable_git/git-lfs.zip", gitLfsArchivePath);
 
-                downloadGitLfsMd5Task.Then((b, s) => {
-                    downloadGitTask.ValidationHash = s;
-                }).Then(downloadGitTask);
+                downloadGitLfsTask = downloadGitLfsMd5Task.Then((b, s) => {
+                    downloadGitLfsTask.ValidationHash = s;
+                }).Then(downloadGitLfsTask);
 
-                var installTask = new PortableGitInstallTask(CancellationToken, Environment, gitArchivePath, gitLfsArchivePath, installDetails);
+                var installTask = downloadGitTask.Then(downloadGitLfsTask)
+                    .Then(new PortableGitInstallTask(CancellationToken, Environment, gitArchivePath, gitLfsArchivePath, installDetails));
 
                 determinePath = determinePath
                     .Then(new ShortCircuitTask<NPath>(CancellationToken, installTask))
