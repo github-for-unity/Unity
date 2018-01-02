@@ -92,5 +92,57 @@ namespace IntegrationTests.Download
             var resultLines = result.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             resultLines[0].Should().Be("# If you would like to crawl GitHub contact us at support@github.com.");
         }
+        
+        [Test]
+        public void TestDownloadFileAndHash()
+        {
+            InitializeTaskManager();
+
+            var gitArchivePath = TestBasePath.Combine("git.zip");
+            var gitLfsArchivePath = TestBasePath.Combine("git-lfs.zip");
+
+            var fileSystem = new FileSystem();
+
+            var downloadGitMd5Task = new DownloadTextTask(CancellationToken.None,
+                "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt?cb=1");
+
+            var downloadGitTask = new DownloadTask(CancellationToken.None, fileSystem,
+                "https://ghfvs-installer.github.com/unity/portable_git/git.zip", gitArchivePath, retryCount: 1);
+
+            var downloadGitLfsMd5Task = new DownloadTextTask(CancellationToken.None,
+                "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt?cb=1");
+
+            var downloadGitLfsTask = new DownloadTask(CancellationToken.None, fileSystem,
+                "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip", gitLfsArchivePath, retryCount: 1);
+
+            var result = true;
+            Exception exception = null;
+
+            var autoResetEvent = new AutoResetEvent(false);
+
+            downloadGitMd5Task
+                .Then((b, s) =>
+                {
+                    downloadGitTask.ValidationHash = s;
+                })
+                .Then(downloadGitTask)
+                .Then(downloadGitLfsMd5Task)
+                .Then((b, s) =>
+                {
+                    downloadGitLfsTask.ValidationHash = s;
+                })
+                .Then(downloadGitLfsTask)
+                .Finally((b, ex) => {
+                    result = b;
+                    exception = ex;
+                    autoResetEvent.Set();
+                })
+                .Start();
+
+            autoResetEvent.WaitOne();
+
+            result.Should().BeTrue();
+            exception.Should().BeNull();
+        }
     }
 }

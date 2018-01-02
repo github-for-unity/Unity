@@ -130,7 +130,7 @@ namespace GitHub.Unity
 
                         if (!result)
                         {
-                            Logger.Warning($"Downloaded MD5 {md5} does not match expected. Deleting {Destination}.");
+                            Logger.Warning($"Downloaded MD5 {md5} does not match {ValidationHash}. Deleting {Destination}.");
                             fileSystem.FileDelete(Destination);
                         }
                         else
@@ -237,7 +237,7 @@ namespace GitHub.Unity
 
         protected string Destination { get; }
 
-        protected string ValidationHash { get; }
+        public string ValidationHash { get; set; }
 
         protected int RetryCount { get; }
     }
@@ -264,23 +264,41 @@ namespace GitHub.Unity
 
         protected override string RunWithReturn(bool success)
         {
-            base.RunWithReturn(success);
+            var result = base.RunWithReturn(success);
 
             RaiseOnStart();
 
-            var webRequest = WebRequest.Create(Url);
-            webRequest.Method = "GET";
-            webRequest.Timeout = 3000;
-
-            using (var webResponse = (HttpWebResponse) webRequest.GetResponseWithoutException())
+            try
             {
-                var webResponseCharacterSet = webResponse.CharacterSet ?? Encoding.UTF8.BodyName;
-                var encoding = Encoding.GetEncoding(webResponseCharacterSet);
+                Logger.Trace($"Downloading {Url}");
+                var webRequest = WebRequest.Create(Url);
+                webRequest.Method = "GET";
+                webRequest.Timeout = 3000;
 
-                using (var responseStream = webResponse.GetResponseStream())
-                using (var reader = new StreamReader(responseStream, encoding))
-                    return reader.ReadToEnd();
+                using (var webResponse = (HttpWebResponse)webRequest.GetResponseWithoutException())
+                {
+                    var webResponseCharacterSet = webResponse.CharacterSet ?? Encoding.UTF8.BodyName;
+                    var encoding = Encoding.GetEncoding(webResponseCharacterSet);
+
+                    using (var responseStream = webResponse.GetResponseStream())
+                    using (var reader = new StreamReader(responseStream, encoding))
+                    {
+                        result = reader.ReadToEnd();
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                Errors = ex.Message;
+                if (!RaiseFaultHandlers(new DownloadException("Error downloading text", ex)))
+                    throw;
+            }
+            finally
+            {
+                RaiseOnEnd(result);
+            }
+
+            return result;
         }
 
         protected virtual void UpdateProgress(float progress)
