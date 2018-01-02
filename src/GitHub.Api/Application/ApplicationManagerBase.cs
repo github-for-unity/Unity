@@ -88,9 +88,9 @@ namespace GitHub.Unity
                 });
         }
 
-        private TaskBase<NPath> BuildDetermineGitPathTask()
+        private ITask<NPath> BuildDetermineGitPathTask()
         {
-            TaskBase<NPath> determinePath = new FuncTask<NPath>(CancellationToken, () => {
+            ITask<NPath> determinePath = new FuncTask<NPath>(CancellationToken, () => {
                 if (Environment.GitExecutablePath != null)
                 {
                     return Environment.GitExecutablePath;
@@ -111,9 +111,19 @@ namespace GitHub.Unity
             {
                 var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
                 var installDetails = new PortableGitInstallDetails(applicationDataPath, true);
-                var installTask = new PortableGitInstallTask(CancellationToken, Environment, installDetails);
 
-                determinePath = determinePath.Then(new ShortCircuitTask<NPath>(CancellationToken, installTask));
+                var zipArchivesPath = NPath.CreateTempDirectory("portable_git_zip").CreateDirectory();
+                var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
+                var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
+
+                var installTask = new PortableGitInstallTask(CancellationToken, Environment, gitArchivePath, gitLfsArchivePath, installDetails);
+
+                determinePath = determinePath
+                    .Then(new ShortCircuitTask<NPath>(CancellationToken, installTask))
+                    .Then((b, path) => {
+                        zipArchivesPath.DeleteIfExists();
+                        return path;
+                    });
             }
 
             if (!environmentIsWindows)
