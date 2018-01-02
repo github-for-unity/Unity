@@ -26,9 +26,7 @@ namespace IntegrationTests.Download
             var downloadHalfPath = TestBasePath.Combine("5MB-split.zip");
 
             var downloadTask = new DownloadTask(CancellationToken.None, fileSystem, TestDownload, downloadPath);
-            var downloadResult = await downloadTask.StartAwait();
-
-            downloadResult.Should().BeTrue();
+            await downloadTask.StartAwait();
 
             var downloadPathBytes = fileSystem.ReadAllBytes(downloadPath);
             Logger.Trace("File size {0} bytes", downloadPathBytes.Length);
@@ -45,9 +43,7 @@ namespace IntegrationTests.Download
             fileSystem.WriteAllBytes(downloadHalfPath, cutDownloadPathBytes);
 
             downloadTask = new DownloadTask(CancellationToken.None, fileSystem, TestDownload, downloadHalfPath, TestDownloadMD5, 1);
-            downloadResult = await downloadTask.StartAwait();
-
-            downloadResult.Should().BeTrue();
+            await downloadTask.StartAwait();
 
             var downloadHalfPathBytes = fileSystem.ReadAllBytes(downloadHalfPath);
             Logger.Trace("File size {0} Bytes", downloadHalfPathBytes.Length);
@@ -55,6 +51,36 @@ namespace IntegrationTests.Download
             md5Sum = fileSystem.CalculateMD5(downloadPath);
             md5Sum.Should().Be(TestDownloadMD5.ToUpperInvariant());
         }
+
+        [Test]
+        public void TestDownloadFailure()
+        {
+            InitializeTaskManager();
+
+            var fileSystem = new FileSystem();
+
+            var downloadPath = TestBasePath.Combine("5MB.zip");
+
+            var taskFailed = false;
+            Exception exceptionThrown = null;
+
+            var autoResetEvent = new AutoResetEvent(false);
+
+            var downloadTask = new DownloadTask(CancellationToken.None, fileSystem, "http://www.unknown.com/5MB.gz", downloadPath, null, 1)
+                .Finally((b, exception) => {
+                    taskFailed = !b;
+                    exceptionThrown = exception;
+                    autoResetEvent.Set();
+                });
+
+            downloadTask.Start();
+
+            autoResetEvent.WaitOne();
+
+            taskFailed.Should().BeTrue();
+            exceptionThrown.Should().NotBeNull();
+        }
+
 
         [Test]
         public void TestDownloadTextTask()

@@ -90,11 +90,10 @@ namespace GitHub.Unity
         }
     }
 
-    class DownloadTask : TaskBase<bool>
+    class DownloadTask : TaskBase
     {
         private readonly IFileSystem fileSystem;
         private long bytes;
-        private WebRequest webRequest;
         private bool restarted;
 
         public float Progress { get; set; }
@@ -110,19 +109,19 @@ namespace GitHub.Unity
             Name = "DownloadTask";
         }
 
-        protected override bool RunWithReturn(bool success)
+        protected override void Run(bool success)
         {
-            base.RunWithReturn(success);
+            base.Run(success);
 
             RaiseOnStart();
 
-            var result = false;
             var attempts = 0;
             try
             {
+                bool result;
                 do
                 {
-                    Logger.Trace($"Download of {Url} to {Destination} Attempt {attempts + 1} of {RetryCount + 1}");
+                    Logger.Trace($"Download of {Url} Attempt {attempts + 1} of {RetryCount + 1}");
                     result = Download();
                     if (result && ValidationHash != null)
                     {
@@ -140,20 +139,23 @@ namespace GitHub.Unity
                             break;
                         }
                     }
-                } while (RetryCount < attempts++);
+                } while (attempts++ < RetryCount);
+
+                if (!result)
+                {
+                    throw new DownloadException("Error downloading file");
+                }
             }
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                if (!RaiseFaultHandlers(ex))
+                if (!RaiseFaultHandlers(new DownloadException("Error downloading file", ex)))
                     throw;
             }
             finally
             {
-                RaiseOnEnd(result);
+                RaiseOnEnd();
             }
-
-            return result;
         }
 
         protected virtual void UpdateProgress(float progress)
@@ -178,51 +180,42 @@ namespace GitHub.Unity
                 }
             }
 
-            webRequest = WebRequest.Create(Url);
-            var httpWebRequest = webRequest as HttpWebRequest;
-            if (httpWebRequest != null)
+            var expectingResume = restarted && bytes > 0;
+
+            var webRequest = (HttpWebRequest)WebRequest.Create(Url);
+
+            if (expectingResume)
             {
-                if (bytes > 0)
-                {
-                    // TODO: fix classlibs to take long overloads
-                    httpWebRequest.AddRange((int)bytes);
-                }
+                // TODO: fix classlibs to take long overloads
+                webRequest.AddRange((int)bytes);
             }
 
             webRequest.Method = "GET";
             webRequest.Timeout = 3000;
 
-            if (restarted && bytes > 0)
+            if (expectingResume)
                 Logger.Trace($"Resuming download of {Url} to {Destination}");
             else
                 Logger.Trace($"Downloading {Url} to {Destination}");
 
-            using (var webResponse = webRequest.GetResponseWithoutException())
+            using (var webResponse = (HttpWebResponse) webRequest.GetResponseWithoutException())
             {
-                if (webResponse == null)
-                    return false;
+                var httpStatusCode = webResponse.StatusCode;
+                Logger.Trace($"Downloading {Url} StatusCode:{(int)webResponse.StatusCode}");
 
-                if (restarted && bytes > 0)
+                if (expectingResume && httpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
                 {
-                    var httpWebResponse = webResponse as HttpWebResponse;
-                    if (httpWebResponse != null)
-                    {
-                        var httpStatusCode = httpWebResponse.StatusCode;
-                        if (httpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
-                        {
-                            UpdateProgress(1);
-                            return true;
-                        }
+                    UpdateProgress(1);
+                    return true;
+                }
 
-                        if (!(httpStatusCode == HttpStatusCode.OK || httpStatusCode == HttpStatusCode.PartialContent))
-                        {
-                            return false;
-                        }
-                    }
+                if (!(httpStatusCode == HttpStatusCode.OK || httpStatusCode == HttpStatusCode.PartialContent))
+                {
+                    return false;
                 }
 
                 var responseLength = webResponse.ContentLength;
-                if (restarted && bytes > 0)
+                if (expectingResume)
                 {
                     UpdateProgress(bytes / (float)responseLength);
                 }
@@ -247,6 +240,15 @@ namespace GitHub.Unity
         protected string ValidationHash { get; }
 
         protected int RetryCount { get; }
+    }
+
+    class DownloadException : Exception
+    {
+        public DownloadException(string message) : base(message)
+        { }
+
+        public DownloadException(string message, Exception innerException) : base(message, innerException)
+        { }
     }
 
     class DownloadTextTask : TaskBase<string>
