@@ -17,6 +17,14 @@ namespace GitHub.Unity
 
         [NonSerialized] private bool isBusy;
         [NonSerialized] private bool userHasChanges;
+        [NonSerialized] private bool gitExecutableIsSet;
+
+        public override void InitializeView(IView parent)
+        {
+            base.InitializeView(parent);
+            gitExecutableIsSet = Environment.GitExecutablePath != null;
+            Redraw();
+        }
 
         public override void OnEnable()
         {
@@ -54,7 +62,7 @@ namespace GitHub.Unity
                 {
                     GUILayout.FlexibleSpace();
 
-                    EditorGUI.BeginDisabledGroup(IsBusy || !isUserDataPresent);
+                    EditorGUI.BeginDisabledGroup(!gitExecutableIsSet || IsBusy || !isUserDataPresent);
                     {
                         if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
                         {
@@ -70,7 +78,7 @@ namespace GitHub.Unity
                 }
                 GUILayout.EndHorizontal();
 
-                if (hasCompletedInitialCheck && !isUserDataPresent)
+                if (gitExecutableIsSet && hasCompletedInitialCheck && !isUserDataPresent)
                 {
                     EditorGUILayout.Space();
                     EditorGUILayout.HelpBox(NoUserOrEmailError, MessageType.Error);
