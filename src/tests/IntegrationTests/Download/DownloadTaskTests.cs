@@ -26,12 +26,13 @@ namespace IntegrationTests.Download
             var downloadHalfPath = TestBasePath.Combine("5MB-split.zip");
 
             var downloadTask = new DownloadTask(CancellationToken.None, fileSystem, TestDownload, downloadPath);
-            var downloadResult = await downloadTask.StartAwait();
+            await downloadTask.StartAwait();
 
             var downloadPathBytes = fileSystem.ReadAllBytes(downloadPath);
             Logger.Trace("File size {0} bytes", downloadPathBytes.Length);
 
-            downloadResult.MD5Sum.Should().Be(TestDownloadMD5.ToUpperInvariant());
+            var md5Sum = fileSystem.CalculateMD5(downloadPath);
+            md5Sum.Should().Be(TestDownloadMD5.ToUpperInvariant());
 
             var random = new Random();
             var takeCount = random.Next(downloadPathBytes.Length);
@@ -42,12 +43,13 @@ namespace IntegrationTests.Download
             fileSystem.WriteAllBytes(downloadHalfPath, cutDownloadPathBytes);
 
             downloadTask = new DownloadTask(CancellationToken.None, fileSystem, TestDownload, downloadHalfPath);
-            downloadResult = await downloadTask.StartAwait();
+            await downloadTask.StartAwait();
 
             var downloadHalfPathBytes = fileSystem.ReadAllBytes(downloadHalfPath);
             Logger.Trace("File size {0} Bytes", downloadHalfPathBytes.Length);
 
-            downloadResult.MD5Sum.Should().Be(TestDownloadMD5.ToUpperInvariant());
+            md5Sum = fileSystem.CalculateMD5(downloadPath);
+            md5Sum.Should().Be(TestDownloadMD5.ToUpperInvariant());
         }
 
         [Test]
