@@ -75,17 +75,6 @@ namespace GitHub.Unity
         }
     }
 
-    public class DownloadResult
-    {
-        public bool Success { get; set; }
-
-        public string Url { get; set; }
-
-        public string Destination { get; set; }
-
-        public string MD5Sum { get; set; }
-    }
-
     public static class WebRequestExtensions
     {
         public static WebResponse GetResponseWithoutException(this WebRequest request)
@@ -101,7 +90,7 @@ namespace GitHub.Unity
         }
     }
 
-    class DownloadTask : TaskBase<DownloadResult>
+    class DownloadTask : TaskBase
     {
         private IFileSystem fileSystem;
         private long bytes;
@@ -119,9 +108,9 @@ namespace GitHub.Unity
             Name = "DownloadTask";
         }
 
-        protected override DownloadResult RunWithReturn(bool success)
+        protected override void Run(bool success)
         {
-            base.RunWithReturn(success);
+            base.Run(success);
 
             RaiseOnStart();
 
@@ -144,10 +133,8 @@ namespace GitHub.Unity
             }
             finally
             {
-                RaiseOnEnd(downloadResult);
+                RaiseOnEnd();
             }
-
-            return downloadResult;
         }
 
         protected virtual void UpdateProgress(float progress)
