@@ -92,17 +92,19 @@ namespace GitHub.Unity
 
     class DownloadTask : TaskBase<bool>
     {
-        private IFileSystem fileSystem;
+        private readonly IFileSystem fileSystem;
         private long bytes;
         private WebRequest webRequest;
         private bool restarted;
 
         public float Progress { get; set; }
 
-        public DownloadTask(CancellationToken token, IFileSystem fileSystem, string url, string destination)
+        public DownloadTask(CancellationToken token, IFileSystem fileSystem, string url, string destination, string validationHash = null, int retryCount = 0)
             : base(token)
         {
             this.fileSystem = fileSystem;
+            ValidationHash = validationHash;
+            RetryCount = retryCount;
             Url = url;
             Destination = destination;
             Name = "DownloadTask";
@@ -115,9 +117,30 @@ namespace GitHub.Unity
             RaiseOnStart();
 
             var result = false;
+            var attempts = 0;
             try
             {
-                result = Download();
+                do
+                {
+                    Logger.Trace($"Download of {Url} to {Destination} Attempt {attempts + 1} of {RetryCount + 1}");
+                    result = Download();
+                    if (result && ValidationHash != null)
+                    {
+                        var md5 = fileSystem.CalculateMD5(Destination);
+                        result = md5.Equals(ValidationHash, StringComparison.CurrentCultureIgnoreCase);
+
+                        if (!result)
+                        {
+                            Logger.Warning($"Downloaded MD5 {md5} does not match expected. Deleting {Destination}.");
+                            fileSystem.FileDelete(Destination);
+                        }
+                        else
+                        {
+                            Logger.Trace($"Download confirmed {md5}");
+                            break;
+                        }
+                    }
+                } while (RetryCount < attempts++);
             }
             catch (Exception ex)
             {
@@ -220,6 +243,10 @@ namespace GitHub.Unity
         protected string Url { get; }
 
         protected string Destination { get; }
+
+        protected string ValidationHash { get; }
+
+        protected int RetryCount { get; }
     }
 
     class DownloadTextTask : TaskBase<string>

@@ -44,7 +44,7 @@ namespace IntegrationTests.Download
             var cutDownloadPathBytes = downloadPathBytes.Take(takeCount).ToArray();
             fileSystem.WriteAllBytes(downloadHalfPath, cutDownloadPathBytes);
 
-            downloadTask = new DownloadTask(CancellationToken.None, fileSystem, TestDownload, downloadHalfPath);
+            downloadTask = new DownloadTask(CancellationToken.None, fileSystem, TestDownload, downloadHalfPath, TestDownloadMD5, 1);
             downloadResult = await downloadTask.StartAwait();
 
             downloadResult.Should().BeTrue();
