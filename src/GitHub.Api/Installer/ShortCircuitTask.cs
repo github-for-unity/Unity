@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace GitHub.Unity
 {
-    class ShortCircuitTask<TResult> : TaskBase<TResult, TResult>
+    class ShortCircuitTask<TResult> : TaskBase<TResult, TResult> where TResult : class 
     {
         private readonly Func<TResult> action;
 
