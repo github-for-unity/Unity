@@ -116,27 +116,30 @@ namespace GitHub.Unity
                 var gitArchivePath = zipArchivesPath.Combine("git.zip");
                 var gitLfsArchivePath = zipArchivesPath.Combine("git-lfs.zip");
 
-                var downloadGitMd5Task = new DownloadTextTask(CancellationToken,
-                    "https://github-vs-s3.amazonaws.com/github-vs/unity/portable_git/git.zip.MD5");
+                var downloadGitMd5Task = new DownloadTextTask(CancellationToken.None,
+                    "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt?cb=1");
 
-                var downloadGitTask = new DownloadTask(CancellationToken, Environment.FileSystem,
-                    "https://github-vs-s3.amazonaws.com/github-vs/unity/portable_git/git.zip", gitArchivePath, retryCount: 1);
+                var downloadGitTask = new DownloadTask(CancellationToken.None, Environment.FileSystem,
+                    "https://ghfvs-installer.github.com/unity/portable_git/git.zip", gitArchivePath, retryCount: 1);
 
-                downloadGitTask = downloadGitMd5Task
-                    .Then((b, s) => { downloadGitTask.ValidationHash = s; })
-                    .Then(downloadGitTask);
+                var downloadGitLfsMd5Task = new DownloadTextTask(CancellationToken.None,
+                    "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt?cb=1");
 
-                var downloadGitLfsMd5Task = new DownloadTextTask(CancellationToken,
-                    "https://github-vs-s3.amazonaws.com/github-vs/unity/portable_git/git-lfs.zip.MD5");
+                var downloadGitLfsTask = new DownloadTask(CancellationToken.None, Environment.FileSystem,
+                    "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip", gitLfsArchivePath, retryCount: 1);
 
-                var downloadGitLfsTask = new DownloadTask(CancellationToken, Environment.FileSystem,
-                    "https://github-vs-s3.amazonaws.com/github-vs/unity/portable_git/git-lfs.zip", gitLfsArchivePath);
-
-                downloadGitLfsTask = downloadGitLfsMd5Task.Then((b, s) => {
-                    downloadGitLfsTask.ValidationHash = s;
-                }).Then(downloadGitLfsTask);
-
-                var installTask = downloadGitTask.Then(downloadGitLfsTask)
+                var installTask = downloadGitMd5Task
+                    .Then((b, s) =>
+                    {
+                        downloadGitTask.ValidationHash = s;
+                    })
+                    .Then(downloadGitTask)
+                    .Then(downloadGitLfsMd5Task)
+                    .Then((b, s) =>
+                    {
+                        downloadGitLfsTask.ValidationHash = s;
+                    })
+                    .Then(downloadGitLfsTask)
                     .Then(new PortableGitInstallTask(CancellationToken, Environment, gitArchivePath, gitLfsArchivePath, installDetails));
 
                 determinePath = determinePath
