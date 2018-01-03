@@ -48,10 +48,13 @@ namespace GitHub.Unity
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
-            SetupGit()
-                .Then(RestartRepository)
-                .ThenInUI(InitializeUI)
-                .Start();
+            var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
+                .ThenInUI(InitializeUI);
+
+//            SetupGit()
+//                .Then(RestartRepository)
+//                .ThenInUI(InitializeUI)
+//                .Start();
         }
 
         private ITask SetupGit()
