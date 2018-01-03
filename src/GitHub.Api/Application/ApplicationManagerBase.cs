@@ -51,10 +51,63 @@ namespace GitHub.Unity
             var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
                 .ThenInUI(InitializeUI);
 
-//            SetupGit()
-//                .Then(RestartRepository)
-//                .ThenInUI(InitializeUI)
-//                .Start();
+            Logger.Trace("afterGitSetup");
+
+            var windowsCredentialSetup = new ActionTask(CancellationToken, () => {
+                GitClient.GetConfig("credential.helper", GitConfigSource.Global).Then((b, credentialHelper) => {
+                    if (!string.IsNullOrEmpty(credentialHelper))
+                    {
+                        Logger.Trace("Windows CredentialHelper: {0}", credentialHelper);
+                        afterGitSetup.Start();
+                    }
+                    else
+                    {
+                        Logger.Warning("No Windows CredentialHeloper found: Setting to wincred");
+
+                        GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global)
+                                 .Then(() => { afterGitSetup.Start(); }).Start();
+                    }
+                }).Start();
+            });
+
+            Logger.Trace("windowsCredentialSetup");
+
+            var afterPathDetermined = new ActionTask<NPath>(CancellationToken, (b1, path) => {
+
+                Logger.Trace("Setting Environment git path: {0}", path);
+                Environment.GitExecutablePath = path;
+
+            }).ThenInUI(() => {
+
+                Environment.User.Initialize(GitClient);
+
+                if (Environment.IsWindows)
+                {
+                    windowsCredentialSetup.Start();
+                }
+                else
+                {
+                    afterGitSetup.Start();
+                }
+            });
+
+            Logger.Trace("afterPathDetermined");
+
+            var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
+            var installDetails = new PortableGitInstallDetails(applicationDataPath, true);
+
+            var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
+            gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken, (b, s) => {
+
+                Logger.Trace("Success: {0}", s);
+
+                new FuncTask<NPath>(CancellationToken, () => s)
+                    .Then(afterPathDetermined)
+                    .Start();
+
+            }), new ActionTask(CancellationToken, () => {
+                Logger.Trace("Failure");
+            }) );
         }
 
         private ITask SetupGit()

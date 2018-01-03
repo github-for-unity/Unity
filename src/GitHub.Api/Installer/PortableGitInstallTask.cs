@@ -69,12 +69,6 @@ namespace GitHub.Unity
 
             Logger.Trace("Starting PortableGitInstallTask");
 
-            if (IsPortableGitExtracted())
-            {
-                Logger.Trace("Completed PortableGitInstallTask");
-                return installDetails.GitExecPath;
-            }
-
             Token.ThrowIfCancellationRequested();
 
             installDetails.GitInstallPath.DeleteIfExists();
@@ -142,25 +136,6 @@ namespace GitHub.Unity
                 return false;
             }
 
-            return true;
-        }
-
-        private bool IsPortableGitExtracted()
-        {
-            if (!installDetails.GitInstallPath.DirectoryExists())
-            {
-                Logger.Trace("{0} does not exist", installDetails.GitInstallPath);
-                return false;
-            }
-
-            var fileListMD5 = environment.FileSystem.CalculateFolderMD5(installDetails.GitInstallPath, false);
-            if (!fileListMD5.Equals(PortableGitInstallDetails.FileListMD5, StringComparison.InvariantCultureIgnoreCase))
-            {
-                Logger.Trace("MD5 {0} does not match expected {1}", fileListMD5, PortableGitInstallDetails.FileListMD5);
-                return false;
-            }
-
-            Logger.Trace("Git Present");
             return true;
         }
 
