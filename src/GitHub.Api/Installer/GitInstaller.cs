@@ -99,13 +99,36 @@ namespace GitHub.Unity
                     else
                     {
                         var tempZipPath = NPath.CreateTempDirectory("git_zip_paths");
-                        var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", tempZipPath, environment);
-                        var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", tempZipPath, environment);
-
+                        var gitArchivePath = tempZipPath.Combine("git.zip");
+                        var gitLfsArchivePath = tempZipPath.Combine("git-lfs.zip");
                         var gitExtractPath = tempZipPath.Combine("git").CreateDirectory();
                         var gitLfsExtractPath = tempZipPath.Combine("git-lfs").CreateDirectory();
 
-                        new UnzipTask(cancellationToken, gitArchivePath, gitExtractPath, sharpZipLibHelper)
+                        var downloadGitMd5Task = new DownloadTextTask(CancellationToken.None,
+                            "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt?cb=1");
+
+                        var downloadGitTask = new DownloadTask(CancellationToken.None, environment.FileSystem,
+                            "https://ghfvs-installer.github.com/unity/portable_git/git.zip", gitArchivePath, retryCount: 1);
+
+                        var downloadGitLfsMd5Task = new DownloadTextTask(CancellationToken.None,
+                            "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt?cb=1");
+
+                        var downloadGitLfsTask = new DownloadTask(CancellationToken.None, environment.FileSystem,
+                            "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip", gitLfsArchivePath, retryCount: 1);
+
+                        downloadGitMd5Task
+                            .Then((b, s) =>
+                            {
+                                downloadGitTask.ValidationHash = s;
+                            })
+                            .Then(downloadGitTask)
+                            .Then(downloadGitLfsMd5Task)
+                            .Then((b, s) =>
+                            {
+                                downloadGitLfsTask.ValidationHash = s;
+                            })
+                            .Then(downloadGitLfsTask)
+                            .Then(new UnzipTask(cancellationToken, gitArchivePath, gitExtractPath, sharpZipLibHelper))
                             .Then(new UnzipTask(cancellationToken, gitLfsArchivePath, gitLfsExtractPath, sharpZipLibHelper))
                             .Then(() => {
                                 var targetGitLfsExecPath = installDetails.GetGitLfsExecPath(gitExtractPath);
