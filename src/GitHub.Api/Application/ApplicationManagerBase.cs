@@ -88,7 +88,6 @@ namespace GitHub.Unity
 
             var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
             var installDetails = new GitInstallDetails(applicationDataPath, true);
-
             var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
             gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken, (b, s) => {
 
