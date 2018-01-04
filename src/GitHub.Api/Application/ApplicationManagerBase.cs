@@ -48,10 +48,66 @@ namespace GitHub.Unity
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
-            SetupGit()
-                .Then(RestartRepository)
-                .ThenInUI(InitializeUI)
-                .Start();
+            var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
+                .ThenInUI(InitializeUI);
+
+            Logger.Trace("afterGitSetup");
+
+            var windowsCredentialSetup = new ActionTask(CancellationToken, () => {
+                GitClient.GetConfig("credential.helper", GitConfigSource.Global).Then((b, credentialHelper) => {
+                    if (!string.IsNullOrEmpty(credentialHelper))
+                    {
+                        Logger.Trace("Windows CredentialHelper: {0}", credentialHelper);
+                        afterGitSetup.Start();
+                    }
+                    else
+                    {
+                        Logger.Warning("No Windows CredentialHeloper found: Setting to wincred");
+
+                        GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global)
+                                 .Then(() => { afterGitSetup.Start(); }).Start();
+                    }
+                }).Start();
+            });
+
+            Logger.Trace("windowsCredentialSetup");
+
+            var afterPathDetermined = new ActionTask<NPath>(CancellationToken, (b1, path) => {
+
+                Logger.Trace("Setting Environment git path: {0}", path);
+                Environment.GitExecutablePath = path;
+
+            }).ThenInUI(() => {
+
+                Environment.User.Initialize(GitClient);
+
+                if (Environment.IsWindows)
+                {
+                    windowsCredentialSetup.Start();
+                }
+                else
+                {
+                    afterGitSetup.Start();
+                }
+            });
+
+            Logger.Trace("afterPathDetermined");
+
+            var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
+            var installDetails = new GitInstallDetails(applicationDataPath, true);
+
+            var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
+            gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken, (b, s) => {
+
+                Logger.Trace("Success: {0}", s);
+
+                new FuncTask<NPath>(CancellationToken, () => s)
+                    .Then(afterPathDetermined)
+                    .Start();
+
+            }), new ActionTask(CancellationToken, () => {
+                Logger.Trace("Failure");
+            }) );
         }
 
         private ITask SetupGit()
@@ -88,9 +144,9 @@ namespace GitHub.Unity
                 });
         }
 
-        private ITask<NPath> BuildDetermineGitPathTask()
+        private TaskBase<NPath> BuildDetermineGitPathTask()
         {
-            ITask<NPath> determinePath = new FuncTask<NPath>(CancellationToken, () => {
+            TaskBase<NPath> determinePath = new FuncTask<NPath>(CancellationToken, () => {
                 if (Environment.GitExecutablePath != null)
                 {
                     return Environment.GitExecutablePath;
@@ -110,44 +166,10 @@ namespace GitHub.Unity
             if (environmentIsWindows)
             {
                 var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
-                var installDetails = new PortableGitInstallDetails(applicationDataPath, true);
+                var installDetails = new GitInstallDetails(applicationDataPath, true);
+                var installTask = new PortableGitInstallTask(CancellationToken, Environment, installDetails);
 
-                var zipArchivesPath = NPath.CreateTempDirectory("portable_git_zip").CreateDirectory();
-                var gitArchivePath = zipArchivesPath.Combine("git.zip");
-                var gitLfsArchivePath = zipArchivesPath.Combine("git-lfs.zip");
-
-                var downloadGitMd5Task = new DownloadTextTask(CancellationToken.None,
-                    "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt?cb=1");
-
-                var downloadGitTask = new DownloadTask(CancellationToken.None, Environment.FileSystem,
-                    "https://ghfvs-installer.github.com/unity/portable_git/git.zip", gitArchivePath, retryCount: 1);
-
-                var downloadGitLfsMd5Task = new DownloadTextTask(CancellationToken.None,
-                    "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt?cb=1");
-
-                var downloadGitLfsTask = new DownloadTask(CancellationToken.None, Environment.FileSystem,
-                    "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip", gitLfsArchivePath, retryCount: 1);
-
-                var installTask = downloadGitMd5Task
-                    .Then((b, s) =>
-                    {
-                        downloadGitTask.ValidationHash = s;
-                    })
-                    .Then(downloadGitTask)
-                    .Then(downloadGitLfsMd5Task)
-                    .Then((b, s) =>
-                    {
-                        downloadGitLfsTask.ValidationHash = s;
-                    })
-                    .Then(downloadGitLfsTask)
-                    .Then(new PortableGitInstallTask(CancellationToken, Environment, gitArchivePath, gitLfsArchivePath, installDetails));
-
-                determinePath = determinePath
-                    .Then(new ShortCircuitTask<NPath>(CancellationToken, installTask))
-                    .Then((b, path) => {
-                        zipArchivesPath.DeleteIfExists();
-                        return path;
-                    });
+                determinePath = determinePath.Then(new ShortCircuitTask<NPath>(CancellationToken, installTask));
             }
 
             if (!environmentIsWindows)

@@ -30,13 +30,13 @@ namespace IntegrationTests
             if (setupGit)
             {
                 var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
-                var installDetails = new PortableGitInstallDetails(applicationDataPath, true);
+                var installDetails = new GitInstallDetails(applicationDataPath, true);
 
                 var zipArchivesPath = TestBasePath.Combine("ZipArchives").CreateDirectory();
                 var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
                 var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
 
-                var gitInstallTask = new PortableGitInstallTask(CancellationToken.None, Environment, gitArchivePath, gitLfsArchivePath, installDetails);
+                //var gitInstallTask = new PortableGitInstallTask(CancellationToken.None, Environment, gitArchivePath, gitLfsArchivePath, installDetails);
 
                 var installPath = gitInstallTask.Start().Result;
                 Environment.GitExecutablePath = installPath;
