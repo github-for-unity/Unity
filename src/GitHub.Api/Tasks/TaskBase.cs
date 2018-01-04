@@ -597,7 +597,7 @@ namespace GitHub.Unity
         {
             Task = new Task<TResult>(() =>
             {
-                var ret = RunWithData(DependsOn?.Successful ?? previousSuccess, DependsOn.Successful ? ((ITask<T>)DependsOn).Result : default(T));
+                var ret = RunWithData(DependsOn?.Successful ?? previousSuccess, (DependsOn?.Successful ?? false) ? ((ITask<T>)DependsOn).Result : default(T));
                 tcs.SetResult(ret);
                 AdjustNextTask(ret);
                 return ret;
