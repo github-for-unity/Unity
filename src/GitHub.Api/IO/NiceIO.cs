@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -463,8 +464,8 @@ GitHub.Unity
 
         public bool HasExtension(params string[] extensions)
         {
-            var extensionWithDotLower = ExtensionWithDot.ToLower();
-            return extensions.Any(e => WithDot(e).ToLower() == extensionWithDotLower);
+            var extensionWithDotLower = ExtensionWithDot.ToLower(CultureInfo.InvariantCulture);
+            return extensions.Any(e => WithDot(e).ToLower(CultureInfo.InvariantCulture) == extensionWithDotLower);
         }
 
         private static string WithDot(string extension)
