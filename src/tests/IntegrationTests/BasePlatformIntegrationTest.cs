@@ -38,10 +38,10 @@ namespace IntegrationTests
 
                 //var gitInstallTask = new PortableGitInstallTask(CancellationToken.None, Environment, gitArchivePath, gitLfsArchivePath, installDetails);
 
-                var installPath = gitInstallTask.Start().Result;
-                Environment.GitExecutablePath = installPath;
-
-                GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
+                //var installPath = gitInstallTask.Start().Result;
+                //Environment.GitExecutablePath = installPath;
+                
+                //GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
             }
         }
     }
