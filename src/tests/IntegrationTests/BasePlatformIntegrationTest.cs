@@ -31,12 +31,12 @@ namespace IntegrationTests
             {
                 var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
                 var installDetails = new GitInstallDetails(applicationDataPath, true);
-                var gitInstallTask = new PortableGitInstallTask(CancellationToken.None, Environment, installDetails);
+                //var gitInstallTask = new PortableGitInstallTask(CancellationToken.None, Environment, installDetails);
 
-                var installPath = gitInstallTask.Start().Result;
-                Environment.GitExecutablePath = installPath;
-
-                GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
+                //var installPath = gitInstallTask.Start().Result;
+                //Environment.GitExecutablePath = installPath;
+                
+                //GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
             }
         }
     }
