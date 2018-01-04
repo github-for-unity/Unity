@@ -105,13 +105,13 @@ namespace GitHub.Unity
                         var gitLfsExtractPath = tempZipPath.Combine("git-lfs").CreateDirectory();
 
                         var downloadGitMd5Task = new DownloadTextTask(CancellationToken.None,
-                            "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt?cb=1");
+                            "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt");
 
                         var downloadGitTask = new DownloadTask(CancellationToken.None, environment.FileSystem,
                             "https://ghfvs-installer.github.com/unity/portable_git/git.zip", gitArchivePath, retryCount: 1);
 
                         var downloadGitLfsMd5Task = new DownloadTextTask(CancellationToken.None,
-                            "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt?cb=1");
+                            "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt");
 
                         var downloadGitLfsTask = new DownloadTask(CancellationToken.None, environment.FileSystem,
                             "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip", gitLfsArchivePath, retryCount: 1);
