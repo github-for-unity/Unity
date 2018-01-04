@@ -81,6 +81,7 @@ namespace GitHub.Unity
             if (!environment.IsWindows)
             {
                 onFailure.Start();
+                return;
             }
 
             new FuncTask<bool>(cancellationToken, IsGitExtracted)
