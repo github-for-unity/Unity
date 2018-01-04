@@ -94,7 +94,7 @@ namespace GitHub.Unity
             Logger.Trace("afterPathDetermined");
 
             var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
-            var installDetails = new PortableGitInstallDetails(applicationDataPath, true);
+            var installDetails = new GitInstallDetails(applicationDataPath, true);
 
             var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
             gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken, (b, s) => {
@@ -166,7 +166,7 @@ namespace GitHub.Unity
             if (environmentIsWindows)
             {
                 var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
-                var installDetails = new PortableGitInstallDetails(applicationDataPath, true);
+                var installDetails = new GitInstallDetails(applicationDataPath, true);
                 var installTask = new PortableGitInstallTask(CancellationToken, Environment, installDetails);
 
                 determinePath = determinePath.Then(new ShortCircuitTask<NPath>(CancellationToken, installTask));

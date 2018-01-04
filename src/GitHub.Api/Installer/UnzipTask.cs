@@ -38,12 +38,11 @@ namespace GitHub.Unity
 
         private void UnzipArchive()
         {
-            Logger.Trace("Zip File: {0}", archiveFilePath);
-            Logger.Trace("Target Path: {0}", extractedPath);
+            Logger.Trace("Unzip File: {0} to Path: {1}", archiveFilePath, extractedPath);
 
             zipHelper.Extract(archiveFilePath, extractedPath, Token, zipFileProgress, estimatedDurationProgress);
 
-            Logger.Trace("Completed");
+            Logger.Trace("Completed Unzip");
         }
     }
 }

@@ -30,7 +30,7 @@ namespace IntegrationTests
             if (setupGit)
             {
                 var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
-                var installDetails = new PortableGitInstallDetails(applicationDataPath, true);
+                var installDetails = new GitInstallDetails(applicationDataPath, true);
                 var gitInstallTask = new PortableGitInstallTask(CancellationToken.None, Environment, installDetails);
 
                 var installPath = gitInstallTask.Start().Result;
