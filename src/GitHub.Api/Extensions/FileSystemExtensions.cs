@@ -22,7 +22,7 @@ namespace GitHub.Unity
             return BitConverter.ToString(computeHash).Replace("-", string.Empty).ToLower();
         }
 
-        public static string CalculateFolderMD5(this IFileSystem fileSystem, string path)
+        public static string CalculateFolderMD5(this IFileSystem fileSystem, string path, bool includeContents = true)
         {
             //https://stackoverflow.com/questions/3625658/creating-hash-for-folder
 
@@ -39,9 +39,12 @@ namespace GitHub.Unity
                     var pathBytes = Encoding.UTF8.GetBytes(relativeFilePath);
                     md5.TransformBlock(pathBytes, 0, pathBytes.Length, pathBytes, 0);
 
-                    // hash contents
-                    var contentBytes = File.ReadAllBytes(filePath);
-                    md5.TransformBlock(contentBytes, 0, contentBytes.Length, contentBytes, 0);
+                    if (includeContents)
+                    {
+                        // hash contents
+                        var contentBytes = File.ReadAllBytes(filePath);
+                        md5.TransformBlock(contentBytes, 0, contentBytes.Length, contentBytes, 0);
+                    }
                 }
 
                 //Handles empty filePaths case
