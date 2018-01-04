@@ -68,7 +68,7 @@ namespace GitHub.Unity
                 }).Start();
             });
 
-            var afterPathDetermined = new ActionTask<NPath>(CancellationToken, (b1, path) => {
+            var afterPathDetermined = new ActionTask<NPath>(CancellationToken, (b, path) => {
 
                 Logger.Trace("Setting Environment git path: {0}", path);
                 Environment.GitExecutablePath = path;
@@ -87,19 +87,38 @@ namespace GitHub.Unity
                 }
             });
 
+            var findExecTask = new FindExecTask("git", CancellationToken)
+                .Finally((b, ex, path) => {
+                    if (b && path != null)
+                    {
+                        Logger.Trace("FindExecTask Success: {0}", path);
+
+                        new FuncTask<NPath>(CancellationToken, () => path)
+                            .Then(afterPathDetermined)
+                            .Start();
+                    }
+                    else
+                    {
+                        Logger.Warning("FindExecTask Failure");
+                        Logger.Error("Git not found");
+                    }
+                });
+
             var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
             var installDetails = new GitInstallDetails(applicationDataPath, true);
             var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
-            gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken, (b, s) => {
+            gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken, (b, path) => {
 
-                Logger.Trace("Success: {0}", s);
+                Logger.Trace("GitInstaller Success: {0}", path);
 
-                new FuncTask<NPath>(CancellationToken, () => s)
+                new FuncTask<NPath>(CancellationToken, () => path)
                     .Then(afterPathDetermined)
                     .Start();
 
             }), new ActionTask(CancellationToken, () => {
-                Logger.Trace("Failure");
+                Logger.Warning("GitInstaller Failure");
+
+                findExecTask.Start();
             }) );
         }
 
