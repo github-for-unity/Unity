@@ -88,6 +88,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SetUpFixture.cs" />
     <Compile Include="ThreadSynchronizationContext.cs" />
+    <Compile Include="UnzipTaskTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)src\GitHub.Api\GitHub.Api.csproj">
