@@ -39,8 +39,7 @@ namespace GitHub.Unity
             Logging.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
-            ITaskManager taskManager = TaskManager;
-            GitClient = new GitClient(Environment, ProcessManager, taskManager.Token);
+            GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
             SetupMetrics();
         }
 
