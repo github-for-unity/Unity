@@ -103,8 +103,11 @@
     <Compile Include="Application\Organization.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
+    <Compile Include="Git\GitAheadBehindStatus.cs" />
+    <Compile Include="Git\Tasks\GitAheadBehindStatusTask.cs" />
     <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />
     <Compile Include="Git\Tasks\GitVersionTask.cs" />
+    <Compile Include="Git\TreeData.cs" />
     <Compile Include="Git\ValidateGitInstallResult.cs" />
     <Compile Include="Helpers\AssemblyResources.cs" />
     <Compile Include="Authentication\IKeychain.cs" />
@@ -114,6 +117,7 @@
     <Compile Include="Application\ApplicationManagerBase.cs" />
     <Compile Include="Helpers\Constants.cs" />
     <Compile Include="Helpers\Validation.cs" />
+    <Compile Include="OutputProcessors\GitAheadBehindStatusOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
     <Compile Include="OutputProcessors\VersionOutputProcessor.cs" />
     <Compile Include="Helpers\TaskHelpers.cs" />
@@ -131,16 +135,16 @@
     <Compile Include="Git\Tasks\GitRevertTask.cs" />
     <Compile Include="IO\FileSystemHelpers.cs" />
     <Compile Include="Application\IApplicationManager.cs" />
-    <Compile Include="NewTaskSystem\ActionTask.cs" />
-    <Compile Include="NewTaskSystem\BaseOutputProcessor.cs" />
-    <Compile Include="NewTaskSystem\ConcurrentExclusiveInterleave.cs" />
-    <Compile Include="NewTaskSystem\ConfigOutputProcessor.cs" />
-    <Compile Include="NewTaskSystem\ITaskManager.cs" />
-    <Compile Include="NewTaskSystem\ProcessTask.cs" />
-    <Compile Include="NewTaskSystem\TaskBase.cs" />
-    <Compile Include="NewTaskSystem\TaskCanceledExceptions.cs" />
-    <Compile Include="NewTaskSystem\TaskExtensions.cs" />
-    <Compile Include="NewTaskSystem\TaskManager.cs" />
+    <Compile Include="Tasks\ActionTask.cs" />
+    <Compile Include="Tasks\BaseOutputProcessor.cs" />
+    <Compile Include="Tasks\ConcurrentExclusiveInterleave.cs" />
+    <Compile Include="Tasks\ConfigOutputProcessor.cs" />
+    <Compile Include="Tasks\ITaskManager.cs" />
+    <Compile Include="Tasks\ProcessTask.cs" />
+    <Compile Include="Tasks\TaskBase.cs" />
+    <Compile Include="Tasks\TaskCanceledExceptions.cs" />
+    <Compile Include="Tasks\TaskExtensions.cs" />
+    <Compile Include="Tasks\TaskManager.cs" />
     <Compile Include="Platform\FindExecTask.cs" />
     <Compile Include="Helpers\ProgressReport.cs" />
     <Compile Include="Metrics\IMetricsService.cs" />
@@ -148,7 +152,6 @@
     <Compile Include="Metrics\UsageModel.cs" />
     <Compile Include="Metrics\UsageTracker.cs" />
     <Compile Include="Git\Tasks\GitLfsInstallTask.cs" />
-    <Compile Include="Extensions\GitStatusExtensions.cs" />
     <Compile Include="Git\Tasks\GitRemoteChangeTask.cs" />
     <Compile Include="Git\Tasks\GitRemoveFromIndexTask.cs" />
     <Compile Include="Threading\IMainThreadSynchronizationContext.cs" />
@@ -185,7 +188,6 @@
     <Compile Include="Git\RepositoryManager.cs" />
     <Compile Include="Git\GitClient.cs" />
     <Compile Include="Helpers\SimpleJson.cs" />
-    <Compile Include="Tasks\CachedTask.cs" />
     <Compile Include="Git\FailureSeverity.cs" />
     <Compile Include="Git\Tasks\GitAddTask.cs" />
     <Compile Include="Git\GitBranch.cs" />
@@ -233,9 +235,7 @@
     <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="Platform\Platform.cs" />
     <Compile Include="Git\GitCredentialManager.cs" />
-    <Compile Include="UI\FileTreeNode.cs" />
-    <Compile Include="UI\GitCommitTarget.cs" />
-    <Compile Include="UI\TreeBuilder.cs" />
+    <Compile Include="UI\TreeBase.cs" />
   </ItemGroup>
   <Choose>
     <When Condition="$(Buildtype) == 'Internal'">
@@ -292,6 +292,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

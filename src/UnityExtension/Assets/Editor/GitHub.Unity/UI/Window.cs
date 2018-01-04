@@ -58,6 +58,15 @@ namespace GitHub.Unity
             EntryPoint.ApplicationManager.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
         }
 
+#if DEBUG 
+        [MenuItem("GitHub/Select Window")] 
+        public static void GitHub_SelectWindow() 
+        { 
+            var window = Resources.FindObjectsOfTypeAll(typeof(Window)).FirstOrDefault() as Window; 
+            Selection.activeObject = window; 
+        } 
+#endif 
+
         public static void ShowWindow(IApplicationManager applicationManager)
         {
             var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.InspectorWindow");
@@ -83,6 +92,8 @@ namespace GitHub.Unity
             BranchesView.InitializeView(this);
             SettingsView.InitializeView(this);
             InitProjectView.InitializeView(this);
+
+            titleContent = new GUIContent(Title, Styles.SmallLogo);
         }
 
         public override void OnEnable()
@@ -92,9 +103,6 @@ namespace GitHub.Unity
 #if DEVELOPER_BUILD
             Selection.activeObject = this;
 #endif
-            // Set window title
-            titleContent = new GUIContent(Title, Styles.SmallLogo);
-
             if (Repository != null)
                 Repository.CheckCurrentBranchAndRemoteChangedEvent(lastCurrentBranchAndRemoteChangedEvent);
 
@@ -112,11 +120,16 @@ namespace GitHub.Unity
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
-
             MaybeUpdateData();
 
             if (ActiveView != null)
                 ActiveView.OnDataUpdate();
+        }
+
+        public override void OnFocusChanged()
+        {
+            if (ActiveView != null)
+                ActiveView.OnFocusChanged();
         }
 
         public override void OnRepositoryChanged(IRepository oldRepository)
@@ -129,9 +142,8 @@ namespace GitHub.Unity
             if (Repository != null && activeTab == SubTab.InitProject)
             {
                 changeTab = SubTab.History;
+                UpdateActiveTab();
             }
-
-            UpdateActiveTab();
         }
 
         public override void OnSelectionChange()
@@ -189,7 +201,7 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                if (currentBranchAndRemoteHasUpdate)
+                if (repoBranch == null || repoRemote == null || currentBranchAndRemoteHasUpdate)
                 {
                     var repositoryCurrentBranch = Repository.CurrentBranch;
                     var updatedRepoBranch = repositoryCurrentBranch.HasValue ? repositoryCurrentBranch.Value.Name : null;
@@ -244,13 +256,13 @@ namespace GitHub.Unity
                 }
             }
 
-            if (shouldUpdateContentFields)
+            if (shouldUpdateContentFields || repoBranchContent == null || repoUrlContent == null)
             {
                 repoBranchContent = new GUIContent(repoBranch, Window_RepoBranchTooltip);
 
-                if (updatedRepoRemote != null)
+                if (repoRemote != null)
                 {
-                    repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, updatedRepoRemote));
+                    repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, repoRemote));
                 }
                 else
                 {
@@ -270,13 +282,9 @@ namespace GitHub.Unity
         {
             if (!lastCurrentBranchAndRemoteChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(TaskManager.Token, () =>
-                {
-                    lastCurrentBranchAndRemoteChangedEvent = cacheUpdateEvent;
-                    currentBranchAndRemoteHasUpdate = true;
-                    Redraw();
-                })
-                { Affinity = TaskAffinity.UI }.Start();
+                lastCurrentBranchAndRemoteChangedEvent = cacheUpdateEvent;
+                currentBranchAndRemoteHasUpdate = true;
+                Redraw();
             }
         }
 
@@ -317,7 +325,6 @@ namespace GitHub.Unity
             // Subtabs & toolbar
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
-                changeTab = activeTab;
                 EditorGUI.BeginChangeCheck();
                 {
                     if (HasRepository)
@@ -352,7 +359,8 @@ namespace GitHub.Unity
             {
                 var fromView = ActiveView;
                 activeTab = changeTab;
-                SwitchView(fromView, ActiveView);
+                var toView = ActiveView;
+                SwitchView(fromView, toView);
             }
         }
 
@@ -363,6 +371,7 @@ namespace GitHub.Unity
             if (fromView != null)
                 fromView.OnDisable();
             toView.OnEnable();
+            toView.OnDataUpdate();
 
             // this triggers a repaint
             Repaint();
@@ -424,9 +433,9 @@ namespace GitHub.Unity
             base.ShowNotification(content);
         }
 
-        private static SubTab TabButton(SubTab tab, string title, SubTab activeTab)
+        private static SubTab TabButton(SubTab tab, string title, SubTab currentTab)
         {
-            return GUILayout.Toggle(activeTab == tab, title, EditorStyles.toolbarButton) ? tab : activeTab;
+            return GUILayout.Toggle(currentTab == tab, title, EditorStyles.toolbarButton) ? tab : currentTab;
         }
 
         private Subview ToView(SubTab tab)

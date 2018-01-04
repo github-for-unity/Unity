@@ -27,13 +27,14 @@ namespace GitHub.Unity
                            MinCommitTreePadding = 20f,
                            FoldoutWidth = 11f,
                            FoldoutIndentation = -2f,
+                           TreePadding = 12f,
                            TreeIndentation = 12f,
                            TreeRootIndentation = -5f,
                            TreeVerticalSpacing = 3f,
                            CommitIconSize = 16f,
                            CommitIconHorizontalPadding = -5f,
                            BranchListIndentation = 20f,
-                           BranchListSeperation = 15f,
+                           BranchListSeparation = 15f,
                            RemotesTotalHorizontalMargin = 37f,
                            RemotesNameRatio = .2f,
                            RemotesUserRatio = .2f,
@@ -63,12 +64,14 @@ namespace GitHub.Unity
                                 headerDescriptionStyle,
                                 historyToolbarButtonStyle,
                                 historyLockStyle,
+                                historyEntrySummaryStyle,
                                 historyEntryDetailsStyle,
                                 historyEntryDetailsRightStyle,
                                 historyFileTreeBoxStyle,
                                 commitFileAreaStyle,
                                 commitButtonStyle,
                                 textFieldStyle,
+                                boldCenteredLabel,
                                 centeredLabel,
                                 commitDescriptionFieldStyle,
                                 toggleMixedStyle,
@@ -94,6 +97,7 @@ namespace GitHub.Unity
                                  localCommitIcon,
                                  repoIcon,
                                  lockIcon,
+                                 emptyStateInit,
                                  dropdownListIcon;
 
         public static Texture2D GetFileStatusIcon(GitFileStatus status, bool isLocked)
@@ -393,6 +397,20 @@ namespace GitHub.Unity
                 return historyLockStyle;
             }
         }
+        public static GUIStyle HistoryEntrySummaryStyle
+        {
+            get
+            {
+                if (historyEntrySummaryStyle == null)
+                {
+                    historyEntrySummaryStyle = new GUIStyle(Label);
+                    historyEntrySummaryStyle.name = "HistoryEntrySummaryStyle";
+
+                    historyEntrySummaryStyle.contentOffset = new Vector2(BaseSpacing * 2, 0);
+                }
+                return historyEntrySummaryStyle;
+            }
+        }
 
         public static GUIStyle HistoryEntryDetailsStyle
         {
@@ -409,6 +427,8 @@ namespace GitHub.Unity
                     historyEntryDetailsStyle.onNormal.textColor = Label.onNormal.textColor;
                     historyEntryDetailsStyle.onFocused.background = Label.onFocused.background;
                     historyEntryDetailsStyle.onFocused.textColor = Label.onFocused.textColor;
+
+                    historyEntryDetailsStyle.contentOffset = new Vector2(BaseSpacing * 2, 0);
                 }
                 return historyEntryDetailsStyle;
             }
@@ -555,6 +575,22 @@ namespace GitHub.Unity
                 return centeredLabel;
             }
         }
+
+        public static GUIStyle BoldCenteredLabel
+        {
+            get
+            {
+                if (boldCenteredLabel == null)
+                {
+                    boldCenteredLabel = new GUIStyle(EditorStyles.boldLabel);
+                    boldCenteredLabel.name = "BoldCenteredLabelStyle";
+                    boldCenteredLabel.alignment = TextAnchor.MiddleCenter;
+                    boldCenteredLabel.wordWrap = true;
+                }
+                return boldCenteredLabel;
+            }
+        }
+
 
         public static GUIStyle CommitDescriptionFieldStyle
         {
@@ -787,6 +823,19 @@ namespace GitHub.Unity
             }
         }
 
+        public static Texture2D EmptyStateInit
+        {
+          get
+          {
+            if (emptyStateInit == null)
+            {
+              emptyStateInit = Utility.GetIcon("empty-state-init.png", "empty-state-init@2x.png");
+            }
+            return emptyStateInit;
+          }
+
+        }
+
         public static Texture2D DropdownListIcon
         {
             get
@@ -796,6 +845,113 @@ namespace GitHub.Unity
                     dropdownListIcon = Utility.GetIcon("dropdown-list-icon.png", "dropdown-list-icon@2x.png");
                 }
                 return dropdownListIcon;
+            }
+        }
+
+        private static Texture2D globeIcon;
+        public static Texture2D GlobeIcon
+        {
+            get
+            {
+                if (globeIcon == null)
+                {
+                    globeIcon = Utility.GetIcon("globe.png", "globe@2x.png");
+                }
+                return globeIcon;
+            }
+        }
+
+        private static GUIStyle foldout;
+        public static GUIStyle Foldout
+        {
+            get
+            {
+                if (foldout == null)
+                {
+                    foldout = new GUIStyle(EditorStyles.foldout);
+                    foldout.name = "CustomFoldout";
+
+                    foldout.focused.textColor = Color.white;
+                    foldout.onFocused.textColor = Color.white;
+                    foldout.focused.background = foldout.active.background;
+                    foldout.onFocused.background = foldout.onActive.background;
+                }
+
+                return foldout;
+            }
+        }
+
+        private static GUIStyle treeNode;
+        public static GUIStyle TreeNode
+        {
+            get
+            {
+                if (treeNode == null)
+                {
+                    treeNode = new GUIStyle(GUI.skin.label);
+                    treeNode.name = "Custom TreeNode";
+
+                    var greyTexture = Utility.GetTextureFromColor(Color.gray);
+
+                    treeNode.focused.background = greyTexture;
+                    treeNode.focused.textColor = Color.white;
+                }
+
+                return treeNode;
+            }
+        }
+
+        private static GUIStyle activeTreeNode;
+        public static GUIStyle ActiveTreeNode
+        {
+            get
+            {
+                if (activeTreeNode == null)
+                {
+                    activeTreeNode = new GUIStyle(TreeNode);
+                    activeTreeNode.name = "Custom Active TreeNode";
+
+                    activeTreeNode.fontStyle = FontStyle.Bold;
+                }
+
+                return activeTreeNode;
+            }
+        }
+
+        private static GUIStyle focusedTreeNode;
+        public static GUIStyle FocusedTreeNode
+        {
+            get
+            {
+                if (focusedTreeNode == null)
+                {
+                    focusedTreeNode = new GUIStyle(TreeNode);
+                    focusedTreeNode.name = "Custom Focused TreeNode";
+
+                    var blueColor = new Color(62f / 255f, 125f / 255f, 231f / 255f);
+                    var blueTexture = Utility.GetTextureFromColor(blueColor);
+
+                    focusedTreeNode.focused.background = blueTexture;
+                }
+
+                return focusedTreeNode;
+            }
+        }
+
+        private static GUIStyle focusedActiveTreeNode;
+        public static GUIStyle FocusedActiveTreeNode
+        {
+            get
+            {
+                if (focusedActiveTreeNode == null)
+                {
+                    focusedActiveTreeNode = new GUIStyle(FocusedTreeNode);
+                    focusedActiveTreeNode.name = "Custom Focused Active TreeNode";
+
+                    focusedActiveTreeNode.fontStyle = FontStyle.Bold;
+                }
+
+                return focusedActiveTreeNode;
             }
         }
     }

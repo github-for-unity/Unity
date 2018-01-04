@@ -56,9 +56,10 @@ test:
   categories:
     except:
     - DoNotRunOnAppVeyor
-    - TimeSensitive
 artifacts:
 - path: unity\PackageProject
   type: zip
   name: github-for-unity-packageproject
 - path: build\*.log
+on_failure:
+  - ps: Get-ChildItem build\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }

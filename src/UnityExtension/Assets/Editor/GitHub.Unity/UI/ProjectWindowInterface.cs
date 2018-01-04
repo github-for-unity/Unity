@@ -33,7 +33,7 @@ namespace GitHub.Unity
 
             if (repository != null)
             {
-                repository.StatusChanged += RepositoryOnStatusChanged;
+                repository.TrackingStatusChanged += RepositoryOnStatusChanged;
                 repository.LocksChanged += RepositoryOnLocksChanged;
 
                 repository.CheckStatusChangedEvent(lastRepositoryStatusChangedEvent);
@@ -45,14 +45,10 @@ namespace GitHub.Unity
         {
             if (!lastRepositoryStatusChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(CancellationToken.None, () =>
-                {
-                    lastRepositoryStatusChangedEvent = cacheUpdateEvent;
-                    entries.Clear();
-                    entries.AddRange(repository.CurrentStatus.Entries);
-                    OnStatusUpdate();
-                })
-                { Affinity = TaskAffinity.UI }.Start();
+                lastRepositoryStatusChangedEvent = cacheUpdateEvent;
+                entries.Clear();
+                entries.AddRange(repository.CurrentChanges);
+                OnStatusUpdate();
             }
         }
 
@@ -60,13 +56,9 @@ namespace GitHub.Unity
         {
             if (!lastLocksChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(CancellationToken.None, () =>
-                {
-                    lastLocksChangedEvent = cacheUpdateEvent;
-                    locks = repository.CurrentLocks;
-                    OnLocksUpdate();
-                })
-                { Affinity = TaskAffinity.UI }.Start();
+                lastLocksChangedEvent = cacheUpdateEvent;
+                locks = repository.CurrentLocks;
+                OnLocksUpdate();
             }
         }
 

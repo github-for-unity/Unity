@@ -14,7 +14,10 @@ namespace GitHub.Unity
         void Finish(bool result);
         IRepository Repository { get; }
         bool HasRepository { get; }
+        IUser User { get; }
+        bool HasUser { get; }
         IApplicationManager Manager { get; }
         bool IsBusy { get; }
+        bool HasFocus { get; }
     }
 }

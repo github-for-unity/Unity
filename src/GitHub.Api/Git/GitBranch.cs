@@ -2,24 +2,14 @@ using System;
 
 namespace GitHub.Unity
 {
-    interface ITreeData
-    {
-        string Name { get; }
-        bool IsActive { get; }
-    }
-
     [Serializable]
-    public struct GitBranch : ITreeData
+    public struct GitBranch
     {
         public static GitBranch Default = new GitBranch();
 
         public string name;
         public string tracking;
         public bool isActive;
-
-        public string Name { get { return name; } }
-        public string Tracking { get { return tracking; } }
-        public bool IsActive { get { return isActive; } }
 
         public GitBranch(string name, string tracking, bool active)
         {
@@ -29,6 +19,10 @@ namespace GitHub.Unity
             this.tracking = tracking;
             this.isActive = active;
         }
+
+        public string Name => name;
+        public string Tracking => tracking;
+        public bool IsActive => isActive;
 
         public override string ToString()
         {

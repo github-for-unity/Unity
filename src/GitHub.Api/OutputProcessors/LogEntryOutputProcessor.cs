@@ -317,21 +317,16 @@ namespace GitHub.Unity
 
             if (time.HasValue)
             {
-                RaiseOnEntry(new GitLogEntry()
-                {
-                    AuthorName = authorName,
-                    CommitName = committerName,
-                    MergeA = mergeA,
-                    MergeB = mergeB,
-                    Changes = changes,
-                    AuthorEmail = authorEmail,
-                    CommitEmail = committerEmail,
-                    Summary = summary,
-                    Description = description,
-                    CommitID = commitId,
-                    TimeString = time.Value.ToString(DateTimeFormatInfo.CurrentInfo),
-                    CommitTimeString = committerTime.Value.ToString(DateTimeFormatInfo.CurrentInfo)
-                });
+                var gitLogEntry = new GitLogEntry(commitId, 
+                    authorName, authorEmail, 
+                    committerName, committerEmail, 
+                    summary,
+                    description,
+                    time.Value,  committerTime.Value,
+                    changes,
+                    mergeA, mergeB);
+
+                RaiseOnEntry(gitLogEntry);
             }
 
             Reset();
