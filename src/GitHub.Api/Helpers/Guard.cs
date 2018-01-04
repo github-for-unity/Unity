@@ -5,6 +5,7 @@ using System.Linq;
 
 namespace GitHub.Unity
 {
+    [Serializable]
     internal class InstanceNotInitializedException : InvalidOperationException
     {
         public InstanceNotInitializedException(object the, string property) :
