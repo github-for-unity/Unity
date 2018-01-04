@@ -82,7 +82,6 @@
     <Compile Include="Git\GitClientTests.cs" />
     <Compile Include="IntegrationTestEnvironment.cs" />
     <Compile Include="Installer\GitInstallerTests.cs" />
-    <Compile Include="Installer\ShortCircuitTaskTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="Process\ProcessManagerIntegrationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
