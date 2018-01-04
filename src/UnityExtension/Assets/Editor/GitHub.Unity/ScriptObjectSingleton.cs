@@ -37,7 +37,7 @@ namespace GitHub.Unity
             {
                 if (nFilePath == null)
                 {
-                    if (filePath == "")
+                    if (string.IsNullOrEmpty(filePath))
                         return null;
                     if (filePath == null)
                         filePath = GetFilePath();

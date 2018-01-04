@@ -161,7 +161,7 @@ namespace GitHub.Unity
                         var organization = owners[selectedOwner] == username ? null : owners[selectedOwner];
 
                         var cleanRepoDescription = repoDescription.Trim();
-                        cleanRepoDescription = cleanRepoDescription == string.Empty ? null : cleanRepoDescription;
+                        cleanRepoDescription = string.IsNullOrEmpty(cleanRepoDescription) ? null : cleanRepoDescription;
 
                         Client.CreateRepository(new NewRepository(repoName)
                         {

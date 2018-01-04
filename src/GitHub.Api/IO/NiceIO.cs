@@ -222,7 +222,7 @@ GitHub.Unity
 
             var newElements = (string[])_elements.Clone();
             newElements[newElements.Length - 1] = FileSystem.ChangeExtension(_elements[_elements.Length - 1], WithDot(extension));
-            if (extension == string.Empty)
+            if (string.IsNullOrEmpty(extension))
                 newElements[newElements.Length - 1] = newElements[newElements.Length - 1].TrimEnd('.');
             return new NPath(newElements, _isRelative, _driveLetter);
         }
