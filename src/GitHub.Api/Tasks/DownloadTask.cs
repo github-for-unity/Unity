@@ -85,7 +85,12 @@ namespace GitHub.Unity
             }
             catch (WebException e)
             {
-                return e.Response;
+                if (e.Response != null)
+                {
+                    return e.Response;
+                }
+
+                throw e;
             }
         }
     }
