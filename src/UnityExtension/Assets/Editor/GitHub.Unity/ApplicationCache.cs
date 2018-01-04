@@ -132,33 +132,46 @@ namespace GitHub.Unity
 
         public void ValidateData()
         {
-            if (ApplicationCache.Instance.FirstRunAt > InitializedAt)
+            var initialized = ValidateInitialized();
+            if (initialized)
             {
-                InitializedAt = DateTimeOffset.Now;
-                Save(true);
-
-                if (invalidOnFirstRun)
+                if (DateTimeOffset.Now - LastUpdatedAt > DataTimeout)
                 {
-                    Logger.Trace("FirstRun Invalidation");
+                    Logger.Trace("Timeout Invalidation");
                     InvalidateData();
                 }
             }
-            else if (DateTimeOffset.Now - LastUpdatedAt > DataTimeout)
+        }
+
+        private bool ValidateInitialized()
+        {
+            var isInitialized = IsInitialized;
+            if (!isInitialized)
             {
-                Logger.Trace("Timeout Invalidation");
-                InvalidateData();
+                Logger.Trace("Not Initialized");
+
+                if (invalidOnFirstRun)
+                {
+                    InvalidateData();
+                }
             }
+
+            return isInitialized;
         }
 
         public void InvalidateData()
         {
             Logger.Trace("Invalidate");
             CacheInvalidated.SafeInvoke();
-            SaveData(DateTimeOffset.Now, false);
         }
 
         protected void SaveData(DateTimeOffset now, bool isUpdated)
         {
+            if (!IsInitialized)
+            {
+                InitializedAt = now;
+            }
+
             if (isUpdated)
             {
                 LastUpdatedAt = now;
@@ -183,12 +196,19 @@ namespace GitHub.Unity
         public abstract string LastVerifiedAtString { get; protected set; }
         public abstract string InitializedAtString { get; protected set; }
 
+        public bool IsInitialized
+        {
+            get { return ApplicationCache.Instance.FirstRunAt <= InitializedAt; }
+        }
+
         public DateTimeOffset LastUpdatedAt
         {
             get
             {
                 if (!lastUpdatedAtValue.HasValue)
                 {
+                    ValidateInitialized();
+
                     DateTimeOffset result;
                     if (DateTimeOffset.TryParseExact(LastUpdatedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
@@ -196,7 +216,7 @@ namespace GitHub.Unity
                     }
                     else
                     {
-                        lastUpdatedAtValue = DateTimeOffset.MinValue;
+                        LastUpdatedAt = DateTimeOffset.MinValue;
                     }
                 }
 
@@ -215,6 +235,8 @@ namespace GitHub.Unity
             {
                 if (!lastVerifiedAtValue.HasValue)
                 {
+                    ValidateInitialized();
+
                     DateTimeOffset result;
                     if (DateTimeOffset.TryParseExact(LastVerifiedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
@@ -222,7 +244,7 @@ namespace GitHub.Unity
                     }
                     else
                     {
-                        lastVerifiedAtValue = DateTimeOffset.MinValue;
+                        LastVerifiedAt = DateTimeOffset.MinValue;
                     }
                 }
 
@@ -248,7 +270,7 @@ namespace GitHub.Unity
                     }
                     else
                     {
-                        initializedAtValue = DateTimeOffset.MinValue;
+                        InitializedAt = DateTimeOffset.MinValue;
                     }
                 }
 
@@ -398,9 +420,9 @@ namespace GitHub.Unity
     [Location("cache/repoinfo.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class RepositoryInfoCache : ManagedCacheBase<RepositoryInfoCache>, IRepositoryInfoCache
     {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string firstInitializedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string firstInitializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
         [SerializeField] private GitRemote gitRemote;
         [SerializeField] private GitBranch gitBranch;
 
@@ -482,12 +504,9 @@ namespace GitHub.Unity
     [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class BranchCache : ManagedCacheBase<BranchCache>, IBranchCache
     {
-        public static readonly ConfigBranch DefaultConfigBranch = new ConfigBranch();
-        public static readonly ConfigRemote DefaultConfigRemote = new ConfigRemote();
-
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
 
         [SerializeField] private ConfigBranch gitConfigBranch;
         [SerializeField] private ConfigRemote gitConfigRemote;
@@ -508,7 +527,7 @@ namespace GitHub.Unity
             get
             {
                 ValidateData();
-                return gitConfigRemote.Equals(DefaultConfigRemote) ? (ConfigRemote?)null : gitConfigRemote;
+                return gitConfigRemote.Equals(ConfigRemote.Default) ? (ConfigRemote?)null : gitConfigRemote;
             }
             set
             {
@@ -519,7 +538,7 @@ namespace GitHub.Unity
 
                 if (!Nullable.Equals(gitConfigRemote, value))
                 {
-                    gitConfigRemote = value ?? DefaultConfigRemote;
+                    gitConfigRemote = value ?? ConfigRemote.Default;
                     isUpdated = true;
                 }
 
@@ -532,7 +551,7 @@ namespace GitHub.Unity
             get
             {
                 ValidateData();
-                return gitConfigBranch.Equals(DefaultConfigBranch) ? (ConfigBranch?)null : gitConfigBranch;
+                return gitConfigBranch.Equals(ConfigBranch.Default) ? (ConfigBranch?)null : gitConfigBranch;
             }
             set
             {
@@ -543,7 +562,7 @@ namespace GitHub.Unity
 
                 if (!Nullable.Equals(gitConfigBranch, value))
                 {
-                    gitConfigBranch = value ?? DefaultConfigBranch;
+                    gitConfigBranch = value ?? ConfigBranch.Default;
                     isUpdated = true;
                 }
 
@@ -658,7 +677,7 @@ namespace GitHub.Unity
             if (!LocalConfigBranches.ContainsKey(branch))
             {
                 var now = DateTimeOffset.Now;
-                LocalConfigBranches.Add(branch, new ConfigBranch { Name = branch });
+                LocalConfigBranches.Add(branch, new ConfigBranch(branch));
                 Logger.Trace("AddLocalBranch {0} branch:{1} ", now, branch);
                 SaveData(now, true);
             }
@@ -676,7 +695,7 @@ namespace GitHub.Unity
                 if (!branchList.ContainsKey(branch))
                 {
                     var now = DateTimeOffset.Now;
-                    branchList.Add(branch, new ConfigBranch { Name = branch, Remote = ConfigRemotes[remote] });
+                    branchList.Add(branch, new ConfigBranch(branch,ConfigRemotes[remote]));
                     Logger.Trace("AddRemoteBranch {0} remote:{1} branch:{2} ", now, remote, branch);
                     SaveData(now, true);
                 }
@@ -758,9 +777,9 @@ namespace GitHub.Unity
     [Location("cache/gitlog.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitLogCache : ManagedCacheBase<GitLogCache>, IGitLogCache
     {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
         [SerializeField] private List<GitLogEntry> log = new List<GitLogEntry>();
 
         public GitLogCache() : base(true)
@@ -814,34 +833,118 @@ namespace GitHub.Unity
         }
     }
 
-    [Location("cache/gitstatus.yaml", LocationAttribute.Location.LibraryFolder)]
-    sealed class GitStatusCache : ManagedCacheBase<GitStatusCache>, IGitStatusCache
+    [Location("cache/gittrackingstatus.yaml", LocationAttribute.Location.LibraryFolder)]
+    sealed class GitTrackingStatusCache : ManagedCacheBase<GitTrackingStatusCache>, IGitTrackingStatusCache
     {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private GitStatus status;
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private int ahead;
+        [SerializeField] private int behind;
 
-        public GitStatusCache() : base(true)
+        public GitTrackingStatusCache() : base(true)
         { }
 
-        public GitStatus GitStatus
+        public int Ahead
         {
             get
             {
                 ValidateData();
-                return status;
+                return ahead;
             }
             set
             {
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} gitStatus:{1}", now, value);
+                Logger.Trace("Updating: {0} ahead:{1}", now, value);
 
-                if (!status.Equals(value))
+                if (ahead != value)
                 {
-                    status = value;
+                    ahead = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public int Behind
+        {
+            get
+            {
+                ValidateData();
+                return behind;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} behind:{1}", now, value);
+
+                if (behind != value)
+                {
+                    behind = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public override string LastUpdatedAtString
+        {
+            get { return lastUpdatedAtString; }
+            protected set { lastUpdatedAtString = value; }
+        }
+
+        public override string LastVerifiedAtString
+        {
+            get { return lastVerifiedAtString; }
+            protected set { lastVerifiedAtString = value; }
+        }
+
+        public override string InitializedAtString
+        {
+            get { return initializedAtString; }
+            protected set { initializedAtString = value; }
+        }
+
+        public override TimeSpan DataTimeout
+        {
+            get { return TimeSpan.FromMinutes(1); }
+        }
+    }
+
+     [Location("cache/gitstatusentries.yaml", LocationAttribute.Location.LibraryFolder)]
+    sealed class GitStatusEntriesCache : ManagedCacheBase<GitStatusEntriesCache>, IGitStatusEntriesCache
+    {
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private List<GitStatusEntry> entries = new List<GitStatusEntry>();
+
+        public GitStatusEntriesCache() : base(true)
+        { }
+
+        public List<GitStatusEntry> Entries
+        {
+            get
+            {
+                ValidateData();
+                return entries;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} entries:{1}", now, value.Count);
+
+                if (!entries.SequenceEqual(value))
+                {
+                    entries = value;
                     isUpdated = true;
                 }
 
@@ -876,9 +979,9 @@ namespace GitHub.Unity
     [Location("cache/gitlocks.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitLocksCache : ManagedCacheBase<GitLocksCache>, IGitLocksCache
     {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
         [SerializeField] private List<GitLock> gitLocks = new List<GitLock>();
 
         public GitLocksCache() : base(true)
@@ -935,31 +1038,56 @@ namespace GitHub.Unity
     [Location("cache/gituser.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitUserCache : ManagedCacheBase<GitUserCache>, IGitUserCache
     {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString();
-        [SerializeField] private User user;
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string gitName;
+        [SerializeField] private string gitEmail;
 
         public GitUserCache() : base(true)
         { }
 
-        public User User
+        public string Name
         {
             get
             {
                 ValidateData();
-                return user;
+                return gitName;
             }
             set
             {
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} user:{1}", now, value);
+                Logger.Trace("Updating: {0} Name:{1}", now, value);
 
-                if (!user.Equals(value))
+                if (gitName != value)
                 {
-                    user = value;
+                    gitName = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public string Email
+        {
+            get
+            {
+                ValidateData();
+                return gitEmail;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                Logger.Trace("Updating: {0} Email:{1}", now, value);
+
+                if (gitEmail != value)
+                {
+                    gitEmail = value;
                     isUpdated = true;
                 }
 

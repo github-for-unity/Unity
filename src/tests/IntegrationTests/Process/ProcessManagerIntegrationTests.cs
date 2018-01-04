@@ -42,42 +42,29 @@ namespace IntegrationTests
 
             logEntries.AssertEqual(new[]
             {
-                new GitLogEntry
-                {
-                    AuthorEmail = "author@example.com",
-                    CommitEmail = "author@example.com",
-                    AuthorName = "Author Person",
-                    CommitName = "Author Person",
-                    Changes = new List<GitStatusEntry>
+                new GitLogEntry("018997938335742f8be694240a7c2b352ec0835f", 
+                    "Author Person", "author@example.com", "Author Person", 
+                    "author@example.com", 
+                    "Moving project files where they should be kept", 
+                    "Moving project files where they should be kept", firstCommitTime, 
+                    firstCommitTime, new List<GitStatusEntry>
                     {
                         new GitStatusEntry("Assets/TestDocument.txt".ToNPath(),
                             TestRepoMasterCleanUnsynchronized + "/Assets/TestDocument.txt".ToNPath(), "Assets/TestDocument.txt".ToNPath(),
                             GitFileStatus.Renamed, "TestDocument.txt")
-                    },
-                    CommitID = "018997938335742f8be694240a7c2b352ec0835f",
-                    Description = "Moving project files where they should be kept",
-                    Summary = "Moving project files where they should be kept",
-                    TimeString = firstCommitTime.ToString(Constants.Iso8601Format),
-                    CommitTimeString = firstCommitTime.ToString(Constants.Iso8601Format),
-                },
-                new GitLogEntry
-                {
-                    AuthorEmail = "author@example.com",
-                    CommitEmail = "author@example.com",
-                    AuthorName = "Author Person",
-                    CommitName = "Author Person",
-                    Changes = new List<GitStatusEntry>
+                    }),
+
+                new GitLogEntry("03939ffb3eb8486dba0259b43db00842bbe6eca1", 
+                    "Author Person", "author@example.com", "Author Person",
+                    "author@example.com",
+                    "Initial Commit",
+                    "Initial Commit", secondCommitTime,
+                    secondCommitTime, new List<GitStatusEntry>
                     {
                         new GitStatusEntry("TestDocument.txt".ToNPath(),
                             TestRepoMasterCleanUnsynchronized + "/TestDocument.txt".ToNPath(), "TestDocument.txt".ToNPath(),
                             GitFileStatus.Added),
-                    },
-                    CommitID = "03939ffb3eb8486dba0259b43db00842bbe6eca1",
-                    Description = "Initial Commit",
-                    Summary = "Initial Commit",
-                    TimeString = secondCommitTime.ToString(Constants.Iso8601Format),
-                    CommitTimeString = secondCommitTime.ToString(Constants.Iso8601Format),
-                },
+                    }),
             });
         }
 
@@ -95,24 +82,17 @@ namespace IntegrationTests
 
             logEntries.AssertEqual(new[]
             {
-                new GitLogEntry
-                {
-                    AuthorEmail = "author@example.com",
-                    CommitEmail = "author@example.com",
-                    AuthorName = "Author Person",
-                    CommitName = "Author Person",
-                    Changes = new List<GitStatusEntry>
+                new GitLogEntry("06d6451d351626894a30e9134f551db12c74254b",
+                    "Author Person", "author@example.com", "Author Person",
+                    "author@example.com",
+                    "Я люблю github",
+                    "Я люблю github", commitTime,
+                    commitTime, new List<GitStatusEntry>
                     {
                         new GitStatusEntry(@"Assets\A new file.txt".ToNPath(),
                             TestRepoMasterCleanUnsynchronizedRussianLanguage + "/Assets/A new file.txt".ToNPath(), "Assets/A new file.txt".ToNPath(),
                             GitFileStatus.Added),
-                    },
-                    CommitID = "06d6451d351626894a30e9134f551db12c74254b",
-                    Description = "Я люблю github",
-                    Summary = "Я люблю github",
-                    TimeString = commitTime.ToString(Constants.Iso8601Format),
-                    CommitTimeString = commitTime.ToString(Constants.Iso8601Format),
-                }
+                    }),
             });
         }
 

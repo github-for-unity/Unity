@@ -78,6 +78,7 @@ namespace GitHub.Unity
                 }
             }
 
+            Environment.User.Initialize(GitClient);
         }
 
         public ITask InitializeRepository()

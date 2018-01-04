@@ -16,12 +16,38 @@ namespace GitHub.Unity
                 filename = filename2x;
             }
 
+            Texture2D texture2D = null;
+
             var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GitHub.Unity.IconsAndLogos." + filename);
             if (stream != null)
-                return stream.ToTexture2D();
+            {
+                texture2D = stream.ToTexture2D();
+            }
+            else
+            {
+                var iconPath = EntryPoint.Environment.ExtensionInstallPath.Combine("IconsAndLogos", filename).ToString(SlashMode.Forward);
+                texture2D = AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
+            }
 
-            var iconPath = EntryPoint.Environment.ExtensionInstallPath.Combine("IconsAndLogos", filename).ToString(SlashMode.Forward);
-            return AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
+            if (texture2D != null)
+            {
+                texture2D.hideFlags = HideFlags.HideAndDontSave;
+            }
+
+            return texture2D;
+        }
+
+        public static Texture2D GetTextureFromColor(Color color)
+        {
+            Color[] pix = new Color[1];
+            pix[0] = color;
+
+            Texture2D result = new Texture2D(1, 1);
+            result.hideFlags = HideFlags.HideAndDontSave;
+            result.SetPixels(pix);
+            result.Apply();
+
+            return result;
         }
     }
 

@@ -51,8 +51,12 @@ namespace GitHub.Unity
             userSettingsView.OnEnable();
             AttachHandlers(Repository);
 
-            Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
-            Repository.CheckLocksChangedEvent(lastLocksChangedEvent);
+            if (Repository != null)
+            {
+                Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
+                Repository.CheckLocksChangedEvent(lastLocksChangedEvent);
+            }
+
             metricsHasChanged = true;
         }
 
@@ -122,11 +126,9 @@ namespace GitHub.Unity
         {
             if (!lastLocksChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(TaskManager.Token, () => {
-                    lastLocksChangedEvent = cacheUpdateEvent;
-                    currentLocksHasUpdate = true;
-                    Redraw();
-                }) { Affinity = TaskAffinity.UI }.Start();
+                lastLocksChangedEvent = cacheUpdateEvent;
+                currentLocksHasUpdate = true;
+                Redraw();
             }
         }
 
@@ -134,11 +136,9 @@ namespace GitHub.Unity
         {
             if (!lastCurrentRemoteChangedEvent.Equals(cacheUpdateEvent))
             {
-                new ActionTask(TaskManager.Token, () => {
-                    lastCurrentRemoteChangedEvent = cacheUpdateEvent;
-                    currentRemoteHasUpdate = true;
-                    Redraw();
-                }) { Affinity = TaskAffinity.UI }.Start();
+                lastCurrentRemoteChangedEvent = cacheUpdateEvent;
+                currentRemoteHasUpdate = true;
+                Redraw();
             }
         }
 
@@ -185,6 +185,7 @@ namespace GitHub.Unity
             {
                 currentLocksHasUpdate = false;
                 var repositoryCurrentLocks = Repository.CurrentLocks;
+                lockedFileSelection = -1;
                 lockedFiles = repositoryCurrentLocks != null
                     ? repositoryCurrentLocks.ToList()
                     : new List<GitLock>();

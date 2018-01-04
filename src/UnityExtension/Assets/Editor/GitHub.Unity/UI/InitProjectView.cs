@@ -10,15 +10,26 @@ namespace GitHub.Unity
         private const string NoRepoTitle = "To begin using GitHub, initialize a git repository";
         private const string NoUserOrEmailError = "Name and email not set in git. Go into the settings tab and enter the missing information";
 
+        [SerializeField] private bool hasCompletedInitialCheck;
+        [SerializeField] private bool isUserDataPresent;
+
+        [SerializeField] private CacheUpdateEvent lastCheckUserChangedEvent;
+
         [NonSerialized] private bool isBusy;
-        [NonSerialized] private bool isUserDataPresent;
-        [NonSerialized] private bool hasCompletedInitialCheck;
-        [NonSerialized] private bool userDataHasChanged;
+        [NonSerialized] private bool userHasChanges;
 
         public override void OnEnable()
         {
             base.OnEnable();
-            userDataHasChanged = Environment.GitExecutablePath != null;
+            AttachHandlers();
+
+            User.CheckUserChangedEvent(lastCheckUserChangedEvent);
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            DetachHandlers();
         }
 
         public override void OnGUI()
@@ -76,35 +87,35 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        private void MaybeUpdateData()
+        private void AttachHandlers()
         {
-            if (userDataHasChanged)
+            User.Changed += UserOnChanged;
+        }
+
+        private void UserOnChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastCheckUserChangedEvent.Equals(cacheUpdateEvent))
             {
-                userDataHasChanged = false;
-                CheckForUser();
+                lastCheckUserChangedEvent = cacheUpdateEvent;
+                userHasChanges = true;
+                Redraw();
             }
         }
 
-        private void CheckForUser()
+        private void DetachHandlers()
         {
-            if (string.IsNullOrEmpty(Environment.GitExecutablePath))
+            User.Changed -= UserOnChanged;
+        }
+
+        private void MaybeUpdateData()
+        {
+            if (userHasChanges)
             {
-                Logger.Warning("No git exec cannot check for user");
-                return;
-            }
-
-            Logger.Trace("Checking for user");
-            isBusy = true;
-
-            GitClient.GetConfigUserAndEmail().FinallyInUI((success, ex, user) => {
-                isBusy = false;
-                isUserDataPresent = success && !String.IsNullOrEmpty(user.Name) && !String.IsNullOrEmpty(user.Email);
+                userHasChanges = false;
+                isUserDataPresent = !string.IsNullOrEmpty(User.Name)
+                    && !string.IsNullOrEmpty(User.Email);
                 hasCompletedInitialCheck = true;
-
-                Logger.Trace("User Present: {0}", isUserDataPresent);
-
-                Redraw();
-            }).Start();
+            }
         }
 
         public override bool IsBusy
