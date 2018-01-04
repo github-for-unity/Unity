@@ -51,8 +51,6 @@ namespace GitHub.Unity
             var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
                 .ThenInUI(InitializeUI);
 
-            Logger.Trace("afterGitSetup");
-
             var windowsCredentialSetup = new ActionTask(CancellationToken, () => {
                 GitClient.GetConfig("credential.helper", GitConfigSource.Global).Then((b, credentialHelper) => {
                     if (!string.IsNullOrEmpty(credentialHelper))
@@ -69,8 +67,6 @@ namespace GitHub.Unity
                     }
                 }).Start();
             });
-
-            Logger.Trace("windowsCredentialSetup");
 
             var afterPathDetermined = new ActionTask<NPath>(CancellationToken, (b1, path) => {
 
@@ -90,8 +86,6 @@ namespace GitHub.Unity
                     afterGitSetup.Start();
                 }
             });
-
-            Logger.Trace("afterPathDetermined");
 
             var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
             var installDetails = new GitInstallDetails(applicationDataPath, true);
