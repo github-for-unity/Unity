@@ -90,7 +90,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            var calculateMd5 = environment.FileSystem.CalculateMD5(GitLfsExecutablePath);
+            var calculateMd5 = environment.FileSystem.CalculateFileMD5(GitLfsExecutablePath);
             logger.Trace("GitLFS MD5: {0}", calculateMd5);
             var md5 = environment.IsWindows ? WindowsGitLfsExecutableMD5 : MacGitLfsExecutableMD5;
             if (String.Compare(calculateMd5, md5, true) != 0)

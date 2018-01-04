@@ -41,7 +41,7 @@ namespace IntegrationTests
                 gitLfsDestinationPath = gitLfsDestinationPath.Combine("libexec", "git-core", "git-lfs.exe");
                 gitLfsDestinationPath.FileExists().Should().BeTrue();
 
-                var calculateMd5 = NPath.FileSystem.CalculateMD5(gitLfsDestinationPath);
+                var calculateMd5 = NPath.FileSystem.CalculateFileMD5(gitLfsDestinationPath);
                 Assert.IsTrue(string.Compare(calculateMd5, GitInstaller.WindowsGitLfsExecutableMD5, true) == 0);
 
                 setupDone = await gitSetup.SetupIfNeeded(new Progress<float>(x => percent = x));
@@ -83,7 +83,7 @@ namespace IntegrationTests
 
             gitLfsPath.Exists().Should().BeTrue();
 
-            var calculateMd5 = NPath.FileSystem.CalculateMD5(gitLfsPath);
+            var calculateMd5 = NPath.FileSystem.CalculateFileMD5(gitLfsPath);
             calculateMd5.ToLower().Should().Be(GitInstaller.WindowsGitLfsExecutableMD5.ToLower());
         }
 
@@ -103,7 +103,7 @@ namespace IntegrationTests
 
             gitLfsPath.Exists().Should().BeTrue();
 
-            var calculateMd5 = NPath.FileSystem.CalculateMD5(gitLfsPath);
+            var calculateMd5 = NPath.FileSystem.CalculateFileMD5(gitLfsPath);
             calculateMd5.ToLower().Should().Be(GitInstaller.MacGitLfsExecutableMD5.ToLower());
         }
     }
