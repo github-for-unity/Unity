@@ -50,6 +50,7 @@ namespace GitHub.Unity
             var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
                 .ThenInUI(InitializeUI);
 
+            //GitClient.GetConfig cannot be called until there is a git path set so it is wrapped in an ActionTask
             var windowsCredentialSetup = new ActionTask(CancellationToken, () => {
                 GitClient.GetConfig("credential.helper", GitConfigSource.Global).Then((b, credentialHelper) => {
                     if (!string.IsNullOrEmpty(credentialHelper))
