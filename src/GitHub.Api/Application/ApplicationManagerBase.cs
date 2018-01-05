@@ -69,12 +69,9 @@ namespace GitHub.Unity
             });
 
             var afterPathDetermined = new ActionTask<NPath>(CancellationToken, (b, path) => {
-
                 Logger.Trace("Setting Environment git path: {0}", path);
                 Environment.GitExecutablePath = path;
-
             }).ThenInUI(() => {
-
                 Environment.User.Initialize(GitClient);
 
                 if (Environment.IsWindows)
@@ -106,18 +103,15 @@ namespace GitHub.Unity
 
             var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
             var installDetails = new GitInstallDetails(applicationDataPath, true);
+
             var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
             gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken, (b, path) => {
-
                 Logger.Trace("GitInstaller Success: {0}", path);
-
                 new FuncTask<NPath>(CancellationToken, () => path)
                     .Then(afterPathDetermined)
                     .Start();
-
             }), new ActionTask(CancellationToken, () => {
                 Logger.Warning("GitInstaller Failure");
-
                 findExecTask.Start();
             }) );
         }
