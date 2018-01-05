@@ -74,6 +74,7 @@
   <ItemGroup>
     <Compile Include="Auth\LoginTests.cs" />
     <Compile Include="BaseTaskManagerTest.cs" />
+    <Compile Include="Download\DownloadTaskTests.cs" />
     <Compile Include="Events\RepositoryManagerTests.cs" />
     <Compile Include="Events\RepositoryWatcherTests.cs" />
     <Compile Include="BaseGitEnvironmentTest.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SetUpFixture.cs" />
     <Compile Include="ThreadSynchronizationContext.cs" />
+    <Compile Include="UnzipTaskTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)src\GitHub.Api\GitHub.Api.csproj">
