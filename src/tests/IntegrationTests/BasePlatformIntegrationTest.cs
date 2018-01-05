@@ -1,8 +1,10 @@
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using GitHub.Unity;
 using NSubstitute;
+using Octokit;
 
 namespace IntegrationTests
 {
@@ -29,13 +31,42 @@ namespace IntegrationTests
 
             if (setupGit)
             {
+                var autoResetEvent = new AutoResetEvent(false);
+
                 var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
-                var installDetails = new PortableGitInstallDetails(applicationDataPath, true);
-                var gitInstallTask = new PortableGitInstallTask(CancellationToken.None, Environment, installDetails);
+                var installDetails = new GitInstallDetails(applicationDataPath, true);
 
-                var installPath = gitInstallTask.Start().Result;
-                Environment.GitExecutablePath = installPath;
+                var zipArchivesPath = TestBasePath.Combine("ZipArchives").CreateDirectory();
+                var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
+                var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
 
+                var gitInstaller = new GitInstaller(Environment, CancellationToken.None, installDetails, gitArchivePath, gitLfsArchivePath);
+
+                NPath result = null;
+                Exception ex = null;
+
+                gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken.None, (b, path) => {
+                        result = path;
+                        autoResetEvent.Set();
+                    }),
+                    new ActionTask(CancellationToken.None, (b, exception) => {
+                        ex = exception;
+                        autoResetEvent.Set();
+                    }));
+
+                autoResetEvent.WaitOne();
+
+                if (result == null)
+                {
+                    if (ex != null)
+                    {
+                        throw ex;
+                    }
+
+                    throw new Exception("Did not install git");
+                }
+                
+                Environment.GitExecutablePath = result;
                 GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
             }
         }

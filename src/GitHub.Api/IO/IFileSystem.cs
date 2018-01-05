@@ -7,6 +7,7 @@ namespace GitHub.Unity
     public interface IFileSystem
     {
         bool FileExists(string path);
+        long FileLength(string path);
         string Combine(string path1, string path2);
         string Combine(string path1, string path2, string path3);
         string GetFullPath(string path);
@@ -38,6 +39,7 @@ namespace GitHub.Unity
         string ReadAllText(string path);
         string ReadAllText(string path, Encoding encoding);
         Stream OpenRead(string path);
+        Stream OpenWrite(string path, FileMode mode);
         string[] ReadAllLines(string path);
         char DirectorySeparatorChar { get; }
         bool ExistingPathIsDirectory(string path);

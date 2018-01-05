@@ -74,6 +74,7 @@
   <ItemGroup>
     <Compile Include="Auth\LoginTests.cs" />
     <Compile Include="BaseTaskManagerTest.cs" />
+    <Compile Include="Download\DownloadTaskTests.cs" />
     <Compile Include="Events\RepositoryManagerTests.cs" />
     <Compile Include="Events\RepositoryWatcherTests.cs" />
     <Compile Include="BaseGitEnvironmentTest.cs" />
@@ -81,8 +82,7 @@
     <Compile Include="BaseIntegrationTest.cs" />
     <Compile Include="Git\GitClientTests.cs" />
     <Compile Include="IntegrationTestEnvironment.cs" />
-    <Compile Include="Installer\PortableGitInstallTaskTests.cs" />
-    <Compile Include="Installer\ShortCircuitTaskTests.cs" />
+    <Compile Include="Installer\GitInstallerTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="Process\ProcessManagerIntegrationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

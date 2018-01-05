@@ -39,8 +39,7 @@ namespace GitHub.Unity
             Logging.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
-            ITaskManager taskManager = TaskManager;
-            GitClient = new GitClient(Environment, ProcessManager, taskManager.Token);
+            GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
             SetupMetrics();
         }
 
@@ -48,94 +47,73 @@ namespace GitHub.Unity
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
-            SetupGit()
-                .Then(RestartRepository)
-                .ThenInUI(InitializeUI)
-                .Start();
-        }
+            var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
+                .ThenInUI(InitializeUI);
 
-        private ITask SetupGit()
-        {
-            return BuildDetermineGitPathTask()
-                .Then((b, path) => {
-                    Logger.Trace("Setting GitExecutablePath: {0}", path);
-                    Environment.GitExecutablePath = path;
-                })
-                .Then(() => {
-                    if (Environment.GitExecutablePath == null)
+            //GitClient.GetConfig cannot be called until there is a git path set so it is wrapped in an ActionTask
+            var windowsCredentialSetup = new ActionTask(CancellationToken, () => {
+                GitClient.GetConfig("credential.helper", GitConfigSource.Global).Then((b, credentialHelper) => {
+                    if (!string.IsNullOrEmpty(credentialHelper))
                     {
-                        if (Environment.IsWindows)
-                        {
-                            GitClient.GetConfig("credential.helper", GitConfigSource.Global).Then(
-                                (b, credentialHelper) => {
-                                    if (!string.IsNullOrEmpty(credentialHelper))
-                                    {
-                                        Logger.Trace("Windows CredentialHelper: {0}", credentialHelper);
-                                    }
-                                    else
-                                    {
-                                        Logger.Warning(
-                                            "No Windows CredentialHeloper found: Setting to wincred");
-
-                                        GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global).Start().Wait();
-                                    }
-                                });
-                        }
+                        Logger.Trace("Windows CredentialHelper: {0}", credentialHelper);
+                        afterGitSetup.Start();
                     }
-                })
-                .ThenInUI(() => {
-                    Environment.User.Initialize(GitClient);
-                });
-        }
+                    else
+                    {
+                        Logger.Warning("No Windows CredentialHeloper found: Setting to wincred");
 
-        private TaskBase<NPath> BuildDetermineGitPathTask()
-        {
-            TaskBase<NPath> determinePath = new FuncTask<NPath>(CancellationToken, () => {
-                if (Environment.GitExecutablePath != null)
-                {
-                    return Environment.GitExecutablePath;
-                }
-
-                var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();
-                if (gitExecutablePath != null && gitExecutablePath.FileExists())
-                {
-                    Logger.Trace("Using git install path from settings");
-                    return gitExecutablePath;
-                }
-
-                return null;
+                        GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global)
+                                 .Then(() => { afterGitSetup.Start(); }).Start();
+                    }
+                }).Start();
             });
 
-            var environmentIsWindows = Environment.IsWindows;
-            if (environmentIsWindows)
-            {
-                var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
-                var installDetails = new PortableGitInstallDetails(applicationDataPath, true);
-                var installTask = new PortableGitInstallTask(CancellationToken, Environment, installDetails);
+            var afterPathDetermined = new ActionTask<NPath>(CancellationToken, (b, path) => {
+                Logger.Trace("Setting Environment git path: {0}", path);
+                Environment.GitExecutablePath = path;
+            }).ThenInUI(() => {
+                Environment.User.Initialize(GitClient);
 
-                determinePath = determinePath.Then(new ShortCircuitTask<NPath>(CancellationToken, installTask));
-            }
+                if (Environment.IsWindows)
+                {
+                    windowsCredentialSetup.Start();
+                }
+                else
+                {
+                    afterGitSetup.Start();
+                }
+            });
 
-            if (!environmentIsWindows)
-            {
-                determinePath = determinePath.Then(new ShortCircuitTask<NPath>(CancellationToken, () => {
-                    var p = new NPath("/usr/local/bin/git");
-
-                    if (p.FileExists())
+            var findExecTask = new FindExecTask("git", CancellationToken)
+                .Finally((b, ex, path) => {
+                    if (b && path != null)
                     {
-                        return p;
+                        Logger.Trace("FindExecTask Success: {0}", path);
+
+                        new FuncTask<NPath>(CancellationToken, () => path)
+                            .Then(afterPathDetermined)
+                            .Start();
                     }
+                    else
+                    {
+                        Logger.Warning("FindExecTask Failure");
+                        Logger.Error("Git not found");
+                    }
+                });
 
-                    return null;
-                }));
+            var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
+            var installDetails = new GitInstallDetails(applicationDataPath, true);
 
-                var findExecTask = new FindExecTask("git", CancellationToken);
-                findExecTask.Configure(ProcessManager);
-
-                determinePath = determinePath.Then(new ShortCircuitTask<NPath>(CancellationToken, findExecTask));
-            }
-
-            return determinePath;
+            var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
+            gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken, (b, path) => {
+                Logger.Trace("GitInstaller Success: {0}", path);
+                new FuncTask<NPath>(CancellationToken, () => path)
+                    .Then(afterPathDetermined)
+                    .Start();
+            }), new ActionTask(CancellationToken, () => {
+                Logger.Warning("GitInstaller Failure");
+                findExecTask.Start();
+            }) );
         }
 
         public ITask InitializeRepository()
