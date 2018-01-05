@@ -112,31 +112,35 @@ namespace GitHub.Unity
                     }
                     else
                     {
-                        ITask downloadFilesTask1 = null;
+                        ITask downloadFilesTask = null;
                         if (gitArchiveFilePath == null || gitLfsArchivePath == null)
                         {
-                            downloadFilesTask1 = CreateDownloadTask();
+                            downloadFilesTask = CreateDownloadTask();
                         }
 
-                        var tempZipExtractPath1 = NPath.CreateTempDirectory("git_zip_extract_zip_paths");
-                        var gitExtractPath1 = tempZipExtractPath1.Combine("git").CreateDirectory();
-                        var gitLfsExtractPath1 = tempZipExtractPath1.Combine("git-lfs").CreateDirectory();
+                        var tempZipExtractPath = NPath.CreateTempDirectory("git_zip_extract_zip_paths");
+                        var gitExtractPath = tempZipExtractPath.Combine("git").CreateDirectory();
+                        var gitLfsExtractPath = tempZipExtractPath.Combine("git-lfs").CreateDirectory();
 
-                        var resultTask1 = new UnzipTask(cancellationToken, gitArchiveFilePath, gitExtractPath1, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitExtractedMD5)
-                            .Then(new UnzipTask(cancellationToken, gitLfsArchivePath, gitLfsExtractPath1, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitLfsExtractedMD5))
+                        var resultTask = new UnzipTask(cancellationToken, gitArchiveFilePath, gitExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitExtractedMD5)
+                            .Then(new UnzipTask(cancellationToken, gitLfsArchivePath, gitLfsExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitLfsExtractedMD5))
                             .Then(() => {
-                                var targetGitLfsExecPath1 = installDetails.GetGitLfsExecPath(gitExtractPath1);
-                                var extractGitLfsExePath1 = gitLfsExtractPath1.Combine(installDetails.GitLfsExec);
-                                extractGitLfsExePath1.Move(targetGitLfsExecPath1);
+                                var targetGitLfsExecPath = installDetails.GetGitLfsExecPath(gitExtractPath);
+                                var extractGitLfsExePath = gitLfsExtractPath.Combine(installDetails.GitLfsExec);
 
-                                Logger.Trace("Moving tempDirectory:\"{0}\" to extractTarget:\"{1}\"", gitExtractPath1,
+                                Logger.Trace("Moving Git LFS Exe:\"{0}\" to target in tempDirectory:\"{1}\" ", extractGitLfsExePath,
+                                    targetGitLfsExecPath);
+
+                                extractGitLfsExePath.Move(targetGitLfsExecPath);
+
+                                Logger.Trace("Moving tempDirectory:\"{0}\" to extractTarget:\"{1}\"", gitExtractPath,
                                     installDetails.GitInstallPath);
 
                                 installDetails.GitInstallPath.EnsureParentDirectoryExists();
-                                gitExtractPath1.Move(installDetails.GitInstallPath);
+                                gitExtractPath.Move(installDetails.GitInstallPath);
 
-                                Logger.Trace("Deleting tempZipPath:\"{0}\"", tempZipExtractPath1);
-                                tempZipExtractPath1.DeleteIfExists();
+                                Logger.Trace("Deleting tempZipPath:\"{0}\"", tempZipExtractPath);
+                                tempZipExtractPath.DeleteIfExists();
                             })
                             .Finally((b, exception) => {
                                 if (b)
@@ -155,12 +159,12 @@ namespace GitHub.Unity
                                 }
                             });
 
-                        if (downloadFilesTask1 != null)
+                        if (downloadFilesTask != null)
                         {
-                            resultTask1 = downloadFilesTask1.Then(resultTask1);
+                            resultTask = downloadFilesTask.Then(resultTask);
                         }
 
-                        resultTask1.Start();
+                        resultTask.Start();
                     }
 
                 }).Start();
