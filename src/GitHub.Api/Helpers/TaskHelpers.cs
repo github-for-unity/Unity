@@ -18,6 +18,7 @@ namespace GitHub.Unity
         }
     }
 
+    [Serializable]
     public class NotReadyException : Exception
     {
     }

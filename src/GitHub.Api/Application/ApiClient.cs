@@ -332,6 +332,7 @@ namespace GitHub.Unity
         public string CloneUrl { get; set; }
     }
 
+    [Serializable]
     class ApiClientException : Exception
     {
         public ApiClientException()
@@ -344,6 +345,7 @@ namespace GitHub.Unity
         { }
     }
 
+    [Serializable]
     class TokenUsernameMismatchException : ApiClientException
     {
         public string CachedUsername { get; }
@@ -356,6 +358,7 @@ namespace GitHub.Unity
         }
     }
 
+    [Serializable]
     class KeychainEmptyException : ApiClientException
     {
         public KeychainEmptyException()
