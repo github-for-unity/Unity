@@ -31,7 +31,7 @@ namespace IntegrationTests.Download
             var downloadPathBytes = fileSystem.ReadAllBytes(downloadPath);
             Logger.Trace("File size {0} bytes", downloadPathBytes.Length);
 
-            var md5Sum = fileSystem.CalculateMD5(downloadPath);
+            var md5Sum = fileSystem.CalculateFileMD5(downloadPath);
             md5Sum.Should().Be(TestDownloadMD5.ToUpperInvariant());
 
             var random = new Random();
@@ -48,7 +48,7 @@ namespace IntegrationTests.Download
             var downloadHalfPathBytes = fileSystem.ReadAllBytes(downloadHalfPath);
             Logger.Trace("File size {0} Bytes", downloadHalfPathBytes.Length);
 
-            md5Sum = fileSystem.CalculateMD5(downloadPath);
+            md5Sum = fileSystem.CalculateFileMD5(downloadPath);
             md5Sum.Should().Be(TestDownloadMD5.ToUpperInvariant());
         }
 
