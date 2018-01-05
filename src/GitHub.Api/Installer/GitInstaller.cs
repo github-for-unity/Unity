@@ -124,6 +124,7 @@ namespace GitHub.Unity
                                 Logger.Trace("Moving tempDirectory:\"{0}\" to extractTarget:\"{1}\"", gitExtractPath,
                                     installDetails.GitInstallPath);
 
+                                installDetails.GitInstallPath.EnsureParentDirectoryExists();
                                 gitExtractPath.Move(installDetails.GitInstallPath);
 
                                 Logger.Trace("Deleting tempZipPath:\"{0}\"", tempZipPath);
