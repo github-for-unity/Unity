@@ -175,7 +175,7 @@ namespace GitHub.Unity
                     break;
 
                 case ProcessingPhase.Files:
-                    if (line == string.Empty)
+                    if (string.IsNullOrEmpty(line))
                     {
                         ReturnGitLogEntry();
                         return;
