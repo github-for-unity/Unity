@@ -124,6 +124,9 @@ namespace GitHub.Unity
                                 installDetails.GitInstallPath.EnsureParentDirectoryExists();
                                 gitExtractPath.Move(installDetails.GitInstallPath);
 
+                                Logger.Trace("Deleting targetGitLfsExecPath:\"{0}\"", targetGitLfsExecPath);
+                                targetGitLfsExecPath.DeleteIfExists();
+
                                 Logger.Trace("Deleting tempZipPath:\"{0}\"", tempZipPath);
                                 tempZipPath.DeleteIfExists();
 
@@ -138,13 +141,12 @@ namespace GitHub.Unity
                                 }
                                 else
                                 {
-                                    Logger.Trace("SetupGitIfNeeded: Failed");
+                                    Logger.Warning("SetupGitIfNeeded: Failed");
 
                                     onFailure.Start();
                                 }
                             }).Start();
                     }
-
                 }).Start();
         }
 
