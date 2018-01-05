@@ -12,7 +12,7 @@ namespace GitHub.Unity
         public NPath GitLfsExecPath { get; }
 
         public const string GitExtractedMD5 = "e6cfc0c294a2312042f27f893dfc9c0a";
-        public const string GitLfsExtractedMD5 = "ae968b69fbf42dff72311040d24a";
+        public const string GitLfsExtractedMD5 = "36e3ae968b69fbf42dff72311040d24a";
 
         public const string WindowsGitLfsExecutableMD5 = "177bb14d0c08f665a24f0d5516c3b080";
         public const string MacGitLfsExecutableMD5 = "f81a1a065a26a4123193e8fd96c561ad";
