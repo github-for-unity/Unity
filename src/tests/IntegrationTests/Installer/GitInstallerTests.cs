@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using FluentAssertions;
 using GitHub.Unity;
@@ -19,18 +20,33 @@ namespace IntegrationTests
 
             var gitInstallationPath = TestBasePath.Combine("GitInstall").CreateDirectory();
 
-            var gitInstallDetails = new GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows);
-//            var gitInstallTask = new PortableGitInstallTask(CancellationToken.None, Environment, gitInstallDetails);
-//
-//            gitInstallTask.Start().Wait();
-//
-//            Environment.FileSystem.CalculateFolderMD5(gitInstallDetails.GitInstallPath).Should().Be(PortableGitInstallDetails.ExtractedMD5);
-//            Environment.FileSystem.CalculateFolderMD5(gitInstallDetails.GitInstallPath, false).Should().Be(PortableGitInstallDetails.FileListMD5);
-//
-//            new PortableGitInstallTask(CancellationToken.None, Environment, gitInstallDetails)
-//                .Then(new PortableGitInstallTask(CancellationToken.None, Environment, gitInstallDetails))
-//                .Start()
-//                .Wait();
+            var installDetails = new GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows);
+
+            var gitInstaller = new GitInstaller(Environment, CancellationToken.None, installDetails);
+
+            var autoResetEvent = new AutoResetEvent(false);
+
+            bool? result = null;
+            NPath resultPath = null;
+            Exception ex = null;
+
+            gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken.None, (b, path) => {
+                    result = true;
+                    resultPath = path;
+                    autoResetEvent.Set();
+                }),
+                new ActionTask(CancellationToken.None, (b, exception) => {
+                    result = false;
+                    ex = exception;
+                    autoResetEvent.Set();
+                }));
+
+            autoResetEvent.WaitOne();
+
+            result.HasValue.Should().BeTrue();
+            result.Value.Should().BeTrue();
+            resultPath.Should().NotBeNull();
+            ex.Should().BeNull();
         }
     }
 }
