@@ -130,7 +130,7 @@ namespace GitHub.Unity
                     result = Download();
                     if (result && ValidationHash != null)
                     {
-                        var md5 = fileSystem.CalculateMD5(Destination);
+                        var md5 = fileSystem.CalculateFileMD5(Destination);
                         result = md5.Equals(ValidationHash, StringComparison.CurrentCultureIgnoreCase);
 
                         if (!result)
