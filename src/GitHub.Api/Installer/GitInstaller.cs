@@ -11,6 +11,9 @@ namespace GitHub.Unity
         public string GitLfsExec { get; }
         public NPath GitLfsExecPath { get; }
 
+        public const string WindowsGitLfsExecutableMD5 = "177bb14d0c08f665a24f0d5516c3b080";
+        public const string MacGitLfsExecutableMD5 = "f81a1a065a26a4123193e8fd96c561ad";
+
         public const string ExtractedMD5 = "65fd0575d3b47d8207b9e19d02faca4f";
         public const string FileListMD5 = "a152a216b2e76f6c127053251187a278";
 
@@ -163,6 +166,14 @@ namespace GitHub.Unity
             if (!fileListMD5.Equals(GitInstallDetails.FileListMD5, StringComparison.InvariantCultureIgnoreCase))
             {
                 Logger.Trace("MD5 {0} does not match expected {1}", fileListMD5, GitInstallDetails.FileListMD5);
+                return false;
+            }
+
+            var calculateMd5 = environment.FileSystem.CalculateFileMD5(installDetails.GitLfsExecPath);
+            var md5 = environment.IsWindows ? GitInstallDetails.WindowsGitLfsExecutableMD5 : GitInstallDetails.MacGitLfsExecutableMD5;
+            if (md5.Equals(calculateMd5, StringComparison.InvariantCultureIgnoreCase))
+            {
+                Logger.Trace("{0} has MD5 {1} Excepted {2}", installDetails.GitLfsExecPath, calculateMd5, md5);
                 return false;
             }
 
