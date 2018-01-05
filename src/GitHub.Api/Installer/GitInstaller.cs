@@ -216,9 +216,9 @@ namespace GitHub.Unity
 
             var calculateMd5 = environment.FileSystem.CalculateFileMD5(installDetails.GitLfsExecPath);
             var md5 = environment.IsWindows ? GitInstallDetails.WindowsGitLfsExecutableMD5 : GitInstallDetails.MacGitLfsExecutableMD5;
-            if (md5.Equals(calculateMd5, StringComparison.InvariantCultureIgnoreCase))
+            if (!md5.Equals(calculateMd5, StringComparison.InvariantCultureIgnoreCase))
             {
-                Logger.Trace("{0} has MD5 {1} Excepted {2}", installDetails.GitLfsExecPath, calculateMd5, md5);
+                Logger.Trace("{0} has MD5 {1} expected {2}", installDetails.GitLfsExecPath, calculateMd5, md5);
                 return false;
             }
 
