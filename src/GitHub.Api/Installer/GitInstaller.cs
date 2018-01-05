@@ -152,14 +152,14 @@ namespace GitHub.Unity
         {
             if (!installDetails.GitInstallPath.DirectoryExists())
             {
-                Logger.Trace("{0} does not exist", installDetails.GitInstallPath);
+                Logger.Warning("{0} does not exist", installDetails.GitInstallPath);
                 return false;
             }
 
             var fileListMD5 = environment.FileSystem.CalculateFolderMD5(installDetails.GitInstallPath, false);
             if (!fileListMD5.Equals(GitInstallDetails.FileListMD5, StringComparison.InvariantCultureIgnoreCase))
             {
-                Logger.Trace("MD5 {0} does not match expected {1}", fileListMD5, GitInstallDetails.FileListMD5);
+                Logger.Warning("Path {0} has MD5 {1} expected {2}", installDetails.GitInstallPath, fileListMD5, GitInstallDetails.FileListMD5);
                 return false;
             }
 
@@ -167,7 +167,7 @@ namespace GitHub.Unity
             var md5 = environment.IsWindows ? GitInstallDetails.WindowsGitLfsExecutableMD5 : GitInstallDetails.MacGitLfsExecutableMD5;
             if (!md5.Equals(calculateMd5, StringComparison.InvariantCultureIgnoreCase))
             {
-                Logger.Trace("{0} has MD5 {1} expected {2}", installDetails.GitLfsExecPath, calculateMd5, md5);
+                Logger.Warning("Path {0} has MD5 {1} expected {2}", installDetails.GitLfsExecPath, calculateMd5, md5);
                 return false;
             }
 
