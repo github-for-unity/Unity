@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using FluentAssertions;
 using GitHub.Unity;
 using NSubstitute;
 using NUnit.Framework;
@@ -22,36 +23,35 @@ namespace IntegrationTests
             var installDetails = new GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows);
 
             var zipArchivesPath = TestBasePath.Combine("ZipArchives").CreateDirectory();
+
             var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
             var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
-
+            
             var gitInstaller = new GitInstaller(Environment, CancellationToken.None, installDetails, gitArchivePath, gitLfsArchivePath);
 
             var autoResetEvent = new AutoResetEvent(false);
 
-            NPath result = null;
+            bool? result = null;
+            NPath resultPath = null;
             Exception ex = null;
 
             gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken.None, (b, path) => {
-                    result = path;
+                    result = true;
+                    resultPath = path;
                     autoResetEvent.Set();
                 }),
                 new ActionTask(CancellationToken.None, (b, exception) => {
+                    result = false;
                     ex = exception;
                     autoResetEvent.Set();
                 }));
 
             autoResetEvent.WaitOne();
 
-            if (result == null)
-            {
-                if (ex != null)
-                {
-                    throw ex;
-                }
-
-                throw new Exception("Did not install git");
-            }
+            result.HasValue.Should().BeTrue();
+            result.Value.Should().BeTrue();
+            resultPath.Should().NotBeNull();
+            ex.Should().BeNull();
         }
     }
 }
