@@ -80,9 +80,9 @@
     <Compile Include="BaseGitEnvironmentTest.cs" />
     <Compile Include="BasePlatformIntegrationTest.cs" />
     <Compile Include="BaseIntegrationTest.cs" />
-    <Compile Include="GitClientTests.cs" />
-    <Compile Include="Git\GitSetupTests.cs" />
-    <Compile Include="Git\IntegrationTestEnvironment.cs" />
+    <Compile Include="Git\GitClientTests.cs" />
+    <Compile Include="IntegrationTestEnvironment.cs" />
+    <Compile Include="Installer\GitInstallerTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="Process\ProcessManagerIntegrationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

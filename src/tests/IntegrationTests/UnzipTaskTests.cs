@@ -13,8 +13,6 @@ namespace IntegrationTests
     [TestFixture]
     class UnzipTaskTests : BaseTaskManagerTest
     {
-        private const string GitZipMD5 = "e6cfc0c294a2312042f27f893dfc9c0a";
-
         [Test]
         public void TaskSucceeds()
         {
@@ -30,7 +28,7 @@ namespace IntegrationTests
 
             var zipProgress = 0;
             Logger.Trace("Pct Complete {0}%", zipProgress);
-            var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath, Environment.FileSystem, GitZipMD5, 
+            var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath, Environment.FileSystem, GitInstallDetails.GitExtractedMD5, 
                 new Progress<float>(zipFileProgress => {
                     var zipFileProgressInteger = (int) (zipFileProgress * 100);
                     if (zipProgress != zipFileProgressInteger)

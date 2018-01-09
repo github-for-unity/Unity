@@ -32,7 +32,7 @@ namespace IntegrationTests.Download
             Logger.Trace("File size {0} bytes", downloadPathBytes.Length);
 
             var md5Sum = fileSystem.CalculateFileMD5(downloadPath);
-            md5Sum.Should().Be(TestDownloadMD5.ToUpperInvariant());
+            md5Sum.Should().Be(TestDownloadMD5);
 
             var random = new Random();
             var takeCount = random.Next(downloadPathBytes.Length);
@@ -49,7 +49,7 @@ namespace IntegrationTests.Download
             Logger.Trace("File size {0} Bytes", downloadHalfPathBytes.Length);
 
             md5Sum = fileSystem.CalculateFileMD5(downloadPath);
-            md5Sum.Should().Be(TestDownloadMD5.ToUpperInvariant());
+            md5Sum.Should().Be(TestDownloadMD5);
         }
 
         [Test]

@@ -8,7 +8,6 @@ namespace GitHub.Unity
 {
     public interface IGitClient
     {
-        Task<NPath> FindGitInstallation();
         ITask<ValidateGitInstallResult> ValidateGitInstall(NPath path);
 
         ITask Init(IOutputProcessor<string> processor = null);
@@ -96,84 +95,13 @@ namespace GitHub.Unity
         private const string UserEmailConfigKey = "user.email";
         private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
-        private readonly ITaskManager taskManager;
         private readonly CancellationToken cancellationToken;
 
-        public GitClient(IEnvironment environment, IProcessManager processManager, ITaskManager taskManager)
+        public GitClient(IEnvironment environment, IProcessManager processManager, CancellationToken cancellationToken)
         {
             this.environment = environment;
             this.processManager = processManager;
-            this.taskManager = taskManager;
-            this.cancellationToken = taskManager.Token;
-        }
-
-        public async Task<NPath> FindGitInstallation()
-        {
-            if (!String.IsNullOrEmpty(environment.GitExecutablePath))
-                return environment.GitExecutablePath;
-
-            NPath path = null;
-
-            if (environment.IsWindows)
-                path = await LookForPortableGit();
-
-            if (path == null)
-                path = await LookForSystemGit();
-
-            if (path == null)
-            {
-                Logger.Trace("Git Installation not discovered");
-            }
-            else
-            {
-                Logger.Trace("Git Installation discovered: '{0}'", path);
-            }
-
-            return path;
-        }
-
-        private Task<NPath> LookForPortableGit()
-        {
-            Logger.Trace("LookForPortableGit");
-
-            var gitHubLocalAppDataPath = environment.UserCachePath;
-            if (!gitHubLocalAppDataPath.DirectoryExists())
-                return null;
-
-            var searchPath = "PortableGit_";
-
-            var portableGitPath = gitHubLocalAppDataPath.Directories()
-                .Where(s => s.FileName.StartsWith(searchPath, StringComparison.OrdinalIgnoreCase))
-                .FirstOrDefault();
-
-            if (portableGitPath != null)
-            {
-                portableGitPath = portableGitPath.Combine("cmd", $"git{environment.ExecutableExtension}");
-            }
-
-            return TaskEx.FromResult(portableGitPath);
-        }
-
-        private async Task<NPath> LookForSystemGit()
-        {
-            Logger.Trace("LookForSystemGit");
-
-            NPath path = null;
-            if (!environment.IsWindows)
-            {
-                var p = new NPath("/usr/local/bin/git");
-
-                if (p.FileExists())
-                    path = p;
-            }
-
-            if (path == null)
-            {
-                path = await new FindExecTask("git", taskManager.Token)
-                    .Configure(processManager).StartAwait();
-            }
-
-            return path;
+            this.cancellationToken = cancellationToken;
         }
 
         public ITask<ValidateGitInstallResult> ValidateGitInstall(NPath path)
