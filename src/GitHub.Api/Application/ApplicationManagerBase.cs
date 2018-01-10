@@ -84,36 +84,51 @@ namespace GitHub.Unity
                 }
             });
 
-            var findExecTask = new FindExecTask("git", CancellationToken)
-                .Finally((b, ex, path) => {
-                    if (b && path != null)
-                    {
-                        Logger.Trace("FindExecTask Success: {0}", path);
 
-                        new FuncTask<NPath>(CancellationToken, () => path)
-                            .Then(afterPathDetermined)
-                            .Start();
-                    }
-                    else
-                    {
-                        Logger.Warning("FindExecTask Failure");
-                        Logger.Error("Git not found");
-                    }
-                });
+            var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();
+            if (gitExecutablePath != null && gitExecutablePath.FileExists())
+            {
+                Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
 
-            var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
-            var installDetails = new GitInstallDetails(applicationDataPath, true);
-
-            var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
-            gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken, (b, path) => {
-                Logger.Trace("GitInstaller Success: {0}", path);
-                new FuncTask<NPath>(CancellationToken, () => path)
+                new FuncTask<NPath>(CancellationToken, () => gitExecutablePath)
                     .Then(afterPathDetermined)
                     .Start();
-            }), new ActionTask(CancellationToken, () => {
-                Logger.Warning("GitInstaller Failure");
-                findExecTask.Start();
-            }) );
+            }
+            else
+            {
+                Logger.Trace("No git path found in settings");
+
+                var findExecTask = new FindExecTask("git", CancellationToken)
+                    .Finally((b, ex, path) => {
+                        if (b && path != null)
+                        {
+                            Logger.Trace("FindExecTask Success: {0}", path);
+
+                            new FuncTask<NPath>(CancellationToken, () => path)
+                                .Then(afterPathDetermined)
+                                .Start();
+                        }
+                        else
+                        {
+                            Logger.Warning("FindExecTask Failure");
+                            Logger.Error("Git not found");
+                        }
+                    });
+
+                var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
+                var installDetails = new GitInstallDetails(applicationDataPath, true);
+                var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
+
+                gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken, (b, path) => {
+                    Logger.Trace("GitInstaller Success: {0}", path);
+                    new FuncTask<NPath>(CancellationToken, () => path)
+                        .Then(afterPathDetermined)
+                        .Start();
+                }), new ActionTask(CancellationToken, () => {
+                    Logger.Warning("GitInstaller Failure");
+                    findExecTask.Start();
+                }));
+            }
         }
 
         public ITask InitializeRepository()
