@@ -22,7 +22,12 @@ namespace IntegrationTests
 
             var installDetails = new GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows);
 
-            var gitInstaller = new GitInstaller(Environment, CancellationToken.None, installDetails);
+            var zipArchivesPath = TestBasePath.Combine("ZipArchives").CreateDirectory();
+
+            var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
+            var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
+            
+            var gitInstaller = new GitInstaller(Environment, CancellationToken.None, installDetails, gitArchivePath, gitLfsArchivePath);
 
             var autoResetEvent = new AutoResetEvent(false);
 
