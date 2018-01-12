@@ -96,11 +96,16 @@ namespace GitHub.Unity
         }
 
         public static void ExtractZipFile(string archive, string outFolder, CancellationToken cancellationToken,
-            IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+            IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null, int zipFileProgressUpdatePct = 5, int estimatedDurationProgressUpdateInterval = 5)
         {
             ZipFile zipFile = null;
             var startTime = DateTime.Now;
+
             var processed = 0;
+            var processedPctInt = 0;
+            var nextUpdateZipFileProgressPctInt = zipFileProgressUpdatePct;
+            var nextUpdateEstimatedDurationProgressPctInt = estimatedDurationProgressUpdateInterval;
+
             var compressedBytesProcessed = 0L;
 
             try
@@ -154,16 +159,44 @@ namespace GitHub.Unity
                     }
 
                     targetFile.LastWriteTime = zipEntry.DateTime;
-                    processed++;
                     compressedBytesProcessed += zipEntry.CompressedSize;
 
-                    var elapsedTicks = (DateTime.Now - startTime).Ticks;
-                    var elapsedTicksPerByte = elapsedTicks / compressedBytesProcessed;
-                    var remainingBytes = fileStream.Length - compressedBytesProcessed;
-                    var estimatedDuration = elapsedTicksPerByte * remainingBytes;
+                    processed++;
+                    var processedPct = (float)processed / zipFile.Count;
+                    var updateProcessedPctInt = (int)(processedPct * 100);
+                    if (processedPctInt != updateProcessedPctInt)
+                    {
+                        processedPctInt = updateProcessedPctInt;
 
-                    estimatedDurationProgress?.Report(estimatedDuration);
-                    zipFileProgress?.Report((float)processed / zipFile.Count);
+                        if (zipFileProgress != null)
+                        {
+                            if (processedPctInt >= nextUpdateZipFileProgressPctInt)
+                            {
+                                nextUpdateZipFileProgressPctInt =
+                                    (processedPctInt / zipFileProgressUpdatePct + 1) *
+                                    zipFileProgressUpdatePct;
+
+                                zipFileProgress.Report(processedPct);
+                            }
+                        }
+
+                        if (estimatedDurationProgress != null)
+                        {
+                            if (processedPctInt >= nextUpdateEstimatedDurationProgressPctInt)
+                            {
+                                nextUpdateEstimatedDurationProgressPctInt =
+                                    (processedPctInt / estimatedDurationProgressUpdateInterval + 1) *
+                                    estimatedDurationProgressUpdateInterval;
+
+                                var elapsedTicks = (DateTime.Now - startTime).Ticks;
+                                var elapsedTicksPerByte = elapsedTicks / compressedBytesProcessed;
+                                var remainingBytes = fileStream.Length - compressedBytesProcessed;
+                                var estimatedDuration = elapsedTicksPerByte * remainingBytes;
+                                estimatedDurationProgress.Report(estimatedDuration);
+                            }
+                        }
+                    }
+
                     cancellationToken.ThrowIfCancellationRequested();
                 }
             }

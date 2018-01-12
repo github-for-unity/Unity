@@ -26,27 +26,14 @@ namespace IntegrationTests
 
             var extractedPath = TestBasePath.Combine("git_zip_extracted").CreateDirectory();
 
-            var zipProgress = 0;
-            var ticksRemaining = 0L;
-
-            Logger.Trace("Pct Complete {0}%", zipProgress);
             var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath, Environment.FileSystem, GitInstallDetails.GitExtractedMD5, 
                 new Progress<float>(zipFileProgress => {
-                    var zipFileProgressInteger = (int) (zipFileProgress * 100);
-                    if (zipProgress != zipFileProgressInteger)
-                    {
-                        zipProgress = zipFileProgressInteger;
-                        Logger.Trace("Pct Complete {0}%", zipProgress);
-
-                        if (ticksRemaining != 0L)
-                        {
-                            var timeSpan = TimeSpan.FromTicks(ticksRemaining);
-                            Logger.Trace("Estimated Time Remaining: {0}s", timeSpan.TotalSeconds);
-                        }
-                    }
+                        var zipProgress = zipFileProgress * 100;
+                        Logger.Trace("Pct Complete {0:0.00}%", zipProgress);
                 }),
-                new Progress<long>(d => {
-                    ticksRemaining = d;
+                new Progress<long>(ticksRemaining => {
+                    var timeSpan = TimeSpan.FromTicks(ticksRemaining);
+                    Logger.Trace("Estimated Time Remaining: {0}s", timeSpan.TotalSeconds);
                 }));
 
             unzipTask.Start().Wait();
