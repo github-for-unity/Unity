@@ -23,9 +23,10 @@ namespace GitHub.Unity
         private const string Window_RepoBranchTooltip = "Active branch";
 
         [NonSerialized] private double notificationClearTime = -1;
-        [SerializeField] private SubTab changeTab = SubTab.History;
-        [SerializeField] private SubTab activeTab = SubTab.History;
+        [SerializeField] private SubTab changeTab = SubTab.Loading;
+        [SerializeField] private SubTab activeTab = SubTab.Loading;
         [SerializeField] private InitProjectView initProjectView = new InitProjectView();
+        [SerializeField] private LoadingView loadingView = new LoadingView();
         [SerializeField] private BranchesView branchesView = new BranchesView();
         [SerializeField] private ChangesView changesView = new ChangesView();
         [SerializeField] private HistoryView historyView = new HistoryView();
@@ -39,6 +40,7 @@ namespace GitHub.Unity
 
         [SerializeField] private CacheUpdateEvent lastCurrentBranchAndRemoteChangedEvent;
         [NonSerialized] private bool currentBranchAndRemoteHasUpdate;
+        [NonSerialized] private bool gitExecutableIsSet;
 
         [MenuItem(LaunchMenu)]
         public static void Window_GitHub()
@@ -84,9 +86,20 @@ namespace GitHub.Unity
         {
             base.Initialize(applicationManager);
 
-            if (!HasRepository && activeTab != SubTab.InitProject && activeTab != SubTab.Settings)
-                changeTab = activeTab = SubTab.InitProject;
+            gitExecutableIsSet = !string.IsNullOrEmpty(Environment.GitExecutablePath);
+            if (gitExecutableIsSet)
+            {
+                if (!HasRepository)
+                {
+                    if (activeTab == SubTab.Loading)
+                    {
+                        Logger.Trace("Initialze set all tabs to InitProject");
+                        changeTab = activeTab = SubTab.InitProject;
+                    }
+                }
+            }
 
+            LoadingView.InitializeView(this);
             HistoryView.InitializeView(this);
             ChangesView.InitializeView(this);
             BranchesView.InitializeView(this);
@@ -139,10 +152,28 @@ namespace GitHub.Unity
             DetachHandlers(oldRepository);
             AttachHandlers(Repository);
 
-            if (Repository != null && activeTab == SubTab.InitProject)
+            if (gitExecutableIsSet)
             {
-                changeTab = SubTab.History;
-                UpdateActiveTab();
+                if (HasRepository)
+                {
+                    if (activeTab == SubTab.InitProject)
+                    {
+                        Logger.Trace("OnRepositoryChanged set changeTab to History");
+
+                        changeTab = SubTab.History;
+                        UpdateActiveTab();
+                    }
+                }
+                else
+                {
+                    if (activeTab == SubTab.Loading)
+                    {
+                        Logger.Trace("OnRepositoryChanged set changeTab to InitProject");
+
+                        changeTab = SubTab.InitProject;
+                        UpdateActiveTab();
+                    }
+                }
             }
         }
 
@@ -165,12 +196,15 @@ namespace GitHub.Unity
         {
             base.OnUI();
 
-            if (HasRepository)
-            {
-                DoHeaderGUI();
-            }
+            if(gitExecutableIsSet)
+            { 
+                if (HasRepository)
+                {
+                    DoHeaderGUI();
+                }
 
-            DoToolbarGUI();
+                DoToolbarGUI();
+            }
 
             // GUI for the active tab
             if (ActiveView != null)
@@ -370,6 +404,7 @@ namespace GitHub.Unity
 
             if (fromView != null)
                 fromView.OnDisable();
+
             toView.OnEnable();
             toView.OnDataUpdate();
 
@@ -442,6 +477,8 @@ namespace GitHub.Unity
         {
             switch (tab)
             {
+                case SubTab.Loading:
+                    return loadingView;
                 case SubTab.InitProject:
                     return initProjectView;
                 case SubTab.History:
@@ -455,6 +492,11 @@ namespace GitHub.Unity
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        public LoadingView LoadingView
+        {
+            get { return loadingView; }
         }
 
         public HistoryView HistoryView
@@ -495,6 +537,7 @@ namespace GitHub.Unity
         private enum SubTab
         {
             None,
+            Loading,
             InitProject,
             History,
             Changes,
