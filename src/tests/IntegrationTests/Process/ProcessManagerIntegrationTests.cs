@@ -15,7 +15,7 @@ namespace IntegrationTests
         [Test]
         public async Task BranchListTest()
         {
-            await Initialize(TestRepoMasterCleanUnsynchronized);
+            Initialize(TestRepoMasterCleanUnsynchronized);
 
             IEnumerable<GitBranch> gitBranches = null;
             gitBranches = await ProcessManager
@@ -30,7 +30,7 @@ namespace IntegrationTests
         [Test]
         public async Task LogEntriesTest()
         {
-            await Initialize(TestRepoMasterCleanUnsynchronized);
+            Initialize(TestRepoMasterCleanUnsynchronized);
 
             List<GitLogEntry> logEntries = null;
             logEntries = await ProcessManager
@@ -71,7 +71,7 @@ namespace IntegrationTests
         [Test]
         public async Task RussianLogEntriesTest()
         {
-            await Initialize(TestRepoMasterCleanUnsynchronizedRussianLanguage);
+            Initialize(TestRepoMasterCleanUnsynchronizedRussianLanguage);
 
             List<GitLogEntry> logEntries = null;
             logEntries = await ProcessManager
@@ -99,7 +99,7 @@ namespace IntegrationTests
         [Test]
         public async Task RemoteListTest()
         {
-            await Initialize(TestRepoMasterCleanSynchronized);
+            Initialize(TestRepoMasterCleanSynchronized);
 
             List<GitRemote> gitRemotes = null;
             gitRemotes = await ProcessManager
@@ -112,7 +112,7 @@ namespace IntegrationTests
         [Test]
         public async Task StatusTest()
         {
-            await Initialize(TestRepoMasterDirtyUnsynchronized);
+            Initialize(TestRepoMasterDirtyUnsynchronized);
 
             GitStatus? gitStatus = null;
             gitStatus = await ProcessManager
@@ -147,7 +147,7 @@ namespace IntegrationTests
         [Test]
         public async Task CredentialHelperGetTest()
         {
-            await Initialize(TestRepoMasterCleanSynchronized);
+            Initialize(TestRepoMasterCleanSynchronized);
 
             await ProcessManager
                 .GetGitCreds(TestRepoMasterCleanSynchronized, Environment, GitEnvironment)

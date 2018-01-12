@@ -117,6 +117,8 @@
     <Compile Include="Application\ApplicationManagerBase.cs" />
     <Compile Include="Helpers\Constants.cs" />
     <Compile Include="Helpers\Validation.cs" />
+    <Compile Include="Installer\GitInstaller.cs" />
+    <Compile Include="Installer\UnzipTask.cs" />
     <Compile Include="OutputProcessors\GitAheadBehindStatusOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
     <Compile Include="OutputProcessors\VersionOutputProcessor.cs" />
@@ -139,6 +141,7 @@
     <Compile Include="Tasks\BaseOutputProcessor.cs" />
     <Compile Include="Tasks\ConcurrentExclusiveInterleave.cs" />
     <Compile Include="Tasks\ConfigOutputProcessor.cs" />
+    <Compile Include="Tasks\DownloadTask.cs" />
     <Compile Include="Tasks\ITaskManager.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskBase.cs" />
@@ -155,9 +158,7 @@
     <Compile Include="Git\Tasks\GitRemoteChangeTask.cs" />
     <Compile Include="Git\Tasks\GitRemoveFromIndexTask.cs" />
     <Compile Include="Threading\IMainThreadSynchronizationContext.cs" />
-    <Compile Include="Installer\IGitInstaller.cs" />
     <Compile Include="Installer\IZipHelper.cs" />
-    <Compile Include="Installer\GitInstaller.cs" />
     <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
     <Compile Include="Platform\Settings.cs" />
