@@ -23,8 +23,8 @@ namespace GitHub.Unity
         private const string Window_RepoBranchTooltip = "Active branch";
 
         [NonSerialized] private double notificationClearTime = -1;
-        [SerializeField] private SubTab changeTab = SubTab.None;
-        [SerializeField] private SubTab activeTab = SubTab.None;
+        [SerializeField] private SubTab changeTab = SubTab.Loading;
+        [SerializeField] private SubTab activeTab = SubTab.Loading;
         [SerializeField] private InitProjectView initProjectView = new InitProjectView();
         [SerializeField] private LoadingView loadingView = new LoadingView();
         [SerializeField] private BranchesView branchesView = new BranchesView();
@@ -86,26 +86,14 @@ namespace GitHub.Unity
         {
             base.Initialize(applicationManager);
 
-            gitExecutableIsSet = Environment.GitExecutablePath != null;
-
-            if (ApplicationCache.Instance.FirstRun && !gitExecutableIsSet && activeTab != SubTab.Loading)
+            gitExecutableIsSet = !string.IsNullOrEmpty(Environment.GitExecutablePath);
+            if (gitExecutableIsSet)
             {
-                changeTab = activeTab = SubTab.Loading;
-            }
-            else if(gitExecutableIsSet)
-            {
-                if (HasRepository)
+                if (!HasRepository)
                 {
                     if (activeTab == SubTab.Loading)
                     {
-                        changeTab = SubTab.Changes;
-                        UpdateActiveTab();
-                    }
-                }
-                else
-                {
-                    if (activeTab != SubTab.InitProject && activeTab != SubTab.Settings)
-                    {
+                        Logger.Trace("Initialze set all tabs to InitProject");
                         changeTab = activeTab = SubTab.InitProject;
                     }
                 }
@@ -164,10 +152,28 @@ namespace GitHub.Unity
             DetachHandlers(oldRepository);
             AttachHandlers(Repository);
 
-            if (Repository != null && activeTab == SubTab.InitProject)
+            if (gitExecutableIsSet)
             {
-                changeTab = SubTab.History;
-                UpdateActiveTab();
+                if (HasRepository)
+                {
+                    if (activeTab == SubTab.InitProject)
+                    {
+                        Logger.Trace("OnRepositoryChanged set changeTab to History");
+
+                        changeTab = SubTab.History;
+                        UpdateActiveTab();
+                    }
+                }
+                else
+                {
+                    if (activeTab == SubTab.Loading)
+                    {
+                        Logger.Trace("OnRepositoryChanged set changeTab to InitProject");
+
+                        changeTab = SubTab.InitProject;
+                        UpdateActiveTab();
+                    }
+                }
             }
         }
 
@@ -190,7 +196,7 @@ namespace GitHub.Unity
         {
             base.OnUI();
 
-            if(ApplicationCache.Instance.FirstRun && gitExecutableIsSet || !ApplicationCache.Instance.FirstRun)
+            if(gitExecutableIsSet)
             { 
                 if (HasRepository)
                 {
