@@ -117,6 +117,7 @@ namespace GitHub.Unity
                 {
                     if (zipEntry.IsDirectory)
                     {
+                        processed++;
                         continue; // Ignore directories
                     }
 
