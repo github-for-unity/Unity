@@ -30,7 +30,7 @@
           <HintPath>$(SolutionDir)lib\octokit.net\Octokit.dll</HintPath>
         </Reference>
         <Reference Include="System.Net.Http">
-          <HintPath>$(SolutionDir)lib\dotnet-httpclient35\System.Net.Http.dll</HintPath>
+          <HintPath>$(SolutionDir)lib\dotnet-httpclient35\DotNetHttp35.dll</HintPath>
         </Reference>
       </ItemGroup>
     </Otherwise>
