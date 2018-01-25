@@ -32,12 +32,18 @@ namespace GitHub.Unity
 
         private Usage currentUsage;
 
-        public Usage GetCurrentUsage()
+        public Usage GetCurrentUsage(string appVersion, string unityVersion)
         {
+            Guard.ArgumentNotNullOrWhiteSpace(appVersion, "appVersion");
+            Guard.ArgumentNotNullOrWhiteSpace(unityVersion, "unityVersion");
+
             var date = DateTime.UtcNow.Date;
             if (currentUsage == null)
             {
-                currentUsage = Reports.FirstOrDefault(usage => usage.Date == date);
+                currentUsage = Reports
+                    .FirstOrDefault(usage => usage.Date == date 
+                        && usage.AppVersion == appVersion
+                        && usage.UnityVersion == unityVersion);
             }
 
             if (currentUsage?.Date == date)
@@ -48,7 +54,12 @@ namespace GitHub.Unity
             }
             else
             {
-                currentUsage = new Usage { Date = date, Guid = Guid };
+                currentUsage = new Usage {
+                    Date = date,
+                    Guid = Guid,
+                    AppVersion = appVersion,
+                    UnityVersion = unityVersion,
+                };
                 Reports.Add(currentUsage);
             }
 
