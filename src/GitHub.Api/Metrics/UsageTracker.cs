@@ -158,6 +158,7 @@ namespace GitHub.Unity
             usage.UnityVersion = unityVersion;
             usage.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
             usage.AppVersion = AppConfiguration.AssemblyName.Version.ToString();
+            usage.CurrentLang = CultureInfo.CurrentCulture.IetfLanguageTag;
             return usage;
         }
 

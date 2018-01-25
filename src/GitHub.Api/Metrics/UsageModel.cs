@@ -11,6 +11,7 @@ namespace GitHub.Unity
         public string AppVersion { get; set; }
         public string UnityVersion { get; set; }
         public string Lang { get; set; }
+        public string CurrentLang { get; set; }
         public int NumberOfStartups { get; set; }
         public int NumberOfCommits { get; set; }
         public int NumberOfFetches { get; set; }
