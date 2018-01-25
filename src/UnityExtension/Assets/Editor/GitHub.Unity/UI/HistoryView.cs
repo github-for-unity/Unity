@@ -681,6 +681,8 @@ namespace GitHub.Unity
                     .FinallyInUI((success, e) => {
                         if (success)
                         {
+                        EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfPulls();
+
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 String.Format(Localization.PullSuccessDescription, currentRemoteName),
                             Localization.Ok);
@@ -703,6 +705,8 @@ namespace GitHub.Unity
                 .FinallyInUI((success, e) => {
                     if (success)
                     {
+                        EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfPushes();
+
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             String.Format(Localization.PushSuccessDescription, currentRemoteName),
                         Localization.Ok);
@@ -722,6 +726,8 @@ namespace GitHub.Unity
             Repository
                 .Fetch()
                 .FinallyInUI((success, e) => {
+                    EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfFetches();
+
                     if (!success)
                     {
                         EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,

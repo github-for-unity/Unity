@@ -120,6 +120,7 @@ namespace GitHub.Unity
                     Environment.InitializeRepository();
                     RestartRepository();
                 })
+                .ThenInUI(UsageTracker.IncrementNumberOfProjectsInitialized)
                 .ThenInUI(InitializeUI);
             return task;
         }
@@ -179,7 +180,7 @@ namespace GitHub.Unity
 
             if (firstRun)
             {
-                UsageTracker.IncrementLaunchCount();
+                UsageTracker.IncrementNumberOfStartups();
             }
         }
 

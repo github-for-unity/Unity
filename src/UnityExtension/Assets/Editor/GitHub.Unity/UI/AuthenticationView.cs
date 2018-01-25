@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using UnityEngine;
 using UnityEditor;
 
@@ -213,6 +214,10 @@ namespace GitHub.Unity
 
             if (success == true)
             {
+                new ActionTask(CancellationToken.None, () => {
+                    EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfAuthentications();
+                }) { Affinity = TaskAffinity.UI }.Start();
+
                 Clear();
                 Finish(true);
             }

@@ -104,12 +104,11 @@ namespace GitHub.Unity
             }, null, seconds * 1000, Timeout.Infinite);
         }
 
-
         private async Task SendUsage()
         {
             Logger.Trace("SendUsage");
 
-            var usage = LoadUsage();
+            var usageStore = LoadUsage();
 
             if (metricsService == null)
             {
@@ -117,7 +116,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            if (usage.LastUpdated.Date != DateTimeOffset.UtcNow.Date)
+            if (usageStore.LastUpdated.Date != DateTimeOffset.UtcNow.Date)
             {
                 Logger.Trace("Sending Usage");
 
@@ -125,7 +124,7 @@ namespace GitHub.Unity
                 var beforeDate = currentTimeOffset.Date;
 
                 var success = false;
-                var extractReports = usage.Model.SelectReports(beforeDate);
+                var extractReports = usageStore.Model.SelectReports(beforeDate);
                 if (!extractReports.Any())
                 {
                     Logger.Trace("No items to send");
@@ -151,24 +150,139 @@ namespace GitHub.Unity
 
                 if (success)
                 {
-                    usage.Model.RemoveReports(beforeDate);
-                    usage.LastUpdated = currentTimeOffset;
-                    SaveUsage(usage);
+                    usageStore.Model.RemoveReports(beforeDate);
+                    usageStore.LastUpdated = currentTimeOffset;
+                    SaveUsage(usageStore);
                 }
             }
         }
 
-        public void IncrementLaunchCount()
+        private Usage GetCurrentUsage(UsageStore usageStore)
         {
-            var usageStore = LoadUsage();
-
             var usage = usageStore.Model.GetCurrentUsage();
-            usage.NumberOfStartups++;
             usage.UnityVersion = unityVersion;
             usage.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
             usage.AppVersion = AppConfiguration.AssemblyName.Version.ToString();
+            return usage;
+        }
 
-            Logger.Trace("IncrementLaunchCount Date:{0} NumberOfStartups:{1}", usage.Date, usage.NumberOfStartups);
+        public void IncrementNumberOfStartups()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.NumberOfStartups++;
+            Logger.Trace("NumberOfStartups:{0} Date:{1}", usage.NumberOfStartups, usage.Date);
+
+            SaveUsage(usageStore);
+        }
+
+        public void IncrementNumberOfCommits()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.NumberOfCommits++;
+            Logger.Trace("NumberOfCommits:{0} Date:{1}", usage.NumberOfCommits, usage.Date);
+
+            SaveUsage(usageStore);
+        }
+
+        public void IncrementNumberOfFetches()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.NumberOfFetches++;
+            Logger.Trace("NumberOfFetches:{0} Date:{1}", usage.NumberOfFetches, usage.Date);
+
+            SaveUsage(usageStore);
+        }
+
+        public void IncrementNumberOfPushes()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.NumberOfPushes++;
+            Logger.Trace("NumberOfPushes:{0} Date:{1}", usage.NumberOfPushes, usage.Date);
+
+            SaveUsage(usageStore);
+        }
+
+        public void IncrementNumberOfProjectsInitialized()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.NumberOfProjectsInitialized++;
+            Logger.Trace("NumberOfProjectsInitialized:{0} Date:{1}", usage.NumberOfProjectsInitialized, usage.Date);
+
+            SaveUsage(usageStore);
+        }
+
+        public void IncrementNumberOfLocalBranchCreations()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.NumberOfLocalBranchCreations++;
+            Logger.Trace("NumberOfLocalBranchCreations:{0} Date:{1}", usage.NumberOfLocalBranchCreations, usage.Date);
+
+            SaveUsage(usageStore);
+        }
+
+        public void IncrementNumberOfLocalBranchDeletions()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.NumberOfLocalBranchDeletion++;
+            Logger.Trace("NumberOfLocalBranchDeletion:{0} Date:{1}", usage.NumberOfLocalBranchDeletion, usage.Date);
+
+            SaveUsage(usageStore);
+        }
+
+        public void IncrementNumberOfLocalBranchCheckouts()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.NumberOfLocalBranchCheckouts++;
+            Logger.Trace("NumberOfLocalBranchCheckouts:{0} Date:{1}", usage.NumberOfLocalBranchCheckouts, usage.Date);
+
+            SaveUsage(usageStore);
+        }
+
+        public void IncrementNumberOfRemoteBranchCheckouts()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.NumberOfRemoteBranchCheckouts++;
+            Logger.Trace("NumberOfRemoteBranchCheckouts:{0} Date:{1}", usage.NumberOfRemoteBranchCheckouts, usage.Date);
+
+            SaveUsage(usageStore);
+        }
+
+        public void IncrementNumberOfPulls()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.NumberOfPulls++;
+            Logger.Trace("NumberOfPulls:{0} Date:{1}", usage.NumberOfPulls, usage.Date);
+
+            SaveUsage(usageStore);
+        }
+
+        public void IncrementNumberOfAuthentications()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.NumberOfAuthentications++;
+            Logger.Trace("NumberOfAuthentications:{0} Date:{1}", usage.NumberOfAuthentications, usage.Date);
 
             SaveUsage(usageStore);
         }

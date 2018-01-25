@@ -12,6 +12,16 @@ namespace GitHub.Unity
         public string UnityVersion { get; set; }
         public string Lang { get; set; }
         public int NumberOfStartups { get; set; }
+        public int NumberOfCommits { get; set; }
+        public int NumberOfFetches { get; set; }
+        public int NumberOfPushes { get; set; }
+        public int NumberOfPulls { get; set; }
+        public int NumberOfProjectsInitialized { get; set; }
+        public int NumberOfAuthentications { get; set; }
+        public int NumberOfLocalBranchCreations { get; set; }
+        public int NumberOfLocalBranchDeletion { get; set; }
+        public int NumberOfLocalBranchCheckouts { get; set; }
+        public int NumberOfRemoteBranchCheckouts { get; set; }
     }
 
     class UsageModel
