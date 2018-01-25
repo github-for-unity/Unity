@@ -93,7 +93,7 @@ namespace IntegrationTests.Download
         }
 
         [Test]
-        public void TestDownloadTextFailture()
+        public void TestDownloadTextFailure()
         {
             InitializeTaskManager();
 
