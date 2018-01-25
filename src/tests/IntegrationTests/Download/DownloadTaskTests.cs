@@ -160,8 +160,12 @@ namespace IntegrationTests.Download
 
             autoResetEvent.WaitOne();
 
+            if (exception != null)
+            {
+                throw exception;
+            }
+
             result.Should().BeTrue();
-            exception.Should().BeNull();
         }
     }
 }
