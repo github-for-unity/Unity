@@ -23,8 +23,8 @@ namespace GitHub.Unity
             }
         }
 
-        public static bool Copy(Stream source, Stream destination, int chunkSize, long totalSize,
-            Func<long, long, bool> progress, int progressUpdateRate)
+        public static bool Copy(Stream source, Stream destination, int chunkSize,
+            long totalSize = 0, Action<long, long> progressUpdateHandler = null, int progressUpdateRate = 100)
         {
             var buffer = new byte[chunkSize];
             var bytesRead = 0;
@@ -37,7 +37,7 @@ namespace GitHub.Unity
             Stopwatch watch = null;
             var success = true;
 
-            var trackProgress = totalSize > 0 && progress != null;
+            var trackProgress = totalSize > 0 && progressUpdateHandler != null;
             if (trackProgress)
             {
                 watch = new Stopwatch();
@@ -76,10 +76,7 @@ namespace GitHub.Unity
                             timeToFinish = Math.Max(1L,
                                 (long)((totalSize - totalRead) / (averageSpeed / progressUpdateRate)));
 
-                            if (!progress(totalRead, timeToFinish))
-                            {
-                                break;
-                            }
+                            progressUpdateHandler(totalRead, timeToFinish);
                         }
                     }
                 }
@@ -93,30 +90,34 @@ namespace GitHub.Unity
             return success;
         }
 
-        public void Extract(string archive, string outFolder, CancellationToken cancellationToken,
-            IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+        public void Extract(string archive, string outFolder, CancellationToken cancellationToken, IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
         {
             ExtractZipFile(archive, outFolder, cancellationToken, zipFileProgress, estimatedDurationProgress);
         }
 
         public static void ExtractZipFile(string archive, string outFolder, CancellationToken cancellationToken,
-            IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+            IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null, int zipFileProgressUpdatePct = 5, int estimatedDurationProgressUpdateInterval = 5)
         {
-            ZipFile zf = null;
-            var estimatedDuration = 1L;
+            ZipFile zipFile = null;
             var startTime = DateTime.Now;
+
             var processed = 0;
-            var totalBytes = 0L;
+            var processedPctInt = 0;
+            var nextUpdateZipFileProgressPctInt = zipFileProgressUpdatePct;
+            var nextUpdateEstimatedDurationProgressPctInt = estimatedDurationProgressUpdateInterval;
+
+            var compressedBytesProcessed = 0L;
 
             try
             {
-                var fs = File.OpenRead(archive);
-                zf = new ZipFile(fs);
+                var fileStream = File.OpenRead(archive);
+                zipFile = new ZipFile(fileStream);
 
-                foreach (ZipEntry zipEntry in zf)
+                foreach (ZipEntry zipEntry in zipFile)
                 {
                     if (zipEntry.IsDirectory)
                     {
+                        processed++;
                         continue; // Ignore directories
                     }
 
@@ -125,7 +126,7 @@ namespace GitHub.Unity
                     // Optionally match entrynames against a selection list here to skip as desired.
                     // The unpacked length is available in the zipEntry.Size property.
 
-                    var zipStream = zf.GetInputStream(zipEntry);
+                    var zipStream = zipFile.GetInputStream(zipEntry);
 
                     var fullZipToPath = Path.Combine(outFolder, entryFileName);
                     var directoryName = Path.GetDirectoryName(fullZipToPath);
@@ -153,35 +154,58 @@ namespace GitHub.Unity
                     using (var streamWriter = targetFile.OpenWrite())
                     {
                         const int chunkSize = 4096; // 4K is optimum
-                        Copy(zipStream, streamWriter, chunkSize, targetFile.Length, (totalRead, timeToFinish) =>
-                        {
-                            estimatedDuration = timeToFinish;
-
-                            estimatedDurationProgress.Report(estimatedDuration);
-                            zipFileProgress?.Report((float)(totalBytes + totalRead) / targetFile.Length);
-                            return true;
-                        }, 100);
+                        Copy(zipStream, streamWriter, chunkSize);
                         cancellationToken.ThrowIfCancellationRequested();
                     }
 
                     targetFile.LastWriteTime = zipEntry.DateTime;
+                    compressedBytesProcessed += zipEntry.CompressedSize;
+
                     processed++;
-                    totalBytes += zipEntry.Size;
+                    var processedPct = (float)processed / zipFile.Count;
+                    var updateProcessedPctInt = (int)(processedPct * 100);
+                    if (processedPctInt != updateProcessedPctInt)
+                    {
+                        processedPctInt = updateProcessedPctInt;
 
-                    var elapsedMillisecondsPerFile = (DateTime.Now - startTime).TotalMilliseconds / processed;
-                    estimatedDuration = Math.Max(1L, (long)((fs.Length - totalBytes) * elapsedMillisecondsPerFile));
+                        if (zipFileProgress != null)
+                        {
+                            if (processedPctInt >= nextUpdateZipFileProgressPctInt)
+                            {
+                                nextUpdateZipFileProgressPctInt =
+                                    (processedPctInt / zipFileProgressUpdatePct + 1) *
+                                    zipFileProgressUpdatePct;
 
-                    estimatedDurationProgress?.Report(estimatedDuration);
-                    zipFileProgress?.Report((float)processed / zf.Count);
+                                zipFileProgress.Report(processedPct);
+                            }
+                        }
+
+                        if (estimatedDurationProgress != null)
+                        {
+                            if (processedPctInt >= nextUpdateEstimatedDurationProgressPctInt)
+                            {
+                                nextUpdateEstimatedDurationProgressPctInt =
+                                    (processedPctInt / estimatedDurationProgressUpdateInterval + 1) *
+                                    estimatedDurationProgressUpdateInterval;
+
+                                var elapsedTicks = (DateTime.Now - startTime).Ticks;
+                                var elapsedTicksPerByte = elapsedTicks / compressedBytesProcessed;
+                                var remainingBytes = fileStream.Length - compressedBytesProcessed;
+                                var estimatedDuration = elapsedTicksPerByte * remainingBytes;
+                                estimatedDurationProgress.Report(estimatedDuration);
+                            }
+                        }
+                    }
+
                     cancellationToken.ThrowIfCancellationRequested();
                 }
             }
             finally
             {
-                if (zf != null)
+                if (zipFile != null)
                 {
                     //zf.IsStreamOwner = true; // Makes close also shut the underlying stream
-                    zf.Close(); // Ensure we release resources
+                    zipFile.Close(); // Ensure we release resources
                 }
             }
         }

@@ -123,13 +123,13 @@ namespace IntegrationTests.Download
             var fileSystem = new FileSystem();
 
             var downloadGitMd5Task = new DownloadTextTask(CancellationToken.None,
-                "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt?cb=1");
+                "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt");
 
             var downloadGitTask = new DownloadTask(CancellationToken.None, fileSystem,
                 "https://ghfvs-installer.github.com/unity/portable_git/git.zip", gitArchivePath, retryCount: 1);
 
             var downloadGitLfsMd5Task = new DownloadTextTask(CancellationToken.None,
-                "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt?cb=1");
+                "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt");
 
             var downloadGitLfsTask = new DownloadTask(CancellationToken.None, fileSystem,
                 "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip", gitLfsArchivePath, retryCount: 1);
@@ -160,8 +160,12 @@ namespace IntegrationTests.Download
 
             autoResetEvent.WaitOne();
 
+            if (exception != null)
+            {
+                throw exception;
+            }
+
             result.Should().BeTrue();
-            exception.Should().BeNull();
         }
     }
 }
