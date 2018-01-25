@@ -71,11 +71,6 @@ namespace GitHub.Unity
 
         private void SaveUsage(UsageStore store)
         {
-            if (!Enabled)
-            {
-                return;
-            }
-
             var pathString = storePath.ToString();
             Logger.Trace("SaveUsage: \"{0}\"", pathString);
 
