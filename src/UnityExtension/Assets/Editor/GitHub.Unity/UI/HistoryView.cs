@@ -681,7 +681,7 @@ namespace GitHub.Unity
                     .FinallyInUI((success, e) => {
                         if (success)
                         {
-                        EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfPulls();
+                            EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfPulls();
 
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 String.Format(Localization.PullSuccessDescription, currentRemoteName),

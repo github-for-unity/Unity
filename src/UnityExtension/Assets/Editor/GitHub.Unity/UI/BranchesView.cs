@@ -478,7 +478,10 @@ namespace GitHub.Unity
             var dialogMessage = string.Format(DeleteBranchMessageFormatString, branch);
             if (EditorUtility.DisplayDialog(DeleteBranchTitle, dialogMessage, DeleteBranchButton, CancelButtonLabel))
             {
-                GitClient.DeleteBranch(branch, true).ThenInUI(EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfLocalBranchDeletions).Start();
+                GitClient
+                    .DeleteBranch(branch, true)
+                    .ThenInUI(EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfLocalBranchDeletions)
+                    .Start();
             }
         }
 
