@@ -8,6 +8,7 @@ namespace GitHub.Unity
     {
         public string Guid { get; set; }
         public DateTime Date { get; set; }
+        public int Version { get; set; }
         public string AppVersion { get; set; }
         public string UnityVersion { get; set; }
         public string Lang { get; set; }
@@ -55,6 +56,7 @@ namespace GitHub.Unity
             else
             {
                 currentUsage = new Usage {
+                    Version = 2,
                     Date = date,
                     Guid = Guid,
                     AppVersion = appVersion,
