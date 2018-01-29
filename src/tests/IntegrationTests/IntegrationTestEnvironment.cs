@@ -12,8 +12,12 @@ namespace IntegrationTests
 
         private DefaultEnvironment defaultEnvironment;
 
-        public IntegrationTestEnvironment(ICacheContainer cacheContainer, NPath repoPath, NPath solutionDirectory, NPath environmentPath = null,
-            bool enableTrace = false)
+        public IntegrationTestEnvironment(ICacheContainer cacheContainer,
+            NPath repoPath,
+            NPath solutionDirectory,
+            NPath environmentPath = null,
+            bool enableTrace = false,
+            bool initializeRepository = true)
         {
             defaultEnvironment = new DefaultEnvironment(cacheContainer);
             defaultEnvironment.FileSystem.SetCurrentDirectory(repoPath);
@@ -29,7 +33,9 @@ namespace IntegrationTests
             var installPath = solutionDirectory.Parent.Parent.Combine("src", "GitHub.Api");
 
             Initialize(UnityVersion, installPath, solutionDirectory, repoPath.Combine("Assets"));
-            InitializeRepository();
+
+            if (initializeRepository)
+                InitializeRepository();
 
             this.enableTrace = enableTrace;
 

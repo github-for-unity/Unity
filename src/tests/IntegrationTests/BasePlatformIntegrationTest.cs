@@ -14,15 +14,11 @@ namespace IntegrationTests
         protected IProcessManager ProcessManager { get; private set; }
         protected IProcessEnvironment GitEnvironment => Platform.GitEnvironment;
         protected IGitClient GitClient { get; set; }
-        public ICacheContainer CacheContainer { get;  set; }
 
         protected void InitializePlatform(NPath repoPath, NPath environmentPath, bool enableEnvironmentTrace, bool setupGit = true)
         {
             InitializeTaskManager();
-
-            CacheContainer = Substitute.For<ICacheContainer>();
-            Environment = new IntegrationTestEnvironment(CacheContainer, repoPath, SolutionDirectory, environmentPath,
-                enableEnvironmentTrace);
+            InitializeEnvironment(repoPath, environmentPath, enableEnvironmentTrace);
 
             Platform = new Platform(Environment);
             ProcessManager = new ProcessManager(Environment, GitEnvironment, TaskManager.Token);

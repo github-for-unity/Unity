@@ -4,6 +4,7 @@ using NUnit.Framework;
 using GitHub.Unity;
 using NCrunch.Framework;
 using System.Threading;
+using NSubstitute;
 
 namespace IntegrationTests
 {
@@ -14,9 +15,25 @@ namespace IntegrationTests
         protected ILogging Logger { get; private set; }
         public IEnvironment Environment { get; set; }
         public IRepository Repository => Environment.Repository;
+        public ICacheContainer CacheContainer { get;  set; }
 
         protected TestUtils.SubstituteFactory Factory { get; set; }
         protected static NPath SolutionDirectory => TestContext.CurrentContext.TestDirectory.ToNPath();
+
+        protected void InitializeEnvironment(NPath repoPath,
+            NPath environmentPath = null,
+            bool enableEnvironmentTrace = false,
+            bool initializeRepository = true
+            )
+        {
+            CacheContainer = Substitute.For<ICacheContainer>();
+            Environment = new IntegrationTestEnvironment(CacheContainer,
+                repoPath,
+                SolutionDirectory,
+                environmentPath,
+                enableEnvironmentTrace,
+                initializeRepository);
+        }
 
         [TestFixtureSetUp]
         public void TestFixtureSetUp()

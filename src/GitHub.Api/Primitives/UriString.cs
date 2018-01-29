@@ -71,7 +71,8 @@ namespace GitHub.Unity
             Host = uri.Host;
             if (uri.Segments.Any())
             {
-                RepositoryName = GetRepositoryName(uri.Segments.Last());
+                Filename = uri.Segments.Last();
+                RepositoryName = GetRepositoryName(Filename);
             }
 
             if (uri.Segments.Length > 2)
@@ -86,7 +87,8 @@ namespace GitHub.Unity
         {
             Host = "";
             Owner = "";
-            RepositoryName = GetRepositoryName(uri.Segments.Last());
+            Filename = uri.Segments.Last();
+            RepositoryName = GetRepositoryName(Filename);
             IsFileUri = true;
         }
 
@@ -94,7 +96,8 @@ namespace GitHub.Unity
         {
             Host = "";
             Owner = "";
-            RepositoryName = GetRepositoryName(path.Replace("/", @"\").RightAfterLast(@"\"));
+            Filename = path.Replace("/", @"\").RightAfterLast(@"\");
+            RepositoryName = GetRepositoryName(Filename);
             IsFileUri = true;
         }
 
@@ -131,6 +134,7 @@ namespace GitHub.Unity
 
         public bool IsValidUri => url != null;
         public string Protocol => url?.Scheme;
+        public string Filename { get; private set; }
 
         /// <summary>
         /// Attempts a best-effort to convert the remote origin to a GitHub Repository URL.

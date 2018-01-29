@@ -14,6 +14,7 @@ namespace GitHub.Unity
         ITask Defer<T>(Func<T, Task> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false);
         ITask Start();
         ITask Start(TaskScheduler scheduler);
+        ITask Progress(Action<IProgress> progressHandler);
 
         void Wait();
         bool Wait(int milliseconds);
@@ -37,6 +38,7 @@ namespace GitHub.Unity
         ITask Finally(Action<bool, Exception, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent);
         new ITask<TResult> Start();
         new ITask<TResult> Start(TaskScheduler scheduler);
+        new ITask<TResult> Progress(Action<IProgress> progressHandler);
         TResult Result { get; }
         new Task<TResult> Task { get; }
         new event Action<ITask<TResult>> OnStart;
@@ -69,8 +71,12 @@ namespace GitHub.Unity
 
         protected event Func<Exception, bool> faultHandler;
         private event Action finallyHandler;
+        protected event Action<IProgress> progressHandler;
+
+        private Progress progress;
 
         public TaskBase(CancellationToken token)
+            : this()
         {
             Guard.ArgumentNotNull(token, "token");
 
@@ -79,6 +85,7 @@ namespace GitHub.Unity
         }
 
         public TaskBase(Task task)
+            : this()
         {
             Task = new Task(t =>
             {
@@ -106,7 +113,10 @@ namespace GitHub.Unity
             }, task, Token, TaskCreationOptions.None);
         }
 
-        protected TaskBase() {}
+        protected TaskBase()
+        {
+            this.progress = new Progress { Task = this };
+        }
 
         public virtual T Then<T>(T cont, bool always = false)
             where T : ITask
@@ -191,6 +201,16 @@ namespace GitHub.Unity
                 TaskContinuationOptions.OnlyOnFaulted,
                 TaskManager.GetScheduler(handler.Affinity));
             DependsOn?.SetFaultHandler(handler);
+        }
+
+        /// <summary>
+        /// Progress provides progress reporting from the task (on the same thread)
+        /// </summary>
+        public ITask Progress(Action<IProgress> handler)
+        {
+            Guard.ArgumentNotNull(handler, nameof(handler));
+            this.progressHandler += handler;
+            return this;
         }
 
         public virtual ITask Start()
@@ -301,8 +321,14 @@ namespace GitHub.Unity
 
         protected virtual void RaiseOnEnd()
         {
+            var success = Task.Status != TaskStatus.Faulted;
+            if (success)
+            {
+
+            }
             OnEnd?.Invoke(this);
-            if (Task.Status != TaskStatus.Faulted && continuation == null)
+            // if it's the last task of the chain and all went well (otherwise finally has been called already)
+            if (success && continuation == null)
                 finallyHandler?.Invoke();
             //Logger.Trace($"Finished {ToString()}");
         }
@@ -334,6 +360,12 @@ namespace GitHub.Unity
                 return exception?.InnerException ?? exception;
             }
             return DependsOn.GetThrownException();
+        }
+
+        protected void UpdateProgress(long value, long total)
+        {
+            progress.UpdateProgress(value, total);
+            progressHandler?.Invoke(progress);
         }
 
         protected class DeferredContinuation
@@ -491,7 +523,7 @@ namespace GitHub.Unity
         }
 
         /// <summary>
-        /// Catch runs right when the exception happens (on the same threaD)
+        /// Catch runs right when the exception happens (on the same thread)
         /// Return false if you want other Catch statements on the chain to also
         /// get called for this exception
         /// </summary>
@@ -561,11 +593,22 @@ namespace GitHub.Unity
             return this;
         }
 
+        /// <summary>
+        /// Progress provides progress reporting from the task (on the same thread)
+        /// </summary>
+        public new ITask<TResult> Progress(Action<IProgress> handler)
+        {
+            Guard.ArgumentNotNull(handler, nameof(handler));
+            this.progressHandler += handler;
+            return this;
+        }
+
         protected virtual TResult RunWithReturn(bool success)
         {
             base.Run(success);
             return default(TResult);
         }
+
         protected override void RaiseOnStart()
         {
             //Logger.Trace($"Executing {ToString()}");

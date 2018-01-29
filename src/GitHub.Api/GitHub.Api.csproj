@@ -149,7 +149,7 @@
     <Compile Include="Tasks\TaskExtensions.cs" />
     <Compile Include="Tasks\TaskManager.cs" />
     <Compile Include="Platform\FindExecTask.cs" />
-    <Compile Include="Helpers\ProgressReport.cs" />
+    <Compile Include="Helpers\Progress.cs" />
     <Compile Include="Metrics\IMetricsService.cs" />
     <Compile Include="Metrics\IUsageTracker.cs" />
     <Compile Include="Metrics\UsageModel.cs" />
