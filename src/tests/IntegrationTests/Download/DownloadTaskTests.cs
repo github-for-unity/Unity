@@ -12,9 +12,6 @@ namespace IntegrationTests.Download
     [TestFixture]
     class DownloadTaskTests : BaseTaskManagerTest
     {
-        private const string TestDownload = "http://ipv4.download.thinkbroadband.com/5MB.zip";
-        private const string TestDownloadMD5 = "b3215c06647bc550406a9c8ccc378756";
-
         public override void OnSetup()
         {
             base.OnSetup();
@@ -28,17 +25,20 @@ namespace IntegrationTests.Download
 
             var fileSystem = Environment.FileSystem;
 
-            var downloadPath = TestBasePath.Combine("5MB.zip");
-            var downloadHalfPath = TestBasePath.Combine("5MB-split.zip");
+            var gitLfs = new UriString("https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip");
+            var gitLfsMd5 = new UriString("https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt?cb=1");
 
-            var downloadTask = new DownloadTask(TaskManager.Token, fileSystem, TestDownload, TestBasePath);
-            await downloadTask.StartAwait();
+            var md5 = await new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath)
+                .StartAwait();
+
+            var downloadPath = await new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
+                .StartAwait();
+
+            var md5Sum = fileSystem.CalculateFileMD5(downloadPath);
+            md5Sum.Should().BeEquivalentTo(md5);
 
             var downloadPathBytes = fileSystem.ReadAllBytes(downloadPath);
             Logger.Trace("File size {0} bytes", downloadPathBytes.Length);
-
-            var md5Sum = fileSystem.CalculateFileMD5(downloadPath);
-            md5Sum.Should().Be(TestDownloadMD5);
 
             var random = new Random();
             var takeCount = random.Next(downloadPathBytes.Length);
@@ -46,17 +46,16 @@ namespace IntegrationTests.Download
             Logger.Trace("Cutting the first {0} Bytes", downloadPathBytes.Length - takeCount);
 
             var cutDownloadPathBytes = downloadPathBytes.Take(takeCount).ToArray();
-            fileSystem.WriteAllBytes(downloadHalfPath, cutDownloadPathBytes);
+            fileSystem.WriteAllBytes(downloadPath, cutDownloadPathBytes);
 
-            downloadTask = new DownloadTask(TaskManager.Token, fileSystem, TestDownload,
-                TestBasePath, validationHash: TestDownloadMD5);
-            await downloadTask.StartAwait();
+            downloadPath = await new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
+                .StartAwait();
 
-            var downloadHalfPathBytes = fileSystem.ReadAllBytes(downloadHalfPath);
+            var downloadHalfPathBytes = fileSystem.ReadAllBytes(downloadPath);
             Logger.Trace("File size {0} Bytes", downloadHalfPathBytes.Length);
 
             md5Sum = fileSystem.CalculateFileMD5(downloadPath);
-            md5Sum.Should().Be(TestDownloadMD5);
+            md5Sum.Should().BeEquivalentTo(md5);
         }
 
         [Test]
@@ -134,38 +133,21 @@ namespace IntegrationTests.Download
 
             var fileSystem = Environment.FileSystem;
 
-            var gitArchivePath = TestBasePath.Combine("git.zip");
-            var gitLfsArchivePath = TestBasePath.Combine("git-lfs.zip");
-
-            var downloadGitMd5Task = new DownloadTextTask(TaskManager.Token, fileSystem,
-                "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt?cb=1",
-                TestBasePath);
-
-            var downloadGitTask = new DownloadTask(TaskManager.Token, fileSystem,
-                "https://ghfvs-installer.github.com/unity/portable_git/git.zip",
-                TestBasePath);
+            var gitLfs = new UriString("https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip");
+            var gitLfsMd5 = new UriString("https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt?cb=1");
 
             var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Token, fileSystem,
-                "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt?cb=1",
-                TestBasePath);
-
+                gitLfsMd5, TestBasePath);
 
             var downloadGitLfsTask = new DownloadTask(TaskManager.Token, fileSystem,
-                "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip",
-                TestBasePath);
+                gitLfs, TestBasePath);
 
             var result = true;
             Exception exception = null;
 
             var autoResetEvent = new AutoResetEvent(false);
 
-            downloadGitMd5Task
-                .Then((b, s) =>
-                {
-                    downloadGitTask.ValidationHash = s;
-                })
-                .Then(downloadGitTask)
-                .Then(downloadGitLfsMd5Task)
+            downloadGitLfsMd5Task
                 .Then((b, s) =>
                 {
                     downloadGitLfsTask.ValidationHash = s;
@@ -214,8 +196,7 @@ namespace IntegrationTests.Download
                 })
                 .Progress(p =>
                 {
-                    if (p.Percentage > 0.2)
-                        evtStop.Set();
+                    evtStop.Set();
                 });
 
             downloadGitTask.Start();
