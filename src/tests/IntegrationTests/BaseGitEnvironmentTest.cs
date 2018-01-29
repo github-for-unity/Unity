@@ -56,7 +56,7 @@ namespace IntegrationTests
             TestRepoMasterTwoRemotes = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_two_remotes");
 
             Logger.Trace("Extracting Zip File to {0}", TestBasePath);
-            ZipHelper.ExtractZipFile(TestZipFilePath, TestBasePath.ToString(), CancellationToken.None);
+            ZipHelper.ExtractZipFile(TestZipFilePath, TestBasePath.ToString(), TaskManager.Token);
             Logger.Trace("Extracted Zip File");
         }
 

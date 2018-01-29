@@ -327,7 +327,7 @@ namespace GitHub.Unity
 
         private ITask<T> HookupHandlers<T>(ITask<T> task, bool isExclusive, bool filesystemChangesExpected)
         {
-            return new ActionTask(CancellationToken.None, () => {
+            return new ActionTask(TaskManager.Instance.Token, () => {
                     if (isExclusive)
                     {
                         Logger.Trace("Starting Operation - Setting Busy Flag");
