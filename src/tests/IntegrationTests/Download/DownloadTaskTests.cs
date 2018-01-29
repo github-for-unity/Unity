@@ -24,6 +24,8 @@ namespace IntegrationTests.Download
         [Test]
         public async Task TestDownloadTask()
         {
+            Logger.Info("Starting Test: TestDownloadTask");
+
             var fileSystem = Environment.FileSystem;
 
             var downloadPath = TestBasePath.Combine("5MB.zip");
@@ -60,6 +62,8 @@ namespace IntegrationTests.Download
         [Test]
         public void TestDownloadFailure()
         {
+            Logger.Info("Starting Test: TestDownloadFailure");
+
             var fileSystem = Environment.FileSystem;
 
             var downloadPath = TestBasePath.Combine("5MB.zip");
@@ -88,6 +92,8 @@ namespace IntegrationTests.Download
         [Test]
         public void TestDownloadTextTask()
         {
+            Logger.Info("Starting Test: TestDownloadTextTask");
+
             var fileSystem = Environment.FileSystem;
 
             var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem,
@@ -101,6 +107,8 @@ namespace IntegrationTests.Download
         [Test]
         public void TestDownloadTextFailure()
         {
+            Logger.Info("Starting Test: TestDownloadTextFailure");
+
             var fileSystem = Environment.FileSystem;
 
             var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem,
@@ -122,6 +130,8 @@ namespace IntegrationTests.Download
         [Test]
         public void TestDownloadFileAndHash()
         {
+            Logger.Info("Starting Test: TestDownloadFileAndHash");
+
             var fileSystem = Environment.FileSystem;
 
             var gitArchivePath = TestBasePath.Combine("git.zip");
@@ -177,6 +187,8 @@ namespace IntegrationTests.Download
         [Test]
         public void TestDownloadShutdownTimeWhenInterrupted()
         {
+            Logger.Info("Starting Test: TestDownloadShutdownTimeWhenInterrupted");
+
             var fileSystem = Environment.FileSystem;
 
             var gitArchivePath = TestBasePath.Combine("git.zip");
