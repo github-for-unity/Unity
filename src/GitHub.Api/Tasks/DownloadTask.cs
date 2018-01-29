@@ -82,7 +82,7 @@ namespace GitHub.Unity
         {
             long bytes = destinationStream.Length;
 
-            var expectingResume = bytes >= 0;
+            var expectingResume = bytes > 0;
 
             var webRequest = (HttpWebRequest)WebRequest.Create(url);
 
