@@ -46,6 +46,11 @@ namespace GitHub.Unity
             Name = nameof(DownloadTask);
         }
 
+        protected string BaseRunWithReturn(bool success)
+        {
+            return base.RunWithReturn(success);
+        }
+
         protected override string RunWithReturn(bool success)
         {
             var result = base.RunWithReturn(success);
@@ -172,10 +177,29 @@ namespace GitHub.Unity
             Name = nameof(DownloadTextTask);
         }
 
-        protected override string RunDownload(bool success)
+        protected override string RunWithReturn(bool success)
         {
-            var result = base.RunDownload(success);
-            return fileSystem.ReadAllText(result, Encoding.UTF8);
+            var result = BaseRunWithReturn(success);
+
+            RaiseOnStart();
+
+            try
+            {
+                result = RunDownload(success);
+                result = fileSystem.ReadAllText(result, Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                Errors = ex.Message;
+                if (!RaiseFaultHandlers(ex))
+                    throw;
+            }
+            finally
+            {
+                RaiseOnEnd(result);
+            }
+
+            return result;
         }
     }
 }

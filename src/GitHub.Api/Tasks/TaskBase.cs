@@ -321,14 +321,8 @@ namespace GitHub.Unity
 
         protected virtual void RaiseOnEnd()
         {
-            var success = Task.Status != TaskStatus.Faulted;
-            if (success)
-            {
-
-            }
             OnEnd?.Invoke(this);
-            // if it's the last task of the chain and all went well (otherwise finally has been called already)
-            if (success && continuation == null)
+            if (continuation == null)
                 finallyHandler?.Invoke();
             //Logger.Trace($"Finished {ToString()}");
         }
@@ -344,8 +338,6 @@ namespace GitHub.Unity
                 if (handled)
                     break;
             }
-            if (!handled)
-                finallyHandler?.Invoke();
             return handled;
         }
 
@@ -619,9 +611,8 @@ namespace GitHub.Unity
         protected virtual void RaiseOnEnd(TResult result)
         {
             OnEnd?.Invoke(this, result);
-            if (Task.Status == TaskStatus.Faulted || continuation == null)
+            if (continuation == null)
                 finallyHandler?.Invoke(result);
-            RaiseOnEnd();
             //Logger.Trace($"Finished {ToString()} {result}");
         }
 

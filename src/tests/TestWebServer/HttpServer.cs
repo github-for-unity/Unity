@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GitHub.Unity;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -61,19 +62,26 @@ namespace TestWebServer
 
         public void Start()
         {
-            listener.Start();
-            while (true)
+            try
             {
-                try
+                listener.Start();
+                while (true)
                 {
-                    abort = false;
-                    var context = listener.GetContext();
-                    Process(context);
+                    try
+                    {
+                        abort = false;
+                        var context = listener.GetContext();
+                        Process(context);
+                    }
+                    catch
+                    {
+                        break;
+                    }
                 }
-                catch
-                {
-                    break;
-                }
+            }
+            catch (Exception ex)
+            {
+                Logging.GetLogger(GetType()).Error(ex);
             }
         }
 

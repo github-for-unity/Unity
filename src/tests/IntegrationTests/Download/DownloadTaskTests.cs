@@ -33,7 +33,7 @@ namespace IntegrationTests.Download
         }
 
         [Test]
-        public async Task TestDownloadTask()
+        public void TestDownloadTask()
         {
             Logger.Info("Starting Test: TestDownloadTask");
 
@@ -42,11 +42,32 @@ namespace IntegrationTests.Download
             var gitLfs = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
             var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
 
-            var md5 = await new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath)
-                .StartAwait();
+            var evtDone = new ManualResetEventSlim(false);
 
-            var downloadPath = await new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
-                .StartAwait();
+            string md5 = null;
+            new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath)
+                .Finally(r => {
+                    md5 = r;
+                    evtDone.Set();
+                })
+                .Start();
+
+            evtDone.Wait(10000);
+            evtDone.Reset();
+            Assert.NotNull(md5);
+
+            string downloadPath = null;
+            new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
+                .Finally(r => {
+                    downloadPath = r;
+                    evtDone.Set();
+                })
+                .Start();
+
+            evtDone.Wait(10000);
+            evtDone.Reset();
+
+            Assert.NotNull(downloadPath);
 
             var md5Sum = fileSystem.CalculateFileMD5(downloadPath);
             md5Sum.Should().BeEquivalentTo(md5);
@@ -58,8 +79,15 @@ namespace IntegrationTests.Download
             fileSystem.FileDelete(downloadPath);
             fileSystem.WriteAllBytes(downloadPath, cutDownloadPathBytes);
 
-            downloadPath = await new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
-                .StartAwait();
+            new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
+                .Finally(r => {
+                    downloadPath = r;
+                    evtDone.Set();
+                })
+                .Start();
+
+            evtDone.Wait(10000);
+            evtDone.Reset();
 
             var downloadHalfPathBytes = fileSystem.ReadAllBytes(downloadPath);
             Logger.Trace("File size {0} Bytes", downloadHalfPathBytes.Length);
@@ -90,7 +118,7 @@ namespace IntegrationTests.Download
 
             downloadTask.Start();
 
-            autoResetEvent.WaitOne();
+            autoResetEvent.WaitOne(10000);
 
             taskFailed.Should().BeTrue();
             exceptionThrown.Should().NotBeNull();
@@ -106,7 +134,17 @@ namespace IntegrationTests.Download
             var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
 
             var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
-            var result = downloadTask.Start().Result;
+
+            var autoResetEvent = new AutoResetEvent(false);
+            string result = null;
+            downloadTask
+                .Finally(r => {
+                    result = r;
+                    autoResetEvent.Set();
+                })
+                .Start();
+
+            autoResetEvent.WaitOne(10000);
             result.Should().Be("105DF1302560C5F6AA64D1930284C126");
         }
 
@@ -120,15 +158,15 @@ namespace IntegrationTests.Download
             var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem, "https://ggggithub.com/robots.txt");
             var exceptionThrown = false;
 
-            try
-            {
-                var result = downloadTask.Start().Result;
-            }
-            catch (Exception e)
-            {
-                exceptionThrown = true;
-            }
+            var autoResetEvent = new AutoResetEvent(false);
+            downloadTask
+            .Finally((b, exception) => {
+                exceptionThrown = exception != null;
+                autoResetEvent.Set();
+            })
+            .Start();
 
+            autoResetEvent.WaitOne(10000);
             exceptionThrown.Should().BeTrue();
         }
         
@@ -163,7 +201,7 @@ namespace IntegrationTests.Download
                 })
                 .Start();
 
-            autoResetEvent.WaitOne();
+            autoResetEvent.WaitOne(10000);
 
             result.Should().BeTrue();
             exception.Should().BeNull();
@@ -203,12 +241,13 @@ namespace IntegrationTests.Download
 
             downloadGitTask.Start();
 
-            evtStop.WaitOne();
+            evtStop.WaitOne(10000);
 
             watch.Start();
             TaskManager.Dispose();
-            evtFinally.WaitOne();
+            evtFinally.WaitOne(10000);
             watch.Stop();
+
             server.Delay = 0;
             server.Abort();
 
