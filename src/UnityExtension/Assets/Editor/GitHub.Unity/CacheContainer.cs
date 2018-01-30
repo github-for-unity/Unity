@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GitHub.Unity.Logs;
+using System;
 
 namespace GitHub.Unity
 {

@@ -5,6 +5,7 @@ using GitHub.Unity;
 using NCrunch.Framework;
 using System.Threading;
 using NSubstitute;
+using GitHub.Unity.Logs;
 
 namespace IntegrationTests
 {

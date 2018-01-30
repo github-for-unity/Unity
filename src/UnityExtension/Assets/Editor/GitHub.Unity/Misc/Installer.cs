@@ -1,3 +1,4 @@
+using GitHub.Unity.Logs;
 using System;
 using UnityEditor;
 using UnityEngine;

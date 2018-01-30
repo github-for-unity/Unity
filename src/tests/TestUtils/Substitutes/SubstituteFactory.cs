@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using GitHub.Unity;
 using NSubstitute;
 using System.Threading;
+using GitHub.Unity.Logs;
 
 namespace TestUtils
 {

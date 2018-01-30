@@ -1,6 +1,7 @@
 using System;
 using GitHub.Unity;
 using NUnit.Framework;
+using GitHub.Unity.Logs;
 
 namespace UnitTests
 {

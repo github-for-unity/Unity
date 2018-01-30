@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Logs
 {
     class FileLogAdapter : LogAdapterBase
     {

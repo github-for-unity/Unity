@@ -1,4 +1,5 @@
 ﻿using GitHub.Unity;
+using GitHub.Unity.Logs;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

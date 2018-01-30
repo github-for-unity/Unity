@@ -6,6 +6,7 @@ using NSubstitute;
 using NUnit.Framework;
 using TestUtils;
 using System.Threading.Tasks;
+using GitHub.Unity.Logs;
 
 namespace IntegrationTests
 {

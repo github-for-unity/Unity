@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GitHub.Unity.Logs;
+using System;
 using System.Threading;
 
 namespace GitHub.Unity

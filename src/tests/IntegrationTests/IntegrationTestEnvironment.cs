@@ -1,5 +1,6 @@
 using System;
 using GitHub.Unity;
+using GitHub.Unity.Logs;
 
 namespace IntegrationTests
 {

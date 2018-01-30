@@ -1,6 +1,6 @@
 using System;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Logs
 {
     class LogFacade : ILogging
     {

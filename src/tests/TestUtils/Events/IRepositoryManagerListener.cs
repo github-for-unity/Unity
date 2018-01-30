@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using GitHub.Unity;
 using NSubstitute;
+using GitHub.Unity.Logs;
 
 namespace TestUtils.Events
 {

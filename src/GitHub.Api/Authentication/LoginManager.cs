@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using Octokit;
+using GitHub.Unity.Logs;
 
 namespace GitHub.Unity
 {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Octokit;
+using GitHub.Unity.Logs;
 
 namespace GitHub.Unity
 {

@@ -1,6 +1,7 @@
 using System;
 using GitHub.Unity;
 using NUnit.Framework;
+using GitHub.Unity.Logs;
 
 namespace IntegrationTests
 {
@@ -14,7 +15,7 @@ namespace IntegrationTests
 
             Logging.LogAdapter = new MultipleLogAdapter(
                 new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-integration-tests.log")
-                , new ConsoleLogAdapter()
+                //, new ConsoleLogAdapter()
             );
         }
     }

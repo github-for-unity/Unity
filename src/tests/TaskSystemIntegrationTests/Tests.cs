@@ -8,6 +8,7 @@ using GitHub.Unity;
 using System.Threading.Tasks.Schedulers;
 using System.IO;
 using NSubstitute;
+using GitHub.Unity.Logs;
 
 namespace IntegrationTests
 {
