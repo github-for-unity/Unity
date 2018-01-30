@@ -157,6 +157,7 @@
     <Compile Include="Git\Tasks\GitLfsInstallTask.cs" />
     <Compile Include="Git\Tasks\GitRemoteChangeTask.cs" />
     <Compile Include="Git\Tasks\GitRemoveFromIndexTask.cs" />
+    <Compile Include="IO\Utils.cs" />
     <Compile Include="Threading\IMainThreadSynchronizationContext.cs" />
     <Compile Include="Installer\IZipHelper.cs" />
     <Compile Include="Installer\ZipHelper.cs" />

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -7,134 +6,6 @@ using System.Threading;
 
 namespace GitHub.Unity
 {
-    public static class Utils
-    {
-        public static bool Copy(Stream source, Stream destination, int chunkSize)
-        {
-            return Copy(source, destination, chunkSize, 0, null, 1000);
-        }
-
-        public static bool Copy(Stream source, Stream destination, int chunkSize, long totalSize,
-            Func<long, long, bool> progress, int progressUpdateRate)
-        {
-            byte[] buffer = new byte[chunkSize];
-            int bytesRead = 0;
-            long totalRead = 0;
-            float averageSpeed = -1f;
-            float lastSpeed = 0f;
-            float smoothing = 0.005f;
-            long readLastSecond = 0;
-            long timeToFinish = 0;
-            Stopwatch watch = null;
-            bool success = true;
-
-            bool trackProgress = totalSize > 0 && progress != null;
-            if (trackProgress)
-                watch = new Stopwatch();
-
-            do
-            {
-                if (trackProgress)
-                    watch.Start();
-
-                bytesRead = source.Read(buffer, 0, chunkSize);
-
-                if (trackProgress)
-                    watch.Stop();
-
-                totalRead += bytesRead;
-
-                if (bytesRead > 0)
-                {
-                    destination.Write(buffer, 0, bytesRead);
-                    if (trackProgress)
-                    {
-                        readLastSecond += bytesRead;
-                        if (watch.ElapsedMilliseconds >= progressUpdateRate || totalRead == totalSize)
-                        {
-                            watch.Reset();
-                            lastSpeed = readLastSecond;
-                            readLastSecond = 0;
-                            averageSpeed = averageSpeed < 0f
-                                ? lastSpeed
-                                : smoothing * lastSpeed + (1f - smoothing) * averageSpeed;
-                            timeToFinish = Math.Max(1L,
-                                (long)((totalSize - totalRead) / (averageSpeed / progressUpdateRate)));
-
-                            Logging.Debug($"totalRead: {totalRead} of {totalSize}");
-                            success = progress(totalRead, timeToFinish);
-                            if (!success)
-                                break;
-                        }
-                    }
-                }
-            } while (bytesRead > 0);
-
-            if (totalRead > 0)
-                destination.Flush();
-
-            return success;
-        }
-
-        public static bool Download(ILogging logger, UriString url,
-            Stream destinationStream,
-            Func<long, long, bool> onProgress)
-        {
-            long bytes = destinationStream.Length;
-
-            var expectingResume = bytes > 0;
-
-            var webRequest = (HttpWebRequest)WebRequest.Create(url);
-
-            if (expectingResume)
-            {
-                // classlib for 3.5 doesn't take long overloads...
-                webRequest.AddRange((int)bytes);
-            }
-
-            webRequest.Method = "GET";
-            webRequest.Timeout = 3000;
-
-            if (expectingResume)
-                logger.Trace($"Resuming download of {url}");
-            else
-                logger.Trace($"Downloading {url}");
-
-            using (var webResponse = (HttpWebResponse) webRequest.GetResponseWithoutException())
-            {
-                var httpStatusCode = webResponse.StatusCode;
-                logger.Trace($"Downloading {url} StatusCode:{(int)webResponse.StatusCode}");
-
-                if (expectingResume && httpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
-                {
-                    onProgress(bytes, bytes);
-                    return true;
-                }
-
-                if (!(httpStatusCode == HttpStatusCode.OK || httpStatusCode == HttpStatusCode.PartialContent))
-                {
-                    return false;
-                }
-
-                var responseLength = webResponse.ContentLength;
-                if (expectingResume)
-                {
-                    if (!onProgress(bytes, bytes + responseLength))
-                        return false;
-                }
-
-                using (var responseStream = webResponse.GetResponseStream())
-                {
-                    return Copy(responseStream, destinationStream, 8192, responseLength,
-                        (totalRead, timeToFinish) => {
-                            return onProgress(totalRead, responseLength);
-                        }
-                        , 100);
-                }
-            }
-        }
-    }
-
     public static class WebRequestExtensions
     {
         public static WebResponse GetResponseWithoutException(this WebRequest request)
@@ -158,8 +29,6 @@ namespace GitHub.Unity
     class DownloadTask : TaskBase<string>
     {
         protected readonly IFileSystem fileSystem;
-        private long bytes;
-        private bool restarted;
 
         public DownloadTask(CancellationToken token,
             IFileSystem fileSystem, UriString url,
@@ -305,27 +174,8 @@ namespace GitHub.Unity
 
         protected override string RunDownload(bool success)
         {
-            string result = null;
-
-            RaiseOnStart();
-
-            try
-            {
-                result = base.RunDownload(success);
-                result = fileSystem.ReadAllText(result, Encoding.UTF8);
-            }
-            catch (Exception ex)
-            {
-                Errors = ex.Message;
-                if (!RaiseFaultHandlers(ex))
-                    throw;
-            }
-            finally
-            {
-                RaiseOnEnd(result);
-            }
-
-            return result;
+            var result = base.RunDownload(success);
+            return fileSystem.ReadAllText(result, Encoding.UTF8);
         }
     }
 }

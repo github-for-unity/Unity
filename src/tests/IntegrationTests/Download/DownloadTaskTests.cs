@@ -18,6 +18,20 @@ namespace IntegrationTests.Download
             InitializeEnvironment(TestBasePath, initializeRepository: false);
         }
 
+        private TestWebServer.HttpServer server;
+        public override void TestFixtureSetUp()
+        {
+            base.TestFixtureSetUp();
+            server = new TestWebServer.HttpServer();
+            Task.Factory.StartNew(server.Start);
+        }
+
+        public override void TestFixtureTearDown()
+        {
+            base.TestFixtureTearDown();
+            server.Stop();
+        }
+
         [Test]
         public async Task TestDownloadTask()
         {
@@ -25,8 +39,8 @@ namespace IntegrationTests.Download
 
             var fileSystem = Environment.FileSystem;
 
-            var gitLfs = new UriString("https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip");
-            var gitLfsMd5 = new UriString("https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt?cb=1");
+            var gitLfs = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
+            var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
 
             var md5 = await new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath)
                 .StartAwait();
@@ -40,12 +54,8 @@ namespace IntegrationTests.Download
             var downloadPathBytes = fileSystem.ReadAllBytes(downloadPath);
             Logger.Trace("File size {0} bytes", downloadPathBytes.Length);
 
-            var random = new Random();
-            var takeCount = random.Next(downloadPathBytes.Length);
-
-            Logger.Trace("Cutting the first {0} Bytes", downloadPathBytes.Length - takeCount);
-
-            var cutDownloadPathBytes = downloadPathBytes.Take(takeCount).ToArray();
+            var cutDownloadPathBytes = downloadPathBytes.Take(downloadPathBytes.Length - 1000).ToArray();
+            fileSystem.FileDelete(downloadPath);
             fileSystem.WriteAllBytes(downloadPath, cutDownloadPathBytes);
 
             downloadPath = await new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
@@ -65,15 +75,13 @@ namespace IntegrationTests.Download
 
             var fileSystem = Environment.FileSystem;
 
-            var downloadPath = TestBasePath.Combine("5MB.zip");
-
             var taskFailed = false;
             Exception exceptionThrown = null;
 
             var autoResetEvent = new AutoResetEvent(false);
 
             var downloadTask = new DownloadTask(TaskManager.Token, fileSystem,
-                "http://www.unknown.com/5MB.gz", TestBasePath)
+                $"http://localhost:{server.Port}/nope", TestBasePath)
                 .Finally((b, exception) => {
                     taskFailed = !b;
                     exceptionThrown = exception;
@@ -95,12 +103,11 @@ namespace IntegrationTests.Download
 
             var fileSystem = Environment.FileSystem;
 
-            var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem,
-                "https://github.com/robots.txt",
-                TestBasePath);
+            var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+
+            var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
             var result = downloadTask.Start().Result;
-            var resultLines = result.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            resultLines[0].Should().Be("# If you would like to crawl GitHub contact us at support@github.com.");
+            result.Should().Be("105DF1302560C5F6AA64D1930284C126");
         }
 
         [Test]
@@ -110,8 +117,7 @@ namespace IntegrationTests.Download
 
             var fileSystem = Environment.FileSystem;
 
-            var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem,
-                "https://ggggithub.com/robots.txt");
+            var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem, "https://ggggithub.com/robots.txt");
             var exceptionThrown = false;
 
             try
@@ -133,14 +139,11 @@ namespace IntegrationTests.Download
 
             var fileSystem = Environment.FileSystem;
 
-            var gitLfs = new UriString("https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip");
-            var gitLfsMd5 = new UriString("https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt?cb=1");
+            var gitLfs = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
+            var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
 
-            var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Token, fileSystem,
-                gitLfsMd5, TestBasePath);
-
-            var downloadGitLfsTask = new DownloadTask(TaskManager.Token, fileSystem,
-                gitLfs, TestBasePath);
+            var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
+            var downloadGitLfsTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath);
 
             var result = true;
             Exception exception = null;
@@ -171,9 +174,9 @@ namespace IntegrationTests.Download
         {
             Logger.Info("Starting Test: TestDownloadShutdownTimeWhenInterrupted");
 
-            var fileSystem = Environment.FileSystem;
+            server.Delay = 100;
 
-            var gitArchivePath = TestBasePath.Combine("git.zip");
+            var fileSystem = Environment.FileSystem;
 
             var evtStop = new AutoResetEvent(false);
             var evtFinally = new AutoResetEvent(false);
@@ -181,9 +184,8 @@ namespace IntegrationTests.Download
 
             var watch = new Stopwatch();
 
-            var downloadGitTask = new DownloadTask(TaskManager.Token, fileSystem,
-                "https://ghfvs-installer.github.com/unity/portable_git/git.zip",
-                TestBasePath)
+            var gitLfs = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
+            var downloadGitTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
 
                 // An exception is thrown when we stop the task manager
                 // since we're stopping the task manager, no other tasks
@@ -207,9 +209,12 @@ namespace IntegrationTests.Download
             TaskManager.Dispose();
             evtFinally.WaitOne();
             watch.Stop();
+            server.Delay = 0;
+            server.Abort();
 
             exception.Should().NotBeNull();
             watch.ElapsedMilliseconds.Should().BeLessThan(250);
+
         }
     }
 }

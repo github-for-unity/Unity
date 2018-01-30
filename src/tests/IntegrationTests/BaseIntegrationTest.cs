@@ -36,7 +36,7 @@ namespace IntegrationTests
         }
 
         [TestFixtureSetUp]
-        public void TestFixtureSetUp()
+        public virtual void TestFixtureSetUp()
         {
             Logger = Logging.GetLogger(GetType());
             Factory = new TestUtils.SubstituteFactory();
@@ -44,7 +44,7 @@ namespace IntegrationTests
         }
 
         [TestFixtureTearDown]
-        public void TestFixtureTearDown()
+        public virtual void TestFixtureTearDown()
         {
         }
 
