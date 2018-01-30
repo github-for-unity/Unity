@@ -128,15 +128,14 @@ namespace GitHub.Unity
                 }
                 catch (Exception ex)
                 {
-                    exception = new DownloadException("Error downloading file", ex);
+                    exception = ex;
                 }
             } while (attempts++ < RetryCount);
 
             if (!result)
             {
-                if (exception == null)
-                    exception = new DownloadException("Error downloading file");
-                throw exception;
+                Token.ThrowIfCancellationRequested();
+                throw new DownloadException("Error downloading file", exception);
             }
 
             return Destination;
