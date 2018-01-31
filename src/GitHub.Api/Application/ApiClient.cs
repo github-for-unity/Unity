@@ -17,7 +17,7 @@ namespace GitHub.Unity
             var hostAddress = HostAddress.Create(repositoryUrl);
 
             return new ApiClient(repositoryUrl, keychain,
-                new GitHubClient(AppConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri));
+                new GitHubClient(ApplicationConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri));
         }
 
         private static readonly ILogging logger = Logging.GetLogger<ApiClient>();

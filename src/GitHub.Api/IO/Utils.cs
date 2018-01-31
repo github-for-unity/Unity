@@ -99,7 +99,7 @@ namespace GitHub.Unity
             }
 
             webRequest.Method = "GET";
-            webRequest.Timeout = 5000;
+            webRequest.Timeout = ApplicationConfiguration.WebTimeout;
 
             if (expectingResume)
                 logger.Trace($"Resuming download of {url}");

@@ -167,7 +167,7 @@ namespace GitHub.Unity
             usage.NumberOfStartups++;
             usage.UnityVersion = unityVersion;
             usage.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
-            usage.AppVersion = AppConfiguration.AssemblyName.Version.ToString();
+            usage.AppVersion = ApplicationConfiguration.AssemblyName.Version.ToString();
 
             Logger.Trace("IncrementLaunchCount Date:{0} NumberOfStartups:{1}", usage.Date, usage.NumberOfStartups);
 

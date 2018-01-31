@@ -3,11 +3,11 @@ using Octokit;
 
 namespace GitHub.Unity
 {
-    static class AppConfiguration
+    public static class ApplicationConfiguration
     {
-        static AppConfiguration()
+        static ApplicationConfiguration()
         {
-            var executingAssembly = typeof(AppConfiguration).Assembly;
+            var executingAssembly = typeof(ApplicationConfiguration).Assembly;
             AssemblyName = executingAssembly.GetName();
             ProductHeader = new ProductHeaderValue(ApplicationInfo.ApplicationSafeName, AssemblyName.Version.ToString());
         }
@@ -21,5 +21,12 @@ namespace GitHub.Unity
         /// The product header used in the user agent.
         /// </summary>
         public static ProductHeaderValue ProductHeader { get; private set; }
+
+        private static int webTimeout = 3000;
+        public static int WebTimeout
+        {
+            get { return webTimeout; }
+            set { webTimeout = value; }
+        }
     }
 }
