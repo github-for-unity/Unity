@@ -26,7 +26,7 @@ namespace IntegrationTests.Download
         public override void TestFixtureSetUp()
         {
             base.TestFixtureSetUp();
-            server = new TestWebServer.HttpServer();
+            server = new TestWebServer.HttpServer(SolutionDirectory.Combine("files"));
             Task.Factory.StartNew(server.Start);
             ApplicationConfiguration.WebTimeout = 20000;
         }

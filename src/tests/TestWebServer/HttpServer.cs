@@ -67,7 +67,7 @@ namespace TestWebServer
         {
             try
             {
-                Logger.Info($"Starting http server on port {Port}");
+                Logger.Info($"Starting http server on port {Port} serving from {rootDirectory}");
                 listener.Start();
                 while (true)
                 {
