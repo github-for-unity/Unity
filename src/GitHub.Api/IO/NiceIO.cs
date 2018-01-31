@@ -464,8 +464,8 @@ GitHub.Unity
 
         public bool HasExtension(params string[] extensions)
         {
-            var extensionWithDotLower = ExtensionWithDot.ToLower(CultureInfo.InvariantCulture);
-            return extensions.Any(e => WithDot(e).ToLower(CultureInfo.InvariantCulture) == extensionWithDotLower);
+            var extensionWithDotLower = ExtensionWithDot.ToUpperInvariant();
+            return extensions.Any(e => WithDot(e).ToUpperInvariant() == extensionWithDotLower);
         }
 
         private static string WithDot(string extension)

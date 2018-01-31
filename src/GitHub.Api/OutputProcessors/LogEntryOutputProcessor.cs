@@ -135,7 +135,7 @@ namespace GitHub.Unity
 
                 case ProcessingPhase.Summary:
                     {
-                        var idx = line.IndexOf("---GHUBODYEND---", StringComparison.InvariantCulture);
+                        var idx = line.IndexOf("---GHUBODYEND---", StringComparison.Ordinal);
                         var oneliner = idx >= 0;
                         if (oneliner)
                         {
