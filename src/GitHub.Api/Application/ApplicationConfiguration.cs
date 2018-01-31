@@ -5,6 +5,8 @@ namespace GitHub.Unity
 {
     public static class ApplicationConfiguration
     {
+        public const int DefaultWebTimeout = 3000;
+
         static ApplicationConfiguration()
         {
             var executingAssembly = typeof(ApplicationConfiguration).Assembly;
@@ -13,20 +15,15 @@ namespace GitHub.Unity
         }
 
         /// <summary>
-        /// The currently executing assembly.
+        ///     The currently executing assembly.
         /// </summary>
-        public static AssemblyName AssemblyName { get; private set; }
+        public static AssemblyName AssemblyName { get; }
 
         /// <summary>
-        /// The product header used in the user agent.
+        ///     The product header used in the user agent.
         /// </summary>
         public static ProductHeaderValue ProductHeader { get; private set; }
 
-        private static int webTimeout = 3000;
-        public static int WebTimeout
-        {
-            get { return webTimeout; }
-            set { webTimeout = value; }
-        }
+        public static int WebTimeout { get; set; } = DefaultWebTimeout;
     }
 }

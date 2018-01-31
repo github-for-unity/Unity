@@ -24,12 +24,14 @@ namespace IntegrationTests.Download
             base.TestFixtureSetUp();
             server = new TestWebServer.HttpServer();
             Task.Factory.StartNew(server.Start);
+            ApplicationConfiguration.WebTimeout = 20000;
         }
 
         public override void TestFixtureTearDown()
         {
             base.TestFixtureTearDown();
             server.Stop();
+            ApplicationConfiguration.WebTimeout = ApplicationConfiguration.DefaultWebTimeout;
         }
 
         [Test]
