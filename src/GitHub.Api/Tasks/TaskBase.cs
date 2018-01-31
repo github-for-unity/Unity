@@ -19,6 +19,7 @@ namespace GitHub.Unity
         ITask Catch(Func<Exception, bool> handler);
         ITask Finally(Action handler);
         ITask Finally(Action<bool, Exception> actionToContinueWith, TaskAffinity affinity = TaskAffinity.Concurrent);
+        ITask Finally<T>(T taskToContinueWith) where T : ITask;
         ITask Start();
         ITask Start(TaskScheduler scheduler);
         ITask Progress(Action<IProgress> progressHandler);
@@ -180,14 +181,11 @@ namespace GitHub.Unity
         public ITask Finally(Action<bool, Exception> actionToContinueWith, TaskAffinity affinity = TaskAffinity.Concurrent)
         {
             Guard.ArgumentNotNull(actionToContinueWith, nameof(actionToContinueWith));
-            var ret = Then(new ActionTask(Token, actionToContinueWith) { Affinity = affinity, Name = "Finally" }, TaskRunOptions.Always);
-            DependsOn?.SetFaultHandler(ret);
-            ret.ContinuationIsFinally = true;
-            return ret;
+            return Finally(new ActionTask(Token, actionToContinueWith) { Affinity = affinity, Name = "Finally" });
         }
 
-        internal virtual ITask Finally<T>(T taskToContinueWith)
-            where T : TaskBase
+        public ITask Finally<T>(T taskToContinueWith)
+            where T : ITask
         {
             Guard.ArgumentNotNull(taskToContinueWith, nameof(taskToContinueWith));
             continuationAlways = (TaskBase)(object)taskToContinueWith;
@@ -340,7 +338,7 @@ namespace GitHub.Unity
         protected virtual void RaiseOnEnd()
         {
             OnEnd?.Invoke(this);
-            if (continuationOnSuccess == null && continuationOnFailure == null)
+            if (continuationOnSuccess == null && continuationOnFailure == null && continuationAlways == null)
                 finallyHandler?.Invoke();
             //Logger.Trace($"Finished {ToString()}");
         }
@@ -396,7 +394,6 @@ namespace GitHub.Unity
         protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
         public TaskBase DependsOn { get; private set; }
         public CancellationToken Token { get; }
-        internal bool ContinuationIsFinally { get; set; }
     }
 
     abstract class TaskBase<TResult> : TaskBase, ITask<TResult>
@@ -495,7 +492,6 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(continuation, "continuation");
             var ret = Then(new FuncTask<TResult, TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, TaskRunOptions.Always);
-            ret.ContinuationIsFinally = true;
             DependsOn?.SetFaultHandler(ret);
             return ret;
         }
@@ -504,7 +500,6 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(continuation, "continuation");
             var ret = Then(new ActionTask<TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, TaskRunOptions.Always);
-            ret.ContinuationIsFinally = true;
             DependsOn?.SetFaultHandler(ret);
             return ret;
         }
@@ -547,7 +542,7 @@ namespace GitHub.Unity
         protected virtual void RaiseOnEnd(TResult result)
         {
             OnEnd?.Invoke(this, result);
-            if (continuationOnSuccess == null && continuationOnFailure == null)
+            if (continuationOnSuccess == null && continuationOnFailure == null && continuationAlways == null)
                 finallyHandler?.Invoke(result);
             //Logger.Trace($"Finished {ToString()} {result}");
         }
