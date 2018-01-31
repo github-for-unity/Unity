@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Octokit;
+using System.Runtime.Serialization;
 
 namespace GitHub.Unity
 {
@@ -333,7 +334,7 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    class ApiClientException : Exception
+    public class ApiClientException : Exception
     {
         public ApiClientException()
         { }
@@ -342,6 +343,9 @@ namespace GitHub.Unity
         { }
 
         public ApiClientException(string message, Exception innerException) : base(message, innerException)
+        { }
+
+        protected ApiClientException(SerializationInfo info, StreamingContext context) : base(info, context)
         { }
     }
 
@@ -356,12 +360,22 @@ namespace GitHub.Unity
             CachedUsername = cachedUsername;
             CurrentUsername = currentUsername;
         }
+        protected TokenUsernameMismatchException(SerializationInfo info, StreamingContext context) : base(info, context)
+        { }
     }
 
     [Serializable]
     class KeychainEmptyException : ApiClientException
     {
         public KeychainEmptyException()
+        { }
+        public KeychainEmptyException(string message) : base(message)
+        { }
+
+        public KeychainEmptyException(string message, Exception innerException) : base(message, innerException)
+        { }
+
+        protected KeychainEmptyException(SerializationInfo info, StreamingContext context) : base(info, context)
         { }
     }
 }
