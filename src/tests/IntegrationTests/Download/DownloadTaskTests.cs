@@ -28,7 +28,7 @@ namespace IntegrationTests.Download
             base.TestFixtureSetUp();
             server = new TestWebServer.HttpServer(SolutionDirectory.Combine("files"));
             Task.Factory.StartNew(server.Start);
-            ApplicationConfiguration.WebTimeout = 20000;
+            ApplicationConfiguration.WebTimeout = 5000;
         }
 
         public override void TestFixtureTearDown()
@@ -60,7 +60,7 @@ namespace IntegrationTests.Download
         }
 
         [Test]
-        public void TestDownloadTask()
+        public void ResumingDownloadsWorks()
         {
             Stopwatch watch;
             ILogging logger;
@@ -136,7 +136,7 @@ namespace IntegrationTests.Download
         }
 
         [Test]
-        public void TestDownloadFailure()
+        public void DownloadingNonExistingFileThrows()
         {
             Stopwatch watch;
             ILogging logger;
@@ -170,7 +170,7 @@ namespace IntegrationTests.Download
         }
 
         [Test]
-        public void TestDownloadTextTask()
+        public void DownloadingATextFileWorks()
         {
             Stopwatch watch;
             ILogging logger;
@@ -200,7 +200,7 @@ namespace IntegrationTests.Download
         }
 
         [Test]
-        public void TestDownloadTextFailure()
+        public void DownloadingFromNonExistingDomainThrows()
         {
             Stopwatch watch;
             ILogging logger;
@@ -208,7 +208,7 @@ namespace IntegrationTests.Download
 
             var fileSystem = Environment.FileSystem;
 
-            var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem, "https://ggggithub.com/robots.txt");
+            var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem, "http://ggggithub.com/robots.txt");
             var exceptionThrown = false;
 
             var autoResetEvent = new AutoResetEvent(false);
@@ -228,7 +228,7 @@ namespace IntegrationTests.Download
         }
         
         [Test]
-        public void TestDownloadFileAndHash()
+        public void DownloadingAFileWithHashValidationWorks()
         {
             Stopwatch watch;
             ILogging logger;
@@ -269,7 +269,7 @@ namespace IntegrationTests.Download
         }
 
         [Test]
-        public void TestDownloadShutdownTimeWhenInterrupted()
+        public void ShutdownTimeWhenTaskManagerDisposed()
         {
             Stopwatch watch;
             ILogging logger;
