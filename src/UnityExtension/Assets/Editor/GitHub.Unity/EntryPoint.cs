@@ -40,10 +40,17 @@ namespace GitHub.Unity
                 var oldLogPath = logPath.Parent.Combine(logPath.FileNameWithoutExtension + "-old" + logPath.ExtensionWithDot);
                 try
                 {
-                    oldLogPath.DeleteIfExists();
-                    if (logPath.FileExists())
+                    var shouldRotate = true;
+#if DEVELOPER_BUILD
+                    shouldRotate = new FileInfo(logPath).Length > 10 * 1024 * 1024;
+#endif
+                    if (shouldRotate)
                     {
-                        logPath.Move(oldLogPath);
+                        oldLogPath.DeleteIfExists();
+                        if (logPath.FileExists())
+                        {
+                            logPath.Move(oldLogPath);
+                        }
                     }
                 }
                 catch (Exception ex)
