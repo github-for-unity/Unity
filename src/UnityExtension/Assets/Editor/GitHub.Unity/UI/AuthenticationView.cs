@@ -212,11 +212,9 @@ namespace GitHub.Unity
 
             isBusy = false;
 
-            if (success == true)
+            if (success)
             {
-                new ActionTask(CancellationToken.None, () => {
                     EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfAuthentications();
-                }) { Affinity = TaskAffinity.UI }.Start();
 
                 Clear();
                 Finish(true);
