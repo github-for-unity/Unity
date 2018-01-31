@@ -99,6 +99,9 @@
     <!-- Unity does its own serialization and doesn't need special serializable type constructors -->
     <Rule Id="CA2229" Action="None" />
     <Rule Id="CA2240" Action="None" />
+
+    <!-- the compiler already warns about this -->
+    <Rule Id="CA1823" Action="None" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.Features" RuleNamespace="Microsoft.CodeAnalysis.CSharp.Features">
     <Rule Id="IDE0001" Action="None" />
