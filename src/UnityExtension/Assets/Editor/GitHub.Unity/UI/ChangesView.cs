@@ -23,7 +23,7 @@ namespace GitHub.Unity
         [NonSerialized] private bool currentLocksHasUpdate;
         [NonSerialized] private bool isBusy;
 
-        [NonSerialized] private GUIContent revertGuiContent;
+        [NonSerialized] private GUIContent discardGuiContent;
 
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
@@ -173,12 +173,12 @@ namespace GitHub.Unity
 
             if (canDiscard)
             {
-                if (revertGuiContent == null)
+                if (discardGuiContent == null)
                 {
-                    revertGuiContent = new GUIContent("Discard");
+                    discardGuiContent = new GUIContent("Discard");
                 }
 
-                genericMenu.AddItem(revertGuiContent, false, () => {
+                genericMenu.AddItem(discardGuiContent, false, () => {
                     Repository.DiscardChanges(new List<GitStatusEntry> { node.GitStatusEntry })
                         .Start();
                 });
