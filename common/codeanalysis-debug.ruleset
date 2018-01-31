@@ -94,6 +94,18 @@
 
     <!-- link demand -->
     <Rule Id="CA2123" Action="None" />
+
+    <!-- disposable -->
+    <Rule Id="CA1001" Action="None" />
+
+    <!-- no we like our event handler signatures thankyouverymuch -->
+    <Rule Id="CA1009" Action="None" />
+
+    <!-- calling TryParse without using its return value is not a crime, Microsoft -->
+    <Rule Id="CA1806" Action="None" />
+
+    <!-- we're returning arrays from properties -->
+    <Rule Id="CA1819" Action="None" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.Features" RuleNamespace="Microsoft.CodeAnalysis.CSharp.Features">
     <Rule Id="IDE0001" Action="None" />

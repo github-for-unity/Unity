@@ -13,6 +13,9 @@
     <FileAlignment>512</FileAlignment>
     <OutputPath>$(SolutionDir)\unity\TestProject\Assets\Plugins\GitHub\Editor\</OutputPath>
     <IntermediateOutputPath>..\..\..\obj\</IntermediateOutputPath>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
   <Import Project="..\..\..\..\..\common\properties.props" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -22,8 +25,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
-    <CodeAnalysisRuleSet>$(SolutionDir)\common\codeanalysis-full.ruleset</CodeAnalysisRuleSet>
     <LangVersion>4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -32,8 +33,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
-    <CodeAnalysisRuleSet>$(SolutionDir)\common\codeanalysis-small.ruleset</CodeAnalysisRuleSet>
     <BuildConfid>Release</BuildConfid>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'dev|AnyCPU'">
@@ -43,8 +42,6 @@
     <DefineConstants>DEBUG;TRACE;DEVELOPER_BUILD</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
-    <CodeAnalysisRuleSet>$(SolutionDir)\common\codeanalysis-small.ruleset</CodeAnalysisRuleSet>
     <LangVersion>4</LangVersion>
   </PropertyGroup>
   <ItemGroup>
