@@ -100,6 +100,7 @@ namespace GitHub.Unity
         private readonly IGitClient gitClient;
         private readonly IProcessManager processManager;
         private readonly IRepositoryPathConfiguration repositoryPaths;
+        private readonly IFileSystem fileSystem;
         private readonly IRepositoryWatcher watcher;
 
         private bool isBusy;
@@ -116,9 +117,11 @@ namespace GitHub.Unity
         public RepositoryManager(IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
             IProcessManager processManager,
-            IRepositoryPathConfiguration repositoryPaths)
+            IRepositoryPathConfiguration repositoryPaths,
+            IFileSystem fileSystem)
         {
             this.repositoryPaths = repositoryPaths;
+            this.fileSystem = fileSystem;
             this.gitClient = gitClient;
             this.processManager = processManager;
             this.watcher = repositoryWatcher;
@@ -127,7 +130,7 @@ namespace GitHub.Unity
             SetupWatcher();
         }
 
-        public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IGitClient gitClient, IProcessManager processManager, NPath repositoryRoot)
+        public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IGitClient gitClient, IProcessManager processManager, NPath repositoryRoot, IFileSystem fileSystem)
         {
             var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
             string filePath = repositoryPathConfiguration.DotGitConfig;
@@ -136,7 +139,7 @@ namespace GitHub.Unity
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
 
             return new RepositoryManager(gitConfig, repositoryWatcher,
-                gitClient, processManager, repositoryPathConfiguration);
+                gitClient, processManager, repositoryPathConfiguration, fileSystem);
         }
 
         public void Initialize()
@@ -298,17 +301,16 @@ namespace GitHub.Unity
 
         public ITask DeleteFiles(List<string> list)
         {
-            ITask<List<string>> task = new DeleteFilesExecTask(list.ToArray(), CancellationToken.None)
-                .Configure(processManager);
-
-            task = HookupHandlers(task, true, true);
-
-            var @finally = task.Finally((b, exception, arg3) => {
-                Logger.Trace("Delete Files success:{0} output: {1}", b, arg3 != null ? string.Join(",", arg3.ToArray()) : "[NULL]");
+            var delete = new ActionTask(CancellationToken.None, () => {
+                for (var index = 0; index < list.Count; index++)
+                {
+                    fileSystem.FileDelete(list[index]);
+                }
             });
 
-            return @finally
-                .Start();
+            delete.OnStart += t => IsBusy = true;
+
+            return delete.Finally(() => IsBusy = false);
         }
 
         public void UpdateGitAheadBehindStatus()

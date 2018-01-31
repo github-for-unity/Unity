@@ -128,7 +128,7 @@ namespace GitHub.Unity
         {
             if (Environment.RepositoryPath != null)
             {
-                repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, ProcessManager, Environment.RepositoryPath);
+                repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, ProcessManager, Environment.RepositoryPath, Environment.FileSystem);
                 repositoryManager.Initialize();
                 Environment.Repository.Initialize(repositoryManager);
                 repositoryManager.Start();
