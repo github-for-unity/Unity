@@ -272,7 +272,7 @@ namespace GitHub.Unity
                             {
                                 if (success)
                                 {
-                                    EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfLocalBranchCreations();
+                                    Manager.UsageTracker.IncrementNumberOfLocalBranchCreations();
                                     Redraw();
                                 }
                                 else
@@ -440,7 +440,7 @@ namespace GitHub.Unity
                     GitClient.CreateBranch(branchName, branch).FinallyInUI((success, e) => {
                         if (success)
                         {
-                            EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfRemoteBranchCheckouts();
+                            Manager.UsageTracker.IncrementNumberOfRemoteBranchCheckouts();
                             Redraw();
                         }
                         else
@@ -461,7 +461,7 @@ namespace GitHub.Unity
                 GitClient.SwitchBranch(branch).FinallyInUI((success, e) => {
                     if (success)
                     {
-                        EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfLocalBranchCheckouts();
+                        Manager.UsageTracker.IncrementNumberOfLocalBranchCheckouts();
                         Redraw();
                     }
                     else
@@ -480,7 +480,7 @@ namespace GitHub.Unity
             {
                 GitClient
                     .DeleteBranch(branch, true)
-                    .ThenInUI(EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfLocalBranchDeletions)
+                    .ThenInUI(Manager.UsageTracker.IncrementNumberOfLocalBranchDeletions)
                     .Start();
             }
         }

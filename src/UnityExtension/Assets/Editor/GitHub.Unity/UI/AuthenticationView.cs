@@ -214,7 +214,7 @@ namespace GitHub.Unity
 
             if (success)
             {
-                    EntryPoint.ApplicationManager.UsageTracker.IncrementNumberOfAuthentications();
+                Manager.UsageTracker.IncrementNumberOfAuthentications();
 
                 Clear();
                 Finish(true);
