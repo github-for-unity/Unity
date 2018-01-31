@@ -29,6 +29,27 @@ namespace UnitTests
         }
 
         [Test]
+        public void ShouldParseSingleSshBothWaysRemote()
+        {
+            var output = new[]
+            {
+                "origin git@github.com:github-for-unity/Unity.git (fetch)",
+                "origin git@github.com:github-for-unity/Unity.git (push)",
+                null
+            };
+
+            var name = "origin";
+            var host = "github.com";
+            var url = "github.com:github-for-unity/Unity.git";
+            var function = GitRemoteFunction.Both;
+            var user = "git";
+            AssertProcessOutput(output, new[]
+            {
+                new GitRemote(name, host, url, function, user)
+            });
+        }
+
+        [Test]
         public void ShouldParseSingleHttpsFetchOnlyRemote()
         {
             var output = new[]
