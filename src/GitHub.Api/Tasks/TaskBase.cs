@@ -70,7 +70,7 @@ namespace GitHub.Unity
         protected event Func<Exception, bool> faultHandler;
         private event Action finallyHandler;
 
-        public TaskBase(CancellationToken token)
+        protected TaskBase(CancellationToken token)
         {
             Guard.ArgumentNotNull(token, "token");
 
@@ -78,7 +78,7 @@ namespace GitHub.Unity
             Task = new Task(() => Run(DependsOn?.Successful ?? previousSuccess), Token, TaskCreationOptions.None);
         }
 
-        public TaskBase(Task task)
+        protected TaskBase(Task task)
         {
             Task = new Task(t =>
             {
@@ -398,7 +398,7 @@ namespace GitHub.Unity
         public new event Action<ITask<TResult>> OnStart;
         public new event Action<ITask<TResult>, TResult> OnEnd;
 
-        public TaskBase(CancellationToken token)
+        protected TaskBase(CancellationToken token)
             : base(token)
         {
             Task = new Task<TResult>(() =>
@@ -410,7 +410,7 @@ namespace GitHub.Unity
             }, Token, TaskCreationOptions.None);
         }
 
-        public TaskBase(Task<TResult> task)
+        protected TaskBase(Task<TResult> task)
             : base()
         {
             Task = new Task<TResult>(t =>
