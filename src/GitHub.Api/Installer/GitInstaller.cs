@@ -99,78 +99,67 @@ namespace GitHub.Unity
                 return;
             }
 
-            new FuncTask<bool>(cancellationToken, IsGitExtracted)
-                .Finally((success, ex, isPortableGitExtracted) => {
-                    Logger.Trace("IsPortableGitExtracted: {0}", isPortableGitExtracted);
+            new ActionTask(cancellationToken, () => {
+                if (IsGitExtracted())
+                {
+                    Logger.Trace("SetupGitIfNeeded: Skipped");
+                    onSuccess.PreviousResult = installDetails.GitExecPath;
+                    onSuccess.Start();
+                }
+                else
+                {
+                    ExtractPortableGit(onSuccess, onFailure);
+                }
+            }).Start();
+        }
 
-                    if (isPortableGitExtracted)
-                    {
-                        Logger.Trace("SetupGitIfNeeded: Skipped");
+        private void ExtractPortableGit(ActionTask<NPath> onSuccess, ITask onFailure)
+        {
+            ITask downloadFilesTask = null;
+            if (gitArchiveFilePath == null || gitLfsArchivePath == null)
+            {
+                downloadFilesTask = CreateDownloadTask();
+            }
 
-                        new FuncTask<NPath>(cancellationToken, () => installDetails.GitExecPath)
-                            .Then(onSuccess)
-                            .Start();
-                    }
-                    else
-                    {
-                        ITask downloadFilesTask = null;
-                        if (gitArchiveFilePath == null || gitLfsArchivePath == null)
-                        {
-                            downloadFilesTask = CreateDownloadTask();
-                        }
+            var tempZipExtractPath = NPath.CreateTempDirectory("git_zip_extract_zip_paths");
+            var gitExtractPath = tempZipExtractPath.Combine("git").CreateDirectory();
+            var gitLfsExtractPath = tempZipExtractPath.Combine("git-lfs").CreateDirectory();
 
-                        var tempZipExtractPath = NPath.CreateTempDirectory("git_zip_extract_zip_paths");
-                        var gitExtractPath = tempZipExtractPath.Combine("git").CreateDirectory();
-                        var gitLfsExtractPath = tempZipExtractPath.Combine("git-lfs").CreateDirectory();
+            var resultTask = new UnzipTask(cancellationToken, gitArchiveFilePath, gitExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitExtractedMD5)
+                .Then(new UnzipTask(cancellationToken, gitLfsArchivePath, gitLfsExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitLfsExtractedMD5))
+                .Then(s =>
+                {
+                    var targetGitLfsExecPath = installDetails.GetGitLfsExecPath(gitExtractPath);
+                    var extractGitLfsExePath = gitLfsExtractPath.Combine(installDetails.GitLfsExec);
 
-                        var resultTask = new UnzipTask(cancellationToken, gitArchiveFilePath, gitExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitExtractedMD5)
-                            .Then(new UnzipTask(cancellationToken, gitLfsArchivePath, gitLfsExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitLfsExtractedMD5))
-                            .Then(() => {
-                                var targetGitLfsExecPath = installDetails.GetGitLfsExecPath(gitExtractPath);
-                                var extractGitLfsExePath = gitLfsExtractPath.Combine(installDetails.GitLfsExec);
+                    Logger.Trace("Moving Git LFS Exe:\"{0}\" to target in tempDirectory:\"{1}\" ", extractGitLfsExePath,
+                        targetGitLfsExecPath);
 
-                                Logger.Trace("Moving Git LFS Exe:\"{0}\" to target in tempDirectory:\"{1}\" ", extractGitLfsExePath,
-                                    targetGitLfsExecPath);
+                    extractGitLfsExePath.Move(targetGitLfsExecPath);
 
-                                extractGitLfsExePath.Move(targetGitLfsExecPath);
+                    Logger.Trace("Moving tempDirectory:\"{0}\" to extractTarget:\"{1}\"", gitExtractPath,
+                        installDetails.GitInstallPath);
 
-                                Logger.Trace("Moving tempDirectory:\"{0}\" to extractTarget:\"{1}\"", gitExtractPath,
-                                    installDetails.GitInstallPath);
+                    installDetails.GitInstallPath.EnsureParentDirectoryExists();
+                    gitExtractPath.Move(installDetails.GitInstallPath);
 
-                                installDetails.GitInstallPath.EnsureParentDirectoryExists();
-                                gitExtractPath.Move(installDetails.GitInstallPath);
+                    Logger.Trace("Deleting targetGitLfsExecPath:\"{0}\"", targetGitLfsExecPath);
+                    targetGitLfsExecPath.DeleteIfExists();
 
-                                Logger.Trace("Deleting targetGitLfsExecPath:\"{0}\"", targetGitLfsExecPath);
-                                targetGitLfsExecPath.DeleteIfExists();
+                    Logger.Trace("Deleting tempZipPath:\"{0}\"", tempZipExtractPath);
+                    tempZipExtractPath.DeleteIfExists();
+                    return installDetails.GitExecPath;
+                });
 
-                                Logger.Trace("Deleting tempZipPath:\"{0}\"", tempZipExtractPath);
-                                tempZipExtractPath.DeleteIfExists();
-                            })
-                            .Finally((b, exception) => {
-                                if (b)
-                                {
-                                    Logger.Trace("SetupGitIfNeeded: Success");
+            resultTask.Then(onFailure, TaskRunOptions.OnFailure);
+            resultTask.Then(onSuccess, TaskRunOptions.OnSuccess);
+                
+            if (downloadFilesTask != null)
+            {
+                resultTask = downloadFilesTask.Then(resultTask);
+            }
 
-                                    new FuncTask<NPath>(cancellationToken, () => installDetails.GitExecPath)
-                                        .Then(onSuccess)
-                                        .Start();
-                                }
-                                else
-                                {
-                                    Logger.Warning("SetupGitIfNeeded: Failed");
-
-                                    onFailure.Start();
-                                }
-                            });
-
-                        if (downloadFilesTask != null)
-                        {
-                            resultTask = downloadFilesTask.Then(resultTask);
-                        }
-
-                        resultTask.Start();
-                    }
-                }).Start();
+            resultTask.Start();
         }
 
         private ITask CreateDownloadTask()
