@@ -6,13 +6,13 @@ using System.Timers;
 using System.Globalization;
 using System.Threading;
 using Timer = System.Threading.Timer;
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 
 namespace GitHub.Unity
 {
     class UsageTracker : IUsageTracker
     {
-        private static ILogging Logger { get; } = Logging.GetLogger<UsageTracker>();
+        private static ILogging Logger { get; } = LogHelper.GetLogger<UsageTracker>();
         private static IMetricsService metricsService;
 
         private readonly NPath storePath;

@@ -1,4 +1,4 @@
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 using System;
 using System.Linq;
 using UnityEditorInternal;
@@ -66,7 +66,7 @@ namespace GitHub.Unity
         {
             if (instance != null)
             {
-                Logging.Instance.Error("Singleton already exists!");
+                LogHelper.Instance.Error("Singleton already exists!");
             }
             else
             {
@@ -99,7 +99,7 @@ namespace GitHub.Unity
         {
             if (instance == null)
             {
-                Logging.Instance.Error("Cannot save singleton, no instance!");
+                LogHelper.Instance.Error("Cannot save singleton, no instance!");
                 return;
             }
 
@@ -116,7 +116,7 @@ namespace GitHub.Unity
             var attr = typeof(T).GetCustomAttributes(true)
                                 .Select(t => t as LocationAttribute)
                                 .FirstOrDefault(t => t != null);
-            //Logging.Instance.Debug("FilePath {0}", attr != null ? attr.filepath : null);
+            //LogHelper.Instance.Debug("FilePath {0}", attr != null ? attr.filepath : null);
 
             return attr != null ? attr.filepath.ToNPath() : null;
         }

@@ -1,4 +1,4 @@
-﻿using GitHub.Unity.Logs;
+﻿using GitHub.Logging;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -10,7 +10,7 @@ namespace GitHub.Unity
 {
     class ProcessManager : IProcessManager
     {
-        private static readonly ILogging logger = Logging.GetLogger<ProcessManager>();
+        private static readonly ILogging logger = LogHelper.GetLogger<ProcessManager>();
 
         private readonly IEnvironment environment;
         private readonly IProcessEnvironment gitEnvironment;

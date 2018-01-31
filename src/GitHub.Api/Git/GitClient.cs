@@ -1,4 +1,4 @@
-﻿using GitHub.Unity.Logs;
+﻿using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -402,7 +402,7 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        protected static ILogging Logger { get; } = Logging.GetLogger<GitClient>();
+        protected static ILogging Logger { get; } = LogHelper.GetLogger<GitClient>();
     }
 
     public struct GitUser

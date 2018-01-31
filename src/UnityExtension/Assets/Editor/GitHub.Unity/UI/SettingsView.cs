@@ -1,4 +1,4 @@
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -326,7 +326,7 @@ namespace GitHub.Unity
 
             EditorGUI.BeginDisabledGroup(IsBusy);
             {
-                var traceLogging = Logging.TracingEnabled;
+                var traceLogging = LogHelper.TracingEnabled;
 
                 EditorGUI.BeginChangeCheck();
                 {
@@ -334,7 +334,7 @@ namespace GitHub.Unity
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
-                    Logging.TracingEnabled = traceLogging;
+                    LogHelper.TracingEnabled = traceLogging;
                     Manager.UserSettings.Set(Constants.TraceLoggingKey, traceLogging);
                 }
             }

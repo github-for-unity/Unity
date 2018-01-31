@@ -3,13 +3,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 
 namespace GitHub.Unity
 {
     abstract class ApplicationManagerBase : IApplicationManager
     {
-        protected static ILogging Logger { get; } = Logging.GetLogger<IApplicationManager>();
+        protected static ILogging Logger { get; } = LogHelper.GetLogger<IApplicationManager>();
 
         private RepositoryManager repositoryManager;
 
@@ -36,7 +36,7 @@ namespace GitHub.Unity
             LocalSettings.Initialize();
             SystemSettings.Initialize();
 
-            Logging.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
+            LogHelper.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
             GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);

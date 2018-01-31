@@ -1,4 +1,4 @@
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -398,7 +398,7 @@ namespace GitHub.Unity
         public string Name { get; set; }
         public virtual TaskAffinity Affinity { get; set; }
         private ILogging logger;
-        protected ILogging Logger { get { return logger = logger ?? Logging.GetLogger(GetType()); } }
+        protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
         public TaskBase DependsOn { get; private set; }
         public CancellationToken Token { get; }
         internal TaskBase Continuation => continuation;

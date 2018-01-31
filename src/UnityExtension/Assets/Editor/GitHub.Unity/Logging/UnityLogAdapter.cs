@@ -1,4 +1,4 @@
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 using System;
 using System.Threading;
 

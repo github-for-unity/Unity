@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Octokit;
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 
 namespace GitHub.Unity
 {
@@ -595,6 +595,6 @@ namespace GitHub.Unity
             }
         }
 
-        protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryManager>();
+        protected static ILogging Logger { get; } = LogHelper.GetLogger<RepositoryManager>();
     }
 }

@@ -1,12 +1,12 @@
 using System;
 using GitHub.Unity;
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 
 namespace IntegrationTests
 {
     class IntegrationTestEnvironment : IEnvironment
     {
-        private static readonly ILogging logger = Logging.GetLogger<IntegrationTestEnvironment>();
+        private static readonly ILogging logger = LogHelper.GetLogger<IntegrationTestEnvironment>();
         private readonly bool enableTrace;
 
         private readonly NPath integrationTestEnvironmentPath;

@@ -1,4 +1,4 @@
-﻿using GitHub.Unity.Logs;
+﻿using GitHub.Logging;
 using System;
 using System.IO;
 using System.Net;
@@ -22,7 +22,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            Logging.LogAdapter = new FileLogAdapter(tempEnv.LogPath);
+            LogHelper.LogAdapter = new FileLogAdapter(tempEnv.LogPath);
 
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
             EditorApplication.update += Initialize;
@@ -56,14 +56,14 @@ namespace GitHub.Unity
                 }
                 catch (Exception ex)
                 {
-                    Logging.Error(ex, "Error rotating log files");
+                    LogHelper.Error(ex, "Error rotating log files");
                 }
 
                 Debug.LogFormat("Initialized GitHub for Unity version {0}{1}Log file: {2}", ApplicationInfo.Version, Environment.NewLine, logPath);
             }
 
-            Logging.LogAdapter = new FileLogAdapter(logPath);
-            Logging.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
+            LogHelper.LogAdapter = new FileLogAdapter(logPath);
+            LogHelper.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
 
             ApplicationManager.Run(ApplicationCache.Instance.FirstRun);
         }

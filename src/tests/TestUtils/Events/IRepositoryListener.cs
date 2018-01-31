@@ -18,7 +18,7 @@ namespace TestUtils.Events
         public static void AttachListener(this IRepositoryListener listener,
             IRepository repository, RepositoryEvents repositoryEvents = null, bool trace = true)
         {
-            //var logger = trace ? Logging.GetLogger<IRepositoryListener>() : null;
+            //var logger = trace ? LogHelper.GetLogger<IRepositoryListener>() : null;
         }
 
         public static void AssertDidNotReceiveAnyCalls(this IRepositoryListener repositoryListener)

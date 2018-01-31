@@ -5,7 +5,7 @@ using GitHub.Unity;
 using NCrunch.Framework;
 using System.Threading;
 using NSubstitute;
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 
 namespace IntegrationTests
 {
@@ -39,7 +39,7 @@ namespace IntegrationTests
         [TestFixtureSetUp]
         public virtual void TestFixtureSetUp()
         {
-            Logger = Logging.GetLogger(GetType());
+            Logger = LogHelper.GetLogger(GetType());
             Factory = new TestUtils.SubstituteFactory();
             GitHub.Unity.Guard.InUnitTestRunner = true;
         }

@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 
-namespace GitHub.Unity.Logs
+namespace GitHub.Logging
 {
     class ConsoleLogAdapter : LogAdapterBase
     {

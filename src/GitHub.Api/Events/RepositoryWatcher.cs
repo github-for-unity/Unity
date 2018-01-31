@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using sfw.net;
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 
 namespace GitHub.Unity
 {
@@ -294,7 +294,7 @@ namespace GitHub.Unity
             Dispose(true);
         }
 
-        protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryWatcher>();
+        protected static ILogging Logger { get; } = LogHelper.GetLogger<RepositoryWatcher>();
 
         private enum EventType
         {

@@ -1,4 +1,4 @@
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +34,7 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Logging.GetLogger().Error(ex);
+                LogHelper.GetLogger().Error(ex);
                 if (handler == null)
                     throw;
                 handler(ex);
@@ -49,7 +49,7 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Logging.GetLogger().Error(ex);
+                LogHelper.GetLogger().Error(ex);
                 if (handler == null)
                     throw;
                 return handler(ex);
@@ -64,7 +64,7 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Logging.GetLogger().Error(ex);
+                LogHelper.GetLogger().Error(ex);
                 if (handler == null)
                     throw;
                 handler(ex);
@@ -79,7 +79,7 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Logging.GetLogger().Error(ex);
+                LogHelper.GetLogger().Error(ex);
                 if (handler == null)
                     throw;
                 return handler(ex);
