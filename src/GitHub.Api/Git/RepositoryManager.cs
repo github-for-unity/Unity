@@ -35,8 +35,7 @@ namespace GitHub.Unity
         ITask CreateBranch(string branch, string baseBranch);
         ITask LockFile(string file);
         ITask UnlockFile(string file, bool force);
-        ITask CheckoutFiles(List<string> files);
-        ITask DeleteFiles(List<string> list);
+        ITask DiscardChanges(List<GitStatusEntry> files);
         void UpdateGitLog();
         void UpdateGitStatus();
         void UpdateGitAheadBehindStatus();
@@ -218,15 +217,13 @@ namespace GitHub.Unity
         public ITask RemoteAdd(string remote, string url)
         {
             var task = GitClient.RemoteAdd(remote, url);
-            task = HookupHandlers(task, true, false);
-            return task;
+            return HookupHandlers(task, true, false);
         }
 
         public ITask RemoteRemove(string remote)
         {
             var task = GitClient.RemoteRemove(remote);
-            task = HookupHandlers(task, true, false);
-            return task;
+            return HookupHandlers(task, true, false);
         }
 
         public ITask RemoteChange(string remote, string url)
@@ -267,50 +264,86 @@ namespace GitHub.Unity
 
         public void UpdateGitLog()
         {
-            var task = GitClient.Log();
-            task = HookupHandlers(task, false, false);
-            task.Then((success, logEntries) =>
-            {
-                if (success)
+            var task = GitClient
+                .Log()
+                .Then((success, logEntries) =>
                 {
-                    GitLogUpdated?.Invoke(logEntries);
-                }
-            }).Start();
+                    if (success)
+                    {
+                        GitLogUpdated?.Invoke(logEntries);
+                    }
+                });
+            task = HookupHandlers(task, false, false);
+            task.Start();
         }
 
         public void UpdateGitStatus()
         {
-            var task = GitClient.Status();
+            var task = GitClient
+                .Status()
+                .Then((success, status) =>
+                {
+                    if (success)
+                    {
+                        GitStatusUpdated?.Invoke(status);
+                    }
+                });
             task = HookupHandlers(task, true, false);
-            task.Then((success, status) =>
+            task.Start();
+        }
+
+        public ITask DiscardChanges(List<GitStatusEntry> files)
+        {
+            var itemsToDelete = files
+                .Where(entry => entry.status == GitFileStatus.Added
+                    || entry.status == GitFileStatus.Untracked)
+                .Select(entry => entry.path)
+                .ToArray();
+
+            ActionTask deleteItemsTask = null;
+            if (itemsToDelete.Any())
             {
-                if (success)
-                {
-                    GitStatusUpdated?.Invoke(status);
-                }
-            }).Start();
-        }
+                deleteItemsTask = new ActionTask(CancellationToken.None, () => {
+                    for (var index = 0; index < itemsToDelete.Length; index++)
+                    {
+                        var itemToDelete = itemsToDelete[index];
+                        fileSystem.FileDelete(itemToDelete);
+                    }
+                });
+            }
 
-        public ITask CheckoutFiles(List<string> files)
-        {
-            var discard = GitClient.Discard(files);
-            discard.OnStart += t => IsBusy = true;
+            var itemsToRevert = files
+                .Where(entry => entry.status == GitFileStatus.Modified
+                    || entry.status == GitFileStatus.Deleted
+                    || entry.status == GitFileStatus.Renamed)
+                .Select(entry => entry.path)
+                .ToArray();
 
-            return discard.Finally(() => IsBusy = false);
-        }
+            ITask<string> gitDiscardTask = null;
+            if (itemsToRevert.Any())
+            {
+                gitDiscardTask = GitClient.Discard(itemsToRevert);
+            }
 
-        public ITask DeleteFiles(List<string> list)
-        {
-            var delete = new ActionTask(CancellationToken.None, () => {
-                for (var index = 0; index < list.Count; index++)
-                {
-                    fileSystem.FileDelete(list[index]);
-                }
-            });
+            ITask task;
+            if(deleteItemsTask != null && gitDiscardTask != null)
+            {
+                task = deleteItemsTask.Then(gitDiscardTask);
+            }
+            else if (deleteItemsTask != null)
+            {
+                task = deleteItemsTask;
+            }
+            else if (gitDiscardTask != null)
+            {
+                task = gitDiscardTask;
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
 
-            delete.OnStart += t => IsBusy = true;
-
-            return delete.Finally(() => IsBusy = false);
+            return HookupHandlers(task, true, true);
         }
 
         public void UpdateGitAheadBehindStatus()
@@ -324,15 +357,17 @@ namespace GitHub.Unity
                 var name = configBranch.Value.Name;
                 var trackingName = configBranch.Value.IsTracking ? configBranch.Value.Remote.Value.Name + "/" + name : "[None]";
 
-                var task = GitClient.AheadBehindStatus(name, trackingName);
-                task = HookupHandlers(task, true, false);
-                task.Then((success, status) =>
-                {
-                    if (success)
+                var task = GitClient
+                    .AheadBehindStatus(name, trackingName)
+                    .Then((success, status) =>
                     {
-                        GitAheadBehindStatusUpdated?.Invoke(status);
-                    }
-                }).Start();
+                        if (success)
+                        {
+                            GitAheadBehindStatusUpdated?.Invoke(status);
+                        }
+                    });
+                task = HookupHandlers(task, true, false);
+                task.Start();
             }
             else
             {
@@ -353,9 +388,9 @@ namespace GitHub.Unity
             }).Start();
         }
 
-        private ITask<T> HookupHandlers<T>(ITask<T> task, bool isExclusive, bool filesystemChangesExpected)
+        private ITask HookupHandlers(ITask task, bool isExclusive, bool filesystemChangesExpected)
         {
-            return new ActionTask(TaskManager.Instance.Token, () => {
+            return new ActionTask(CancellationToken.None, () => {
                     if (isExclusive)
                     {
                         Logger.Trace("Starting Operation - Setting Busy Flag");
@@ -369,7 +404,7 @@ namespace GitHub.Unity
                     }
                 })
                 .Then(task)
-                .Finally((success, exception, result) => {
+                .Finally((success, exception) => {
                     if (filesystemChangesExpected)
                     {
                         Logger.Trace("Ended Operation - Enable Watcher");
@@ -382,12 +417,10 @@ namespace GitHub.Unity
                         IsBusy = false;
                     }
 
-                    if (success)
+                    if (!success)
                     {
-                        return result;
+                        throw exception;
                     }
-
-                    throw exception;
                 });
         }
 

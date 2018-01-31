@@ -112,14 +112,9 @@ namespace GitHub.Unity
             return repositoryManager.UnlockFile(file, force);
         }
 
-        public ITask DiscardChanges(List<string> files)
+        public ITask DiscardChanges(List<GitStatusEntry> files)
         {
-            return repositoryManager.CheckoutFiles(files);
-        }
-
-        public ITask DeleteFiles(List<string> list)
-        {
-            return repositoryManager.DeleteFiles(list);
+            return repositoryManager.DiscardChanges(files);
         }
 
         public void CheckLogChangedEvent(CacheUpdateEvent cacheUpdateEvent)

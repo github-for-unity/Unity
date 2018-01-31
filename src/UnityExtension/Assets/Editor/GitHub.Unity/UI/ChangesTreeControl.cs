@@ -17,16 +17,16 @@ namespace GitHub.Unity
         public GitFileStatus gitFileStatus;
         public bool isLocked;
 
+        public GitStatusEntry GitStatusEntry { get; set; }
+
         public string ProjectPath
         {
-            get { return projectPath; }
-            set { projectPath = value; }
+            get { return GitStatusEntry.projectPath; }
         }
 
         public GitFileStatus GitFileStatus
         {
-            get { return gitFileStatus; }
-            set { gitFileStatus = value; }
+            get { return GitStatusEntry.status; }
         }
 
         public bool IsLocked
@@ -191,15 +191,13 @@ namespace GitHub.Unity
 
         protected override ChangesTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, GitStatusEntryTreeData? treeData)
         {
-            var gitFileStatus = GitFileStatus.None;
-            var projectPath = (string) null;
+            var gitStatusEntry = GitStatusEntry.Default;
             var isLocked = false;
 
             if (treeData.HasValue)
             {
                 isLocked = treeData.Value.IsLocked;
-                gitFileStatus = treeData.Value.FileStatus;
-                projectPath = treeData.Value.ProjectPath;
+                gitStatusEntry = treeData.Value.GitStatusEntry;
             }
 
             var node = new ChangesTreeNode
@@ -213,8 +211,7 @@ namespace GitHub.Unity
                 IsCollapsed = isCollapsed,
                 TreeIsCheckable = IsCheckable,
                 CheckState = isChecked ? CheckState.Checked : CheckState.Empty,
-                GitFileStatus = gitFileStatus,
-                ProjectPath = projectPath,
+                GitStatusEntry = gitStatusEntry,
                 IsLocked = isLocked,
             };
 

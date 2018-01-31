@@ -18,8 +18,7 @@ namespace GitHub.Unity
         ITask Revert(string changeset);
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
-        ITask DiscardChanges(List<string> files);
-        ITask DeleteFiles(List<string> list);
+        ITask DiscardChanges(List<GitStatusEntry> files);
 
         void CheckLogChangedEvent(CacheUpdateEvent gitLogCacheUpdateEvent);
         void CheckStatusChangedEvent(CacheUpdateEvent cacheUpdateEvent);
