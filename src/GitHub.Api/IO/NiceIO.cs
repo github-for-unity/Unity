@@ -457,6 +457,28 @@ GitHub.Unity
             return this.ToString().CompareTo(((NPath)obj).ToString());
         }
 
+        public static bool operator <(NPath lhs, NPath rhs)
+        {
+            return (Compare(lhs, rhs) < 0);
+        }
+        public static bool operator >(NPath lhs, NPath rhs)
+        {
+            return (Compare(lhs, rhs) > 0);
+        }
+
+        public static int Compare(NPath lhs, NPath rhs)
+        {
+            if (object.ReferenceEquals(lhs, rhs))
+            {
+                return 0;
+            }
+            if (object.ReferenceEquals(lhs, null))
+            {
+                return -1;
+            }
+            return lhs.CompareTo(rhs);
+        }
+
         public static bool operator !=(NPath a, NPath b)
         {
             return !(a == b);

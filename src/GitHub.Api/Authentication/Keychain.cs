@@ -10,6 +10,48 @@ namespace GitHub.Unity
     {
         public UriString Host;
         public string Username;
+
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + (Host?.GetHashCode() ?? 0);
+            hash = hash * 23 + (Username?.GetHashCode() ?? 0);
+            return hash;
+        }
+
+        public override bool Equals(object other)
+        {
+            if (other is Connection)
+                return Equals((Connection)other);
+            return false;
+        }
+
+        public bool Equals(Connection other)
+        {
+            return
+                object.Equals(Host, other.Host) &&
+                String.Equals(Username, other.Username)
+                ;
+        }
+
+        public static bool operator ==(Connection lhs, Connection rhs)
+        {
+            // If both are null, or both are same instance, return true.
+            if (ReferenceEquals(lhs, rhs))
+                return true;
+
+            // If one is null, but not both, return false.
+            if (((object)lhs == null) || ((object)rhs == null))
+                return false;
+
+            // Return true if the fields match:
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(Connection lhs, Connection rhs)
+        {
+            return !(lhs == rhs);
+        }
     }
 
     class ConnectionCacheItem
