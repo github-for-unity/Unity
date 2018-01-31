@@ -6,7 +6,7 @@ using UnityEngine;
 namespace GitHub.Unity
 {
     [AttributeUsage(AttributeTargets.Class)]
-    class LocationAttribute : Attribute
+    sealed class LocationAttribute : Attribute
     {
         public enum Location { PreferencesFolder, ProjectFolder, LibraryFolder, UserFolder }
         public string filepath { get; set; }
@@ -37,7 +37,7 @@ namespace GitHub.Unity
             {
                 if (nFilePath == null)
                 {
-                    if (filePath == "")
+                    if (string.IsNullOrEmpty(filePath))
                         return null;
                     if (filePath == null)
                         filePath = GetFilePath();
@@ -102,11 +102,11 @@ namespace GitHub.Unity
                 return;
             }
 
-            NPath filePath = GetFilePath();
-            if (filePath != null)
+            NPath locationFilePath = GetFilePath();
+            if (locationFilePath != null)
             {
-                filePath.Parent.EnsureDirectoryExists();
-                InternalEditorUtility.SaveToSerializedFileAndForget(new[] { instance }, filePath, saveAsText);
+                locationFilePath.Parent.EnsureDirectoryExists();
+                InternalEditorUtility.SaveToSerializedFileAndForget(new[] { instance }, locationFilePath, saveAsText);
             }
         }
 

@@ -156,5 +156,45 @@ namespace GitHub.Unity
         public string Chunk;
         public int Start;
         public int End;
+
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + (Chunk?.GetHashCode() ?? 0);
+            hash = hash * 23 + Start.GetHashCode();
+            hash = hash * 23 + End.GetHashCode();
+            return hash;
+        }
+
+        public override bool Equals(object other)
+        {
+            if (other is StringResult)
+                return Equals((StringResult)other);
+            return false;
+        }
+
+        public bool Equals(StringResult other)
+        {
+            return String.Equals(Chunk, other.Chunk) && Start == other.Start && End == other.End;
+        }
+
+        public static bool operator ==(StringResult lhs, StringResult rhs)
+        {
+            // If both are null, or both are same instance, return true.
+            if (ReferenceEquals(lhs, rhs))
+                return true;
+
+            // If one is null, but not both, return false.
+            if (((object)lhs == null) || ((object)rhs == null))
+                return false;
+
+            // Return true if the fields match:
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(StringResult lhs, StringResult rhs)
+        {
+            return !(lhs == rhs);
+        }
     }
 }

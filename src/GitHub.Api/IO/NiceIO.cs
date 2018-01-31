@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -222,7 +223,7 @@ GitHub.Unity
 
             var newElements = (string[])_elements.Clone();
             newElements[newElements.Length - 1] = FileSystem.ChangeExtension(_elements[_elements.Length - 1], WithDot(extension));
-            if (extension == string.Empty)
+            if (string.IsNullOrEmpty(extension))
                 newElements[newElements.Length - 1] = newElements[newElements.Length - 1].TrimEnd('.');
             return new NPath(newElements, _isRelative, _driveLetter);
         }
@@ -456,6 +457,28 @@ GitHub.Unity
             return this.ToString().CompareTo(((NPath)obj).ToString());
         }
 
+        public static bool operator <(NPath lhs, NPath rhs)
+        {
+            return (Compare(lhs, rhs) < 0);
+        }
+        public static bool operator >(NPath lhs, NPath rhs)
+        {
+            return (Compare(lhs, rhs) > 0);
+        }
+
+        public static int Compare(NPath lhs, NPath rhs)
+        {
+            if (object.ReferenceEquals(lhs, rhs))
+            {
+                return 0;
+            }
+            if (object.ReferenceEquals(lhs, null))
+            {
+                return -1;
+            }
+            return lhs.CompareTo(rhs);
+        }
+
         public static bool operator !=(NPath a, NPath b)
         {
             return !(a == b);
@@ -463,8 +486,8 @@ GitHub.Unity
 
         public bool HasExtension(params string[] extensions)
         {
-            var extensionWithDotLower = ExtensionWithDot.ToLower();
-            return extensions.Any(e => WithDot(e).ToLower() == extensionWithDotLower);
+            var extensionWithDotLower = ExtensionWithDot.ToUpperInvariant();
+            return extensions.Any(e => WithDot(e).ToUpperInvariant() == extensionWithDotLower);
         }
 
         private static string WithDot(string extension)

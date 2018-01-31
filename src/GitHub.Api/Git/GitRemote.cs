@@ -68,6 +68,57 @@ namespace GitHub.Unity
             this.function = GitRemoteFunction.Unknown;
         }
 
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + (name?.GetHashCode() ?? 0);
+            hash = hash * 23 + (url?.GetHashCode() ?? 0);
+            hash = hash * 23 + (login?.GetHashCode() ?? 0);
+            hash = hash * 23 + (user?.GetHashCode() ?? 0);
+            hash = hash * 23 + (host?.GetHashCode() ?? 0);
+            hash = hash * 23 + function.GetHashCode();
+            hash = hash * 23 + (token?.GetHashCode() ?? 0);
+            return hash;
+        }
+
+        public override bool Equals(object other)
+        {
+            if (other is GitRemote)
+                return Equals((GitRemote)other);
+            return false;
+        }
+
+        public bool Equals(GitRemote other)
+        {
+            return
+                String.Equals(name, other.name) &&
+                String.Equals(url, other.url) &&
+                String.Equals(login, other.login) &&
+                String.Equals(user, other.user) &&
+                String.Equals(host, other.host) &&
+                function == other.function &&
+                String.Equals(token, other.token)
+                ;
+        }
+
+        public static bool operator ==(GitRemote lhs, GitRemote rhs)
+        {
+            // If both are null, or both are same instance, return true.
+            if (ReferenceEquals(lhs, rhs))
+                return true;
+
+            // If one is null, but not both, return false.
+            if (((object)lhs == null) || ((object)rhs == null))
+                return false;
+
+            // Return true if the fields match:
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(GitRemote lhs, GitRemote rhs)
+        {
+            return !(lhs == rhs);
+        }
         public override string ToString()
         {
             var sb = new StringBuilder();

@@ -2,14 +2,19 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace GitHub.Unity
 {
+    [Serializable]
     internal class InstanceNotInitializedException : InvalidOperationException
     {
         public InstanceNotInitializedException(object the, string property) :
             base(String.Format(CultureInfo.InvariantCulture, "{0} is not correctly initialized, {1} is null", the?.GetType().Name, property))
         {}
+
+        protected InstanceNotInitializedException(SerializationInfo info, StreamingContext context) : base(info, context)
+        { }
     }
 
     internal static class Guard

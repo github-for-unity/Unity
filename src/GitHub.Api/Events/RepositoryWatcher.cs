@@ -149,7 +149,7 @@ namespace GitHub.Unity
 
         private int ProcessEvents(Event[] fileEvents)
         {
-            Dictionary<EventType, List<EventData>> events = new Dictionary<EventType, List<EventData>>();
+            var events = new HashSet<EventType>();
             foreach (var fileEvent in fileEvents)
             {
                 if (!running)
@@ -177,90 +177,90 @@ namespace GitHub.Unity
                 // handling events in .git/*
                 if (fileA.IsChildOf(paths.DotGitPath))
                 {
-                    if (!events.ContainsKey(EventType.ConfigChanged) && fileA.Equals(paths.DotGitConfig))
+                    if (!events.Contains(EventType.ConfigChanged) && fileA.Equals(paths.DotGitConfig))
                     {
-                        events.Add(EventType.ConfigChanged, null);
+                        events.Add(EventType.ConfigChanged);
                     }
-                    else if (!events.ContainsKey(EventType.HeadChanged) && fileA.Equals(paths.DotGitHead))
+                    else if (!events.Contains(EventType.HeadChanged) && fileA.Equals(paths.DotGitHead))
                     {
-                        events.Add(EventType.HeadChanged, null);
+                        events.Add(EventType.HeadChanged);
                     }
-                    else if (!events.ContainsKey(EventType.IndexChanged) && fileA.Equals(paths.DotGitIndex))
+                    else if (!events.Contains(EventType.IndexChanged) && fileA.Equals(paths.DotGitIndex))
                     {
-                        events.Add(EventType.IndexChanged, null);
+                        events.Add(EventType.IndexChanged);
                     }
-                    else if (!events.ContainsKey(EventType.RemoteBranchesChanged) && fileA.IsChildOf(paths.RemotesPath))
+                    else if (!events.Contains(EventType.RemoteBranchesChanged) && fileA.IsChildOf(paths.RemotesPath))
                     {
-                        events.Add(EventType.RemoteBranchesChanged, null);
+                        events.Add(EventType.RemoteBranchesChanged);
                     }
-                    else if (!events.ContainsKey(EventType.LocalBranchesChanged) && fileA.IsChildOf(paths.BranchesPath))
+                    else if (!events.Contains(EventType.LocalBranchesChanged) && fileA.IsChildOf(paths.BranchesPath))
                     {
-                        events.Add(EventType.LocalBranchesChanged, null);
+                        events.Add(EventType.LocalBranchesChanged);
                     }
-                    else if (!events.ContainsKey(EventType.RepositoryCommitted) && fileA.IsChildOf(paths.DotGitCommitEditMsg))
+                    else if (!events.Contains(EventType.RepositoryCommitted) && fileA.IsChildOf(paths.DotGitCommitEditMsg))
                     {
-                        events.Add(EventType.RepositoryCommitted, null);
+                        events.Add(EventType.RepositoryCommitted);
                     }
                 }
                 else
                 {
-                    if (events.ContainsKey(EventType.RepositoryChanged) || ignoredPaths.Any(ignoredPath => fileA.IsChildOf(ignoredPath)))
+                    if (events.Contains(EventType.RepositoryChanged) || ignoredPaths.Any(ignoredPath => fileA.IsChildOf(ignoredPath)))
                     {
                         continue;
                     }
-                    events.Add(EventType.RepositoryChanged, null);
+                    events.Add(EventType.RepositoryChanged);
                 }
             }
 
             return FireEvents(events);
         }
 
-        private int FireEvents(Dictionary<EventType, List<EventData>> events)
+        private int FireEvents(HashSet<EventType> events)
         {
             int eventsProcessed = 0;
-            if (events.ContainsKey(EventType.ConfigChanged))
+            if (events.Contains(EventType.ConfigChanged))
             {
                 Logger.Trace("ConfigChanged");
                 ConfigChanged?.Invoke();
                 eventsProcessed++;
             }
 
-            if (events.ContainsKey(EventType.HeadChanged))
+            if (events.Contains(EventType.HeadChanged))
             {
                 Logger.Trace("HeadChanged");
                 HeadChanged?.Invoke();
                 eventsProcessed++;
             }
 
-            if (events.ContainsKey(EventType.LocalBranchesChanged))
+            if (events.Contains(EventType.LocalBranchesChanged))
             {
                 Logger.Trace("LocalBranchesChanged");
                 LocalBranchesChanged?.Invoke();
                 eventsProcessed++;
             }
 
-            if (events.ContainsKey(EventType.RemoteBranchesChanged))
+            if (events.Contains(EventType.RemoteBranchesChanged))
             {
                 Logger.Trace("RemoteBranchesChanged");
                 RemoteBranchesChanged?.Invoke();
                 eventsProcessed++;
             }
 
-            if (events.ContainsKey(EventType.IndexChanged))
+            if (events.Contains(EventType.IndexChanged))
             {
                 Logger.Trace("IndexChanged");
                 IndexChanged?.Invoke();
                 eventsProcessed++;
             }
 
-            if (events.ContainsKey(EventType.RepositoryChanged))
+            if (events.Contains(EventType.RepositoryChanged))
             {
                 Logger.Trace("RepositoryChanged");
                 RepositoryChanged?.Invoke();
                 eventsProcessed++;
             }
 
-            if (events.ContainsKey(EventType.RepositoryCommitted))
+            if (events.Contains(EventType.RepositoryCommitted))
             {
                 Logger.Trace("RepositoryCommitted");
                 RepositoryCommitted?.Invoke();
@@ -305,12 +305,6 @@ namespace GitHub.Unity
             RemoteBranchesChanged,
             RepositoryChanged,
             RepositoryCommitted
-        }
-
-        private class EventData
-        {
-            public string Origin;
-            public string Branch;
         }
     }
 }

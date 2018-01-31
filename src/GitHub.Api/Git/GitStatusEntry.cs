@@ -29,6 +29,56 @@ namespace GitHub.Unity
             this.staged = staged;
         }
 
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + (path?.GetHashCode() ?? 0);
+            hash = hash * 23 + (fullPath?.GetHashCode() ?? 0);
+            hash = hash * 23 + (projectPath?.GetHashCode() ?? 0);
+            hash = hash * 23 + (originalPath?.GetHashCode() ?? 0);
+            hash = hash * 23 + status.GetHashCode();
+            hash = hash * 23 + staged.GetHashCode();
+            return hash;
+        }
+
+        public override bool Equals(object other)
+        {
+            if (other is GitStatusEntry)
+                return Equals((GitStatusEntry)other);
+            return false;
+        }
+
+        public bool Equals(GitStatusEntry other)
+        {
+            return
+                String.Equals(path, other.path) && 
+                String.Equals(fullPath, other.fullPath) &&
+                String.Equals(projectPath, other.projectPath) &&
+                String.Equals(originalPath, other.originalPath) &&
+                status == other.status &&
+                staged == other.staged
+                ;
+        }
+
+        public static bool operator ==(GitStatusEntry lhs, GitStatusEntry rhs)
+        {
+            // If both are null, or both are same instance, return true.
+            if (ReferenceEquals(lhs, rhs))
+                return true;
+
+            // If one is null, but not both, return false.
+            if (((object)lhs == null) || ((object)rhs == null))
+                return false;
+
+            // Return true if the fields match:
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(GitStatusEntry lhs, GitStatusEntry rhs)
+        {
+            return !(lhs == rhs);
+        }
+
         public string Path => path;
 
         public string FullPath => fullPath;

@@ -86,12 +86,12 @@ namespace GitHub.Unity
         {
             if (disposing)
             {
-                base.Dispose(disposing);
                 if (!disposed)
                 {
                     disposed = true;
                 }
             }
+            base.Dispose(disposing);
         }
 
         public override IProcessEnvironment GitEnvironment { get { return Platform.GitEnvironment; } }
