@@ -24,6 +24,8 @@ namespace TestWebServer
         private readonly HttpListener listener;
         private readonly string rootDirectory;
         private bool abort;
+        private static ILogging Logger = Logging.GetLogger<HttpServer>();
+        private ManualResetEvent delay = new ManualResetEvent(false);
 
         /// <summary>
         ///     Construct server with given port.
@@ -65,30 +67,34 @@ namespace TestWebServer
         {
             try
             {
+                Logger.Info($"Starting http server on port {Port}");
                 listener.Start();
                 while (true)
                 {
                     try
                     {
                         abort = false;
+                        Logger.Info($"Waiting for a request...");
                         var context = listener.GetContext();
                         Process(context);
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        Logger.Error(ex);
                         break;
                     }
                 }
             }
             catch (Exception ex)
             {
-                Logging.GetLogger(GetType()).Error(ex);
+                Logger.Error(ex);
             }
         }
 
         public void Abort()
         {
             abort = true;
+            delay.Set();
         }
 
         private void Process(HttpListenerContext context)
@@ -100,6 +106,7 @@ namespace TestWebServer
             if (!File.Exists(filename))
             {
                 context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                context.Response.Close();
                 return;
             }
 
@@ -154,12 +161,16 @@ namespace TestWebServer
                     {
                         context.Response.ContentLength64 = length;
 
-                        var delay = new ManualResetEvent(false);
+                        Logger.Info($"Writing {length} bytes");
+
+                        delay.Reset();
                         Utils.Copy(input, context.Response.OutputStream, length,
-                            progress: (_, __) =>
+                            progress: (total, __) =>
                             {
                                 if (Delay > 0)
                                     delay.WaitOne(Delay);
+                                if (abort)
+                                    Logger.Info($"aborting after {total} bytes");
                                 return !abort;
                             },
                             progressUpdateRate: 0
@@ -168,9 +179,18 @@ namespace TestWebServer
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Logging.GetLogger<HttpServer>().Error(ex);
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            }
+            finally
+            {
+                try
+                {
+                    context.Response.Close();
+                }
+                catch { }
             }
         }
 

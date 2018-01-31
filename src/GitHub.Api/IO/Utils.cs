@@ -14,6 +14,7 @@ namespace GitHub.Unity
             Func<long, long, bool> progress = null,
             int progressUpdateRate = 100)
         {
+            var logger = Logging.GetLogger("Copy");
             byte[] buffer = new byte[chunkSize];
             int bytesRead = 0;
             long totalRead = 0;
@@ -61,7 +62,7 @@ namespace GitHub.Unity
                             timeToFinish = Math.Max(1L,
                                 (long)((totalSize - totalRead) / (averageSpeed / progressUpdateRate)));
 
-                            Logging.Debug($"totalRead: {totalRead} of {totalSize}");
+                            logger.Trace($"totalRead: {totalRead} of {totalSize}");
                             success = progress(totalRead, timeToFinish);
                             if (!success)
                                 break;

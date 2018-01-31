@@ -6,12 +6,16 @@ using FluentAssertions;
 using GitHub.Unity;
 using NUnit.Framework;
 using System.Diagnostics;
+using GitHub.Unity.Logs;
+using System.Runtime.CompilerServices;
 
 namespace IntegrationTests.Download
 {
     [TestFixture]
     class DownloadTaskTests : BaseTaskManagerTest
     {
+        const int Timeout = 30000;
+
         public override void OnSetup()
         {
             base.OnSetup();
@@ -34,10 +38,33 @@ namespace IntegrationTests.Download
             ApplicationConfiguration.WebTimeout = ApplicationConfiguration.DefaultWebTimeout;
         }
 
+        private void StartTest(out Stopwatch watch, out ILogging logger, [CallerMemberName] string testName = "test")
+        {
+            watch = new Stopwatch();
+            logger = Logging.GetLogger(testName);
+            logger.Trace("Starting test");
+        }
+
+        private void StartTrackTime(Stopwatch watch, ILogging logger = null, string message = "")
+        {
+            if (!String.IsNullOrEmpty(message))
+                logger.Trace(message);
+            watch.Reset();
+            watch.Start();
+        }
+
+        private void StopTrackTimeAndLog(Stopwatch watch, ILogging logger)
+        {
+            watch.Stop();
+            logger.Trace($"Time: {watch.ElapsedMilliseconds}");
+        }
+
         [Test]
         public void TestDownloadTask()
         {
-            Logger.Info("Starting Test: TestDownloadTask");
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
 
             var fileSystem = Environment.FileSystem;
 
@@ -47,6 +74,8 @@ namespace IntegrationTests.Download
             var evtDone = new ManualResetEventSlim(false);
 
             string md5 = null;
+
+            StartTrackTime(watch, logger, gitLfsMd5);
             new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath)
                 .Finally(r => {
                     md5 = r;
@@ -54,11 +83,14 @@ namespace IntegrationTests.Download
                 })
                 .Start();
 
-            evtDone.Wait(10000);
+            evtDone.Wait(Timeout).Should().BeTrue("Finally raised the signal");
+            StopTrackTimeAndLog(watch, logger);
+
             evtDone.Reset();
             Assert.NotNull(md5);
 
             string downloadPath = null;
+            StartTrackTime(watch, logger, gitLfs);
             new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
                 .Finally(r => {
                     downloadPath = r;
@@ -66,7 +98,9 @@ namespace IntegrationTests.Download
                 })
                 .Start();
 
-            evtDone.Wait(10000);
+            evtDone.Wait(Timeout).Should().BeTrue("Finally raised the signal");;
+            StopTrackTimeAndLog(watch, logger);
+
             evtDone.Reset();
 
             Assert.NotNull(downloadPath);
@@ -81,6 +115,7 @@ namespace IntegrationTests.Download
             fileSystem.FileDelete(downloadPath);
             fileSystem.WriteAllBytes(downloadPath, cutDownloadPathBytes);
 
+            StartTrackTime(watch, logger, "resuming download");
             new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
                 .Finally(r => {
                     downloadPath = r;
@@ -88,7 +123,9 @@ namespace IntegrationTests.Download
                 })
                 .Start();
 
-            evtDone.Wait(10000);
+            evtDone.Wait(Timeout).Should().BeTrue("Finally raised the signal");;
+            StopTrackTimeAndLog(watch, logger);
+
             evtDone.Reset();
 
             var downloadHalfPathBytes = fileSystem.ReadAllBytes(downloadPath);
@@ -101,7 +138,9 @@ namespace IntegrationTests.Download
         [Test]
         public void TestDownloadFailure()
         {
-            Logger.Info("Starting Test: TestDownloadFailure");
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
 
             var fileSystem = Environment.FileSystem;
 
@@ -110,17 +149,21 @@ namespace IntegrationTests.Download
 
             var autoResetEvent = new AutoResetEvent(false);
 
-            var downloadTask = new DownloadTask(TaskManager.Token, fileSystem,
-                $"http://localhost:{server.Port}/nope", TestBasePath)
+            var downloadTask = new DownloadTask(TaskManager.Token, fileSystem, $"http://localhost:{server.Port}/nope", TestBasePath);
+
+            StartTrackTime(watch);
+            downloadTask
                 .Finally((b, exception) => {
                     taskFailed = !b;
                     exceptionThrown = exception;
                     autoResetEvent.Set();
-                });
+                })
+                .Start();
 
-            downloadTask.Start();
+            var ret = autoResetEvent.WaitOne(Timeout);
+            StopTrackTimeAndLog(watch, logger);
 
-            autoResetEvent.WaitOne(10000);
+            ret.Should().BeTrue("Finally raised the signal");
 
             taskFailed.Should().BeTrue();
             exceptionThrown.Should().NotBeNull();
@@ -129,7 +172,9 @@ namespace IntegrationTests.Download
         [Test]
         public void TestDownloadTextTask()
         {
-            Logger.Info("Starting Test: TestDownloadTextTask");
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
 
             var fileSystem = Environment.FileSystem;
 
@@ -139,6 +184,8 @@ namespace IntegrationTests.Download
 
             var autoResetEvent = new AutoResetEvent(false);
             string result = null;
+
+            StartTrackTime(watch);
             downloadTask
                 .Finally(r => {
                     result = r;
@@ -146,14 +193,18 @@ namespace IntegrationTests.Download
                 })
                 .Start();
 
-            autoResetEvent.WaitOne(10000);
+            autoResetEvent.WaitOne(Timeout).Should().BeTrue("Finally raised the signal");;
+            StopTrackTimeAndLog(watch, logger);
+
             result.Should().Be("105DF1302560C5F6AA64D1930284C126");
         }
 
         [Test]
         public void TestDownloadTextFailure()
         {
-            Logger.Info("Starting Test: TestDownloadTextFailure");
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
 
             var fileSystem = Environment.FileSystem;
 
@@ -161,6 +212,8 @@ namespace IntegrationTests.Download
             var exceptionThrown = false;
 
             var autoResetEvent = new AutoResetEvent(false);
+
+            StartTrackTime(watch);
             downloadTask
             .Finally((b, exception) => {
                 exceptionThrown = exception != null;
@@ -168,14 +221,18 @@ namespace IntegrationTests.Download
             })
             .Start();
 
-            autoResetEvent.WaitOne(10000);
+            autoResetEvent.WaitOne(Timeout).Should().BeTrue("Finally raised the signal");;
+            StopTrackTimeAndLog(watch, logger);
+
             exceptionThrown.Should().BeTrue();
         }
         
         [Test]
         public void TestDownloadFileAndHash()
         {
-            Logger.Info("Starting Test: TestDownloadFileAndHash");
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
 
             var fileSystem = Environment.FileSystem;
 
@@ -190,6 +247,7 @@ namespace IntegrationTests.Download
 
             var autoResetEvent = new AutoResetEvent(false);
 
+            StartTrackTime(watch);
             downloadGitLfsMd5Task
                 .Then((b, s) =>
                 {
@@ -203,7 +261,8 @@ namespace IntegrationTests.Download
                 })
                 .Start();
 
-            autoResetEvent.WaitOne(10000);
+            autoResetEvent.WaitOne(Timeout).Should().BeTrue("Finally raised the signal");;
+            StopTrackTimeAndLog(watch, logger);
 
             result.Should().BeTrue();
             exception.Should().BeNull();
@@ -212,7 +271,9 @@ namespace IntegrationTests.Download
         [Test]
         public void TestDownloadShutdownTimeWhenInterrupted()
         {
-            Logger.Info("Starting Test: TestDownloadShutdownTimeWhenInterrupted");
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
 
             server.Delay = 100;
 
@@ -222,9 +283,9 @@ namespace IntegrationTests.Download
             var evtFinally = new AutoResetEvent(false);
             Exception exception = null;
 
-            var watch = new Stopwatch();
-
             var gitLfs = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
+
+            StartTrackTime(watch, logger, gitLfs);
             var downloadGitTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
 
                 // An exception is thrown when we stop the task manager
@@ -243,19 +304,20 @@ namespace IntegrationTests.Download
 
             downloadGitTask.Start();
 
-            evtStop.WaitOne(10000);
+            evtStop.WaitOne(Timeout).Should().BeTrue("Progress raised the signal");
+            StopTrackTimeAndLog(watch, logger);
 
-            watch.Start();
+
+            StartTrackTime(watch, logger, "TaskManager.Dispose()");
             TaskManager.Dispose();
-            evtFinally.WaitOne(10000);
-            watch.Stop();
+            evtFinally.WaitOne(Timeout).Should().BeTrue("Catch raised the signal");
+            StopTrackTimeAndLog(watch, logger);
 
             server.Delay = 0;
             server.Abort();
 
             exception.Should().NotBeNull();
             watch.ElapsedMilliseconds.Should().BeLessThan(250);
-
         }
     }
 }
