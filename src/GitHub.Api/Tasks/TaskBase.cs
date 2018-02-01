@@ -127,36 +127,37 @@ namespace GitHub.Unity
             where T : ITask
         {
             Guard.ArgumentNotNull(nextTask, nameof(nextTask));
-            var taskBase = ((TaskBase)(object)nextTask);
+            var nextTaskBase = ((TaskBase)(object)nextTask);
 
-            // find the first task of the continuation chain being appended to this task
-            var firstTaskBase = taskBase.GetTopMostTask() ?? taskBase;
-            // set this task as a dependency of the first task of the continuation chain
-            firstTaskBase.SetDependsOn(this);
+            // find the task at the top of the chain
+            nextTaskBase = nextTaskBase.GetTopMostTask() ?? nextTaskBase;
+            // make the next task dependent on this one so it can get values from us
+            nextTaskBase.SetDependsOn(this);
 
             if (runOptions == TaskRunOptions.OnSuccess)
             {
-                this.continuationOnSuccess = firstTaskBase;
+                this.continuationOnSuccess = nextTaskBase;
+
                 // if there are fault handlers in the chain we're appending, propagate them
                 // up this chain as well
-                if (firstTaskBase.continuationOnFailure != null)
-                    SetFaultHandler(firstTaskBase.continuationOnFailure);
-                else if (firstTaskBase.continuationOnAlways != null)
-                    SetFaultHandler(firstTaskBase.continuationOnAlways);
-                if (firstTaskBase.catchHandler != null)
-                    Catch(firstTaskBase.catchHandler);
-                if (firstTaskBase.finallyHandler != null)
-                    Finally(firstTaskBase.finallyHandler);
+                if (nextTaskBase.continuationOnFailure != null)
+                    SetFaultHandler(nextTaskBase.continuationOnFailure);
+                else if (nextTaskBase.continuationOnAlways != null)
+                    SetFaultHandler(nextTaskBase.continuationOnAlways);
+                if (nextTaskBase.catchHandler != null)
+                    Catch(nextTaskBase.catchHandler);
+                if (nextTaskBase.finallyHandler != null)
+                    Finally(nextTaskBase.finallyHandler);
             }
             else if (runOptions == TaskRunOptions.OnFailure)
             {
-                this.continuationOnFailure = firstTaskBase;
-                DependsOn?.SetFaultHandler(firstTaskBase);
+                this.continuationOnFailure = nextTaskBase;
+                DependsOn?.SetFaultHandler(nextTaskBase);
             }
             else
             {
-                this.continuationOnAlways = firstTaskBase;
-                DependsOn?.SetFaultHandler(firstTaskBase);
+                this.continuationOnAlways = nextTaskBase;
+                DependsOn?.SetFaultHandler(nextTaskBase);
             }
             return nextTask;
         }
@@ -214,9 +215,12 @@ namespace GitHub.Unity
 
         internal void SetFaultHandler(TaskBase handler)
         {
-            Task.ContinueWith(t => handler.Start(t), Token,
-                TaskContinuationOptions.OnlyOnFaulted,
-                TaskManager.GetScheduler(handler.Affinity));
+            if (Task.Status == TaskStatus.Created)
+                this.continuationOnFailure = handler;
+            else
+                Task.ContinueWith(t => handler.Start(t), Token,
+                    TaskContinuationOptions.OnlyOnFaulted,
+                    TaskManager.GetScheduler(handler.Affinity));
             DependsOn?.SetFaultHandler(handler);
         }
 
