@@ -99,7 +99,7 @@ namespace GitHub.Unity
             var calculateMd5 = environment.FileSystem.CalculateMD5(GitLfsExecutablePath);
             logger.Trace("GitLFS MD5: {0}", calculateMd5);
             var md5 = environment.IsWindows ? WindowsGitLfsExecutableMD5 : MacGitLfsExecutableMD5;
-            if (String.Compare(calculateMd5, md5, true) != 0)
+            if (md5.Equals(calculateMd5, StringComparison.OrdinalIgnoreCase))
             {
                 logger.Trace("{0} has incorrect MD5", GitExecutablePath);
                 return false;

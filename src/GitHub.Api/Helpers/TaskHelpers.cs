@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
@@ -18,7 +19,16 @@ namespace GitHub.Unity
         }
     }
 
+    [Serializable]
     public class NotReadyException : Exception
     {
+        public NotReadyException() : base()
+        { }
+        public NotReadyException(string message) : base(message)
+        { }
+        public NotReadyException(string message, Exception innerException) : base(message, innerException)
+        { }
+        protected NotReadyException(SerializationInfo info, StreamingContext context) : base(info, context)
+        { }
     }
 }

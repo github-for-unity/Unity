@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="codeanalysis-full" Description="This ruleset only includes the rules we care about. I'll be adding new ones as we fix our codebase." ToolsVersion="14.0">
+<RuleSet Name="codeanalysis-small" Description="This ruleset only includes the rules we care about. I'll be adding new ones as we fix our codebase." ToolsVersion="14.0">
   <IncludeAll Action="Warning" />
   <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
     <Rule Id="CA1000" Action="None" />
@@ -80,6 +80,40 @@
     <Rule Id="CA2227" Action="None" />
     <Rule Id="CA2235" Action="None" />
     <Rule Id="IDE001" Action="None" />
+
+    <!-- strings -->
+    <Rule Id="CA1304" Action="None" />
+    <Rule Id="CA1308" Action="None" />
+    <Rule Id="CA1309" Action="None" />
+    <Rule Id="CA1820" Action="None" />
+    <Rule Id="CA1823" Action="None" />
+
+    <!-- serialization -->
+    <Rule Id="CA2237" Action="None" />
+    <Rule Id="CA1032" Action="None" />
+
+    <!-- link demand -->
+    <Rule Id="CA2123" Action="None" />
+
+    <!-- disposable -->
+    <Rule Id="CA1001" Action="None" />
+
+    <!-- no we like our event handler signatures thankyouverymuch -->
+    <Rule Id="CA1009" Action="None" />
+
+    <!-- calling TryParse without using its return value is not a crime, Microsoft -->
+    <Rule Id="CA1806" Action="None" />
+
+    <!-- we're returning arrays from properties -->
+    <Rule Id="CA1819" Action="None" />
+
+    <!-- Unity does its own serialization and doesn't need special serializable type constructors -->
+    <Rule Id="CA2229" Action="None" />
+    <Rule Id="CA2240" Action="None" />
+
+    <!-- the compiler already warns about this -->
+    <Rule Id="CA1823" Action="None" />
+
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.Features" RuleNamespace="Microsoft.CodeAnalysis.CSharp.Features">
     <Rule Id="IDE0001" Action="None" />

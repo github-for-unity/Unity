@@ -5,8 +5,11 @@
     <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
-    <None Include="$(SolutionDir)common\GitHub.ruleset">
-      <Link>Properties\GitHub.ruleset</Link>
+    <None Include="$(SolutionDir)common\codeanalysis-release.ruleset">
+      <Link>Properties\codeanalysis-release.ruleset</Link>
+    </None>
+    <None Include="$(SolutionDir)common\codeanalysis-debug.ruleset">
+      <Link>Properties\codeanalysis-debug.ruleset</Link>
     </None>
   </ItemGroup>
 

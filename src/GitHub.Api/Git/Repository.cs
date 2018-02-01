@@ -472,11 +472,11 @@ namespace GitHub.Unity
 
         private GitBranch GetLocalGitBranch(ConfigBranch x)
         {
-            var name = x.Name;
-            var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + name : "[None]";
-            var isActive = name == CurrentBranchName;
+            var branchName = x.Name;
+            var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + branchName : "[None]";
+            var isActive = branchName == CurrentBranchName;
 
-            return new GitBranch(name, trackingName, isActive);
+            return new GitBranch(branchName, trackingName, isActive);
         }
 
         private static GitBranch GetRemoteGitBranch(ConfigBranch x)
@@ -758,6 +758,48 @@ namespace GitHub.Unity
     {
         [NonSerialized] private DateTimeOffset? updatedTimeValue;
         public string updatedTimeString;
+
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + updatedTimeValue.GetHashCode();
+            hash = hash * 23 + (updatedTimeString?.GetHashCode() ?? 0);
+            return hash;
+        }
+
+        public override bool Equals(object other)
+        {
+            if (other is CacheUpdateEvent)
+                return Equals((CacheUpdateEvent)other);
+            return false;
+        }
+
+        public bool Equals(CacheUpdateEvent other)
+        {
+            return
+                object.Equals(updatedTimeValue, other.updatedTimeValue) && 
+                String.Equals(updatedTimeString, other.updatedTimeString)
+                ;
+        }
+
+        public static bool operator ==(CacheUpdateEvent lhs, CacheUpdateEvent rhs)
+        {
+            // If both are null, or both are same instance, return true.
+            if (ReferenceEquals(lhs, rhs))
+                return true;
+
+            // If one is null, but not both, return false.
+            if (((object)lhs == null) || ((object)rhs == null))
+                return false;
+
+            // Return true if the fields match:
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(CacheUpdateEvent lhs, CacheUpdateEvent rhs)
+        {
+            return !(lhs == rhs);
+        }
 
         public DateTimeOffset UpdatedTime
         {

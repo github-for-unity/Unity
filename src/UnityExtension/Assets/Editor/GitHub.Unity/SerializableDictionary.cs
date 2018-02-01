@@ -31,7 +31,7 @@ namespace GitHub.Unity
 
             if (keys.Count != values.Count)
             {
-                throw new Exception(
+                throw new SerializationException(
                     string.Format("there are {0} keys and {1} values after deserialization. Make sure that both key and value types are serializable.",
                         keys.Count, values.Count));
             }
