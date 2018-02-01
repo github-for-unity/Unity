@@ -2,7 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using Octokit;
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 
 namespace GitHub.Unity
 {
@@ -20,7 +20,7 @@ namespace GitHub.Unity
     /// </summary>
     class LoginManager : ILoginManager
     {
-        private readonly ILogging logger = Logging.GetLogger<LoginManager>();
+        private readonly ILogging logger = LogHelper.GetLogger<LoginManager>();
 
         private readonly string[] scopes = { "user", "repo", "gist", "write:public_key" };
         private readonly IKeychain keychain;

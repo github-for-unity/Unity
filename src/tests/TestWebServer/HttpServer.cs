@@ -1,5 +1,4 @@
-﻿using GitHub.Unity;
-using GitHub.Unity.Logs;
+﻿using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,7 +23,7 @@ namespace TestWebServer
         private readonly HttpListener listener;
         private readonly string rootDirectory;
         private bool abort;
-        private static ILogging Logger = Logging.GetLogger<HttpServer>();
+        private static ILogging Logger = LogHelper.GetLogger<HttpServer>();
         private ManualResetEvent delay = new ManualResetEvent(false);
 
         /// <summary>
@@ -181,7 +180,7 @@ namespace TestWebServer
             }
             catch (Exception ex)
             {
-                Logging.GetLogger<HttpServer>().Error(ex);
+                LogHelper.GetLogger<HttpServer>().Error(ex);
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             }
             finally

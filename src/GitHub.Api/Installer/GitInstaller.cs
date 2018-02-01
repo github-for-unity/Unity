@@ -1,4 +1,4 @@
-﻿using GitHub.Unity.Logs;
+﻿using GitHub.Logging;
 using System;
 using System.Threading;
 
@@ -60,7 +60,7 @@ namespace GitHub.Unity
 
     class GitInstaller
     {
-        private static ILogging Logger = Logging.GetLogger<GitInstaller>();
+        private static ILogging Logger = LogHelper.GetLogger<GitInstaller>();
 
         private readonly IEnvironment environment;
         private readonly IZipHelper sharpZipLibHelper;

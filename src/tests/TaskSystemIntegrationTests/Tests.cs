@@ -8,7 +8,7 @@ using GitHub.Unity;
 using System.Threading.Tasks.Schedulers;
 using System.IO;
 using NSubstitute;
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 
 namespace IntegrationTests
 {
@@ -16,7 +16,7 @@ namespace IntegrationTests
     {
         public BaseTest()
         {
-            Logger = Logging.GetLogger(GetType());
+            Logger = LogHelper.GetLogger(GetType());
         }
 
         protected ILogging Logger { get; }
@@ -31,8 +31,8 @@ namespace IntegrationTests
         public void OneTimeSetup()
         {
             GitHub.Unity.Guard.InUnitTestRunner = true;
-            Logging.LogAdapter = new MultipleLogAdapter(new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-tasksystem-tests.log"));
-            //Logging.TracingEnabled = true;
+            LogHelper.LogAdapter = new MultipleLogAdapter(new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-tasksystem-tests.log"));
+            //LogHelper.TracingEnabled = true;
             TaskManager = new TaskManager();
             var syncContext = new ThreadSynchronizationContext(Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(syncContext);

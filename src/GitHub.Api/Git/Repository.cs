@@ -1,4 +1,4 @@
-﻿using GitHub.Unity.Logs;
+﻿using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -626,7 +626,7 @@ namespace GitHub.Unity
             "{0} Owner: {1} Name: {2} CloneUrl: {3} LocalPath: {4} Branch: {5} Remote: {6}", GetHashCode(), Owner, Name,
             CloneUrl, LocalPath, CurrentBranch, CurrentRemote);
 
-        protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
+        protected static ILogging Logger { get; } = LogHelper.GetLogger<Repository>();
     }
 
     public interface IUser
@@ -751,7 +751,7 @@ namespace GitHub.Unity
                      }).Start();
         }
         
-        protected static ILogging Logger { get; } = Logging.GetLogger<User>();
+        protected static ILogging Logger { get; } = LogHelper.GetLogger<User>();
     }
 
     [Serializable]

@@ -1,4 +1,4 @@
-﻿using GitHub.Unity.Logs;
+﻿using GitHub.Logging;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -14,7 +14,7 @@ namespace GitHub.Unity
             Func<long, long, bool> progress = null,
             int progressUpdateRate = 100)
         {
-            var logger = Logging.GetLogger("Copy");
+            var logger = LogHelper.GetLogger("Copy");
             byte[] buffer = new byte[chunkSize];
             int bytesRead = 0;
             long totalRead = 0;

@@ -1,4 +1,4 @@
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 using System;
 using UnityEngine;
 
@@ -75,7 +75,7 @@ namespace GitHub.Unity
             get
             {
                 if (logger == null)
-                    logger = Logging.GetLogger(GetType());
+                    logger = LogHelper.GetLogger(GetType());
                 return logger;
             }
         }

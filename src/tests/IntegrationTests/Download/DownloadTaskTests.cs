@@ -6,7 +6,7 @@ using FluentAssertions;
 using GitHub.Unity;
 using NUnit.Framework;
 using System.Diagnostics;
-using GitHub.Unity.Logs;
+using GitHub.Logging;
 using System.Runtime.CompilerServices;
 
 namespace IntegrationTests.Download
@@ -41,7 +41,7 @@ namespace IntegrationTests.Download
         private void StartTest(out Stopwatch watch, out ILogging logger, [CallerMemberName] string testName = "test")
         {
             watch = new Stopwatch();
-            logger = Logging.GetLogger(testName);
+            logger = LogHelper.GetLogger(testName);
             logger.Trace("Starting test");
         }
 
