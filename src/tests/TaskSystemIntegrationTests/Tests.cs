@@ -666,6 +666,25 @@ namespace IntegrationTests
                 .Catch(_ => { });
             await task.StartAwait(_ => { });
         }
+
+        [Test]
+        public async Task TaskOnFailureGetsCalledWhenExceptionHappensUpTheChain()
+        {
+            var runOrder = new List<string>();
+            var exceptions = new List<Exception>();
+            var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
+                .Then(_ => { runOrder.Add("1"); })
+                .Catch(ex => exceptions.Add(ex))
+                .Then(() => runOrder.Add("OnFailure"), TaskRunOptions.OnFailure)
+                .Finally((s, e) => { });
+            await task.StartAndSwallowException();
+            CollectionAssert.AreEqual(
+                new string[] { typeof(InvalidOperationException).Name },
+                exceptions.Select(x => x.GetType().Name).ToArray());
+            CollectionAssert.AreEqual(
+                new string[] { "OnFailure" },
+                runOrder);
+        }
     }
 
     [TestFixture]
