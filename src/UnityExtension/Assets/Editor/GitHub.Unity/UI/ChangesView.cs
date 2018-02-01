@@ -160,29 +160,29 @@ namespace GitHub.Unity
         private GenericMenu CreateContextMenu(ChangesTreeNode node)
         {
             var genericMenu = new GenericMenu();
-            var canDiscard = false;
 
-            if (!node.isFolder)
+            if (discardGuiContent == null)
             {
-                canDiscard = node.GitFileStatus == GitFileStatus.Added
-                    || node.GitFileStatus == GitFileStatus.Modified
-                    || node.GitFileStatus == GitFileStatus.Deleted
-                    || node.GitFileStatus == GitFileStatus.Renamed
-                    || node.GitFileStatus == GitFileStatus.Untracked;
+                discardGuiContent = new GUIContent("Discard");
             }
 
-            if (canDiscard)
-            {
-                if (discardGuiContent == null)
+            genericMenu.AddItem(discardGuiContent, false, () => {
+                GitStatusEntry[] discardEntries;
+                if (node.isFolder)
                 {
-                    discardGuiContent = new GUIContent("Discard");
+                    discardEntries = treeChanges
+                        .GetLeafNodes(node)
+                        .Select(treeNode => treeNode.GitStatusEntry)
+                        .ToArray();
+                }
+                else
+                {
+                    discardEntries = new [] { node.GitStatusEntry };
                 }
 
-                genericMenu.AddItem(discardGuiContent, false, () => {
-                    Repository.DiscardChanges(new List<GitStatusEntry> { node.GitStatusEntry })
-                        .Start();
-                });
-            }
+                Repository.DiscardChanges(discardEntries)
+                          .Start();
+            });
 
             return genericMenu;
         }
