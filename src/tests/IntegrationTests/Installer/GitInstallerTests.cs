@@ -24,7 +24,7 @@ namespace IntegrationTests
             base.TestFixtureSetUp();
             server = new TestWebServer.HttpServer(SolutionDirectory.Combine("files"));
             Task.Factory.StartNew(server.Start);
-            ApplicationConfiguration.WebTimeout = 5000;
+            ApplicationConfiguration.WebTimeout = 10000;
         }
 
         public override void TestFixtureTearDown()
@@ -39,9 +39,15 @@ namespace IntegrationTests
         {
             var gitInstallationPath = TestBasePath.Combine("GitInstall").CreateDirectory();
 
-            var installDetails = new GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows);
+            var installDetails = new GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows)
+                {
+                    GitZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitZipMd5Url).Filename}",
+                    GitZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitZipUrl).Filename}",
+                    GitLfsZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitLfsZipMd5Url).Filename}",
+                    GitLfsZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitLfsZipUrl).Filename}",
+                };
 
-            //var zipArchivesPath = TestBasePath.Combine("ZipArchives").CreateDirectory();
+            TestBasePath.Combine("git").CreateDirectory();
 
             //var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
             //var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);

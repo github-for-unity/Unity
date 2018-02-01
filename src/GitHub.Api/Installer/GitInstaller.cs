@@ -11,6 +11,16 @@ namespace GitHub.Unity
         public NPath GitExecPath { get; }
         public string GitLfsExec { get; }
         public NPath GitLfsExecPath { get; }
+        public UriString GitZipMd5Url { get; set; } = DefaultGitZipMd5Url;
+        public UriString GitZipUrl { get; set; } = DefaultGitZipUrl;
+        public UriString GitLfsZipMd5Url { get; set; } = DefaultGitLfsZipMd5Url;
+        public UriString GitLfsZipUrl { get; set; } = DefaultGitLfsZipUrl;
+
+        public const string DefaultGitZipMd5Url = "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt";
+        public const string DefaultGitZipUrl = "https://ghfvs-installer.github.com/unity/portable_git/git.zip";
+        public const string DefaultGitLfsZipMd5Url = "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt";
+        public const string DefaultGitLfsZipUrl = "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip";
+
 
         public const string GitExtractedMD5 = "e6cfc0c294a2312042f27f893dfc9c0a";
         public const string GitLfsExtractedMD5 = "36e3ae968b69fbf42dff72311040d24a";
@@ -165,25 +175,25 @@ namespace GitHub.Unity
         private ITask CreateDownloadTask()
         {
             var tempZipPath = NPath.CreateTempDirectory("git_zip_paths");
-            gitArchiveFilePath = tempZipPath.Combine("git");
-            gitLfsArchivePath = tempZipPath.Combine("git-lfs");
+            gitArchiveFilePath = tempZipPath.Combine("git.zip");
+            gitLfsArchivePath = tempZipPath.Combine("git-lfs.zip");
 
             var downloadGitMd5Task = new DownloadTextTask(TaskManager.Instance.Token,
                 environment.FileSystem,
-                "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt",
-                gitArchiveFilePath);
+                installDetails.GitZipMd5Url,
+                tempZipPath);
 
             var downloadGitTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                "https://ghfvs-installer.github.com/unity/portable_git/git.zip",
-                gitArchiveFilePath, retryCount: 1);
+                installDetails.GitZipUrl,
+                tempZipPath);
 
             var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
-                "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt",
-                gitLfsArchivePath);
+                installDetails.GitLfsZipMd5Url,
+                tempZipPath);
 
             var downloadGitLfsTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip",
-                gitLfsArchivePath, retryCount: 1);
+                installDetails.GitLfsZipUrl,
+                tempZipPath);
 
             return downloadGitMd5Task
                 .Then((b, s) => {
