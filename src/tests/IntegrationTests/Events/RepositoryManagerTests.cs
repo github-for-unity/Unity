@@ -572,7 +572,6 @@ namespace IntegrationTests
 
                 repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
                 repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
