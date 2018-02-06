@@ -5,14 +5,21 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
+    public enum TaskRunOptions
+    {
+        OnSuccess,
+        OnFailure,
+        OnAlways
+    }
+
     public interface ITask : IAsyncResult
     {
-        T Then<T>(T continuation, bool always = false) where T : ITask;
+        T Then<T>(T continuation, TaskRunOptions runOptions = TaskRunOptions.OnSuccess) where T : ITask;
         ITask Catch(Action<Exception> handler);
         ITask Catch(Func<Exception, bool> handler);
         ITask Finally(Action handler);
         ITask Finally(Action<bool, Exception> actionToContinueWith, TaskAffinity affinity = TaskAffinity.Concurrent);
-        ITask Defer<T>(Func<T, Task> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false);
+        ITask Finally<T>(T taskToContinueWith) where T : ITask;
         ITask Start();
         ITask Start(TaskScheduler scheduler);
         ITask Progress(Action<IProgress> progressHandler);
@@ -44,15 +51,12 @@ namespace GitHub.Unity
         new Task<TResult> Task { get; }
         new event Action<ITask<TResult>> OnStart;
         new event Action<ITask<TResult>, TResult> OnEnd;
-        ITask<T> Defer<T>(Func<TResult, Task<T>> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false);
     }
 
     interface ITask<TData, T> : ITask<T>
     {
         event Action<TData> OnData;
     }
-
-    interface IStubTask { }
 
     public abstract class TaskBase : ITask
     {
@@ -65,12 +69,12 @@ namespace GitHub.Unity
 
         protected bool previousSuccess = true;
         protected Exception previousException;
-        protected object previousResult;
 
-        protected TaskBase continuation;
-        protected bool continuationAlways;
+        protected TaskBase continuationOnSuccess;
+        protected TaskBase continuationOnFailure;
+        protected TaskBase continuationOnAlways;
 
-        protected event Func<Exception, bool> faultHandler;
+        protected event Func<Exception, bool> catchHandler;
         private event Action finallyHandler;
         protected event Action<IProgress> progressHandler;
 
@@ -119,18 +123,43 @@ namespace GitHub.Unity
             this.progress = new Progress { Task = this };
         }
 
-        public virtual T Then<T>(T cont, bool always = false)
+        public virtual T Then<T>(T nextTask, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
             where T : ITask
         {
-            Guard.ArgumentNotNull(cont, nameof(cont));
-            var taskBase = ((TaskBase)(object)cont);
+            Guard.ArgumentNotNull(nextTask, nameof(nextTask));
+            var nextTaskBase = ((TaskBase)(object)nextTask);
 
-            var firstTaskBase = taskBase.GetTopMostTask() ?? taskBase;
-            firstTaskBase.SetDependsOn(this);
+            // find the task at the top of the chain
+            nextTaskBase = nextTaskBase.GetTopMostTask() ?? nextTaskBase;
+            // make the next task dependent on this one so it can get values from us
+            nextTaskBase.SetDependsOn(this);
 
-            this.continuation = firstTaskBase;
-            this.continuationAlways = always;
-            return cont;
+            if (runOptions == TaskRunOptions.OnSuccess)
+            {
+                this.continuationOnSuccess = nextTaskBase;
+
+                // if there are fault handlers in the chain we're appending, propagate them
+                // up this chain as well
+                if (nextTaskBase.continuationOnFailure != null)
+                    SetFaultHandler(nextTaskBase.continuationOnFailure);
+                else if (nextTaskBase.continuationOnAlways != null)
+                    SetFaultHandler(nextTaskBase.continuationOnAlways);
+                if (nextTaskBase.catchHandler != null)
+                    Catch(nextTaskBase.catchHandler);
+                if (nextTaskBase.finallyHandler != null)
+                    Finally(nextTaskBase.finallyHandler);
+            }
+            else if (runOptions == TaskRunOptions.OnFailure)
+            {
+                this.continuationOnFailure = nextTaskBase;
+                DependsOn?.SetFaultHandler(nextTaskBase);
+            }
+            else
+            {
+                this.continuationOnAlways = nextTaskBase;
+                DependsOn?.SetFaultHandler(nextTaskBase);
+            }
+            return nextTask;
         }
 
         /// <summary>
@@ -140,7 +169,7 @@ namespace GitHub.Unity
         public ITask Catch(Action<Exception> handler)
         {
             Guard.ArgumentNotNull(handler, "handler");
-            faultHandler += e => { handler(e); return false; };
+            catchHandler += e => { handler(e); return false; };
             DependsOn?.Catch(handler);
             return this;
         }
@@ -152,7 +181,7 @@ namespace GitHub.Unity
         public ITask Catch(Func<Exception, bool> handler)
         {
             Guard.ArgumentNotNull(handler, "handler");
-            faultHandler += handler;
+            catchHandler += handler;
             DependsOn?.Catch(handler);
             return this;
         }
@@ -171,31 +200,25 @@ namespace GitHub.Unity
         public ITask Finally(Action<bool, Exception> actionToContinueWith, TaskAffinity affinity = TaskAffinity.Concurrent)
         {
             Guard.ArgumentNotNull(actionToContinueWith, nameof(actionToContinueWith));
-            var ret = Then(new ActionTask(Token, actionToContinueWith) { Affinity = affinity, Name = "Finally" }, true);
-            DependsOn?.SetFaultHandler(ret);
-            ret.ContinuationIsFinally = true;
-            return ret;
+            return Finally(new ActionTask(Token, actionToContinueWith) { Affinity = affinity, Name = "Finally" });
         }
 
-        internal virtual ITask Finally<T>(T taskToContinueWith)
-            where T : TaskBase
+        public ITask Finally<T>(T taskToContinueWith)
+            where T : ITask
         {
             Guard.ArgumentNotNull(taskToContinueWith, nameof(taskToContinueWith));
-            continuation = (TaskBase)(object)taskToContinueWith;
-            continuationAlways = true;
-            continuation.SetDependsOn(this);
-            DependsOn?.SetFaultHandler((TaskBase)(object)continuation);
-            return continuation;
+            continuationOnAlways = (TaskBase)(object)taskToContinueWith;
+            continuationOnAlways.SetDependsOn(this);
+            DependsOn?.SetFaultHandler(continuationOnAlways);
+            return continuationOnAlways;
         }
 
-        public ITask Defer<T>(Func<T, Task> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
-        {
-            Guard.ArgumentNotNull(continueWith, "continueWith");
-            var ret = Then(new StubTask<T>(Token, (s, d) => {}) { Affinity = affinity });
-            SetDeferred(new DeferredContinuation { Always = always, GetContinueWith = d => new ActionTask<T>(continueWith((T)d)) { Affinity = affinity, Name = "Deferred" } });
-            return ret;
-        }
-
+        /// <summary>
+        /// This does not set a dependency between the two tasks. Instead,
+        /// the Start method grabs the state of the previous task to pass on
+        /// to the next task via previousSuccess and previousException
+        /// </summary>
+        /// <param name="handler"></param>
         internal void SetFaultHandler(TaskBase handler)
         {
             Task.ContinueWith(t => handler.Start(t), Token,
@@ -240,6 +263,11 @@ namespace GitHub.Unity
             }
         }
 
+        /// <summary>
+        /// Call this to run a task after another task is done, without
+        /// having them depend on each other
+        /// </summary>
+        /// <param name="task"></param>
         protected void Start(Task task)
         {
             previousSuccess = task.Status == TaskStatus.RanToCompletion && task.Status != TaskStatus.Faulted;
@@ -261,11 +289,28 @@ namespace GitHub.Unity
 
         protected virtual void RunContinuation()
         {
-            if (continuation != null)
+            if (continuationOnSuccess != null)
             {
                 //Logger.Trace($"Setting ContinueWith {Affinity} {continuation}");
-                Task.ContinueWith(_ => ((TaskBase)(object)continuation).Run(), Token, continuationAlways ? runAlwaysOptions : runOnSuccessOptions,
-                    TaskManager.GetScheduler(continuation.Affinity));
+                Task.ContinueWith(_ => ((TaskBase)(object)continuationOnSuccess).Run(), Token,
+                    runOnSuccessOptions,
+                    TaskManager.GetScheduler(continuationOnSuccess.Affinity));
+            }
+
+            if (continuationOnFailure != null)
+            {
+                //Logger.Trace($"Setting ContinueWith {Affinity} {continuation}");
+                Task.ContinueWith(_ => ((TaskBase)(object)continuationOnFailure).Run(), Token,
+                    runOnFaultOptions,
+                    TaskManager.GetScheduler(continuationOnFailure.Affinity));
+            }
+
+            if (continuationOnAlways != null)
+            {
+                //Logger.Trace($"Setting ContinueWith {Affinity} {continuation}");
+                Task.ContinueWith(_ => ((TaskBase)(object)continuationOnAlways).Run(), Token,
+                    runAlwaysOptions,
+                    TaskManager.GetScheduler(continuationOnAlways.Affinity));
             }
         }
 
@@ -323,17 +368,22 @@ namespace GitHub.Unity
         protected virtual void RaiseOnEnd()
         {
             OnEnd?.Invoke(this);
-            if (continuation == null)
+            if (continuationOnSuccess == null && continuationOnFailure == null && continuationOnAlways == null)
                 finallyHandler?.Invoke();
             //Logger.Trace($"Finished {ToString()}");
         }
 
+        protected void CallFinallyHandler()
+        {
+            finallyHandler?.Invoke();
+        }
+
         protected virtual bool RaiseFaultHandlers(Exception ex)
         {
-            if (faultHandler == null)
+            if (catchHandler == null)
                 return false;
             bool handled = false;
-            foreach (var handler in faultHandler.GetInvocationList())
+            foreach (var handler in catchHandler.GetInvocationList())
             {
                 handled |= (bool)handler.DynamicInvoke(new object[] { ex });
                 if (handled)
@@ -361,28 +411,6 @@ namespace GitHub.Unity
             progressHandler?.Invoke(progress);
         }
 
-        protected class DeferredContinuation
-        {
-            public bool Always;
-            public Func<object, ITask> GetContinueWith;
-        }
-
-        private DeferredContinuation deferred;
-        internal object GetDeferred()
-        {
-            return deferred;
-        }
-
-        internal void SetDeferred(object def)
-        {
-            deferred = (DeferredContinuation)def;
-        }
-
-        internal void ClearDeferred()
-        {
-            deferred = null;
-        }
-
         public override string ToString()
         {
             return $"{Task?.Id ?? -1} {Name} {GetType()}";
@@ -401,18 +429,6 @@ namespace GitHub.Unity
         protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
         public TaskBase DependsOn { get; private set; }
         public CancellationToken Token { get; }
-        internal TaskBase Continuation => continuation;
-        internal bool ContinuationAlways => continuationAlways;
-        internal bool ContinuationIsFinally { get; set; }
-
-        class StubTask<T> : ActionTask<T>, IStubTask
-        {
-            public StubTask(CancellationToken token, Action<bool, T> func)
-                : base(token, func)
-            {
-                Name = "Stub";
-            }
-        }
     }
 
     abstract class TaskBase<TResult> : TaskBase, ITask<TResult>
@@ -430,7 +446,6 @@ namespace GitHub.Unity
             {
                 var ret = RunWithReturn(DependsOn?.Successful ?? previousSuccess);
                 tcs.SetResult(ret);
-                AdjustNextTask(ret);
                 return ret;
             }, Token, TaskCreationOptions.None);
         }
@@ -466,40 +481,9 @@ namespace GitHub.Unity
             }, task, Token, TaskCreationOptions.None);
         }
 
-
-        protected void AdjustNextTask(TResult ret)
+        public override T Then<T>(T continuation, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
         {
-            var def = GetDeferred();
-            if (def != null)
-            {
-                var next = (def as DeferredContinuation)?.GetContinueWith(ret);
-                var cont = continuation.Continuation;
-                var nextDefer = continuation.GetDeferred();
-                if (continuation is IStubTask)
-                {
-                    ((TaskBase)next).SetDeferred(nextDefer);
-                    ((TaskBase)continuation).ClearDeferred();
-                }
-
-                if (cont != null)
-                {
-                    if (cont.ContinuationIsFinally)
-                    {
-                        ((TaskBase)next).Finally(cont);
-                    }
-                    else
-                    {
-                        next.Then(cont, cont.ContinuationAlways);
-                    }
-                }
-                continuation.Then(next, continuationAlways);
-                ClearDeferred();
-            }
-        }
-
-        public override T Then<T>(T continuation, bool always = false)
-        {
-            return base.Then<T>(continuation, always);
+            return base.Then<T>(continuation, runOptions);
         }
 
         /// <summary>
@@ -510,7 +494,7 @@ namespace GitHub.Unity
         public new ITask<TResult> Catch(Action<Exception> handler)
         {
             Guard.ArgumentNotNull(handler, "handler");
-            faultHandler += e => { handler(e); return false; };
+            catchHandler += e => { handler(e); return false; };
             DependsOn?.Catch(handler);
             return this;
         }
@@ -523,26 +507,9 @@ namespace GitHub.Unity
         public new ITask<TResult> Catch(Func<Exception, bool> handler)
         {
             Guard.ArgumentNotNull(handler, "handler");
-            faultHandler += handler;
+            catchHandler += handler;
             DependsOn?.Catch(handler);
             return this;
-        }
-
-        public ITask<T> Defer<T>(Func<TResult, Task<T>> continueWith, TaskAffinity affinity = TaskAffinity.Concurrent, bool always = false)
-        {
-            Guard.ArgumentNotNull(continueWith, "continueWith");
-            var ret = Then(new StubTask<T>(Token, (s, d) => default(T)) { Affinity = affinity }, always);
-            SetDeferred(new DeferredContinuation { Always = always, GetContinueWith = d => new FuncTask<T>(continueWith((TResult)d)) { Affinity = affinity, Name = "Deferred" } });
-            return ret;
-        }
-
-        class StubTask<T> : FuncTask<TResult, T>, IStubTask
-        {
-            public StubTask(CancellationToken token, Func<bool, TResult, T> func)
-                : base(token, func)
-            {
-                Name = "Stub";
-            }
         }
 
         /// <summary>
@@ -559,8 +526,7 @@ namespace GitHub.Unity
         public ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
-            var ret = Then(new FuncTask<TResult, TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, true);
-            ret.ContinuationIsFinally = true;
+            var ret = Then(new FuncTask<TResult, TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, TaskRunOptions.OnAlways);
             DependsOn?.SetFaultHandler(ret);
             return ret;
         }
@@ -568,8 +534,7 @@ namespace GitHub.Unity
         public ITask Finally(Action<bool, Exception, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
-            var ret = Then(new ActionTask<TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, true);
-            ret.ContinuationIsFinally = true;
+            var ret = Then(new ActionTask<TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, TaskRunOptions.OnAlways);
             DependsOn?.SetFaultHandler(ret);
             return ret;
         }
@@ -612,8 +577,11 @@ namespace GitHub.Unity
         protected virtual void RaiseOnEnd(TResult result)
         {
             OnEnd?.Invoke(this, result);
-            if (continuation == null)
+            if (continuationOnSuccess == null && continuationOnFailure == null && continuationOnAlways == null)
+            {
                 finallyHandler?.Invoke(result);
+                CallFinallyHandler();
+            }
             //Logger.Trace($"Finished {ToString()} {result}");
         }
 
@@ -634,7 +602,6 @@ namespace GitHub.Unity
             {
                 var ret = RunWithData(DependsOn?.Successful ?? previousSuccess, (DependsOn?.Successful ?? false) ? ((ITask<T>)DependsOn).Result : default(T));
                 tcs.SetResult(ret);
-                AdjustNextTask(ret);
                 return ret;
             },
                 Token, TaskCreationOptions.None);

@@ -141,6 +141,10 @@ namespace GitHub.Unity
             return Destination;
         }
 
+        public override string ToString()
+        {
+            return $"{base.ToString()} {Url}";
+        }
 
         public UriString Url { get; }
 

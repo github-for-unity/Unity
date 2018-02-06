@@ -11,6 +11,16 @@ namespace GitHub.Unity
         public NPath GitExecPath { get; }
         public string GitLfsExec { get; }
         public NPath GitLfsExecPath { get; }
+        public UriString GitZipMd5Url { get; set; } = DefaultGitZipMd5Url;
+        public UriString GitZipUrl { get; set; } = DefaultGitZipUrl;
+        public UriString GitLfsZipMd5Url { get; set; } = DefaultGitLfsZipMd5Url;
+        public UriString GitLfsZipUrl { get; set; } = DefaultGitLfsZipUrl;
+
+        public const string DefaultGitZipMd5Url = "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt";
+        public const string DefaultGitZipUrl = "https://ghfvs-installer.github.com/unity/portable_git/git.zip";
+        public const string DefaultGitLfsZipMd5Url = "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt";
+        public const string DefaultGitLfsZipUrl = "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip";
+
 
         public const string GitExtractedMD5 = "e6cfc0c294a2312042f27f893dfc9c0a";
         public const string GitLfsExtractedMD5 = "36e3ae968b69fbf42dff72311040d24a";
@@ -99,102 +109,91 @@ namespace GitHub.Unity
                 return;
             }
 
-            new FuncTask<bool>(cancellationToken, IsGitExtracted)
-                .Finally((success, ex, isPortableGitExtracted) => {
-                    Logger.Trace("IsPortableGitExtracted: {0}", isPortableGitExtracted);
+            new ActionTask(cancellationToken, () => {
+                if (IsGitExtracted())
+                {
+                    Logger.Trace("SetupGitIfNeeded: Skipped");
+                    onSuccess.PreviousResult = installDetails.GitExecPath;
+                    onSuccess.Start();
+                }
+                else
+                {
+                    ExtractPortableGit(onSuccess, onFailure);
+                }
+            }).Start();
+        }
 
-                    if (isPortableGitExtracted)
-                    {
-                        Logger.Trace("SetupGitIfNeeded: Skipped");
+        private void ExtractPortableGit(ActionTask<NPath> onSuccess, ITask onFailure)
+        {
+            ITask downloadFilesTask = null;
+            if (gitArchiveFilePath == null || gitLfsArchivePath == null)
+            {
+                downloadFilesTask = CreateDownloadTask();
+            }
 
-                        new FuncTask<NPath>(cancellationToken, () => installDetails.GitExecPath)
-                            .Then(onSuccess)
-                            .Start();
-                    }
-                    else
-                    {
-                        ITask downloadFilesTask = null;
-                        if (gitArchiveFilePath == null || gitLfsArchivePath == null)
-                        {
-                            downloadFilesTask = CreateDownloadTask();
-                        }
+            var tempZipExtractPath = NPath.CreateTempDirectory("git_zip_extract_zip_paths");
+            var gitExtractPath = tempZipExtractPath.Combine("git").CreateDirectory();
+            var gitLfsExtractPath = tempZipExtractPath.Combine("git-lfs").CreateDirectory();
 
-                        var tempZipExtractPath = NPath.CreateTempDirectory("git_zip_extract_zip_paths");
-                        var gitExtractPath = tempZipExtractPath.Combine("git").CreateDirectory();
-                        var gitLfsExtractPath = tempZipExtractPath.Combine("git-lfs").CreateDirectory();
+            var resultTask = new UnzipTask(cancellationToken, gitArchiveFilePath, gitExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitExtractedMD5)
+                .Then(new UnzipTask(cancellationToken, gitLfsArchivePath, gitLfsExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitLfsExtractedMD5))
+                .Then(s =>
+                {
+                    var targetGitLfsExecPath = installDetails.GetGitLfsExecPath(gitExtractPath);
+                    var extractGitLfsExePath = gitLfsExtractPath.Combine(installDetails.GitLfsExec);
 
-                        var resultTask = new UnzipTask(cancellationToken, gitArchiveFilePath, gitExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitExtractedMD5)
-                            .Then(new UnzipTask(cancellationToken, gitLfsArchivePath, gitLfsExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitLfsExtractedMD5))
-                            .Then(() => {
-                                var targetGitLfsExecPath = installDetails.GetGitLfsExecPath(gitExtractPath);
-                                var extractGitLfsExePath = gitLfsExtractPath.Combine(installDetails.GitLfsExec);
+                    Logger.Trace("Moving Git LFS Exe:\"{0}\" to target in tempDirectory:\"{1}\" ", extractGitLfsExePath,
+                        targetGitLfsExecPath);
 
-                                Logger.Trace("Moving Git LFS Exe:\"{0}\" to target in tempDirectory:\"{1}\" ", extractGitLfsExePath,
-                                    targetGitLfsExecPath);
+                    extractGitLfsExePath.Move(targetGitLfsExecPath);
 
-                                extractGitLfsExePath.Move(targetGitLfsExecPath);
+                    Logger.Trace("Moving tempDirectory:\"{0}\" to extractTarget:\"{1}\"", gitExtractPath,
+                        installDetails.GitInstallPath);
 
-                                Logger.Trace("Moving tempDirectory:\"{0}\" to extractTarget:\"{1}\"", gitExtractPath,
-                                    installDetails.GitInstallPath);
+                    installDetails.GitInstallPath.EnsureParentDirectoryExists();
+                    gitExtractPath.Move(installDetails.GitInstallPath);
 
-                                installDetails.GitInstallPath.EnsureParentDirectoryExists();
-                                gitExtractPath.Move(installDetails.GitInstallPath);
+                    Logger.Trace("Deleting targetGitLfsExecPath:\"{0}\"", targetGitLfsExecPath);
+                    targetGitLfsExecPath.DeleteIfExists();
 
-                                Logger.Trace("Deleting targetGitLfsExecPath:\"{0}\"", targetGitLfsExecPath);
-                                targetGitLfsExecPath.DeleteIfExists();
+                    Logger.Trace("Deleting tempZipPath:\"{0}\"", tempZipExtractPath);
+                    tempZipExtractPath.DeleteIfExists();
+                    return installDetails.GitExecPath;
+                });
 
-                                Logger.Trace("Deleting tempZipPath:\"{0}\"", tempZipExtractPath);
-                                tempZipExtractPath.DeleteIfExists();
-                            })
-                            .Finally((b, exception) => {
-                                if (b)
-                                {
-                                    Logger.Trace("SetupGitIfNeeded: Success");
+            resultTask.Then(onFailure, TaskRunOptions.OnFailure);
+            resultTask.Then(onSuccess, TaskRunOptions.OnSuccess);
+                
+            if (downloadFilesTask != null)
+            {
+                resultTask = downloadFilesTask.Then(resultTask);
+            }
 
-                                    new FuncTask<NPath>(cancellationToken, () => installDetails.GitExecPath)
-                                        .Then(onSuccess)
-                                        .Start();
-                                }
-                                else
-                                {
-                                    Logger.Warning("SetupGitIfNeeded: Failed");
-
-                                    onFailure.Start();
-                                }
-                            });
-
-                        if (downloadFilesTask != null)
-                        {
-                            resultTask = downloadFilesTask.Then(resultTask);
-                        }
-
-                        resultTask.Start();
-                    }
-                }).Start();
+            resultTask.Start();
         }
 
         private ITask CreateDownloadTask()
         {
             var tempZipPath = NPath.CreateTempDirectory("git_zip_paths");
-            gitArchiveFilePath = tempZipPath.Combine("git");
-            gitLfsArchivePath = tempZipPath.Combine("git-lfs");
+            gitArchiveFilePath = tempZipPath.Combine("git.zip");
+            gitLfsArchivePath = tempZipPath.Combine("git-lfs.zip");
 
             var downloadGitMd5Task = new DownloadTextTask(TaskManager.Instance.Token,
                 environment.FileSystem,
-                "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt",
-                gitArchiveFilePath);
+                installDetails.GitZipMd5Url,
+                tempZipPath);
 
             var downloadGitTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                "https://ghfvs-installer.github.com/unity/portable_git/git.zip",
-                gitArchiveFilePath, retryCount: 1);
+                installDetails.GitZipUrl,
+                tempZipPath);
 
             var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
-                "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt",
-                gitLfsArchivePath);
+                installDetails.GitLfsZipMd5Url,
+                tempZipPath);
 
             var downloadGitLfsTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip",
-                gitLfsArchivePath, retryCount: 1);
+                installDetails.GitLfsZipUrl,
+                tempZipPath);
 
             return downloadGitMd5Task
                 .Then((b, s) => {
