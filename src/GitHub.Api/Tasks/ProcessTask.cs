@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -64,7 +65,7 @@ namespace GitHub.Unity
         public StreamWriter Input { get; private set; }
 
         private ILogging logger;
-        protected ILogging Logger { get { return logger = logger ?? Logging.GetLogger(GetType()); } }
+        protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
 
         public ProcessWrapper(Process process, IOutputProcessor outputProcessor,
             Action onStart, Action onEnd, Action<Exception, string> onError,

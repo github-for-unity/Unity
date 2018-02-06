@@ -677,7 +677,7 @@ namespace GitHub.Unity
                             // whether pull triggered a merge or a rebase, and abort the operation accordingly
                             // (either git rebase --abort or git merge --abort)
                         }
-                    }, true)
+                    }, TaskRunOptions.OnAlways)
                     .FinallyInUI((success, e) => {
                         if (success)
                         {

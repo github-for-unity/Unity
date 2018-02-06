@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -7,74 +6,6 @@ using System.Threading;
 
 namespace GitHub.Unity
 {
-    public class Utils
-    {
-        public static bool Copy(Stream source, Stream destination, int chunkSize)
-        {
-            return Copy(source, destination, chunkSize, 0, null, 1000);
-        }
-
-        public static bool Copy(Stream source, Stream destination, int chunkSize, long totalSize,
-            Func<long, long, bool> progress, int progressUpdateRate)
-        {
-            byte[] buffer = new byte[chunkSize];
-            int bytesRead = 0;
-            long totalRead = 0;
-            float averageSpeed = -1f;
-            float lastSpeed = 0f;
-            float smoothing = 0.005f;
-            long readLastSecond = 0;
-            long timeToFinish = 0;
-            Stopwatch watch = null;
-            bool success = true;
-
-            bool trackProgress = totalSize > 0 && progress != null;
-            if (trackProgress)
-                watch = new Stopwatch();
-
-            do
-            {
-                if (trackProgress)
-                    watch.Start();
-
-                bytesRead = source.Read(buffer, 0, chunkSize);
-
-                if (trackProgress)
-                    watch.Stop();
-
-                totalRead += bytesRead;
-
-                if (bytesRead > 0)
-                {
-                    destination.Write(buffer, 0, bytesRead);
-                    if (trackProgress)
-                    {
-                        readLastSecond += bytesRead;
-                        if (watch.ElapsedMilliseconds >= progressUpdateRate || totalRead == totalSize)
-                        {
-                            watch.Reset();
-                            lastSpeed = readLastSecond;
-                            readLastSecond = 0;
-                            averageSpeed = averageSpeed < 0f
-                                ? lastSpeed
-                                : smoothing * lastSpeed + (1f - smoothing) * averageSpeed;
-                            timeToFinish = Math.Max(1L,
-                                (long)((totalSize - totalRead) / (averageSpeed / progressUpdateRate)));
-
-                            if (!progress(totalRead, timeToFinish))
-                                break;
-                        }
-                    }
-                }
-            } while (bytesRead > 0);
-
-            if (totalRead > 0)
-                destination.Flush();
-
-            return success;
-        }
-    }
-
     public static class WebRequestExtensions
     {
         public static WebResponse GetResponseWithoutException(this WebRequest request)
@@ -95,48 +26,98 @@ namespace GitHub.Unity
         }
     }
 
-    class DownloadTask : TaskBase
+    class DownloadTask : TaskBase<string>
     {
-        private readonly IFileSystem fileSystem;
-        private long bytes;
-        private bool restarted;
+        protected readonly IFileSystem fileSystem;
 
-        public float Progress { get; set; }
-
-        public DownloadTask(CancellationToken token, IFileSystem fileSystem, string url, string destination, string validationHash = null, int retryCount = 0)
+        public DownloadTask(CancellationToken token,
+            IFileSystem fileSystem, UriString url,
+            NPath targetDirectory = null,
+            string filename = null,
+            string validationHash = null, int retryCount = 0)
             : base(token)
         {
             this.fileSystem = fileSystem;
             ValidationHash = validationHash;
             RetryCount = retryCount;
             Url = url;
-            Destination = destination;
-            Name = "DownloadTask";
+            Filename = filename ?? url.Filename;
+            TargetDirectory = targetDirectory ?? NPath.CreateTempDirectory("ghu");
+            Name = nameof(DownloadTask);
         }
 
-        protected override void Run(bool success)
+        protected string BaseRunWithReturn(bool success)
         {
-            base.Run(success);
+            return base.RunWithReturn(success);
+        }
+
+        protected override string RunWithReturn(bool success)
+        {
+            var result = base.RunWithReturn(success);
 
             RaiseOnStart();
 
-            var attempts = 0;
             try
             {
-                bool result;
-                do
+                result = RunDownload(success);
+            }
+            catch (Exception ex)
+            {
+                Errors = ex.Message;
+                if (!RaiseFaultHandlers(ex))
+                    throw;
+            }
+            finally
+            {
+                RaiseOnEnd(result);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// The actual functionality to download with optional hash verification
+        /// subclasses that wish to return the contents of the downloaded file
+        /// or do something else with it can override this instead of RunWithReturn.
+        /// If you do, you must call RaiseOnStart()/RaiseOnEnd()
+        /// </summary>
+        /// <param name="success"></param>
+        /// <returns></returns>
+        protected virtual string RunDownload(bool success)
+        {
+            Exception exception = null;
+            var attempts = 0;
+            bool result = false;
+            do
+            {
+                if (Token.IsCancellationRequested)
+                    break;
+
+                exception = null;
+
+                try
                 {
-                    Logger.Trace($"Download of {Url} Attempt {attempts + 1} of {RetryCount + 1}");
-                    result = Download();
+                    Logger.Trace($"Download of {Url} to {Destination} Attempt {attempts + 1} of {RetryCount + 1}");
+
+                    using (var destinationStream = fileSystem.OpenWrite(Destination, FileMode.Append))
+                    {
+                        result = Utils.Download(Logger, Url, destinationStream,
+                            (value, total) =>
+                            {
+                                UpdateProgress(value, total);
+                                return !Token.IsCancellationRequested;
+                            });
+                    }
+
                     if (result && ValidationHash != null)
                     {
-                        var md5 = fileSystem.CalculateFileMD5(Destination);
+                        var md5 = fileSystem.CalculateFileMD5(TargetDirectory);
                         result = md5.Equals(ValidationHash, StringComparison.CurrentCultureIgnoreCase);
 
                         if (!result)
                         {
-                            Logger.Warning($"Downloaded MD5 {md5} does not match {ValidationHash}. Deleting {Destination}.");
-                            fileSystem.FileDelete(Destination);
+                            Logger.Warning($"Downloaded MD5 {md5} does not match {ValidationHash}. Deleting {TargetDirectory}.");
+                            fileSystem.FileDelete(TargetDirectory);
                         }
                         else
                         {
@@ -144,103 +125,34 @@ namespace GitHub.Unity
                             break;
                         }
                     }
-                } while (attempts++ < RetryCount);
-
-                if (!result)
-                {
-                    throw new DownloadException("Error downloading file");
                 }
-            }
-            catch (Exception ex)
+                catch (Exception ex)
+                {
+                    exception = ex;
+                }
+            } while (attempts++ < RetryCount);
+
+            if (!result)
             {
-                Errors = ex.Message;
-                if (!RaiseFaultHandlers(new DownloadException("Error downloading file", ex)))
-                    throw;
+                Token.ThrowIfCancellationRequested();
+                throw new DownloadException("Error downloading file", exception);
             }
-            finally
-            {
-                RaiseOnEnd();
-            }
+
+            return Destination;
         }
 
-        protected virtual void UpdateProgress(float progress)
+        public override string ToString()
         {
-            Progress = progress;
+            return $"{base.ToString()} {Url}";
         }
 
-        public bool Download()
-        {
-            var fileInfo = new FileInfo(Destination);
-            if (fileSystem.FileExists(Destination))
-            {
-                var fileLength = fileSystem.FileLength(Destination);
-                if (fileLength > 0)
-                {
-                    bytes = fileInfo.Length;
-                    restarted = true;
-                }
-                else if (fileLength == 0)
-                {
-                    fileSystem.FileDelete(Destination);
-                }
-            }
+        public UriString Url { get; }
 
-            var expectingResume = restarted && bytes > 0;
+        public NPath TargetDirectory { get; }
 
-            var webRequest = (HttpWebRequest)WebRequest.Create(Url);
+        public string Filename { get; }
 
-            if (expectingResume)
-            {
-                // TODO: fix classlibs to take long overloads
-                webRequest.AddRange((int)bytes);
-            }
-
-            webRequest.Method = "GET";
-            webRequest.Timeout = 3000;
-
-            if (expectingResume)
-                Logger.Trace($"Resuming download of {Url} to {Destination}");
-            else
-                Logger.Trace($"Downloading {Url} to {Destination}");
-
-            using (var webResponse = (HttpWebResponse) webRequest.GetResponseWithoutException())
-            {
-                var httpStatusCode = webResponse.StatusCode;
-                Logger.Trace($"Downloading {Url} StatusCode:{(int)webResponse.StatusCode}");
-
-                if (expectingResume && httpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
-                {
-                    UpdateProgress(1);
-                    return true;
-                }
-
-                if (!(httpStatusCode == HttpStatusCode.OK || httpStatusCode == HttpStatusCode.PartialContent))
-                {
-                    return false;
-                }
-
-                var responseLength = webResponse.ContentLength;
-                if (expectingResume)
-                {
-                    UpdateProgress(bytes / (float)responseLength);
-                }
-
-                using (var responseStream = webResponse.GetResponseStream())
-                {
-                    using (var destinationStream = fileSystem.OpenWrite(Destination, FileMode.Append))
-                    {
-                        if (Token.IsCancellationRequested)
-                            return false;
-
-                        return Utils.Copy(responseStream, destinationStream, 8192, responseLength, null, 100);
-                    }
-                }
-            }
-        }
-
-        protected string Url { get; }
-
-        protected string Destination { get; }
+        public NPath Destination { get { return TargetDirectory?.Combine(Filename); } }
 
         public string ValidationHash { get; set; }
 
@@ -256,46 +168,33 @@ namespace GitHub.Unity
         { }
     }
 
-    class DownloadTextTask : TaskBase<string>
+    class DownloadTextTask : DownloadTask
     {
-        public float Progress { get; set; }
-
-        public DownloadTextTask(CancellationToken token, string url)
-            : base(token)
+        public DownloadTextTask(CancellationToken token,
+            IFileSystem fileSystem, UriString url,
+            NPath targetDirectory = null,
+            string filename = null,
+            int retryCount = 0)
+            : base(token, fileSystem, url, targetDirectory, filename, retryCount: retryCount)
         {
-            Url = url;
-            Name = "DownloadTask";
+            Name = nameof(DownloadTextTask);
         }
 
         protected override string RunWithReturn(bool success)
         {
-            var result = base.RunWithReturn(success);
+            var result = BaseRunWithReturn(success);
 
             RaiseOnStart();
 
             try
             {
-                Logger.Trace($"Downloading {Url}");
-                var webRequest = WebRequest.Create(Url);
-                webRequest.Method = "GET";
-                webRequest.Timeout = 3000;
-
-                using (var webResponse = (HttpWebResponse)webRequest.GetResponseWithoutException())
-                {
-                    var webResponseCharacterSet = webResponse.CharacterSet ?? Encoding.UTF8.BodyName;
-                    var encoding = Encoding.GetEncoding(webResponseCharacterSet);
-
-                    using (var responseStream = webResponse.GetResponseStream())
-                    using (var reader = new StreamReader(responseStream, encoding))
-                    {
-                        result = reader.ReadToEnd();
-                    }
-                }
+                result = RunDownload(success);
+                result = fileSystem.ReadAllText(result, Encoding.UTF8);
             }
             catch (Exception ex)
             {
                 Errors = ex.Message;
-                if (!RaiseFaultHandlers(new DownloadException("Error downloading text", ex)))
+                if (!RaiseFaultHandlers(ex))
                     throw;
             }
             finally
@@ -305,12 +204,5 @@ namespace GitHub.Unity
 
             return result;
         }
-
-        protected virtual void UpdateProgress(float progress)
-        {
-            Progress = progress;
-        }
-
-        protected string Url { get; }
     }
 }

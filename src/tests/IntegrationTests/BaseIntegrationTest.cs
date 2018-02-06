@@ -4,6 +4,8 @@ using NUnit.Framework;
 using GitHub.Unity;
 using NCrunch.Framework;
 using System.Threading;
+using NSubstitute;
+using GitHub.Logging;
 
 namespace IntegrationTests
 {
@@ -14,20 +16,36 @@ namespace IntegrationTests
         protected ILogging Logger { get; private set; }
         public IEnvironment Environment { get; set; }
         public IRepository Repository => Environment.Repository;
+        public ICacheContainer CacheContainer { get;  set; }
 
         protected TestUtils.SubstituteFactory Factory { get; set; }
         protected static NPath SolutionDirectory => TestContext.CurrentContext.TestDirectory.ToNPath();
 
-        [TestFixtureSetUp]
-        public void TestFixtureSetUp()
+        protected void InitializeEnvironment(NPath repoPath,
+            NPath environmentPath = null,
+            bool enableEnvironmentTrace = false,
+            bool initializeRepository = true
+            )
         {
-            Logger = Logging.GetLogger(GetType());
+            CacheContainer = Substitute.For<ICacheContainer>();
+            Environment = new IntegrationTestEnvironment(CacheContainer,
+                repoPath,
+                SolutionDirectory,
+                environmentPath,
+                enableEnvironmentTrace,
+                initializeRepository);
+        }
+
+        [TestFixtureSetUp]
+        public virtual void TestFixtureSetUp()
+        {
+            Logger = LogHelper.GetLogger(GetType());
             Factory = new TestUtils.SubstituteFactory();
             GitHub.Unity.Guard.InUnitTestRunner = true;
         }
 
         [TestFixtureTearDown]
-        public void TestFixtureTearDown()
+        public virtual void TestFixtureTearDown()
         {
         }
 

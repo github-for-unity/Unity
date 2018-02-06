@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using GitHub.Unity;
 using NSubstitute;
@@ -10,24 +11,48 @@ namespace IntegrationTests
     [TestFixture]
     class GitInstallerTests : BaseTaskManagerTest
     {
+        const int Timeout = 30000;
+        public override void OnSetup()
+        {
+            base.OnSetup();
+            InitializeEnvironment(TestBasePath, initializeRepository: false);
+        }
+
+        private TestWebServer.HttpServer server;
+        public override void TestFixtureSetUp()
+        {
+            base.TestFixtureSetUp();
+            server = new TestWebServer.HttpServer(SolutionDirectory.Combine("files"));
+            Task.Factory.StartNew(server.Start);
+            ApplicationConfiguration.WebTimeout = 10000;
+        }
+
+        public override void TestFixtureTearDown()
+        {
+            base.TestFixtureTearDown();
+            server.Stop();
+            ApplicationConfiguration.WebTimeout = ApplicationConfiguration.DefaultWebTimeout;
+        }
+
         [Test]
         public void GitInstallTest()
         {
-            InitializeTaskManager();
-
-            var cacheContainer = Substitute.For<ICacheContainer>();
-            Environment = new IntegrationTestEnvironment(cacheContainer, TestBasePath, SolutionDirectory, enableTrace: true);
-
             var gitInstallationPath = TestBasePath.Combine("GitInstall").CreateDirectory();
 
-            var installDetails = new GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows);
+            var installDetails = new GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows)
+                {
+                    GitZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitZipMd5Url).Filename}",
+                    GitZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitZipUrl).Filename}",
+                    GitLfsZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitLfsZipMd5Url).Filename}",
+                    GitLfsZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitLfsZipUrl).Filename}",
+                };
 
-            var zipArchivesPath = TestBasePath.Combine("ZipArchives").CreateDirectory();
+            TestBasePath.Combine("git").CreateDirectory();
 
-            var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
-            var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
+            //var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
+            //var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
             
-            var gitInstaller = new GitInstaller(Environment, CancellationToken.None, installDetails, gitArchivePath, gitLfsArchivePath);
+            var gitInstaller = new GitInstaller(Environment, CancellationToken.None, installDetails);
 
             var autoResetEvent = new AutoResetEvent(false);
 

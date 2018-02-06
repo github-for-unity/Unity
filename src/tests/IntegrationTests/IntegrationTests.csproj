@@ -103,6 +103,10 @@
       <Project>{66a1d219-f61d-4ae4-9bd7-aaeb97276fff}</Project>
       <Name>TestUtils</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TestWebServer\TestWebServer.csproj">
+      <Project>{3dd3451c-30fa-4294-a3a9-1e080342f867}</Project>
+      <Name>TestWebServer</Name>
+    </ProjectReference>
     <Reference Include="sfw.net">
       <HintPath>$(SolutionDir)\lib\sfw\sfw.net.dll</HintPath>
       <Private>True</Private>

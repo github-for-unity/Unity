@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using FluentAssertions;
 using GitHub.Unity;
 using NSubstitute;
@@ -8,6 +10,7 @@ using NUnit.Framework;
 using TestUtils;
 using TestUtils.Events;
 using System.Threading.Tasks;
+using GitHub.Logging;
 
 namespace IntegrationTests
 {
@@ -23,10 +26,38 @@ namespace IntegrationTests
             repositoryManagerEvents = new RepositoryManagerEvents();
         }
 
+        private void StartTest(out Stopwatch watch, out ILogging logger, [CallerMemberName] string testName = "test")
+        {
+            watch = new Stopwatch();
+            logger = LogHelper.GetLogger(testName);
+            logger.Trace("Starting test");
+        }
+
+        private void EndTest(ILogging logger)
+        {
+            logger.Trace("Ending test");
+        }
+
+        private void StartTrackTime(Stopwatch watch, ILogging logger, string message = "")
+        {
+            if (!String.IsNullOrEmpty(message))
+                logger.Trace(message);
+            watch.Reset();
+            watch.Start();
+        }
+
+        private void StopTrackTimeAndLog(Stopwatch watch, ILogging logger)
+        {
+            watch.Stop();
+            logger.Trace($"Time: {watch.ElapsedMilliseconds}");
+        }
+
         [Test]
         public void ShouldPerformBasicInitialize()
         {
-            Logger.Trace("Starting ShouldPerformBasicInitialize");
+            Stopwatch watch = null;
+            ILogging logger = null;
+            StartTest(out watch, out logger);
 
             try
             {
@@ -56,14 +87,16 @@ namespace IntegrationTests
             }
             finally
             {
-                Logger.Trace("Ending ShouldPerformBasicInitialize");
+                EndTest(logger);
             }
         }
 
         [Test]
         public async Task ShouldDetectFileChanges()
         {
-            Logger.Trace("Starting ShouldDetectFileChanges");
+            Stopwatch watch = null;
+            ILogging logger = null;
+            StartTest(out watch, out logger);
 
             try
             {
@@ -90,8 +123,13 @@ namespace IntegrationTests
 
                 await TaskManager.Wait();
 
+                StartTrackTime(watch, logger, "RepositoryManager.WaitForEvents()");
                 RepositoryManager.WaitForEvents();
+                StopTrackTimeAndLog(watch, logger);
+
+                StartTrackTime(watch, logger, "repositoryManagerEvents.WaitForNotBusy()");
                 repositoryManagerEvents.WaitForNotBusy();
+                StopTrackTimeAndLog(watch, logger);
 
                 repositoryManagerEvents.GitStatusUpdated.WaitOne(Timeout).Should().BeTrue();
 
@@ -106,14 +144,16 @@ namespace IntegrationTests
             }
             finally
             {
-                Logger.Trace("Ending ShouldDetectFileChanges");
+                EndTest(logger);
             }
         }
 
         [Test]
         public async Task ShouldAddAndCommitFiles()
         {
-            Logger.Trace("Starting ShouldAddAndCommitFiles");
+            Stopwatch watch = null;
+            ILogging logger = null;
+            StartTest(out watch, out logger);
 
             try
             {
@@ -184,14 +224,16 @@ namespace IntegrationTests
             }
             finally
             {
-                Logger.Trace("Ending ShouldAddAndCommitFiles");
+                EndTest(logger);
             }
         }
 
         [Test]
         public async Task ShouldAddAndCommitAllFiles()
         {
-            Logger.Trace("Starting ShouldAddAndCommitAllFiles");
+            Stopwatch watch = null;
+            ILogging logger = null;
+            StartTest(out watch, out logger);
 
             try
             {
@@ -221,8 +263,13 @@ namespace IntegrationTests
 
                 await TaskManager.Wait();
 
+                StartTrackTime(watch, logger, "RepositoryManager.WaitForEvents()");
                 RepositoryManager.WaitForEvents();
+                StopTrackTimeAndLog(watch, logger);
+
+                StartTrackTime(watch, logger, "repositoryManagerEvents.WaitForNotBusy()");
                 repositoryManagerEvents.WaitForNotBusy();
+                StopTrackTimeAndLog(watch, logger);
 
                 repositoryManagerEvents.GitStatusUpdated.WaitOne(Timeout).Should().BeTrue();
 
@@ -238,13 +285,21 @@ namespace IntegrationTests
                 repositoryManagerListener.ClearReceivedCalls();
                 repositoryManagerEvents.Reset();
 
+                StartTrackTime(watch, logger, "CommitAllFiles");
                 await RepositoryManager
                     .CommitAllFiles("IntegrationTest Commit", string.Empty)
                     .StartAsAsync();
+
+                StopTrackTimeAndLog(watch, logger);
                 await TaskManager.Wait();
 
+                StartTrackTime(watch, logger, "RepositoryManager.WaitForEvents()");
                 RepositoryManager.WaitForEvents();
+                StopTrackTimeAndLog(watch, logger);
+
+                StartTrackTime(watch, logger, "repositoryManagerEvents.WaitForNotBusy()");
                 repositoryManagerEvents.WaitForNotBusy();
+                StopTrackTimeAndLog(watch, logger);
 
                 repositoryManagerEvents.GitStatusUpdated.WaitOne(Timeout).Should().BeTrue();
                 repositoryManagerEvents.GitStatusUpdated.WaitOne(Timeout).Should().BeTrue();
@@ -262,14 +317,16 @@ namespace IntegrationTests
             }
             finally
             {
-                Logger.Trace("Ending ShouldAddAndCommitAllFiles");
+                EndTest(logger);
             }
         }
 
         [Test]
         public async Task ShouldDetectBranchChange()
         {
-            Logger.Trace("Starting ShouldDetectBranchChange");
+            Stopwatch watch = null;
+            ILogging logger = null;
+            StartTest(out watch, out logger);
 
             try
             {
@@ -312,14 +369,16 @@ namespace IntegrationTests
             }
             finally
             {
-                Logger.Trace("Ending ShouldDetectBranchChange");
+                EndTest(logger);
             }
         }
 
         [Test]
         public async Task ShouldDetectBranchDelete()
         {
-            Logger.Trace("Starting ShouldDetectBranchDelete");
+            Stopwatch watch = null;
+            ILogging logger = null;
+            StartTest(out watch, out logger);
 
             try
             {
@@ -364,14 +423,16 @@ namespace IntegrationTests
             }
             finally
             {
-                Logger.Trace("Ending ShouldDetectBranchDelete");
+                EndTest(logger);
             }
         }
 
         [Test]
         public async Task ShouldDetectBranchCreate()
         {
-            Logger.Trace("Starting ShouldDetectBranchCreate");
+            Stopwatch watch = null;
+            ILogging logger = null;
+            StartTest(out watch, out logger);
 
             try
             {
@@ -433,14 +494,16 @@ namespace IntegrationTests
             }
             finally
             {
-                Logger.Trace("Ending ShouldDetectBranchCreate");
+                EndTest(logger);
             }
         }
 
         [Test]
         public async Task ShouldDetectChangesToRemotes()
         {
-            Logger.Trace("Starting ShouldDetectChangesToRemotes");
+            Stopwatch watch = null;
+            ILogging logger = null;
+            StartTest(out watch, out logger);
 
             try
             {
@@ -509,14 +572,16 @@ namespace IntegrationTests
             }
             finally
             {
-                Logger.Trace("Ending ShouldDetectChangesToRemotes");
+                EndTest(logger);
             }
         }
 
         [Test]
         public async Task ShouldDetectChangesToRemotesWhenSwitchingBranches()
         {
-            Logger.Trace("Starting ShouldDetectChangesToRemotesWhenSwitchingBranches");
+            Stopwatch watch = null;
+            ILogging logger = null;
+            StartTest(out watch, out logger);
 
             try
             {
@@ -585,14 +650,16 @@ namespace IntegrationTests
             }
             finally
             {
-                Logger.Trace("Ending ShouldDetectChangesToRemotesWhenSwitchingBranches");
+                EndTest(logger);
             }
         }
 
         [Test]
         public async Task ShouldDetectGitPull()
         {
-            Logger.Trace("Starting ShouldDetectGitPull");
+            Stopwatch watch = null;
+            ILogging logger = null;
+            StartTest(out watch, out logger);
 
             try
             {
@@ -634,14 +701,16 @@ namespace IntegrationTests
             }
             finally
             {
-                Logger.Trace("Ending ShouldDetectGitPull");
+                EndTest(logger);
             }
         }
 
         [Test]
         public async Task ShouldDetectGitFetch()
         {
-            Logger.Trace("Starting ShouldDetectGitFetch");
+            Stopwatch watch = null;
+            ILogging logger = null;
+            StartTest(out watch, out logger);
 
             try
             {
@@ -684,7 +753,7 @@ namespace IntegrationTests
             }
             finally
             {
-                Logger.Trace("Ending ShouldDetectGitFetch");
+                EndTest(logger);
             }
         }
     }

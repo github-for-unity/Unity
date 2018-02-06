@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Octokit;
+using GitHub.Logging;
 
 namespace GitHub.Unity
 {
@@ -22,7 +23,7 @@ namespace GitHub.Unity
     {
         const string ConnectionFile = "connections.json";
 
-        private readonly ILogging logger = Logging.GetLogger<Keychain>();
+        private readonly ILogging logger = LogHelper.GetLogger<Keychain>();
 
         private readonly ICredentialManager credentialManager;
         private readonly NPath cachePath;

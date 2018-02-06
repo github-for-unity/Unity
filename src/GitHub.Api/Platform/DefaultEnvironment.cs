@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.IO;
 using System.Linq;
@@ -189,6 +190,6 @@ namespace GitHub.Unity
             set { onMac = value; }
         }
         public string ExecutableExtension { get { return IsWindows ? ".exe" : null; } }
-        protected static ILogging Logger { get; } = Logging.GetLogger<DefaultEnvironment>();
+        protected static ILogging Logger { get; } = LogHelper.GetLogger<DefaultEnvironment>();
     }
 }

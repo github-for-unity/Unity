@@ -1,4 +1,4 @@
-namespace GitHub.Unity
+namespace GitHub.Logging
 {
     class MultipleLogAdapter : LogAdapterBase
     {

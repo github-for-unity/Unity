@@ -1,6 +1,6 @@
 using System;
 
-namespace GitHub.Unity
+namespace GitHub.Logging
 {
     class LogFacade : ILogging
     {
@@ -13,20 +13,20 @@ namespace GitHub.Unity
 
         public void Info(string message)
         {
-            Logging.LogAdapter.Info(context, message);
+            LogHelper.LogAdapter.Info(context, message);
         }
 
         public void Debug(string message)
         {
 #if DEBUG
-            Logging.LogAdapter.Debug(context, message);
+            LogHelper.LogAdapter.Debug(context, message);
 #endif
         }
 
         public void Trace(string message)
         {
-            if (!Logging.TracingEnabled) return;
-            Logging.LogAdapter.Trace(context, message);
+            if (!LogHelper.TracingEnabled) return;
+            LogHelper.LogAdapter.Trace(context, message);
         }
 
         public void Info(string format, params object[] objects)
@@ -79,35 +79,35 @@ namespace GitHub.Unity
 
         public void Trace(string format, params object[] objects)
         {
-            if (!Logging.TracingEnabled) return;
+            if (!LogHelper.TracingEnabled) return;
 
             Trace(String.Format(format, objects));
         }
 
         public void Trace(Exception ex, string message)
         {
-            if (!Logging.TracingEnabled) return;
+            if (!LogHelper.TracingEnabled) return;
 
             Trace(String.Concat(message, Environment.NewLine, ex.GetExceptionMessage()));
         }
 
         public void Trace(Exception ex)
         {
-            if (!Logging.TracingEnabled) return;
+            if (!LogHelper.TracingEnabled) return;
 
             Trace(ex, string.Empty);
         }
 
         public void Trace(Exception ex, string format, params object[] objects)
         {
-            if (!Logging.TracingEnabled) return;
+            if (!LogHelper.TracingEnabled) return;
 
             Trace(ex, String.Format(format, objects));
         }
 
         public void Warning(string message)
         {
-            Logging.LogAdapter.Warning(context, message);
+            LogHelper.LogAdapter.Warning(context, message);
         }
 
         public void Warning(string format, params object[] objects)
@@ -132,7 +132,7 @@ namespace GitHub.Unity
 
         public void Error(string message)
         {
-            Logging.LogAdapter.Error(context, message);
+            LogHelper.LogAdapter.Error(context, message);
         }
 
         public void Error(string format, params object[] objects)

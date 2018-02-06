@@ -72,22 +72,42 @@ namespace GitHub.Unity
         protected Action<bool, T> Callback { get; }
         protected Action<bool, Exception, T> CallbackWithException { get; }
 
-        public ActionTask(CancellationToken token, Action<bool, T> action)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="action"></param>
+        /// <param name="getPreviousResult">Method to call that returns the value that this task is going to work with. You can also use the PreviousResult property to set this value</param>
+        public ActionTask(CancellationToken token, Action<bool, T> action, Func<T> getPreviousResult = null)
             : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.Callback = action;
-            Task = new Task(() => Run(DependsOn.Successful, DependsOn.Successful ? ((ITask<T>)DependsOn).Result : default(T)),
+            Task = new Task(() => Run(DependsOn?.Successful ?? true,
+                // if this task depends on another task and the dependent task was successful, use the value of that other task as input to this task
+                // otherwise if there's a method to retrieve the value, call that
+                // otherwise use the PreviousResult property
+                (DependsOn?.Successful ?? false) ? ((ITask<T>)DependsOn).Result : getPreviousResult != null ? getPreviousResult() : PreviousResult),
                 Token, TaskCreationOptions.None);
             Name = $"ActionTask<{typeof(T)}>";
         }
 
-        public ActionTask(CancellationToken token, Action<bool, Exception, T> action)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="action"></param>
+        /// <param name="getPreviousResult">Method to call that returns the value that this task is going to work with. You can also use the PreviousResult property to set this value</param>
+        public ActionTask(CancellationToken token, Action<bool, Exception, T> action, Func<T> getPreviousResult = null)
             : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.CallbackWithException = action;
-            Task = new Task(() => Run(DependsOn.Successful, DependsOn.Successful ? ((ITask<T>)DependsOn).Result : default(T)),
+            Task = new Task(() => Run(DependsOn?.Successful ?? true,
+                // if this task depends on another task and the dependent task was successful, use the value of that other task as input to this task
+                // otherwise if there's a method to retrieve the value, call that
+                // otherwise use the PreviousResult property
+                (DependsOn?.Successful ?? false) ? ((ITask<T>)DependsOn).Result : getPreviousResult != null ? getPreviousResult() : PreviousResult),
                 Token, TaskCreationOptions.None);
             Name = $"ActionTask<Exception, {typeof(T)}>";
         }
@@ -124,6 +144,8 @@ namespace GitHub.Unity
                 RaiseOnEnd();
             }
         }
+
+        public T PreviousResult { get; set; } = default(T);
     }
 
     class FuncTask<T> : TaskBase<T>

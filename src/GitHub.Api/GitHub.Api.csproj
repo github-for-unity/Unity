@@ -98,7 +98,7 @@
   <ItemGroup>
     <Compile Include="Application\ApplicationInfo.cs" />
     <Compile Include="Application\LoginResult.cs" />
-    <Compile Include="Application\AppConfiguration.cs" />
+    <Compile Include="Application\ApplicationConfiguration.cs" />
     <Compile Include="Application\OctokitExtensions.cs" />
     <Compile Include="Application\Organization.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
@@ -149,7 +149,7 @@
     <Compile Include="Tasks\TaskExtensions.cs" />
     <Compile Include="Tasks\TaskManager.cs" />
     <Compile Include="Platform\FindExecTask.cs" />
-    <Compile Include="Helpers\ProgressReport.cs" />
+    <Compile Include="Helpers\Progress.cs" />
     <Compile Include="Metrics\IMetricsService.cs" />
     <Compile Include="Metrics\IUsageTracker.cs" />
     <Compile Include="Metrics\UsageModel.cs" />
@@ -157,6 +157,7 @@
     <Compile Include="Git\Tasks\GitLfsInstallTask.cs" />
     <Compile Include="Git\Tasks\GitRemoteChangeTask.cs" />
     <Compile Include="Git\Tasks\GitRemoveFromIndexTask.cs" />
+    <Compile Include="IO\Utils.cs" />
     <Compile Include="Threading\IMainThreadSynchronizationContext.cs" />
     <Compile Include="Installer\IZipHelper.cs" />
     <Compile Include="Installer\ZipHelper.cs" />

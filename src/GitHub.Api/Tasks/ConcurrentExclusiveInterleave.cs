@@ -399,7 +399,7 @@ namespace GitHub.Unity
                 //}
                 //catch(Exception ex)
                 //{
-                //    Logging.Error(ex);
+                //    LogHelper.Error(ex);
                 //    throw;
                 //}
 
