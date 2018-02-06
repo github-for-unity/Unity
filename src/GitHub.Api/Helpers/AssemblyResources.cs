@@ -25,7 +25,7 @@ namespace GitHub.Unity
                 : resourceType == ResourceType.Platform ? "PlatformResources"
                 : "Resources";
             var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
-                                     String.Format("GitHub.Unity.{0}{1}.{2}", type, os != "" ? "." + os : os, resource));
+                                     String.Format("GitHub.Unity.{0}{1}.{2}", type, !string.IsNullOrEmpty(os) ? "." + os : os, resource));
             if (stream != null)
                 return destinationPath.Combine(resource).WriteAllBytes(stream.ToByteArray());
 

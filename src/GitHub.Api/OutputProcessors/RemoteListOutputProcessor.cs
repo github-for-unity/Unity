@@ -56,10 +56,10 @@ namespace GitHub.Unity
 
         private void ReturnRemote()
         {
-            var modes = currentModes.Select(s => s.ToLowerInvariant()).ToArray();
+            var modes = currentModes.Select(s => s.ToUpperInvariant()).ToArray();
 
-            var isFetch = modes.Contains("fetch");
-            var isPush = modes.Contains("push");
+            var isFetch = modes.Contains("FETCH");
+            var isPush = modes.Contains("PUSH");
 
             GitRemoteFunction remoteFunction;
             if (isFetch && isPush)

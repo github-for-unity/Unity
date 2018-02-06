@@ -490,7 +490,7 @@ namespace GitHub.Unity
                 case SubTab.Settings:
                     return settingsView;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException("tab");
             }
         }
 
