@@ -213,14 +213,17 @@ namespace GitHub.Unity
             return continuationOnAlways;
         }
 
+        /// <summary>
+        /// This does not set a dependency between the two tasks. Instead,
+        /// the Start method grabs the state of the previous task to pass on
+        /// to the next task via previousSuccess and previousException
+        /// </summary>
+        /// <param name="handler"></param>
         internal void SetFaultHandler(TaskBase handler)
         {
-            if (Task.Status == TaskStatus.Created)
-                this.continuationOnFailure = handler;
-            else
-                Task.ContinueWith(t => handler.Start(t), Token,
-                    TaskContinuationOptions.OnlyOnFaulted,
-                    TaskManager.GetScheduler(handler.Affinity));
+            Task.ContinueWith(t => handler.Start(t), Token,
+                TaskContinuationOptions.OnlyOnFaulted,
+                TaskManager.GetScheduler(handler.Affinity));
             DependsOn?.SetFaultHandler(handler);
         }
 
@@ -260,6 +263,11 @@ namespace GitHub.Unity
             }
         }
 
+        /// <summary>
+        /// Call this to run a task after another task is done, without
+        /// having them depend on each other
+        /// </summary>
+        /// <param name="task"></param>
         protected void Start(Task task)
         {
             previousSuccess = task.Status == TaskStatus.RanToCompletion && task.Status != TaskStatus.Faulted;
@@ -363,6 +371,11 @@ namespace GitHub.Unity
             if (continuationOnSuccess == null && continuationOnFailure == null && continuationOnAlways == null)
                 finallyHandler?.Invoke();
             //Logger.Trace($"Finished {ToString()}");
+        }
+
+        protected void CallFinallyHandler()
+        {
+            finallyHandler?.Invoke();
         }
 
         protected virtual bool RaiseFaultHandlers(Exception ex)
@@ -565,7 +578,10 @@ namespace GitHub.Unity
         {
             OnEnd?.Invoke(this, result);
             if (continuationOnSuccess == null && continuationOnFailure == null && continuationOnAlways == null)
+            {
                 finallyHandler?.Invoke(result);
+                CallFinallyHandler();
+            }
             //Logger.Trace($"Finished {ToString()} {result}");
         }
 
