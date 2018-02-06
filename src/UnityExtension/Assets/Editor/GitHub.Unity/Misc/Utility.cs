@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.IO;
 using System.Linq;
@@ -93,7 +94,7 @@ namespace GitHub.Unity
 
             if (loadImage == null)
             {
-                Logging.Error("Could not find ImageConversion.LoadImage method");
+                LogHelper.Error("Could not find ImageConversion.LoadImage method");
             }
         }
 

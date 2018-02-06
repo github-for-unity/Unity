@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -12,7 +13,7 @@ namespace GitHub.Unity
 
         public ProcessEnvironment(IEnvironment environment)
         {
-            Logger = Logging.GetLogger(GetType());
+            Logger = LogHelper.GetLogger(GetType());
             Environment = environment;
         }
 

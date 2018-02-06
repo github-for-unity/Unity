@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -141,7 +142,7 @@ namespace GitHub.Unity
         protected ManagedCacheBase(bool invalidOnFirstRun)
         {
             this.invalidOnFirstRun = invalidOnFirstRun;
-            Logger = Logging.GetLogger(GetType());
+            Logger = LogHelper.GetLogger(GetType());
         }
 
         public void ValidateData()

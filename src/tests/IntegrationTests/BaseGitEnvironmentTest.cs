@@ -2,18 +2,17 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using GitHub.Unity;
 
 namespace IntegrationTests
 {
     class BaseGitEnvironmentTest : BasePlatformIntegrationTest
     {
-        protected async Task<IEnvironment> Initialize(NPath repoPath, NPath environmentPath = null,
+        protected IEnvironment Initialize(NPath repoPath, NPath environmentPath = null,
             bool enableEnvironmentTrace = false, bool initializeRepository = true,
             Action<RepositoryManager> onRepositoryManagerCreated = null)
         {
-            await InitializePlatform(repoPath, environmentPath, enableEnvironmentTrace);
+            InitializePlatform(repoPath, environmentPath, enableEnvironmentTrace);
 
             var repositoryManager =
                 GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
@@ -57,7 +56,7 @@ namespace IntegrationTests
             TestRepoMasterTwoRemotes = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_two_remotes");
 
             Logger.Trace("Extracting Zip File to {0}", TestBasePath);
-            ZipHelper.ExtractZipFile(TestZipFilePath, TestBasePath.ToString(), CancellationToken.None);
+            ZipHelper.ExtractZipFile(TestZipFilePath, TestBasePath.ToString(), TaskManager.Token);
             Logger.Trace("Extracted Zip File");
         }
 

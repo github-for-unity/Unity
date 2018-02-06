@@ -8,6 +8,7 @@ using GitHub.Unity;
 using System.Threading.Tasks.Schedulers;
 using System.IO;
 using NSubstitute;
+using GitHub.Logging;
 
 namespace IntegrationTests
 {
@@ -15,7 +16,7 @@ namespace IntegrationTests
     {
         public BaseTest()
         {
-            Logger = Logging.GetLogger(GetType());
+            Logger = LogHelper.GetLogger(GetType());
         }
 
         protected ILogging Logger { get; }
@@ -30,8 +31,8 @@ namespace IntegrationTests
         public void OneTimeSetup()
         {
             GitHub.Unity.Guard.InUnitTestRunner = true;
-            Logging.LogAdapter = new MultipleLogAdapter(new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-tasksystem-tests.log"));
-            //Logging.TracingEnabled = true;
+            LogHelper.LogAdapter = new MultipleLogAdapter(new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-tasksystem-tests.log"));
+            //LogHelper.TracingEnabled = true;
             TaskManager = new TaskManager();
             var syncContext = new ThreadSynchronizationContext(Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(syncContext);
@@ -664,6 +665,25 @@ namespace IntegrationTests
             var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
                 .Catch(_ => { });
             await task.StartAwait(_ => { });
+        }
+
+        [Test]
+        public async Task TaskOnFailureGetsCalledWhenExceptionHappensUpTheChain()
+        {
+            var runOrder = new List<string>();
+            var exceptions = new List<Exception>();
+            var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
+                .Then(_ => { runOrder.Add("1"); })
+                .Catch(ex => exceptions.Add(ex))
+                .Then(() => runOrder.Add("OnFailure"), TaskRunOptions.OnFailure)
+                .Finally((s, e) => { });
+            await task.StartAndSwallowException();
+            CollectionAssert.AreEqual(
+                new string[] { typeof(InvalidOperationException).Name },
+                exceptions.Select(x => x.GetType().Name).ToArray());
+            CollectionAssert.AreEqual(
+                new string[] { "OnFailure" },
+                runOrder);
         }
     }
 

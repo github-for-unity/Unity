@@ -8,6 +8,21 @@ namespace GitHub.Unity
 {
     class ZipHelper : IZipHelper
     {
+        private static IZipHelper instance;
+
+        public static IZipHelper Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    instance = new ZipHelper();
+                }
+
+                return instance;
+            }
+        }
+
         public static bool Copy(Stream source, Stream destination, int chunkSize, long totalSize,
             Func<long, long, bool> progress, int progressUpdateRate)
         {

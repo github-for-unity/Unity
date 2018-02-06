@@ -2,14 +2,14 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Octokit;
 using System.Collections.Generic;
+using GitHub.Logging;
 
 namespace GitHub.Unity
 {
     abstract class ApplicationManagerBase : IApplicationManager
     {
-        protected static ILogging Logger { get; } = Logging.GetLogger<IApplicationManager>();
+        protected static ILogging Logger { get; } = LogHelper.GetLogger<IApplicationManager>();
 
         private RepositoryManager repositoryManager;
 
@@ -36,49 +36,49 @@ namespace GitHub.Unity
             LocalSettings.Initialize();
             SystemSettings.Initialize();
 
-            Logging.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
+            LogHelper.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
-            GitClient = new GitClient(Environment, ProcessManager, TaskManager);
+            GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
             SetupMetrics();
         }
 
         public void Run(bool firstRun)
         {
-            new ActionTask(SetupGit())
-                .Then(RestartRepository)
-                .ThenInUI(InitializeUI)
-                .Start();
-        }
-
-        private async Task SetupGit()
-        {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
-            if (Environment.GitExecutablePath == null)
+            var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();            
+            if (gitExecutablePath != null && gitExecutablePath.FileExists()) // we have a git path
             {
-                Environment.GitExecutablePath = await DetermineGitExecutablePath();
-
-                Logger.Trace("Environment.GitExecutablePath \"{0}\" Exists:{1}", Environment.GitExecutablePath, Environment.GitExecutablePath.FileExists());
-
-                if (Environment.IsWindows)
-                {
-                    var credentialHelper = await GitClient.GetConfig("credential.helper", GitConfigSource.Global).StartAwait();
-
-                    if (!string.IsNullOrEmpty(credentialHelper))
-                    {
-                        Logger.Trace("Windows CredentialHelper: {0}", credentialHelper);
-                    }
-                    else
-                    {
-                        Logger.Warning("No Windows CredentialHeloper found: Setting to wincred");
-
-                        await GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global).StartAwait();
-                    }
-                }
+                Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
+                InitializeEnvironment(gitExecutablePath);
             }
+            else // we need to go find git
+            {
+                Logger.Trace("No git path found in settings");
 
-            Environment.User.Initialize(GitClient);
+                var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (b, path) => InitializeEnvironment(path)) { Affinity = TaskAffinity.UI };
+                var findExecTask = new FindExecTask("git", CancellationToken)
+                    .FinallyInUI((b, ex, path) => {
+                        if (b && path != null)
+                        {
+                            Logger.Trace("FindExecTask Success: {0}", path);
+                            InitializeEnvironment(gitExecutablePath);
+                        }
+                        else
+                        {
+                            Logger.Warning("FindExecTask Failure");
+                            Logger.Error("Git not found");
+                        }
+                    });
+
+                var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
+                var installDetails = new GitInstallDetails(applicationDataPath, true);
+                var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
+
+                // if successful, continue with environment initialization, otherwise try to find an existing git installation
+                gitInstaller.SetupGitIfNeeded(initEnvironmentTask, findExecTask);
+            }
         }
 
         public ITask InitializeRepository()
@@ -136,27 +136,6 @@ namespace GitHub.Unity
             }
         }
 
-        private async Task<NPath> DetermineGitExecutablePath(ProgressReport progress = null)
-        {
-            var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();
-            if (gitExecutablePath != null && gitExecutablePath.FileExists())
-            {
-                Logger.Trace("Using git install path from settings");
-                return gitExecutablePath;
-            }
-
-            var gitInstaller = new GitInstaller(Environment, CancellationToken);
-            var setupDone = await gitInstaller.SetupIfNeeded(progress?.Percentage, progress?.Remaining);
-            if (setupDone)
-            {
-                Logger.Trace("Setup performed using new path");
-                return gitInstaller.GitExecutablePath;
-            }
-
-            Logger.Trace("Finding git install path");
-            return await GitClient.FindGitInstallation().SafeAwait();
-        }
-
         protected void SetupMetrics(string unityVersion, bool firstRun)
         {
             Logger.Trace("Setup metrics");
@@ -186,6 +165,45 @@ namespace GitHub.Unity
         protected abstract void SetupMetrics();
         protected abstract void InitializeUI();
         protected abstract void SetProjectToTextSerialization();
+
+        /// <summary>
+        /// Initialize environment after finding where git is. This needs to run on the main thread
+        /// </summary>
+        /// <param name="gitExecutablePath"></param>
+        private void InitializeEnvironment(NPath gitExecutablePath)
+        {
+            var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
+                .ThenInUI(InitializeUI);
+
+            Environment.GitExecutablePath = gitExecutablePath;
+            Environment.User.Initialize(GitClient);
+
+            if (Environment.IsWindows)
+            {
+                GitClient
+                    .GetConfig("credential.helper", GitConfigSource.Global)
+                    .Then((b, credentialHelper) => {
+                        if (!string.IsNullOrEmpty(credentialHelper))
+                        {
+                            Logger.Trace("Windows CredentialHelper: {0}", credentialHelper);
+                            afterGitSetup.Start();
+                        }
+                        else
+                        {
+                            Logger.Warning("No Windows CredentialHeloper found: Setting to wincred");
+
+                            GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global)
+                                .Then(afterGitSetup)
+                                .Start();
+                        }
+                    })
+                    .Start();
+            }
+            else
+            {
+                afterGitSetup.Start();
+            }
+        }
 
         private bool disposed = false;
         protected virtual void Dispose(bool disposing)

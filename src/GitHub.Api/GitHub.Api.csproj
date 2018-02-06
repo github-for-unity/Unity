@@ -95,7 +95,7 @@
   <ItemGroup>
     <Compile Include="Application\ApplicationInfo.cs" />
     <Compile Include="Application\LoginResult.cs" />
-    <Compile Include="Application\AppConfiguration.cs" />
+    <Compile Include="Application\ApplicationConfiguration.cs" />
     <Compile Include="Application\OctokitExtensions.cs" />
     <Compile Include="Application\Organization.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
@@ -115,6 +115,8 @@
     <Compile Include="Application\ApplicationManagerBase.cs" />
     <Compile Include="Helpers\Constants.cs" />
     <Compile Include="Helpers\Validation.cs" />
+    <Compile Include="Installer\GitInstaller.cs" />
+    <Compile Include="Installer\UnzipTask.cs" />
     <Compile Include="OutputProcessors\GitAheadBehindStatusOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
     <Compile Include="OutputProcessors\VersionOutputProcessor.cs" />
@@ -137,6 +139,7 @@
     <Compile Include="Tasks\BaseOutputProcessor.cs" />
     <Compile Include="Tasks\ConcurrentExclusiveInterleave.cs" />
     <Compile Include="Tasks\ConfigOutputProcessor.cs" />
+    <Compile Include="Tasks\DownloadTask.cs" />
     <Compile Include="Tasks\ITaskManager.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskBase.cs" />
@@ -144,7 +147,7 @@
     <Compile Include="Tasks\TaskExtensions.cs" />
     <Compile Include="Tasks\TaskManager.cs" />
     <Compile Include="Platform\FindExecTask.cs" />
-    <Compile Include="Helpers\ProgressReport.cs" />
+    <Compile Include="Helpers\Progress.cs" />
     <Compile Include="Metrics\IMetricsService.cs" />
     <Compile Include="Metrics\IUsageTracker.cs" />
     <Compile Include="Metrics\UsageModel.cs" />
@@ -152,10 +155,9 @@
     <Compile Include="Git\Tasks\GitLfsInstallTask.cs" />
     <Compile Include="Git\Tasks\GitRemoteChangeTask.cs" />
     <Compile Include="Git\Tasks\GitRemoveFromIndexTask.cs" />
+    <Compile Include="IO\Utils.cs" />
     <Compile Include="Threading\IMainThreadSynchronizationContext.cs" />
-    <Compile Include="Installer\IGitInstaller.cs" />
     <Compile Include="Installer\IZipHelper.cs" />
-    <Compile Include="Installer\GitInstaller.cs" />
     <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
     <Compile Include="Platform\Settings.cs" />

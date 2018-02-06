@@ -930,6 +930,12 @@ GitHub.Unity
             return this;
         }
 
+        public byte[] ReadAllBytes()
+        {
+            ThrowIfRelative();
+            return FileSystem.ReadAllBytes(ToString());
+        }
+
         public string ReadAllText()
         {
             ThrowIfRelative();

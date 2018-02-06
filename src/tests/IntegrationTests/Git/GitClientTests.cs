@@ -10,9 +10,9 @@ namespace IntegrationTests
     class GitClientTests : BaseGitEnvironmentTest
     {
         [Test]
-        public async Task ShouldGetGitVersion()
+        public void ShouldGetGitVersion()
         {
-            await Initialize(TestRepoMasterCleanSynchronized);
+            Initialize(TestRepoMasterCleanSynchronized);
 
             var version = GitClient.Version();
             version.Start().Wait();
@@ -29,9 +29,9 @@ namespace IntegrationTests
         }
 
         [Test]
-        public async Task ShouldGetGitLfsVersion()
+        public void ShouldGetGitLfsVersion()
         {
-            await Initialize(TestRepoMasterCleanSynchronized);
+            Initialize(TestRepoMasterCleanSynchronized);
 
             var version = GitClient.LfsVersion();
             version.Start().Wait();

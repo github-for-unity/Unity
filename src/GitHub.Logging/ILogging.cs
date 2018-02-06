@@ -1,6 +1,6 @@
 using System;
 
-namespace GitHub.Unity
+namespace GitHub.Logging
 {
     public interface ILogging
     {

@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,7 +34,7 @@ namespace GitHub.Unity
 
         public JsonBackedSettings()
         {
-            logger = Logging.GetLogger(GetType());
+            logger = LogHelper.GetLogger(GetType());
             fileExists = (path) => File.Exists(path);
             readAllText = (path, encoding) => File.ReadAllText(path, encoding);
             writeAllText = (path, content) => File.WriteAllText(path, content);

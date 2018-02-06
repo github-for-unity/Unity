@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,7 +7,7 @@ namespace GitHub.Unity
 {
     class TaskManager : ITaskManager
     {
-        private static readonly ILogging logger = Logging.GetLogger<TaskManager>();
+        private static readonly ILogging logger = LogHelper.GetLogger<TaskManager>();
 
         private CancellationTokenSource cts;
         private readonly ConcurrentExclusiveInterleave manager;

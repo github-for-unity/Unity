@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -6,7 +7,7 @@ namespace GitHub.Unity
 {
     class GitCredentialManager : ICredentialManager
     {
-        private static ILogging Logger { get; } = Logging.GetLogger<GitCredentialManager>();
+        private static ILogging Logger { get; } = LogHelper.GetLogger<GitCredentialManager>();
 
         private ICredential credential;
         private string credHelper = null;

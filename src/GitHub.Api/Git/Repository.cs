@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GitHub.Logging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -382,7 +383,7 @@ namespace GitHub.Unity
 
         private void RepositoryManagerOnCurrentBranchUpdated(ConfigBranch? branch, ConfigRemote? remote)
         {
-            new ActionTask(CancellationToken.None, () => {
+            new ActionTask(TaskManager.Instance.Token, () => {
                 if (!Nullable.Equals(CurrentConfigBranch, branch))
                 {
                     var currentBranch = branch != null ? (GitBranch?)GetLocalGitBranch(branch.Value) : null;
@@ -403,7 +404,7 @@ namespace GitHub.Unity
 
         private void RepositoryManagerOnGitStatusUpdated(GitStatus gitStatus)
         {
-            new ActionTask(CancellationToken.None, () => {
+            new ActionTask(TaskManager.Instance.Token, () => {
                 CurrentChanges = gitStatus.Entries;
                 CurrentAhead = gitStatus.Ahead;
                 CurrentBehind = gitStatus.Behind;
@@ -412,7 +413,7 @@ namespace GitHub.Unity
 
         private void RepositoryManagerOnGitAheadBehindStatusUpdated(GitAheadBehindStatus aheadBehindStatus)
         {
-            new ActionTask(CancellationToken.None, () => {
+            new ActionTask(TaskManager.Instance.Token, () => {
                 CurrentAhead = aheadBehindStatus.Ahead;
                 CurrentBehind = aheadBehindStatus.Behind;
             }) { Affinity = TaskAffinity.UI }.Start();
@@ -420,14 +421,14 @@ namespace GitHub.Unity
 
         private void RepositoryManagerOnGitLogUpdated(List<GitLogEntry> gitLogEntries)
         {
-            new ActionTask(CancellationToken.None, () => {
+            new ActionTask(TaskManager.Instance.Token, () => {
                 CurrentLog = gitLogEntries;
             }) { Affinity = TaskAffinity.UI }.Start();
         }
 
         private void RepositoryManagerOnGitLocksUpdated(List<GitLock> gitLocks)
         {
-            new ActionTask(CancellationToken.None, () => {
+            new ActionTask(TaskManager.Instance.Token, () => {
                     CurrentLocks = gitLocks;
                 })
                 { Affinity = TaskAffinity.UI }.Start();
@@ -436,7 +437,7 @@ namespace GitHub.Unity
         private void RepositoryManagerOnRemoteBranchesUpdated(Dictionary<string, ConfigRemote> remotes,
             Dictionary<string, Dictionary<string, ConfigBranch>> branches)
         {
-            new ActionTask(CancellationToken.None, () => {
+            new ActionTask(TaskManager.Instance.Token, () => {
                 cacheContainer.BranchCache.SetRemotes(remotes, branches);
                 Remotes = ConfigRemotes.Values.Select(GetGitRemote).ToArray();
                 RemoteBranches = RemoteConfigBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch).ToArray();
@@ -445,7 +446,7 @@ namespace GitHub.Unity
 
         private void RepositoryManagerOnLocalBranchesUpdated(Dictionary<string, ConfigBranch> branches)
         {
-            new ActionTask(CancellationToken.None, () => {
+            new ActionTask(TaskManager.Instance.Token, () => {
                 cacheContainer.BranchCache.SetLocals(branches);
                 UpdateLocalBranches();
             }) { Affinity = TaskAffinity.UI }.Start();
@@ -625,7 +626,7 @@ namespace GitHub.Unity
             "{0} Owner: {1} Name: {2} CloneUrl: {3} LocalPath: {4} Branch: {5} Remote: {6}", GetHashCode(), Owner, Name,
             CloneUrl, LocalPath, CurrentBranch, CurrentRemote);
 
-        protected static ILogging Logger { get; } = Logging.GetLogger<Repository>();
+        protected static ILogging Logger { get; } = LogHelper.GetLogger<Repository>();
     }
 
     public interface IUser
@@ -750,7 +751,7 @@ namespace GitHub.Unity
                      }).Start();
         }
         
-        protected static ILogging Logger { get; } = Logging.GetLogger<User>();
+        protected static ILogging Logger { get; } = LogHelper.GetLogger<User>();
     }
 
     [Serializable]

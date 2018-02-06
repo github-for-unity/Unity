@@ -1,6 +1,7 @@
 using System;
 using GitHub.Unity;
 using NUnit.Framework;
+using GitHub.Logging;
 
 namespace IntegrationTests
 {
@@ -10,9 +11,9 @@ namespace IntegrationTests
         [SetUp]
         public void Setup()
         {
-            Logging.TracingEnabled = true;
+            LogHelper.TracingEnabled = true;
 
-            Logging.LogAdapter = new MultipleLogAdapter(
+            LogHelper.LogAdapter = new MultipleLogAdapter(
                 new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-integration-tests.log")
                 //, new ConsoleLogAdapter()
             );

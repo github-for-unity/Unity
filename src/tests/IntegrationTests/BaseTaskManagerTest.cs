@@ -8,6 +8,12 @@ namespace IntegrationTests
         protected ITaskManager TaskManager { get; private set; }
         protected SynchronizationContext SyncContext { get; set; }
 
+        public override void OnSetup()
+        {
+            base.OnSetup();
+            InitializeTaskManager();
+        }
+
         protected void InitializeTaskManager()
         {
             TaskManager = new TaskManager();

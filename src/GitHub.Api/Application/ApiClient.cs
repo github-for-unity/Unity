@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Octokit;
+using GitHub.Logging;
 using System.Runtime.Serialization;
 
 namespace GitHub.Unity
@@ -17,10 +18,10 @@ namespace GitHub.Unity
             var hostAddress = HostAddress.Create(repositoryUrl);
 
             return new ApiClient(repositoryUrl, keychain,
-                new GitHubClient(AppConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri));
+                new GitHubClient(ApplicationConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri));
         }
 
-        private static readonly ILogging logger = Logging.GetLogger<ApiClient>();
+        private static readonly ILogging logger = LogHelper.GetLogger<ApiClient>();
         public HostAddress HostAddress { get; }
         public UriString OriginalUrl { get; }
 
