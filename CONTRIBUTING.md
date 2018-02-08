@@ -127,6 +127,10 @@ and provide the following information:
   GIFs on macOS and Windows.
 * **List some other applications where this enhancement exists, if applicable.**
 
+**Code Styleguide**
+* Do follow the .editorconfig file regarding maintaining of code style (It's mandatory).
+* For more information regarding .editorconfig file, see [editorconfig](http://editorconfig.org/#download)
+
 ### Up For Grabs
 
 As the team is working towards the 1.0 release, we'll identify enhancements or
