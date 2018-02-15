@@ -301,51 +301,41 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNullOrEmpty(gitStatusEntries, "gitStatusEntries");
 
-            var itemsToDelete = new List<string>();
-            var itemsToRevert = new List<string>();
-
-            foreach (var gitStatusEntry in gitStatusEntries)
-            {
-                if (gitStatusEntry.status == GitFileStatus.Added || gitStatusEntry.status == GitFileStatus.Untracked)
+            ActionTask<GitStatusEntry[]> task = null;
+            task = new ActionTask<GitStatusEntry[]>(token, (_, entries) =>
                 {
-                    itemsToDelete.Add(gitStatusEntry.path);
-                }
-                else
-                {
-                    itemsToRevert.Add(gitStatusEntry.path);
-                }
-            }
+                    var itemsToDelete = new List<string>();
+                    var itemsToRevert = new List<string>();
 
-            ActionTask deleteItemsTask = null;
-            if (itemsToDelete.Any())
-            {
-                deleteItemsTask = new ActionTask(CancellationToken.None, () => {
-                    foreach (var itemToDelete in itemsToDelete)
+                    foreach (var gitStatusEntry in gitStatusEntries)
                     {
-                        fileSystem.FileDelete(itemToDelete);
+                        if (gitStatusEntry.status == GitFileStatus.Added || gitStatusEntry.status == GitFileStatus.Untracked)
+                        {
+                            itemsToDelete.Add(gitStatusEntry.path);
+                        }
+                        else
+                        {
+                            itemsToRevert.Add(gitStatusEntry.path);
+                        }
                     }
-                });
-            }
 
-            ITask<string> gitDiscardTask = null;
-            if (itemsToRevert.Any())
-            {
-                gitDiscardTask = GitClient.Discard(itemsToRevert);
-            }
+                    if (itemsToDelete.Any())
+                    {
+                        foreach (var itemToDelete in itemsToDelete)
+                        {
+                            fileSystem.FileDelete(itemToDelete);
+                        }
+                    }
 
-            ITask task;
-            if (deleteItemsTask != null && gitDiscardTask != null)
-            {
-                task = deleteItemsTask.Then(gitDiscardTask);
-            }
-            else if (deleteItemsTask != null)
-            {
-                task = deleteItemsTask;
-            }
-            else //if (gitDiscardTask != null)
-            {
-                task = gitDiscardTask;
-            }
+                    ITask<string> gitDiscardTask = null;
+                    if (itemsToRevert.Any())
+                    {
+                        gitDiscardTask = GitClient.Discard(itemsToRevert);
+                        task.Then(gitDiscardTask);
+                    }
+                }
+                , () => gitStatusEntries);
+
 
             return HookupHandlers(task, true, true);
         }
