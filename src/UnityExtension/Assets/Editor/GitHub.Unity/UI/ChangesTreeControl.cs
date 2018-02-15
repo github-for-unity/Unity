@@ -13,47 +13,44 @@ namespace GitHub.Unity
     [Serializable]
     public class ChangesTreeNode : TreeNode
     {
-        public string projectPath;
-        public GitFileStatus gitFileStatus;
-        public bool isLocked;
-
-        public GitStatusEntry GitStatusEntry { get; set; }
-
-        public string ProjectPath
-        {
-            get { return GitStatusEntry.projectPath; }
-        }
-
-        public GitFileStatus GitFileStatus
-        {
-            get { return GitStatusEntry.status; }
-        }
+        [SerializeField] private bool isLocked;
+        [SerializeField] private GitStatusEntry gitStatusEntry;
 
         public bool IsLocked
         {
             get { return isLocked; }
             set { isLocked = value; }
         }
+        public GitStatusEntry GitStatusEntry
+        {
+            get { return gitStatusEntry; }
+            set { gitStatusEntry = value; }
+        }
+
+        public string ProjectPath { get { return GitStatusEntry.projectPath; } }
+        public GitFileStatus GitFileStatus { get { return GitStatusEntry.status; } }
     }
 
     [Serializable]
     public class ChangesTree : Tree<ChangesTreeNode, GitStatusEntryTreeData>
     {
+        [NonSerialized] public Texture2D FolderIcon;
+
         [SerializeField] public ChangesTreeNodeDictionary assets = new ChangesTreeNodeDictionary();
         [SerializeField] public ChangesTreeNodeDictionary folders = new ChangesTreeNodeDictionary();
         [SerializeField] public ChangesTreeNodeDictionary checkedFileNodes = new ChangesTreeNodeDictionary();
-
-        [NonSerialized] public Texture2D FolderIcon;
         [SerializeField] public string title = string.Empty;
         [SerializeField] public string pathSeparator = "/";
         [SerializeField] public bool displayRootNode = true;
         [SerializeField] public bool isSelectable = true;
         [SerializeField] public bool isCheckable = false;
         [SerializeField] public bool isUsingGlobalSelection = false;
-        [SerializeField] private List<ChangesTreeNode> nodes = new List<ChangesTreeNode>();
-        [SerializeField] private ChangesTreeNode selectedNode = null;
+
         [NonSerialized] private bool viewHasFocus;
         [NonSerialized] private Object lastActivatedObject;
+
+        [SerializeField] private List<ChangesTreeNode> nodes = new List<ChangesTreeNode>();
+        [SerializeField] private ChangesTreeNode selectedNode = null;
 
         public override string Title
         {
