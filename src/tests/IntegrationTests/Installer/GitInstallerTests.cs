@@ -57,7 +57,7 @@ namespace IntegrationTests
             var autoResetEvent = new AutoResetEvent(false);
 
             bool? result = null;
-            NPath resultPath = null;
+            NPath? resultPath = null;
             Exception ex = null;
 
             gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken.None, (b, path) => {

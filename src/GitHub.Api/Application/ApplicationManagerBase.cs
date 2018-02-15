@@ -48,22 +48,22 @@ namespace GitHub.Unity
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
             var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();            
-            if (gitExecutablePath != null && gitExecutablePath.FileExists()) // we have a git path
+            if (gitExecutablePath != null && gitExecutablePath.Value.FileExists()) // we have a git path
             {
                 Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
-                InitializeEnvironment(gitExecutablePath);
+                InitializeEnvironment(gitExecutablePath.Value);
             }
             else // we need to go find git
             {
                 Logger.Trace("No git path found in settings");
 
-                var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (b, path) => InitializeEnvironment(path)) { Affinity = TaskAffinity.UI };
+                var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (_, path) => InitializeEnvironment(path)) { Affinity = TaskAffinity.UI };
                 var findExecTask = new FindExecTask("git", CancellationToken)
                     .FinallyInUI((b, ex, path) => {
                         if (b && path != null)
                         {
                             Logger.Trace("FindExecTask Success: {0}", path);
-                            InitializeEnvironment(gitExecutablePath);
+                            InitializeEnvironment(path);
                         }
                         else
                         {
@@ -190,7 +190,7 @@ namespace GitHub.Unity
                         }
                         else
                         {
-                            Logger.Warning("No Windows CredentialHeloper found: Setting to wincred");
+                            Logger.Warning("No Windows CredentialHelper found: Setting to wincred");
 
                             GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global)
                                 .Then(afterGitSetup)

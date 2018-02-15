@@ -7,25 +7,19 @@ namespace GitHub.Unity
     {
         public static string FindCommonPath(IEnumerable<string> paths)
         {
-            var parentPaths = paths.Where(s => !string.IsNullOrEmpty(s)).Select(s => s.ToNPath().Parent);
-            if (!parentPaths.Any())
+            var parentPaths = paths.Where(s => !string.IsNullOrEmpty(s)).Select(s => s.ToNPath().Parent).ToArray();
+            if (parentPaths.Count() <= 1)
                 return null;
 
-            var parentsArray = parentPaths.ToArray();
-            var maxDepth = parentsArray.Max(path => path.Depth);
-            var deepestPath = parentsArray.First(path => path.Depth == maxDepth);
+            var maxDepth = parentPaths.Max(path => path.Depth);
+            var deepestPath = parentPaths.First(path => path.Depth == maxDepth);
 
             var commonParent = deepestPath;
-            foreach (var path in parentsArray)
+            foreach (var path in parentPaths)
             {
-                var cp = path.Elements.Any() ? commonParent.GetCommonParent(path) : null;
-                if (cp != null)
-                    commonParent = cp;
-                else
-                {
-                    commonParent = null;
+                commonParent = path.Elements.Any() ? commonParent.GetCommonParent(path) : NPath.Default;
+                if (!commonParent.IsInitialized)
                     break;
-                }
             }
             return commonParent;
         }

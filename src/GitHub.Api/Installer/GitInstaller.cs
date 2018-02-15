@@ -76,8 +76,8 @@ namespace GitHub.Unity
         private readonly IEnvironment environment;
         private readonly GitInstallDetails installDetails;
         private readonly IZipHelper sharpZipLibHelper;
-        private NPath gitArchiveFilePath;
-        private NPath gitLfsArchivePath;
+        private NPath? gitArchiveFilePath;
+        private NPath? gitLfsArchivePath;
 
         public GitInstaller(IEnvironment environment, CancellationToken cancellationToken,
             GitInstallDetails installDetails)
@@ -92,7 +92,7 @@ namespace GitHub.Unity
         {}
 
         public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, CancellationToken cancellationToken,
-            GitInstallDetails installDetails, NPath gitArchiveFilePath, NPath gitLfsArchivePath)
+            GitInstallDetails installDetails, NPath? gitArchiveFilePath, NPath? gitLfsArchivePath)
         {
             this.environment = environment;
             this.sharpZipLibHelper = sharpZipLibHelper;
@@ -129,7 +129,7 @@ namespace GitHub.Unity
         private void ExtractPortableGit(ActionTask<NPath> onSuccess, ITask onFailure)
         {
             ITask downloadFilesTask = null;
-            if ((gitArchiveFilePath == null) || (gitLfsArchivePath == null))
+            if (gitArchiveFilePath == null || gitLfsArchivePath == null)
             {
                 downloadFilesTask = CreateDownloadTask();
             }

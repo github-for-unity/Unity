@@ -32,7 +32,7 @@ namespace GitHub.Unity
 
         public DownloadTask(CancellationToken token,
             IFileSystem fileSystem, UriString url,
-            NPath targetDirectory = null,
+            NPath? targetDirectory = null,
             string filename = null,
             string validationHash = null, int retryCount = 0)
             : base(token)
@@ -152,7 +152,7 @@ namespace GitHub.Unity
 
         public string Filename { get; }
 
-        public NPath Destination { get { return TargetDirectory?.Combine(Filename); } }
+        public NPath Destination { get { return TargetDirectory.Combine(Filename); } }
 
         public string ValidationHash { get; set; }
 
@@ -172,7 +172,7 @@ namespace GitHub.Unity
     {
         public DownloadTextTask(CancellationToken token,
             IFileSystem fileSystem, UriString url,
-            NPath targetDirectory = null,
+            NPath? targetDirectory = null,
             string filename = null,
             int retryCount = 0)
             : base(token, fileSystem, url, targetDirectory, filename, retryCount: retryCount)

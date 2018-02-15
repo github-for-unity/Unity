@@ -20,7 +20,7 @@ namespace GitHub.Unity
 
         public static T Configure<T>(this T task, IProcessManager processManager, string executable = null,
             string arguments = null,
-            NPath workingDirectory = null,
+            NPath? workingDirectory = null,
             bool withInput = false)
             where T : IProcess
         {
@@ -289,7 +289,7 @@ namespace GitHub.Unity
                     if (outputProcessor != null)
                         result = outputProcessor.Result;
 
-                    if (result == null && !Process.StartInfo.CreateNoWindow && typeof(T) == typeof(string))
+                    if (typeof(T) == typeof(string) && result == null && !Process.StartInfo.CreateNoWindow)
                         result = (T)(object)"Process running";
 
                     RaiseOnEnd(result);
@@ -466,7 +466,7 @@ namespace GitHub.Unity
 
     class SimpleProcessTask : ProcessTask<string>
     {
-        private readonly NPath fullPathToExecutable;
+        private readonly NPath? fullPathToExecutable;
         private readonly string arguments;
 
         public SimpleProcessTask(CancellationToken token, NPath fullPathToExecutable, string arguments)
