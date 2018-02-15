@@ -100,6 +100,7 @@ namespace GitHub.Unity
         private readonly IProcessManager processManager;
         private readonly IRepositoryPathConfiguration repositoryPaths;
         private readonly IFileSystem fileSystem;
+        private readonly CancellationToken token;
         private readonly IRepositoryWatcher watcher;
 
         private bool isBusy;
@@ -116,11 +117,13 @@ namespace GitHub.Unity
         public RepositoryManager(IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
             IProcessManager processManager,
-            IRepositoryPathConfiguration repositoryPaths,
-            IFileSystem fileSystem)
+            IFileSystem fileSystem,
+            CancellationToken token,
+            IRepositoryPathConfiguration repositoryPaths)
         {
             this.repositoryPaths = repositoryPaths;
             this.fileSystem = fileSystem;
+            this.token = token;
             this.gitClient = gitClient;
             this.processManager = processManager;
             this.watcher = repositoryWatcher;
@@ -129,7 +132,8 @@ namespace GitHub.Unity
             SetupWatcher();
         }
 
-        public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IGitClient gitClient, IProcessManager processManager, NPath repositoryRoot, IFileSystem fileSystem)
+        public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IGitClient gitClient,
+            IProcessManager processManager, IFileSystem fileSystem, NPath repositoryRoot)
         {
             var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
             string filePath = repositoryPathConfiguration.DotGitConfig;
@@ -138,7 +142,8 @@ namespace GitHub.Unity
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
 
             return new RepositoryManager(gitConfig, repositoryWatcher,
-                gitClient, processManager, repositoryPathConfiguration, fileSystem);
+                gitClient, processManager, fileSystem,
+                taskManager.Token, repositoryPathConfiguration);
         }
 
         public void Initialize()
@@ -389,7 +394,7 @@ namespace GitHub.Unity
 
         private ITask HookupHandlers(ITask task, bool isExclusive, bool filesystemChangesExpected)
         {
-            return new ActionTask(CancellationToken.None, () => {
+            return new ActionTask(token, () => {
                     if (isExclusive)
                     {
                         Logger.Trace("Starting Operation - Setting Busy Flag");
