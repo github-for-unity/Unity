@@ -12,6 +12,8 @@ namespace GitHub.Unity
         protected static ILogging Logger { get; } = LogHelper.GetLogger<IApplicationManager>();
 
         private RepositoryManager repositoryManager;
+        protected bool isBusy;
+        public event Action<IProgress> OnProgress;
 
         public ApplicationManagerBase(SynchronizationContext synchronizationContext)
         {
@@ -57,9 +59,11 @@ namespace GitHub.Unity
             {
                 Logger.Trace("No git path found in settings");
 
+                isBusy = true;
                 var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (b, path) => InitializeEnvironment(path)) { Affinity = TaskAffinity.UI };
                 var findExecTask = new FindExecTask("git", CancellationToken)
-                    .FinallyInUI((b, ex, path) => {
+                    .FinallyInUI((b, ex, path) =>
+                    {
                         if (b && path != null)
                         {
                             Logger.Trace("FindExecTask Success: {0}", path);
@@ -70,6 +74,7 @@ namespace GitHub.Unity
                             Logger.Warning("FindExecTask Failure");
                             Logger.Error("Git not found");
                         }
+                        isBusy = false;
                     });
 
                 var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
@@ -190,7 +195,7 @@ namespace GitHub.Unity
                         }
                         else
                         {
-                            Logger.Warning("No Windows CredentialHeloper found: Setting to wincred");
+                            Logger.Warning("No Windows CredentialHelper found: Setting to wincred");
 
                             GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global)
                                 .Then(afterGitSetup)
@@ -234,6 +239,7 @@ namespace GitHub.Unity
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
         public IUsageTracker UsageTracker { get; protected set; }
+        public bool IsBusy { get { return isBusy || RepositoryManager.IsBusy; } }
         protected TaskScheduler UIScheduler { get; private set; }
         protected SynchronizationContext SynchronizationContext { get; private set; }
         protected IRepositoryManager RepositoryManager { get { return repositoryManager; } }

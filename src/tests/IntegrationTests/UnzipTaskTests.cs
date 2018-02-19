@@ -14,7 +14,7 @@ namespace IntegrationTests
     class UnzipTaskTests : BaseTaskManagerTest
     {
         [Test]
-        public void TaskSucceeds()
+        public async Task TaskSucceeds()
         {
             InitializeTaskManager();
 
@@ -28,17 +28,12 @@ namespace IntegrationTests
 
             var zipProgress = 0;
             Logger.Trace("Pct Complete {0}%", zipProgress);
-            var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath, Environment.FileSystem, GitInstallDetails.GitExtractedMD5, 
-                new Progress<float>(zipFileProgress => {
-                    var zipFileProgressInteger = (int) (zipFileProgress * 100);
-                    if (zipProgress != zipFileProgressInteger)
-                    {
-                        zipProgress = zipFileProgressInteger;
-                        Logger.Trace("Pct Complete {0}%", zipProgress);
-                    }
-                }));
+            var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath, Environment.FileSystem, GitInstallDetails.GitExtractedMD5)
+                .Progress(p => 
+                {
+                });
 
-            unzipTask.Start().Wait();
+            await unzipTask.StartAwait();
 
             extractedPath.DirectoryExists().Should().BeTrue();
         }

@@ -11,16 +11,14 @@ namespace GitHub.Unity
         private readonly IZipHelper zipHelper;
         private readonly IFileSystem fileSystem;
         private readonly string expectedMD5;
-        private readonly IProgress<float> zipFileProgress;
-        private readonly IProgress<long> estimatedDurationProgress;
 
-        public UnzipTask(CancellationToken token, string archiveFilePath, NPath extractedPath, IFileSystem fileSystem, string expectedMD5 = null, IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null) :
-            this(token, archiveFilePath, extractedPath, ZipHelper.Instance, fileSystem, expectedMD5, zipFileProgress, estimatedDurationProgress)
+        public UnzipTask(CancellationToken token, string archiveFilePath, NPath extractedPath, IFileSystem fileSystem, string expectedMD5 = null) :
+            this(token, archiveFilePath, extractedPath, ZipHelper.Instance, fileSystem, expectedMD5)
         {
             
         }
 
-        public UnzipTask(CancellationToken token, string archiveFilePath, NPath extractedPath, IZipHelper zipHelper, IFileSystem fileSystem, string expectedMD5 = null, IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+        public UnzipTask(CancellationToken token, string archiveFilePath, NPath extractedPath, IZipHelper zipHelper, IFileSystem fileSystem, string expectedMD5 = null)
             : base(token)
         {
             this.archiveFilePath = archiveFilePath;
@@ -28,8 +26,6 @@ namespace GitHub.Unity
             this.zipHelper = zipHelper;
             this.fileSystem = fileSystem;
             this.expectedMD5 = expectedMD5;
-            this.zipFileProgress = zipFileProgress;
-            this.estimatedDurationProgress = estimatedDurationProgress;
         }
 
         protected override void Run(bool success)
@@ -40,7 +36,12 @@ namespace GitHub.Unity
 
             try
             {
-                zipHelper.Extract(archiveFilePath, extractedPath, Token, zipFileProgress, estimatedDurationProgress);
+                zipHelper.Extract(archiveFilePath, extractedPath, Token,
+                    (value, total) =>
+                    {
+                        UpdateProgress(value, total);
+                        return !Token.IsCancellationRequested;
+                    });
             }
             catch (Exception ex)
             {

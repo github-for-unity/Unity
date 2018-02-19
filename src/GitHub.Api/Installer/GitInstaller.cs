@@ -77,6 +77,8 @@ namespace GitHub.Unity
         private readonly IZipHelper sharpZipLibHelper;
         private NPath gitArchiveFilePath;
         private NPath gitLfsArchivePath;
+        private Progress progress = new Progress();
+        public event Action<IProgress> OnProgress;
 
         public GitInstaller(IEnvironment environment, CancellationToken cancellationToken,
             GitInstallDetails installDetails)
@@ -115,6 +117,9 @@ namespace GitHub.Unity
                 if (IsGitExtracted())
                 {
                     Logger.Trace("SetupGitIfNeeded: Skipped");
+                    progress.Total = 100;
+                    progress.Value = 100;
+                    OnProgress?.Invoke(progress);
                     onSuccess.PreviousResult = installDetails.GitExecutablePath;
                     onSuccess.Start();
                 }
@@ -127,6 +132,7 @@ namespace GitHub.Unity
 
         private void ExtractPortableGit(ActionTask<NPath> onSuccess, ITask onFailure)
         {
+            Logger.Trace("ExtractPortableGit");
             ITask downloadFilesTask = null;
             if ((gitArchiveFilePath == null) || (gitLfsArchivePath == null))
             {
@@ -138,7 +144,19 @@ namespace GitHub.Unity
             var gitLfsExtractPath = tempZipExtractPath.Combine("git-lfs").CreateDirectory();
 
             var resultTask = new UnzipTask(cancellationToken, gitArchiveFilePath, gitExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitExtractedMD5)
+                    .Progress(p =>
+                    {
+                        progress.Task = p.Task;
+                        var pt = p.Value / p.Total;
+                        progress.Value = 40 + 20 * pt;
+                    })
                 .Then(new UnzipTask(cancellationToken, gitLfsArchivePath, gitLfsExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails .GitLfsExtractedMD5))
+                    .Progress(p =>
+                    {
+                        progress.Task = p.Task;
+                        var pt = p.Value / p.Total;
+                        progress.Value = 60 + 20 * pt;
+                    })
                 .Then(s => MoveGitAndLfs(gitExtractPath, gitLfsExtractPath, tempZipExtractPath));
 
             resultTask.Then(onFailure, TaskRunOptions.OnFailure);
@@ -154,6 +172,9 @@ namespace GitHub.Unity
 
         private NPath MoveGitAndLfs(NPath gitExtractPath, NPath gitLfsExtractPath, NPath tempZipExtractPath)
         {
+            progress.Value = 80;
+            OnProgress?.Invoke(progress);
+
             var targetGitLfsExecPath = installDetails.GetGitLfsExecutablePath(gitExtractPath);
             var extractGitLfsExePath = gitLfsExtractPath.Combine(installDetails.GitLfsExecutable);
 
@@ -162,6 +183,9 @@ namespace GitHub.Unity
             extractGitLfsExePath.Move(targetGitLfsExecPath);
 
             Logger.Trace($"Moving tempDirectory:'{gitExtractPath}' to extractTarget:'{installDetails.GitInstallationPath}'");
+
+            progress.Value = 90;
+            OnProgress?.Invoke(progress);
 
             installDetails.GitInstallationPath.EnsureParentDirectoryExists();
             gitExtractPath.Move(installDetails.GitInstallationPath);
@@ -182,22 +206,46 @@ namespace GitHub.Unity
             gitLfsArchivePath = tempZipPath.Combine("git-lfs.zip");
 
             var downloadGitMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitZipMd5Url, tempZipPath);
+                installDetails.GitZipMd5Url, tempZipPath)
+                .Progress(p =>
+                {
+                    progress.Task = p.Task;
+                    var pt = p.Value / p.Total;
+                    progress.Value = 10 * pt;
+                });
 
             var downloadGitTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitZipUrl, tempZipPath);
+                installDetails.GitZipUrl, tempZipPath)
+                .Progress(p =>
+                {
+                    progress.Task = p.Task;
+                    var pt = p.Value / p.Total;
+                    progress.Value = 10 + 10 * pt;
+                });
 
             var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitLfsZipMd5Url, tempZipPath);
+                installDetails.GitLfsZipMd5Url, tempZipPath)
+                .Progress(p =>
+                {
+                    progress.Task = p.Task;
+                    var pt = p.Value / p.Total;
+                    progress.Value = 20 + 10 * pt;
+                });
 
             var downloadGitLfsTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitLfsZipUrl, tempZipPath);
+                installDetails.GitLfsZipUrl, tempZipPath)
+                .Progress(p =>
+                {
+                    progress.Task = p.Task;
+                    var pt = p.Value / p.Total;
+                    progress.Value = 30 + 10 * pt;
+                });
 
             return
-                downloadGitMd5Task.Then((b, s) => { downloadGitTask.ValidationHash = s; })
+                downloadGitMd5Task.Then((b, s) => { ((DownloadTask)downloadGitTask).ValidationHash = s; })
                                   .Then(downloadGitTask)
                                   .Then(downloadGitLfsMd5Task)
-                                  .Then((b, s) => { downloadGitLfsTask.ValidationHash = s; })
+                                  .Then((b, s) => { ((DownloadTask)downloadGitLfsTask).ValidationHash = s; })
                                   .Then(downloadGitLfsTask);
         }
 
