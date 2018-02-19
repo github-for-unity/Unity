@@ -21,9 +21,9 @@ namespace GitHub.Unity
             }
         }
 
-        private readonly float totalAnimationTime = 2f;
+        private float speed = 120f;
         private float currentRotation;
-        private float startTime;
+        private float lastTime;
         private bool started;
         private float centerX;
         private float centerY;
@@ -54,7 +54,6 @@ namespace GitHub.Unity
             if (started)
                 return;
             started = true;
-            startTime = currentTime;
         }
 
         public void Stop()
@@ -64,9 +63,10 @@ namespace GitHub.Unity
 
         public float Rotate(float currentTime)
         {
-            var elapsed = Mathf.Repeat(currentTime - startTime, totalAnimationTime);
-            currentRotation = Linear(elapsed, 360f, totalAnimationTime);
+            var deltaTime = currentTime - lastTime;
+            currentRotation += deltaTime * speed * ((Mathf.Sin(currentTime * 1.2f)) + 2);
             currentRotation = Mathf.Repeat(currentRotation, 360f);
+            lastTime = currentTime;
             return currentRotation;
         }
 
@@ -140,68 +140,6 @@ namespace GitHub.Unity
         {
             var rot = rotations.Pop();
             GUIUtility.RotateAroundPivot(-rot.rotation, rot.center);
-        }
-
-        private float ExpoEase(float currentTime, float end, float duration)
-        {
-            //Debug.LogFormat("ExpoEase: {0} {1}", currentTime, duration);
-            currentTime /= duration / 2;
-            if (currentTime < 1) return duration / 2 * Mathf.Pow(2, 10 * (currentTime - 1));
-            currentTime--;
-            return end / 2 * (-Mathf.Pow(2, -10 * currentTime) + 2);
-        }
-        private float SinEase(float currentTime, float end, float duration)
-        {
-            return -end / 2 * (Mathf.Cos(Mathf.PI * currentTime / duration) - 1);
-        }
-
-        private float SinEaseIn(float t, float c, float d)
-        {
-            //Debug.LogFormat("SinEaseIn: {0} {1}", t, d);
-
-            return -c * Mathf.Cos(t / d * (Mathf.PI / 2)) + c;
-        }
-        private float SinEaseOut(float t, float c, float d)
-        {
-            //Debug.LogFormat("SinEaseOut: {0} {1}", t, d);
-            return c * Mathf.Sin(t / d * (Mathf.PI / 2));
-        }
-
-        private float Linear(float t, float c, float d)
-        {
-            //Debug.LogFormat("Linear: {0} {1}", t, d);
-            return c * t / d;
-        }
-
-        private float CubicIn(float t, float c, float d)
-        {
-            //Debug.LogFormat("CubicIn: {0} {1}", t, d);
-            t /= d;
-            return c * t * t * t;
-        }
-
-        private float CubicOut(float t, float c, float d)
-        {
-            //Debug.LogFormat("CubicOut: {0} {1}", t, d);
-            t /= d;
-            t--;
-            return c * (t * t * t + 1);
-        }
-
-        private float CubicInOut(float t, float c, float d)
-        {
-            t /= d / 2;
-            if (t < 1) return c / 2 * t * t * t;
-            t -= 2;
-            return c / 2 * (t * t * t + 2);
-        }
-
-        private float QuintInOut(float t, float c, float d)
-        {
-            t /= d / 2;
-            if (t < 1) return c / 2 * t * t * t * t * t;
-            t -= 2;
-            return c / 2 * (t * t * t * t * t + 2);
         }
     }
 }
