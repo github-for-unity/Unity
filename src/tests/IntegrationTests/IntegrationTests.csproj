@@ -74,19 +74,21 @@
   <ItemGroup>
     <Compile Include="Auth\LoginTests.cs" />
     <Compile Include="BaseTaskManagerTest.cs" />
+    <Compile Include="Download\DownloadTaskTests.cs" />
     <Compile Include="Events\RepositoryManagerTests.cs" />
     <Compile Include="Events\RepositoryWatcherTests.cs" />
     <Compile Include="BaseGitEnvironmentTest.cs" />
     <Compile Include="BasePlatformIntegrationTest.cs" />
     <Compile Include="BaseIntegrationTest.cs" />
-    <Compile Include="GitClientTests.cs" />
-    <Compile Include="Git\GitSetupTests.cs" />
-    <Compile Include="Git\IntegrationTestEnvironment.cs" />
+    <Compile Include="Git\GitClientTests.cs" />
+    <Compile Include="IntegrationTestEnvironment.cs" />
+    <Compile Include="Installer\GitInstallerTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="Process\ProcessManagerIntegrationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SetUpFixture.cs" />
     <Compile Include="ThreadSynchronizationContext.cs" />
+    <Compile Include="UnzipTaskTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)src\GitHub.Api\GitHub.Api.csproj">
@@ -100,6 +102,10 @@
     <ProjectReference Include="..\TestUtils\TestUtils.csproj">
       <Project>{66a1d219-f61d-4ae4-9bd7-aaeb97276fff}</Project>
       <Name>TestUtils</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TestWebServer\TestWebServer.csproj">
+      <Project>{3dd3451c-30fa-4294-a3a9-1e080342f867}</Project>
+      <Name>TestWebServer</Name>
     </ProjectReference>
     <Reference Include="sfw.net">
       <HintPath>$(SolutionDir)\lib\sfw\sfw.net.dll</HintPath>

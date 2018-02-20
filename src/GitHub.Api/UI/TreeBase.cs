@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GitHub.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -32,7 +33,7 @@ namespace GitHub.Unity
 
         protected TreeBase()
         {
-            Logger = Logging.GetLogger(GetType());
+            Logger = LogHelper.GetLogger(GetType());
         }
 
         public abstract IEnumerable<string> GetCheckedFiles();

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Octokit;
+using GitHub.Logging;
 
 namespace GitHub.Unity
 {
@@ -325,7 +326,7 @@ namespace GitHub.Unity
 
         private ITask<T> HookupHandlers<T>(ITask<T> task, bool isExclusive, bool filesystemChangesExpected)
         {
-            return new ActionTask(CancellationToken.None, () => {
+            return new ActionTask(TaskManager.Instance.Token, () => {
                     if (isExclusive)
                     {
                         Logger.Trace("Starting Operation - Setting Busy Flag");
@@ -592,6 +593,6 @@ namespace GitHub.Unity
             }
         }
 
-        protected static ILogging Logger { get; } = Logging.GetLogger<RepositoryManager>();
+        protected static ILogging Logger { get; } = LogHelper.GetLogger<RepositoryManager>();
     }
 }

@@ -34,6 +34,12 @@ namespace GitHub.Unity
             return File.Exists(filename);
         }
 
+        public long FileLength(string path)
+        {
+            var fileInfo = new FileInfo(path);
+            return fileInfo.Length;
+        }
+
         public IEnumerable<string> GetDirectories(string path)
         {
             return Directory.GetDirectories(path);
@@ -167,6 +173,11 @@ namespace GitHub.Unity
             File.WriteAllText(path, contents, encoding);
         }
 
+        public byte[] ReadAllBytes(string path)
+        {
+            return File.ReadAllBytes(path);
+        }
+
         public string ReadAllText(string path)
         {
             return File.ReadAllText(path);
@@ -200,6 +211,11 @@ namespace GitHub.Unity
         public Stream OpenRead(string path)
         {
             return File.OpenRead(path);
+        }
+
+        public Stream OpenWrite(string path, FileMode mode)
+        {
+            return new FileStream(path, mode);
         }
     }
 }

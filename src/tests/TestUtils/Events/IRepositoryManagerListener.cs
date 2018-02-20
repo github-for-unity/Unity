@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using GitHub.Unity;
 using NSubstitute;
+using GitHub.Logging;
 
 namespace TestUtils.Events
 {
@@ -56,7 +57,7 @@ namespace TestUtils.Events
         public static void AttachListener(this IRepositoryManagerListener listener,
             IRepositoryManager repositoryManager, RepositoryManagerEvents managerEvents = null, bool trace = true)
         {
-            var logger = trace ? Logging.GetLogger<IRepositoryManagerListener>() : null;
+            var logger = trace ? LogHelper.GetLogger<IRepositoryManagerListener>() : null;
 
             repositoryManager.IsBusyChanged += isBusy => {
                 logger?.Trace("OnIsBusyChanged: {0}", isBusy);

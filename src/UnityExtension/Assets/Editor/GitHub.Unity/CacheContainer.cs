@@ -1,10 +1,11 @@
-﻿using System;
+﻿using GitHub.Logging;
+using System;
 
 namespace GitHub.Unity
 {
     public class CacheContainer : ICacheContainer
     {
-        private static ILogging Logger = Logging.GetLogger<CacheContainer>();
+        private static ILogging Logger = LogHelper.GetLogger<CacheContainer>();
 
         private IRepositoryInfoCache repositoryInfoCache;
 
