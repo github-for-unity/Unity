@@ -14,8 +14,8 @@ namespace UnitTests
             LogHelper.TracingEnabled = true;
 
             LogHelper.LogAdapter = new MultipleLogAdapter(
-                new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-unit-tests.log")
-                //, new ConsoleLogAdapter()
+                new FileLogAdapter($"..\\{DateTime.UtcNow:yyyyMMddHHmmss}-unit-tests.log")
+                , new ConsoleLogAdapter()
             );
         }
     }
