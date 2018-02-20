@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="codeanalysis-small" Description="This ruleset only includes the rules we care about. I'll be adding new ones as we fix our codebase." ToolsVersion="14.0">
+<RuleSet Name="codeanalysis-debug" Description="This ruleset only includes the rules we care about. I'll be adding new ones as we fix our codebase." ToolsVersion="14.0">
   <IncludeAll Action="Warning" />
   <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
     <Rule Id="CA1000" Action="None" />
@@ -86,7 +86,6 @@
     <Rule Id="CA1308" Action="None" />
     <Rule Id="CA1309" Action="None" />
     <Rule Id="CA1820" Action="None" />
-    <Rule Id="CA1823" Action="None" />
 
     <!-- serialization -->
     <Rule Id="CA2237" Action="None" />

@@ -47,8 +47,8 @@ The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub int
 
 ### Requirements
 
-- Unity 5.4-2017.1
-   - We've only tested the extension so far on Unity 5.4 to 2017.1. There's currently an blocker issue opened for 5.3 support, so we know it doesn't run there. There are some issues for 2017.2, so it may or may not run well on that version. Personal edition is fine.
+- Unity 5.4 or higher
+   - There's currently an blocker issue opened for 5.3 support, so we know it doesn't run there. Personal edition is fine.
 - Git and Git LFS 2.x
 
 #### Git on macOS
