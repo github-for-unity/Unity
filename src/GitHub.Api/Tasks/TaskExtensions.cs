@@ -236,7 +236,7 @@ namespace GitHub.Unity
         public static Task<T> StartAsAsync<T>(this ITask<T> task)
         {
             var tcs = new TaskCompletionSource<T>();
-            task.Finally(r =>
+            task.Finally((success, r) =>
             {
                 tcs.TrySetResult(r);
             });
@@ -251,9 +251,9 @@ namespace GitHub.Unity
         public static Task<bool> StartAsAsync(this ITask task)
         {
             var tcs = new TaskCompletionSource<bool>();
-            task.Finally(() =>
+            task.Finally(success =>
             {
-                tcs.TrySetResult(true);
+                tcs.TrySetResult(success);
             });
             task.Catch(e =>
             {

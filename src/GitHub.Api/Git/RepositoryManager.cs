@@ -183,7 +183,7 @@ namespace GitHub.Unity
                 .AddAll()
                 .Then(GitClient.Commit(message, body));
 
-            return HookupHandlers(task, true, true);
+            return HookupHandlers(task, true);
         }
 
         public ITask CommitFiles(List<string> files, string message, string body)
@@ -192,79 +192,79 @@ namespace GitHub.Unity
                 .Add(files)
                 .Then(GitClient.Commit(message, body));
 
-            return HookupHandlers(task, true, true);
+            return HookupHandlers(task, true);
         }
 
         public ITask Fetch(string remote)
         {
             var task = GitClient.Fetch(remote);
-            return HookupHandlers(task, true, false);
+            return HookupHandlers(task, false);
         }
 
         public ITask Pull(string remote, string branch)
         {
             var task = GitClient.Pull(remote, branch);
-            return HookupHandlers(task, true, true);
+            return HookupHandlers(task, true);
         }
 
         public ITask Push(string remote, string branch)
         {
             var task = GitClient.Push(remote, branch);
-            return HookupHandlers(task, true, false);
+            return HookupHandlers(task, false);
         }
 
         public ITask Revert(string changeset)
         {
             var task = GitClient.Revert(changeset);
-            return HookupHandlers(task, true, true);
+            return HookupHandlers(task, true);
         }
 
         public ITask RemoteAdd(string remote, string url)
         {
             var task = GitClient.RemoteAdd(remote, url);
-            return HookupHandlers(task, true, false);
+            return HookupHandlers(task, false);
         }
 
         public ITask RemoteRemove(string remote)
         {
             var task = GitClient.RemoteRemove(remote);
-            return HookupHandlers(task, true, false);
+            return HookupHandlers(task, false);
         }
 
         public ITask RemoteChange(string remote, string url)
         {
             var task = GitClient.RemoteChange(remote, url);
-            return HookupHandlers(task, true, false);
+            return HookupHandlers(task, false);
         }
 
         public ITask SwitchBranch(string branch)
         {
             var task = GitClient.SwitchBranch(branch);
-            return HookupHandlers(task, true, true);
+            return HookupHandlers(task, true);
         }
 
         public ITask DeleteBranch(string branch, bool deleteUnmerged = false)
         {
             var task = GitClient.DeleteBranch(branch, deleteUnmerged);
-            return HookupHandlers(task, true, false);
+            return HookupHandlers(task, false);
         }
 
         public ITask CreateBranch(string branch, string baseBranch)
         {
             var task = GitClient.CreateBranch(branch, baseBranch);
-            return HookupHandlers(task, true, false);
+            return HookupHandlers(task, false);
         }
 
         public ITask LockFile(string file)
         {
             var task = GitClient.Lock(file);
-            return HookupHandlers(task, true, false).Then(UpdateLocks);
+            return HookupHandlers(task, false).Then(UpdateLocks);
         }
 
         public ITask UnlockFile(string file, bool force)
         {
             var task = GitClient.Unlock(file, force);
-            return HookupHandlers(task, true, false).Then(UpdateLocks);
+            return HookupHandlers(task, false).Then(UpdateLocks);
         }
 
         public void UpdateGitLog()
@@ -278,7 +278,7 @@ namespace GitHub.Unity
                         GitLogUpdated?.Invoke(logEntries);
                     }
                 });
-            task = HookupHandlers(task, false, false);
+            task = HookupHandlers(task, false);
             task.Start();
         }
 
@@ -293,7 +293,7 @@ namespace GitHub.Unity
                         GitStatusUpdated?.Invoke(status);
                     }
                 });
-            task = HookupHandlers(task, true, false);
+            task = HookupHandlers(task, false);
             task.Start();
         }
 
@@ -331,13 +331,21 @@ namespace GitHub.Unity
                     if (itemsToRevert.Any())
                     {
                         gitDiscardTask = GitClient.Discard(itemsToRevert);
-                        task.Then(gitDiscardTask);
+                        task
+                            .Then(gitDiscardTask)
+                            // we're appending a new continuation, we need to reset the finally handler
+                            // so it runs after the discard task
+                            .Finally(s =>
+                            {
+                                watcher.Start();
+                                isBusy = false;
+                            });
                     }
                 }
                 , () => gitStatusEntries);
 
 
-            return HookupHandlers(task, true, true);
+            return HookupHandlers(task, true);
         }
 
         public void UpdateGitAheadBehindStatus()
@@ -351,8 +359,7 @@ namespace GitHub.Unity
                 var name = configBranch.Value.Name;
                 var trackingName = configBranch.Value.IsTracking ? configBranch.Value.Remote.Value.Name + "/" + name : "[None]";
 
-                var task = GitClient
-                    .AheadBehindStatus(name, trackingName)
+                var task = GitClient.AheadBehindStatus(name, trackingName)
                     .Then((success, status) =>
                     {
                         if (success)
@@ -360,7 +367,7 @@ namespace GitHub.Unity
                             GitAheadBehindStatusUpdated?.Invoke(status);
                         }
                     });
-                task = HookupHandlers(task, true, false);
+                task = HookupHandlers(task, false);
                 task.Start();
             }
             else
@@ -371,51 +378,55 @@ namespace GitHub.Unity
 
         public void UpdateLocks()
         {
-            var task = GitClient.ListLocks(false);
-            HookupHandlers(task, false, false);
-            task.Then((success, locks) =>
-            {
-                if (success)
+            GitClient.ListLocks(false)
+                .Finally((success, locks) =>
                 {
-                    GitLocksUpdated?.Invoke(locks);
-                }
-            }).Start();
-        }
-
-        private ITask HookupHandlers(ITask task, bool isExclusive, bool filesystemChangesExpected)
-        {
-            return new ActionTask(token, () => {
-                    if (isExclusive)
+                    if (success)
                     {
-                        Logger.Trace("Starting Operation - Setting Busy Flag");
-                        IsBusy = true;
-                    }
-
-                    if (filesystemChangesExpected)
-                    {
-                        Logger.Trace("Starting Operation - Disable Watcher");
-                        watcher.Stop();
+                        GitLocksUpdated?.Invoke(locks);
                     }
                 })
-                .Then(task)
-                .Finally((success, exception) => {
-                    if (filesystemChangesExpected)
-                    {
-                        Logger.Trace("Ended Operation - Enable Watcher");
-                        watcher.Start();
-                    }
+                .Start();
+        }
 
-                    if (isExclusive)
-                    {
-                        Logger.Trace("Ended Operation - Clearing Busy Flag");
-                        IsBusy = false;
-                    }
+        private ITask<T> HookupHandlers<T>(ITask<T> task, bool filesystemChangesExpected)
+        {
+            return (ITask<T>)HookupHandlers((ITask)task, filesystemChangesExpected);
+        }
 
-                    if (!success)
-                    {
-                        throw exception;
-                    }
-                });
+        private ITask HookupHandlers(ITask task, bool filesystemChangesExpected)
+        {
+            var isExclusive = task.IsChainExclusive();
+            task.GetTopOfChain().OnStart += t =>
+            {
+                if (t.Affinity == TaskAffinity.Exclusive)
+                {
+                    Logger.Trace("Starting Operation - Setting Busy Flag");
+                    IsBusy = true;
+                }
+
+                if (filesystemChangesExpected)
+                {
+                    Logger.Trace("Starting Operation - Disable Watcher");
+                    watcher.Stop();
+                }
+            };
+
+            task.Finally(success =>
+            {
+                if (filesystemChangesExpected)
+                {
+                    Logger.Trace("Ended Operation - Enable Watcher");
+                    watcher.Start();
+                }
+
+                if (isExclusive)
+                {
+                    Logger.Trace("Ended Operation - Clearing Busy Flag");
+                    IsBusy = false;
+                }
+            });
+            return task;
         }
 
         private void SetupWatcher()

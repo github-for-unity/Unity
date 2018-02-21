@@ -77,7 +77,7 @@ namespace IntegrationTests.Download
 
             StartTrackTime(watch, logger, gitLfsMd5);
             new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath)
-                .Finally(r => {
+                .Finally((success, r) => {
                     md5 = r;
                     evtDone.Set();
                 })
@@ -92,7 +92,7 @@ namespace IntegrationTests.Download
             string downloadPath = null;
             StartTrackTime(watch, logger, gitLfs);
             new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
-                .Finally(r => {
+                .Finally((success, r) => {
                     downloadPath = r;
                     evtDone.Set();
                 })
@@ -117,7 +117,7 @@ namespace IntegrationTests.Download
 
             StartTrackTime(watch, logger, "resuming download");
             new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
-                .Finally(r => {
+                .Finally((success, r) => {
                     downloadPath = r;
                     evtDone.Set();
                 })
@@ -153,8 +153,8 @@ namespace IntegrationTests.Download
 
             StartTrackTime(watch);
             downloadTask
-                .Finally((b, exception) => {
-                    taskFailed = !b;
+                .Finally((success, exception) => {
+                    taskFailed = !success;
                     exceptionThrown = exception;
                     autoResetEvent.Set();
                 })
@@ -187,7 +187,7 @@ namespace IntegrationTests.Download
 
             StartTrackTime(watch);
             downloadTask
-                .Finally(r => {
+                .Finally((success, r) => {
                     result = r;
                     autoResetEvent.Set();
                 })
@@ -215,8 +215,8 @@ namespace IntegrationTests.Download
 
             StartTrackTime(watch);
             downloadTask
-            .Finally((b, exception) => {
-                exceptionThrown = exception != null;
+            .Finally(success => {
+                exceptionThrown = !success;
                 autoResetEvent.Set();
             })
             .Start();

@@ -102,7 +102,7 @@ namespace IntegrationTests
             };
 
             var chain = procTask
-                .Finally((s, e, d) => d);
+                .Finally((s, e, d) => d, TaskAffinity.Concurrent);
 
             var output = await chain.StartAsAsync();
 
@@ -161,7 +161,7 @@ namespace IntegrationTests
                 .Then(new FirstNonNullLineProcessTask(Token, TestApp, @"-e kaboom -r -1").Configure(ProcessManager))
                 .Catch(ex => thrown = ex)
                 .Then((s, d) => output.Add(d))
-                .Finally((s, e) => success = s);
+                .Finally((s, e) => success = s, TaskAffinity.Concurrent);
 
             await task.StartAndSwallowException();
 
@@ -180,13 +180,17 @@ namespace IntegrationTests
 
             await new ActionTask(Token, _ => {
                 results.Add("BeforeProcess");
-            }).Then(new FirstNonNullLineProcessTask(Token, TestApp, @"-s 1000 -d ""ok""")
-                .Configure(ProcessManager).Then(new FuncTask<int>(Token, (b, i) => {
-                    results.Add("ProcessOutput");
-                    return 1234;
-                })).Finally((b, exception) => {
-                    results.Add("ProcessFinally");
-                })).StartAsAsync();
+            })
+                .Then(new FirstNonNullLineProcessTask(Token, TestApp, @"-s 1000 -d ""ok""")
+                    .Configure(ProcessManager)
+                    .Then(new FuncTask<int>(Token, (b, i) => {
+                        results.Add("ProcessOutput");
+                        return 1234;
+                    }))
+                    .Finally((b, exception) => {
+                        results.Add("ProcessFinally");
+                    }, TaskAffinity.Concurrent))
+                .StartAsAsync();
 
             CollectionAssert.AreEqual(expected, results);
         }
@@ -378,7 +382,7 @@ namespace IntegrationTests
                 {
                     success = s;
                     finallyException = e;
-                });
+                }, TaskAffinity.Concurrent);
 
             await task.StartAndSwallowException();
 
@@ -405,7 +409,7 @@ namespace IntegrationTests
                 {
                     success = s;
                     finallyException = e;
-                });
+                }, TaskAffinity.Concurrent);
 
             await task.StartAndSwallowException();
 
@@ -452,7 +456,7 @@ namespace IntegrationTests
                         runOrder.Add("finally");
                     }
                     return d;
-                });
+                }, TaskAffinity.Concurrent);
 
             await task.StartAndSwallowException();
 
@@ -479,7 +483,7 @@ namespace IntegrationTests
                 .Then(_ => { throw new Exception("an exception"); })
                 .Then(new FuncTask<string>(Token, _ => "another name") { Affinity = TaskAffinity.Exclusive })
                 .ThenInUI((s, d) => output.Add(d))
-                .Finally((_, __) => { })
+                .Finally((_, __) => { }, TaskAffinity.Concurrent)
                 .Catch(ex => { exception = ex; });
 
             await task.Start().Task;
@@ -526,7 +530,7 @@ namespace IntegrationTests
                         runOrder.Add("finally");
                     }
                     return d;
-                })
+                }, TaskAffinity.Concurrent)
                 .ThenInUI((s, d) =>
                 {
                     lock (runOrder)
@@ -573,7 +577,7 @@ namespace IntegrationTests
                         finallyException = e;
                         runOrder.Add("finally");
                     }
-                });
+                }, TaskAffinity.Concurrent);
 
             await task.StartAsAsync();
 
@@ -596,7 +600,8 @@ namespace IntegrationTests
             task.OnStart += _ => runOrder.Add("start");
             task.OnEnd += _ => runOrder.Add("end");
 
-            await task.Finally((s, d) => { }).StartAndSwallowException();
+            await task.Finally((s, d) => { }, TaskAffinity.Concurrent)
+                .StartAndSwallowException();
             CollectionAssert.AreEqual(new string[] { "start", "end" }, runOrder);
         }
 
@@ -628,7 +633,7 @@ namespace IntegrationTests
                 .Catch(e => { runOrder.Add("2"); exceptions.Add(e); })
                 .Then(_ => { throw new ArgumentNullException(); })
                 .Catch(e => { runOrder.Add("3"); exceptions.Add(e); })
-                .Finally((s, e) => { });
+                .Finally((b, e) => { }, TaskAffinity.Concurrent);
             await task.StartAndSwallowException();
             CollectionAssert.AreEqual(
                 new string[] { typeof(InvalidOperationException).Name, typeof(InvalidOperationException).Name, typeof(InvalidOperationException).Name },
@@ -649,7 +654,7 @@ namespace IntegrationTests
                 .Catch(e => { runOrder.Add("2"); exceptions.Add(e); return true; })
                 .Then(_ => { throw new ArgumentNullException(); })
                 .Catch(e => { runOrder.Add("3"); exceptions.Add(e); return true; })
-                .Finally((s, e) => { });
+                .Finally((s, e) => { }, TaskAffinity.Concurrent);
             await task.StartAndSwallowException();
             CollectionAssert.AreEqual(
                 new string[] { typeof(InvalidOperationException).Name, typeof(InvalidCastException).Name, typeof(ArgumentNullException).Name },
@@ -676,7 +681,7 @@ namespace IntegrationTests
                 .Then(_ => { runOrder.Add("1"); })
                 .Catch(ex => exceptions.Add(ex))
                 .Then(() => runOrder.Add("OnFailure"), TaskRunOptions.OnFailure)
-                .Finally((s, e) => { });
+                .Finally((s, e) => { }, TaskAffinity.Concurrent);
             await task.StartAndSwallowException();
             CollectionAssert.AreEqual(
                 new string[] { typeof(InvalidOperationException).Name },
@@ -725,7 +730,7 @@ namespace IntegrationTests
                 .Then(TaskEx.FromResult(20f), TaskAffinity.Exclusive)
                 .Then((_, n) => n + 1)
                 .Then((_, n) => runOrder.Add(n.ToString()))
-                .Finally((_, t) => runOrder.Add("done"))
+                .Finally((s, _) => runOrder.Add("done"), TaskAffinity.Concurrent)
             ;
             await act.StartAsAsync();
             CollectionAssert.AreEqual(new string[] { "started", "2", "21", "done" }, runOrder);
@@ -797,7 +802,7 @@ namespace IntegrationTests
                 {
                     callOrder.Add("chain2 Finally");
                     return d;
-                });
+                }, TaskAffinity.Concurrent);
 
 
             var outerChainTask1 = new FuncTask<int>(Token, _ =>
@@ -811,7 +816,7 @@ namespace IntegrationTests
                 .Finally((s, e) =>
                 {
                     callOrder.Add("chain1 Finally");
-                });
+                }, TaskAffinity.Concurrent);
 
             await outerChainTask3.StartAwait();
 
