@@ -10,40 +10,36 @@ namespace IntegrationTests
     class GitClientTests : BaseGitEnvironmentTest
     {
         [Test]
-        public void ShouldGetGitVersion()
+        public async Task ShouldGetGitVersion()
         {
             Initialize(TestRepoMasterCleanSynchronized);
 
-            var version = GitClient.Version();
-            version.Start().Wait();
+            var result = await GitClient.Version().StartAwait();
 
-            var versionResult = version.Result;
             if (Environment.IsWindows)
             {
-                versionResult.Should().Be(new Version(2,11,1));
+                result.Should().Be(new Version(2,11,1));
             }
             else
             {
-                versionResult.Should().NotBeNull();
+                result.Should().NotBeNull();
             }
         }
 
         [Test]
-        public void ShouldGetGitLfsVersion()
+        public async Task ShouldGetGitLfsVersion()
         {
             Initialize(TestRepoMasterCleanSynchronized);
 
-            var version = GitClient.LfsVersion();
-            version.Start().Wait();
+            var result = await GitClient.LfsVersion().StartAwait();
 
-            var versionResult = version.Result;
             if (Environment.IsWindows)
             {
-                versionResult.Should().Be(new Version(2, 3, 4));
+                result.Should().Be(new Version(2, 3, 4));
             }
             else
             {
-                versionResult.Should().NotBeNull();
+                result.Should().NotBeNull();
             }
         }
     }
