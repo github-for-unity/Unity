@@ -71,7 +71,7 @@ namespace IntegrationTests
             extractedPath.DirectoryExists().Should().BeFalse();
             failed.Should().BeTrue();
             exception.Should().NotBeNull();
-            exception.Should().BeOfType<UnzipTaskException>();
+            exception.Should().BeOfType<UnzipException>();
         }
     }
 }

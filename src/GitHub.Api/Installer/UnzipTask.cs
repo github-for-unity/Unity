@@ -32,47 +32,85 @@ namespace GitHub.Unity
             this.estimatedDurationProgress = estimatedDurationProgress;
         }
 
-        protected override void Run(bool success)
+        protected void BaseRun(bool success)
         {
             base.Run(success);
+        }
 
-            Logger.Trace("Unzip File: {0} to Path: {1}", archiveFilePath, extractedPath);
+        protected override void Run(bool success)
+        {
+            BaseRun(success);
+
+            RaiseOnStart();
 
             try
             {
-                zipHelper.Extract(archiveFilePath, extractedPath, Token, zipFileProgress, estimatedDurationProgress);
+                RunUnzip(success);
             }
             catch (Exception ex)
             {
-                var message = "Error Unzipping file";
-
-                Logger.Error(ex, message);
-                throw new UnzipTaskException(message);
+                Errors = ex.Message;
+                if (!RaiseFaultHandlers(ex))
+                    throw;
             }
-
-            if (expectedMD5 != null)
+            finally
             {
-                var calculatedMD5 = fileSystem.CalculateFolderMD5(extractedPath);
-                if (!calculatedMD5.Equals(expectedMD5, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    extractedPath.DeleteIfExists();
-
-                    var message = $"Extracted MD5: {calculatedMD5} Does not match expected: {expectedMD5}";
-                    Logger.Error(message);
-
-                    throw new UnzipTaskException(message);
-                }
+                RaiseOnEnd();
             }
-
-            Logger.Trace("Completed Unzip");
         }
+
+        protected virtual void RunUnzip(bool success)
+        {
+            Logger.Trace("Unzip File: {0} to Path: {1}", archiveFilePath, extractedPath);
+
+            Exception exception = null;
+            var attempts = 0;
+            do
+            {
+                if (Token.IsCancellationRequested)
+                    break;
+
+                exception = null;
+                try
+                {
+                    zipHelper.Extract(archiveFilePath, extractedPath, Token, zipFileProgress, estimatedDurationProgress);
+
+                    if (expectedMD5 != null)
+                    {
+                        var calculatedMD5 = fileSystem.CalculateFolderMD5(extractedPath);
+                        success = !calculatedMD5.Equals(expectedMD5, StringComparison.InvariantCultureIgnoreCase);
+                        if (!success)
+                        {
+                            extractedPath.DeleteIfExists();
+
+                            var message = $"Extracted MD5: {calculatedMD5} Does not match expected: {expectedMD5}";
+                            Logger.Error(message);
+
+                            exception = new UnzipException(message);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                    success = false;
+                }
+            } while (attempts++ < RetryCount);
+
+            if (!success)
+            {
+                Token.ThrowIfCancellationRequested();
+                throw new UnzipException("Error downloading file", exception);
+            }
+        }
+        protected int RetryCount { get; }
     }
 
-    public class UnzipTaskException : Exception {
-        public UnzipTaskException(string message) : base(message)
+    public class UnzipException : Exception {
+        public UnzipException(string message) : base(message)
         { }
 
-        public UnzipTaskException(string message, Exception innerException) : base(message, innerException)
+        public UnzipException(string message, Exception innerException) : base(message, innerException)
         { }
     }
 }
