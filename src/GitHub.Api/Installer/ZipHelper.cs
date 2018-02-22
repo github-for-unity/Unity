@@ -153,12 +153,12 @@ namespace GitHub.Unity
                     using (var streamWriter = targetFile.OpenWrite())
                     {
                         const int chunkSize = 4096; // 4K is optimum
-                        Copy(zipStream, streamWriter, chunkSize, targetFile.Length, (totalRead, timeToFinish) =>
+                        Copy(zipStream, streamWriter, chunkSize, zipEntry.Size, (totalRead, timeToFinish) =>
                         {
                             estimatedDuration = timeToFinish;
 
-                            estimatedDurationProgress.Report(estimatedDuration);
-                            zipFileProgress?.Report((float)(totalBytes + totalRead) / targetFile.Length);
+                            estimatedDurationProgress?.Report(estimatedDuration);
+                            zipFileProgress?.Report((float)(totalBytes + totalRead) / zipEntry.Size);
                             return true;
                         }, 100);
                         cancellationToken.ThrowIfCancellationRequested();
