@@ -121,31 +121,19 @@ namespace GitHub.Unity
             };
         }
 
-        public static ITask Then(this ITask task, Action continuation, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
-        {
-            Guard.ArgumentNotNull(continuation, "continuation");
-            return task.Then(new ActionTask(task.Token, _ => continuation()) { Name = "Then" }, runOptions);
-        }
-
-        public static ITask Then(this ITask task, Action continuation, TaskAffinity affinity, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
+        public static ITask Then(this ITask task, Action continuation, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
             return task.Then(new ActionTask(task.Token, _ => continuation()) { Affinity = affinity, Name = "Then" }, runOptions);
         }
 
-        public static ITask Then(this ITask task, Action<bool> continuation, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
-        {
-            Guard.ArgumentNotNull(continuation, "continuation");
-            return task.Then(new ActionTask(task.Token, continuation) { Name = "Then" }, runOptions);
-        }
-
-        public static ITask Then(this ITask task, Action<bool> continuation, TaskAffinity affinity, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
+        public static ITask Then(this ITask task, Action<bool> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
             return task.Then(new ActionTask(task.Token, continuation) { Affinity = affinity, Name = "Then" }, runOptions);
         }
 
-        public static ITask Then<T>(this ITask task, ActionTask<T> nextTask, T valueForNextTask, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
+        public static ITask Then<T>(this ITask task, ActionTask<T> nextTask, T valueForNextTask, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
         {
             Guard.ArgumentNotNull(nextTask, nameof(nextTask));
             nextTask.PreviousResult = valueForNextTask;

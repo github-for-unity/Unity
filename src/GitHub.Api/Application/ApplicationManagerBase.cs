@@ -180,29 +180,24 @@ namespace GitHub.Unity
 
             if (Environment.IsWindows)
             {
-                GitClient
+                var task = GitClient
                     .GetConfig("credential.helper", GitConfigSource.Global)
                     .Then((b, credentialHelper) => {
-                        if (!string.IsNullOrEmpty(credentialHelper))
+                        if (string.IsNullOrEmpty(credentialHelper))
                         {
-                            Logger.Trace("Windows CredentialHelper: {0}", credentialHelper);
-                            afterGitSetup.Start();
+                            Logger.Warning("No Windows CredentialHelper found: Setting to wincred");
+                            throw new ArgumentNullException(nameof(credentialHelper));
                         }
-                        else
-                        {
-                            Logger.Warning("No Windows CredentialHeloper found: Setting to wincred");
+                    });
+                // if there's no credential helper, set it before restarting the repository
+                task.Then(GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global), TaskRunOptions.OnFailure)
+                    .Then(afterGitSetup, taskIsTopOfChain: true);
 
-                            GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global)
-                                .Then(afterGitSetup)
-                                .Start();
-                        }
-                    })
-                    .Start();
+                // if there's a credential helper, we're good, restart the repository
+                task.Then(afterGitSetup, TaskRunOptions.OnSuccess, taskIsTopOfChain: true);
             }
-            else
-            {
-                afterGitSetup.Start();
-            }
+
+            afterGitSetup.Start();
         }
 
         private bool disposed = false;

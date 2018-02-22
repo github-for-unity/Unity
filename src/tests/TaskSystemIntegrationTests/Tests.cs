@@ -9,6 +9,7 @@ using System.Threading.Tasks.Schedulers;
 using System.IO;
 using NSubstitute;
 using GitHub.Logging;
+using System.Diagnostics;
 
 namespace IntegrationTests
 {
@@ -259,7 +260,7 @@ namespace IntegrationTests
                 endTasks.Add(midTasks[i - 7].Then(
                     GetTask(TaskAffinity.Concurrent, i,
                         id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }
-                    )));
+                        )));
             }
 
             foreach (var t in endTasks)
@@ -596,12 +597,12 @@ namespace IntegrationTests
         public async Task StartAndEndAreAlwaysRaised()
         {
             var runOrder = new List<string>();
-            var task = new ActionTask(Token, _ => { throw new Exception(); });
+            ITask task = new ActionTask(Token, _ => { throw new Exception(); });
             task.OnStart += _ => runOrder.Add("start");
             task.OnEnd += _ => runOrder.Add("end");
+            task = task.Finally((_, __) => {});
 
-            await task.Finally((s, d) => { }, TaskAffinity.Concurrent)
-                .StartAndSwallowException();
+            await task.StartAndSwallowException();
             CollectionAssert.AreEqual(new string[] { "start", "end" }, runOrder);
         }
 
@@ -680,9 +681,11 @@ namespace IntegrationTests
             var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
                 .Then(_ => { runOrder.Add("1"); })
                 .Catch(ex => exceptions.Add(ex))
-                .Then(() => runOrder.Add("OnFailure"), TaskRunOptions.OnFailure)
+                .Then(() => runOrder.Add("OnFailure"), runOptions: TaskRunOptions.OnFailure)
                 .Finally((s, e) => { }, TaskAffinity.Concurrent);
+
             await task.StartAndSwallowException();
+
             CollectionAssert.AreEqual(
                 new string[] { typeof(InvalidOperationException).Name },
                 exceptions.Select(x => x.GetType().Name).ToArray());
@@ -839,6 +842,48 @@ namespace IntegrationTests
             }, callOrder);
         }
 
+        [Test]
+        public async Task RunningDifferentTasksDependingOnPreviousResult()
+        {
+            var callOrder = new List<string>();
+
+            var taskEnd = new ActionTask(Token, () => callOrder.Add("chain completed")) { Name = "Chain Completed" };
+            var final = taskEnd.Finally((_, __) => { });
+
+            var taskStart = new FuncTask<bool>(Token, _ =>
+                {
+                    callOrder.Add("chain start");
+                    return false;
+                }) { Name = "Chain Start" }
+                .Then(new ActionTask<bool>(Token, (_, __) =>
+                {
+                    callOrder.Add("failing");
+                    throw new InvalidOperationException();
+                }) { Name = "Failing" });
+
+            taskStart.Then(new ActionTask(Token, () =>
+            {
+                callOrder.Add("on failure");
+            }) { Name = "On Failure" }, runOptions: TaskRunOptions.OnFailure)
+            .Then(taskEnd, taskIsTopOfChain: true);
+
+            taskStart.Then(new ActionTask(Token, () =>
+            {
+                callOrder.Add("on success");
+            }) { Name = "On Success" }, runOptions: TaskRunOptions.OnSuccess)
+            .Then(taskEnd, taskIsTopOfChain: true);
+
+            await final.StartAndSwallowException();
+
+            Console.WriteLine(String.Join(",", callOrder.ToArray()));
+            CollectionAssert.AreEqual(new string[] {
+                "chain start",
+                "failing",
+                "on failure",
+                "chain completed"
+            }, callOrder);
+        }
+
         private T LogAndReturnResult<T>(List<string> callOrder, string msg, T result)
         {
             callOrder.Add(msg);
@@ -859,10 +904,10 @@ namespace IntegrationTests
         public static Task<T> StartAndSwallowException<T>(this ITask<T> task)
         {
             var tcs = new TaskCompletionSource<T>();
-            task.Then((s, d) =>
+            task.Then((success, result) =>
             {
-                tcs.SetResult(d);
-            });
+                tcs.SetResult(result);
+            }, TaskAffinity.Concurrent);
             task.Start();
             return tcs.Task;
         }
@@ -870,7 +915,7 @@ namespace IntegrationTests
         public static Task StartAndSwallowException(this ITask task)
         {
             var tcs = new TaskCompletionSource<bool>();
-            task.Then(tcs.SetResult);
+            task.Then(s => { tcs.SetResult(s); });
             task.Start();
             return tcs.Task;
         }
