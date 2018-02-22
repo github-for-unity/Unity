@@ -217,12 +217,12 @@ namespace GitHub.Unity
                     }
                 })
                 .Then(GetConfig(UserEmailConfigKey, GitConfigSource.User)
-                .Then((success, value) => {
-                    if (success)
-                    {
-                        email = value;
-                    }
-                })).Then(success => {
+                    .Then((success, value) => {
+                        if (success)
+                        {
+                            email = value;
+                        }
+                    })).Then(success => {
                 Logger.Trace("{0}:{1} {2}:{3}", UserNameConfigKey, username, UserEmailConfigKey, email);
                 return new GitUser(username, email);
             });
