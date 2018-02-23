@@ -266,6 +266,7 @@ namespace GitHub.Unity
             {
                 proc.StandardInput.WriteLine(username);
                 proc.StandardInput.WriteLine(password);
+                proc.StandardInput.Close();
             };
             var ret = await loginTask.StartAwait();
             if (ret.Count == 0)
@@ -313,6 +314,7 @@ namespace GitHub.Unity
                 proc.StandardInput.WriteLine(username);
                 proc.StandardInput.WriteLine(password);
                 proc.StandardInput.WriteLine(code);
+                proc.StandardInput.Close();
             };
             var ret = await loginTask.StartAwait();
             if (ret.Count == 0)
