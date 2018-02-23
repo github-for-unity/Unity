@@ -468,15 +468,15 @@ namespace GitHub.Unity
         private readonly NPath fullPathToExecutable;
         private readonly string arguments;
 
-        public SimpleProcessTask(CancellationToken token, NPath fullPathToExecutable, string arguments)
-            : base(token, new SimpleOutputProcessor())
+        public SimpleProcessTask(CancellationToken token, NPath fullPathToExecutable, string arguments, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         {
             this.fullPathToExecutable = fullPathToExecutable;
             this.arguments = arguments;
         }
 
-        public SimpleProcessTask(CancellationToken token, string arguments)
-            : base(token, new SimpleOutputProcessor())
+        public SimpleProcessTask(CancellationToken token, string arguments, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         {
             this.arguments = arguments;
         }
@@ -484,4 +484,25 @@ namespace GitHub.Unity
         public override string ProcessName => fullPathToExecutable?.FileName;
         public override string ProcessArguments => arguments;
     }
-}
+
+    class SimpleListProcessTask : ProcessTaskWithListOutput<string>
+    {
+        private readonly NPath fullPathToExecutable;
+        private readonly string arguments;
+
+        public SimpleListProcessTask(CancellationToken token, NPath fullPathToExecutable, string arguments, IOutputProcessor<string, List<string>> processor = null)
+            : base(token, processor ?? new SimpleListOutputProcessor())
+        {
+            this.fullPathToExecutable = fullPathToExecutable;
+            this.arguments = arguments;
+        }
+
+        public SimpleListProcessTask(CancellationToken token, string arguments, IOutputProcessor<string, List<string>> processor = null)
+            : base(token, processor ?? new SimpleListOutputProcessor())
+        {
+            this.arguments = arguments;
+        }
+
+        public override string ProcessName => fullPathToExecutable?.FileName;
+        public override string ProcessArguments => arguments;
+    }}

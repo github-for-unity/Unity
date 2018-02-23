@@ -8,7 +8,7 @@ namespace GitHub.Unity
 {
     class ApiClient : IApiClient
     {
-        public static IApiClient Create(UriString repositoryUrl, IKeychain keychain)
+        public static IApiClient Create(UriString repositoryUrl, IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, NPath loginTool)
         {
             logger.Trace("Creating ApiClient: {0}", repositoryUrl);
 
@@ -16,7 +16,8 @@ namespace GitHub.Unity
             var hostAddress = HostAddress.Create(repositoryUrl);
 
             return new ApiClient(repositoryUrl, keychain,
-                new GitHubClient(AppConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri));
+                new GitHubClient(AppConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri),
+                processManager, taskManager, loginTool);
         }
 
         private static readonly ILogging logger = Logging.GetLogger<ApiClient>();
@@ -25,9 +26,12 @@ namespace GitHub.Unity
 
         private readonly IKeychain keychain;
         private readonly IGitHubClient githubClient;
+        private readonly IProcessManager processManager;
+        private readonly ITaskManager taskManager;
+        private readonly NPath loginTool;
         private readonly ILoginManager loginManager;
 
-        public ApiClient(UriString hostUrl, IKeychain keychain, IGitHubClient githubClient)
+        public ApiClient(UriString hostUrl, IKeychain keychain, IGitHubClient githubClient, IProcessManager processManager, ITaskManager taskManager, NPath loginTool)
         {
             Guard.ArgumentNotNull(hostUrl, nameof(hostUrl));
             Guard.ArgumentNotNull(keychain, nameof(keychain));
@@ -37,7 +41,13 @@ namespace GitHub.Unity
             OriginalUrl = hostUrl;
             this.keychain = keychain;
             this.githubClient = githubClient;
-            loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
+            this.processManager = processManager;
+            this.taskManager = taskManager;
+            this.loginTool = loginTool;
+            loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret,
+                processManager: processManager,
+                taskManager: taskManager, 
+                loginTool: loginTool);
         }
 
         public async Task Logout(UriString host)

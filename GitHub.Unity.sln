@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskSystem", "src\tests\Tas
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "src\tests\TestApp\TestApp.csproj", "{08B87D2A-8CF1-4211-B7AA-5209F00F72F8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctoRun", "src\OctoRun\OctoRun.csproj", "{127F84FE-DB89-4543-9A83-74DB4E751061}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -94,6 +96,12 @@ Global
 		{08B87D2A-8CF1-4211-B7AA-5209F00F72F8}.dev|Any CPU.Build.0 = Debug|Any CPU
 		{08B87D2A-8CF1-4211-B7AA-5209F00F72F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08B87D2A-8CF1-4211-B7AA-5209F00F72F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{127F84FE-DB89-4543-9A83-74DB4E751061}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{127F84FE-DB89-4543-9A83-74DB4E751061}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{127F84FE-DB89-4543-9A83-74DB4E751061}.dev|Any CPU.ActiveCfg = Debug|Any CPU
+		{127F84FE-DB89-4543-9A83-74DB4E751061}.dev|Any CPU.Build.0 = Debug|Any CPU
+		{127F84FE-DB89-4543-9A83-74DB4E751061}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{127F84FE-DB89-4543-9A83-74DB4E751061}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

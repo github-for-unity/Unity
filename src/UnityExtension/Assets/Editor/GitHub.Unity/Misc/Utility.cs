@@ -49,6 +49,24 @@ namespace GitHub.Unity
 
             return result;
         }
+
+        public static NPath GetTool(string filename, string filename2x = "")
+        {
+            var outfile = Application.temporaryCachePath.ToNPath().Combine(filename);
+            if (outfile.Exists())
+                return outfile;
+
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GitHub.Unity.Tools." + filename);
+            if (stream != null)
+            {
+                var targetFile = new FileInfo(outfile);
+                using (var outstream = targetFile.OpenWrite())
+                {
+                    ZipHelper.Copy(stream, outstream, 8192, stream.Length, null, 0);
+                }
+            }
+            return outfile;
+        }
     }
 
     static class StreamExtensions

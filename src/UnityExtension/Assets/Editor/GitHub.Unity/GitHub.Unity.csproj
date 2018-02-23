@@ -195,6 +195,9 @@
     <EmbeddedResource Include="IconsAndLogos\tracked-branch-indicator.png" />
     <EmbeddedResource Include="IconsAndLogos\untracked%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\untracked.png" />
+    <EmbeddedResource Include="..\..\..\..\OctoRun\bin\$(BuildConfig)\octorun.exe">
+      <Link>Tools\octorun.exe</Link>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(SolutionDir)EULA.txt">

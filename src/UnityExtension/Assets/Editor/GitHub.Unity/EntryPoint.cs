@@ -24,6 +24,7 @@ namespace GitHub.Unity
             Logging.LogAdapter = new FileLogAdapter(tempEnv.LogPath);
 
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
             EditorApplication.update += Initialize;
         }
 

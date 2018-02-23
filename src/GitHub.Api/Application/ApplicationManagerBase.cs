@@ -199,6 +199,11 @@ namespace GitHub.Unity
             }
         }
 
+        public virtual NPath GetTool(string tool)
+        {
+            return null;
+        }
+
         public void Dispose()
         {
             Dispose(true);
@@ -216,6 +221,7 @@ namespace GitHub.Unity
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
         public IUsageTracker UsageTracker { get; protected set; }
+        public NPath LoginTool => GetTool("octorun.exe");
         protected TaskScheduler UIScheduler { get; private set; }
         protected SynchronizationContext SynchronizationContext { get; private set; }
         protected IRepositoryManager RepositoryManager { get { return repositoryManager; } }

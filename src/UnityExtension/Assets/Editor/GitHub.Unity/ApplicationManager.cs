@@ -21,6 +21,11 @@ namespace GitHub.Unity
             Initialize();
         }
 
+        public override NPath GetTool(string tool)
+        {
+            return Utility.GetTool(tool);
+        }
+
         protected override void SetupMetrics()
         {
             SetupMetrics(Environment.UnityVersion, ApplicationCache.Instance.FirstRun);

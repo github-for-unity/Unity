@@ -10,7 +10,7 @@ namespace GitHub.Unity
 
         public AuthenticationService(UriString host, IKeychain keychain)
         {
-            client = ApiClient.Create(host, keychain);
+            client = ApiClient.Create(host, keychain, EntryPoint.ApplicationManager.ProcessManager, EntryPoint.ApplicationManager.TaskManager, EntryPoint.ApplicationManager.LoginTool);
         }
 
         public void Login(string username, string password, Action<string> twofaRequired, Action<bool, string> authResult)
