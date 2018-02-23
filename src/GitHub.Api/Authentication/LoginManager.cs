@@ -308,7 +308,7 @@ namespace GitHub.Unity
 
             ApplicationAuthorization auth = null;
             var loginTask = new SimpleListProcessTask(taskManager.Token, loginTool, $"login --host={host} --2fa");
-            loginTask.Configure(processManager, true);
+            loginTask.Configure(processManager, workingDirectory: loginTool.Parent, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
                 proc.StandardInput.WriteLine(username);
