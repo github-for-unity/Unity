@@ -84,10 +84,10 @@ namespace GitHub.Unity
             {
                 Process.ErrorDataReceived += (s, e) =>
                 {
-                    //if (e.Data != null)        
-                    //{        
-                    //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");        
-                    //}        
+                    //if (e.Data != null)
+                    //{
+                    //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
+                    //}
 
                     string encodedData = null;
                     if (e.Data != null)
@@ -503,6 +503,6 @@ namespace GitHub.Unity
             this.arguments = arguments;
         }
 
-        public override string ProcessName => fullPathToExecutable?.FileName;
+        public override string ProcessName => fullPathToExecutable;
         public override string ProcessArguments => arguments;
     }}

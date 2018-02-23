@@ -41,6 +41,8 @@ namespace GitHub.Unity
                 StandardErrorEncoding = Encoding.UTF8
             };
 
+            if (!executable.IsRelative)
+                workingDirectory = executable.Parent;
             gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath);
 
             if (executable.IsRelative)
