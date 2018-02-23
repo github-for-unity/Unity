@@ -257,7 +257,7 @@ namespace GitHub.Unity
             string password
         )
         {
-            logger.Info("Login Username:{0}", username);
+            logger.Info("Login Username:{0} {1}", username, loginTool);
 
             ApplicationAuthorization auth = null;
             var loginTask = new SimpleListProcessTask(taskManager.Token, loginTool, $"login --host={host}");

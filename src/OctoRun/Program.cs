@@ -92,7 +92,7 @@ namespace OctoRun
     {
         static void Main(string[] args)
         {
-            Logging.LogAdapter = new ConsoleLogAdapter();
+            //Logging.LogAdapter = new ConsoleLogAdapter();
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 

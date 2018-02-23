@@ -50,13 +50,21 @@ namespace GitHub.Unity
             return result;
         }
 
-        public static NPath GetTool(string filename, string filename2x = "")
+        public static NPath GetTool(string tool)
         {
-            var outfile = Application.temporaryCachePath.ToNPath().Combine(filename);
+            var outfile = Application.temporaryCachePath.ToNPath().Combine(tool);
+
+            if (tool == "octorun.exe")
+            {
+                GetTool("Mono.Options.dll");
+                GetTool("GitHub.Logging.dll");
+                GetTool("Octokit.dll");
+            }
+
             if (outfile.Exists())
                 return outfile;
 
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GitHub.Unity.Tools." + filename);
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GitHub.Unity.Tools." + tool);
             if (stream != null)
             {
                 var targetFile = new FileInfo(outfile);
@@ -65,6 +73,7 @@ namespace GitHub.Unity
                     ZipHelper.Copy(stream, outstream, 8192, stream.Length, null, 0);
                 }
             }
+            Logging.GetLogger<Utility>().Debug(outfile);
             return outfile;
         }
     }
