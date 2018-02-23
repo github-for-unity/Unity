@@ -3,6 +3,7 @@ using Mono.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 using System.Threading.Tasks;
 using static OctoRun.LoginManager;
 
@@ -94,6 +95,8 @@ namespace OctoRun
         {
             //Logging.LogAdapter = new ConsoleLogAdapter();
 
+            ServicePointManager.ServerCertificateValidationCallback = (sender, chain, cert, errors) => true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             var opts = new OptionSet();
