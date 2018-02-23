@@ -505,4 +505,5 @@ namespace GitHub.Unity
 
         public override string ProcessName => fullPathToExecutable;
         public override string ProcessArguments => arguments;
-    }}
+    }
+}
