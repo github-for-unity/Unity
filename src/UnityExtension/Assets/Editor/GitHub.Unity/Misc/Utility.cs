@@ -52,7 +52,8 @@ namespace GitHub.Unity
 
         public static NPath GetTool(string tool)
         {
-            var outfile = Application.temporaryCachePath.ToNPath().Combine(tool);
+            var outfile = EntryPoint.Environment.UserCachePath.Combine("tools", tool);
+            outfile.EnsureParentDirectoryExists();
 
             if (tool == "octorun.exe")
             {
