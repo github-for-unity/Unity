@@ -25,11 +25,11 @@ namespace GitHub.Unity
 
         private readonly bool onWindows;
 
-        public GitInstallDetails(NPath applicationDataPath, bool onWindows)
+        public GitInstallDetails(NPath pluginDataPath, bool onWindows)
         {
             this.onWindows = onWindows;
 
-            PluginDataPath = applicationDataPath.Combine(ApplicationInfo.ApplicationName);
+            PluginDataPath = pluginDataPath;
 
             var gitInstallPath = PluginDataPath.Combine(PackageNameWithVersion);
             GitInstallationPath = gitInstallPath;
