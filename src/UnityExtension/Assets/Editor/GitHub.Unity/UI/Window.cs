@@ -451,7 +451,7 @@ namespace GitHub.Unity
                 host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
             }
 
-            var apiClient = ApiClient.Create(host, Platform.Keychain);
+            var apiClient = ApiClient.Create(host, Platform.Keychain, null, null, null);
             apiClient.Logout(host);
         }
 

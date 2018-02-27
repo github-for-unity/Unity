@@ -11,7 +11,6 @@
     <AssemblyName>GitHub.Api</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
     <TargetFrameworkProfile />
     <LangVersion>6</LangVersion>
     <NuGetPackageImportStamp>

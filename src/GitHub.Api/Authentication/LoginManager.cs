@@ -28,22 +28,30 @@ namespace GitHub.Unity
         private readonly string clientSecret;
         private readonly string authorizationNote;
         private readonly string fingerprint;
+        private readonly IProcessManager processManager;
+        private readonly ITaskManager taskManager;
+        private readonly NPath loginTool;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoginManager"/> class.
         /// </summary>
-        /// <param name="loginCache">The cache in which to store login details.</param>
-        /// <param name="twoFactorChallengeHandler">The handler for 2FA challenges.</param>
+        /// <param name="keychain"></param>
         /// <param name="clientId">The application's client API ID.</param>
         /// <param name="clientSecret">The application's client API secret.</param>
         /// <param name="authorizationNote">An note to store with the authorization.</param>
         /// <param name="fingerprint">The machine fingerprint.</param>
+        /// <param name="processManager"></param>
+        /// <param name="taskManager"></param>
+        /// <param name="loginTool"></param>
+        /// <param name="loginCache">The cache in which to store login details.</param>
+        /// <param name="twoFactorChallengeHandler">The handler for 2FA challenges.</param>
         public LoginManager(
             IKeychain keychain,
             string clientId,
             string clientSecret,
             string authorizationNote = null,
-            string fingerprint = null)
+            string fingerprint = null,
+            IProcessManager processManager = null, ITaskManager taskManager = null, NPath loginTool = null)
         {
             Guard.ArgumentNotNull(keychain, nameof(keychain));
             Guard.ArgumentNotNullOrWhiteSpace(clientId, nameof(clientId));
@@ -54,6 +62,9 @@ namespace GitHub.Unity
             this.clientSecret = clientSecret;
             this.authorizationNote = authorizationNote;
             this.fingerprint = fingerprint;
+            this.processManager = processManager;
+            this.taskManager = taskManager;
+            this.loginTool = loginTool;
         }
 
         /// <inheritdoc/>
@@ -84,9 +95,8 @@ namespace GitHub.Unity
 
             try
             {
-                logger.Info("Login Username:{0}", username);
-
-                auth = await CreateAndDeleteExistingApplicationAuthorization(client, newAuth, null);
+                //auth = await CreateAndDeleteExistingApplicationAuthorization(client, newAuth, null);
+                auth = await TryLogin(client, host, username, password);
                 EnsureNonNullAuthorization(auth);
             }
             catch (TwoFactorAuthorizationException e)
@@ -149,15 +159,17 @@ namespace GitHub.Unity
             var client = loginResultData.Client;
             var newAuth = loginResultData.NewAuth;
             var host = loginResultData.Host;
-
+            var k = keychain.Connect(host);
+            var username = k.Credential.Username;
+            var password = k.Credential.Token;
             try
             {
                 logger.Trace("2FA Continue");
-
-                var auth = await CreateAndDeleteExistingApplicationAuthorization(
-                    client,
-                    newAuth,
-                    twofacode);
+                var auth = await TryContinueLogin(client, host, username, password, twofacode);
+                //var auth = await CreateAndDeleteExistingApplicationAuthorization(
+                //    client,
+                //    newAuth,
+                //    twofacode);
                 EnsureNonNullAuthorization(auth);
 
                 keychain.SetToken(host, auth.Token);
@@ -208,6 +220,7 @@ namespace GitHub.Unity
             {
                 if (twoFactorAuthenticationCode == null)
                 {
+
                     result = await client.Authorization.GetOrCreateApplicationAuthentication(
                         clientId,
                         clientSecret,
@@ -236,6 +249,100 @@ namespace GitHub.Unity
             } while (result.Token == string.Empty && retry++ == 0);
 
             return result;
+        }
+
+        private async Task<ApplicationAuthorization> TryLogin(
+            IGitHubClient client,
+            UriString host,
+            string username,
+            string password
+        )
+        {
+            logger.Info("Login Username:{0} {1}", username, loginTool);
+
+            ApplicationAuthorization auth = null;
+            var loginTask = new SimpleListProcessTask(taskManager.Token, loginTool, $"login --host={host}");
+            loginTask.Configure(processManager, workingDirectory: loginTool.Parent, withInput: true);
+            loginTask.OnStartProcess += proc =>
+            {
+                proc.StandardInput.WriteLine(username);
+                proc.StandardInput.WriteLine(password);
+                proc.StandardInput.Close();
+            };
+            var ret = await loginTask.StartAwait();
+            if (ret.Count == 0)
+            {
+                throw new Exception("Authentication failed");
+            }
+            // success
+            else if (ret.Count == 1)
+            {
+                auth = new ApplicationAuthorization(ret[0]);
+            }
+            else
+            {
+                if (ret[0] == "2fa")
+                {
+                    keychain.SetToken(host, ret[1]);
+                    await keychain.Save(host);
+                    throw new TwoFactorRequiredException(TwoFactorType.Unknown);
+                }
+                else if (ret[0] == "locked")
+                {
+                    throw new LoginAttemptsExceededException(null, null);
+                }
+                else
+                    throw new Exception("Authentication failed");
+            }
+            return auth;
+        }
+
+        private async Task<ApplicationAuthorization> TryContinueLogin(
+            IGitHubClient client,
+            UriString host,
+            string username,
+            string password,
+            string code
+        )
+        {
+            logger.Info("Continue Username:{0}", username);
+
+            ApplicationAuthorization auth = null;
+            var loginTask = new SimpleListProcessTask(taskManager.Token, loginTool, $"login --host={host} --2fa");
+            loginTask.Configure(processManager, workingDirectory: loginTool.Parent, withInput: true);
+            loginTask.OnStartProcess += proc =>
+            {
+                proc.StandardInput.WriteLine(username);
+                proc.StandardInput.WriteLine(password);
+                proc.StandardInput.WriteLine(code);
+                proc.StandardInput.Close();
+            };
+            var ret = await loginTask.StartAwait();
+            if (ret.Count == 0)
+            {
+                throw new Exception("Authentication failed");
+            }
+            // success
+            else if (ret.Count == 1)
+            {
+                auth = new ApplicationAuthorization(ret[0]);
+            }
+            else
+            {
+                if (ret[0] == "2fa")
+                {
+                    keychain.SetToken(host, ret[1]);
+                    await keychain.Save(host);
+                    throw new TwoFactorRequiredException(TwoFactorType.Unknown);
+                }
+                else if (ret[0] == "locked")
+                {
+                    throw new LoginAttemptsExceededException(null, null);
+                }
+                else
+                    throw new Exception("Authentication failed");
+            }
+            return auth;
         }
 
         ApplicationAuthorization EnsureNonNullAuthorization(ApplicationAuthorization auth)
