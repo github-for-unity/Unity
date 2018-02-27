@@ -135,24 +135,6 @@ namespace GitHub.Unity
             {
                 archiveParentPath = NPath.CreateTempDirectory("git_zip_paths");
 
-                if (gitArchiveFilePath == null)
-                {
-                    gitArchiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", archiveParentPath, environment);
-                    if (!gitArchiveFilePath.FileExists())
-                    {
-                        gitArchiveFilePath = null;
-                    }
-                }
-
-                if (gitLfsArchivePath == null)
-                {
-                    gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", archiveParentPath, environment);
-                    if (!gitLfsArchivePath.FileExists())
-                    {
-                        gitLfsArchivePath = null;
-                    }
-                }
-
                 var downloadGit = false;
                 var downloadGitLfs = false;
 
