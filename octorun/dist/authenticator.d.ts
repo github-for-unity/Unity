@@ -1,5 +1,5 @@
 export declare class Authenticator {
     private github;
     constructor();
-    authenticate(): void;
+    createAndDeleteExistingApplicationAuthorization(input?: string): Promise<void>;
 }

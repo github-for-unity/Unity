@@ -1,3 +1,5 @@
+//require('dotenv').config();
+
 import * as commander from 'commander';
 
 export class App {
@@ -13,6 +15,7 @@ export class App {
     public initialize() {
         this.program
             .version(this.package.version)
+            .command('login [-h|-2fa]', 'Authenticate')
             .command('write [message]', 'say hello!')
             .parse(process.argv);
     }

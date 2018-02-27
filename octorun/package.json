@@ -27,6 +27,7 @@
   "devDependencies": {
     "@types/chai": "^4.0.0",
     "@types/commander": "^2.3.31",
+    "@types/dotenv": "^4.0.2",
     "@types/mocha": "^2.2.39",
     "@types/node": "^7.0.5",
     "@types/sinon": "^2.3.0",
@@ -39,6 +40,7 @@
   },
   "dependencies": {
     "@octokit/rest": "^14.0.9",
-    "commander": "^2.9.0"
+    "commander": "^2.9.0",
+    "dotenv": "^5.0.1"
   }
 }

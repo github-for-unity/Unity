@@ -1,14 +1,14 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const commander = require("commander");
-const writer_1 = require("../writer");
-class Write {
-    constructor() {
+exports.__esModule = true;
+var commander = require("commander");
+var writer_1 = require("../writer");
+var Write = (function () {
+    function Write() {
         this.program = commander;
         this.package = require('../../package.json');
         this.writer = new writer_1.Writer();
     }
-    initialize() {
+    Write.prototype.initialize = function () {
         this.program
             .version(this.package.version)
             .option('-m, --message [value]', 'Say hello!')
@@ -23,8 +23,9 @@ class Write {
             process.exit();
         }
         this.program.help();
-    }
-}
+    };
+    return Write;
+}());
 exports.Write = Write;
-let app = new Write();
+var app = new Write();
 app.initialize();

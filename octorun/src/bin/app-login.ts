@@ -16,15 +16,15 @@ export class Write {
     public initialize() {
         this.program
             .version(this.package.version)
+            .option('-l, --login')
+            .option('-t, --twoFactor')
             .parse(process.argv);
 
-        if (this.program.message != null) {
+        if (this.program.login) {
 
-            // if (typeof this.program.message !== 'string') {
-            //     this.writer.write();
-            // } else {
-            //     this.writer.write(this.program.message);
-            // }
+            process.exit();
+        }
+        else if (this.program.twoFactor) {
 
             process.exit();
         }

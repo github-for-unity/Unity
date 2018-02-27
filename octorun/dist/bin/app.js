@@ -1,18 +1,20 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const commander = require("commander");
-class App {
-    constructor() {
+exports.__esModule = true;
+var commander = require("commander");
+var App = (function () {
+    function App() {
         this.program = commander;
         this.package = require('../../package.json');
     }
-    initialize() {
+    App.prototype.initialize = function () {
         this.program
             .version(this.package.version)
+            .command('login [-h|-2fa]', 'Authenticate')
             .command('write [message]', 'say hello!')
             .parse(process.argv);
-    }
-}
+    };
+    return App;
+}());
 exports.App = App;
-let app = new App();
+var app = new App();
 app.initialize();
