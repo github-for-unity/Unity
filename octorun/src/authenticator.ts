@@ -1,6 +1,6 @@
-//const octokit = require('@octokit/rest')
+/// <reference types="../typings/octokit-rest-es3" />
 
-import * as GitHub from 'github';
+import * as GitHub from 'octokit-rest-es3';
 import { configuration } from './configuration';
 
 export class Authenticator {
@@ -13,7 +13,7 @@ export class Authenticator {
 
         this.github = new GitHub({
             timeout: 0, // 0 means no request timeout
-            //requestMedia: 'application/vnd.github.v3+json',
+            requestMedia: 'application/vnd.github.v3+json',
             headers: {
                 'user-agent': 'octokit/rest.js v1.2.3' // v1.2.3 will be current version
             },
@@ -22,7 +22,7 @@ export class Authenticator {
             host: 'api.github.com',
             pathPrefix: '',
             protocol: 'https',
-            //port: 443,
+            port: 443,
 
             // Node only: advanced request options can be passed as http(s) agent
             //agent: undefined

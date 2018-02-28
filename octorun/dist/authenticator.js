@@ -35,18 +35,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-var GitHub = require("github");
+var GitHub = require("octokit-rest-es3");
 var configuration_1 = require("./configuration");
 var Authenticator = (function () {
     function Authenticator() {
         this.github = new GitHub({
             timeout: 0,
+            requestMedia: 'application/vnd.github.v3+json',
             headers: {
                 'user-agent': 'octokit/rest.js v1.2.3'
             },
             host: 'api.github.com',
             pathPrefix: '',
-            protocol: 'https'
+            protocol: 'https',
+            port: 443
         });
     }
     Authenticator.prototype.createAndDeleteExistingApplicationAuthorization = function () {

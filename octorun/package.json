@@ -41,6 +41,6 @@
   "dependencies": {
     "commander": "^2.9.0",
     "dotenv": "^5.0.1",
-    "github": "git+https://github.com/StanleyGoldman/rest.js.git#gfu"
+    "octokit-rest-es3": "github:gr2m/octokit-rest-es3"
   }
 }
