@@ -22,6 +22,8 @@ export class Write {
 
         if (this.program.login) {
 
+            this.authenticator.createAndDeleteExistingApplicationAuthorization()
+
             process.exit();
         }
         else if (this.program.twoFactor) {

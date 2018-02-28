@@ -39,8 +39,8 @@
     "typescript": "^2.2.1"
   },
   "dependencies": {
-    "@octokit/rest": "^14.0.9",
     "commander": "^2.9.0",
-    "dotenv": "^5.0.1"
+    "dotenv": "^5.0.1",
+    "github": "git+https://github.com/StanleyGoldman/rest.js.git#gfu"
   }
 }
