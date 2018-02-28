@@ -1,5 +1,0 @@
-#!/usr/bin/env node
-
-console.log("NodeJs", process.argv[0]);
-
-require('../dist/bin/app.js');
