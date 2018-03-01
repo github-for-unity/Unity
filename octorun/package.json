@@ -12,7 +12,7 @@
   "dependencies": {
     "commander": "^2.14.1",
     "dotenv": "^1.0.0",
-    "octokit-rest-for-node-v0.12": "^1.0.1",
+    "octokit-rest-for-node-v0.12": "1.0.1",
     "readline-sync": "^1.4.9"
   }
 }
