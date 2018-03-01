@@ -14,20 +14,24 @@ namespace GitHub.Unity
         public const string GitExtractedMD5 = "e6cfc0c294a2312042f27f893dfc9c0a";
         public const string GitLfsExtractedMD5 = "36e3ae968b69fbf42dff72311040d24a";
 
+        public const string WindowsGitExecutableMD5 = "50570ed932559f294d1a1361801740b9";
+        public const string MacGitExecutableMD5 = "";
+
         public const string WindowsGitLfsExecutableMD5 = "177bb14d0c08f665a24f0d5516c3b080";
         public const string MacGitLfsExecutableMD5 = "f81a1a065a26a4123193e8fd96c561ad";
-
-        public const string FileListMD5 = "a152a216b2e76f6c127053251187a278";
 
         private const string PackageVersion = "f02737a78695063deace08e96d5042710d3e32db";
         private const string PackageName = "PortableGit";
 
         private readonly bool onWindows;
 
-        public GitInstallDetails(NPath targetInstallPath, bool onWindows)
+        public GitInstallDetails(NPath pluginDataPath, bool onWindows)
         {
             this.onWindows = onWindows;
-            var gitInstallPath = targetInstallPath.Combine(ApplicationInfo.ApplicationName, PackageNameWithVersion);
+
+            PluginDataPath = pluginDataPath;
+
+            var gitInstallPath = PluginDataPath.Combine(PackageNameWithVersion);
             GitInstallationPath = gitInstallPath;
 
             if (onWindows)
@@ -55,6 +59,7 @@ namespace GitHub.Unity
                 : gitInstallRoot.Combine("libexec", "git-core", GitLfsExecutable);
         }
 
+        public NPath PluginDataPath { get; }
         public NPath GitInstallationPath { get; }
         public string GitExecutable { get; }
         public NPath GitExecutablePath { get; }
@@ -183,21 +188,20 @@ namespace GitHub.Unity
 
         private ITask CreateDownloadTask()
         {
-            var tempZipPath = NPath.CreateTempDirectory("git_zip_paths");
-            gitArchiveFilePath = tempZipPath.Combine("git.zip");
-            gitLfsArchivePath = tempZipPath.Combine("git-lfs.zip");
+            gitArchiveFilePath = installDetails.PluginDataPath.Combine("git.zip");
+            gitLfsArchivePath = installDetails.PluginDataPath.Combine("git-lfs.zip");
 
             var downloadGitMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitZipMd5Url, tempZipPath);
+                installDetails.GitZipMd5Url, installDetails.PluginDataPath);
 
             var downloadGitTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitZipUrl, tempZipPath);
+                installDetails.GitZipUrl, installDetails.PluginDataPath);
 
             var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitLfsZipMd5Url, tempZipPath);
+                installDetails.GitLfsZipMd5Url, installDetails.PluginDataPath);
 
             var downloadGitLfsTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitLfsZipUrl, tempZipPath);
+                installDetails.GitLfsZipUrl, installDetails.PluginDataPath);
 
             return
                 downloadGitMd5Task.Then((b, s) => { downloadGitTask.ValidationHash = s; })
@@ -215,19 +219,21 @@ namespace GitHub.Unity
                 return false;
             }
 
-            var fileListMD5 = environment.FileSystem.CalculateFolderMD5(installDetails.GitInstallationPath, false);
-            if (!fileListMD5.Equals(GitInstallDetails.FileListMD5, StringComparison.InvariantCultureIgnoreCase))
+            var gitExecutableMd5 = environment.FileSystem.CalculateFileMD5(installDetails.GitExecutablePath);
+            var expectedGitExecutableMd5 = environment.IsWindows ? GitInstallDetails.WindowsGitExecutableMD5 : GitInstallDetails.MacGitExecutableMD5;
+
+            if (!expectedGitExecutableMd5.Equals(gitExecutableMd5, StringComparison.InvariantCultureIgnoreCase))
             {
-                Logger.Warning($"Path {installDetails.GitInstallationPath} has MD5 {fileListMD5} expected {GitInstallDetails.FileListMD5}");
+                Logger.Warning($"Path {installDetails.GitExecutablePath} has MD5 {gitExecutableMd5} expected {expectedGitExecutableMd5}");
                 return false;
             }
 
-            var calculateMd5 = environment.FileSystem.CalculateFileMD5(installDetails.GitLfsExecutablePath);
-            var md5 = environment.IsWindows ? GitInstallDetails.WindowsGitLfsExecutableMD5 : GitInstallDetails.MacGitLfsExecutableMD5;
+            var gitLfsExecutableMd5 = environment.FileSystem.CalculateFileMD5(installDetails.GitLfsExecutablePath);
+            var expectedGitLfsExecutableMd5 = environment.IsWindows ? GitInstallDetails.WindowsGitLfsExecutableMD5 : GitInstallDetails.MacGitLfsExecutableMD5;
 
-            if (!md5.Equals(calculateMd5, StringComparison.InvariantCultureIgnoreCase))
+            if (!expectedGitLfsExecutableMd5.Equals(gitLfsExecutableMd5, StringComparison.InvariantCultureIgnoreCase))
             {
-                Logger.Warning($"Path {installDetails.GitLfsExecutablePath} has MD5 {calculateMd5} expected {md5}");
+                Logger.Warning($"Path {installDetails.GitLfsExecutablePath} has MD5 {gitLfsExecutableMd5} expected {expectedGitLfsExecutableMd5}");
                 return false;
             }
 
