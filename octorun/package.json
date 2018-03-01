@@ -6,9 +6,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "main": "src/app.js",
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "commander": "^2.14.1",
     "dotenv": "^1.0.0",
     "es6-promise": "^4.2.4",
     "octokit-rest-nothing-to-see-here-kthxbye": "^1.0.1",
