@@ -1,4 +1,3 @@
-require('es6-promise').polyfill();
 var Octokit = require('octokit-rest-nothing-to-see-here-kthxbye');
 
 var createOctokit = function () {
