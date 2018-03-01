@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@octokit/rest": "^14.0.9",
-    "dotenv": "^1.0.0"
+    "dotenv": "^1.0.0",
+    "readline-sync": "^1.4.9"
   }
 }
