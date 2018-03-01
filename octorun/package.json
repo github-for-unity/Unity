@@ -1,46 +1,16 @@
 {
   "name": "octorun",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "",
-  "repository": "",
-  "license": "MIT",
+  "main": "index.js",
   "scripts": {
-    "clean": "rimraf dist",
-    "build": "npm run clean && tsc --pretty",
-    "test": "npm run build && mocha --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
-    "watch": "npm run build -- --watch",
-    "watch:test": "npm run test -- --watch"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": {
-    "name": "Stanley Goldman",
-    "email": "Stanley.Goldman@gmail.com"
-  },
-  "main": "dist/bin/app.js",
-  "typings": "dist/bin/app.d.ts",
-  "bin": {
-    "octorun": "bin/octorun"
-  },
-  "files": [
-    "bin",
-    "dist"
-  ],
-  "devDependencies": {
-    "@types/chai": "^4.0.0",
-    "@types/commander": "^2.3.31",
-    "@types/dotenv": "^4.0.2",
-    "@types/mocha": "^2.2.39",
-    "@types/node": "^7.0.5",
-    "@types/sinon": "^2.3.0",
-    "chai": "^4.0.1",
-    "mocha": "^3.2.0",
-    "rimraf": "^2.6.1",
-    "sinon": "^2.3.2",
-    "ts-node": "^3.0.4",
-    "typescript": "^2.2.1"
-  },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "commander": "^2.9.0",
-    "dotenv": "^5.0.1",
-    "octokit-rest-es3": "github:gr2m/octokit-rest-es3"
+    "dotenv": "^1.0.0",
+    "es6-promise": "^4.2.4",
+    "octokit-rest-nothing-to-see-here-kthxbye": "^1.0.0"
   }
 }
