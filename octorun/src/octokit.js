@@ -1,4 +1,4 @@
-var Octokit = require('octokit-rest-nothing-to-see-here-kthxbye');
+var Octokit = require('octokit-rest-for-node-v0.12');
 
 var createOctokit = function () {
     return Octokit({
