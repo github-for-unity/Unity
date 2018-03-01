@@ -11,9 +11,6 @@ if (commander.twoFactor) {
     authentication.handleTwoFactorAuthentication(function (token) {
         console.log(token);
         process.exit();
-    }, function () {
-        console.log("Must specify two-factor authentication OTP code.");
-        process.exit();
     }, function (err) {
         console.log(err);
         process.exit(-1);
@@ -23,6 +20,9 @@ else {
     authentication.handleBasicAuthentication(function (token) {
         console.log(token);
         process.exit();
+    }, function () {
+        console.log("Must specify two-factor authentication OTP code.");
+        process.exit(1);
     }, function (err) {
         console.log(err);
         process.exit(-1);

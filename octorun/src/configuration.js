@@ -11,5 +11,5 @@ module.exports = {
     clientSecret: clientSecret,
     appName: appName,
     user: user,
-    token: token,
+    token: token
 };
