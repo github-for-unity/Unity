@@ -11,6 +11,7 @@
   "dependencies": {
     "dotenv": "^1.0.0",
     "es6-promise": "^4.2.4",
-    "octokit-rest-nothing-to-see-here-kthxbye": "^1.0.0"
+    "octokit-rest-nothing-to-see-here-kthxbye": "^1.0.1",
+    "readline-sync": "^1.4.9"
   }
 }
