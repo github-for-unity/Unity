@@ -8,4 +8,5 @@ commander
     .command('validate', 'Validate Current User')
     .command('organizations', 'Get Organizations')
     .command('publish', 'Publish')
+    .command('usage', 'Usage')
     .parse(process.argv);
