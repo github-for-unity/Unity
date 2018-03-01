@@ -111,45 +111,51 @@ namespace GitHub.Unity
                 return;
             }
 
-            new ActionTask(cancellationToken, () => {
-                if (IsGitExtracted())
+            var task = new FuncTask<NPath>(cancellationToken, () =>
+            {
+                if (!IsGitExtracted())
                 {
                     Logger.Trace("SetupGitIfNeeded: Skipped");
-                    onSuccess.PreviousResult = installDetails.GitExecutablePath;
-                    onSuccess.Start();
+                    throw new Exception();
                 }
-                else
-                {
-                    ExtractPortableGit(onSuccess, onFailure);
-                }
-            }).Start();
+                return installDetails.GitExecutablePath;
+            });
+            var extractTask = ExtractPortableGit();
+            extractTask.Then(onSuccess, TaskRunOptions.OnSuccess, taskIsTopOfChain: true);
+            extractTask.Then(onFailure, TaskRunOptions.OnFailure, taskIsTopOfChain: true);
+
+            task.Then(onSuccess, TaskRunOptions.OnSuccess, taskIsTopOfChain: true);
+            task.Then(extractTask, TaskRunOptions.OnFailure, taskIsTopOfChain: true);
+            task.Start();
         }
 
-        private void ExtractPortableGit(ActionTask<NPath> onSuccess, ITask onFailure)
+        private FuncTask<NPath> ExtractPortableGit()
         {
-            ITask downloadFilesTask = null;
-            if ((gitArchiveFilePath == null) || (gitLfsArchivePath == null))
-            {
-                downloadFilesTask = CreateDownloadTask();
-            }
-
             var tempZipExtractPath = NPath.CreateTempDirectory("git_zip_extract_zip_paths");
             var gitExtractPath = tempZipExtractPath.Combine("git").CreateDirectory();
             var gitLfsExtractPath = tempZipExtractPath.Combine("git-lfs").CreateDirectory();
 
-            var resultTask = new UnzipTask(cancellationToken, gitArchiveFilePath, gitExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails.GitExtractedMD5)
-                .Then(new UnzipTask(cancellationToken, gitLfsArchivePath, gitLfsExtractPath, sharpZipLibHelper, environment.FileSystem, GitInstallDetails .GitLfsExtractedMD5))
-                .Then(s => MoveGitAndLfs(gitExtractPath, gitLfsExtractPath, tempZipExtractPath));
+            var unzipTasks = CreateUnzipTasks(gitExtractPath, gitLfsExtractPath, tempZipExtractPath);
 
-            resultTask.Then(onFailure, TaskRunOptions.OnFailure);
-            resultTask.Then(onSuccess, TaskRunOptions.OnSuccess);
-
-            if (downloadFilesTask != null)
+            if (gitArchiveFilePath == null || gitLfsArchivePath == null)
             {
-                resultTask = downloadFilesTask.Then(resultTask);
+                var downloadFilesTask = CreateDownloadTask();
+                unzipTasks = downloadFilesTask.Then(unzipTasks);
             }
 
-            resultTask.Start();
+            return unzipTasks;
+        }
+
+        private FuncTask<NPath> CreateUnzipTasks(NPath gitExtractPath, NPath gitLfsExtractPath, NPath tempZipExtractPath)
+        {
+            var unzipGitTask = new UnzipTask(cancellationToken, gitArchiveFilePath, gitExtractPath, sharpZipLibHelper,
+                environment.FileSystem, GitInstallDetails.GitExtractedMD5);
+            var unzipGitLfsTask = new UnzipTask(cancellationToken, gitLfsArchivePath, gitLfsExtractPath, sharpZipLibHelper,
+                environment.FileSystem, GitInstallDetails.GitLfsExtractedMD5);
+            var moveGitTask = new FuncTask<NPath>(cancellationToken, () => MoveGitAndLfs(gitExtractPath, gitLfsExtractPath, tempZipExtractPath));
+            return unzipGitTask
+                .Then(unzipGitLfsTask)
+                .Then(moveGitTask);
         }
 
         private NPath MoveGitAndLfs(NPath gitExtractPath, NPath gitLfsExtractPath, NPath tempZipExtractPath)
