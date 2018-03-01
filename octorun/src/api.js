@@ -16,16 +16,37 @@ function ApiWrapper() {
 }
 
 ApiWrapper.prototype.verifyUser = function (callback) {
-    this.octokit.users.get({}, function(error, result){
+    this.octokit.users.get({}, function (error, result) {
         callback(error, (!result) ? null : result.data.login);
     });
 };
 
 ApiWrapper.prototype.getOrgs = function (callback) {
-    var position = { page: 0, per_page: 100 };
-    this.octokit.users.getOrgs(position, function (error, result) {
-        callback(error, (!result) ? null : result.data.map(function (item) { return item.login; }));
-    });
+    var perPageCount = 100;
+    var organizations = [];
+    var position = { page: 1, per_page: perPageCount };
+
+    var that = this;
+    var getOrgsAtPosition = function () {
+        that.octokit.users.getOrgs(position, function (error, result) {
+            for (var index = 0; index < result.data.length; index++) {
+                var element = result.data[index];
+                organizations.push(element);
+            }
+
+            if (result.data.length == perPageCount) {
+                position.page = position.page + 1;
+                getOrgsAtPosition();
+            }
+            else {
+                callback(error, organizations.map(function (item) {
+                    return item.login;
+                }));
+            }
+        });
+    }
+
+    getOrgsAtPosition();
 };
 
 module.exports = ApiWrapper;
