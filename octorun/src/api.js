@@ -49,4 +49,26 @@ ApiWrapper.prototype.getOrgs = function (callback) {
     getOrgsAtPosition();
 };
 
+ApiWrapper.prototype.publish = function (name, desc, private, organization, callback) {
+    if (organization) {
+        this.octokit.repos.createForOrg({
+            org: organization,
+            name: name,
+            description: desc,
+            private: private
+        }, function (error, result) {
+            callback(error, (!result) ? null : result.data.git_url);
+        });
+    }
+    else {
+        this.octokit.repos.create({
+            name: name,
+            description: desc,
+            private: private
+        }, function (error, result) {
+            callback(error, (!result) ? null : result.data.git_url);
+        });
+    }
+};
+
 module.exports = ApiWrapper;
