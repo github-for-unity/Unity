@@ -1074,6 +1074,11 @@ GitHub.Unity
 
             return new NPath(Mono.Unix.UnixPath.GetCompleteRealPath(path.ToString()));
         }
+
+        public static string CalculateMD5(this NPath path)
+        {
+            return NPath.FileSystem.CalculateFileMD5(path);
+        }
     }
 
     public enum SlashMode

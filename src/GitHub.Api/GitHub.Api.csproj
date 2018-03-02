@@ -118,6 +118,7 @@
     <Compile Include="Helpers\Validation.cs" />
     <Compile Include="Installer\GitInstaller.cs" />
     <Compile Include="Installer\UnzipTask.cs" />
+    <Compile Include="Managers\Downloader.cs" />
     <Compile Include="OutputProcessors\GitAheadBehindStatusOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
     <Compile Include="OutputProcessors\VersionOutputProcessor.cs" />

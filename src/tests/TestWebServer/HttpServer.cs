@@ -75,7 +75,8 @@ namespace TestWebServer
                         abort = false;
                         Logger.Info($"Waiting for a request...");
                         var context = listener.GetContext();
-                        Process(context);
+                        var thread = new Thread(p => Process((HttpListenerContext)p));
+                        thread.Start(context);
                     }
                     catch (Exception ex)
                     {
@@ -98,7 +99,10 @@ namespace TestWebServer
 
         private void Process(HttpListenerContext context)
         {
+            Logger.Info($"Handling request");
+
             var filename = context.Request.Url.AbsolutePath;
+            Logger.Info($"{filename}");
             filename = filename.TrimStart('/');
             filename = Path.Combine(rootDirectory, filename);
 

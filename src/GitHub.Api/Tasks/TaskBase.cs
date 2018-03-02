@@ -43,7 +43,7 @@ namespace GitHub.Unity
         CancellationToken Token { get; }
         TaskBase DependsOn { get; }
         event Action<ITask> OnStart;
-        event Action<ITask> OnEnd;
+        event Action<ITask, bool, Exception> OnEnd;
         ITask GetTopOfChain();
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace GitHub.Unity
         TResult Result { get; }
         new Task<TResult> Task { get; }
         new event Action<ITask<TResult>> OnStart;
-        new event Action<ITask<TResult>, TResult> OnEnd;
+        new event Action<ITask<TResult>, TResult, bool, Exception> OnEnd;
     }
 
     interface ITask<TData, T> : ITask<T>
@@ -89,12 +89,13 @@ namespace GitHub.Unity
         protected const TaskContinuationOptions runOnFaultOptions = TaskContinuationOptions.OnlyOnFaulted;
 
         public event Action<ITask> OnStart;
-        public event Action<ITask> OnEnd;
+        public event Action<ITask, bool, Exception> OnEnd;
 
         protected bool previousSuccess = true;
         protected Exception previousException;
         protected bool taskFailed = false;
         protected bool exceptionWasHandled = false;
+        protected Exception exception;
 
         protected TaskBase continuationOnSuccess;
         protected TaskBase continuationOnFailure;
@@ -394,7 +395,7 @@ namespace GitHub.Unity
 
         protected virtual void RaiseOnEnd()
         {
-            OnEnd?.Invoke(this);
+            OnEnd?.Invoke(this, !taskFailed, exception);
             if (!taskFailed || exceptionWasHandled)
             {
                 if (continuationOnSuccess == null && continuationOnAlways == null)
@@ -420,6 +421,7 @@ namespace GitHub.Unity
         protected virtual bool RaiseFaultHandlers(Exception ex)
         {
             taskFailed = true;
+            exception = ex;
             if (catchHandler == null)
                 return continuationOnFailure != null;
             foreach (var handler in catchHandler.GetInvocationList())
@@ -479,7 +481,8 @@ namespace GitHub.Unity
         private event Action<bool, TResult> finallyHandler;
 
         public new event Action<ITask<TResult>> OnStart;
-        public new event Action<ITask<TResult>, TResult> OnEnd;
+        public new event Action<ITask<TResult>, TResult, bool, Exception> OnEnd;
+        private TResult result;
 
         protected TaskBase(CancellationToken token)
             : base(token)
@@ -613,7 +616,7 @@ namespace GitHub.Unity
         protected virtual TResult RunWithReturn(bool success)
         {
             base.Run(success);
-            return default(TResult);
+            return result;
         }
 
         protected override void RaiseOnStart()
@@ -623,9 +626,10 @@ namespace GitHub.Unity
             base.RaiseOnStart();
         }
 
-        protected virtual void RaiseOnEnd(TResult result)
+        protected virtual void RaiseOnEnd(TResult data)
         {
-            OnEnd?.Invoke(this, result);
+            this.result = data;
+            OnEnd?.Invoke(this, result, !taskFailed, exception);
             if (continuationOnSuccess == null && continuationOnFailure == null && continuationOnAlways == null)
             {
                 finallyHandler?.Invoke(Task.Status == TaskStatus.RanToCompletion, result);

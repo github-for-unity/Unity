@@ -12,7 +12,7 @@ namespace GitHub.Unity
         private CancellationTokenSource cts;
         private readonly ConcurrentExclusiveInterleave manager;
         public TaskScheduler UIScheduler { get; set; }
-        public TaskScheduler ConcurrentScheduler { get { return manager.ConcurrentTaskScheduler; } }
+        public TaskScheduler ConcurrentScheduler { get { return (TaskScheduler)manager.ConcurrentTaskScheduler; } }
         public TaskScheduler ExclusiveScheduler { get { return manager.ExclusiveTaskScheduler; } }
         public CancellationToken Token { get { return cts.Token; } }
 
@@ -149,7 +149,7 @@ namespace GitHub.Unity
                     TaskContinuationOptions.OnlyOnFaulted, ConcurrentScheduler
                 );
             }
-            return (T)task.Start(manager.ConcurrentTaskScheduler);
+            return (T)task.Start((TaskScheduler)manager.ConcurrentTaskScheduler);
         }
 
         private void Stop()

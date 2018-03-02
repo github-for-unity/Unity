@@ -8,13 +8,14 @@ using NUnit.Framework;
 using System.Diagnostics;
 using GitHub.Logging;
 using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 
 namespace IntegrationTests.Download
 {
-    [TestFixture]
-    class DownloadTaskTests : BaseTaskManagerTest
+    class BaseDownloaderTest : BaseTaskManagerTest
     {
-        const int Timeout = 30000;
+        protected const int Timeout = 30000;
+        protected TestWebServer.HttpServer server;
 
         public override void OnSetup()
         {
@@ -22,13 +23,12 @@ namespace IntegrationTests.Download
             InitializeEnvironment(TestBasePath, initializeRepository: false);
         }
 
-        private TestWebServer.HttpServer server;
         public override void TestFixtureSetUp()
         {
             base.TestFixtureSetUp();
             server = new TestWebServer.HttpServer(SolutionDirectory.Combine("files"));
             Task.Factory.StartNew(server.Start);
-            ApplicationConfiguration.WebTimeout = 5000;
+            ApplicationConfiguration.WebTimeout = 50000;
         }
 
         public override void TestFixtureTearDown()
@@ -38,14 +38,14 @@ namespace IntegrationTests.Download
             ApplicationConfiguration.WebTimeout = ApplicationConfiguration.DefaultWebTimeout;
         }
 
-        private void StartTest(out Stopwatch watch, out ILogging logger, [CallerMemberName] string testName = "test")
+        protected void StartTest(out Stopwatch watch, out ILogging logger, [CallerMemberName] string testName = "test")
         {
             watch = new Stopwatch();
             logger = LogHelper.GetLogger(testName);
             logger.Trace("Starting test");
         }
 
-        private void StartTrackTime(Stopwatch watch, ILogging logger = null, string message = "")
+        protected void StartTrackTime(Stopwatch watch, ILogging logger = null, string message = "")
         {
             if (!String.IsNullOrEmpty(message))
                 logger.Trace(message);
@@ -53,14 +53,198 @@ namespace IntegrationTests.Download
             watch.Start();
         }
 
-        private void StopTrackTimeAndLog(Stopwatch watch, ILogging logger)
+        protected void StopTrackTimeAndLog(Stopwatch watch, ILogging logger)
         {
             watch.Stop();
             logger.Trace($"Time: {watch.ElapsedMilliseconds}");
         }
+    }
+
+    [TestFixture]
+    class DownloaderTests : BaseDownloaderTest
+    {
+        [Test]
+        public async Task DownloadAndVerificationWorks()
+        {
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
+
+            var fileSystem = Environment.FileSystem;
+            var fileUrl = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
+            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+
+            var downloader = new Downloader();
+            StartTrackTime(watch, logger, md5Url);
+            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
+            
+            var task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
+            StopTrackTimeAndLog(watch, logger);
+            Assert.AreEqual(downloader.Task, task);
+            Assert.IsTrue(downloader.Successful);
+            var result = await downloader.Task;
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(TestBasePath.Combine(fileUrl.Filename), result[0].File);
+        }
 
         [Test]
-        public void ResumingDownloadsWorks()
+        public async Task DownloadingNonExistingFileThrows()
+        {
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
+
+            var fileSystem = Environment.FileSystem;
+            var fileUrl = new UriString($"http://localhost:{server.Port}/nope");
+            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+
+            var downloader = new Downloader();
+            StartTrackTime(watch, logger, md5Url);
+            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
+            var task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
+            StopTrackTimeAndLog(watch, logger);
+            Assert.AreEqual(downloader.Task, task);
+            Assert.Throws(typeof(DownloadException), async () => await downloader.Task);
+        }
+
+        [Test]
+        public async Task FailsIfVerificationFails()
+        {
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
+
+            var fileSystem = Environment.FileSystem;
+            var fileUrl = new UriString($"http://localhost:{server.Port}/git.zip");
+            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+
+            var downloader = new Downloader();
+            StartTrackTime(watch, logger, md5Url);
+            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
+            var task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
+            StopTrackTimeAndLog(watch, logger);
+            Assert.AreEqual(downloader.Task, task);
+            Assert.Throws(typeof(DownloadException), async () => await downloader.Task);
+        }
+
+        [Test]
+        public async Task ResumingWorks()
+        {
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
+
+            var fileSystem = Environment.FileSystem;
+            var fileUrl = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
+            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+
+            var downloader = new Downloader();
+            StartTrackTime(watch, logger, md5Url);
+            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
+            var task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
+            StopTrackTimeAndLog(watch, logger);
+            Assert.AreEqual(downloader.Task, task);
+            var result = await downloader.Task;
+            var downloadData = result.FirstOrDefault();
+
+            var downloadPathBytes = fileSystem.ReadAllBytes(downloadData.File);
+            Logger.Trace("File size {0} bytes", downloadPathBytes.Length);
+
+            var cutDownloadPathBytes = downloadPathBytes.Take(downloadPathBytes.Length - 1000).ToArray();
+            fileSystem.FileDelete(downloadData.File);
+            fileSystem.WriteAllBytes(downloadData + ".partial", cutDownloadPathBytes);
+
+            downloader = new Downloader();
+            StartTrackTime(watch, logger, "resuming download");
+            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
+            task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
+            StopTrackTimeAndLog(watch, logger);
+            Assert.AreEqual(downloader.Task, task);
+            result = await downloader.Task;
+            downloadData = result.FirstOrDefault();
+
+            var md5Sum = downloadData.File.CalculateMD5();
+            var md5 = TestBasePath.Combine(md5Url.Filename).ReadAllText();
+            md5Sum.Should().BeEquivalentTo(md5);
+        }
+
+            [Test]
+        public async Task SucceedIfEverythingIsAlreadyDownloaded()
+        {
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
+
+            var fileSystem = Environment.FileSystem;
+            var fileUrl = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
+            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+
+            var downloader = new Downloader();
+            StartTrackTime(watch, logger, md5Url);
+            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
+            var task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
+            StopTrackTimeAndLog(watch, logger);
+            Assert.AreEqual(downloader.Task, task);
+            var downloadData = await downloader.Task;
+            var downloadPath = downloadData.FirstOrDefault().File;
+
+            downloader = new Downloader();
+            StartTrackTime(watch, logger, "downloading again");
+            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
+            task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
+            StopTrackTimeAndLog(watch, logger);
+            Assert.AreEqual(downloader.Task, task);
+            downloadData = await downloader.Task;
+            downloadPath = downloadData.FirstOrDefault().File;
+
+            var md5Sum = downloadPath.CalculateMD5();
+            var md5 = TestBasePath.Combine(md5Url.Filename).ReadAllText();
+            md5Sum.Should().BeEquivalentTo(md5);
+        }
+
+        [Test]
+        public async Task DownloadsRunSideBySide()
+        {
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
+
+            var fileUrl1 = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
+            var md5Url1 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+            var fileUrl2 = new UriString($"http://localhost:{server.Port}/git.zip");
+            var md5Url2 = new UriString($"http://localhost:{server.Port}/git.zip.MD5.txt");
+
+            var events = new List<string>();
+
+            var downloader = new Downloader();
+            downloader.QueueDownload(fileUrl2, md5Url2, TestBasePath);
+            downloader.QueueDownload(fileUrl1, md5Url1, TestBasePath);
+            downloader.DownloadStart += d => events.Add("start " + d.Url.Filename);
+            downloader.DownloadComplete += d => events.Add("end " + d.Url.Filename);
+            downloader.DownloadFailed += (d, _) => events.Add("failed " + d.Url.Filename);
+
+            server.Delay = 1;
+            StartTrackTime(watch, logger);
+            var task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
+            StopTrackTimeAndLog(watch, logger);
+            server.Delay = 0;
+
+            Assert.AreEqual(downloader.Task, task);
+
+            CollectionAssert.AreEqual(new string[] {
+                "start git.zip",
+                "start git-lfs.zip",
+                "end git-lfs.zip",
+                "end git.zip",
+            }, events);
+        }
+    }
+
+    [TestFixture]
+    class DownloadTaskTests : BaseDownloaderTest
+    {
+        [Test]
+        public async Task ResumingDownloadsWorks()
         {
             Stopwatch watch;
             ILogging logger;
@@ -71,67 +255,47 @@ namespace IntegrationTests.Download
             var gitLfs = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
             var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
 
-            var evtDone = new ManualResetEventSlim(false);
-
-            string md5 = null;
+            var downloadTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
 
             StartTrackTime(watch, logger, gitLfsMd5);
-            new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath)
-                .Finally((success, r) => {
-                    md5 = r;
-                    evtDone.Set();
-                })
-                .Start();
-
-            evtDone.Wait(Timeout).Should().BeTrue("Finally raised the signal");
+            var task = await TaskEx.WhenAny(downloadTask.Start().Task, TaskEx.Delay(Timeout));
             StopTrackTimeAndLog(watch, logger);
 
-            evtDone.Reset();
+            task.ShouldBeEquivalentTo(downloadTask.Task);
+            var downloadPath = await downloadTask.Task;
+            var md5 = downloadPath.ReadAllText();
             Assert.NotNull(md5);
 
-            string downloadPath = null;
             StartTrackTime(watch, logger, gitLfs);
-            new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
-                .Finally((success, r) => {
-                    downloadPath = r;
-                    evtDone.Set();
-                })
-                .Start();
+            downloadTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath);
 
-            evtDone.Wait(Timeout).Should().BeTrue("Finally raised the signal");;
+            StartTrackTime(watch, logger, gitLfsMd5);
+            task = await TaskEx.WhenAny(downloadTask.Start().Task, TaskEx.Delay(Timeout));
             StopTrackTimeAndLog(watch, logger);
+            task.ShouldBeEquivalentTo(downloadTask.Task);
 
-            evtDone.Reset();
-
+            downloadPath = await downloadTask.Task;
             Assert.NotNull(downloadPath);
 
-            var md5Sum = fileSystem.CalculateFileMD5(downloadPath);
+            var md5Sum = downloadPath.CalculateMD5();
             md5Sum.Should().BeEquivalentTo(md5);
 
-            var downloadPathBytes = fileSystem.ReadAllBytes(downloadPath);
+            var downloadPathBytes = downloadPath.ReadAllBytes();
             Logger.Trace("File size {0} bytes", downloadPathBytes.Length);
 
             var cutDownloadPathBytes = downloadPathBytes.Take(downloadPathBytes.Length - 1000).ToArray();
-            fileSystem.FileDelete(downloadPath);
-            fileSystem.WriteAllBytes(downloadPath, cutDownloadPathBytes);
+            downloadPath.Delete();
+            new NPath(downloadPath + ".partial").WriteAllBytes(cutDownloadPathBytes);
 
-            StartTrackTime(watch, logger, "resuming download");
-            new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)
-                .Finally((success, r) => {
-                    downloadPath = r;
-                    evtDone.Set();
-                })
-                .Start();
+            downloadTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath);
 
-            evtDone.Wait(Timeout).Should().BeTrue("Finally raised the signal");;
+            StartTrackTime(watch, logger, gitLfs);
+            task = await TaskEx.WhenAny(downloadTask.Start().Task, TaskEx.Delay(Timeout));
             StopTrackTimeAndLog(watch, logger);
+            task.ShouldBeEquivalentTo(downloadTask.Task);
+            downloadPath = await downloadTask.Task;
 
-            evtDone.Reset();
-
-            var downloadHalfPathBytes = fileSystem.ReadAllBytes(downloadPath);
-            Logger.Trace("File size {0} Bytes", downloadHalfPathBytes.Length);
-
-            md5Sum = fileSystem.CalculateFileMD5(downloadPath);
+            md5Sum = downloadPath.CalculateMD5();
             md5Sum.Should().BeEquivalentTo(md5);
         }
 
@@ -169,35 +333,35 @@ namespace IntegrationTests.Download
             exceptionThrown.Should().NotBeNull();
         }
 
-        [Test]
-        public void DownloadingATextFileWorks()
-        {
-            Stopwatch watch;
-            ILogging logger;
-            StartTest(out watch, out logger);
+        //[Test]
+        //public void DownloadingATextFileWorks()
+        //{
+        //    Stopwatch watch;
+        //    ILogging logger;
+        //    StartTest(out watch, out logger);
 
-            var fileSystem = Environment.FileSystem;
+        //    var fileSystem = Environment.FileSystem;
 
-            var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+        //    var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
 
-            var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
+        //    var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
 
-            var autoResetEvent = new AutoResetEvent(false);
-            string result = null;
+        //    var autoResetEvent = new AutoResetEvent(false);
+        //    string result = null;
 
-            StartTrackTime(watch);
-            downloadTask
-                .Finally((success, r) => {
-                    result = r;
-                    autoResetEvent.Set();
-                })
-                .Start();
+        //    StartTrackTime(watch);
+        //    downloadTask
+        //        .Finally((success, r) => {
+        //            result = r;
+        //            autoResetEvent.Set();
+        //        })
+        //        .Start();
 
-            autoResetEvent.WaitOne(Timeout).Should().BeTrue("Finally raised the signal");;
-            StopTrackTimeAndLog(watch, logger);
+        //    autoResetEvent.WaitOne(Timeout).Should().BeTrue("Finally raised the signal");;
+        //    StopTrackTimeAndLog(watch, logger);
 
-            result.Should().Be("105DF1302560C5F6AA64D1930284C126");
-        }
+        //    result.Should().Be("105DF1302560C5F6AA64D1930284C126");
+        //}
 
         [Test]
         public void DownloadingFromNonExistingDomainThrows()
@@ -208,7 +372,7 @@ namespace IntegrationTests.Download
 
             var fileSystem = Environment.FileSystem;
 
-            var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem, "http://ggggithub.com/robots.txt");
+            var downloadTask = new DownloadTask(TaskManager.Token, fileSystem, "http://ggggithub.com/robots.txt");
             var exceptionThrown = false;
 
             var autoResetEvent = new AutoResetEvent(false);
@@ -227,46 +391,42 @@ namespace IntegrationTests.Download
             exceptionThrown.Should().BeTrue();
         }
         
-        [Test]
-        public void DownloadingAFileWithHashValidationWorks()
-        {
-            Stopwatch watch;
-            ILogging logger;
-            StartTest(out watch, out logger);
+        //[Test]
+        //public void DownloadingAFileWithHashValidationWorks()
+        //{
+        //    Stopwatch watch;
+        //    ILogging logger;
+        //    StartTest(out watch, out logger);
 
-            var fileSystem = Environment.FileSystem;
+        //    var fileSystem = Environment.FileSystem;
 
-            var gitLfs = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
-            var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+        //    var gitLfs = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
+        //    var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
 
-            var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
-            var downloadGitLfsTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath);
+        //    var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
+        //    var downloadGitLfsTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath);
 
-            var result = true;
-            Exception exception = null;
+        //    var result = true;
+        //    Exception exception = null;
 
-            var autoResetEvent = new AutoResetEvent(false);
+        //    var autoResetEvent = new AutoResetEvent(false);
 
-            StartTrackTime(watch);
-            downloadGitLfsMd5Task
-                .Then((b, s) =>
-                {
-                    downloadGitLfsTask.ValidationHash = s;
-                })
-                .Then(downloadGitLfsTask)
-                .Finally((b, ex) => {
-                    result = b;
-                    exception = ex;
-                    autoResetEvent.Set();
-                })
-                .Start();
+        //    StartTrackTime(watch);
+        //    downloadGitLfsMd5Task
+        //        .Then(downloadGitLfsTask)
+        //        .Finally((b, ex) => {
+        //            result = b;
+        //            exception = ex;
+        //            autoResetEvent.Set();
+        //        })
+        //        .Start();
 
-            autoResetEvent.WaitOne(Timeout).Should().BeTrue("Finally raised the signal");;
-            StopTrackTimeAndLog(watch, logger);
+        //    autoResetEvent.WaitOne(Timeout).Should().BeTrue("Finally raised the signal");;
+        //    StopTrackTimeAndLog(watch, logger);
 
-            result.Should().BeTrue();
-            exception.Should().BeNull();
-        }
+        //    result.Should().BeTrue();
+        //    exception.Should().BeNull();
+        //}
 
         [Test]
         public void ShutdownTimeWhenTaskManagerDisposed()

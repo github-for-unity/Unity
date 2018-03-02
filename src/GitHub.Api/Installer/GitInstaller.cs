@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using GitHub.Logging;
 
 namespace GitHub.Unity
@@ -116,22 +117,27 @@ namespace GitHub.Unity
                 return;
             }
 
-            var task = new FuncTask<NPath>(cancellationToken, () =>
+            var isGitExtractedTask = new FuncTask<NPath>(cancellationToken, () =>
             {
                 if (!IsGitExtracted())
-                {
-                    Logger.Trace("SetupGitIfNeeded: Skipped");
-                    throw new Exception();
-                }
+                    return null;
+                Logger.Trace("SetupGitIfNeeded: Skipped");
                 return installDetails.GitExecutablePath;
             });
-            var extractTask = ExtractPortableGit();
-            extractTask.Then(onSuccess, TaskRunOptions.OnSuccess, taskIsTopOfChain: true);
-            extractTask.Then(onFailure, TaskRunOptions.OnFailure, taskIsTopOfChain: true);
+            isGitExtractedTask.OnEnd += (t, res, _, __) =>
+            {
+                if (res == null)
+                {
+                    var extractTask = ExtractPortableGit();
+                    extractTask.Then(onSuccess, TaskRunOptions.OnSuccess, taskIsTopOfChain: true);
+                    extractTask.Then(onFailure, TaskRunOptions.OnFailure, taskIsTopOfChain: true);
+                    t.Then(extractTask);
+                }
+                else
+                    t.Then(onSuccess);
+            };
 
-            task.Then(onSuccess, TaskRunOptions.OnSuccess, taskIsTopOfChain: true);
-            task.Then(extractTask, TaskRunOptions.OnFailure, taskIsTopOfChain: true);
-            task.Start();
+            isGitExtractedTask.Start();
         }
 
         private FuncTask<NPath> ExtractPortableGit()
@@ -157,6 +163,7 @@ namespace GitHub.Unity
                 environment.FileSystem, GitInstallDetails.GitExtractedMD5);
             var unzipGitLfsTask = new UnzipTask(cancellationToken, gitLfsArchivePath, gitLfsExtractPath, sharpZipLibHelper,
                 environment.FileSystem, GitInstallDetails.GitLfsExtractedMD5);
+            
             var moveGitTask = new FuncTask<NPath>(cancellationToken, () => MoveGitAndLfs(gitExtractPath, gitLfsExtractPath, tempZipExtractPath));
             return unzipGitTask
                 .Then(unzipGitLfsTask)
@@ -191,24 +198,12 @@ namespace GitHub.Unity
             gitArchiveFilePath = installDetails.PluginDataPath.Combine("git.zip");
             gitLfsArchivePath = installDetails.PluginDataPath.Combine("git-lfs.zip");
 
-            var downloadGitMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitZipMd5Url, installDetails.PluginDataPath);
+            var downloader = new Downloader();
 
-            var downloadGitTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitZipUrl, installDetails.PluginDataPath);
+            downloader.QueueDownload(installDetails.GitZipUrl, installDetails.GitZipMd5Url, installDetails.PluginDataPath);
+            downloader.QueueDownload(installDetails.GitLfsZipUrl, installDetails.GitLfsZipMd5Url, installDetails.PluginDataPath);
 
-            var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitLfsZipMd5Url, installDetails.PluginDataPath);
-
-            var downloadGitLfsTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitLfsZipUrl, installDetails.PluginDataPath);
-
-            return
-                downloadGitMd5Task.Then((b, s) => { downloadGitTask.ValidationHash = s; })
-                                  .Then(downloadGitTask)
-                                  .Then(downloadGitLfsMd5Task)
-                                  .Then((b, s) => { downloadGitLfsTask.ValidationHash = s; })
-                                  .Then(downloadGitLfsTask);
+            return downloader;
         }
 
         private bool IsGitExtracted()

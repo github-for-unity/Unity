@@ -78,7 +78,7 @@ namespace GitHub.Unity
                     if (expectedMD5 != null)
                     {
                         var calculatedMD5 = fileSystem.CalculateFolderMD5(extractedPath);
-                        success = !calculatedMD5.Equals(expectedMD5, StringComparison.InvariantCultureIgnoreCase);
+                        success = calculatedMD5.Equals(expectedMD5, StringComparison.InvariantCultureIgnoreCase);
                         if (!success)
                         {
                             extractedPath.DeleteIfExists();
@@ -100,7 +100,7 @@ namespace GitHub.Unity
             if (!success)
             {
                 Token.ThrowIfCancellationRequested();
-                throw new UnzipException("Error downloading file", exception);
+                throw new UnzipException("Error unzipping file", exception);
             }
         }
         protected int RetryCount { get; }

@@ -136,7 +136,7 @@ namespace IntegrationTests
                 values.Add("OnStart");
             };
 
-            combinedTask.OnEnd += task => {
+            combinedTask.OnEnd += (task, success, ex) => {
                 values.Add("OnEnd");
             };
 
@@ -599,7 +599,7 @@ namespace IntegrationTests
             var runOrder = new List<string>();
             ITask task = new ActionTask(Token, _ => { throw new Exception(); });
             task.OnStart += _ => runOrder.Add("start");
-            task.OnEnd += _ => runOrder.Add("end");
+            task.OnEnd += (_, __, ___) => runOrder.Add("end");
             task = task.Finally((_, __) => {});
 
             await task.StartAndSwallowException();

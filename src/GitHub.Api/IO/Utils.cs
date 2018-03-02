@@ -82,68 +82,11 @@ namespace GitHub.Unity
 
             return success;
         }
-
-        public static bool Download(ILogging logger, UriString url,
-            Stream destinationStream,
-            Func<long, long, bool> onProgress)
+        public static bool VerifyFileIntegrity(NPath file, NPath md5file)
         {
-            long bytes = destinationStream.Length;
-
-            var expectingResume = bytes > 0;
-
-            var webRequest = (HttpWebRequest)WebRequest.Create(url);
-
-            if (expectingResume)
-            {
-                // classlib for 3.5 doesn't take long overloads...
-                webRequest.AddRange((int)bytes);
-            }
-
-            webRequest.Method = "GET";
-            webRequest.Timeout = ApplicationConfiguration.WebTimeout;
-
-            if (expectingResume)
-                logger.Trace($"Resuming download of {url}");
-            else
-                logger.Trace($"Downloading {url}");
-
-            using (var webResponse = (HttpWebResponse) webRequest.GetResponseWithoutException())
-            {
-                var httpStatusCode = webResponse.StatusCode;
-                logger.Trace($"Downloading {url} StatusCode:{(int)webResponse.StatusCode}");
-
-                if (expectingResume && httpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
-                {
-                    onProgress(bytes, bytes);
-                    return true;
-                }
-
-                if (!(httpStatusCode == HttpStatusCode.OK || httpStatusCode == HttpStatusCode.PartialContent))
-                {
-                    return false;
-                }
-
-                if (expectingResume && httpStatusCode == HttpStatusCode.OK)
-                {
-                    expectingResume = false;
-                    destinationStream.Seek(0, SeekOrigin.Begin);
-                }
-
-                var responseLength = webResponse.ContentLength;
-                if (expectingResume)
-                {
-                    if (!onProgress(bytes, bytes + responseLength))
-                        return false;
-                }
-
-                using (var responseStream = webResponse.GetResponseStream())
-                {
-                    return Copy(responseStream, destinationStream, responseLength,
-                        progress: (totalRead, timeToFinish) => {
-                            return onProgress(totalRead, responseLength);
-                        });
-                }
-            }
+            var expected = md5file.ReadAllText();
+            var actual = file.CalculateMD5();
+            return expected.Equals(actual, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading;
 
 namespace GitHub.Unity
@@ -26,7 +25,7 @@ namespace GitHub.Unity
         }
     }
 
-    class DownloadTask : TaskBase<string>
+    class DownloadTask : TaskBase<NPath>
     {
         protected readonly IFileSystem fileSystem;
 
@@ -34,11 +33,10 @@ namespace GitHub.Unity
             IFileSystem fileSystem, UriString url,
             NPath targetDirectory = null,
             string filename = null,
-            string validationHash = null, int retryCount = 0)
+            int retryCount = 0)
             : base(token)
         {
             this.fileSystem = fileSystem;
-            ValidationHash = validationHash;
             RetryCount = retryCount;
             Url = url;
             Filename = filename ?? url.Filename;
@@ -51,7 +49,7 @@ namespace GitHub.Unity
             return base.RunWithReturn(success);
         }
 
-        protected override string RunWithReturn(bool success)
+        protected override NPath RunWithReturn(bool success)
         {
             var result = base.RunWithReturn(success);
 
@@ -83,70 +81,36 @@ namespace GitHub.Unity
         /// </summary>
         /// <param name="success"></param>
         /// <returns></returns>
-        protected virtual string RunDownload(bool success)
+        protected virtual NPath RunDownload(bool success)
         {
             Exception exception = null;
             var attempts = 0;
             bool result = false;
+            var partialFile = TargetDirectory.Combine(Filename + ".partial");
             do
             {
+                exception = null;
+
                 if (Token.IsCancellationRequested)
                     break;
-
-                exception = null;
 
                 try
                 {
                     Logger.Trace($"Download of {Url} to {Destination} Attempt {attempts + 1} of {RetryCount + 1}");
 
-                    var fileExistsAndValid = false;
-                    if (Destination.FileExists())
+                    using (var destinationStream = fileSystem.OpenWrite(partialFile, FileMode.Append))
                     {
-                        if (ValidationHash == null)
-                        {
-                            Destination.Delete();
-                        }
-                        else
-                        {
-                            var md5 = fileSystem.CalculateFileMD5(Destination);
-                            result = md5.Equals(ValidationHash, StringComparison.CurrentCultureIgnoreCase);
-
-                            if (result)
+                        result = Downloader.Download(Logger, Url, destinationStream,
+                            (value, total) =>
                             {
-                                Logger.Trace($"Download previously exists & confirmed {md5}");
-                                fileExistsAndValid = true;
-                            }
-                        }
+                                UpdateProgress(value, total);
+                                return !Token.IsCancellationRequested;
+                            });
                     }
 
-                    if (!fileExistsAndValid)
+                    if (result)
                     {
-                        using (var destinationStream = fileSystem.OpenWrite(Destination, FileMode.Append))
-                        {
-                            result = Utils.Download(Logger, Url, destinationStream,
-                                (value, total) =>
-                                {
-                                    UpdateProgress(value, total);
-                                    return !Token.IsCancellationRequested;
-                                });
-                        }
-
-                        if (result && ValidationHash != null)
-                        {
-                            var md5 = fileSystem.CalculateFileMD5(Destination);
-                            result = md5.Equals(ValidationHash, StringComparison.CurrentCultureIgnoreCase);
-
-                            if (!result)
-                            {
-                                Logger.Warning($"Downloaded MD5 {md5} does not match {ValidationHash}. Deleting {Destination}.");
-                                fileSystem.FileDelete(TargetDirectory);
-                            }
-                            else
-                            {
-                                Logger.Trace($"Download confirmed {md5}");
-                                break;
-                            }
-                        }
+                        partialFile.Move(Destination);
                     }
                 }
                 catch (Exception ex)
@@ -177,8 +141,6 @@ namespace GitHub.Unity
 
         public NPath Destination { get { return TargetDirectory?.Combine(Filename); } }
 
-        public string ValidationHash { get; set; }
-
         protected int RetryCount { get; }
     }
 
@@ -189,43 +151,5 @@ namespace GitHub.Unity
 
         public DownloadException(string message, Exception innerException) : base(message, innerException)
         { }
-    }
-
-    class DownloadTextTask : DownloadTask
-    {
-        public DownloadTextTask(CancellationToken token,
-            IFileSystem fileSystem, UriString url,
-            NPath targetDirectory = null,
-            string filename = null,
-            int retryCount = 0)
-            : base(token, fileSystem, url, targetDirectory, filename, retryCount: retryCount)
-        {
-            Name = nameof(DownloadTextTask);
-        }
-
-        protected override string RunWithReturn(bool success)
-        {
-            var result = BaseRunWithReturn(success);
-
-            RaiseOnStart();
-
-            try
-            {
-                result = RunDownload(success);
-                result = fileSystem.ReadAllText(result, Encoding.UTF8);
-            }
-            catch (Exception ex)
-            {
-                Errors = ex.Message;
-                if (!RaiseFaultHandlers(ex))
-                    throw;
-            }
-            finally
-            {
-                RaiseOnEnd(result);
-            }
-
-            return result;
-        }
     }
 }
