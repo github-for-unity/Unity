@@ -116,6 +116,7 @@ namespace GitHub.Unity
         public NPath SystemCachePath { get; set; }
         public NPath Path { get { return Environment.GetEnvironmentVariable("PATH").ToNPath(); } }
         public string NewLine { get { return Environment.NewLine; } }
+        public NPath OctorunExectablePath { get; set; }
 
         private NPath gitExecutablePath;
         public NPath GitExecutablePath
