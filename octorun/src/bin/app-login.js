@@ -13,7 +13,7 @@ if (commander.twoFactor) {
         process.exit();
     }, function (err) {
         console.log(err);
-        process.exit(-1);
+        process.exit();
     });
 }
 else {
@@ -22,9 +22,9 @@ else {
         process.exit();
     }, function () {
         console.log("Must specify two-factor authentication OTP code.");
-        process.exit(1);
+        process.exit();
     }, function (err) {
         console.log(err);
-        process.exit(-1);
+        process.exit();
     });
 }

@@ -104,6 +104,8 @@ namespace IntegrationTests
             }
         }
 
+        public NPath OctorunScriptPath { get; set; }
+
         public bool IsWindows => defaultEnvironment.IsWindows;
         public bool IsLinux => defaultEnvironment.IsLinux;
         public bool IsMac => defaultEnvironment.IsMac;

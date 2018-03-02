@@ -116,7 +116,7 @@ namespace GitHub.Unity
         public NPath SystemCachePath { get; set; }
         public NPath Path { get { return Environment.GetEnvironmentVariable("PATH").ToNPath(); } }
         public string NewLine { get { return Environment.NewLine; } }
-        public NPath OctorunExectablePath { get; set; }
+        public NPath OctorunScriptPath { get; set; }
 
         private NPath gitExecutablePath;
         public NPath GitExecutablePath
@@ -129,6 +129,23 @@ namespace GitHub.Unity
                     GitInstallPath = null;
                 else
                     GitInstallPath = GitExecutablePath.Resolve().Parent.Parent;
+            }
+        }
+
+        private NPath nodeJsExecutablePath;
+
+        public NPath NodeJsExecutablePath
+        {
+            get
+            {
+                if (nodeJsExecutablePath == null)
+                {
+                    nodeJsExecutablePath = IsWindows
+                        ? UnityApplication.Parent.Combine("Data", "Tools", "nodejs", "node.exe")
+                        : UnityApplication.Combine("Contents", "Tools", "nodejs", "node");
+                }
+
+                return nodeJsExecutablePath;
             }
         }
 

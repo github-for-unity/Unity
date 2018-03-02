@@ -50,34 +50,6 @@ namespace GitHub.Unity
 
             return result;
         }
-
-        public static NPath GetTool(string tool)
-        {
-            var outfile = EntryPoint.Environment.UserCachePath.Combine("tools", tool);
-            outfile.EnsureParentDirectoryExists();
-
-            if (tool == "octorun.exe")
-            {
-                GetTool("Mono.Options.dll");
-                GetTool("GitHub.Logging.dll");
-                GetTool("Octokit.dll");
-            }
-
-            if (outfile.Exists())
-                return outfile;
-
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GitHub.Unity.Tools." + tool);
-            if (stream != null)
-            {
-                var targetFile = new FileInfo(outfile);
-                using (var outstream = targetFile.OpenWrite())
-                {
-                    ZipHelper.Copy(stream, outstream, 8192, stream.Length, null, 0);
-                }
-            }
-            LogHelper.GetLogger<Utility>().Debug(outfile);
-            return outfile;
-        }
     }
 
     static class StreamExtensions

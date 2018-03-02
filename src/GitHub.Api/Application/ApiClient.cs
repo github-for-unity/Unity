@@ -10,7 +10,7 @@ namespace GitHub.Unity
 {
     class ApiClient : IApiClient
     {
-        public static IApiClient Create(UriString repositoryUrl, IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, NPath loginTool)
+        public static IApiClient Create(UriString repositoryUrl, IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, NPath nodeJsExecutablePath, NPath octorunScriptPath)
         {
             logger.Trace("Creating ApiClient: {0}", repositoryUrl);
 
@@ -19,7 +19,7 @@ namespace GitHub.Unity
 
             return new ApiClient(repositoryUrl, keychain,
                 new GitHubClient(ApplicationConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri),
-                processManager, taskManager, loginTool);
+                processManager, taskManager, nodeJsExecutablePath, octorunScriptPath);
         }
 
         private static readonly ILogging logger = LogHelper.GetLogger<ApiClient>();
@@ -30,10 +30,10 @@ namespace GitHub.Unity
         private readonly IGitHubClient githubClient;
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
-        private readonly NPath loginTool;
+        private readonly NPath octorunScriptPath;
         private readonly ILoginManager loginManager;
 
-        public ApiClient(UriString hostUrl, IKeychain keychain, IGitHubClient githubClient, IProcessManager processManager, ITaskManager taskManager, NPath loginTool)
+        public ApiClient(UriString hostUrl, IKeychain keychain, IGitHubClient githubClient, IProcessManager processManager, ITaskManager taskManager, NPath nodeJsExecutablePath, NPath octorunScriptPath)
         {
             Guard.ArgumentNotNull(hostUrl, nameof(hostUrl));
             Guard.ArgumentNotNull(keychain, nameof(keychain));
@@ -45,11 +45,12 @@ namespace GitHub.Unity
             this.githubClient = githubClient;
             this.processManager = processManager;
             this.taskManager = taskManager;
-            this.loginTool = loginTool;
+            this.octorunScriptPath = octorunScriptPath;
             loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret,
                 processManager: processManager,
-                taskManager: taskManager, 
-                loginTool: loginTool);
+                taskManager: taskManager,
+                nodeJsExecutablePath: nodeJsExecutablePath,
+                octorunScript: octorunScriptPath);
         }
 
         public async Task Logout(UriString host)

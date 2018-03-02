@@ -30,7 +30,8 @@ namespace GitHub.Unity
         private readonly string fingerprint;
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
-        private readonly NPath loginTool;
+        private readonly NPath nodeJsExecutablePath;
+        private readonly NPath octorunScript;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoginManager"/> class.
@@ -42,16 +43,15 @@ namespace GitHub.Unity
         /// <param name="fingerprint">The machine fingerprint.</param>
         /// <param name="processManager"></param>
         /// <param name="taskManager"></param>
-        /// <param name="loginTool"></param>
-        /// <param name="loginCache">The cache in which to store login details.</param>
-        /// <param name="twoFactorChallengeHandler">The handler for 2FA challenges.</param>
+        /// <param name="nodeJsExecutablePath"></param>
+        /// <param name="octorunScript"></param>
         public LoginManager(
             IKeychain keychain,
             string clientId,
             string clientSecret,
             string authorizationNote = null,
             string fingerprint = null,
-            IProcessManager processManager = null, ITaskManager taskManager = null, NPath loginTool = null)
+            IProcessManager processManager = null, ITaskManager taskManager = null, NPath nodeJsExecutablePath = null, NPath octorunScript = null)
         {
             Guard.ArgumentNotNull(keychain, nameof(keychain));
             Guard.ArgumentNotNullOrWhiteSpace(clientId, nameof(clientId));
@@ -64,7 +64,8 @@ namespace GitHub.Unity
             this.fingerprint = fingerprint;
             this.processManager = processManager;
             this.taskManager = taskManager;
-            this.loginTool = loginTool;
+            this.nodeJsExecutablePath = nodeJsExecutablePath;
+            this.octorunScript = octorunScript;
         }
 
         /// <inheritdoc/>
@@ -258,11 +259,11 @@ namespace GitHub.Unity
             string password
         )
         {
-            logger.Info("Login Username:{0} {1}", username, loginTool);
+            logger.Info("Login Username:{0} {1}", username, octorunScript);
 
             ApplicationAuthorization auth = null;
-            var loginTask = new SimpleListProcessTask(taskManager.Token, loginTool, $"login --host={host}");
-            loginTask.Configure(processManager, workingDirectory: loginTool.Parent, withInput: true);
+            var loginTask = new SimpleListProcessTask(taskManager.Token, nodeJsExecutablePath, $"{octorunScript} login");
+            loginTask.Configure(processManager, workingDirectory: octorunScript.Parent.Parent.Parent, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
                 proc.StandardInput.WriteLine(username);
@@ -270,31 +271,39 @@ namespace GitHub.Unity
                 proc.StandardInput.Close();
             };
             var ret = await loginTask.StartAwait();
-            if (ret.Count == 0)
+
+            foreach (var result in ret)
             {
-                throw new Exception("Authentication failed");
+                logger.Trace(result);
             }
-            // success
-            else if (ret.Count == 1)
-            {
-                auth = new ApplicationAuthorization(ret[0]);
-            }
-            else
-            {
-                if (ret[0] == "2fa")
-                {
-                    keychain.SetToken(host, ret[1]);
-                    await keychain.Save(host);
-                    throw new TwoFactorRequiredException(TwoFactorType.Unknown);
-                }
-                else if (ret[0] == "locked")
-                {
-                    throw new LoginAttemptsExceededException(null, null);
-                }
-                else
-                    throw new Exception("Authentication failed");
-            }
-            return auth;
+
+            throw new Exception("Authentication failed");
+
+            //            if (ret.Count == 0)
+            //            {
+            //                throw new Exception("Authentication failed");
+            //            }
+            //            // success
+            //            else if (ret.Count == 1)
+            //            {
+            //                auth = new ApplicationAuthorization(ret[0]);
+            //            }
+            //            else
+            //            {
+            //                if (ret[0] == "Must specify two-factor authentication OTP code.")
+            //                {
+            //                    keychain.SetToken(host, ret[1]);
+            //                    await keychain.Save(host);
+            //                    throw new TwoFactorRequiredException(TwoFactorType.Unknown);
+            //                }
+            //                else if (ret[0] == "locked")
+            //                {
+            //                    throw new LoginAttemptsExceededException(null, null);
+            //                }
+            //                else
+            //                    throw new Exception("Authentication failed");
+            //            }
+            //            return auth;
         }
 
         private async Task<ApplicationAuthorization> TryContinueLogin(
@@ -308,8 +317,8 @@ namespace GitHub.Unity
             logger.Info("Continue Username:{0}", username);
 
             ApplicationAuthorization auth = null;
-            var loginTask = new SimpleListProcessTask(taskManager.Token, loginTool, $"login --host={host} --2fa");
-            loginTask.Configure(processManager, workingDirectory: loginTool.Parent, withInput: true);
+            var loginTask = new SimpleListProcessTask(taskManager.Token, nodeJsExecutablePath, $"{octorunScript} login --twoFactor");
+            loginTask.Configure(processManager, workingDirectory: nodeJsExecutablePath.Parent, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
                 proc.StandardInput.WriteLine(username);
