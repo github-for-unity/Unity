@@ -259,7 +259,7 @@ namespace GitHub.Unity
             string password
         )
         {
-            logger.Info("Login Username:{0} {1}", username, octorunScript);
+            logger.Info("Login Username:{0} Script:{1}", username, octorunScript);
 
             ApplicationAuthorization auth = null;
             var loginTask = new SimpleListProcessTask(taskManager.Token, nodeJsExecutablePath, $"{octorunScript} login");
@@ -270,11 +270,17 @@ namespace GitHub.Unity
                 proc.StandardInput.WriteLine(password);
                 proc.StandardInput.Close();
             };
-            var ret = await loginTask.StartAwait();
 
-            foreach (var result in ret)
+            loginTask.OnEndProcess += proc => {
+                logger.Trace("Exit Code: ", proc.Process.ExitCode);  
+            };
+
+            var ret = (await loginTask.StartAwait()).ToArray();
+
+            for (var index = 0; index < ret.Length; index++)
             {
-                logger.Trace(result);
+                var result = ret[index];
+                logger.Trace("line {0}: {1}", index, result);
             }
 
             throw new Exception("Authentication failed");

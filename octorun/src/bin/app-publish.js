@@ -12,7 +12,7 @@ commander
 
 if(!commander.repository)
 {
-    console.log("repository required");
+    process.stdout.write("repository required");
     commander.help();
     process.exit(-1);
     return;
@@ -28,11 +28,11 @@ var apiWrapper = new ApiWrapper();
 apiWrapper.publish(commander.repository, commander.description, private, commander.organization,
     function (error, result) {
         if (error) {
-            console.log(error);
+            process.stdout.write(error);
             process.exit(-1);
         }
         else {
-            console.log(result);
+            process.stdout.write(result);
             process.exit();
         }
     });

@@ -10,11 +10,11 @@ var apiWrapper = new ApiWrapper();
 
 apiWrapper.verifyUser(function (error, result) {
     if (error) {
-        console.log(error);
+        process.stdout.write(error);
         process.exit(-1);
     }
     else {
-        console.log(result);
+        process.stdout.write(result);
         process.exit();
     }
 });

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-console.log("node:", process.argv[0]);
+process.stdout.write("node:", process.argv[0]);
 
 require('../src/bin/app.js');

@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({silent: true});
 
 var clientId = process.env.OCTOKIT_CLIENT_ID;
 var clientSecret = process.env.OCTOKIT_CLIENT_SECRET;
