@@ -298,6 +298,7 @@ namespace GitHub.Unity
                     break;
 
                 case CacheType.RepositoryInfoCache:
+                    repositoryManager?.UpdateRepositoryInfo();
                     break;
 
                 case CacheType.GitStatusEntriesCache:

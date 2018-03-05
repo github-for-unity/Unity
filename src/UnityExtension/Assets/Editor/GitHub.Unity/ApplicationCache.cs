@@ -151,13 +151,10 @@ namespace GitHub.Unity
         public void ValidateData()
         {
             var initialized = ValidateInitialized();
-            if (initialized)
+            if (!initialized || DateTimeOffset.Now - LastUpdatedAt > DataTimeout)
             {
-                if (DateTimeOffset.Now - LastUpdatedAt > DataTimeout)
-                {
-                    Logger.Trace("Timeout Invalidation");
-                    InvalidateData();
-                }
+                Logger.Trace("Timeout Invalidation");
+                InvalidateData();
             }
         }
 

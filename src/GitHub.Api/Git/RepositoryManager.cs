@@ -46,6 +46,7 @@ namespace GitHub.Unity
         IGitConfig Config { get; }
         IGitClient GitClient { get; }
         bool IsBusy { get; }
+        void UpdateRepositoryInfo();
     }
 
     interface IRepositoryPathConfiguration
@@ -443,7 +444,7 @@ namespace GitHub.Unity
         private void UpdateHead()
         {
             Logger.Trace("UpdateHead");
-            UpdateCurrentBranchAndRemote();
+            UpdateRepositoryInfo();
             UpdateGitLog();
         }
 
@@ -452,7 +453,7 @@ namespace GitHub.Unity
             return repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
         }
 
-        private void UpdateCurrentBranchAndRemote()
+        public void UpdateRepositoryInfo()
         {
             ConfigBranch? branch;
             ConfigRemote? remote;

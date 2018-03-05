@@ -86,23 +86,12 @@ namespace GitHub.Unity
         private NPath gitLfsArchivePath;
 
         public GitInstaller(IEnvironment environment, CancellationToken cancellationToken,
-            GitInstallDetails installDetails)
-            : this(environment, ZipHelper.Instance, cancellationToken, installDetails, null, null)
-        {}
-
-        public GitInstaller(IEnvironment environment, CancellationToken cancellationToken,
-            GitInstallDetails installDetails, NPath gitArchiveFilePath, NPath gitLfsArchivePath)
-            : this(environment, ZipHelper.Instance, cancellationToken, installDetails,
-                gitArchiveFilePath, gitLfsArchivePath)
-        {}
-
-        public GitInstaller(IEnvironment environment, IZipHelper sharpZipLibHelper, CancellationToken cancellationToken,
-            GitInstallDetails installDetails, NPath gitArchiveFilePath, NPath gitLfsArchivePath)
+            GitInstallDetails installDetails = null, NPath gitArchiveFilePath = null, NPath gitLfsArchivePath = null)
         {
             this.environment = environment;
-            this.sharpZipLibHelper = sharpZipLibHelper;
+            this.sharpZipLibHelper = ZipHelper.Instance;
             this.cancellationToken = cancellationToken;
-            this.installDetails = installDetails;
+            this.installDetails = installDetails ?? new GitInstallDetails(environment.UserCachePath, environment.IsWindows);
             this.gitArchiveFilePath = gitArchiveFilePath;
             this.gitLfsArchivePath = gitLfsArchivePath;
         }
