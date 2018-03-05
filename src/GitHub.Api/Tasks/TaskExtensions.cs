@@ -1,61 +1,11 @@
 using GitHub.Logging;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
     static class TaskExtensions
     {
-        private static Task completedTask;
-
-        public static Task CompletedTask
-        {
-            get
-            {
-                if (completedTask == null)
-                {
-                    completedTask = TaskEx.FromResult(true);
-                }
-                return completedTask;
-            }
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "task")]
-        public static void Forget(this Task task)
-        {
-        }
-
-        public static async Task SafeAwait(this Task source, Action<Exception> handler = null)
-        {
-            try
-            {
-                await source;
-            }
-            catch (Exception ex)
-            {
-                LogHelper.GetLogger().Error(ex);
-                if (handler == null)
-                    throw;
-                handler(ex);
-            }
-        }
-
-        public static async Task<T> SafeAwait<T>(this Task<T> source, Func<Exception, T> handler = null)
-        {
-            try
-            {
-                return await source;
-            }
-            catch (Exception ex)
-            {
-                LogHelper.GetLogger().Error(ex);
-                if (handler == null)
-                    throw;
-                return handler(ex);
-            }
-        }
-
         public static async Task StartAwait(this ITask source, Action<Exception> handler = null)
         {
             try
@@ -86,41 +36,6 @@ namespace GitHub.Unity
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "task")]
-        public static void Forget(this ITask task)
-        {
-            task.Task.Forget();
-        }
-
-        //http://stackoverflow.com/a/29491927
-        public static Action<T> Debounce<T>(this Action<T> func, int milliseconds = 300)
-        {
-            var last = 0;
-            return arg =>
-            {
-                var current = Interlocked.Increment(ref last);
-                TaskEx.Delay(milliseconds).ContinueWith(task =>
-                {
-                    if (current == last) func(arg);
-                    task.Dispose();
-                });
-            };
-        }
-
-        public static Action Debounce(this Action func, int milliseconds = 300)
-        {
-            var last = 0;
-            return () =>
-            {
-                var current = Interlocked.Increment(ref last);
-                TaskEx.Delay(milliseconds).ContinueWith(task =>
-                {
-                    if (current == last) func();
-                    task.Dispose();
-                });
-            };
-        }
-
         public static ITask Then(this ITask task, Action continuation, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
@@ -131,13 +46,6 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(continuation, "continuation");
             return task.Then(new ActionTask(task.Token, continuation) { Affinity = affinity, Name = "Then" }, runOptions);
-        }
-
-        public static ITask Then<T>(this ITask task, ActionTask<T> nextTask, T valueForNextTask, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
-        {
-            Guard.ArgumentNotNull(nextTask, nameof(nextTask));
-            nextTask.PreviousResult = valueForNextTask;
-            return task.Then(nextTask, runOptions);
         }
 
         public static ITask Then<T>(this ITask<T> task, Action<bool, T> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
@@ -164,11 +72,6 @@ namespace GitHub.Unity
             return task.Then(cont, runOptions);
         }
 
-        public static ITask<T> Then<T>(this ITask task, Func<Task<T>> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
-        {
-            return task.Then(continuation(), affinity, runOptions);
-        }
-
         public static ITask ThenInUI(this ITask task, Action continuation, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
         {
             return task.Then(continuation, TaskAffinity.UI, runOptions);
@@ -184,11 +87,6 @@ namespace GitHub.Unity
             return task.Then(continuation, TaskAffinity.UI, runOptions);
         }
 
-        public static ITask<T> ThenInUI<T>(this ITask task, Func<bool, T> continuation, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
-        {
-            return task.Then(continuation, TaskAffinity.UI, runOptions);
-        }
-
         public static ITask<TRet> ThenInUI<T, TRet>(this ITask<T> task, Func<bool, T, TRet> continuation, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
         {
             return task.Then(continuation, TaskAffinity.UI, runOptions);
@@ -200,23 +98,7 @@ namespace GitHub.Unity
             return task.Finally(continuation, TaskAffinity.UI);
         }
 
-        public static ITask FinallyInUI<T>(this T task, Action continuation)
-            where T : ITask
-        {
-            return task.Finally((s, e) => continuation(), TaskAffinity.UI);
-        }
-
         public static ITask FinallyInUI<T>(this ITask<T> task, Action<bool, Exception, T> continuation)
-        {
-            return task.Finally(continuation, TaskAffinity.UI);
-        }
-
-        public static ITask<T> FinallyInUI<T>(this ITask<T> task, Func<T> continuation)
-        {
-            return task.Finally((s, e, r) => continuation(), TaskAffinity.UI);
-        }
-
-        public static ITask<T> FinallyInUI<T>(this ITask<T> task, Func<bool, Exception, T, T> continuation)
         {
             return task.Finally(continuation, TaskAffinity.UI);
         }
