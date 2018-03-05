@@ -30,7 +30,7 @@ namespace IntegrationTests
                 var autoResetEvent = new AutoResetEvent(false);
 
                 var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
-                var installDetails = new GitInstallDetails(applicationDataPath, true);
+                var installDetails = new GitInstaller.GitInstallDetails(applicationDataPath, true);
 
                 var zipArchivesPath = TestBasePath.Combine("ZipArchives").CreateDirectory();
                 var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);

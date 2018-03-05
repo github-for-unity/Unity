@@ -40,12 +40,12 @@ namespace IntegrationTests
         {
             var gitInstallationPath = TestBasePath.Combine("GitInstall").CreateDirectory();
 
-            var installDetails = new GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows)
+            var installDetails = new GitInstaller.GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows)
                 {
-                    GitZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitZipMd5Url).Filename}",
-                    GitZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitZipUrl).Filename}",
-                    GitLfsZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitLfsZipMd5Url).Filename}",
-                    GitLfsZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitLfsZipUrl).Filename}",
+                    GitZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstaller.GitInstallDetails.DefaultGitZipMd5Url).Filename}",
+                    GitZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstaller.GitInstallDetails.DefaultGitZipUrl).Filename}",
+                    GitLfsZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstaller.GitInstallDetails.DefaultGitLfsZipMd5Url).Filename}",
+                    GitLfsZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstaller.GitInstallDetails.DefaultGitLfsZipUrl).Filename}",
                 };
 
             TestBasePath.Combine("git").CreateDirectory();

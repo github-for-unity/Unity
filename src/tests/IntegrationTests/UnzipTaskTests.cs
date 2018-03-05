@@ -27,7 +27,7 @@ namespace IntegrationTests
             var extractedPath = TestBasePath.Combine("gitlfs_zip_extracted").CreateDirectory();
 
             var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath,
-                Environment.FileSystem, GitInstallDetails.GitLfsExtractedMD5);
+                Environment.FileSystem, GitInstaller.GitInstallDetails.GitLfsExtractedMD5);
 
             await unzipTask.StartAwait();
 
