@@ -247,7 +247,7 @@ namespace GitHub.Unity
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
         public IUsageTracker UsageTracker { get; protected set; }
-        public bool IsBusy { get { return isBusy || RepositoryManager.IsBusy; } }
+        public bool IsBusy { get { return isBusy || (RepositoryManager?.IsBusy ?? false); } }
         protected TaskScheduler UIScheduler { get; private set; }
         protected SynchronizationContext SynchronizationContext { get; private set; }
         protected IRepositoryManager RepositoryManager { get { return repositoryManager; } }
