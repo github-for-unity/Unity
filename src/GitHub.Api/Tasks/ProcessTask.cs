@@ -306,7 +306,7 @@ namespace GitHub.Unity
                     catch (Exception ex)
                     {
                         if (!RaiseFaultHandlers(ex))
-                            throw ex;
+                            throw;
                     }
                     finally
                     {
@@ -420,19 +420,28 @@ namespace GitHub.Unity
                 RaiseOnStart,
                 () =>
                 {
-                    if (outputProcessor != null)
-                        result = outputProcessor.Result;
-                    if (result == null)
-                        result = new List<T>();
-
-                    RaiseOnEnd(result);
-
-                    if (Errors != null)
+                    try
                     {
-                        OnErrorData?.Invoke(Errors);
-                        thrownException = thrownException ?? new ProcessException(this);
-                        if (!RaiseFaultHandlers(thrownException))
+                        if (outputProcessor != null)
+                            result = outputProcessor.Result;
+                        if (result == null)
+                            result = new List<T>();
+
+                        if (Errors != null)
+                        {
+                            OnErrorData?.Invoke(Errors);
+                            thrownException = thrownException ?? new ProcessException(this);
                             throw thrownException;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (!RaiseFaultHandlers(ex))
+                            throw;
+                    }
+                    finally
+                    {
+                        RaiseOnEnd(result);
                     }
                 },
                 (ex, error) =>
