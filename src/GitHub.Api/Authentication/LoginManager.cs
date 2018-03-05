@@ -263,7 +263,7 @@ namespace GitHub.Unity
 
             ApplicationAuthorization auth = null;
             var loginTask = new SimpleListProcessTask(taskManager.Token, nodeJsExecutablePath, $"{octorunScript} login");
-            loginTask.Configure(processManager, workingDirectory: octorunScript.Parent.Parent.Parent, withInput: true);
+            loginTask.Configure(processManager, workingDirectory: octorunScript.Parent.Parent, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
                 proc.StandardInput.WriteLine(username);
@@ -271,45 +271,35 @@ namespace GitHub.Unity
                 proc.StandardInput.Close();
             };
 
-            loginTask.OnEndProcess += proc => {
-                logger.Trace("Exit Code: ", proc.Process.ExitCode);  
-            };
+            var ret = (await loginTask.StartAwait());
 
-            var ret = (await loginTask.StartAwait()).ToArray();
-
-            for (var index = 0; index < ret.Length; index++)
+            if (ret.Count == 0)
             {
-                var result = ret[index];
-                logger.Trace("line {0}: {1}", index, result);
+                throw new Exception("Authentication failed");
             }
 
-            throw new Exception("Authentication failed");
+            if (ret.Count == 1)
+            {
+                if (ret[0] == ("Must specify two-factor authentication OTP code."))
+                {
+                    keychain.SetToken(host, ret[0]);
+                    await keychain.Save(host);
+                    throw new TwoFactorRequiredException(TwoFactorType.Unknown);
+                }
 
-            //            if (ret.Count == 0)
-            //            {
-            //                throw new Exception("Authentication failed");
-            //            }
-            //            // success
-            //            else if (ret.Count == 1)
-            //            {
-            //                auth = new ApplicationAuthorization(ret[0]);
-            //            }
-            //            else
-            //            {
-            //                if (ret[0] == "Must specify two-factor authentication OTP code.")
-            //                {
-            //                    keychain.SetToken(host, ret[1]);
-            //                    await keychain.Save(host);
-            //                    throw new TwoFactorRequiredException(TwoFactorType.Unknown);
-            //                }
-            //                else if (ret[0] == "locked")
-            //                {
-            //                    throw new LoginAttemptsExceededException(null, null);
-            //                }
-            //                else
-            //                    throw new Exception("Authentication failed");
-            //            }
-            //            return auth;
+                if (ret[0] == "Account locked.")
+                {
+                    throw new LoginAttemptsExceededException(null, null);
+                }
+
+                auth = new ApplicationAuthorization(ret[0]);
+            }
+            else
+            {
+                throw new Exception("Authentication failed");
+            }
+
+            return auth;
         }
 
         private async Task<ApplicationAuthorization> TryContinueLogin(
@@ -324,7 +314,7 @@ namespace GitHub.Unity
 
             ApplicationAuthorization auth = null;
             var loginTask = new SimpleListProcessTask(taskManager.Token, nodeJsExecutablePath, $"{octorunScript} login --twoFactor");
-            loginTask.Configure(processManager, workingDirectory: nodeJsExecutablePath.Parent, withInput: true);
+            loginTask.Configure(processManager, workingDirectory: octorunScript.Parent.Parent, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
                 proc.StandardInput.WriteLine(username);
@@ -332,31 +322,28 @@ namespace GitHub.Unity
                 proc.StandardInput.WriteLine(code);
                 proc.StandardInput.Close();
             };
-            var ret = await loginTask.StartAwait();
+
+            var ret = (await loginTask.StartAwait());
             if (ret.Count == 0)
             {
                 throw new Exception("Authentication failed");
             }
+            
             // success
-            else if (ret.Count == 1)
+            if (ret.Count == 1)
             {
+                if (ret[0] == "Account locked.")
+                {
+                    throw new LoginAttemptsExceededException(null, null);
+                }
+
                 auth = new ApplicationAuthorization(ret[0]);
             }
             else
             {
-                if (ret[0] == "2fa")
-                {
-                    keychain.SetToken(host, ret[1]);
-                    await keychain.Save(host);
-                    throw new TwoFactorRequiredException(TwoFactorType.Unknown);
-                }
-                else if (ret[0] == "locked")
-                {
-                    throw new LoginAttemptsExceededException(null, null);
-                }
-                else
-                    throw new Exception("Authentication failed");
+                throw new Exception("Authentication failed");
             }
+
             return auth;
         }
 

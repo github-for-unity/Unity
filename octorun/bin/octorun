@@ -1,5 +1,3 @@
 #!/usr/bin/env node
 
-process.stdout.write("node:", process.argv[0]);
-
 require('../src/bin/app.js');
