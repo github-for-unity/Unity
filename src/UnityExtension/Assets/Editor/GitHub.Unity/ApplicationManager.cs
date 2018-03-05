@@ -31,6 +31,7 @@ namespace GitHub.Unity
             Logger.Trace("Restarted {0}", Environment.Repository);
             EnvironmentCache.Instance.Flush();
 
+            isBusy = false;
             ProjectWindowInterface.Initialize(Environment.Repository);
             var window = Window.GetWindow();
             if (window != null)

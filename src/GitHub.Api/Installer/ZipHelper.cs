@@ -23,87 +23,17 @@ namespace GitHub.Unity
             }
         }
 
-        public static bool Copy(Stream source, Stream destination, int chunkSize, long totalSize,
-            Func<long, long, bool> progress, int progressUpdateRate)
-        {
-            var buffer = new byte[chunkSize];
-            var bytesRead = 0;
-            long totalRead = 0;
-            var averageSpeed = -1f;
-            var lastSpeed = 0f;
-            var smoothing = 0.005f;
-            long readLastSecond = 0;
-            long timeToFinish = 0;
-            Stopwatch watch = null;
-            var success = true;
-
-            var trackProgress = totalSize > 0 && progress != null;
-            if (trackProgress)
-            {
-                watch = new Stopwatch();
-            }
-
-            do
-            {
-                if (trackProgress)
-                {
-                    watch.Start();
-                }
-
-                bytesRead = source.Read(buffer, 0, chunkSize);
-
-                if (trackProgress)
-                {
-                    watch.Stop();
-                }
-
-                totalRead += bytesRead;
-
-                if (bytesRead > 0)
-                {
-                    destination.Write(buffer, 0, bytesRead);
-                    if (trackProgress)
-                    {
-                        readLastSecond += bytesRead;
-                        if (watch.ElapsedMilliseconds >= progressUpdateRate || totalRead == totalSize)
-                        {
-                            watch.Reset();
-                            lastSpeed = readLastSecond;
-                            readLastSecond = 0;
-                            averageSpeed = averageSpeed < 0f
-                                ? lastSpeed
-                                : smoothing * lastSpeed + (1f - smoothing) * averageSpeed;
-                            timeToFinish = Math.Max(1L,
-                                (long)((totalSize - totalRead) / (averageSpeed / progressUpdateRate)));
-
-                            if (!progress(totalRead, timeToFinish))
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-            } while (bytesRead > 0);
-
-            if (totalRead > 0)
-            {
-                destination.Flush();
-            }
-
-            return success;
-        }
-
         public void Extract(string archive, string outFolder, CancellationToken cancellationToken,
-            IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+            Func<long, long, bool> onProgress = null)
         {
-            ExtractZipFile(archive, outFolder, cancellationToken, zipFileProgress, estimatedDurationProgress);
+            ExtractZipFile(archive, outFolder, cancellationToken, onProgress);
         }
 
         public static void ExtractZipFile(string archive, string outFolder, CancellationToken cancellationToken,
-            IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+            Func<long, long, bool> onProgress)
         {
+            const int chunkSize = 4096; // 4K is optimum
             ZipFile zf = null;
-            var estimatedDuration = 1L;
             var startTime = DateTime.Now;
             var processed = 0;
             var totalBytes = 0L;
@@ -112,9 +42,11 @@ namespace GitHub.Unity
             {
                 var fs = File.OpenRead(archive);
                 zf = new ZipFile(fs);
+                var totalSize = fs.Length;
 
                 foreach (ZipEntry zipEntry in zf)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     if (zipEntry.IsDirectory)
                     {
                         continue; // Ignore directories
@@ -152,28 +84,16 @@ namespace GitHub.Unity
                     var targetFile = new FileInfo(fullZipToPath);
                     using (var streamWriter = targetFile.OpenWrite())
                     {
-                        const int chunkSize = 4096; // 4K is optimum
-                        Copy(zipStream, streamWriter, chunkSize, zipEntry.Size, (totalRead, timeToFinish) =>
-                        {
-                            estimatedDuration = timeToFinish;
-
-                            estimatedDurationProgress?.Report(estimatedDuration);
-                            zipFileProgress?.Report((float)(totalBytes + totalRead) / zipEntry.Size);
-                            return true;
-                        }, 100);
-                        cancellationToken.ThrowIfCancellationRequested();
+                        if (!Utils.Copy(zipStream, streamWriter, zipEntry.Size, chunkSize,
+                            progress: (totalRead, timeToFinish) => {
+                                totalBytes += totalRead;
+                                return onProgress(totalBytes, totalSize);
+                            }))
+                            return;
                     }
 
                     targetFile.LastWriteTime = zipEntry.DateTime;
                     processed++;
-                    totalBytes += zipEntry.Size;
-
-                    var elapsedMillisecondsPerFile = (DateTime.Now - startTime).TotalMilliseconds / processed;
-                    estimatedDuration = Math.Max(1L, (long)((fs.Length - totalBytes) * elapsedMillisecondsPerFile));
-
-                    estimatedDurationProgress?.Report(estimatedDuration);
-                    zipFileProgress?.Report((float)processed / zf.Count);
-                    cancellationToken.ThrowIfCancellationRequested();
                 }
             }
             finally

@@ -11,7 +11,7 @@ namespace GitHub.Unity
         [NonSerialized] private IUser cachedUser;
         [NonSerialized] private IRepository cachedRepository;
         [NonSerialized] private bool initializeWasCalled;
-        [NonSerialized] private bool inLayout;
+        [NonSerialized] protected bool inLayout;
 
         public virtual void Initialize(IApplicationManager applicationManager)
         {
