@@ -501,10 +501,7 @@ namespace GitHub.Unity
             }
         }
 
-        public override TimeSpan DataTimeout
-        {
-            get { return TimeSpan.MaxValue; }
-        }
+        public override TimeSpan DataTimeout { get { return TimeSpan.FromDays(1); } }
     }
 
     [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
@@ -740,7 +737,7 @@ namespace GitHub.Unity
         public ILocalConfigBranchDictionary LocalConfigBranches { get { return localConfigBranches; } }
         public IRemoteConfigBranchDictionary RemoteConfigBranches { get { return remoteConfigBranches; } }
         public IConfigRemoteDictionary ConfigRemotes { get { return configRemotes; } }
-        public override TimeSpan DataTimeout { get { return TimeSpan.MaxValue; } }
+        public override TimeSpan DataTimeout { get { return TimeSpan.FromDays(1); } }
     }
 
     [Location("cache/gitlog.yaml", LocationAttribute.Location.LibraryFolder)]
