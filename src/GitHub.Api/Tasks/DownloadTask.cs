@@ -41,7 +41,7 @@ namespace GitHub.Unity
             Url = url;
             Filename = filename ?? url.Filename;
             TargetDirectory = targetDirectory ?? NPath.CreateTempDirectory("ghu");
-            Name = nameof(DownloadTask);
+            this.Name = $"Download {Url}";
         }
 
         protected string BaseRunWithReturn(bool success)

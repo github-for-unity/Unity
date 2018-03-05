@@ -355,9 +355,9 @@ namespace GitHub.Unity
             }
         }
 
-        private void OnProgress(IProgress progress)
+        private void OnProgress(IProgress progr)
         {
-            this.progress = progress;
+            progress = progr;
         }
 
         private void DetachHandlers(IRepository repository)

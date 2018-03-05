@@ -28,7 +28,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Run another task at the end of the task execution, on a separate thread, regardless of execution state
         /// </summary>
-        ITask Finally<T>(T taskToContinueWith) where T : ITask;
+        T Finally<T>(T taskToContinueWith) where T : ITask;
         ITask Start();
         ITask Start(TaskScheduler scheduler);
         ITask Progress(Action<IProgress> progressHandler);
@@ -48,6 +48,8 @@ namespace GitHub.Unity
         /// </summary>
         /// <returns>true if any task on the chain is marked as exclusive</returns>
         bool IsChainExclusive();
+
+        void UpdateProgress(long value, long total, string message = null);
     }
 
     public interface ITask<TResult> : ITask
@@ -101,9 +103,8 @@ namespace GitHub.Unity
 
         protected event Func<Exception, bool> catchHandler;
         private event Action<bool> finallyHandler;
-        protected event Action<IProgress> progressHandler;
 
-        private Progress progress;
+        protected Progress progress;
 
         protected TaskBase(CancellationToken token)
             : this()
@@ -236,14 +237,14 @@ namespace GitHub.Unity
         /// <summary>
         /// Run another task at the end of the task execution, on a separate thread, regardless of execution state
         /// </summary>
-        public ITask Finally<T>(T taskToContinueWith)
+        public T Finally<T>(T taskToContinueWith)
             where T : ITask
         {
             Guard.ArgumentNotNull(taskToContinueWith, nameof(taskToContinueWith));
             continuationOnAlways = (TaskBase)(object)taskToContinueWith;
             continuationOnAlways.SetDependsOn(this);
             DependsOn?.SetFaultHandler(continuationOnAlways);
-            return continuationOnAlways;
+            return taskToContinueWith;
         }
 
         /// <summary>
@@ -266,7 +267,7 @@ namespace GitHub.Unity
         public ITask Progress(Action<IProgress> handler)
         {
             Guard.ArgumentNotNull(handler, nameof(handler));
-            this.progressHandler += handler;
+            progress.OnProgress += handler;
             return this;
         }
 
@@ -437,10 +438,9 @@ namespace GitHub.Unity
             return DependsOn.GetThrownException();
         }
 
-        protected void UpdateProgress(long value, long total)
+        public void UpdateProgress(long value, long total, string message = null)
         {
-            progress.UpdateProgress(value, total);
-            progressHandler?.Invoke(progress);
+            progress.UpdateProgress(value, total, message);
         }
 
         public override string ToString()
@@ -596,8 +596,7 @@ namespace GitHub.Unity
         /// </summary>
         public new ITask<TResult> Progress(Action<IProgress> handler)
         {
-            Guard.ArgumentNotNull(handler, nameof(handler));
-            this.progressHandler += handler;
+            base.Progress(handler);
             return this;
         }
 

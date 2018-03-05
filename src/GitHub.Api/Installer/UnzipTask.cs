@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    class UnzipTask: TaskBase
+    class UnzipTask : TaskBase<NPath>
     {
         private readonly string archiveFilePath;
         private readonly NPath extractedPath;
@@ -12,13 +12,13 @@ namespace GitHub.Unity
         private readonly IFileSystem fileSystem;
         private readonly string expectedMD5;
 
-        public UnzipTask(CancellationToken token, string archiveFilePath, NPath extractedPath, IFileSystem fileSystem, string expectedMD5 = null) :
+        public UnzipTask(CancellationToken token, NPath archiveFilePath, NPath extractedPath, IFileSystem fileSystem, string expectedMD5 = null) :
             this(token, archiveFilePath, extractedPath, ZipHelper.Instance, fileSystem, expectedMD5)
         {
             
         }
 
-        public UnzipTask(CancellationToken token, string archiveFilePath, NPath extractedPath, IZipHelper zipHelper, IFileSystem fileSystem, string expectedMD5 = null)
+        public UnzipTask(CancellationToken token, NPath archiveFilePath, NPath extractedPath, IZipHelper zipHelper, IFileSystem fileSystem, string expectedMD5 = null)
             : base(token)
         {
             this.archiveFilePath = archiveFilePath;
@@ -26,22 +26,23 @@ namespace GitHub.Unity
             this.zipHelper = zipHelper;
             this.fileSystem = fileSystem;
             this.expectedMD5 = expectedMD5;
+            Name = $"Unzip {archiveFilePath.FileName}";
         }
 
-        protected void BaseRun(bool success)
+        protected NPath BaseRun(bool success)
         {
-            base.Run(success);
+            return base.RunWithReturn(success);
         }
 
-        protected override void Run(bool success)
+        protected override NPath RunWithReturn(bool success)
         {
-            BaseRun(success);
+            var ret = BaseRun(success);
 
             RaiseOnStart();
 
             try
             {
-                RunUnzip(success);
+                ret = RunUnzip(success);
             }
             catch (Exception ex)
             {
@@ -51,11 +52,12 @@ namespace GitHub.Unity
             }
             finally
             {
-                RaiseOnEnd();
+                RaiseOnEnd(ret);
             }
+            return ret;
         }
 
-        protected virtual void RunUnzip(bool success)
+        protected virtual NPath RunUnzip(bool success)
         {
             Logger.Trace("Unzip File: {0} to Path: {1}", archiveFilePath, extractedPath);
 
@@ -69,7 +71,7 @@ namespace GitHub.Unity
                 exception = null;
                 try
                 {
-                    zipHelper.Extract(archiveFilePath, extractedPath, Token, zipFileProgress, estimatedDurationProgress);
+                    success = zipHelper.Extract(archiveFilePath, extractedPath, Token,
                         (value, total) =>
                         {
                             UpdateProgress(value, total);
@@ -103,6 +105,7 @@ namespace GitHub.Unity
                 Token.ThrowIfCancellationRequested();
                 throw new UnzipException("Error unzipping file", exception);
             }
+            return extractedPath;
         }
         protected int RetryCount { get; }
     }

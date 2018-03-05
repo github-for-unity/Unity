@@ -130,10 +130,10 @@ namespace GitHub.Unity
             GUI.matrix = matrix;
         }
 
-        private void PushRotation(float rotation, Vector2 center)
+        private void PushRotation(float rotation, Vector2 rotCenter)
         {
-            rotations.Push(new Rotation(rotation, center));
-            GUIUtility.RotateAroundPivot(rotation, center);
+            rotations.Push(new Rotation(rotation, rotCenter));
+            GUIUtility.RotateAroundPivot(rotation, rotCenter);
         }
 
         private void PopRotation()

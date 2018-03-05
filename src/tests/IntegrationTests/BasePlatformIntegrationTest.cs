@@ -33,22 +33,21 @@ namespace IntegrationTests
                 var installDetails = new GitInstaller.GitInstallDetails(applicationDataPath, true);
 
                 var zipArchivesPath = TestBasePath.Combine("ZipArchives").CreateDirectory();
-                var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
-                var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
+                AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
+                AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
 
-                var gitInstaller = new GitInstaller(Environment, TaskManager.Token, installDetails, gitArchivePath, gitLfsArchivePath);
+                var gitInstaller = new GitInstaller(Environment, TaskManager.Token, installDetails);
 
                 NPath result = null;
                 Exception ex = null;
 
-                gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(TaskManager.Token, (b, path) => {
-                        result = path;
-                        autoResetEvent.Set();
-                    }),
-                    new ActionTask(TaskManager.Token, (b, exception) => {
-                        ex = exception;
-                        autoResetEvent.Set();
-                    }));
+                var setupTask = gitInstaller.SetupGitIfNeeded();
+                setupTask.OnEnd += (thisTask, path, success, exception) =>
+                {
+                    result = path;
+                    ex = exception;
+                    autoResetEvent.Set();
+                };
 
                 autoResetEvent.WaitOne();
 

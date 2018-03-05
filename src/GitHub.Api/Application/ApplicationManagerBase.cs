@@ -12,11 +12,17 @@ namespace GitHub.Unity
         protected static ILogging Logger { get; } = LogHelper.GetLogger<IApplicationManager>();
 
         private RepositoryManager repositoryManager;
+        private Progress progressReporter;
         protected bool isBusy;
-        public event Action<IProgress> OnProgress;
+        public event Action<IProgress> OnProgress
+        {
+            add { progressReporter.OnProgress += value; }
+            remove { progressReporter.OnProgress -= value; }
+        }
 
         public ApplicationManagerBase(SynchronizationContext synchronizationContext)
         {
+            progressReporter = new Progress();
             SynchronizationContext = synchronizationContext;
             SynchronizationContext.SetSynchronizationContext(SynchronizationContext);
             ThreadingHelper.SetUIThread();
@@ -60,7 +66,8 @@ namespace GitHub.Unity
                 Logger.Trace("No git path found in settings");
 
                 isBusy = true;
-                var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (b, path) => InitializeEnvironment(path)) { Affinity = TaskAffinity.UI };
+                var initEnvironmentTask = new ActionTask<NPath>(CancellationToken,
+                    (b, path) => InitializeEnvironment(path)) { Affinity = TaskAffinity.UI };
                 var findExecTask = new FindExecTask("git", CancellationToken)
                     .FinallyInUI((b, ex, path) =>
                     {
@@ -80,7 +87,15 @@ namespace GitHub.Unity
                 var gitInstaller = new GitInstaller(Environment, CancellationToken);
 
                 // if successful, continue with environment initialization, otherwise try to find an existing git installation
-                gitInstaller.SetupGitIfNeeded(initEnvironmentTask, findExecTask);
+                var setupTask = gitInstaller.SetupGitIfNeeded();
+                setupTask.Progress(progressReporter.UpdateProgress);
+                setupTask.OnEnd += (thisTask, result, success, exception) =>
+                {
+                    if (success && result != null)
+                        thisTask.Then(initEnvironmentTask);
+                    else
+                        thisTask.Then(findExecTask);
+                };
             }
         }
 
