@@ -387,16 +387,16 @@ namespace GitHub.Unity
             OnEnd?.Invoke(this, !taskFailed, exception);
             if (!taskFailed || exceptionWasHandled)
             {
-                if (continuationOnSuccess == null && continuationOnAlways == null)
+                if (continuationOnSuccess == null)
                     CallFinallyHandler();
-                else if (continuationOnSuccess != null)
+                else
                     SetContinuation(continuationOnSuccess, runOnSuccessOptions);
             }
             else
             {
-                if (continuationOnFailure == null && continuationOnAlways == null)
+                if (continuationOnFailure == null)
                     CallFinallyHandler();
-                else if (continuationOnFailure != null)
+                else
                     SetContinuation(continuationOnFailure, runOnSuccessOptions);
             }
             //Logger.Trace($"Finished {ToString()}");
@@ -404,7 +404,7 @@ namespace GitHub.Unity
 
         protected void CallFinallyHandler()
         {
-            finallyHandler?.Invoke(Task.Status == TaskStatus.RanToCompletion);
+            finallyHandler?.Invoke(!taskFailed);
         }
 
         protected virtual bool RaiseFaultHandlers(Exception ex)
@@ -617,9 +617,9 @@ namespace GitHub.Unity
         {
             this.result = data;
             OnEnd?.Invoke(this, result, !taskFailed, exception);
-            if (continuationOnSuccess == null && continuationOnFailure == null && continuationOnAlways == null)
+            if (continuationOnSuccess == null && continuationOnFailure == null)
             {
-                finallyHandler?.Invoke(Task.Status == TaskStatus.RanToCompletion, result);
+                finallyHandler?.Invoke(!taskFailed, result);
                 CallFinallyHandler();
             }
             else if (continuationOnSuccess != null)

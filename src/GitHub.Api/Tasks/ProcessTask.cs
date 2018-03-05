@@ -101,6 +101,8 @@ namespace GitHub.Unity
 
             try
             {
+                if (!Process.StartInfo.Arguments.StartsWith("credential-"))
+                    Logger.Trace($"Running '{Process.StartInfo.FileName} {Process.StartInfo.Arguments}'");
                 Process.Start();
             }
             catch (Win32Exception ex)
@@ -286,20 +288,29 @@ namespace GitHub.Unity
                 RaiseOnStart,
                 () =>
                 {
-                    if (outputProcessor != null)
-                        result = outputProcessor.Result;
-
-                    if (result == null && !Process.StartInfo.CreateNoWindow && typeof(T) == typeof(string))
-                        result = (T)(object)"Process running";
-
-                    RaiseOnEnd(result);
-
-                    if (Errors != null)
+                    try
                     {
-                        OnErrorData?.Invoke(Errors);
-                        thrownException = thrownException ?? new ProcessException(this);
-                        if (!RaiseFaultHandlers(thrownException))
+                        if (outputProcessor != null)
+                            result = outputProcessor.Result;
+
+                        if (result == null && !Process.StartInfo.CreateNoWindow && typeof(T) == typeof(string))
+                            result = (T)(object)"Process running";
+
+                        if (Errors != null)
+                        {
+                            OnErrorData?.Invoke(Errors);
+                            thrownException = thrownException ?? new ProcessException(this);
                             throw thrownException;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (!RaiseFaultHandlers(ex))
+                            throw ex;
+                    }
+                    finally
+                    {
+                        RaiseOnEnd(result);
                     }
                 },
                 (ex, error) =>
