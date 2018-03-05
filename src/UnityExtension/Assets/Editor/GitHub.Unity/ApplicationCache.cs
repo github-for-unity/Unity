@@ -131,6 +131,9 @@ namespace GitHub.Unity
 
     abstract class ManagedCacheBase<T> : ScriptObjectSingleton<T> where T : ScriptableObject, IManagedCache
     {
+        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
         [NonSerialized] private DateTimeOffset? lastUpdatedAtValue;
         [NonSerialized] private DateTimeOffset? lastVerifiedAtValue;
         [NonSerialized] private DateTimeOffset? initializedAtValue;
@@ -207,14 +210,25 @@ namespace GitHub.Unity
         }
 
         public abstract TimeSpan DataTimeout { get; }
-        public abstract string LastUpdatedAtString { get; protected set; }
-        public abstract string LastVerifiedAtString { get; protected set; }
-        public abstract string InitializedAtString { get; protected set; }
-
-        public bool IsInitialized
+        public string LastUpdatedAtString
         {
-            get { return ApplicationCache.Instance.FirstRunAt <= InitializedAt; }
+            get { return lastUpdatedAtString; }
+            protected set { lastUpdatedAtString = value; }
         }
+
+        public string LastVerifiedAtString
+        {
+            get { return lastVerifiedAtString; }
+            protected set { lastVerifiedAtString = value; }
+        }
+
+        public string InitializedAtString
+        {
+            get { return initializedAtString; }
+            protected set { initializedAtString = value; }
+        }
+
+        public bool IsInitialized { get { return ApplicationCache.Instance.FirstRunAt <= InitializedAt; } }
 
         public DateTimeOffset LastUpdatedAt
         {
@@ -323,14 +337,12 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    public class StringArrayContainer: ArrayContainer<string>
-    {
-    }
+    public class StringArrayContainer : ArrayContainer<string>
+    {}
 
     [Serializable]
     public class ConfigBranchArrayContainer : ArrayContainer<ConfigBranch>
-    {
-    }
+    {}
 
     [Serializable]
     class RemoteConfigBranchDictionary : Dictionary<string, Dictionary<string, ConfigBranch>>, ISerializationCallbackReceiver, IRemoteConfigBranchDictionary
@@ -348,8 +360,8 @@ namespace GitHub.Unity
             {
                 Add(pair.Key, pair.Value.ToDictionary(valuePair => valuePair.Key, valuePair => valuePair.Value));
             }
-        }        
-        
+        }
+
         // save the dictionary to lists
         public void OnBeforeSerialize()
         {
@@ -435,9 +447,6 @@ namespace GitHub.Unity
     [Location("cache/repoinfo.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class RepositoryInfoCache : ManagedCacheBase<RepositoryInfoCache>, IRepositoryInfoCache
     {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string firstInitializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
         [SerializeField] private GitRemote gitRemote;
         [SerializeField] private GitBranch gitBranch;
 
@@ -492,24 +501,6 @@ namespace GitHub.Unity
             }
         }
 
-        public override string LastUpdatedAtString
-        {
-            get { return lastUpdatedAtString; }
-            protected set { lastUpdatedAtString = value; }
-        }
-
-        public override string LastVerifiedAtString
-        {
-            get { return lastVerifiedAtString; }
-            protected set { lastVerifiedAtString = value; }
-        }
-
-        public override string InitializedAtString
-        {
-            get { return firstInitializedAtString; }
-            protected set { firstInitializedAtString = value; }
-        }
-
         public override TimeSpan DataTimeout
         {
             get { return TimeSpan.MaxValue; }
@@ -519,10 +510,6 @@ namespace GitHub.Unity
     [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class BranchCache : ManagedCacheBase<BranchCache>, IBranchCache
     {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-
         [SerializeField] private ConfigBranch gitConfigBranch;
         [SerializeField] private ConfigRemote gitConfigRemote;
 
@@ -609,11 +596,6 @@ namespace GitHub.Unity
             }
         }
 
-        public ILocalConfigBranchDictionary LocalConfigBranches
-        {
-            get { return localConfigBranches; }
-        }
-
         public GitBranch[] RemoteBranches
         {
             get { return remoteBranches; }
@@ -638,11 +620,6 @@ namespace GitHub.Unity
             }
         }
 
-        public IRemoteConfigBranchDictionary RemoteConfigBranches
-        {
-            get { return remoteConfigBranches; }
-        }
-
         public GitRemote[] Remotes
         {
             get { return remotes; }
@@ -665,11 +642,6 @@ namespace GitHub.Unity
 
                 SaveData(now, isUpdated);
             }
-        }
-
-        public IConfigRemoteDictionary ConfigRemotes
-        {
-            get { return configRemotes; }
         }
 
         public void RemoveLocalBranch(string branch)
@@ -710,7 +682,7 @@ namespace GitHub.Unity
                 if (!branchList.ContainsKey(branch))
                 {
                     var now = DateTimeOffset.Now;
-                    branchList.Add(branch, new ConfigBranch(branch,ConfigRemotes[remote]));
+                    branchList.Add(branch, new ConfigBranch(branch, ConfigRemotes[remote]));
                     Logger.Trace("AddRemoteBranch {0} remote:{1} branch:{2} ", now, remote, branch);
                     SaveData(now, true);
                 }
@@ -765,36 +737,15 @@ namespace GitHub.Unity
             SaveData(now, true);
         }
 
-        public override string LastUpdatedAtString
-        {
-            get { return lastUpdatedAtString; }
-            protected set { lastUpdatedAtString = value; }
-        }
-
-        public override string LastVerifiedAtString
-        {
-            get { return lastVerifiedAtString; }
-            protected set { lastVerifiedAtString = value; }
-        }
-
-        public override string InitializedAtString
-        {
-            get { return initializedAtString; }
-            protected set { initializedAtString = value; }
-        }
-
-        public override TimeSpan DataTimeout
-        {
-            get { return TimeSpan.MaxValue; }
-        }
+        public ILocalConfigBranchDictionary LocalConfigBranches { get { return localConfigBranches; } }
+        public IRemoteConfigBranchDictionary RemoteConfigBranches { get { return remoteConfigBranches; } }
+        public IConfigRemoteDictionary ConfigRemotes { get { return configRemotes; } }
+        public override TimeSpan DataTimeout { get { return TimeSpan.MaxValue; } }
     }
 
     [Location("cache/gitlog.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitLogCache : ManagedCacheBase<GitLogCache>, IGitLogCache
     {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
         [SerializeField] private List<GitLogEntry> log = new List<GitLogEntry>();
 
         public GitLogCache() : base(true)
@@ -824,36 +775,12 @@ namespace GitHub.Unity
             }
         }
 
-        public override string LastUpdatedAtString
-        {
-            get { return lastUpdatedAtString; }
-            protected set { lastUpdatedAtString = value; }
-        }
-
-        public override string LastVerifiedAtString
-        {
-            get { return lastVerifiedAtString; }
-            protected set { lastVerifiedAtString = value; }
-        }
-
-        public override string InitializedAtString
-        {
-            get { return initializedAtString; }
-            protected set { initializedAtString = value; }
-        }
-
-        public override TimeSpan DataTimeout
-        {
-            get { return TimeSpan.FromMinutes(1); }
-        }
+        public override TimeSpan DataTimeout { get { return TimeSpan.FromMinutes(1); } }
     }
 
     [Location("cache/gittrackingstatus.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitTrackingStatusCache : ManagedCacheBase<GitTrackingStatusCache>, IGitTrackingStatusCache
     {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
         [SerializeField] private int ahead;
         [SerializeField] private int behind;
 
@@ -908,36 +835,12 @@ namespace GitHub.Unity
             }
         }
 
-        public override string LastUpdatedAtString
-        {
-            get { return lastUpdatedAtString; }
-            protected set { lastUpdatedAtString = value; }
-        }
-
-        public override string LastVerifiedAtString
-        {
-            get { return lastVerifiedAtString; }
-            protected set { lastVerifiedAtString = value; }
-        }
-
-        public override string InitializedAtString
-        {
-            get { return initializedAtString; }
-            protected set { initializedAtString = value; }
-        }
-
-        public override TimeSpan DataTimeout
-        {
-            get { return TimeSpan.FromMinutes(1); }
-        }
+        public override TimeSpan DataTimeout { get { return TimeSpan.FromMinutes(1); } }
     }
 
-     [Location("cache/gitstatusentries.yaml", LocationAttribute.Location.LibraryFolder)]
+    [Location("cache/gitstatusentries.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitStatusEntriesCache : ManagedCacheBase<GitStatusEntriesCache>, IGitStatusEntriesCache
     {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
         [SerializeField] private List<GitStatusEntry> entries = new List<GitStatusEntry>();
 
         public GitStatusEntriesCache() : base(true)
@@ -967,36 +870,12 @@ namespace GitHub.Unity
             }
         }
 
-        public override string LastUpdatedAtString
-        {
-            get { return lastUpdatedAtString; }
-            protected set { lastUpdatedAtString = value; }
-        }
-
-        public override string LastVerifiedAtString
-        {
-            get { return lastVerifiedAtString; }
-            protected set { lastVerifiedAtString = value; }
-        }
-
-        public override string InitializedAtString
-        {
-            get { return initializedAtString; }
-            protected set { initializedAtString = value; }
-        }
-
-        public override TimeSpan DataTimeout
-        {
-            get { return TimeSpan.FromMinutes(1); }
-        }
+        public override TimeSpan DataTimeout { get { return TimeSpan.FromMinutes(1); } }
     }
 
     [Location("cache/gitlocks.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitLocksCache : ManagedCacheBase<GitLocksCache>, IGitLocksCache
     {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
         [SerializeField] private List<GitLock> gitLocks = new List<GitLock>();
 
         public GitLocksCache() : base(true)
@@ -1026,41 +905,17 @@ namespace GitHub.Unity
             }
         }
 
-        public override string LastUpdatedAtString
-        {
-            get { return lastUpdatedAtString; }
-            protected set { lastUpdatedAtString = value; }
-        }
-
-        public override string LastVerifiedAtString
-        {
-            get { return lastVerifiedAtString; }
-            protected set { lastVerifiedAtString = value; }
-        }
-
-        public override string InitializedAtString
-        {
-            get { return initializedAtString; }
-            protected set { initializedAtString = value; }
-        }
-
-        public override TimeSpan DataTimeout
-        {
-            get { return TimeSpan.FromMinutes(1); }
-        }
+        public override TimeSpan DataTimeout { get { return TimeSpan.FromMinutes(1); } }
     }
 
     [Location("cache/gituser.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitUserCache : ManagedCacheBase<GitUserCache>, IGitUserCache
     {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string lastVerifiedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
         [SerializeField] private string gitName;
         [SerializeField] private string gitEmail;
 
         public GitUserCache() : base(true)
-        { }
+        {}
 
         public string Name
         {
@@ -1110,27 +965,6 @@ namespace GitHub.Unity
             }
         }
 
-        public override string LastUpdatedAtString
-        {
-            get { return lastUpdatedAtString; }
-            protected set { lastUpdatedAtString = value; }
-        }
-
-        public override string LastVerifiedAtString
-        {
-            get { return lastVerifiedAtString; }
-            protected set { lastVerifiedAtString = value; }
-        }
-
-        public override string InitializedAtString
-        {
-            get { return initializedAtString; }
-            protected set { initializedAtString = value; }
-        }
-
-        public override TimeSpan DataTimeout
-        {
-            get { return TimeSpan.FromMinutes(10); }
-        }
+        public override TimeSpan DataTimeout { get { return TimeSpan.FromMinutes(10); } }
     }
 }
