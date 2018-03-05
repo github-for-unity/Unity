@@ -523,8 +523,8 @@ namespace GitHub.Unity
 
         private ConfigBranch? CurrentConfigBranch
         {
-            get { return this.cacheContainer.BranchCache.CurentConfigBranch; }
-            set { cacheContainer.BranchCache.CurentConfigBranch = value; }
+            get { return this.cacheContainer.BranchCache.CurrentConfigBranch; }
+            set { cacheContainer.BranchCache.CurrentConfigBranch = value; }
         }
 
         private ConfigRemote? CurrentConfigRemote
@@ -553,8 +553,8 @@ namespace GitHub.Unity
 
         public GitBranch? CurrentBranch
         {
-            get { return cacheContainer.RepositoryInfoCache.CurentGitBranch; }
-            private set { cacheContainer.RepositoryInfoCache.CurentGitBranch = value; }
+            get { return cacheContainer.RepositoryInfoCache.CurrentGitBranch; }
+            private set { cacheContainer.RepositoryInfoCache.CurrentGitBranch = value; }
         }
 
         public string CurrentBranchName => CurrentConfigBranch?.Name;

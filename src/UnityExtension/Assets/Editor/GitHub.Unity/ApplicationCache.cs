@@ -477,7 +477,7 @@ namespace GitHub.Unity
             }
         }
 
-        public GitBranch? CurentGitBranch
+        public GitBranch? CurrentGitBranch
         {
             get
             {
@@ -548,7 +548,7 @@ namespace GitHub.Unity
             }
         }
 
-        public ConfigBranch? CurentConfigBranch
+        public ConfigBranch? CurrentConfigBranch
         {
             get
             {
