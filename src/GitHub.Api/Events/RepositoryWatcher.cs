@@ -169,12 +169,6 @@ namespace GitHub.Unity
                 var eventDirectory = new NPath(fileEvent.Directory);
                 var fileA = eventDirectory.Combine(fileEvent.FileA);
 
-                NPath fileB = null;
-                if (fileEvent.FileB != null)
-                {
-                    fileB = eventDirectory.Combine(fileEvent.FileB);
-                }
-
                 // handling events in .git/*
                 if (fileA.IsChildOf(paths.DotGitPath))
                 {

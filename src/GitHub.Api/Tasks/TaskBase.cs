@@ -33,8 +33,6 @@ namespace GitHub.Unity
         ITask Start(TaskScheduler scheduler);
         ITask Progress(Action<IProgress> progressHandler);
 
-        void Wait();
-        bool Wait(int milliseconds);
         bool Successful { get; }
         string Errors { get; }
         Task Task { get; }
@@ -373,16 +371,6 @@ namespace GitHub.Unity
             return depends.GetTopMostTask(ret, onlyCreatedState);
         }
 
-        public virtual void Wait()
-        {
-            Task.Wait(Token);
-        }
-
-        public virtual bool Wait(int milliseconds)
-        {
-            return Task.Wait(milliseconds, Token);
-        }
-
         protected virtual void Run(bool success)
         {
         }
@@ -443,8 +431,8 @@ namespace GitHub.Unity
 
             if (DependsOn.Task.Status == TaskStatus.Faulted)
             {
-                var exception = DependsOn.Task.Exception;
-                return exception?.InnerException ?? exception;
+                var ex = DependsOn.Task.Exception;
+                return ex?.InnerException ?? ex;
             }
             return DependsOn.GetThrownException();
         }
@@ -704,33 +692,6 @@ namespace GitHub.Unity
         protected void RaiseOnData(TData data)
         {
             OnData?.Invoke(data);
-        }
-    }
-
-    static class TaskBaseExtensions
-    {
-        public static T Schedule<T>(this T task, ITaskManager taskManager)
-            where T : ITask
-        {
-            return taskManager.Schedule(task);
-        }
-
-        public static T ScheduleUI<T>(this T task, ITaskManager taskManager)
-            where T : ITask
-        {
-            return taskManager.ScheduleUI(task);
-        }
-
-        public static T ScheduleExclusive<T>(this T task, ITaskManager taskManager)
-            where T : ITask
-        {
-            return taskManager.ScheduleExclusive(task);
-        }
-
-        public static T ScheduleConcurrent<T>(this T task, ITaskManager taskManager)
-            where T : ITask
-        {
-            return taskManager.ScheduleConcurrent(task);
         }
     }
 
