@@ -15,6 +15,7 @@ namespace GitHub.Unity
         private ICacheContainer cacheContainer;
         private UriString cloneUrl;
         private string name;
+        private HashSet<CacheType> cacheInvalidationRequests = new HashSet<CacheType>();
 
         public event Action<CacheUpdateEvent> LogChanged;
         public event Action<CacheUpdateEvent> TrackingStatusChanged;
@@ -39,7 +40,7 @@ namespace GitHub.Unity
             LocalPath = localPath;
 
             cacheContainer = container;
-            cacheContainer.CacheInvalidated += CacheContainer_OnCacheInvalidated;
+            cacheContainer.CacheInvalidated += InvalidateCache;
             cacheContainer.CacheUpdated += CacheContainer_OnCacheUpdated;
         }
 
@@ -56,6 +57,14 @@ namespace GitHub.Unity
             repositoryManager.GitLocksUpdated += RepositoryManagerOnGitLocksUpdated;
             repositoryManager.LocalBranchesUpdated += RepositoryManagerOnLocalBranchesUpdated;
             repositoryManager.RemoteBranchesUpdated += RepositoryManagerOnRemoteBranchesUpdated;
+        }
+
+        public void Start()
+        {
+            foreach (var req in cacheInvalidationRequests)
+            {
+                InvalidateCache(req);
+            }
         }
 
         public ITask SetupRemote(string remote, string remoteUrl)
@@ -275,8 +284,16 @@ namespace GitHub.Unity
             }
         }
 
-        private void CacheContainer_OnCacheInvalidated(CacheType cacheType)
+        private void InvalidateCache(CacheType cacheType)
         {
+            if (repositoryManager == null)
+            {
+                if (!cacheInvalidationRequests.Contains(cacheType))
+                    cacheInvalidationRequests.Add(cacheType);
+                return;
+            }
+
+
             switch (cacheType)
             {
                 case CacheType.BranchCache:

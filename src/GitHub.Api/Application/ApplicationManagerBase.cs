@@ -150,6 +150,7 @@ namespace GitHub.Unity
                 repositoryManager.Initialize();
                 Environment.Repository.Initialize(repositoryManager);
                 repositoryManager.Start();
+                Environment.Repository.Start();
                 Logger.Trace($"Got a repository? {Environment.Repository}");
             }
         }

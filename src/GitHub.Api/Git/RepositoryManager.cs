@@ -42,11 +42,11 @@ namespace GitHub.Unity
         void UpdateGitAheadBehindStatus();
         void UpdateLocks();
         int WaitForEvents();
+        void UpdateRepositoryInfo();
 
         IGitConfig Config { get; }
         IGitClient GitClient { get; }
         bool IsBusy { get; }
-        void UpdateRepositoryInfo();
     }
 
     interface IRepositoryPathConfiguration
@@ -400,7 +400,7 @@ namespace GitHub.Unity
             var isExclusive = task.IsChainExclusive();
             task.GetTopOfChain().OnStart += t =>
             {
-                if (t.Affinity == TaskAffinity.Exclusive)
+                if (isExclusive)
                 {
                     Logger.Trace("Starting Operation - Setting Busy Flag");
                     IsBusy = true;
