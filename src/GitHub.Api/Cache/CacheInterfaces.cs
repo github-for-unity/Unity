@@ -5,13 +5,13 @@ namespace GitHub.Unity
 {
     public enum CacheType
     {
-        RepositoryInfoCache,
-        BranchCache,
-        GitLogCache,
-        GitTrackingStatusCache,
-        GitStatusEntriesCache,
-        GitLocksCache,
-        GitUserCache
+        RepositoryInfo,
+        Branches,
+        GitLog,
+        GitAheadBehind,
+        GitStatus,
+        GitLocks,
+        GitUser
     }
 
     public interface ICacheContainer
