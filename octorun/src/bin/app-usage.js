@@ -66,12 +66,13 @@ if (fileContents && host) {
         });
     });
 
-    req.on('error', function (e) {
+    req.on('error', function (error) {
         process.stdout.write("Error");
         process.stdout.write(endOfLine);
         
-        if (e) {
-            process.stdout.write(e.toString());
+        if (error) {
+            process.stdout.write(error.toString());
+            process.stdout.write(endOfLine);
         }
 
         process.exit(-1);
