@@ -27,7 +27,6 @@ namespace GitHub.Unity
         public UriString OriginalUrl { get; }
 
         private readonly IKeychain keychain;
-        private readonly IGitHubClient githubClient;
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
         private readonly NPath nodeJsExecutablePath;
@@ -43,7 +42,6 @@ namespace GitHub.Unity
             HostAddress = HostAddress.Create(hostUrl);
             OriginalUrl = hostUrl;
             this.keychain = keychain;
-            this.githubClient = githubClient;
             this.processManager = processManager;
             this.taskManager = taskManager;
             this.nodeJsExecutablePath = nodeJsExecutablePath;
@@ -114,7 +112,7 @@ namespace GitHub.Unity
             LoginResultData res = null;
             try
             {
-                res = await loginManager.Login(OriginalUrl, githubClient, username, password);
+                res = await loginManager.Login(OriginalUrl, username, password);
             }
             catch (Exception ex)
             {
@@ -160,7 +158,7 @@ namespace GitHub.Unity
             LoginResultData res = null;
             try
             {
-                res = await loginManager.Login(OriginalUrl, githubClient, username, password);
+                res = await loginManager.Login(OriginalUrl, username, password);
             }
             catch (Exception)
             {
@@ -216,17 +214,19 @@ namespace GitHub.Unity
                 {
                     logger.Trace("Creating repository for organization");
 
-                    repository = (await githubClient.Repository.Create(organization, newRepository)).ToGitHubRepository();
+                    //repository = (await githubClient.Repository.Create(organization, newRepository)).ToGitHubRepository();
                 }
                 else
                 {
                     logger.Trace("Creating repository for user");
 
-                    repository = (await githubClient.Repository.Create(newRepository)).ToGitHubRepository();
+                    //repository = (await githubClient.Repository.Create(newRepository)).ToGitHubRepository();
                 }
 
-                logger.Trace("Created Repository");
-                return repository;
+                throw new NotImplementedException();
+
+                //logger.Trace("Created Repository");
+                //return repository;
             }
             catch (Exception ex)
             {
@@ -244,20 +244,22 @@ namespace GitHub.Unity
                 await ValidateKeychain();
                 await ValidateCurrentUserInternal();
 
-                var organizations = await githubClient.Organization.GetAllForCurrent();
+                throw new NotImplementedException();
 
-                logger.Trace("Obtained {0} Organizations", organizations?.Count.ToString() ?? "NULL");
-
-                if (organizations != null)
-                {
-                    var array = organizations.Select(organization => new Organization() {
-                        Name = organization.Name,
-                        Login = organization.Login
-                    }).ToArray();
-                    onSuccess(array);
-                }
+                //                var organizations = await githubClient.Organization.GetAllForCurrent();
+                //
+                //                logger.Trace("Obtained {0} Organizations", organizations?.Count.ToString() ?? "NULL");
+                //
+                //                if (organizations != null)
+                //                {
+                //                    var array = organizations.Select(organization => new Organization() {
+                //                        Name = organization.Name,
+                //                        Login = organization.Login
+                //                    }).ToArray();
+                //                    onSuccess(array);
+                //                }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.Error(ex, "Error Getting Organizations");
                 onError?.Invoke(ex);
@@ -271,7 +273,9 @@ namespace GitHub.Unity
                 logger.Trace("Getting Current User");
                 await ValidateKeychain();
 
-                return (await githubClient.User.Current()).ToGitHubUser();
+                throw new NotImplementedException();
+
+                //return (await githubClient.User.Current()).ToGitHubUser();
             }
             catch (KeychainEmptyException)
             {
@@ -316,9 +320,7 @@ namespace GitHub.Unity
                 var uriString = keychain.Connections.First().Host;
                 var keychainAdapter = await keychain.Load(uriString);
 
-                logger.Trace("LoadKeychainInternal: Loaded");
-
-                return keychainAdapter.OctokitCredentials != Credentials.Anonymous;
+                throw new NotImplementedException();
             }
 
             logger.Trace("LoadKeychainInternal: No keys to load");

@@ -71,12 +71,10 @@ namespace GitHub.Unity
         /// <inheritdoc/>
         public async Task<LoginResultData> Login(
             UriString host,
-            IGitHubClient client,
             string username,
             string password)
         {
             Guard.ArgumentNotNull(host, nameof(host));
-            Guard.ArgumentNotNull(client, nameof(client));
             Guard.ArgumentNotNullOrWhiteSpace(username, nameof(username));
             Guard.ArgumentNotNullOrWhiteSpace(password, nameof(password));
 
@@ -96,8 +94,7 @@ namespace GitHub.Unity
 
             try
             {
-                //auth = await CreateAndDeleteExistingApplicationAuthorization(client, newAuth, null);
-                auth = await TryLogin(client, host, username, password);
+                auth = await TryLogin(host, username, password);
                 EnsureNonNullAuthorization(auth);
             }
             catch (TwoFactorAuthorizationException e)
@@ -114,7 +111,7 @@ namespace GitHub.Unity
                     logger.Error(e, "2FA TwoFactorAuthorizationException: {0} {1}", LoginResultCodes.CodeRequired, e.Message);
                 }
 
-                return new LoginResultData(result, e.Message, client, host, newAuth);
+                return new LoginResultData(result, e.Message, host, newAuth);
             }
             catch(LoginAttemptsExceededException e)
             {
@@ -157,7 +154,6 @@ namespace GitHub.Unity
 
         public async Task<LoginResultData> ContinueLogin(LoginResultData loginResultData, string twofacode)
         {
-            var client = loginResultData.Client;
             var newAuth = loginResultData.NewAuth;
             var host = loginResultData.Host;
             var k = keychain.Connect(host);
@@ -166,11 +162,8 @@ namespace GitHub.Unity
             try
             {
                 logger.Trace("2FA Continue");
-                var auth = await TryContinueLogin(client, host, username, password, twofacode);
-                //var auth = await CreateAndDeleteExistingApplicationAuthorization(
-                //    client,
-                //    newAuth,
-                //    twofacode);
+                var auth = await TryContinueLogin(host, username, password, twofacode);
+                
                 EnsureNonNullAuthorization(auth);
 
                 keychain.SetToken(host, auth.Token);
@@ -182,7 +175,7 @@ namespace GitHub.Unity
             {
                 logger.Trace(e, "2FA TwoFactorAuthorizationException: {0} {1}", LoginResultCodes.CodeFailed, e.Message);
 
-                return new LoginResultData(LoginResultCodes.CodeFailed, Localization.Wrong2faCode, client, host, newAuth);
+                return new LoginResultData(LoginResultCodes.CodeFailed, Localization.Wrong2faCode, host, newAuth);
             }
             catch (ApiValidationException e)
             {
@@ -253,7 +246,6 @@ namespace GitHub.Unity
         }
 
         private async Task<ApplicationAuthorization> TryLogin(
-            IGitHubClient client,
             UriString host,
             string username,
             string password
@@ -304,7 +296,6 @@ namespace GitHub.Unity
         }
 
         private async Task<ApplicationAuthorization> TryContinueLogin(
-            IGitHubClient client,
             UriString host,
             string username,
             string password,
@@ -382,20 +373,18 @@ namespace GitHub.Unity
         public string Message;
         internal NewAuthorization NewAuth { get; set; }
         internal UriString Host { get; set; }
-        internal IGitHubClient Client { get; set; }
 
         internal LoginResultData(LoginResultCodes code, string message,
-            IGitHubClient client, UriString host, NewAuthorization newAuth)
+            UriString host, NewAuthorization newAuth)
         {
             this.Code = code;
             this.Message = message;
             this.NewAuth = newAuth;
             this.Host = host;
-            this.Client = client;
         }
 
         internal LoginResultData(LoginResultCodes code, string message, UriString host)
-            : this(code, message, null, host, null)
+            : this(code, message, host, null)
         {
         }
     }
