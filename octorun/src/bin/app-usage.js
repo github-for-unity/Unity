@@ -3,19 +3,24 @@ var package = require('../../package.json')
 var endOfLine = require('os').EOL;
 var fs = require('fs');
 var util = require('util');
-var https = require('https');
 
 commander
     .version(package.version)
+    .option('-s, --scheme <scheme>')
     .option('-h, --host <host>')
     .option('-p, --port <port>')
     .parse(process.argv);
 
 var host = commander.host;
 var port = 443;
+var scheme = 'https';
 
 if (commander.port) {
-    port = commander.port;
+    port = parseInt(commander.port);
+}
+
+if (commander.scheme) {
+    scheme = commander.scheme;
 }
 
 var fileContents = null;
@@ -27,9 +32,10 @@ if (commander.args.length == 1) {
     }
 }
 
-if (fileContents && host && util.isNumber(port)) {
+if (fileContents && host) {
+    var https = require(scheme);
     var options = {
-        protocol: "https:",
+        protocol: scheme + ':',
         hostname: host,
         port: port,
         path: '/api/usage/unity',
@@ -40,18 +46,34 @@ if (fileContents && host && util.isNumber(port)) {
     };
 
     var req = https.request(options, function (res) {
+        var success = res.statusCode == 200;
+
         res.on('data', function (d) {
-            process.stdout.write(d);
-            process.stdout.write(endOfLine);
+            if (success) {
+                process.stdout.write("Success");
+                process.stdout.write(endOfLine);
+                process.stdout.write(d);
+            }
+            else {
+                process.stdout.write("Error");
+                process.stdout.write(endOfLine);
+                process.stdout.write(d);
+            }
         });
 
         res.on('end', function (d) {
-            process.exit(res.statusCode == 200 ? 0 : -1);
+            process.exit(success ? 0 : -1);
         });
     });
 
     req.on('error', function (e) {
-        console.log(e);
+        process.stdout.write("Error");
+        process.stdout.write(endOfLine);
+        
+        if (e) {
+            process.stdout.write(e.toString());
+        }
+
         process.exit(-1);
     });
 

@@ -104,6 +104,8 @@ namespace IntegrationTests
             }
         }
 
+        public NPath NodeJsExecutablePath => defaultEnvironment.NodeJsExecutablePath;
+
         public NPath OctorunScriptPath { get; set; }
 
         public bool IsWindows => defaultEnvironment.IsWindows;

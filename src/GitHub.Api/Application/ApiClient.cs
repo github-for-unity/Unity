@@ -30,7 +30,6 @@ namespace GitHub.Unity
         private readonly IGitHubClient githubClient;
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
-        private readonly NPath octorunScriptPath;
         private readonly ILoginManager loginManager;
 
         public ApiClient(UriString hostUrl, IKeychain keychain, IGitHubClient githubClient, IProcessManager processManager, ITaskManager taskManager, NPath nodeJsExecutablePath, NPath octorunScriptPath)
@@ -45,7 +44,6 @@ namespace GitHub.Unity
             this.githubClient = githubClient;
             this.processManager = processManager;
             this.taskManager = taskManager;
-            this.octorunScriptPath = octorunScriptPath;
             loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret,
                 processManager: processManager,
                 taskManager: taskManager,

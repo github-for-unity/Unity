@@ -40,7 +40,6 @@ namespace GitHub.Unity
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
             GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
-            SetupMetrics();
         }
 
         public void Run(bool firstRun)
@@ -156,7 +155,14 @@ namespace GitHub.Unity
                 UserSettings.Set(Constants.GuidKey, id);
             }
 
-            UsageTracker = new UsageTracker(UserSettings, usagePath, id, unityVersion);
+            var metricsService = new MetricsService(ProcessManager,
+                TaskManager,
+                Environment.FileSystem,
+                Environment.NodeJsExecutablePath,
+                Environment.OctorunScriptPath,
+                ApplicationConfiguration.ProductHeader);
+
+            UsageTracker = new UsageTracker(metricsService, UserSettings, usagePath, id, unityVersion);
 
             if (firstRun)
             {
@@ -181,6 +187,7 @@ namespace GitHub.Unity
             Environment.GitExecutablePath = gitExecutablePath;
             Environment.OctorunScriptPath = octorunScriptPath;
             Environment.User.Initialize(GitClient);
+            SetupMetrics();
 
             if (Environment.IsWindows)
             {
