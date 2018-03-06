@@ -99,12 +99,16 @@ namespace GitHub.Unity
         void SetLocals(Dictionary<string, ConfigBranch> branchDictionary);
     }
 
-    public interface IRepositoryInfoCache : IManagedCache, ICanUpdate<IRepositoryInfoCache>
+    public interface IRepositoryInfoCacheData
     {
         GitRemote? CurrentGitRemote { get; }
         GitBranch? CurrentGitBranch { get; }
         ConfigRemote? CurrentConfigRemote { get; }
         ConfigBranch? CurrentConfigBranch { get; }
+    }
+
+    public interface IRepositoryInfoCache : IManagedCache, IRepositoryInfoCacheData, ICanUpdate<IRepositoryInfoCacheData>
+    {
     }
 
     public interface IGitLogCache : IManagedCache

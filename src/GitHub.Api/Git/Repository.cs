@@ -211,15 +211,19 @@ namespace GitHub.Unity
         {
             taskManager.RunInUI(() =>
             {
-                var data = new DataCache_RepositoryInfo();
+                var data = new RepositoryInfoCacheData();
                 data.CurrentConfigBranch = branch;
-                data.CurrentGitBranch = branch.HasValue ? (GitBranch?)GetLocalGitBranch(branch.Value) : null;
+                data.CurrentGitBranch = branch.HasValue ? (GitBranch?)GetLocalGitBranch(branch.Value.name, branch.Value) : null;
                 data.CurrentConfigRemote = remote;
                 data.CurrentGitRemote = remote.HasValue ? (GitRemote?)GetGitRemote(remote.Value) : null;
                 name = null;
                 cloneUrl = null;
                 cacheContainer.RepositoryInfoCache.UpdateData(data);
                 var n = Name; // force refresh of the Name and CloneUrl property
+                // update active state in local branches
+                cacheContainer.BranchCache.LocalBranches = LocalConfigBranches;
+                // update tracking state in remote branches
+                cacheContainer.BranchCache.RemoteBranches = RemoteConfigBranches;
             });
         }
 
@@ -270,11 +274,11 @@ namespace GitHub.Unity
             });
         }
 
-        private GitBranch GetLocalGitBranch(ConfigBranch x)
+        private static GitBranch GetLocalGitBranch(string currentBranchName, ConfigBranch x)
         {
             var branchName = x.Name;
             var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + branchName : "[None]";
-            var isActive = branchName == CurrentBranchName;
+            var isActive = branchName == currentBranchName;
             return new GitBranch(branchName, trackingName, isActive);
         }
 
@@ -346,7 +350,7 @@ namespace GitHub.Unity
 
         private GitBranch[] RemoteConfigBranches => cacheContainer.BranchCache.RemoteConfigBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch).ToArray();
         private GitRemote[] ConfigRemotes => cacheContainer.BranchCache.ConfigRemotes.Values.Select(GetGitRemote).ToArray();
-        private GitBranch[] LocalConfigBranches => cacheContainer.BranchCache.LocalConfigBranches.Values.Select(GetLocalGitBranch).ToArray();
+        private GitBranch[] LocalConfigBranches => cacheContainer.BranchCache.LocalConfigBranches.Values.Select(x => GetLocalGitBranch(CurrentBranchName, x)).ToArray();
     }
 
     public interface IUser
