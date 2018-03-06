@@ -28,7 +28,7 @@ namespace GitHub.Unity
 
         protected override void InitializeUI()
         {
-            Logger.Trace("Restarted {0}", Environment.Repository);
+            Logger.Trace("Restarted {0}", Environment.Repository != null ? Environment.Repository.LocalPath : "null");
             EnvironmentCache.Instance.Flush();
 
             isBusy = false;
@@ -40,7 +40,7 @@ namespace GitHub.Unity
 
         protected override void SetProjectToTextSerialization()
         {
-            Logger.Trace("SetProjectToTextSerialization");
+            //Logger.Trace("SetProjectToTextSerialization");
             EditorSettings.serializationMode = SerializationMode.ForceText;
         }
 

@@ -51,18 +51,9 @@ namespace GitHub.Unity
             }
         }
 
-        public void Schedule(params ITask[] tasks)
+        public ITask RunInUI(Action action)
         {
-            Guard.ArgumentNotNull(tasks, "tasks");
-
-            var enumerator = tasks.GetEnumerator();
-            bool isLast = !enumerator.MoveNext();
-            do
-            {
-                var task = enumerator.Current as ITask;
-                isLast = !enumerator.MoveNext();
-                Schedule(task, isLast);
-            } while (!isLast);
+            return new ActionTask(Token, action) { Affinity = TaskAffinity.UI }.Start();
         }
 
         public T Schedule<T>(T task)
@@ -86,11 +77,6 @@ namespace GitHub.Unity
             }
         }
 
-        public T ScheduleUI<T>(T task)
-            where T : ITask
-        {
-            return ScheduleUI(task, true);
-        }
 
         private T ScheduleUI<T>(T task, bool setupFaultHandler)
             where T : ITask
@@ -108,12 +94,6 @@ namespace GitHub.Unity
             return (T)task.Start(UIScheduler);
         }
 
-        public T ScheduleExclusive<T>(T task)
-            where T : ITask
-        {
-            return ScheduleExclusive(task, true);
-        }
-
         private T ScheduleExclusive<T>(T task, bool setupFaultHandler)
             where T : ITask
         {
@@ -128,12 +108,6 @@ namespace GitHub.Unity
                 );
             }
             return (T)task.Start(manager.ExclusiveTaskScheduler);
-        }
-
-        public T ScheduleConcurrent<T>(T task)
-            where T : ITask
-        {
-            return ScheduleConcurrent(task, true);
         }
 
         private T ScheduleConcurrent<T>(T task, bool setupFaultHandler)

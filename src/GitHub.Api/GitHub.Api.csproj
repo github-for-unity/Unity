@@ -98,7 +98,10 @@
     <Compile Include="Application\ApplicationConfiguration.cs" />
     <Compile Include="Application\OctokitExtensions.cs" />
     <Compile Include="Application\Organization.cs" />
+    <Compile Include="Cache\CacheContainer.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
+    <Compile Include="Cache\CachingClasses.cs" />
+    <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Git\Tasks\GitCheckoutTask.cs" />
     <Compile Include="Git\GitAheadBehindStatus.cs" />

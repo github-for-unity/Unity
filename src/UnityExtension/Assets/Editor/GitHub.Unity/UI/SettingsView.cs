@@ -58,8 +58,8 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
-                Repository.CheckLocksChangedEvent(lastLocksChangedEvent);
+                Repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentRemoteChangedEvent);
+                Repository.CheckAndRaiseEventsIfCacheNewer(lastLocksChangedEvent);
             }
 
             metricsHasChanged = true;

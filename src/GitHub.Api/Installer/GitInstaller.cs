@@ -27,7 +27,7 @@ namespace GitHub.Unity
 
         public ITask<NPath> SetupGitIfNeeded()
         {
-            Logger.Trace("SetupGitIfNeeded");
+            //Logger.Trace("SetupGitIfNeeded");
 
             installationTask = new FuncTask<GitInstallationState, NPath>(cancellationToken, (_, r) => installDetails.GitExecutablePath)
                 { Name = "Git Installation - Complete" };

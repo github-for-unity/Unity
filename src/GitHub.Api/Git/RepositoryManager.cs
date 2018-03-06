@@ -100,7 +100,6 @@ namespace GitHub.Unity
     {
         private readonly IGitConfig config;
         private readonly IGitClient gitClient;
-        private readonly IProcessManager processManager;
         private readonly IRepositoryPathConfiguration repositoryPaths;
         private readonly IFileSystem fileSystem;
         private readonly CancellationToken token;
@@ -120,7 +119,6 @@ namespace GitHub.Unity
 
         public RepositoryManager(IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
-            IProcessManager processManager,
             IFileSystem fileSystem,
             CancellationToken token,
             IRepositoryPathConfiguration repositoryPaths)
@@ -129,7 +127,6 @@ namespace GitHub.Unity
             this.fileSystem = fileSystem;
             this.token = token;
             this.gitClient = gitClient;
-            this.processManager = processManager;
             this.watcher = repositoryWatcher;
             this.config = gitConfig;
 
@@ -143,7 +140,7 @@ namespace GitHub.Unity
         }
 
         public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IGitClient gitClient,
-            IProcessManager processManager, IFileSystem fileSystem, NPath repositoryRoot)
+            IFileSystem fileSystem, NPath repositoryRoot)
         {
             var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
             string filePath = repositoryPathConfiguration.DotGitConfig;
@@ -152,25 +149,25 @@ namespace GitHub.Unity
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
 
             return new RepositoryManager(gitConfig, repositoryWatcher,
-                gitClient, processManager, fileSystem,
+                gitClient, fileSystem,
                 taskManager.Token, repositoryPathConfiguration);
         }
 
         public void Initialize()
         {
-            Logger.Trace("Initialize");
+            //Logger.Trace("Initialize");
             watcher.Initialize();
         }
 
         public void Start()
         {
-            Logger.Trace("Start");
+            //Logger.Trace("Start");
             watcher.Start();
         }
 
         public void Stop()
         {
-            Logger.Trace("Stop");
+            //Logger.Trace("Stop");
             watcher.Stop();
         }
 
@@ -462,13 +459,13 @@ namespace GitHub.Unity
             {
                 if (isExclusive)
                 {
-                    Logger.Trace("Starting Operation - Setting Busy Flag");
+                    //Logger.Trace("Starting Operation - Setting Busy Flag");
                     IsBusy = true;
                 }
 
                 if (filesystemChangesExpected)
                 {
-                    Logger.Trace("Starting Operation - Disable Watcher");
+                    //Logger.Trace("Starting Operation - Disable Watcher");
                     watcher.Stop();
                 }
             };
@@ -477,24 +474,17 @@ namespace GitHub.Unity
             {
                 if (filesystemChangesExpected)
                 {
-                    Logger.Trace("Ended Operation - Enable Watcher");
+                    //Logger.Trace("Ended Operation - Enable Watcher");
                     watcher.Start();
                 }
 
                 if (isExclusive)
                 {
-                    Logger.Trace("Ended Operation - Clearing Busy Flag");
+                    //Logger.Trace("Ended Operation - Clearing Busy Flag");
                     IsBusy = false;
                 }
             });
             return task;
-        }
-
-        private void UpdateHead()
-        {
-            Logger.Trace("UpdateHead");
-            UpdateRepositoryInfo();
-            UpdateGitLog();
         }
 
         private string GetCurrentHead()
@@ -512,7 +502,6 @@ namespace GitHub.Unity
         {
             Logger.Trace("WatcherOnLocalBranchesChanged");
             DataNeedsRefreshing?.Invoke(CacheType.Branches);
-            DataNeedsRefreshing?.Invoke(CacheType.GitLog);
         }
 
         private void WatcherOnRepositoryCommitted()

@@ -21,6 +21,7 @@ namespace GitHub.Unity
             get { return isLocked; }
             set { isLocked = value; }
         }
+
         public GitStatusEntry GitStatusEntry
         {
             get { return gitStatusEntry; }
@@ -35,6 +36,8 @@ namespace GitHub.Unity
     public class ChangesTree : Tree<ChangesTreeNode, GitStatusEntryTreeData>
     {
         [NonSerialized] public Texture2D FolderIcon;
+        [NonSerialized] private bool viewHasFocus;
+        [NonSerialized] private Object lastActivatedObject;
 
         [SerializeField] public ChangesTreeNodeDictionary assets = new ChangesTreeNodeDictionary();
         [SerializeField] public ChangesTreeNodeDictionary folders = new ChangesTreeNodeDictionary();
@@ -45,10 +48,6 @@ namespace GitHub.Unity
         [SerializeField] public bool isSelectable = true;
         [SerializeField] public bool isCheckable = false;
         [SerializeField] public bool isUsingGlobalSelection = false;
-
-        [NonSerialized] private bool viewHasFocus;
-        [NonSerialized] private Object lastActivatedObject;
-
         [SerializeField] private List<ChangesTreeNode> nodes = new List<ChangesTreeNode>();
         [SerializeField] private ChangesTreeNode selectedNode = null;
 
@@ -238,11 +237,12 @@ namespace GitHub.Unity
             return node;
         }
 
-        protected override void OnClear()
+        protected override void Clear()
         {
             assets.Clear();
             folders.Clear();
             checkedFileNodes.Clear();
+            base.Clear();
         }
 
         protected override IEnumerable<string> GetCollapsedFolders()

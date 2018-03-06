@@ -8,7 +8,9 @@ namespace GitHub.Unity
     /// </summary>
     public interface IRepository : IEquatable<IRepository>
     {
-        void Initialize(IRepositoryManager repositoryManager);
+        void Initialize(IRepositoryManager repositoryManager, ITaskManager taskManager);
+        void Start();
+
         ITask CommitAllFiles(string message, string body);
         ITask CommitFiles(List<string> files, string message, string body);
         ITask SetupRemote(string remoteName, string remoteUrl);
@@ -19,16 +21,7 @@ namespace GitHub.Unity
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
         ITask DiscardChanges(GitStatusEntry[] discardEntries);
-        void CheckLogChangedEvent(CacheUpdateEvent gitLogCacheUpdateEvent);
-        void CheckStatusChangedEvent(CacheUpdateEvent cacheUpdateEvent);
-        void CheckStatusEntriesChangedEvent(CacheUpdateEvent cacheUpdateEvent);
-        void CheckCurrentBranchChangedEvent(CacheUpdateEvent cacheUpdateEvent);
-        void CheckCurrentRemoteChangedEvent(CacheUpdateEvent cacheUpdateEvent);
-        void CheckCurrentBranchAndRemoteChangedEvent(CacheUpdateEvent cacheUpdateEvent);
-        void CheckLocalBranchListChangedEvent(CacheUpdateEvent cacheUpdateEvent);
-        void CheckLocksChangedEvent(CacheUpdateEvent cacheUpdateEvent);
-        void CheckRemoteBranchListChangedEvent(CacheUpdateEvent cacheUpdateEvent);
-        void CheckLocalAndRemoteBranchListChangedEvent(CacheUpdateEvent cacheUpdateEvent);
+        void CheckAndRaiseEventsIfCacheNewer(CacheUpdateEvent cacheUpdateEvent);
 
         /// <summary>
         /// Gets the name of the repository.
@@ -78,6 +71,5 @@ namespace GitHub.Unity
         event Action<CacheUpdateEvent> LocksChanged;
         event Action<CacheUpdateEvent> RemoteBranchListChanged;
         event Action<CacheUpdateEvent> LocalAndRemoteBranchListChanged;
-        void Start();
     }
 }

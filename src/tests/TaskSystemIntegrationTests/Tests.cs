@@ -245,7 +245,8 @@ namespace IntegrationTests
                 tasks.Add(GetTask(TaskAffinity.Concurrent, i, id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }));
             }
 
-            TaskManager.Schedule(tasks.Cast<ITask>().ToArray());
+            foreach (var task in tasks)
+                TaskManager.Schedule(task);
             Task.WaitAll(tasks.Select(x => x.Task).ToArray());
             //Console.WriteLine(String.Join(",", runningOrder.Select(x => x.ToString()).ToArray()));
             Assert.AreEqual(10, runningOrder.Count);
@@ -308,7 +309,8 @@ namespace IntegrationTests
                 tasks.Add(GetTask(TaskAffinity.Exclusive, i, id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }));
             }
 
-            TaskManager.Schedule(tasks.Cast<ITask>().ToArray());
+            foreach (var task in tasks)
+                TaskManager.Schedule(task);
             Task.WaitAll(tasks.Select(x => x.Task).ToArray());
             Assert.AreEqual(Enumerable.Range(1, 10), runningOrder);
         }
@@ -324,7 +326,8 @@ namespace IntegrationTests
                 tasks.Add(GetTask(TaskAffinity.UI, i, id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }));
             }
 
-            TaskManager.Schedule(tasks.Cast<ITask>().ToArray());
+            foreach (var task in tasks)
+                TaskManager.Schedule(task);
             Task.WaitAll(tasks.Select(x => x.Task).ToArray());
             Assert.AreEqual(Enumerable.Range(1, 10), runningOrder);
         }

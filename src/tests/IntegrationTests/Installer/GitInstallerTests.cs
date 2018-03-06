@@ -9,7 +9,7 @@ using NUnit.Framework;
 namespace IntegrationTests
 {
     [TestFixture]
-    class GitInstallerTests : BaseTaskManagerTest
+    class GitInstallerTests : BaseIntegrationTest
     {
         const int Timeout = 30000;
         public override void OnSetup()

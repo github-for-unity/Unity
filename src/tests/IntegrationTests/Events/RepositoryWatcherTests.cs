@@ -20,7 +20,7 @@ namespace IntegrationTests
 
             try
             {
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -118,7 +118,7 @@ namespace IntegrationTests
 
             try
             {
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -175,7 +175,7 @@ namespace IntegrationTests
 
             try
             {
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -230,7 +230,7 @@ namespace IntegrationTests
 
             try
             {
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -306,7 +306,7 @@ namespace IntegrationTests
 
             try
             {
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -382,7 +382,7 @@ namespace IntegrationTests
 
             try
             {
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -436,7 +436,7 @@ namespace IntegrationTests
 
             try
             {
-                Initialize(TestRepoMasterCleanUnsynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanUnsynchronized))
                 {

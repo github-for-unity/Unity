@@ -1,34 +1,59 @@
 using GitHub.Logging;
+using GitHub.Unity;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
-using UnityEditor;
-using UnityEngine;
-using Application = UnityEngine.Application;
 
-namespace GitHub.Unity
+namespace IntegrationTests
 {
-    [Serializable]
-    public class SerializationException : Exception
+    class ScriptObjectSingleton<T> where T : class
     {
-        public SerializationException() : base()
-        { }
-        public SerializationException(string message) : base(message)
-        { }
-        public SerializationException(string message, Exception innerException) : base(message, innerException)
-        { }
-        protected SerializationException(SerializationInfo info, StreamingContext context) : base(info, context)
-        { }
+        private static T instance;
+        public static T Instance
+        {
+            get
+            {
+                if (instance == null)
+                    CreateAndLoad();
+                return instance;
+            }
+        }
+
+        protected ScriptObjectSingleton()
+        {
+            if (instance != null)
+            {
+                LogHelper.Instance.Error("Singleton already exists!");
+            }
+            else
+            {
+                instance = this as T;
+                System.Diagnostics.Debug.Assert(instance != null);
+            }
+        }
+
+        private static void CreateAndLoad()
+        {
+            if (instance == null)
+            {
+                var inst = Activator.CreateInstance<T>() as ScriptObjectSingleton<T>;
+                inst.Save(true);
+            }
+        }
+
+        protected virtual void Save(bool saveAsText)
+        {
+        }
     }
 
     sealed class ApplicationCache : ScriptObjectSingleton<ApplicationCache>
     {
-        [SerializeField] private bool firstRun = true;
-        [SerializeField] public string firstRunAtString;
-        [NonSerialized] private bool? firstRunValue;
-        [NonSerialized] public DateTimeOffset? firstRunAtValue;
+        private bool firstRun = true;
+        public string firstRunAtString;
+        private bool? firstRunValue;
+        public DateTimeOffset? firstRunAtValue;
 
         public bool FirstRun
         {
@@ -75,75 +100,12 @@ namespace GitHub.Unity
         }
     }
 
-    sealed class EnvironmentCache : ScriptObjectSingleton<EnvironmentCache>
+    abstract class ManagedCacheBase<T> : ScriptObjectSingleton<T> where T : class, IManagedCache
     {
-        [NonSerialized] private IEnvironment environment;
-        [SerializeField] private string extensionInstallPath;
-        [SerializeField] private string repositoryPath;
-        [SerializeField] private string unityApplication;
-        [SerializeField] private string unityAssetsPath;
-        [SerializeField] private string unityVersion;
-
-        public void Flush()
-        {
-            repositoryPath = Environment.RepositoryPath;
-            unityApplication = Environment.UnityApplication;
-            unityAssetsPath = Environment.UnityAssetsPath;
-            extensionInstallPath = Environment.ExtensionInstallPath;
-            Save(true);
-        }
-
-        private NPath DetermineInstallationPath()
-        {
-            // Juggling to find out where we got installed
-            var shim = CreateInstance<RunLocationShim>();
-            var script = MonoScript.FromScriptableObject(shim);
-            var scriptPath = AssetDatabase.GetAssetPath(script).ToNPath();
-            DestroyImmediate(shim);
-            return scriptPath.Parent;
-        }
-
-        public IEnvironment Environment
-        {
-            get
-            {
-                if (environment == null)
-                {
-                    var cacheContainer = new CacheContainer();
-                    cacheContainer.SetCacheInitializer(CacheType.Branches, () => BranchesCache.Instance);
-                    cacheContainer.SetCacheInitializer(CacheType.GitAheadBehind, () => GitAheadBehindCache.Instance);
-                    cacheContainer.SetCacheInitializer(CacheType.GitLocks, () => GitLocksCache.Instance);
-                    cacheContainer.SetCacheInitializer(CacheType.GitLog, () => GitLogCache.Instance);
-                    cacheContainer.SetCacheInitializer(CacheType.GitStatus, () => GitStatusCache.Instance);
-                    cacheContainer.SetCacheInitializer(CacheType.GitUser, () => GitUserCache.Instance);
-                    cacheContainer.SetCacheInitializer(CacheType.RepositoryInfo, () => RepositoryInfoCache.Instance);
-
-                    environment = new DefaultEnvironment(cacheContainer);
-                    if (unityApplication == null)
-                    {
-                        unityAssetsPath = Application.dataPath;
-                        unityApplication = EditorApplication.applicationPath;
-                        extensionInstallPath = DetermineInstallationPath();
-                        unityVersion = Application.unityVersion;
-                    }
-                    environment.Initialize(unityVersion, extensionInstallPath.ToNPath(), unityApplication.ToNPath(),
-                        unityAssetsPath.ToNPath());
-                    environment.InitializeRepository(!String.IsNullOrEmpty(repositoryPath)
-                        ? repositoryPath.ToNPath()
-                        : null);
-                    Flush();
-                }
-                return environment;
-            }
-        }
-    }
-
-    abstract class ManagedCacheBase<T> : ScriptObjectSingleton<T> where T : ScriptableObject, IManagedCache
-    {
-        [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
-        [NonSerialized] private DateTimeOffset? lastUpdatedAtValue;
-        [NonSerialized] private DateTimeOffset? initializedAtValue;
+        private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
+        private DateTimeOffset? lastUpdatedAtValue;
+        private DateTimeOffset? initializedAtValue;
 
         public event Action CacheInvalidated;
         public event Action<DateTimeOffset> CacheUpdated;
@@ -263,8 +225,7 @@ namespace GitHub.Unity
         protected ILogging Logger { get; private set; }
     }
 
-    [Serializable]
-    class LocalConfigBranchDictionary : SerializableDictionary<string, ConfigBranch>, ILocalConfigBranchDictionary
+    class LocalConfigBranchDictionary : Dictionary<string, ConfigBranch>, ILocalConfigBranchDictionary
     {
         public LocalConfigBranchDictionary()
         { }
@@ -278,26 +239,22 @@ namespace GitHub.Unity
         }
     }
 
-    [Serializable]
     public class ArrayContainer<T>
     {
-        [SerializeField] public T[] Values = new T[0];
+        public T[] Values = new T[0];
     }
 
-    [Serializable]
     public class StringArrayContainer : ArrayContainer<string>
     {}
 
-    [Serializable]
     public class ConfigBranchArrayContainer : ArrayContainer<ConfigBranch>
     {}
 
-    [Serializable]
-    class RemoteConfigBranchDictionary : Dictionary<string, Dictionary<string, ConfigBranch>>, ISerializationCallbackReceiver, IRemoteConfigBranchDictionary
+    class RemoteConfigBranchDictionary : Dictionary<string, Dictionary<string, ConfigBranch>>, IRemoteConfigBranchDictionary
     {
-        [SerializeField] private string[] keys = new string[0];
-        [SerializeField] private StringArrayContainer[] subKeys = new StringArrayContainer[0];
-        [SerializeField] private ConfigBranchArrayContainer[] subKeyValues = new ConfigBranchArrayContainer[0];
+        private string[] keys = new string[0];
+        private StringArrayContainer[] subKeys = new StringArrayContainer[0];
+        private ConfigBranchArrayContainer[] subKeyValues = new ConfigBranchArrayContainer[0];
 
         public RemoteConfigBranchDictionary()
         { }
@@ -377,8 +334,7 @@ namespace GitHub.Unity
         }
     }
 
-    [Serializable]
-    class ConfigRemoteDictionary : SerializableDictionary<string, ConfigRemote>, IConfigRemoteDictionary
+    class ConfigRemoteDictionary : Dictionary<string, ConfigRemote>, IConfigRemoteDictionary
     {
         public ConfigRemoteDictionary()
         { }
@@ -392,13 +348,12 @@ namespace GitHub.Unity
         }
     }
 
-    [Location("cache/repoinfo.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class RepositoryInfoCache : ManagedCacheBase<RepositoryInfoCache>, IRepositoryInfoCache
     {
-        [SerializeField] private GitRemote currentGitRemote;
-        [SerializeField] private GitBranch currentGitBranch;
-        [SerializeField] private ConfigBranch currentConfigBranch;
-        [SerializeField] private ConfigRemote currentConfigRemote;
+        private GitRemote currentGitRemote;
+        private GitBranch currentGitBranch;
+        private ConfigBranch currentConfigBranch;
+        private ConfigRemote currentConfigRemote;
 
         public RepositoryInfoCache() : base(CacheType.RepositoryInfo)
         { }
@@ -474,16 +429,15 @@ namespace GitHub.Unity
         public override TimeSpan DataTimeout { get { return TimeSpan.FromDays(1); } }
     }
 
-    [Location("cache/branches.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class BranchesCache : ManagedCacheBase<BranchesCache>, IBranchCache
     {
-        [SerializeField] private GitBranch[] localBranches = new GitBranch[0];
-        [SerializeField] private GitBranch[] remoteBranches = new GitBranch[0];
-        [SerializeField] private GitRemote[] remotes = new GitRemote[0];
+        private GitBranch[] localBranches = new GitBranch[0];
+        private GitBranch[] remoteBranches = new GitBranch[0];
+        private GitRemote[] remotes = new GitRemote[0];
 
-        [SerializeField] private LocalConfigBranchDictionary localConfigBranches = new LocalConfigBranchDictionary();
-        [SerializeField] private RemoteConfigBranchDictionary remoteConfigBranches = new RemoteConfigBranchDictionary();
-        [SerializeField] private ConfigRemoteDictionary configRemotes = new ConfigRemoteDictionary();
+        private LocalConfigBranchDictionary localConfigBranches = new LocalConfigBranchDictionary();
+        private RemoteConfigBranchDictionary remoteConfigBranches = new RemoteConfigBranchDictionary();
+        private ConfigRemoteDictionary configRemotes = new ConfigRemoteDictionary();
 
         public BranchesCache() : base(CacheType.Branches)
         { }
@@ -659,10 +613,9 @@ namespace GitHub.Unity
         public override TimeSpan DataTimeout { get { return TimeSpan.FromDays(1); } }
     }
 
-    [Location("cache/gitlog.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitLogCache : ManagedCacheBase<GitLogCache>, IGitLogCache
     {
-        [SerializeField] private List<GitLogEntry> log = new List<GitLogEntry>();
+        private List<GitLogEntry> log = new List<GitLogEntry>();
 
         public GitLogCache() : base(CacheType.GitLog)
         { }
@@ -694,11 +647,10 @@ namespace GitHub.Unity
         public override TimeSpan DataTimeout { get { return TimeSpan.FromMinutes(1); } }
     }
 
-    [Location("cache/gittrackingstatus.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitAheadBehindCache : ManagedCacheBase<GitAheadBehindCache>, IGitAheadBehindCache
     {
-        [SerializeField] private int ahead;
-        [SerializeField] private int behind;
+        private int ahead;
+        private int behind;
 
         public GitAheadBehindCache() : base(CacheType.GitAheadBehind)
         { }
@@ -754,10 +706,9 @@ namespace GitHub.Unity
         public override TimeSpan DataTimeout { get { return TimeSpan.FromMinutes(1); } }
     }
 
-    [Location("cache/gitstatusentries.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitStatusCache : ManagedCacheBase<GitStatusCache>, IGitStatusCache
     {
-        [SerializeField] private List<GitStatusEntry> entries = new List<GitStatusEntry>();
+        private List<GitStatusEntry> entries = new List<GitStatusEntry>();
 
         public GitStatusCache() : base(CacheType.GitStatus)
         { }
@@ -789,10 +740,9 @@ namespace GitHub.Unity
         public override TimeSpan DataTimeout { get { return TimeSpan.FromMinutes(1); } }
     }
 
-    [Location("cache/gitlocks.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitLocksCache : ManagedCacheBase<GitLocksCache>, IGitLocksCache
     {
-        [SerializeField] private List<GitLock> gitLocks = new List<GitLock>();
+        private List<GitLock> gitLocks = new List<GitLock>();
 
         public GitLocksCache() : base(CacheType.GitLocks)
         { }
@@ -824,11 +774,10 @@ namespace GitHub.Unity
         public override TimeSpan DataTimeout { get { return TimeSpan.FromMinutes(1); } }
     }
 
-    [Location("cache/gituser.yaml", LocationAttribute.Location.LibraryFolder)]
     sealed class GitUserCache : ManagedCacheBase<GitUserCache>, IGitUserCache
     {
-        [SerializeField] private string gitName;
-        [SerializeField] private string gitEmail;
+        private string gitName;
+        private string gitEmail;
 
         public GitUserCache() : base(CacheType.GitUser)
         {}

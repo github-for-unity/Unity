@@ -89,7 +89,7 @@ namespace GitHub.Unity
             }
             if (queue.TryDequeue(out data))
             {
-                LogHelper.GetLogger<ThreadSynchronizationContext>().Trace($"Running {data.Id} on main thread");
+                //LogHelper.GetLogger<ThreadSynchronizationContext>().Trace($"Running {data.Id} on main thread");
                 data.Run();
             }
         }

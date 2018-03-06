@@ -5,6 +5,7 @@ using System.Threading;
 using GitHub.Unity;
 using NSubstitute;
 using GitHub.Logging;
+using NUnit.Framework;
 
 namespace TestUtils.Events
 {
@@ -113,14 +114,15 @@ namespace TestUtils.Events
 
         public static void AssertDidNotReceiveAnyCalls(this IRepositoryManagerListener repositoryManagerListener)
         {
-            repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
-            repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-            repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-            repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
-            repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
-            repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
-            repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
-            repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
+            Assert.That(repositoryManagerListener.ReceivedCalls().Count() == 0);
+            //repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
+            //repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+            //repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
+            //repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
+            //repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
+            //repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+            //repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
+            //repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
         }
     }
 };
