@@ -107,6 +107,8 @@ namespace IntegrationTests
         private DateTimeOffset? lastUpdatedAtValue;
         private DateTimeOffset? initializedAtValue;
 
+        private bool isInvalidating;
+
         public event Action CacheInvalidated;
         public event Action<DateTimeOffset> CacheUpdated;
 
@@ -132,8 +134,12 @@ namespace IntegrationTests
         public void InvalidateData()
         {
             Logger.Trace("Invalidate");
-            LastUpdatedAt = DateTimeOffset.MinValue;
-            CacheInvalidated.SafeInvoke();
+            if (!isInvalidating)
+            {
+                isInvalidating = true;
+                LastUpdatedAt = DateTimeOffset.MinValue;
+                CacheInvalidated.SafeInvoke();
+            }
         }
 
         protected void SaveData(DateTimeOffset now, bool isChanged)
@@ -145,6 +151,8 @@ namespace IntegrationTests
             LastUpdatedAt = isChanged ? now : LastUpdatedAt;
 
             Save(true);
+
+            isInvalidating = false;
 
             if (isChanged)
             {
@@ -358,7 +366,7 @@ namespace IntegrationTests
         public RepositoryInfoCache() : base(CacheType.RepositoryInfo)
         { }
 
-        public void UpdateData(IRepositoryInfoCache data)
+        public void UpdateData(IRepositoryInfoCacheData data)
         {
             var now = DateTimeOffset.Now;
             var isUpdated = false;

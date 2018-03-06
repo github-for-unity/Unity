@@ -10,19 +10,6 @@ using Application = UnityEngine.Application;
 
 namespace GitHub.Unity
 {
-    [Serializable]
-    public class SerializationException : Exception
-    {
-        public SerializationException() : base()
-        { }
-        public SerializationException(string message) : base(message)
-        { }
-        public SerializationException(string message, Exception innerException) : base(message, innerException)
-        { }
-        protected SerializationException(SerializationInfo info, StreamingContext context) : base(info, context)
-        { }
-    }
-
     sealed class ApplicationCache : ScriptObjectSingleton<ApplicationCache>
     {
         [SerializeField] private bool firstRun = true;
@@ -403,7 +390,7 @@ namespace GitHub.Unity
         public RepositoryInfoCache() : base(CacheType.RepositoryInfo)
         { }
 
-        public void UpdateData(IRepositoryInfoCache data)
+        public void UpdateData(IRepositoryInfoCacheData data)
         {
             var now = DateTimeOffset.Now;
             var isUpdated = false;
