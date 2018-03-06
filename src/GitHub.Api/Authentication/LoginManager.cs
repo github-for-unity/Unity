@@ -261,8 +261,9 @@ namespace GitHub.Unity
         {
             logger.Info("Login Username:{0} Script:{1}", username, octorunScript);
 
-            ApplicationAuthorization auth = null;
-            var loginTask = new SimpleListProcessTask(taskManager.Token, nodeJsExecutablePath, $"{octorunScript} login");
+            ApplicationAuthorization auth;
+            var loginTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScript,
+                "login", ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
             loginTask.Configure(processManager, workingDirectory: octorunScript.Parent.Parent, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
@@ -280,7 +281,7 @@ namespace GitHub.Unity
 
             if (ret.Count == 1)
             {
-                if (ret[0] == ("Must specify two-factor authentication OTP code."))
+                if (ret[0] == "Must specify two-factor authentication OTP code.")
                 {
                     keychain.SetToken(host, ret[0]);
                     await keychain.Save(host);
@@ -312,8 +313,9 @@ namespace GitHub.Unity
         {
             logger.Info("Continue Username:{0}", username);
 
-            ApplicationAuthorization auth = null;
-            var loginTask = new SimpleListProcessTask(taskManager.Token, nodeJsExecutablePath, $"{octorunScript} login --twoFactor");
+            ApplicationAuthorization auth;
+            var loginTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScript,
+                "login --twoFactor", ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
             loginTask.Configure(processManager, workingDirectory: octorunScript.Parent.Parent, withInput: true);
             loginTask.OnStartProcess += proc =>
             {

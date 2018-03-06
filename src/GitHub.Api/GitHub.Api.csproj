@@ -140,6 +140,7 @@
     <Compile Include="Tasks\ConfigOutputProcessor.cs" />
     <Compile Include="Tasks\DownloadTask.cs" />
     <Compile Include="Tasks\ITaskManager.cs" />
+    <Compile Include="Tasks\OctorunTask.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskBase.cs" />
     <Compile Include="Tasks\TaskCanceledExceptions.cs" />
