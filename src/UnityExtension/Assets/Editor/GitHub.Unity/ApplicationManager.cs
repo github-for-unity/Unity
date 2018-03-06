@@ -31,7 +31,7 @@ namespace GitHub.Unity
             Logger.Trace("Restarted {0}", Environment.Repository);
             EnvironmentCache.Instance.Flush();
 
-            LfsLocksModificationProcessor.Initialize(Environment.Repository);
+            LfsLocksModificationProcessor.Initialize(Environment.Repository, Platform);
             ProjectWindowInterface.Initialize(Environment.Repository);
             var window = Window.GetWindow();
             if (window != null)
