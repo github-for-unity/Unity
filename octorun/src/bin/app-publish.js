@@ -4,9 +4,9 @@ var ApiWrapper = require('../api')
 
 commander
     .version(package.version)
-    .option('-r, --repository <value>')
-    .option('-d, --description <value>')
-    .option('-o, --organization <value>')
+    .option('-r, --repository <repository>')
+    .option('-d, --description <description>')
+    .option('-o, --organization <organization>')
     .option('-p, --private')
     .parse(process.argv);
 
