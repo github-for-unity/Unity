@@ -15,7 +15,7 @@ namespace IntegrationTests
         [Test]
         public async Task BranchListTest()
         {
-            Initialize(TestRepoMasterCleanUnsynchronized);
+            InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronized);
 
             IEnumerable<GitBranch> gitBranches = null;
             gitBranches = await ProcessManager
@@ -30,7 +30,7 @@ namespace IntegrationTests
         [Test]
         public async Task LogEntriesTest()
         {
-            Initialize(TestRepoMasterCleanUnsynchronized);
+            InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronized);
 
             List<GitLogEntry> logEntries = null;
             logEntries = await ProcessManager
@@ -71,7 +71,7 @@ namespace IntegrationTests
         [Test]
         public async Task RussianLogEntriesTest()
         {
-            Initialize(TestRepoMasterCleanUnsynchronizedRussianLanguage);
+            InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronizedRussianLanguage);
 
             List<GitLogEntry> logEntries = null;
             logEntries = await ProcessManager
@@ -99,7 +99,7 @@ namespace IntegrationTests
         [Test]
         public async Task RemoteListTest()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
             List<GitRemote> gitRemotes = null;
             gitRemotes = await ProcessManager
@@ -112,7 +112,7 @@ namespace IntegrationTests
         [Test]
         public async Task StatusTest()
         {
-            Initialize(TestRepoMasterDirtyUnsynchronized);
+            InitializePlatformAndEnvironment(TestRepoMasterDirtyUnsynchronized);
 
             GitStatus? gitStatus = null;
             gitStatus = await ProcessManager
@@ -147,7 +147,7 @@ namespace IntegrationTests
         [Test]
         public async Task CredentialHelperGetTest()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
             await ProcessManager
                 .GetGitCreds(TestRepoMasterCleanSynchronized, Environment, GitEnvironment)

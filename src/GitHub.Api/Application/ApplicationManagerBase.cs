@@ -73,12 +73,12 @@ namespace GitHub.Unity
                     {
                         if (b && path != null)
                         {
-                            Logger.Trace("FindExecTask Success: {0}", path);
+                            //Logger.Trace("FindExecTask Success: {0}", path);
                             InitializeEnvironment(gitExecutablePath);
                         }
                         else
                         {
-                            Logger.Warning("FindExecTask Failure");
+                            //Logger.Warning("FindExecTask Failure");
                             Logger.Error("Git not found");
                         }
                         isBusy = false;
@@ -101,7 +101,7 @@ namespace GitHub.Unity
 
         public ITask InitializeRepository()
         {
-            Logger.Trace("Running Repository Initialize");
+            //Logger.Trace("Running Repository Initialize");
 
             var targetPath = NPath.CurrentDirectory;
 
@@ -146,18 +146,18 @@ namespace GitHub.Unity
         {
             if (Environment.RepositoryPath != null)
             {
-                repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, ProcessManager, Environment.FileSystem, Environment.RepositoryPath);
+                repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, Environment.FileSystem, Environment.RepositoryPath);
                 repositoryManager.Initialize();
-                Environment.Repository.Initialize(repositoryManager);
+                Environment.Repository.Initialize(repositoryManager, TaskManager);
                 repositoryManager.Start();
                 Environment.Repository.Start();
-                Logger.Trace($"Got a repository? {Environment.Repository}");
+                Logger.Trace($"Got a repository? {(Environment.Repository != null ? Environment.Repository.LocalPath : "null")}");
             }
         }
 
         protected void SetupMetrics(string unityVersion, bool firstRun)
         {
-            Logger.Trace("Setup metrics");
+            //Logger.Trace("Setup metrics");
 
             var usagePath = Environment.UserCachePath.Combine(Constants.UsageFile);
 

@@ -36,32 +36,28 @@ namespace GitHub.Unity
             Logger = LogHelper.GetLogger(GetType());
         }
 
-        public abstract IEnumerable<string> GetCheckedFiles();
-
         public void Load(IEnumerable<TData> treeDatas)
         {
-            Logger.Trace("Load");
+            //Logger.Trace("Load");
 
             var collapsedFolders = new HashSet<string>(GetCollapsedFolders());
-            var selectedNodePath = SelectedNodePath;
             var checkedFiles = new HashSet<string>(GetCheckedFiles());
-            var pathSeparator = PathSeparator;
-
-            Clear();
-
-            var displayRootLevel = DisplayRootNode ? 1 : 0;
-
-            var isCheckable = IsCheckable;
-
-            var isSelected = IsSelectable && selectedNodePath != null && Title == selectedNodePath;
-            AddNode(Title, Title, -1 + displayRootLevel, true, false, false, false, isSelected, false, null, false);
-
-            var hideChildren = false;
-            var hideChildrenBelowLevel = 0;
-
             var folders = new HashSet<string>();
 
+            string selectedNodePath = SelectedNodePath;
+            string pathSeparator = PathSeparator;
+
+            int displayRootLevel = DisplayRootNode ? 1 : 0;
+            int hideChildrenBelowLevel = 0;
+
+            bool isCheckable = IsCheckable;
+            bool isSelected = IsSelectable && selectedNodePath != null && Title == selectedNodePath;
+            bool hideChildren = false;
             TNode lastAddedNode = null;
+
+            Clear();
+            AddNode(Title, Title, -1 + displayRootLevel, true, false, false, false, isSelected, false, null, false);
+
             foreach (var treeData in treeDatas)
             {
                 var parts = treeData.Path.Split(new[] { pathSeparator }, StringSplitOptions.None);
@@ -78,7 +74,7 @@ namespace GitHub.Unity
                         {
                             if (PromoteNode(lastAddedNode, label))
                             {
-                                Logger.Trace("Promoting Node Label:{0}", lastAddedNode.Label);
+                                //Logger.Trace("Promoting Node Label:{0}", lastAddedNode.Label);
 
                                 parentIsPromoted = true;
                                 lastAddedNode.IsContainer = true;
@@ -212,8 +208,6 @@ namespace GitHub.Unity
             }
         }
 
-        protected abstract IEnumerable<string> GetCollapsedFolders();
-
         protected TNode AddNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isSelected, bool isChecked, TData? treeData, bool isContainer)
         {
             var node = CreateTreeNode(path, label, level, isFolder, isActive, isHidden, isCollapsed, isChecked, treeData, isContainer);
@@ -229,22 +223,11 @@ namespace GitHub.Unity
             return node;
         }
 
-        protected void Clear()
+        protected virtual void Clear()
         {
-            OnClear();
             Nodes.Clear();
             SelectedNode = null;
         }
-
-        protected abstract void RemoveCheckedNode(TNode node);
-
-        protected abstract void AddCheckedNode(TNode node);
-
-        protected abstract TNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, TData? treeData, bool isContainer);
-
-        protected abstract void OnClear();
-
-        protected abstract void SetNodeIcon(TNode node);
 
         protected void ToggleNodeVisibility(int idx, TNode node)
         {
@@ -429,6 +412,13 @@ namespace GitHub.Unity
                 break;
             }
         }
+
+        public abstract IEnumerable<string> GetCheckedFiles();
+        protected abstract IEnumerable<string> GetCollapsedFolders();
+        protected abstract void RemoveCheckedNode(TNode node);
+        protected abstract void AddCheckedNode(TNode node);
+        protected abstract TNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, TData? treeData, bool isContainer);
+        protected abstract void SetNodeIcon(TNode node);
 
         public string SelectedNodePath => SelectedNode?.Path;
         public abstract TNode SelectedNode { get; set; }

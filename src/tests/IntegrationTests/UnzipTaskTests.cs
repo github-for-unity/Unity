@@ -11,7 +11,7 @@ using Rackspace.Threading;
 namespace IntegrationTests
 {
     [TestFixture]
-    class UnzipTaskTests : BaseTaskManagerTest
+    class UnzipTaskTests : BaseIntegrationTest
     {
         [Test]
         public async Task UnzipWorks()

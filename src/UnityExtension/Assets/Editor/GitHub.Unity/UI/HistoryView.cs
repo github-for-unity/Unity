@@ -346,7 +346,7 @@ namespace GitHub.Unity
         
         [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
         [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
-        [SerializeField] private CacheUpdateEvent lastTrackingStatusChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastAheadBehindChangedEvent;
 
         public override void OnEnable()
         {
@@ -362,9 +362,9 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                Repository.CheckLogChangedEvent(lastLogChangedEvent);
-                Repository.CheckStatusChangedEvent(lastTrackingStatusChangedEvent);
-                Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
+                Repository.CheckAndRaiseEventsIfCacheNewer(lastLogChangedEvent);
+                Repository.CheckAndRaiseEventsIfCacheNewer(lastAheadBehindChangedEvent);
+                Repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentRemoteChangedEvent);
             }
         }
 
@@ -554,9 +554,9 @@ namespace GitHub.Unity
 
         private void RepositoryTrackingOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!lastTrackingStatusChangedEvent.Equals(cacheUpdateEvent))
+            if (!lastAheadBehindChangedEvent.Equals(cacheUpdateEvent))
             {
-                lastTrackingStatusChangedEvent = cacheUpdateEvent;
+                lastAheadBehindChangedEvent = cacheUpdateEvent;
                 currentTrackingStatusHasUpdate = true;
                 Redraw();
             }

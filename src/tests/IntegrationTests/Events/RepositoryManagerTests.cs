@@ -53,7 +53,7 @@ namespace IntegrationTests
         }
 
         [Test]
-        public void ShouldPerformBasicInitialize()
+        public async Task ShouldPerformBasicInitialize()
         {
             Stopwatch watch = null;
             ILogging logger = null;
@@ -63,27 +63,26 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
 
-                repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitAheadBehindStatusUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsBusy.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsNotBusy.WaitOne(Timeout).Should().BeTrue();
+                repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
+                await TaskManager.Wait();
+                StartTrackTime(watch, logger, "RepositoryManager.WaitForEvents()");
+                RepositoryManager.WaitForEvents();
+                StopTrackTimeAndLog(watch, logger);
+
+                repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
+                repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
+                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
                 repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
                 repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
-                repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
-                repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
+                repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+                repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
+                repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
             }
             finally
             {
@@ -102,21 +101,14 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
 
-                repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitAheadBehindStatusUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsBusy.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsNotBusy.WaitOne(Timeout).Should().BeTrue();
-
-                repositoryManagerListener.ClearReceivedCalls();
-                repositoryManagerEvents.Reset();
+                //repositoryManagerListener.ClearReceivedCalls();
+                //repositoryManagerEvents.Reset();
+                repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
                 var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
                 foobarTxt.WriteAllText("foobar");
@@ -159,21 +151,12 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
 
-                repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitAheadBehindStatusUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsBusy.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsNotBusy.WaitOne(Timeout).Should().BeTrue();
-
-                repositoryManagerListener.ClearReceivedCalls();
-                repositoryManagerEvents.Reset();
+                repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
                 var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
                 foobarTxt.WriteAllText("foobar");
@@ -239,21 +222,12 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
 
-                repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitAheadBehindStatusUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsBusy.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsNotBusy.WaitOne(Timeout).Should().BeTrue();
-
-                repositoryManagerListener.ClearReceivedCalls();
-                repositoryManagerEvents.Reset();
+                repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
                 var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
                 foobarTxt.WriteAllText("foobar");
@@ -332,21 +306,12 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
 
-                repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitAheadBehindStatusUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsBusy.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsNotBusy.WaitOne(Timeout).Should().BeTrue();
-
-                repositoryManagerListener.ClearReceivedCalls();
-                repositoryManagerEvents.Reset();
+                repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
                 await RepositoryManager.SwitchBranch("feature/document").StartAsAsync();
                 await TaskManager.Wait();
@@ -384,21 +349,12 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
 
-                repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitAheadBehindStatusUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsBusy.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsNotBusy.WaitOne(Timeout).Should().BeTrue();
-
-                repositoryManagerListener.ClearReceivedCalls();
-                repositoryManagerEvents.Reset();
+                repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
                 await RepositoryManager.DeleteBranch("feature/document", true).StartAsAsync();
                 await TaskManager.Wait();
@@ -438,20 +394,12 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
 
-                repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitAheadBehindStatusUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsBusy.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsNotBusy.WaitOne(Timeout).Should().BeTrue();
-
-                repositoryManagerListener.ClearReceivedCalls();
+                repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
                 var createdBranch1 = "feature/document2";
                 await RepositoryManager.CreateBranch(createdBranch1, "feature/document").StartAsAsync();
@@ -509,21 +457,12 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
 
-                repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitAheadBehindStatusUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsBusy.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsNotBusy.WaitOne(Timeout).Should().BeTrue();
-
-                repositoryManagerListener.ClearReceivedCalls();
-                repositoryManagerEvents.Reset();
+                repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
                 await RepositoryManager.RemoteRemove("origin").StartAsAsync();
                 await TaskManager.Wait();
@@ -587,21 +526,12 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                Initialize(TestRepoMasterTwoRemotes, initializeRepository: false,
+                InitializePlatformAndEnvironment(TestRepoMasterTwoRemotes,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
 
-                repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitAheadBehindStatusUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsBusy.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsNotBusy.WaitOne(Timeout).Should().BeTrue();
-
-                repositoryManagerListener.ClearReceivedCalls();
-                repositoryManagerEvents.Reset();
+                repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
                 await RepositoryManager.CreateBranch("branch2", "another/master")
                                        .StartAsAsync();
@@ -664,20 +594,12 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false,
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
 
-                repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitAheadBehindStatusUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsBusy.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsNotBusy.WaitOne(Timeout).Should().BeTrue();
-
-                repositoryManagerListener.ClearReceivedCalls();
+                repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
                 await RepositoryManager.Pull("origin", "master").StartAsAsync();
                 await TaskManager.Wait();
@@ -715,21 +637,12 @@ namespace IntegrationTests
             {
                 var repositoryManagerListener = Substitute.For<IRepositoryManagerListener>();
 
-                Initialize(TestRepoMasterCleanUnsynchronized, initializeRepository: false,
+                InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronized,
                     onRepositoryManagerCreated: manager => {
                         repositoryManagerListener.AttachListener(manager, repositoryManagerEvents);
                     });
 
-                repositoryManagerEvents.CurrentBranchUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.LocalBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.RemoteBranchesUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitLogUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.GitAheadBehindStatusUpdated.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsBusy.WaitOne(Timeout).Should().BeTrue();
-                repositoryManagerEvents.IsNotBusy.WaitOne(Timeout).Should().BeTrue();
-
-                repositoryManagerListener.ClearReceivedCalls();
-                repositoryManagerEvents.Reset();
+                repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
                 await RepositoryManager.Fetch("origin").StartAsAsync();
                 await TaskManager.Wait();

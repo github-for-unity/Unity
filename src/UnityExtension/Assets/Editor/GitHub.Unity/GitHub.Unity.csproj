@@ -82,8 +82,6 @@
   <ItemGroup>
     <Compile Include="ApplicationCache.cs" />
     <Compile Include="ApplicationManager.cs" />
-    <Compile Include="CacheContainer.cs" />
-    <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="RunLocationShim.cs" />
     <Compile Include="ScriptObjectSingleton.cs" />
     <Compile Include="SerializableDictionary.cs" />
@@ -231,6 +229,9 @@
     <EmbeddedResource Include="IconsAndLogos\merge.png" />
     <EmbeddedResource Include="IconsAndLogos\rocket%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\rocket.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Extensions\" />
   </ItemGroup>
   <Import Project="..\..\..\..\..\common\nativelibraries.props" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

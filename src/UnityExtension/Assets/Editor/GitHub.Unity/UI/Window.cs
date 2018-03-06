@@ -30,6 +30,7 @@ namespace GitHub.Unity
         [NonSerialized] private Spinner spinner;
         [NonSerialized] private IProgress progress;
         [NonSerialized] private float progressValue;
+        [NonSerialized] private string progressMessage;
 
         [SerializeField] private SubTab changeTab = SubTab.InitProject;
         [SerializeField] private SubTab activeTab = SubTab.InitProject;
@@ -102,7 +103,7 @@ namespace GitHub.Unity
 
             if (!HasRepository)
             {
-                Logger.Trace("Initialize set all tabs to InitProject");
+                //Logger.Trace("Initialize set all tabs to InitProject");
                 changeTab = activeTab = SubTab.InitProject;
             }
         }
@@ -115,7 +116,7 @@ namespace GitHub.Unity
             Selection.activeObject = this;
 #endif
             if (Repository != null)
-                Repository.CheckCurrentBranchAndRemoteChangedEvent(lastCurrentBranchAndRemoteChangedEvent);
+                Repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentBranchAndRemoteChangedEvent);
 
             if (ActiveView != null)
                 ActiveView.OnEnable();
@@ -157,7 +158,7 @@ namespace GitHub.Unity
             {
                 if (activeTab == SubTab.InitProject)
                 {
-                    Logger.Trace("OnRepositoryChanged set changeTab to History");
+                    //Logger.Trace("OnRepositoryChanged set changeTab to History");
 
                     changeTab = SubTab.History;
                     UpdateActiveTab();
@@ -167,7 +168,7 @@ namespace GitHub.Unity
             {
                 if (activeTab != SubTab.InitProject)
                 {
-                    Logger.Trace("OnRepositoryChanged set changeTab to InitProject");
+                    //Logger.Trace("OnRepositoryChanged set changeTab to InitProject");
 
                     changeTab = SubTab.InitProject;
                     UpdateActiveTab();
@@ -202,6 +203,7 @@ namespace GitHub.Unity
 
             DoToolbarGUI();
 
+            var rect = GUILayoutUtility.GetLastRect();
             // GUI for the active tab
             if (ActiveView != null)
             {
@@ -221,13 +223,15 @@ namespace GitHub.Unity
                         spinner = new Spinner();
                     spinner.Start(elapsedTime);
                     spinner.Rotate(elapsedTime);
-                    var rect = GUILayoutUtility.GetLastRect();
+
                     spinner.Render();
 
+                    rect = new Rect(0f, 0f, Position.width, Position.height - rect.height);
                     rect = spinner.Layout(rect);
                     rect.y += rect.height + 30;
                     rect.height = 20;
-                    EditorGUI.ProgressBar(rect, progressValue / 100, "Initializing");
+                    if (!String.IsNullOrEmpty(progressMessage))
+                        EditorGUI.ProgressBar(rect, progressValue / 100, progressMessage);
                 }
             }
         }
@@ -257,8 +261,11 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (progress != null && progress.Value != progressValue)
+            if (progress != null)
+            {
                 progressValue = progress.Value;
+                progressMessage = progress.Message;
+            }
 
             gitExecutableIsSet = !String.IsNullOrEmpty(Environment.GitExecutablePath);
             string updatedRepoRemote = null;

@@ -98,11 +98,11 @@ namespace GitHub.Unity
             //TODO: ONE_USER_LOGIN This assumes only ever one user can login
             username = keychainConnections.First().Username;
 
-            Logger.Trace("Loading Owners");
+            //Logger.Trace("Loading Owners");
 
             Client.GetOrganizations(orgs =>
             {
-                Logger.Trace("Loaded {0} Owners", orgs.Length);
+                //Logger.Trace("Loaded {0} Owners", orgs.Length);
 
                 publishOwners = orgs
                     .OrderBy(organization => organization.Login)
@@ -121,7 +121,7 @@ namespace GitHub.Unity
                 var keychainEmptyException = exception as KeychainEmptyException;
                 if (keychainEmptyException != null)
                 {
-                    Logger.Trace("Keychain empty");
+                    //Logger.Trace("Keychain empty");
                     PopupWindow.OpenWindow(PopupWindow.PopupViewType.AuthenticationView);
                     return;
                 }

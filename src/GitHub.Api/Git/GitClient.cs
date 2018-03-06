@@ -142,7 +142,7 @@ namespace GitHub.Unity
 
         public ITask LfsInstall(IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("LfsInstall");
+            //Logger.Trace("LfsInstall");
 
             return new GitLfsInstallTask(cancellationToken, processor)
                 .Configure(processManager);
@@ -150,7 +150,7 @@ namespace GitHub.Unity
 
         public ITask<GitStatus> Status(IOutputProcessor<GitStatus> processor = null)
         {
-            Logger.Trace("Status");
+            //Logger.Trace("Status");
 
             return new GitStatusTask(new GitObjectFactory(environment), cancellationToken, processor)
                 .Configure(processManager);
@@ -158,7 +158,7 @@ namespace GitHub.Unity
 
         public ITask<GitAheadBehindStatus> AheadBehindStatus(string gitRef, string otherRef, IOutputProcessor<GitAheadBehindStatus> processor = null)
         {
-            Logger.Trace("AheadBehindStatus");
+            //Logger.Trace("AheadBehindStatus");
 
             return new GitAheadBehindStatusTask(gitRef, otherRef, cancellationToken, processor)
                 .Configure(processManager);
@@ -166,7 +166,7 @@ namespace GitHub.Unity
 
         public ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null)
         {
-            Logger.Trace("Log");
+            //Logger.Trace("Log");
 
             return new GitLogTask(new GitObjectFactory(environment), cancellationToken, processor)
                 .Configure(processManager);
@@ -174,7 +174,7 @@ namespace GitHub.Unity
 
         public ITask<Version> Version(IOutputProcessor<Version> processor = null)
         {
-            Logger.Trace("Version");
+            //Logger.Trace("Version");
 
             return new GitVersionTask(cancellationToken, processor)
                 .Configure(processManager);
@@ -182,7 +182,7 @@ namespace GitHub.Unity
 
         public ITask<Version> LfsVersion(IOutputProcessor<Version> processor = null)
         {
-            Logger.Trace("LfsVersion");
+            //Logger.Trace("LfsVersion");
 
             return new GitLfsVersionTask(cancellationToken, processor)
                 .Configure(processManager);
@@ -190,7 +190,7 @@ namespace GitHub.Unity
 
         public ITask<string> GetConfig(string key, GitConfigSource configSource, IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("GetConfig: {0}", key);
+            //Logger.Trace("GetConfig: {0}", key);
 
             return new GitConfigGetTask(key, configSource, cancellationToken, processor)
                 .Configure(processManager);
@@ -198,7 +198,7 @@ namespace GitHub.Unity
 
         public ITask<string> SetConfig(string key, string value, GitConfigSource configSource, IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("SetConfig");
+            //Logger.Trace("SetConfig");
 
             return new GitConfigSetTask(key, value, configSource, cancellationToken, processor)
                 .Configure(processManager);
@@ -223,7 +223,7 @@ namespace GitHub.Unity
                             email = value;
                         }
                     })).Then(success => {
-                Logger.Trace("{0}:{1} {2}:{3}", UserNameConfigKey, username, UserEmailConfigKey, email);
+                //Logger.Trace("{0}:{1} {2}:{3}", UserNameConfigKey, username, UserEmailConfigKey, email);
                 return new GitUser(username, email);
             });
         }
@@ -237,7 +237,7 @@ namespace GitHub.Unity
 
         public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null)
         {
-            Logger.Trace("ListLocks");
+            //Logger.Trace("ListLocks");
 
             return new GitListLocksTask(new GitObjectFactory(environment), local, cancellationToken, processor)
                 .Configure(processManager);
@@ -245,7 +245,7 @@ namespace GitHub.Unity
 
         public ITask<string> Pull(string remote, string branch, IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("Pull");
+            //Logger.Trace("Pull");
 
             return new GitPullTask(remote, branch, cancellationToken, processor)
                 .Configure(processManager);
@@ -254,7 +254,7 @@ namespace GitHub.Unity
         public ITask<string> Push(string remote, string branch,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("Push");
+            //Logger.Trace("Push");
 
             return new GitPushTask(remote, branch, true, cancellationToken, processor)
                 .Configure(processManager);
@@ -262,7 +262,7 @@ namespace GitHub.Unity
 
         public ITask<string> Revert(string changeset, IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("Revert");
+            //Logger.Trace("Revert");
 
             return new GitRevertTask(changeset, cancellationToken, processor)
                 .Configure(processManager);
@@ -271,7 +271,7 @@ namespace GitHub.Unity
         public ITask<string> Fetch(string remote,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("Fetch");
+            //Logger.Trace("Fetch");
 
             return new GitFetchTask(remote, cancellationToken, processor)
                 .Configure(processManager);
@@ -279,7 +279,7 @@ namespace GitHub.Unity
 
         public ITask<string> SwitchBranch(string branch, IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("SwitchBranch");
+            //Logger.Trace("SwitchBranch");
 
             return new GitSwitchBranchesTask(branch, cancellationToken, processor)
                 .Configure(processManager);
@@ -288,7 +288,7 @@ namespace GitHub.Unity
         public ITask<string> DeleteBranch(string branch, bool deleteUnmerged = false,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("DeleteBranch");
+            //Logger.Trace("DeleteBranch");
 
             return new GitBranchDeleteTask(branch, deleteUnmerged, cancellationToken, processor)
                 .Configure(processManager);
@@ -297,7 +297,7 @@ namespace GitHub.Unity
         public ITask<string> CreateBranch(string branch, string baseBranch,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("CreateBranch");
+            //Logger.Trace("CreateBranch");
 
             return new GitBranchCreateTask(branch, baseBranch, cancellationToken, processor)
                 .Configure(processManager);
@@ -306,7 +306,7 @@ namespace GitHub.Unity
         public ITask<string> RemoteAdd(string remote, string url,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("RemoteAdd");
+            //Logger.Trace("RemoteAdd");
 
             return new GitRemoteAddTask(remote, url, cancellationToken, processor)
                 .Configure(processManager);
@@ -315,7 +315,7 @@ namespace GitHub.Unity
         public ITask<string> RemoteRemove(string remote,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("RemoteRemove");
+            //Logger.Trace("RemoteRemove");
 
             return new GitRemoteRemoveTask(remote, cancellationToken, processor)
                 .Configure(processManager);
@@ -324,7 +324,7 @@ namespace GitHub.Unity
         public ITask<string> RemoteChange(string remote, string url,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("RemoteChange");
+            //Logger.Trace("RemoteChange");
 
             return new GitRemoteChangeTask(remote, url, cancellationToken, processor)
                 .Configure(processManager);
@@ -333,7 +333,7 @@ namespace GitHub.Unity
         public ITask<string> Commit(string message, string body,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("Commit");
+            //Logger.Trace("Commit");
 
             return new GitCommitTask(message, body, cancellationToken, processor)
                 .Configure(processManager);
@@ -341,7 +341,7 @@ namespace GitHub.Unity
 
         public ITask<string> AddAll(IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("Add all files");
+            //Logger.Trace("Add all files");
 
             return new GitAddTask(cancellationToken, processor)
                 .Configure(processManager);
@@ -350,7 +350,7 @@ namespace GitHub.Unity
         public ITask<string> Add(IList<string> files,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("Add Files");
+            //Logger.Trace("Add Files");
 
             GitAddTask last = null;
             foreach (var batch in files.Spool(5000))
@@ -373,7 +373,7 @@ namespace GitHub.Unity
         public ITask<string> Discard( IList<string> files,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("Checkout Files");
+            //Logger.Trace("Checkout Files");
 
             GitCheckoutTask last = null;
             foreach (var batch in files.Spool(5000))
@@ -395,7 +395,7 @@ namespace GitHub.Unity
 
         public ITask<string> DiscardAll(IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("Checkout all files");
+            //Logger.Trace("Checkout all files");
 
             return new GitCheckoutTask(cancellationToken, processor)
                 .Configure(processManager);
@@ -404,7 +404,7 @@ namespace GitHub.Unity
         public ITask<string> Remove(IList<string> files,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("Remove");
+            //Logger.Trace("Remove");
 
             return new GitRemoveFromIndexTask(files, cancellationToken, processor)
                 .Configure(processManager);
@@ -413,7 +413,7 @@ namespace GitHub.Unity
         public ITask<string> AddAndCommit(IList<string> files, string message, string body,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("AddAndCommit");
+            //Logger.Trace("AddAndCommit");
 
             return Add(files)
                 .Then(new GitCommitTask(message, body, cancellationToken)
@@ -423,7 +423,7 @@ namespace GitHub.Unity
         public ITask<string> Lock(string file,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("Lock");
+            //Logger.Trace("Lock");
 
             return new GitLockTask(file, cancellationToken, processor)
                 .Configure(processManager);
@@ -432,7 +432,7 @@ namespace GitHub.Unity
         public ITask<string> Unlock(string file, bool force,
             IOutputProcessor<string> processor = null)
         {
-            Logger.Trace("Unlock");
+            //Logger.Trace("Unlock");
 
             return new GitUnlockTask(file, force, cancellationToken, processor)
                 .Configure(processManager);

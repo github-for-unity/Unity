@@ -102,7 +102,7 @@ namespace GitHub.Unity
             try
             {
                 if (!Process.StartInfo.Arguments.StartsWith("credential-"))
-                    Logger.Trace($"Running '{Process.StartInfo.FileName} {Process.StartInfo.Arguments}'");
+                    Logger.Trace($"Running '{Process.StartInfo.FileName.ToNPath().FileName} {Process.StartInfo.Arguments}'");
                 Process.Start();
             }
             catch (Win32Exception ex)

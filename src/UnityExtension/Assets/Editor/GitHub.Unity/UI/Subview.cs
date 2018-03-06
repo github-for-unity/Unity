@@ -11,18 +11,18 @@ namespace GitHub.Unity
         public virtual void InitializeView(IView parent)
         {
             Debug.Assert(parent != null, NullParentError);
-            Logger.Trace("InitializeView");
+            //Logger.Trace("InitializeView");
             Parent = parent;
         }
 
         public virtual void OnEnable()
         {
-            Logger.Trace("OnEnable");
+            //Logger.Trace("OnEnable");
         }
 
         public virtual void OnDisable()
         {
-            Logger.Trace("OnDisable");
+            //Logger.Trace("OnDisable");
         }
 
         public virtual void OnDataUpdate()
