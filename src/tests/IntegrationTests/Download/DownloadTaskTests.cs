@@ -153,7 +153,7 @@ namespace IntegrationTests.Download
             md5Sum.Should().BeEquivalentTo(md5);
         }
 
-        [Test]
+        [Category("DoNotRunOnAppVeyor")]
         public async Task DownloadsRunSideBySide()
         {
             Stopwatch watch;
