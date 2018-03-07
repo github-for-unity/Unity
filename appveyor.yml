@@ -43,9 +43,6 @@ install:
 
     nuget restore GitHub.Unity.sln
 
-before_build:
-  - cmd: msbuild GitHub.Unity.sln /target:OctoRun /property:Configuration=Release
-
 assembly_info:
   patch: false
   file: common\SolutionInfo.cs

@@ -39,9 +39,6 @@ if not exist "%Unity%" (
 	cd ..
 	
 	call common\nuget.exe restore GitHub.Unity.sln
-	echo xbuild GitHub.Unity.sln /target:OctoRun /property:Configuration=%Configuration%
-	call xbuild GitHub.Unity.sln /target:OctoRun /property:Configuration=%Configuration%
-
 	echo xbuild GitHub.Unity.sln /property:Configuration=%Configuration%
 	call xbuild GitHub.Unity.sln /property:Configuration=%Configuration%
 	
