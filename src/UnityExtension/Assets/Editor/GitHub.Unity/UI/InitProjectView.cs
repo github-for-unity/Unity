@@ -68,7 +68,7 @@ namespace GitHub.Unity
                         {
                             isBusy = true;
                             Manager.InitializeRepository()
-                                   .FinallyInUI(() => isBusy = false)
+                                   .FinallyInUI((s, e) => isBusy = false)
                                    .Start();
                         }
                     }
