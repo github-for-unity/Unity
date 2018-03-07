@@ -156,9 +156,9 @@ namespace GitHub.Unity
         {
             var newAuth = loginResultData.NewAuth;
             var host = loginResultData.Host;
-            var k = keychain.Connect(host);
-            var username = k.Credential.Username;
-            var password = k.Credential.Token;
+            var keychainAdapter = keychain.Connect(host);
+            var username = keychainAdapter.Credential.Username;
+            var password = keychainAdapter.Credential.Token;
             try
             {
                 logger.Trace("2FA Continue");
@@ -271,28 +271,30 @@ namespace GitHub.Unity
                 throw new Exception("Authentication failed");
             }
 
-            if (ret.Count == 1)
+            if (ret[0] == "Success")
             {
-                if (ret[0] == "Must specify two-factor authentication OTP code.")
+                auth = new ApplicationAuthorization(ret[1]);
+                return auth;
+            }
+
+            if (ret.Count > 1)
+            {
+                if (ret[1] == "Must specify two-factor authentication OTP code.")
                 {
                     keychain.SetToken(host, ret[0]);
                     await keychain.Save(host);
                     throw new TwoFactorRequiredException(TwoFactorType.Unknown);
                 }
 
-                if (ret[0] == "Account locked.")
+                if (ret[1] == "Account locked.")
                 {
                     throw new LoginAttemptsExceededException(null, null);
                 }
 
-                auth = new ApplicationAuthorization(ret[0]);
-            }
-            else
-            {
-                throw new Exception("Authentication failed");
+                throw new Exception(ret[1]);
             }
 
-            return auth;
+            throw new Exception("Authentication failed");
         }
 
         private async Task<ApplicationAuthorization> TryContinueLogin(
@@ -321,23 +323,24 @@ namespace GitHub.Unity
             {
                 throw new Exception("Authentication failed");
             }
-            
-            // success
-            if (ret.Count == 1)
+
+            if (ret[0] == "Success")
             {
-                if (ret[0] == "Account locked.")
+                auth = new ApplicationAuthorization(ret[1]);
+                return auth;
+            }
+
+            if (ret.Count > 1)
+            {
+                if (ret[1] == "Account locked.")
                 {
                     throw new LoginAttemptsExceededException(null, null);
                 }
 
-                auth = new ApplicationAuthorization(ret[0]);
-            }
-            else
-            {
-                throw new Exception("Authentication failed");
+                throw new Exception(ret[1]);
             }
 
-            return auth;
+            throw new Exception("Authentication failed");
         }
 
         ApplicationAuthorization EnsureNonNullAuthorization(ApplicationAuthorization auth)

@@ -13,7 +13,13 @@ try {
     apiWrapper.verifyUser(function (error, result) {
         if (error) {
             process.stdout.write("Error");
-            process.stdout.write(error);
+            process.stdout.write(endOfLine);
+
+            if (error) {
+                process.stdout.write(error.toString());
+                process.stdout.write(endOfLine);
+            }
+            
             process.exit();
         }
         else {

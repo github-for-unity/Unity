@@ -6,8 +6,9 @@ var scopes = ["user", "repo", "gist", "write:public_key"];
 
 var lockedRegex = new RegExp("number of login attempts exceeded", "gi");
 var twoFactorRegex = new RegExp("must specify two-factor authentication OTP code", "gi");
+var badCredentialsRegex = new RegExp("bad credentials", "gi");
 
-var handleBasicAuthentication = function (username, password, onSuccess, onRequiresTwoFa, onLocked, onFailure) {
+var handleBasicAuthentication = function (username, password, onSuccess, onRequiresTwoFa, onFailure) {
     var octokit = octokitWrapper.createOctokit();
 
     octokit.authenticate({
@@ -26,6 +27,12 @@ var handleBasicAuthentication = function (username, password, onSuccess, onRequi
             if (twoFactorRegex.test(err.message)) {
                 onRequiresTwoFa();
             }
+            else if (lockedRegex.test(err.message)) {
+                onFailure("Account locked.")
+            }
+            else if (badCredentialsRegex.test(err.message)) {
+                onFailure("Bad credentials.")
+            }
             else {
                 onFailure(err)
             }
@@ -36,7 +43,7 @@ var handleBasicAuthentication = function (username, password, onSuccess, onRequi
     });
 }
 
-var handleTwoFactorAuthentication = function (username, password, twoFactor, onSuccess, onLocked,  onFailure) {
+var handleTwoFactorAuthentication = function (username, password, twoFactor, onSuccess, onFailure) {
     var octokit = octokitWrapper.createOctokit();
 
     octokit.authenticate({
@@ -55,7 +62,15 @@ var handleTwoFactorAuthentication = function (username, password, twoFactor, onS
         }
     }, function (err, res) {
         if (err) {
-            onFailure(err)
+            if (lockedRegex.test(err.message)) {
+                onFailure("Account locked.")
+            }
+            else if (badCredentialsRegex.test(err.message)) {
+                onFailure("Bad credentials.")
+            }
+            else {
+                onFailure(err)
+            }
         }
         else {
             onSuccess(res.data.token);

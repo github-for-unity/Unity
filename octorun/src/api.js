@@ -32,19 +32,25 @@ ApiWrapper.prototype.getOrgs = function (callback) {
     var that = this;
     var getOrgsAtPosition = function () {
         that.octokit.users.getOrgs(position, function (error, result) {
-            for (var index = 0; index < result.data.length; index++) {
-                var element = result.data[index];
-                organizations.push(element);
-            }
+            if (error) {
+                callback(error, null);
+            } else {
+                for (var index = 0; index < result.data.length; index++) {
+                    var element = result.data[index];
+                    organizations.push(element);
+                }
 
-            if (result.data.length == perPageCount) {
-                position.page = position.page + 1;
-                getOrgsAtPosition();
-            }
-            else {
-                callback(error, organizations.map(function (item) {
-                    return item.login;
-                }));
+                if (result.data.length == perPageCount) {
+                    position.page = position.page + 1;
+                    getOrgsAtPosition();
+                }
+                else {
+                    var organizationLogins = organizations.map(function (item) {
+                        return item.login;
+                    });
+
+                    callback(null, organizationLogins);
+                }
             }
         });
     }
