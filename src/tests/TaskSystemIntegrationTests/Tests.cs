@@ -850,7 +850,7 @@ namespace IntegrationTests
             var callOrder = new List<string>();
 
             var taskEnd = new ActionTask(Token, () => callOrder.Add("chain completed")) { Name = "Chain Completed" };
-            var final = taskEnd.Finally((_, __) => { });
+            var final = taskEnd.Finally((_, __) => { }, TaskAffinity.Concurrent);
 
             var taskStart = new FuncTask<bool>(Token, _ =>
                 {

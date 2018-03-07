@@ -382,37 +382,12 @@ namespace GitHub.Unity
             OnStart?.Invoke(this);
         }
 
-        protected virtual void RaiseOnEnd()
-        {
-            OnEnd?.Invoke(this, !taskFailed, exception);
-            if (!taskFailed || exceptionWasHandled)
-            {
-                if (continuationOnSuccess == null)
-                    CallFinallyHandler();
-                else
-                    SetContinuation(continuationOnSuccess, runOnSuccessOptions);
-            }
-            else
-            {
-                if (continuationOnFailure == null)
-                    CallFinallyHandler();
-                else
-                    SetContinuation(continuationOnFailure, runOnSuccessOptions);
-            }
-            //Logger.Trace($"Finished {ToString()}");
-        }
-
-        protected void CallFinallyHandler()
-        {
-            finallyHandler?.Invoke(!taskFailed);
-        }
-
         protected virtual bool RaiseFaultHandlers(Exception ex)
         {
             taskFailed = true;
             exception = ex;
             if (catchHandler == null)
-                return continuationOnFailure != null;
+                return false;
             foreach (var handler in catchHandler.GetInvocationList())
             {
                 if ((bool)handler.DynamicInvoke(new object[] { ex }))
@@ -421,8 +396,48 @@ namespace GitHub.Unity
                     break;
                 }
             }
-            // if a catch handler returned true or we have a continuation for failure cases, don't throw
-            return exceptionWasHandled || continuationOnFailure != null;
+            // if a catch handler returned true, don't throw
+            return exceptionWasHandled;
+        }
+
+        protected virtual void RaiseOnEnd()
+        {
+            OnEnd?.Invoke(this, !taskFailed, exception);
+            SetupContinuations();
+            //Logger.Trace($"Finished {ToString()}");
+        }
+
+        protected void SetupContinuations()
+        {
+            if (!taskFailed || exceptionWasHandled)
+            {
+                var taskToContinueWith = continuationOnSuccess ?? continuationOnAlways;
+                if (taskToContinueWith != null)
+                    SetContinuation(taskToContinueWith, runOnSuccessOptions);
+                else
+                { // there are no more tasks to schedule, call a finally handler if it exists
+                  // we need to do this only when there are no more continuations
+                  // so that the in-thread finally handler is guaranteed to run after any Finally tasks
+                    CallFinallyHandler();
+                }
+            }
+            else
+            {
+                var taskToContinueWith = continuationOnFailure ?? continuationOnAlways;
+                if (taskToContinueWith != null)
+                    SetContinuation(taskToContinueWith, runOnFaultOptions);
+                else
+                { // there are no more tasks to schedule, call a finally handler if it exists
+                  // we need to do this only when there are no more continuations
+                  // so that the in-thread finally handler is guaranteed to run after any Finally tasks
+                    CallFinallyHandler();
+                }
+            }
+        }
+
+        protected virtual void CallFinallyHandler()
+        {
+            finallyHandler?.Invoke(!taskFailed);
         }
 
         protected Exception GetThrownException()
@@ -617,14 +632,13 @@ namespace GitHub.Unity
         {
             this.result = data;
             OnEnd?.Invoke(this, result, !taskFailed, exception);
-            if (continuationOnSuccess == null && continuationOnFailure == null)
-            {
-                finallyHandler?.Invoke(!taskFailed, result);
-                CallFinallyHandler();
-            }
-            else if (continuationOnSuccess != null)
-                SetContinuation(continuationOnSuccess, runOnSuccessOptions);
+            SetupContinuations();
             //Logger.Trace($"Finished {ToString()} {result}");
+        }
+
+        protected override void CallFinallyHandler()
+        {
+            finallyHandler?.Invoke(!taskFailed, result);
         }
 
         public new Task<TResult> Task
