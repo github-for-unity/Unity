@@ -163,11 +163,7 @@ namespace GitHub.Unity
                         var cleanRepoDescription = repoDescription.Trim();
                         cleanRepoDescription = string.IsNullOrEmpty(cleanRepoDescription) ? null : cleanRepoDescription;
 
-                        Client.CreateRepository(new NewRepository(repoName)
-                        {
-                            Private = togglePrivate,
-                            Description = cleanRepoDescription
-                        }, (repository, ex) =>
+                        Client.CreateRepository(repoName, cleanRepoDescription, togglePrivate, (repository, ex) =>
                         {
                             if (ex != null)
                             {
