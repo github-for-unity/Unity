@@ -84,7 +84,7 @@ namespace GitHub.Unity
     public interface IBranchCache : IManagedCache
     {
         ConfigRemote? CurrentConfigRemote { get; set; }
-        ConfigBranch? CurentConfigBranch { get; set; }
+        ConfigBranch? CurrentConfigBranch { get; set; }
         
         GitBranch[] LocalBranches { get; set; }
         GitBranch[] RemoteBranches { get; set; }
@@ -105,7 +105,7 @@ namespace GitHub.Unity
     public interface IRepositoryInfoCache : IManagedCache
     {
         GitRemote? CurrentGitRemote { get; set; }
-        GitBranch? CurentGitBranch { get; set; }
+        GitBranch? CurrentGitBranch { get; set; }
     }
 
     public interface IGitLogCache : IManagedCache

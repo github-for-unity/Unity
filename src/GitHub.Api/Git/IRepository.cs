@@ -78,5 +78,6 @@ namespace GitHub.Unity
         event Action<CacheUpdateEvent> LocksChanged;
         event Action<CacheUpdateEvent> RemoteBranchListChanged;
         event Action<CacheUpdateEvent> LocalAndRemoteBranchListChanged;
+        void Start();
     }
 }

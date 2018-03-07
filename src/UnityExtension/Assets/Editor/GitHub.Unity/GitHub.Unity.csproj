@@ -108,6 +108,7 @@
     <Compile Include="UI\LoadingView.cs" />
     <Compile Include="UI\PublishView.cs" />
     <Compile Include="UI\InitProjectView.cs" />
+    <Compile Include="UI\Spinner.cs" />
     <Compile Include="UI\TreeControl.cs" />
     <Compile Include="UI\UserSettingsView.cs" />
     <Compile Include="UI\GitPathView.cs" />
@@ -216,6 +217,20 @@
   <ItemGroup>
     <EmbeddedResource Include="IconsAndLogos\globe%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\globe.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="IconsAndLogos\spinner-inside%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-inside.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-outside%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-outside.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="IconsAndLogos\code%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\code.png" />
+    <EmbeddedResource Include="IconsAndLogos\merge%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\merge.png" />
+    <EmbeddedResource Include="IconsAndLogos\rocket%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\rocket.png" />
   </ItemGroup>
   <Import Project="..\..\..\..\..\common\nativelibraries.props" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

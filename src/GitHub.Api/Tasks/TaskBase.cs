@@ -24,11 +24,11 @@ namespace GitHub.Unity
         /// <summary>
         /// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
         /// </summary>
-        ITask Finally(Action<bool, Exception> actionToContinueWith, TaskAffinity affinity = TaskAffinity.Concurrent);
+        ITask Finally(Action<bool, Exception> actionToContinueWith, TaskAffinity affinity);
         /// <summary>
         /// Run another task at the end of the task execution, on a separate thread, regardless of execution state
         /// </summary>
-        ITask Finally<T>(T taskToContinueWith) where T : ITask;
+        T Finally<T>(T taskToContinueWith) where T : ITask;
         ITask Start();
         ITask Start(TaskScheduler scheduler);
         ITask Progress(Action<IProgress> progressHandler);
@@ -48,6 +48,8 @@ namespace GitHub.Unity
         /// </summary>
         /// <returns>true if any task on the chain is marked as exclusive</returns>
         bool IsChainExclusive();
+
+        void UpdateProgress(long value, long total, string message = null);
     }
 
     public interface ITask<TResult> : ITask
@@ -101,9 +103,8 @@ namespace GitHub.Unity
 
         protected event Func<Exception, bool> catchHandler;
         private event Action<bool> finallyHandler;
-        protected event Action<IProgress> progressHandler;
 
-        private Progress progress;
+        protected Progress progress;
 
         protected TaskBase(CancellationToken token)
             : this()
@@ -236,14 +237,14 @@ namespace GitHub.Unity
         /// <summary>
         /// Run another task at the end of the task execution, on a separate thread, regardless of execution state
         /// </summary>
-        public ITask Finally<T>(T taskToContinueWith)
+        public T Finally<T>(T taskToContinueWith)
             where T : ITask
         {
             Guard.ArgumentNotNull(taskToContinueWith, nameof(taskToContinueWith));
             continuationOnAlways = (TaskBase)(object)taskToContinueWith;
             continuationOnAlways.SetDependsOn(this);
             DependsOn?.SetFaultHandler(continuationOnAlways);
-            return continuationOnAlways;
+            return taskToContinueWith;
         }
 
         /// <summary>
@@ -266,7 +267,7 @@ namespace GitHub.Unity
         public ITask Progress(Action<IProgress> handler)
         {
             Guard.ArgumentNotNull(handler, nameof(handler));
-            this.progressHandler += handler;
+            progress.OnProgress += handler;
             return this;
         }
 
@@ -381,37 +382,12 @@ namespace GitHub.Unity
             OnStart?.Invoke(this);
         }
 
-        protected virtual void RaiseOnEnd()
-        {
-            OnEnd?.Invoke(this, !taskFailed, exception);
-            if (!taskFailed || exceptionWasHandled)
-            {
-                if (continuationOnSuccess == null && continuationOnAlways == null)
-                    CallFinallyHandler();
-                else if (continuationOnSuccess != null)
-                    SetContinuation(continuationOnSuccess, runOnSuccessOptions);
-            }
-            else
-            {
-                if (continuationOnFailure == null && continuationOnAlways == null)
-                    CallFinallyHandler();
-                else if (continuationOnFailure != null)
-                    SetContinuation(continuationOnFailure, runOnSuccessOptions);
-            }
-            //Logger.Trace($"Finished {ToString()}");
-        }
-
-        protected void CallFinallyHandler()
-        {
-            finallyHandler?.Invoke(Task.Status == TaskStatus.RanToCompletion);
-        }
-
         protected virtual bool RaiseFaultHandlers(Exception ex)
         {
             taskFailed = true;
             exception = ex;
             if (catchHandler == null)
-                return continuationOnFailure != null;
+                return false;
             foreach (var handler in catchHandler.GetInvocationList())
             {
                 if ((bool)handler.DynamicInvoke(new object[] { ex }))
@@ -420,8 +396,48 @@ namespace GitHub.Unity
                     break;
                 }
             }
-            // if a catch handler returned true or we have a continuation for failure cases, don't throw
-            return exceptionWasHandled || continuationOnFailure != null;
+            // if a catch handler returned true, don't throw
+            return exceptionWasHandled;
+        }
+
+        protected virtual void RaiseOnEnd()
+        {
+            OnEnd?.Invoke(this, !taskFailed, exception);
+            SetupContinuations();
+            //Logger.Trace($"Finished {ToString()}");
+        }
+
+        protected void SetupContinuations()
+        {
+            if (!taskFailed || exceptionWasHandled)
+            {
+                var taskToContinueWith = continuationOnSuccess ?? continuationOnAlways;
+                if (taskToContinueWith != null)
+                    SetContinuation(taskToContinueWith, runOnSuccessOptions);
+                else
+                { // there are no more tasks to schedule, call a finally handler if it exists
+                  // we need to do this only when there are no more continuations
+                  // so that the in-thread finally handler is guaranteed to run after any Finally tasks
+                    CallFinallyHandler();
+                }
+            }
+            else
+            {
+                var taskToContinueWith = continuationOnFailure ?? continuationOnAlways;
+                if (taskToContinueWith != null)
+                    SetContinuation(taskToContinueWith, runOnFaultOptions);
+                else
+                { // there are no more tasks to schedule, call a finally handler if it exists
+                  // we need to do this only when there are no more continuations
+                  // so that the in-thread finally handler is guaranteed to run after any Finally tasks
+                    CallFinallyHandler();
+                }
+            }
+        }
+
+        protected virtual void CallFinallyHandler()
+        {
+            finallyHandler?.Invoke(!taskFailed);
         }
 
         protected Exception GetThrownException()
@@ -437,10 +453,9 @@ namespace GitHub.Unity
             return DependsOn.GetThrownException();
         }
 
-        protected void UpdateProgress(long value, long total)
+        public void UpdateProgress(long value, long total, string message = null)
         {
-            progress.UpdateProgress(value, total);
-            progressHandler?.Invoke(progress);
+            progress.UpdateProgress(value, total, message);
         }
 
         public override string ToString()
@@ -596,8 +611,7 @@ namespace GitHub.Unity
         /// </summary>
         public new ITask<TResult> Progress(Action<IProgress> handler)
         {
-            Guard.ArgumentNotNull(handler, nameof(handler));
-            this.progressHandler += handler;
+            base.Progress(handler);
             return this;
         }
 
@@ -618,14 +632,14 @@ namespace GitHub.Unity
         {
             this.result = data;
             OnEnd?.Invoke(this, result, !taskFailed, exception);
-            if (continuationOnSuccess == null && continuationOnFailure == null && continuationOnAlways == null)
-            {
-                finallyHandler?.Invoke(Task.Status == TaskStatus.RanToCompletion, result);
-                CallFinallyHandler();
-            }
-            else if (continuationOnSuccess != null)
-                SetContinuation(continuationOnSuccess, runOnSuccessOptions);
+            SetupContinuations();
             //Logger.Trace($"Finished {ToString()} {result}");
+        }
+
+        protected override void CallFinallyHandler()
+        {
+            finallyHandler?.Invoke(!taskFailed, result);
+            base.CallFinallyHandler();
         }
 
         public new Task<TResult> Task

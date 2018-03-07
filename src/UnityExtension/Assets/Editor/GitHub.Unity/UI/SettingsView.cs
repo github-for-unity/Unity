@@ -350,7 +350,7 @@ namespace GitHub.Unity
                 webTimeout = ApplicationConfiguration.WebTimeout;
                 EditorGUI.BeginChangeCheck();
                 {
-                    webTimeout = EditorGUILayout.IntField(webTimeout, WebTimeoutLabel);
+                    webTimeout = EditorGUILayout.IntField(WebTimeoutLabel, webTimeout);
                 }
                 if (EditorGUI.EndChangeCheck())
                 {

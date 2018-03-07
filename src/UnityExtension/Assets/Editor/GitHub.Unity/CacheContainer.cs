@@ -59,6 +59,7 @@ namespace GitHub.Unity
 
         public void ValidateAll()
         {
+            RepositoryInfoCache.ValidateData();
             BranchCache.ValidateData();
             GitLogCache.ValidateData();
             GitTrackingStatusCache.ValidateData();
@@ -73,6 +74,7 @@ namespace GitHub.Unity
 
         public void InvalidateAll()
         {
+            RepositoryInfoCache.InvalidateData();
             BranchCache.InvalidateData();
             GitLogCache.InvalidateData();
             GitTrackingStatusCache.InvalidateData();

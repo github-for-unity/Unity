@@ -42,6 +42,7 @@ namespace GitHub.Unity
         void UpdateGitAheadBehindStatus();
         void UpdateLocks();
         int WaitForEvents();
+        void UpdateRepositoryInfo();
 
         IGitConfig Config { get; }
         IGitClient GitClient { get; }
@@ -331,10 +332,9 @@ namespace GitHub.Unity
                     if (itemsToRevert.Any())
                     {
                         gitDiscardTask = GitClient.Discard(itemsToRevert);
-                        task
-                            .Then(gitDiscardTask)
-                            // we're appending a new continuation, we need to reset the finally handler
-                            // so it runs after the discard task
+                        task.Then(gitDiscardTask)
+                            // we're appending a new continuation after HookupHandlers has run,
+                            // we need to set the finally handler manually so it runs at the end of everything
                             .Finally(s =>
                             {
                                 watcher.Start();
@@ -379,7 +379,7 @@ namespace GitHub.Unity
         public void UpdateLocks()
         {
             GitClient.ListLocks(false)
-                .Finally((success, locks) =>
+                .Then((success, locks) =>
                 {
                     if (success)
                     {
@@ -399,7 +399,7 @@ namespace GitHub.Unity
             var isExclusive = task.IsChainExclusive();
             task.GetTopOfChain().OnStart += t =>
             {
-                if (t.Affinity == TaskAffinity.Exclusive)
+                if (isExclusive)
                 {
                     Logger.Trace("Starting Operation - Setting Busy Flag");
                     IsBusy = true;
@@ -443,7 +443,7 @@ namespace GitHub.Unity
         private void UpdateHead()
         {
             Logger.Trace("UpdateHead");
-            UpdateCurrentBranchAndRemote();
+            UpdateRepositoryInfo();
             UpdateGitLog();
         }
 
@@ -452,7 +452,7 @@ namespace GitHub.Unity
             return repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
         }
 
-        private void UpdateCurrentBranchAndRemote()
+        public void UpdateRepositoryInfo()
         {
             ConfigBranch? branch;
             ConfigRemote? remote;
