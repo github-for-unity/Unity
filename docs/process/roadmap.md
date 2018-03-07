@@ -47,3 +47,5 @@ May 2018
   - User and email configuration
   - Git remote configuration
   - Git installation path configuration
+- Misc
+  - Notification of new releases
