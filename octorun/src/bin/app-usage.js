@@ -53,11 +53,13 @@ if (fileContents && host) {
                 process.stdout.write("Success");
                 process.stdout.write(endOfLine);
                 process.stdout.write(d);
+                process.stdout.write(endOfLine);
             }
             else {
                 process.stdout.write("Error");
                 process.stdout.write(endOfLine);
                 process.stdout.write(d);
+                process.stdout.write(endOfLine);
             }
         });
 

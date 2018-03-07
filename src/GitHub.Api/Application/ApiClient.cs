@@ -244,6 +244,17 @@ namespace GitHub.Unity
                 await ValidateKeychain();
                 await ValidateCurrentUserInternal();
 
+                var uriString = keychain.Connections.First().Host;
+                var keychainAdapter = await keychain.Load(uriString);
+
+                var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScriptPath, "organizations",
+                        user: keychainAdapter.Credential.Username, userToken: keychainAdapter.Credential.Token)
+                    .Configure(processManager);
+
+                var ret = await octorunTask.StartAsAsync();
+
+                logger.Trace("Return: {0}", string.Join(";", ret.ToArray()));
+
                 throw new NotImplementedException();
 
                 //                var organizations = await githubClient.Organization.GetAllForCurrent();
@@ -273,9 +284,24 @@ namespace GitHub.Unity
                 logger.Trace("Getting Current User");
                 await ValidateKeychain();
 
-                throw new NotImplementedException();
+                var uriString = keychain.Connections.First().Host;
+                var keychainAdapter = await keychain.Load(uriString);
 
-                //return (await githubClient.User.Current()).ToGitHubUser();
+                var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScriptPath, "validate",
+                    user: keychainAdapter.Credential.Username, userToken: keychainAdapter.Credential.Token)
+                    .Configure(processManager);
+
+                var ret = await octorunTask.StartAsAsync();
+
+                if (ret.Count == 3 && ret[0] == "Success")
+                {
+                    return new GitHubUser {
+                        Name = ret[1],
+                        Login = ret[2]
+                    };
+                }
+
+                throw new ApiClientException("Error validating current user");
             }
             catch (KeychainEmptyException)
             {
@@ -318,9 +344,11 @@ namespace GitHub.Unity
 
                 //TODO: ONE_USER_LOGIN This assumes only ever one user can login
                 var uriString = keychain.Connections.First().Host;
-                var keychainAdapter = await keychain.Load(uriString);
 
-                throw new NotImplementedException();
+                var keychainAdapter = await keychain.Load(uriString);
+                logger.Trace("LoadKeychainInternal: Loaded");
+
+                return keychainAdapter.Credential.Token != null;
             }
 
             logger.Trace("LoadKeychainInternal: No keys to load");

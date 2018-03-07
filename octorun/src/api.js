@@ -17,7 +17,10 @@ function ApiWrapper() {
 
 ApiWrapper.prototype.verifyUser = function (callback) {
     this.octokit.users.get({}, function (error, result) {
-        callback(error, (!result) ? null : result.data.login);
+        callback(error, (!result) ? null : {
+            login: result.data.login,
+            name: result.data.name || '',
+        });
     });
 };
 

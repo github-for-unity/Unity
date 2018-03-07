@@ -19,7 +19,10 @@ try {
         else {
             process.stdout.write("Success");
             process.stdout.write(endOfLine);
-            process.stdout.write(result);
+            process.stdout.write(result.name);
+            process.stdout.write(endOfLine);
+            process.stdout.write(result.login);
+            process.stdout.write(endOfLine);
             process.exit();
         }
     });
