@@ -101,6 +101,7 @@
     <Compile Include="Application\Organization.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
+    <Compile Include="Git\Tasks\GitCheckoutTask.cs" />
     <Compile Include="Git\GitAheadBehindStatus.cs" />
     <Compile Include="Git\Tasks\GitAheadBehindStatusTask.cs" />
     <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />

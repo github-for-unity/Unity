@@ -72,8 +72,7 @@ namespace GitHub.Unity
                         }
                     });
 
-                var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
-                var installDetails = new GitInstallDetails(applicationDataPath, true);
+                var installDetails = new GitInstallDetails(Environment.UserCachePath, true);
                 var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
 
                 // if successful, continue with environment initialization, otherwise try to find an existing git installation
@@ -128,7 +127,7 @@ namespace GitHub.Unity
         {
             if (Environment.RepositoryPath != null)
             {
-                repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, Environment.RepositoryPath);
+                repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, ProcessManager, Environment.FileSystem, Environment.RepositoryPath);
                 repositoryManager.Initialize();
                 Environment.Repository.Initialize(repositoryManager);
                 repositoryManager.Start();
