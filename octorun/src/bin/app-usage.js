@@ -50,14 +50,18 @@ if (fileContents && host) {
 
         res.on('data', function (d) {
             if (success) {
-                process.stdout.write("Success");
+                process.stdout.write("success");
                 process.stdout.write(endOfLine);
                 process.stdout.write(d);
                 process.stdout.write(endOfLine);
             }
             else {
-                process.stdout.write("Error");
+                process.stdout.write("error");
                 process.stdout.write(endOfLine);
+                
+                process.stdout.write("");
+                process.stdout.write(endOfLine);
+                
                 process.stdout.write(d);
                 process.stdout.write(endOfLine);
             }

@@ -251,8 +251,6 @@ namespace GitHub.Unity
             string password
         )
         {
-            logger.Info("Login Username:{0} Script:{1}", username, octorunScript);
-
             ApplicationAuthorization auth;
             var loginTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScript,
                 "login", ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
@@ -271,27 +269,22 @@ namespace GitHub.Unity
                 throw new Exception("Authentication failed");
             }
 
-            if (ret[0] == "Success")
+            if (ret[0] == "success")
             {
                 auth = new ApplicationAuthorization(ret[1]);
                 return auth;
             }
 
-            if (ret.Count > 1)
+            if (ret[0] == "2fa")
             {
-                if (ret[1] == "Must specify two-factor authentication OTP code.")
-                {
-                    keychain.SetToken(host, ret[0]);
-                    await keychain.Save(host);
-                    throw new TwoFactorRequiredException(TwoFactorType.Unknown);
-                }
+                keychain.SetToken(host, ret[1]);
+                await keychain.Save(host);
+                throw new TwoFactorRequiredException(TwoFactorType.Unknown);
+            }
 
-                if (ret[1] == "Account locked.")
-                {
-                    throw new LoginAttemptsExceededException(null, null);
-                }
-
-                throw new Exception(ret[1]);
+            if (ret.Count > 2)
+            {
+                throw new Exception(ret[3]);
             }
 
             throw new Exception("Authentication failed");
@@ -304,7 +297,7 @@ namespace GitHub.Unity
             string code
         )
         {
-            logger.Info("Continue Username:{0}", username);
+            logger.Info("Continue Username:{0} {1} {2}", username, password, code);
 
             ApplicationAuthorization auth;
             var loginTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScript,
@@ -319,25 +312,23 @@ namespace GitHub.Unity
             };
 
             var ret = (await loginTask.StartAwait());
+
+            logger.Trace("Return: {0}", string.Join(";", ret.ToArray()));
+
             if (ret.Count == 0)
             {
                 throw new Exception("Authentication failed");
             }
 
-            if (ret[0] == "Success")
+            if (ret[0] == "success")
             {
                 auth = new ApplicationAuthorization(ret[1]);
                 return auth;
             }
 
-            if (ret.Count > 1)
+            if (ret.Count > 2)
             {
-                if (ret[1] == "Account locked.")
-                {
-                    throw new LoginAttemptsExceededException(null, null);
-                }
-
-                throw new Exception(ret[1]);
+                throw new Exception(ret[3]);
             }
 
             throw new Exception("Authentication failed");

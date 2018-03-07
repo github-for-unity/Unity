@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Octokit;
 using GitHub.Logging;
 using System.Runtime.Serialization;
+using System.Text;
 
 namespace GitHub.Unity
 {
@@ -209,24 +210,55 @@ namespace GitHub.Unity
                 await ValidateKeychain();
                 await ValidateCurrentUserInternal();
 
-                GitHubRepository repository;
+                var uriString = keychain.Connections.First().Host;
+                var keychainAdapter = await keychain.Load(uriString);
+
+                var command = new StringBuilder("publish -r ");
+                command.Append(newRepository.Name);
+
+                if (!string.IsNullOrEmpty(newRepository.Description))
+                {
+                    command.Append(" -d ");
+                    command.Append(newRepository.Description);
+                }
+
                 if (!string.IsNullOrEmpty(organization))
                 {
-                    logger.Trace("Creating repository for organization");
-
-                    //repository = (await githubClient.Repository.Create(organization, newRepository)).ToGitHubRepository();
+                    command.Append(" -o ");
+                    command.Append(organization);
                 }
-                else
+
+                if (newRepository.Private ?? false)
                 {
-                    logger.Trace("Creating repository for user");
-
-                    //repository = (await githubClient.Repository.Create(newRepository)).ToGitHubRepository();
+                    command.Append(" -p");
                 }
 
-                throw new NotImplementedException();
+                var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScriptPath, command.ToString(), 
+                    user: keychainAdapter.Credential.Username, userToken: keychainAdapter.Credential.Token)
+                    .Configure(processManager);
 
-                //logger.Trace("Created Repository");
-                //return repository;
+                var ret = await octorunTask.StartAwait();
+
+                if (ret.Count == 0)
+                {
+                    throw new ApiClientException("Publish failed");
+                }
+
+                if (ret[0] == "success")
+                {
+                    return new GitHubRepository()
+                    {
+                        Name = ret[1],
+                        CloneUrl = ret[2],
+                    };
+                }
+
+                if (ret.Count > 3)
+                {
+                    throw new ApiClientException(ret[3]);
+                }
+
+                throw new ApiClientException("Publish failed");
             }
             catch (Exception ex)
             {
@@ -255,20 +287,28 @@ namespace GitHub.Unity
 
                 logger.Trace("Return: {0}", string.Join(";", ret.ToArray()));
 
-                throw new NotImplementedException();
+                if (ret.Count == 0)
+                {
+                    throw new ApiClientException("Error getting organizations");
+                }
 
-                //                var organizations = await githubClient.Organization.GetAllForCurrent();
-                //
-                //                logger.Trace("Obtained {0} Organizations", organizations?.Count.ToString() ?? "NULL");
-                //
-                //                if (organizations != null)
-                //                {
-                //                    var array = organizations.Select(organization => new Organization() {
-                //                        Name = organization.Name,
-                //                        Login = organization.Login
-                //                    }).ToArray();
-                //                    onSuccess(array);
-                //                }
+                if (ret[0] == "success")
+                {
+                    var organizations = new List<Organization>();
+                    for (var i = 1; i < ret.Count; i = i + 2)
+                    {
+                        organizations.Add(new Organization
+                        {
+                            Name = ret[i],
+                            Login = ret[i + 1]
+                        });
+                    }
+
+                    onSuccess(organizations.ToArray());
+                    return;
+                }
+
+                throw new ApiClientException("Error getting organizations");
             }
             catch (Exception ex)
             {
@@ -287,13 +327,17 @@ namespace GitHub.Unity
                 var uriString = keychain.Connections.First().Host;
                 var keychainAdapter = await keychain.Load(uriString);
 
+                logger.Trace("Username: {0} Token: {1}", keychainAdapter.Credential.Username, keychainAdapter.Credential.Token);
+
                 var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScriptPath, "validate",
                     user: keychainAdapter.Credential.Username, userToken: keychainAdapter.Credential.Token)
                     .Configure(processManager);
 
                 var ret = await octorunTask.StartAsAsync();
 
-                if (ret.Count == 3 && ret[0] == "Success")
+                logger.Trace("Return: {0}", string.Join(";", ret.ToArray()));
+
+                if (ret[0] == "success")
                 {
                     return new GitHubUser {
                         Name = ret[1],

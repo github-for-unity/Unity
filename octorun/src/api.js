@@ -46,7 +46,10 @@ ApiWrapper.prototype.getOrgs = function (callback) {
                 }
                 else {
                     var organizationLogins = organizations.map(function (item) {
-                        return item.login;
+                        return {
+                            name: item.name || "",
+                            login: item.login
+                        };
                     });
 
                     callback(null, organizationLogins);

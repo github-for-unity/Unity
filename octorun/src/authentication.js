@@ -5,7 +5,7 @@ var octokitWrapper = require("./octokit");
 var scopes = ["user", "repo", "gist", "write:public_key"];
 
 var lockedRegex = new RegExp("number of login attempts exceeded", "gi");
-var twoFactorRegex = new RegExp("must specify two-factor authentication OTP code", "gi");
+var twoFactorRegex = new RegExp("must specify two-factor authentication otp code", "gi");
 var badCredentialsRegex = new RegExp("bad credentials", "gi");
 
 var handleBasicAuthentication = function (username, password, onSuccess, onRequiresTwoFa, onFailure) {

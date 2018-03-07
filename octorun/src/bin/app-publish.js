@@ -24,19 +24,53 @@ var private = false;
 if (commander.private) {
     private = true;
 }
+    
+try {
+    var apiWrapper = new ApiWrapper();
 
-var apiWrapper = new ApiWrapper();
+    apiWrapper.publish(commander.repository, commander.description, private, commander.organization,
+        function (error, result) {
+            if (error) {
+                process.stdout.write("error");
+                process.stdout.write(endOfLine);
 
-apiWrapper.publish(commander.repository, commander.description, private, commander.organization,
-    function (error, result) {
-        if (error) {
-            process.stdout.write(error);
-            process.stdout.write(endOfLine);
-            process.exit(-1);
-        }
-        else {
-            process.stdout.write(result);
-            process.stdout.write(endOfLine);
-            process.exit();
-        }
-    });
+                process.stdout.write("");
+                process.stdout.write(endOfLine);
+
+                process.stdout.write("");
+                process.stdout.write(endOfLine);
+
+                if (error) {
+                    process.stdout.write(error.toString());
+                    process.stdout.write(endOfLine);
+                }
+
+                process.exit();
+            }
+            else {
+                process.stdout.write("success");
+                process.stdout.write(endOfLine);
+
+                process.stdout.write(commander.repository);
+                process.stdout.write(endOfLine);
+
+                process.stdout.write(result);
+                process.stdout.write(endOfLine);
+                process.exit();
+            }
+        });
+}
+catch (error) {
+    process.stdout.write("error");
+    process.stdout.write(endOfLine);
+
+    process.stdout.write("");
+    process.stdout.write(endOfLine);
+
+    if (error) {
+        process.stdout.write(error.toString());
+        process.stdout.write(endOfLine);
+    }
+
+    process.exit();
+}

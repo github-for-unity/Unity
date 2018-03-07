@@ -12,7 +12,7 @@ try {
     var apiWrapper = new ApiWrapper();
     apiWrapper.getOrgs(function (error, result) {
         if (error) {
-            process.stdout.write("Error");
+            process.stdout.write("error");
             process.stdout.write(endOfLine);
 
             if (error) {
@@ -23,11 +23,13 @@ try {
             process.exit();
         }
         else {
-            process.stdout.write("Success");
+            process.stdout.write("success");
             process.stdout.write(endOfLine);
 
             for (var i = 0; i < result.length; i++) {
-                process.stdout.write(result[i]);
+                process.stdout.write(result[i].name);
+                process.stdout.write(endOfLine);
+                process.stdout.write(result[i].login);
                 process.stdout.write(endOfLine);
             }
 

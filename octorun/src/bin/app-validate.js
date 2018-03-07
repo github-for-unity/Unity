@@ -12,7 +12,11 @@ try {
 
     apiWrapper.verifyUser(function (error, result) {
         if (error) {
-            process.stdout.write("Error");
+            process.stdout.write("error");
+            process.stdout.write(endOfLine);
+            process.stdout.write("");
+            process.stdout.write(endOfLine);
+            process.stdout.write("");
             process.stdout.write(endOfLine);
 
             if (error) {
@@ -23,7 +27,7 @@ try {
             process.exit();
         }
         else {
-            process.stdout.write("Success");
+            process.stdout.write("success");
             process.stdout.write(endOfLine);
             process.stdout.write(result.name);
             process.stdout.write(endOfLine);
