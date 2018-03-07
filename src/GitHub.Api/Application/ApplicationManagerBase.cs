@@ -72,9 +72,22 @@ namespace GitHub.Unity
                         }
                     });
 
+                var archiveParentPath = NPath.CreateTempDirectory("git_zip_paths");
+                var gitArchiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", archiveParentPath, Environment);
+                if (!gitArchiveFilePath.FileExists())
+                {
+                    gitArchiveFilePath = null;
+                }
+
+                var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", archiveParentPath, Environment);
+                if (!gitLfsArchivePath.FileExists())
+                {
+                    gitLfsArchivePath = null;
+                }
+
                 var applicationDataPath = Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath();
                 var installDetails = new GitInstallDetails(applicationDataPath, true);
-                var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
+                var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails, gitArchiveFilePath, gitLfsArchivePath);
 
                 // if successful, continue with environment initialization, otherwise try to find an existing git installation
                 gitInstaller.SetupGitIfNeeded(initEnvironmentTask, findExecTask);

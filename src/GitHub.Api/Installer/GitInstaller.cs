@@ -76,9 +76,10 @@ namespace GitHub.Unity
         private readonly IEnvironment environment;
         private readonly GitInstallDetails installDetails;
         private readonly IZipHelper sharpZipLibHelper;
+        private NPath archiveParentPath;
         private NPath gitArchiveFilePath;
         private NPath gitLfsArchivePath;
-
+        
         public GitInstaller(IEnvironment environment, CancellationToken cancellationToken,
             GitInstallDetails installDetails)
             : this(environment, ZipHelper.Instance, cancellationToken, installDetails, null, null)
@@ -129,9 +130,30 @@ namespace GitHub.Unity
         private void ExtractPortableGit(ActionTask<NPath> onSuccess, ITask onFailure)
         {
             ITask downloadFilesTask = null;
-            if ((gitArchiveFilePath == null) || (gitLfsArchivePath == null))
+
+            if (gitArchiveFilePath == null || gitLfsArchivePath == null)
             {
-                downloadFilesTask = CreateDownloadTask();
+                archiveParentPath = NPath.CreateTempDirectory("git_zip_paths");
+
+                var downloadGit = false;
+                var downloadGitLfs = false;
+
+                if (gitArchiveFilePath == null)
+                {
+                    downloadGit = true;
+                    gitArchiveFilePath = archiveParentPath.Combine("git.zip");
+                }
+
+                if (gitLfsArchivePath == null)
+                {
+                    downloadGitLfs = true;
+                    gitLfsArchivePath = archiveParentPath.Combine("git-lfs.zip");
+                }
+
+                if (downloadGit || downloadGitLfs)
+                {
+                    downloadFilesTask = CreateDownloadTask(downloadGit, downloadGitLfs);
+                }
             }
 
             var tempZipExtractPath = NPath.CreateTempDirectory("git_zip_extract_zip_paths");
@@ -176,30 +198,51 @@ namespace GitHub.Unity
             return installDetails.GitExecutablePath;
         }
 
-        private ITask CreateDownloadTask()
+        private ITask CreateDownloadTask(bool downloadGit, bool downloadGitLfs)
         {
-            var tempZipPath = NPath.CreateTempDirectory("git_zip_paths");
-            gitArchiveFilePath = tempZipPath.Combine("git.zip");
-            gitLfsArchivePath = tempZipPath.Combine("git-lfs.zip");
+            if (!downloadGit && !downloadGitLfs)
+            {
+                throw new InvalidOperationException("Either downloadGit or downloadGitLfs must be true");
+            }
 
-            var downloadGitMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitZipMd5Url, tempZipPath);
+            DownloadTask result = null;
+            if (downloadGit)
+            {
+                var downloadGitMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
+                    installDetails.GitZipMd5Url, archiveParentPath);
 
-            var downloadGitTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitZipUrl, tempZipPath);
+                var downloadGitTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem, installDetails.GitZipUrl, archiveParentPath);
 
-            var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitLfsZipMd5Url, tempZipPath);
+                downloadGitTask = downloadGitMd5Task
+                    .Then((b, s) => { downloadGitTask.ValidationHash = s; })
+                    .Then(downloadGitTask);
 
-            var downloadGitLfsTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitLfsZipUrl, tempZipPath);
+                result = downloadGitTask;
+            }
 
-            return
-                downloadGitMd5Task.Then((b, s) => { downloadGitTask.ValidationHash = s; })
-                                  .Then(downloadGitTask)
-                                  .Then(downloadGitLfsMd5Task)
-                                  .Then((b, s) => { downloadGitLfsTask.ValidationHash = s; })
-                                  .Then(downloadGitLfsTask);
+            if (downloadGitLfs)
+            {
+                var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
+                    installDetails.GitLfsZipMd5Url, archiveParentPath);
+
+                var downloadGitLfsTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem, installDetails.GitLfsZipUrl, archiveParentPath);
+
+                downloadGitLfsTask = downloadGitLfsMd5Task
+                    .Then((b, s) => { downloadGitLfsTask.ValidationHash = s; })
+                    .Then(downloadGitLfsTask);
+
+                if (result == null)
+                {
+                    result = result
+                        .Then(downloadGitLfsTask);
+                }
+                else
+                {
+                    result = downloadGitLfsTask;
+                }
+            }
+
+            return result;
         }
 
         private bool IsGitExtracted()
