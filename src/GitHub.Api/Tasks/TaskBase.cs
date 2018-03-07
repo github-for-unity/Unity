@@ -24,7 +24,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
         /// </summary>
-        ITask Finally(Action<bool, Exception> actionToContinueWith, TaskAffinity affinity = TaskAffinity.Concurrent);
+        ITask Finally(Action<bool, Exception> actionToContinueWith, TaskAffinity affinity);
         /// <summary>
         /// Run another task at the end of the task execution, on a separate thread, regardless of execution state
         /// </summary>

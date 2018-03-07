@@ -600,7 +600,9 @@ namespace IntegrationTests
             ITask task = new ActionTask(Token, _ => { throw new Exception(); });
             task.OnStart += _ => runOrder.Add("start");
             task.OnEnd += (_, __, ___) => runOrder.Add("end");
-            task = task.Finally((_, __) => {});
+            // we want to run a Finally on a new task (and not in-thread) so that the StartAndSwallowException handler runs after this
+            // one, proving that the exception is propagated after everything is done
+            task = task.Finally((_, __) => {}, TaskAffinity.Concurrent);
 
             await task.StartAndSwallowException();
             CollectionAssert.AreEqual(new string[] { "start", "end" }, runOrder);
