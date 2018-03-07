@@ -1,8 +1,6 @@
 using GitHub.Logging;
 using System;
 using System.Diagnostics;
-using System.Globalization;
-using System.Text;
 
 namespace GitHub.Unity
 {
@@ -17,27 +15,6 @@ namespace GitHub.Unity
             Environment = environment;
         }
 
-        public NPath FindRoot(NPath path)
-        {
-            if (path == null)
-            {
-                return null;
-            }
-            
-            if (path.FileExists())
-                path = path.Parent;
-
-            if (path.Combine(".git").DirectoryExists())
-            {
-                return path;
-            }
-
-            if (path.IsEmpty)
-                return null;
-
-            return FindRoot(path.Parent);
-        }
-
         public void Configure(ProcessStartInfo psi, NPath workingDirectory)
         {
             psi.WorkingDirectory = workingDirectory;
@@ -45,7 +22,7 @@ namespace GitHub.Unity
             psi.EnvironmentVariables["TMP"] = psi.EnvironmentVariables["TEMP"] = NPath.SystemTemp;
 
             // if we don't know where git is, then there's nothing else to configure
-            if (Environment.GitInstallPath == null)
+            if (!Environment.GitInstallPath.IsInitialized)
                 return;
 
 

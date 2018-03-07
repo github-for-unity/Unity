@@ -335,7 +335,6 @@ namespace TestUtils
         public IProcessEnvironment CreateProcessEnvironment(NPath root)
         {
             var processEnvironment = Substitute.For<IProcessEnvironment>();
-            processEnvironment.FindRoot(Arg.Any<NPath>()).Returns(root);
             return processEnvironment;
         }
 

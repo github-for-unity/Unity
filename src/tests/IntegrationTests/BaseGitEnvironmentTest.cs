@@ -8,7 +8,7 @@ namespace IntegrationTests
 {
     class BaseGitEnvironmentTest : BasePlatformIntegrationTest
     {
-        protected IEnvironment Initialize(NPath repoPath, NPath environmentPath = null,
+        protected IEnvironment Initialize(NPath repoPath, NPath? environmentPath = null,
             bool enableEnvironmentTrace = false, bool initializeRepository = true,
             Action<RepositoryManager> onRepositoryManagerCreated = null)
         {
