@@ -379,7 +379,7 @@ namespace GitHub.Unity
         public void UpdateLocks()
         {
             GitClient.ListLocks(false)
-                .Finally((success, locks) =>
+                .Then((success, locks) =>
                 {
                     if (success)
                     {
