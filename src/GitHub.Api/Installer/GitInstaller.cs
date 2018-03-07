@@ -25,10 +25,13 @@ namespace GitHub.Unity
 
         private readonly bool onWindows;
 
-        public GitInstallDetails(NPath targetInstallPath, bool onWindows)
+        public GitInstallDetails(NPath pluginDataPath, bool onWindows)
         {
             this.onWindows = onWindows;
-            var gitInstallPath = targetInstallPath.Combine(ApplicationInfo.ApplicationName, PackageNameWithVersion);
+
+            PluginDataPath = pluginDataPath;
+
+            var gitInstallPath = PluginDataPath.Combine(PackageNameWithVersion);
             GitInstallationPath = gitInstallPath;
 
             if (onWindows)
@@ -56,6 +59,7 @@ namespace GitHub.Unity
                 : gitInstallRoot.Combine("libexec", "git-core", GitLfsExecutable);
         }
 
+        public NPath PluginDataPath { get; }
         public NPath GitInstallationPath { get; }
         public string GitExecutable { get; }
         public NPath GitExecutablePath { get; }
@@ -178,21 +182,20 @@ namespace GitHub.Unity
 
         private ITask CreateDownloadTask()
         {
-            var tempZipPath = NPath.CreateTempDirectory("git_zip_paths");
-            gitArchiveFilePath = tempZipPath.Combine("git.zip");
-            gitLfsArchivePath = tempZipPath.Combine("git-lfs.zip");
+            gitArchiveFilePath = installDetails.PluginDataPath.Combine("git.zip");
+            gitLfsArchivePath = installDetails.PluginDataPath.Combine("git-lfs.zip");
 
             var downloadGitMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitZipMd5Url, tempZipPath);
+                installDetails.GitZipMd5Url, installDetails.PluginDataPath);
 
             var downloadGitTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitZipUrl, tempZipPath);
+                installDetails.GitZipUrl, installDetails.PluginDataPath);
 
             var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitLfsZipMd5Url, tempZipPath);
+                installDetails.GitLfsZipMd5Url, installDetails.PluginDataPath);
 
             var downloadGitLfsTask = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem,
-                installDetails.GitLfsZipUrl, tempZipPath);
+                installDetails.GitLfsZipUrl, installDetails.PluginDataPath);
 
             return
                 downloadGitMd5Task.Then((b, s) => { downloadGitTask.ValidationHash = s; })

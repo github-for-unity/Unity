@@ -14,8 +14,7 @@ namespace IntegrationTests
         {
             InitializePlatform(repoPath, environmentPath, enableEnvironmentTrace);
 
-            var repositoryManager =
-                GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
+            var repositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, ProcessManager, Environment.FileSystem, repoPath);
             onRepositoryManagerCreated?.Invoke(repositoryManager);
 
             RepositoryManager = repositoryManager;
