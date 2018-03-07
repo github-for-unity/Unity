@@ -35,7 +35,6 @@ namespace IntegrationTests
         }
 
         [Test]
-        [Category("DoNotRunOnAppVeyor")]
         public void GitInstallTest()
         {
             var gitInstallationPath = TestBasePath.Combine("GitInstall").CreateDirectory();
