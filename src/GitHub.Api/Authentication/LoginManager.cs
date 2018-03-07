@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using Octokit;
 using GitHub.Logging;
 
 namespace GitHub.Unity

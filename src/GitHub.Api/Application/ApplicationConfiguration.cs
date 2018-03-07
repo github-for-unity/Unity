@@ -1,5 +1,4 @@
 using System.Reflection;
-using Octokit;
 
 namespace GitHub.Unity
 {
