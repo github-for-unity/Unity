@@ -68,21 +68,5 @@ namespace UnitTests
             //var linuxBasedGitInstallationStrategy = new ProcessEnvironment(environment);
             //linuxBasedGitInstallationStrategy.ValidateGitInstall("asdf").Should().Be(found);
         }
-
-        [TestCase(@"c:\Source\file.txt", @"c:\Source", TestName = "should be found")]
-        [TestCase(@"c:\Documents\file.txt", null, TestName = "file outside root should not be found")]
-        [TestCase(@"c:\file.txt", null, TestName = "file outside root inside sibling should not be found")]
-        public void FindRoot(string input, string expected)
-        {
-            var filesystem = (IFileSystem) BuildFindRootFileSystem();
-            var environment = Substitute.For<IEnvironment>();
-            environment.FileSystem.Returns(filesystem);
-            NPath.FileSystem = filesystem;
-
-            var windowsGitEnvironment = new ProcessEnvironment(environment);
-            var result = windowsGitEnvironment.FindRoot(input.ToNPath());
-
-            Assert.AreEqual(result?.ToString(), expected);
-        }
     }
 }

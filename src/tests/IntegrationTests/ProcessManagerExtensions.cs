@@ -12,7 +12,7 @@ namespace IntegrationTests
 
         public static ITask<List<GitBranch>> GetGitBranches(this IProcessManager processManager,
             NPath workingDirectory,
-            NPath gitPath = null)
+            NPath? gitPath = null)
         {
             var processor = new BranchListOutputProcessor();
             NPath path = gitPath ?? defaultGitPath;
@@ -25,7 +25,7 @@ namespace IntegrationTests
             NPath workingDirectory,
             IEnvironment environment, IProcessEnvironment gitEnvironment,
             int? logCount = null,
-            NPath gitPath = null)
+            NPath? gitPath = null)
         {
             var gitStatusEntryFactory = new GitObjectFactory(environment);
 
@@ -47,7 +47,7 @@ namespace IntegrationTests
         public static ITask<GitStatus> GetGitStatus(this IProcessManager processManager,
             NPath workingDirectory,
             IEnvironment environment, IProcessEnvironment gitEnvironment,
-            NPath gitPath = null)
+            NPath? gitPath = null)
         {
             var gitStatusEntryFactory = new GitObjectFactory(environment);
             var processor = new StatusOutputProcessor(gitStatusEntryFactory);
@@ -60,7 +60,7 @@ namespace IntegrationTests
 
         public static ITask<List<GitRemote>> GetGitRemoteEntries(this IProcessManager processManager,
             NPath workingDirectory,
-            NPath gitPath = null)
+            NPath? gitPath = null)
         {
             var processor = new RemoteListOutputProcessor();
 
@@ -73,7 +73,7 @@ namespace IntegrationTests
         public static ITask<string> GetGitCreds(this IProcessManager processManager,
             NPath workingDirectory,
             IEnvironment environment, IProcessEnvironment gitEnvironment,
-            NPath gitPath = null)
+            NPath? gitPath = null)
         {
             var processor = new FirstNonNullLineOutputProcessor();
 
