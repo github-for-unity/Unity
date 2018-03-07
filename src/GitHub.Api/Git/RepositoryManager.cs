@@ -332,10 +332,9 @@ namespace GitHub.Unity
                     if (itemsToRevert.Any())
                     {
                         gitDiscardTask = GitClient.Discard(itemsToRevert);
-                        task
-                            .Then(gitDiscardTask)
-                            // we're appending a new continuation, we need to reset the finally handler
-                            // so it runs after the discard task
+                        task.Then(gitDiscardTask)
+                            // we're appending a new continuation after HookupHandlers has run,
+                            // we need to set the finally handler manually so it runs at the end of everything
                             .Finally(s =>
                             {
                                 watcher.Start();
