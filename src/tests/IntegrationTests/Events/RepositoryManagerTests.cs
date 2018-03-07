@@ -26,32 +26,6 @@ namespace IntegrationTests
             repositoryManagerEvents = new RepositoryManagerEvents();
         }
 
-        private void StartTest(out Stopwatch watch, out ILogging logger, [CallerMemberName] string testName = "test")
-        {
-            watch = new Stopwatch();
-            logger = LogHelper.GetLogger(testName);
-            logger.Trace("Starting test");
-        }
-
-        private void EndTest(ILogging logger)
-        {
-            logger.Trace("Ending test");
-        }
-
-        private void StartTrackTime(Stopwatch watch, ILogging logger, string message = "")
-        {
-            if (!String.IsNullOrEmpty(message))
-                logger.Trace(message);
-            watch.Reset();
-            watch.Start();
-        }
-
-        private void StopTrackTimeAndLog(Stopwatch watch, ILogging logger)
-        {
-            watch.Stop();
-            logger.Trace($"Time: {watch.ElapsedMilliseconds}");
-        }
-
         [Test]
         public async Task ShouldPerformBasicInitialize()
         {

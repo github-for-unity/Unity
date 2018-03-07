@@ -95,6 +95,11 @@ namespace GitHub.Unity
             }
             else
                 Logger.Trace($"{installDetails.GitLfsExecutablePath} does not exist");
+
+            if (!state.GitZipExists)
+                Logger.Trace($"{installDetails.GitZipPath} does not exist");
+            if (!state.GitLfsZipExists)
+                Logger.Trace($"{installDetails.GitLfsZipPath} does not exist");
             installationTask.UpdateProgress(10, 100);
             return state;
         }
@@ -102,11 +107,17 @@ namespace GitHub.Unity
         private GitInstallationState GrabZipFromResources(GitInstallationState state)
         {
             if (!state.GitZipExists)
+            {
                 AssemblyResources.ToFile(ResourceType.Platform, "git.zip", installDetails.ZipPath, environment);
+                AssemblyResources.ToFile(ResourceType.Platform, "git.zip.md5", installDetails.ZipPath, environment);
+            }
             state.GitZipExists = installDetails.GitZipPath.FileExists();
 
             if (!state.GitLfsZipExists)
+            {
                 AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", installDetails.ZipPath, environment);
+                AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip.md5", installDetails.ZipPath, environment);
+            }
             state.GitLfsZipExists = installDetails.GitLfsZipPath.FileExists();
             installationTask.UpdateProgress(20, 100);
             return state;
@@ -195,9 +206,9 @@ namespace GitHub.Unity
 
         public class GitInstallDetails
         {
-            public const string DefaultGitZipMd5Url = "https://ghfvs-installer.github.com/unity/portable_git/git.zip.MD5.txt";
+            public const string DefaultGitZipMd5Url = "https://ghfvs-installer.github.com/unity/portable_git/git.zip.md5";
             public const string DefaultGitZipUrl = "https://ghfvs-installer.github.com/unity/portable_git/git.zip";
-            public const string DefaultGitLfsZipMd5Url = "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.MD5.txt";
+            public const string DefaultGitLfsZipMd5Url = "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip.md5";
             public const string DefaultGitLfsZipUrl = "https://ghfvs-installer.github.com/unity/portable_git/git-lfs.zip";
 
             public const string GitExtractedMD5 = "e6cfc0c294a2312042f27f893dfc9c0a";

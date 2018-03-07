@@ -18,6 +18,7 @@ namespace TestWebServer
                 { ".jpg", "image/jpeg" },
                 { ".png", "image/png" },
                 { ".txt", "text/plain" },
+                { ".md5", "text/plain" },
                 { ".zip", "application/zip" }
             };
         private readonly HttpListener listener;

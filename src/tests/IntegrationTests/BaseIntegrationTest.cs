@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using NUnit.Framework;
 using GitHub.Unity;
 using NCrunch.Framework;
@@ -6,6 +7,7 @@ using System.Threading;
 using GitHub.Logging;
 using System.Linq;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace IntegrationTests
 {
@@ -78,10 +80,11 @@ namespace IntegrationTests
                 initializeRepository);
         }
 
-        protected void InitializePlatform(NPath repoPath, NPath environmentPath, bool enableEnvironmentTrace, bool initializeRepository = true, bool setupGit = true)
+        private void InitializePlatform(NPath repoPath, NPath environmentPath, bool enableEnvironmentTrace,
+            bool setupGit = true, string testName = "")
         {
             InitializeTaskManager();
-            InitializeEnvironment(repoPath, environmentPath, enableEnvironmentTrace, initializeRepository);
+            InitializeEnvironment(repoPath, environmentPath, enableEnvironmentTrace, true);
 
             Platform = new Platform(Environment);
             ProcessManager = new ProcessManager(Environment, GitEnvironment, TaskManager.Token);
@@ -89,7 +92,7 @@ namespace IntegrationTests
             Platform.Initialize(ProcessManager, TaskManager);
 
             if (setupGit)
-                SetupGit(Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath());
+                SetupGit(Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath(), testName);
         }
 
         protected void InitializeTaskManager()
@@ -103,9 +106,10 @@ namespace IntegrationTests
             NPath environmentPath = null,
             bool enableEnvironmentTrace = false,
             bool setupGit = true,
-            Action<IRepositoryManager> onRepositoryManagerCreated = null)
+            Action<IRepositoryManager> onRepositoryManagerCreated = null,
+            [CallerMemberName] string testName = "")
         {
-            InitializePlatform(repoPath, environmentPath, enableEnvironmentTrace, setupGit);
+            InitializePlatform(repoPath, environmentPath, enableEnvironmentTrace, setupGit, testName);
 
             DotGitPath = repoPath.Combine(".git");
 
@@ -133,15 +137,20 @@ namespace IntegrationTests
             return Environment;
         }
 
-        protected void SetupGit(NPath pathToSetupGitInto)
+        protected void SetupGit(NPath pathToSetupGitInto, string testName)
         {
             var autoResetEvent = new AutoResetEvent(false);
 
             var installDetails = new GitInstaller.GitInstallDetails(pathToSetupGitInto, true);
 
             var zipArchivesPath = pathToSetupGitInto.Combine("downloads").CreateDirectory();
+
+            Logger.Trace($"Saving git zips into {zipArchivesPath} and unzipping to {pathToSetupGitInto}");
+
             AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
+            AssemblyResources.ToFile(ResourceType.Platform, "git.zip.md5", zipArchivesPath, Environment);
             AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
+            AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip.md5", zipArchivesPath, Environment);
 
             var gitInstaller = new GitInstaller(Environment, TaskManager.Token, installDetails);
 
@@ -155,7 +164,8 @@ namespace IntegrationTests
                 autoResetEvent.Set();
             };
 
-            autoResetEvent.WaitOne();
+            if (!autoResetEvent.WaitOne(TimeSpan.FromMinutes(1)))
+                throw new TimeoutException($"Test setup unzipping {zipArchivesPath} to {pathToSetupGitInto} timed out");
 
             if (result == null)
             {
@@ -219,6 +229,32 @@ namespace IntegrationTests
                 Logger.Warning("Error deleting TestBasePath: {0}", TestBasePath.ToString());
 
             NPath.FileSystem = null;
+        }
+
+        protected void StartTest(out Stopwatch watch, out ILogging logger, [CallerMemberName] string testName = "test")
+        {
+            watch = new Stopwatch();
+            logger = LogHelper.GetLogger(testName);
+            logger.Trace("Starting test");
+        }
+
+        protected void EndTest(ILogging logger)
+        {
+            logger.Trace("Ending test");
+        }
+
+        protected void StartTrackTime(Stopwatch watch, ILogging logger = null, string message = "")
+        {
+            if (!String.IsNullOrEmpty(message))
+                logger.Trace(message);
+            watch.Reset();
+            watch.Start();
+        }
+
+        protected void StopTrackTimeAndLog(Stopwatch watch, ILogging logger)
+        {
+            watch.Stop();
+            logger.Trace($"Time: {watch.ElapsedMilliseconds}");
         }
     }
 }
