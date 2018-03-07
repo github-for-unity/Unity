@@ -112,6 +112,11 @@ namespace GitHub.Unity
             return repositoryManager.UnlockFile(file, force);
         }
 
+        public ITask DiscardChanges(GitStatusEntry[] gitStatusEntry)
+        {
+            return repositoryManager.DiscardChanges(gitStatusEntry);
+        }
+
         public void CheckLogChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.GitLogCache;

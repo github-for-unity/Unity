@@ -46,6 +46,7 @@ namespace UnitTests
         {
             AssertCommonPathFound(null, ".");
             AssertCommonPathFound(null, ".", "./f1/asdf.txt");
+            AssertCommonPathFound(".", "./f2", "./f1/asdf.txt");
             AssertCommonPathFound(@".\f1", "./f1/asdf2.txt", "./f1/asdf.txt");
             AssertCommonPathFound(@".\f1", "./f1/asdf2.txt", "./f1/c2/asdf.txt");
             AssertCommonPathFound(@".\f1\c2", "./f1/c2/asdf2.txt", "./f1/c2/asdf.txt");
@@ -53,17 +54,10 @@ namespace UnitTests
             AssertCommonPathFound(@".\f1", "./f1/c2/asdf2.txt", "./f1/c2/asdf.txt", "./f1/asdf.txt");
         }
 
-        private static void AssertCommonPathFound(string result, params string[] paths)
+        private static void AssertCommonPathFound(string expected, params string[] paths)
         {
             var findCommonPath = FileSystemHelpers.FindCommonPath(paths);
-            if (result == null)
-            {
-                findCommonPath.Should().BeNull();
-            }
-            else
-            {
-                findCommonPath.Should().Be(result);
-            }
+            findCommonPath.Should().Be(expected);
         }
     }
 }

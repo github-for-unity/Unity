@@ -334,6 +334,33 @@ namespace GitHub.Unity
             }
         }
 
+        public List<TNode> GetLeafNodes(TNode parentNode)
+        {
+            var index = Nodes.IndexOf(parentNode);
+            return GetLeafNodes(parentNode, index);
+        }
+
+        private List<TNode> GetLeafNodes(TNode node, int idx)
+        {
+            var results = new List<TNode>();
+            for (var i = idx + 1; i < Nodes.Count && node.Level < Nodes[i].Level; i++)
+            {
+                var childNode = Nodes[i];
+                if (childNode.IsFolder)
+                {
+                    var leafNodes = GetLeafNodes(childNode, i);
+                    results.AddRange(leafNodes);
+                }
+                else
+                {
+                    results.Add(childNode);
+                }
+            }
+
+            return results;
+        }
+
+
         private void ToggleParentFoldersChecked(int idx, TNode node, bool isChecked)
         {
             while (true)
