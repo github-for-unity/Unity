@@ -50,7 +50,7 @@ namespace GitHub.Unity
             Logger.Trace("Using octorunScriptPath: {0}", octorunScriptPath);
 
             var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();            
-            if (gitExecutablePath != null && gitExecutablePath.FileExists()) // we have a git path
+            if (gitExecutablePath != null && gitExecutablePath.Value.FileExists()) // we have a git path
             {
                 Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
                 InitializeEnvironment(gitExecutablePath, octorunScriptPath);
@@ -59,13 +59,13 @@ namespace GitHub.Unity
             {
                 Logger.Trace("No git path found in settings");
 
-                var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (b, path) => InitializeEnvironment(path, octorunScriptPath)) { Affinity = TaskAffinity.UI };
+                var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (_, path) => InitializeEnvironment(path, octorunScriptPath)) { Affinity = TaskAffinity.UI };
                 var findExecTask = new FindExecTask("git", CancellationToken)
                     .FinallyInUI((b, ex, path) => {
                         if (b && path != null)
                         {
                             Logger.Trace("FindExecTask Success: {0}", path);
-                            InitializeEnvironment(gitExecutablePath, octorunScriptPath);
+                            InitializeEnvironment(path, octorunScriptPath);
                         }
                         else
                         {
@@ -74,7 +74,7 @@ namespace GitHub.Unity
                         }
                     });
 
-                var installDetails = new GitInstallDetails(Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath(), true);
+                var installDetails = new GitInstallDetails(Environment.UserCachePath, true);
                 var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
 
                 // if successful, continue with environment initialization, otherwise try to find an existing git installation
@@ -129,7 +129,7 @@ namespace GitHub.Unity
         {
             if (Environment.RepositoryPath != null)
             {
-                repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, Environment.RepositoryPath);
+                repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, ProcessManager, Environment.FileSystem, Environment.RepositoryPath);
                 repositoryManager.Initialize();
                 Environment.Repository.Initialize(repositoryManager);
                 repositoryManager.Start();
@@ -200,7 +200,7 @@ namespace GitHub.Unity
                         }
                         else
                         {
-                            Logger.Warning("No Windows CredentialHeloper found: Setting to wincred");
+                            Logger.Warning("No Windows CredentialHelper found: Setting to wincred");
 
                             GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global)
                                 .Then(afterGitSetup)

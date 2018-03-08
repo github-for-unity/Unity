@@ -14,7 +14,7 @@ namespace IntegrationTests
         protected IProcessEnvironment GitEnvironment => Platform.GitEnvironment;
         protected IGitClient GitClient { get; set; }
 
-        protected void InitializePlatform(NPath repoPath, NPath environmentPath, bool enableEnvironmentTrace, bool setupGit = true)
+        protected void InitializePlatform(NPath repoPath, NPath? environmentPath, bool enableEnvironmentTrace, bool setupGit = true)
         {
             InitializeTaskManager();
             InitializeEnvironment(repoPath, environmentPath, enableEnvironmentTrace);
@@ -37,7 +37,7 @@ namespace IntegrationTests
 
                 var gitInstaller = new GitInstaller(Environment, TaskManager.Token, installDetails, gitArchivePath, gitLfsArchivePath);
 
-                NPath result = null;
+                NPath? result = null;
                 Exception ex = null;
 
                 gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(TaskManager.Token, (b, path) => {
@@ -61,7 +61,7 @@ namespace IntegrationTests
                     throw new Exception("Did not install git");
                 }
                 
-                Environment.GitExecutablePath = result;
+                Environment.GitExecutablePath = result.Value;
                 GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
             }
         }
