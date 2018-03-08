@@ -48,7 +48,7 @@ namespace GitHub.Unity
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
             var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();            
-            if (gitExecutablePath != null && gitExecutablePath.Value.FileExists()) // we have a git path
+            if (gitExecutablePath.HasValue && gitExecutablePath.Value.FileExists()) // we have a git path
             {
                 Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
                 InitializeEnvironment(gitExecutablePath.Value);
@@ -60,7 +60,7 @@ namespace GitHub.Unity
                 var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (_, path) => InitializeEnvironment(path)) { Affinity = TaskAffinity.UI };
                 var findExecTask = new FindExecTask("git", CancellationToken)
                     .FinallyInUI((b, ex, path) => {
-                        if (b && path != null)
+                        if (b && path.IsInitialized)
                         {
                             Logger.Trace("FindExecTask Success: {0}", path);
                             InitializeEnvironment(path);
