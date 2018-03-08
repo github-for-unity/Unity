@@ -68,7 +68,7 @@ ApiWrapper.prototype.publish = function (name, desc, private, organization, call
             description: desc,
             private: private
         }, function (error, result) {
-            callback(error, (!result) ? null : result.data.git_url);
+            callback(error, (!result) ? null : result.data.clone_url);
         });
     }
     else {
@@ -77,7 +77,7 @@ ApiWrapper.prototype.publish = function (name, desc, private, organization, call
             description: desc,
             private: private
         }, function (error, result) {
-            callback(error, (!result) ? null : result.data.git_url);
+            callback(error, (!result) ? null : result.data.clone_url);
         });
     }
 };
