@@ -64,7 +64,10 @@ namespace GitHub.Unity
 
             cacheContainer = container;
             cacheContainer.CacheInvalidated += CacheHasBeenInvalidated;
-            cacheContainer.CacheUpdated += (cacheType, offset) => cacheUpdateEvents[cacheType](new CacheUpdateEvent(cacheType, offset));
+            cacheContainer.CacheUpdated += (cacheType, offset) =>
+            {
+                cacheUpdateEvents[cacheType](new CacheUpdateEvent(cacheType, offset));
+            };
         }
 
         public void Initialize(IRepositoryManager repositoryManager, ITaskManager taskManager)
