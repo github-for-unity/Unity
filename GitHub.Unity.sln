@@ -29,8 +29,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "src\tests\TestAp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestWebServer", "src\tests\TestWebServer\TestWebServer.csproj", "{3DD3451C-30FA-4294-A3A9-1E080342F867}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctoRun", "src\OctoRun\OctoRun.csproj", "{127F84FE-DB89-4543-9A83-74DB4E751061}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -104,12 +102,6 @@ Global
 		{3DD3451C-30FA-4294-A3A9-1E080342F867}.dev|Any CPU.Build.0 = Debug|Any CPU
 		{3DD3451C-30FA-4294-A3A9-1E080342F867}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3DD3451C-30FA-4294-A3A9-1E080342F867}.Release|Any CPU.Build.0 = Release|Any CPU
-		{127F84FE-DB89-4543-9A83-74DB4E751061}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{127F84FE-DB89-4543-9A83-74DB4E751061}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{127F84FE-DB89-4543-9A83-74DB4E751061}.dev|Any CPU.ActiveCfg = Debug|Any CPU
-		{127F84FE-DB89-4543-9A83-74DB4E751061}.dev|Any CPU.Build.0 = Debug|Any CPU
-		{127F84FE-DB89-4543-9A83-74DB4E751061}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{127F84FE-DB89-4543-9A83-74DB4E751061}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

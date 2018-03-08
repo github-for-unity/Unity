@@ -51,7 +51,6 @@ else
 	nuget restore GitHub.Unity.sln
 fi
 
-xbuild GitHub.Unity.sln /target:OctoRun /property:Configuration=$Configuration
 xbuild GitHub.Unity.sln /property:Configuration=$Configuration
 
 rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/deleteme*
