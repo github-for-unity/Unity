@@ -1,4 +1,3 @@
-var readlineSync = require("readline-sync");
 var config = require("./configuration");
 var octokitWrapper = require("./octokit");
 
