@@ -5,6 +5,7 @@ namespace GitHub.Unity
 {
     public enum CacheType
     {
+        None,
         RepositoryInfo,
         Branches,
         GitLog,

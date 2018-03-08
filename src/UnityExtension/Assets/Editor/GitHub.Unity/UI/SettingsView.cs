@@ -58,12 +58,12 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                Repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentRemoteChangedEvent);
-                Repository.CheckAndRaiseEventsIfCacheNewer(lastLocksChangedEvent);
+                ValidateCachedData(Repository);
             }
 
             metricsHasChanged = true;
         }
+
 
         public override void OnDisable()
         {
@@ -154,6 +154,17 @@ namespace GitHub.Unity
             {
                 return;
             }
+        }
+
+        private void ValidateCachedData(IRepository repository)
+        {
+            if (lastCurrentRemoteChangedEvent.cacheType == CacheType.None)
+                lastCurrentRemoteChangedEvent = new CacheUpdateEvent(CacheType.RepositoryInfo, DateTimeOffset.MinValue);
+            if (lastLocksChangedEvent.cacheType == CacheType.None)
+                lastLocksChangedEvent = new CacheUpdateEvent(CacheType.GitLocks, DateTimeOffset.MinValue);
+
+            repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentRemoteChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(lastLocksChangedEvent);
         }
 
         private void MaybeUpdateData()

@@ -154,11 +154,14 @@ namespace GitHub.Unity
 
         private void RefreshCache(CacheType cacheType)
         {
-            var cache = cacheContainer.GetCache(cacheType);
-            // if the cache has valid data, we need to force an invalidation to refresh it
-            // if it doesn't have valid data, it will trigger an invalidation automatically
-            if (cache.ValidateData())
-                cache.InvalidateData();
+            taskManager.RunInUI(() =>
+            {
+                var cache = cacheContainer.GetCache(cacheType);
+                // if the cache has valid data, we need to force an invalidation to refresh it
+                // if it doesn't have valid data, it will trigger an invalidation automatically
+                if (cache.ValidateData())
+                    cache.InvalidateData();
+            });
         }
 
         private void CacheHasBeenInvalidated(CacheType cacheType)

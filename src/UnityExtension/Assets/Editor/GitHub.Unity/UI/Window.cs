@@ -116,7 +116,7 @@ namespace GitHub.Unity
             Selection.activeObject = this;
 #endif
             if (Repository != null)
-                Repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentBranchAndRemoteChangedEvent);
+                ValidateCachedData(Repository);
 
             if (ActiveView != null)
                 ActiveView.OnEnable();
@@ -257,6 +257,13 @@ namespace GitHub.Unity
                 timeSinceLastRotation = -1f;
                 spinner.Stop();
             }
+        }
+
+        private void ValidateCachedData(IRepository repository)
+        {
+            if (lastCurrentBranchAndRemoteChangedEvent.cacheType == CacheType.None)
+                lastCurrentBranchAndRemoteChangedEvent = new CacheUpdateEvent(CacheType.RepositoryInfo, DateTimeOffset.MinValue);
+            repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentBranchAndRemoteChangedEvent);
         }
 
         private void MaybeUpdateData()

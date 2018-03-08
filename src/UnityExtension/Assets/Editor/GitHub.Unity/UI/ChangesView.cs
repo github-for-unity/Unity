@@ -52,9 +52,7 @@ namespace GitHub.Unity
             }
 
             AttachHandlers(Repository);
-            Repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentBranchChangedEvent);
-            Repository.CheckAndRaiseEventsIfCacheNewer(lastStatusEntriesChangedEvent);
-            Repository.CheckAndRaiseEventsIfCacheNewer(lastLocksChangedEvent);
+            ValidateCachedData(Repository);
         }
 
         public override void OnDisable()
@@ -239,6 +237,20 @@ namespace GitHub.Unity
             repository.CurrentBranchChanged -= RepositoryOnCurrentBranchChanged;
             repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
             repository.LocksChanged -= RepositoryOnLocksChanged;
+        }
+
+        private void ValidateCachedData(IRepository repository)
+        {
+            if (lastCurrentBranchChangedEvent.cacheType == CacheType.None)
+                lastCurrentBranchChangedEvent = new CacheUpdateEvent(CacheType.RepositoryInfo, DateTimeOffset.MinValue);
+            if (lastStatusEntriesChangedEvent.cacheType == CacheType.None)
+                lastStatusEntriesChangedEvent = new CacheUpdateEvent(CacheType.GitStatus, DateTimeOffset.MinValue);
+            if (lastLocksChangedEvent.cacheType == CacheType.None)
+                lastLocksChangedEvent = new CacheUpdateEvent(CacheType.GitLocks, DateTimeOffset.MinValue);
+
+            repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentBranchChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(lastStatusEntriesChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(lastLocksChangedEvent);
         }
 
         private void MaybeUpdateData()

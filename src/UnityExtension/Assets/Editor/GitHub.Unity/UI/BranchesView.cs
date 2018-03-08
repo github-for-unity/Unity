@@ -77,7 +77,7 @@ namespace GitHub.Unity
             }
 
             AttachHandlers(Repository);
-            Repository.CheckAndRaiseEventsIfCacheNewer(lastLocalAndRemoteBranchListChangedEvent);
+            ValidateCachedData(Repository);
         }
 
         public override void OnDisable()
@@ -148,6 +148,13 @@ namespace GitHub.Unity
         private void DetachHandlers(IRepository repository)
         {
             repository.LocalAndRemoteBranchListChanged -= RepositoryOnLocalAndRemoteBranchListChanged;
+        }
+
+        private void ValidateCachedData(IRepository repository)
+        {
+            if (lastLocalAndRemoteBranchListChangedEvent.cacheType == CacheType.None)
+                lastLocalAndRemoteBranchListChangedEvent = new CacheUpdateEvent(CacheType.Branches, DateTimeOffset.MinValue);
+            repository.CheckAndRaiseEventsIfCacheNewer(lastLocalAndRemoteBranchListChangedEvent);
         }
 
         private void Render()

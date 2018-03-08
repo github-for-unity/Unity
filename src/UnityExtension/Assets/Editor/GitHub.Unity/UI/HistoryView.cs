@@ -359,13 +359,7 @@ namespace GitHub.Unity
             }
 
             AttachHandlers(Repository);
-
-            if (Repository != null)
-            {
-                Repository.CheckAndRaiseEventsIfCacheNewer(lastLogChangedEvent);
-                Repository.CheckAndRaiseEventsIfCacheNewer(lastAheadBehindChangedEvent);
-                Repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentRemoteChangedEvent);
-            }
+            ValidateCachedData(Repository);
         }
 
         public override void OnDisable()
@@ -604,6 +598,19 @@ namespace GitHub.Unity
             repository.TrackingStatusChanged -= RepositoryTrackingOnStatusChanged;
             repository.LogChanged -= RepositoryOnLogChanged;
             repository.CurrentRemoteChanged -= RepositoryOnCurrentRemoteChanged;
+        }
+
+        private void ValidateCachedData(IRepository repository)
+        {
+            if (lastLogChangedEvent.cacheType == CacheType.None)
+                lastLogChangedEvent = new CacheUpdateEvent(CacheType.GitLog, DateTimeOffset.MinValue);
+            if (lastAheadBehindChangedEvent.cacheType == CacheType.None)
+                lastAheadBehindChangedEvent = new CacheUpdateEvent(CacheType.GitAheadBehind, DateTimeOffset.MinValue);
+            if (lastCurrentRemoteChangedEvent.cacheType == CacheType.None)
+                lastCurrentRemoteChangedEvent = new CacheUpdateEvent(CacheType.RepositoryInfo, DateTimeOffset.MinValue);
+            repository.CheckAndRaiseEventsIfCacheNewer(lastLogChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(lastAheadBehindChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentRemoteChangedEvent);
         }
 
         private void MaybeUpdateData()
