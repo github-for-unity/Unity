@@ -26,7 +26,7 @@ namespace GitHub.Unity
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
-            gitExecutableIsSet = Environment.GitExecutablePath != null;
+            gitExecutableIsSet = Environment.GitExecutablePath.IsInitialized;
         }
 
         public override void OnDataUpdate()
