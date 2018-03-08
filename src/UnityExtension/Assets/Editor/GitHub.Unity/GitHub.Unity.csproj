@@ -195,15 +195,6 @@
     <EmbeddedResource Include="IconsAndLogos\tracked-branch-indicator.png" />
     <EmbeddedResource Include="IconsAndLogos\untracked%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\untracked.png" />
-    <EmbeddedResource Include="..\..\..\..\OctoRun\bin\$(BuildConfig)\octorun.exe">
-      <Link>Tools\octorun.exe</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\..\..\..\OctoRun\bin\$(BuildConfig)\GitHub.Logging.dll">
-      <Link>Tools\GitHub.Logging.dll</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\..\..\..\OctoRun\bin\$(BuildConfig)\Mono.Options.dll">
-      <Link>Tools\Mono.Options.dll</Link>
-    </EmbeddedResource>
     <EmbeddedResource Include="..\..\..\..\OctoRun\bin\$(BuildConfig)\Octokit.dll">
       <Link>Tools\Octokit.dll</Link>
     </EmbeddedResource>
