@@ -10,7 +10,7 @@ namespace GitHub.Unity
         private static ILogging Logger = LogHelper.GetLogger<LfsLocksModificationProcessor>();
         private static IRepository repository;
         private static IPlatform platform;
-        private static List<GitLock> locks = new List<GitLock>();
+        private static Dictionary<string, GitLock> locks = new Dictionary<string, GitLock>();
         private static CacheUpdateEvent lastLocksChangedEvent;
 
         public static void Initialize(IRepository repo, IPlatform plat)
@@ -75,7 +75,7 @@ namespace GitHub.Unity
             if (!lastLocksChangedEvent.Equals(cacheUpdateEvent))
             {
                 lastLocksChangedEvent = cacheUpdateEvent;
-                locks = repository.CurrentLocks;
+                locks = repository.CurrentLocks.ToDictionary(gitLock => gitLock.Path);
             }
         }
 
@@ -90,11 +90,11 @@ namespace GitHub.Unity
             if (repository != null)
             {
                 var repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath.ToNPath());
-                var lck = locks.FirstOrDefault(@lock => @lock.Path == repositoryPath);
-                if (!lck.Equals(GitLock.Default))
+                GitLock lck;
+                if(locks.TryGetValue(repositoryPath, out lck))
                 {
                     var user = platform.Keychain.Connections.FirstOrDefault();
-                    if (!lck.User.Equals(user))
+                    if (!lck.User.Equals(user.Username))
                     {
                         gitLock = lck;
                     }
