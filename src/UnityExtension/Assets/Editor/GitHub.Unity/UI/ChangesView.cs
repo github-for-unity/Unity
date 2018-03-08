@@ -23,6 +23,8 @@ namespace GitHub.Unity
         [NonSerialized] private bool currentLocksHasUpdate;
         [NonSerialized] private bool isBusy;
 
+        [NonSerialized] private GUIContent discardGuiContent;
+
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
@@ -143,13 +145,46 @@ namespace GitHub.Unity
                 var treeRenderRect = treeChanges.Render(rect, treeScroll, 
                     node => { }, 
                     node => { },
-                    node => { });
+                    node => {
+                        var menu = CreateContextMenu(node);
+                        menu.ShowAsContext();
+                    });
 
                 if (treeChanges.RequiresRepaint)
                     Redraw();
 
                 GUILayout.Space(treeRenderRect.y - rect.y);
             }
+        }
+
+        private GenericMenu CreateContextMenu(ChangesTreeNode node)
+        {
+            var genericMenu = new GenericMenu();
+
+            if (discardGuiContent == null)
+            {
+                discardGuiContent = new GUIContent("Discard");
+            }
+
+            genericMenu.AddItem(discardGuiContent, false, () => {
+                GitStatusEntry[] discardEntries;
+                if (node.isFolder)
+                {
+                    discardEntries = treeChanges
+                        .GetLeafNodes(node)
+                        .Select(treeNode => treeNode.GitStatusEntry)
+                        .ToArray();
+                }
+                else
+                {
+                    discardEntries = new [] { node.GitStatusEntry };
+                }
+
+                Repository.DiscardChanges(discardEntries)
+                          .Start();
+            });
+
+            return genericMenu;
         }
 
         private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)

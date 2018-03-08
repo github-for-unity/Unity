@@ -32,7 +32,7 @@ namespace GitHub.Unity
 
         public DownloadTask(CancellationToken token,
             IFileSystem fileSystem, UriString url,
-            NPath targetDirectory = null,
+            NPath? targetDirectory = null,
             string filename = null,
             string validationHash = null, int retryCount = 0)
             : base(token)
@@ -99,30 +99,53 @@ namespace GitHub.Unity
                 {
                     Logger.Trace($"Download of {Url} to {Destination} Attempt {attempts + 1} of {RetryCount + 1}");
 
-                    using (var destinationStream = fileSystem.OpenWrite(Destination, FileMode.Append))
+                    var fileExistsAndValid = false;
+                    if (Destination.FileExists())
                     {
-                        result = Utils.Download(Logger, Url, destinationStream,
-                            (value, total) =>
-                            {
-                                UpdateProgress(value, total);
-                                return !Token.IsCancellationRequested;
-                            });
-                    }
-
-                    if (result && ValidationHash != null)
-                    {
-                        var md5 = fileSystem.CalculateFileMD5(TargetDirectory);
-                        result = md5.Equals(ValidationHash, StringComparison.CurrentCultureIgnoreCase);
-
-                        if (!result)
+                        if (ValidationHash == null)
                         {
-                            Logger.Warning($"Downloaded MD5 {md5} does not match {ValidationHash}. Deleting {TargetDirectory}.");
-                            fileSystem.FileDelete(TargetDirectory);
+                            Destination.Delete();
                         }
                         else
                         {
-                            Logger.Trace($"Download confirmed {md5}");
-                            break;
+                            var md5 = fileSystem.CalculateFileMD5(Destination);
+                            result = md5.Equals(ValidationHash, StringComparison.CurrentCultureIgnoreCase);
+
+                            if (result)
+                            {
+                                Logger.Trace($"Download previously exists & confirmed {md5}");
+                                fileExistsAndValid = true;
+                            }
+                        }
+                    }
+
+                    if (!fileExistsAndValid)
+                    {
+                        using (var destinationStream = fileSystem.OpenWrite(Destination, FileMode.Append))
+                        {
+                            result = Utils.Download(Logger, Url, destinationStream,
+                                (value, total) =>
+                                {
+                                    UpdateProgress(value, total);
+                                    return !Token.IsCancellationRequested;
+                                });
+                        }
+
+                        if (result && ValidationHash != null)
+                        {
+                            var md5 = fileSystem.CalculateFileMD5(Destination);
+                            result = md5.Equals(ValidationHash, StringComparison.CurrentCultureIgnoreCase);
+
+                            if (!result)
+                            {
+                                Logger.Warning($"Downloaded MD5 {md5} does not match {ValidationHash}. Deleting {Destination}.");
+                                fileSystem.FileDelete(TargetDirectory);
+                            }
+                            else
+                            {
+                                Logger.Trace($"Download confirmed {md5}");
+                                break;
+                            }
                         }
                     }
                 }
@@ -152,7 +175,7 @@ namespace GitHub.Unity
 
         public string Filename { get; }
 
-        public NPath Destination { get { return TargetDirectory?.Combine(Filename); } }
+        public NPath Destination { get { return TargetDirectory.Combine(Filename); } }
 
         public string ValidationHash { get; set; }
 
@@ -172,7 +195,7 @@ namespace GitHub.Unity
     {
         public DownloadTextTask(CancellationToken token,
             IFileSystem fileSystem, UriString url,
-            NPath targetDirectory = null,
+            NPath? targetDirectory = null,
             string filename = null,
             int retryCount = 0)
             : base(token, fileSystem, url, targetDirectory, filename, retryCount: retryCount)

@@ -8,14 +8,13 @@ namespace IntegrationTests
 {
     class BaseGitEnvironmentTest : BasePlatformIntegrationTest
     {
-        protected IEnvironment Initialize(NPath repoPath, NPath environmentPath = null,
+        protected IEnvironment Initialize(NPath repoPath, NPath? environmentPath = null,
             bool enableEnvironmentTrace = false, bool initializeRepository = true,
             Action<RepositoryManager> onRepositoryManagerCreated = null)
         {
             InitializePlatform(repoPath, environmentPath, enableEnvironmentTrace);
 
-            var repositoryManager =
-                GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
+            var repositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, ProcessManager, Environment.FileSystem, repoPath);
             onRepositoryManagerCreated?.Invoke(repositoryManager);
 
             RepositoryManager = repositoryManager;

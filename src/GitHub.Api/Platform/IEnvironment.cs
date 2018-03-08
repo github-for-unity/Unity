@@ -5,7 +5,7 @@ namespace GitHub.Unity
     public interface IEnvironment
     {
         void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityPath, NPath assetsPath);
-        void InitializeRepository(NPath expectedRepositoryPath = null);
+        void InitializeRepository(NPath? expectedRepositoryPath = null);
         string ExpandEnvironmentVariables(string name);
         string GetEnvironmentVariable(string v);
         string GetSpecialFolder(Environment.SpecialFolder folder);

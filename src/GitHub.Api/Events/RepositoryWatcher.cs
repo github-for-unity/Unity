@@ -169,7 +169,7 @@ namespace GitHub.Unity
                 var eventDirectory = new NPath(fileEvent.Directory);
                 var fileA = eventDirectory.Combine(fileEvent.FileA);
 
-                NPath fileB = null;
+                NPath fileB;
                 if (fileEvent.FileB != null)
                 {
                     fileB = eventDirectory.Combine(fileEvent.FileB);
