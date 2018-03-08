@@ -52,27 +52,27 @@ namespace GitHub.Unity
             User = new User(CacheContainer);
         }
 
-        public void InitializeRepository(NPath expectedRepositoryPath = null)
+        public void InitializeRepository(NPath? repositoryPath = null)
         {
             Guard.NotNull(this, FileSystem, nameof(FileSystem));
 
-            //Logger.Trace("InitializeRepository expectedRepositoryPath:{0}", expectedRepositoryPath);
+            //Logger.Trace("InitializeRepository expectedRepositoryPath:{0}", repositoryPath);
 
-            if (RepositoryPath == null)
+            NPath expectedRepositoryPath;
+            if (!RepositoryPath.IsInitialized)
             {
                 Guard.NotNull(this, UnityProjectPath, nameof(UnityProjectPath));
 
                 //Logger.Trace("RepositoryPath is null");
 
-                if (expectedRepositoryPath == null)
-                    expectedRepositoryPath = UnityProjectPath;
+                expectedRepositoryPath = repositoryPath != null ? repositoryPath.Value : UnityProjectPath;
 
                 if (!expectedRepositoryPath.DirectoryExists(".git"))
                 {
                     Logger.Trace(".git folder exists");
 
-                    var reporoot = UnityProjectPath.RecursiveParents.FirstOrDefault(d => d.DirectoryExists(".git"));
-                    if (reporoot != null)
+                    NPath reporoot = UnityProjectPath.RecursiveParents.FirstOrDefault(d => d.DirectoryExists(".git"));
+                    if (reporoot.IsInitialized)
                         expectedRepositoryPath = reporoot;
                 }
             }
@@ -125,7 +125,7 @@ namespace GitHub.Unity
             {
                 gitExecutablePath = value;
                 if (String.IsNullOrEmpty(gitExecutablePath))
-                    GitInstallPath = null;
+                    GitInstallPath = NPath.Default;
                 else
                     GitInstallPath = GitExecutablePath.Resolve().Parent.Parent;
             }

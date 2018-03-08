@@ -19,7 +19,7 @@ namespace IntegrationTests
         public IntegrationTestEnvironment(ICacheContainer cacheContainer,
             NPath repoPath,
             NPath solutionDirectory,
-            NPath environmentPath = null,
+            NPath? environmentPath = null,
             bool enableTrace = false,
             bool initializeRepository = true)
         {
@@ -30,7 +30,7 @@ namespace IntegrationTests
                                   .ToNPath()
                                   .EnsureDirectoryExists(ApplicationInfo.ApplicationName + "-IntegrationTests");
 
-            integrationTestEnvironmentPath = environmentPath;
+            integrationTestEnvironmentPath = environmentPath.Value;
             UserCachePath = integrationTestEnvironmentPath.Combine("User");
             SystemCachePath = integrationTestEnvironmentPath.Combine("System");
 
@@ -54,7 +54,7 @@ namespace IntegrationTests
             defaultEnvironment.Initialize(unityVersion, extensionInstallPath, unityPath, assetsPath);
         }
 
-        public void InitializeRepository(NPath expectedPath = null)
+        public void InitializeRepository(NPath? expectedPath = null)
         {
             defaultEnvironment.InitializeRepository(expectedPath);
         }

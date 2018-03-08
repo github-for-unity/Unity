@@ -51,7 +51,7 @@ namespace IntegrationTests
 
             var gitInstaller = new GitInstaller(Environment, CancellationToken.None, installDetails);
 
-            NPath resultPath = null;
+            NPath? resultPath = null;
             Assert.DoesNotThrow(async () => resultPath = await gitInstaller.SetupGitIfNeeded().Task);
             resultPath.Should().NotBeNull();
         }

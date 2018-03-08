@@ -23,7 +23,7 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
         }
 
-        public T Configure<T>(T processTask, NPath executable = null, string arguments = null, NPath workingDirectory = null, bool withInput = false)
+        public T Configure<T>(T processTask, NPath? executable = null, string arguments = null, NPath? workingDirectory = null, bool withInput = false)
              where T : IProcess
         {
             executable = executable ?? processTask.ProcessName?.ToNPath() ?? environment.GitExecutablePath;
@@ -44,10 +44,10 @@ namespace GitHub.Unity
 
             gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath);
 
-            if (executable.IsRelative)
+            if (executable.Value.IsRelative)
             {
-                executable = executable.FileName.ToNPath();
-                executable = FindExecutableInPath(executable, startInfo.EnvironmentVariables["PATH"]) ?? executable;
+                executable = executable.Value.FileName.ToNPath();
+                executable = FindExecutableInPath(executable.Value, startInfo.EnvironmentVariables["PATH"]) ?? executable;
             }
             startInfo.FileName = executable;
             startInfo.Arguments = arguments ?? processTask.ProcessArguments;
@@ -109,7 +109,7 @@ namespace GitHub.Unity
             return processTask;
         }
 
-        private NPath FindExecutableInPath(NPath executable, string searchPaths = null)
+        private NPath? FindExecutableInPath(NPath executable, string searchPaths = null)
         {
             Guard.ArgumentNotNullOrWhiteSpace(executable, "executable");
 
@@ -129,11 +129,11 @@ namespace GitHub.Unity
                     catch (Exception e)
                     {
                         logger.Error("Error while looking for {0} in {1}\n{2}", executable, directory, e);
-                        return null;
+                        return new NPath?();
                     }
                 })
                 .Where(x => x != null)
-                .FirstOrDefault(x => x.FileExists());
+                .FirstOrDefault(x => x.Value.FileExists());
 
             return executablePath;
         }

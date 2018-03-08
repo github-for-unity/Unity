@@ -56,10 +56,10 @@ namespace GitHub.Unity
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
             var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();
-            if (gitExecutablePath != null && gitExecutablePath.FileExists()) // we have a git path
+            if (gitExecutablePath != null && gitExecutablePath.Value.FileExists()) // we have a git path
             {
                 Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
-                InitializeEnvironment(gitExecutablePath);
+                InitializeEnvironment(gitExecutablePath.Value);
             }
             else // we need to go find git
             {
@@ -74,7 +74,7 @@ namespace GitHub.Unity
                         if (b && path != null)
                         {
                             //Logger.Trace("FindExecTask Success: {0}", path);
-                            InitializeEnvironment(gitExecutablePath);
+                            InitializeEnvironment(path);
                         }
                         else
                         {

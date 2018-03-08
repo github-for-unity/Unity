@@ -56,7 +56,7 @@ namespace IntegrationTests
             var path = new ProcessTask<NPath>(TaskManager.Token, new FirstLineIsPathOutputProcessor())
                 .Configure(ProcessManager, env.IsWindows ? "where" : "which", "git")
                 .Start().Result;
-            env.GitExecutablePath = path ?? "git".ToNPath();
+            env.GitExecutablePath = path.IsInitialized ? path : "git".ToNPath();
         }
 
         [TestFixtureTearDown]

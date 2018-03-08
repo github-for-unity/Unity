@@ -57,8 +57,8 @@ namespace IntegrationTests
         protected TestUtils.SubstituteFactory Factory { get; set; }
         protected static NPath SolutionDirectory => TestContext.CurrentContext.TestDirectory.ToNPath();
 
-        protected void InitializeEnvironment(NPath repoPath = null,
-            NPath environmentPath = null,
+        protected void InitializeEnvironment(NPath? repoPath,
+            NPath? environmentPath = null,
             bool enableEnvironmentTrace = false,
             bool initializeRepository = true
             )

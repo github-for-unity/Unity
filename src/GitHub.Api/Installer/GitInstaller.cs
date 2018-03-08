@@ -69,8 +69,8 @@ namespace GitHub.Unity
         private GitInstallationState VerifyGitInstallation()
         {
             var state = new GitInstallationState();
-            state.GitExists = installDetails.GitExecutablePath?.FileExists() ?? false;
-            state.GitLfsExists = installDetails.GitLfsExecutablePath?.FileExists() ?? false;
+            state.GitExists = installDetails.GitExecutablePath.FileExists() ?? false;
+            state.GitLfsExists = installDetails.GitLfsExecutablePath.FileExists() ?? false;
             state.GitZipExists = installDetails.GitZipPath.FileExists();
             state.GitLfsZipExists = installDetails.GitLfsZipPath.FileExists();
 
