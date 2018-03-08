@@ -62,7 +62,7 @@ namespace GitHub.Unity
                 var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (_, path) => InitializeEnvironment(path, octorunScriptPath)) { Affinity = TaskAffinity.UI };
                 var findExecTask = new FindExecTask("git", CancellationToken)
                     .FinallyInUI((b, ex, path) => {
-                        if (b && path != NPath.Default)
+                        if (b && path.IsInitialized)
                         {
                             Logger.Trace("FindExecTask Success: {0}", path);
                             InitializeEnvironment(path, octorunScriptPath);
