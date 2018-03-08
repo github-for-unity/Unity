@@ -57,7 +57,7 @@ namespace IntegrationTests
         protected TestUtils.SubstituteFactory Factory { get; set; }
         protected static NPath SolutionDirectory => TestContext.CurrentContext.TestDirectory.ToNPath();
 
-        protected void InitializeEnvironment(NPath? repoPath,
+        protected void InitializeEnvironment(NPath repoPath,
             NPath? environmentPath = null,
             bool enableEnvironmentTrace = false,
             bool initializeRepository = true
@@ -80,7 +80,7 @@ namespace IntegrationTests
                 initializeRepository);
         }
 
-        private void InitializePlatform(NPath repoPath, NPath environmentPath, bool enableEnvironmentTrace,
+        private void InitializePlatform(NPath repoPath, NPath? environmentPath, bool enableEnvironmentTrace,
             bool setupGit = true, string testName = "")
         {
             InitializeTaskManager();
@@ -103,7 +103,7 @@ namespace IntegrationTests
         }
 
         protected IEnvironment InitializePlatformAndEnvironment(NPath repoPath,
-            NPath environmentPath = null,
+            NPath? environmentPath = null,
             bool enableEnvironmentTrace = false,
             bool setupGit = true,
             Action<IRepositoryManager> onRepositoryManagerCreated = null,
@@ -154,7 +154,7 @@ namespace IntegrationTests
 
             var gitInstaller = new GitInstaller(Environment, TaskManager.Token, installDetails);
 
-            NPath result = null;
+            NPath? result = null;
             Exception ex = null;
 
             var setupTask = gitInstaller.SetupGitIfNeeded();
@@ -177,7 +177,7 @@ namespace IntegrationTests
                 throw new Exception("Did not install git");
             }
 
-            Environment.GitExecutablePath = result;
+            Environment.GitExecutablePath = result.Value;
             GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
         }
 

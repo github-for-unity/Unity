@@ -38,7 +38,7 @@ namespace IntegrationTests
 
             Initialize(UnityVersion, installPath, solutionDirectory, repoPath.Combine("Assets"));
 
-            InitializeRepository(initializeRepository ? repoPath : null);
+            InitializeRepository(initializeRepository ? (NPath?)repoPath : null);
 
             this.enableTrace = enableTrace;
 
