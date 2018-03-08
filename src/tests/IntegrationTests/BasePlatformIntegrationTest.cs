@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using GitHub.Unity;
 using NSubstitute;
-using Octokit;
 
 namespace IntegrationTests
 {
