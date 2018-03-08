@@ -85,7 +85,7 @@ namespace GitHub.Unity
             {
                 task.Task.ContinueWith(tt =>
                 {
-                    logger.Trace(tt.Exception.InnerException, String.Format("Exception on ui thread: {0} {1}", tt.Id, task.Name));
+                    logger.Error(tt.Exception.InnerException, String.Format("Exception on ui thread: {0} {1}", tt.Id, task.Name));
                 },
                     cts.Token,
                     TaskContinuationOptions.OnlyOnFaulted, ConcurrentScheduler
@@ -101,7 +101,7 @@ namespace GitHub.Unity
             {
                 task.Task.ContinueWith(tt =>
                 {
-                    logger.Trace(tt.Exception.InnerException, String.Format("Exception on exclusive thread: {0} {1}", tt.Id, task.Name));
+                    logger.Error(tt.Exception.InnerException, String.Format("Exception on exclusive thread: {0} {1}", tt.Id, task.Name));
                 },
                     cts.Token,
                     TaskContinuationOptions.OnlyOnFaulted, ConcurrentScheduler
@@ -117,7 +117,7 @@ namespace GitHub.Unity
             {
                 task.Task.ContinueWith(tt =>
                 {
-                    logger.Trace(tt.Exception.InnerException, String.Format("Exception on concurrent thread: {0} {1}", tt.Id, task.Name));
+                    logger.Error(tt.Exception.InnerException, String.Format("Exception on concurrent thread: {0} {1}", tt.Id, task.Name));
                 },
                     cts.Token,
                     TaskContinuationOptions.OnlyOnFaulted, ConcurrentScheduler
