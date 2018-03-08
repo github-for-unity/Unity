@@ -50,7 +50,8 @@ namespace GitHub.Unity
         public void CheckAndRaiseEventsIfCacheNewer(CacheUpdateEvent cacheUpdateEvent)
         {
             var cache = GetCache(cacheUpdateEvent.cacheType);
-            if (cache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime)
+            var needsInvalidation = cache.ValidateData();
+            if (!needsInvalidation || cache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime)
             {
                 OnCacheUpdated(cache.CacheType, cache.LastUpdatedAt);
             }
