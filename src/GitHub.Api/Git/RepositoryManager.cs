@@ -18,6 +18,7 @@ namespace GitHub.Unity
         event Action<Dictionary<string, ConfigBranch>> LocalBranchesUpdated;
         event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> RemoteBranchesUpdated;
         event Action<GitAheadBehindStatus> GitAheadBehindStatusUpdated;
+
         event Action<CacheType> DataNeedsRefreshing;
 
         void Initialize();
@@ -115,6 +116,7 @@ namespace GitHub.Unity
         public event Action<List<GitLogEntry>> GitLogUpdated;
         public event Action<Dictionary<string, ConfigBranch>> LocalBranchesUpdated;
         public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> RemoteBranchesUpdated;
+
         public event Action<CacheType> DataNeedsRefreshing;
 
         public RepositoryManager(IGitConfig gitConfig,
@@ -610,6 +612,14 @@ namespace GitHub.Unity
 
             if (disposing)
             {
+                CurrentBranchUpdated = null;
+                GitStatusUpdated = null;
+                GitAheadBehindStatusUpdated = null;
+                GitLogUpdated = null;
+                GitLocksUpdated = null;
+                LocalBranchesUpdated = null;
+                RemoteBranchesUpdated = null;
+                DataNeedsRefreshing = null;
                 Stop();
                 watcher.Dispose();
             }

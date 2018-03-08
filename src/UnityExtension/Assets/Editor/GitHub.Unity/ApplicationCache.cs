@@ -133,8 +133,8 @@ namespace GitHub.Unity
         [NonSerialized] private DateTimeOffset? lastUpdatedAtValue;
         [NonSerialized] private DateTimeOffset? initializedAtValue;
 
-        public event Action CacheInvalidated;
-        public event Action<DateTimeOffset> CacheUpdated;
+        public event Action<CacheType> CacheInvalidated;
+        public event Action<CacheType, DateTimeOffset> CacheUpdated;
 
         protected ManagedCacheBase(CacheType type)
         {
@@ -159,7 +159,7 @@ namespace GitHub.Unity
         {
             Logger.Trace("Invalidate");
             LastUpdatedAt = DateTimeOffset.MinValue;
-            CacheInvalidated.SafeInvoke();
+            CacheInvalidated.SafeInvoke(CacheType);
         }
 
         protected void SaveData(DateTimeOffset now, bool isChanged)
@@ -175,7 +175,7 @@ namespace GitHub.Unity
             if (isChanged)
             {
                 Logger.Trace("Updated: {0}", now);
-                CacheUpdated.SafeInvoke(now);
+                CacheUpdated.SafeInvoke(CacheType, now);
             }
         }
 

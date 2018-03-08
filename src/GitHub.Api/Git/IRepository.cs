@@ -6,7 +6,7 @@ namespace GitHub.Unity
     /// <summary>
     /// Represents a repository, either local or retrieved via the GitHub API.
     /// </summary>
-    public interface IRepository : IEquatable<IRepository>
+    public interface IRepository : IEquatable<IRepository>, IDisposable
     {
         void Initialize(IRepositoryManager repositoryManager, ITaskManager taskManager);
         void Start();

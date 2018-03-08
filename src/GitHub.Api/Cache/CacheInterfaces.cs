@@ -14,7 +14,7 @@ namespace GitHub.Unity
         GitUser
     }
 
-    public interface ICacheContainer
+    public interface ICacheContainer : IDisposable
     {
         event Action<CacheType> CacheInvalidated;
         event Action<CacheType, DateTimeOffset> CacheUpdated;
@@ -34,8 +34,8 @@ namespace GitHub.Unity
 
     public interface IManagedCache
     {
-        event Action CacheInvalidated;
-        event Action<DateTimeOffset> CacheUpdated;
+        event Action<CacheType> CacheInvalidated;
+        event Action<CacheType, DateTimeOffset> CacheUpdated;
 
         bool ValidateData();
         void InvalidateData();

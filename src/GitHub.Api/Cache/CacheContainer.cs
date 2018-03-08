@@ -37,8 +37,8 @@ namespace GitHub.Unity
 
         private IManagedCache SetupCache(IManagedCache cache)
         {
-            cache.CacheInvalidated += () => OnCacheInvalidated(cache.CacheType);
-            cache.CacheUpdated += datetime => OnCacheUpdated(cache.CacheType, datetime);
+            cache.CacheInvalidated += OnCacheInvalidated;
+            cache.CacheUpdated += OnCacheUpdated;
             return cache;
         }
 
@@ -66,6 +66,28 @@ namespace GitHub.Unity
         {
             Logger.Trace("OnCacheInvalidated cacheType:{0}", cacheType);
             CacheInvalidated.SafeInvoke(cacheType);
+        }
+
+        private bool disposed;
+        private void Dispose(bool disposing)
+        {
+            if (disposed) return;
+            disposed = true;
+
+            if (disposing)
+            {
+                foreach (var cache in caches.Values)
+                {
+                    cache.Value.CacheInvalidated -= OnCacheInvalidated;
+                    cache.Value.CacheUpdated -= OnCacheUpdated;
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         public IBranchCache BranchCache { get { return (IBranchCache)caches[CacheType.Branches].Value; } }
