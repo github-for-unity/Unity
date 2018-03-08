@@ -35,7 +35,7 @@ namespace GitHub.Unity
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
-            gitExecutableIsSet = Environment.GitExecutablePath != null;
+            gitExecutableIsSet = Environment.GitExecutablePath.IsInitialized;
         }
 
         public override void OnEnable()
@@ -181,7 +181,7 @@ namespace GitHub.Unity
                     }
                 }
 
-                if (Environment.GitExecutablePath != null)
+                if (Environment.GitExecutablePath.IsInitialized)
                 {
                     newGitExec = gitExec = Environment.GitExecutablePath.ToString();
                     gitExecParent = Environment.GitExecutablePath.Parent.ToString();
