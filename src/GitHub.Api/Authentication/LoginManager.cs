@@ -30,8 +30,8 @@ namespace GitHub.Unity
         private readonly string fingerprint;
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
-        private readonly NPath nodeJsExecutablePath;
-        private readonly NPath octorunScript;
+        private readonly NPath? nodeJsExecutablePath;
+        private readonly NPath? octorunScript;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoginManager"/> class.
@@ -51,7 +51,7 @@ namespace GitHub.Unity
             string clientSecret,
             string authorizationNote = null,
             string fingerprint = null,
-            IProcessManager processManager = null, ITaskManager taskManager = null, NPath nodeJsExecutablePath = null, NPath octorunScript = null)
+            IProcessManager processManager = null, ITaskManager taskManager = null, NPath? nodeJsExecutablePath = null, NPath? octorunScript = null)
         {
             Guard.ArgumentNotNull(keychain, nameof(keychain));
             Guard.ArgumentNotNullOrWhiteSpace(clientId, nameof(clientId));
@@ -251,10 +251,20 @@ namespace GitHub.Unity
             string password
         )
         {
+            if (!nodeJsExecutablePath.HasValue)
+            {
+                throw new InvalidOperationException("nodeJsExecutablePath must be set");
+            }
+
+            if (!octorunScript.HasValue)
+            {
+                throw new InvalidOperationException("octorunScript must be set");
+            }
+
             ApplicationAuthorization auth;
-            var loginTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScript,
+            var loginTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath.Value, octorunScript.Value,
                 "login", ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
-            loginTask.Configure(processManager, workingDirectory: octorunScript.Parent.Parent, withInput: true);
+            loginTask.Configure(processManager, workingDirectory: octorunScript.Value.Parent.Parent, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
                 proc.StandardInput.WriteLine(username);
@@ -297,12 +307,20 @@ namespace GitHub.Unity
             string code
         )
         {
-            logger.Info("Continue Username:{0} {1} {2}", username, password, code);
+            if (!nodeJsExecutablePath.HasValue)
+            {
+                throw new InvalidOperationException("nodeJsExecutablePath must be set");
+            }
+
+            if (!octorunScript.HasValue)
+            {
+                throw new InvalidOperationException("octorunScript must be set");
+            }
 
             ApplicationAuthorization auth;
-            var loginTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScript,
+            var loginTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath.Value, octorunScript.Value,
                 "login --twoFactor", ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
-            loginTask.Configure(processManager, workingDirectory: octorunScript.Parent.Parent, withInput: true);
+            loginTask.Configure(processManager, workingDirectory: octorunScript.Value.Parent.Parent, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
                 proc.StandardInput.WriteLine(username);
@@ -312,8 +330,6 @@ namespace GitHub.Unity
             };
 
             var ret = (await loginTask.StartAwait());
-
-            logger.Trace("Return: {0}", string.Join(";", ret.ToArray()));
 
             if (ret.Count == 0)
             {
