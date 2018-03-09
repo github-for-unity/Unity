@@ -213,19 +213,22 @@ namespace GitHub.Unity
                 var uriString = keychain.Connections.First().Host;
                 var keychainAdapter = await keychain.Load(uriString);
 
-                var command = new StringBuilder("publish -r ");
+                var command = new StringBuilder("publish -r \"");
                 command.Append(newRepository.Name);
+                command.Append("\"");
 
                 if (!string.IsNullOrEmpty(newRepository.Description))
                 {
-                    command.Append(" -d ");
+                    command.Append(" -d \"");
                     command.Append(newRepository.Description);
+                    command.Append("\"");
                 }
 
                 if (!string.IsNullOrEmpty(organization))
                 {
-                    command.Append(" -o ");
+                    command.Append(" -o \"");
                     command.Append(organization);
+                    command.Append("\"");
                 }
 
                 if (newRepository.Private ?? false)
