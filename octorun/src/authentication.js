@@ -2,16 +2,13 @@ var endOfLine = require('os').EOL;
 var config = require("./configuration");
 var octokitWrapper = require("./octokit");
 
-var scopes = ["user", "repo", "gist", "write:public_key"];
-
 var lockedRegex = new RegExp("number of login attempts exceeded", "gi");
 var twoFactorRegex = new RegExp("must specify two-factor authentication otp code", "gi");
 var badCredentialsRegex = new RegExp("bad credentials", "gi");
 
-var lockedErrorMessage = "locked";
-var badCredentialsErrorMessage = "badcredentials";
+var scopes = ["user", "repo", "gist", "write:public_key"];
 
-var handleBasicAuthentication = function (username, password, onSuccess, onRequiresTwoFa, onFailure) {
+var handleAuthentication = function (username, password, onSuccess, onFailure, twoFactor) {
     var octokit = octokitWrapper.createOctokit();
 
     octokit.authenticate({
@@ -20,56 +17,29 @@ var handleBasicAuthentication = function (username, password, onSuccess, onRequi
         password: password
     });
 
-    octokit.authorization.create({
-        scopes: scopes,
-        note: config.appName,
-        client_id: config.clientId,
-        client_secret: config.clientSecret
-    }, function (err, res) {
-        if (err) {
-            if (twoFactorRegex.test(err.message)) {
-                onRequiresTwoFa();
-            }
-            else if (lockedRegex.test(err.message)) {
-                onFailure(lockedErrorMessage)
-            }
-            else if (badCredentialsRegex.test(err.message)) {
-                onFailure(badCredentialsErrorMessage)
-            }
-            else {
-                onFailure(err)
-            }
-        }
-        else {
-            onSuccess(res.data.token);
-        }
-    });
-}
-
-var handleTwoFactorAuthentication = function (username, password, twoFactor, onSuccess, onFailure) {
-    var octokit = octokitWrapper.createOctokit();
-
-    octokit.authenticate({
-        type: "basic",
-        username: username,
-        password: password
-    });
+    var headers;
+    if (twoFactor) {
+        headers = {
+            "X-GitHub-OTP": twoFactor
+        };
+    }
 
     octokit.authorization.create({
         scopes: scopes,
         note: config.appName,
         client_id: config.clientId,
         client_secret: config.clientSecret,
-        headers: {
-            "X-GitHub-OTP": twoFactor
-        }
+        headers: headers
     }, function (err, res) {
         if (err) {
-            if (lockedRegex.test(err.message)) {
-                onFailure(lockedErrorMessage)
+            if (twoFactorRegex.test(err.message)) {
+                onSuccess(password, "2fa");
+            }
+            else if (lockedRegex.test(err.message)) {
+                onFailure("locked")
             }
             else if (badCredentialsRegex.test(err.message)) {
-                onFailure(badCredentialsErrorMessage)
+                onFailure("badcredentials")
             }
             else {
                 onFailure(err)
@@ -82,6 +52,5 @@ var handleTwoFactorAuthentication = function (username, password, twoFactor, onS
 }
 
 module.exports = {
-    handleBasicAuthentication: handleBasicAuthentication,
-    handleTwoFactorAuthentication: handleTwoFactorAuthentication,
+    handleAuthentication: handleAuthentication,
 };
