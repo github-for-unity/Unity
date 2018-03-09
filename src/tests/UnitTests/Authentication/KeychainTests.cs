@@ -75,12 +75,11 @@ namespace UnitTests
             var keychain = new Keychain(environment, credentialManager);
             keychain.Initialize();
 
-            fileSystem.Received(2).FileExists(connectionsCacheFile);
-            fileSystem.Received(1).FileDelete(connectionsCacheFile);
+            fileSystem.Received(1).FileExists(connectionsCacheFile);
+            fileSystem.DidNotReceive().FileDelete(Args.String);
             fileSystem.Received(1).ReadAllText(connectionsCacheFile);
             fileSystem.DidNotReceive().ReadAllLines(Args.String);
-            fileSystem.DidNotReceive().WriteAllText(Args.String, Args.String);
-            fileSystem.DidNotReceive().WriteAllLines(Args.String, Arg.Any<string[]>());
+            fileSystem.Received(1).WriteAllText(connectionsCacheFile, "[]");
 
             credentialManager.DidNotReceive().Load(Args.UriString);
             credentialManager.DidNotReceive().HasCredentials();
@@ -405,7 +404,8 @@ namespace UnitTests
             fileSystem.DidNotReceive().FileDelete(Args.String);
             fileSystem.DidNotReceive().ReadAllText(Args.String);
             fileSystem.DidNotReceive().ReadAllLines(Args.String);
-            fileSystem.Received(1).WriteAllText(connectionsCacheFile, "[]");
+            // we never saved
+            fileSystem.DidNotReceive().WriteAllText(Args.String, Args.String);
 
             credentialManager.DidNotReceive().Load(Args.UriString);
             credentialManager.DidNotReceive().HasCredentials();

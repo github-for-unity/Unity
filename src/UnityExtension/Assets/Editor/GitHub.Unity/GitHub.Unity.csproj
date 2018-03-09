@@ -94,6 +94,7 @@
     <Compile Include="Misc\Installer.cs" />
     <Compile Include="UI\BaseWindow.cs" />
     <Compile Include="UI\ChangesTreeControl.cs" />
+    <Compile Include="UI\LfsLocksModificationProcessor.cs" />
     <Compile Include="UI\PopupWindow.cs" />
     <Compile Include="UI\ProjectWindowInterface.cs" />
     <Compile Include="Misc\Styles.cs" />
