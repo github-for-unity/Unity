@@ -54,11 +54,11 @@ var handleTwoFactorAuthentication = function (username, password, twoFactor, onS
 
     octokit.authorization.create({
         scopes: scopes,
-        note: config.appName,
         client_id: config.clientId,
         client_secret: config.clientSecret,
         headers: {
-            "X-GitHub-OTP": twoFactor
+            "X-GitHub-OTP": twoFactor,
+            "user-agent": config.appName
         }
     }, function (err, res) {
         if (err) {

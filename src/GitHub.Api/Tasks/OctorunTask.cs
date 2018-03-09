@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
 
 namespace GitHub.Unity
@@ -28,6 +29,8 @@ namespace GitHub.Unity
         public override void Configure(ProcessStartInfo psi)
         {
             base.Configure(psi);
+
+            psi.EnvironmentVariables.Add("OCTOKIT_USER_AGENT", ApplicationInfo.ApplicationSafeName+ AssemblyName.Version.ToString());
 
             if (clientId != null)
             {
