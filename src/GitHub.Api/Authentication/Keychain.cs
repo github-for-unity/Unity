@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Octokit;
 using GitHub.Logging;
 
 namespace GitHub.Unity
@@ -220,7 +219,7 @@ namespace GitHub.Unity
                 throw new ArgumentException($"Host: {host} is not found");
             }
 
-            if (credentialAdapter.OctokitCredentials == Credentials.Anonymous)
+            if (string.IsNullOrEmpty(credentialAdapter.Credential.Token))
             {
                 throw new InvalidOperationException("Anonymous credentials cannot be stored");
             }
@@ -229,7 +228,7 @@ namespace GitHub.Unity
             if (connectionCache.ContainsKey(host))
                 connectionCache.Remove(host);
 
-            connectionCache.Add(host, new Connection { Host = host, Username = credentialAdapter.OctokitCredentials.Login });
+            connectionCache.Add(host, new Connection { Host = host, Username = credentialAdapter.Credential.Username });
 
             // flushes credential cache to disk (host and username only)
             WriteCacheToDisk();
@@ -275,6 +274,6 @@ namespace GitHub.Unity
 
         public bool HasKeys => connectionCache.Any();
 
-        public bool NeedsLoad => HasKeys && FindOrCreateAdapter(connectionCache.First().Value.Host).OctokitCredentials == Credentials.Anonymous;
+        public bool NeedsLoad => HasKeys && FindOrCreateAdapter(connectionCache.First().Value.Host).Credential.Token != null;
     }
 }

@@ -1,7 +1,8 @@
 var commander = require("commander");
-var package = require('../../package.json')
+var package = require('../../package.json');
 var endOfLine = require('os').EOL;
-var ApiWrapper = require('../api')
+var ApiWrapper = require('../api');
+var output = require('../output');
 
 commander
     .version(package.version)
@@ -12,39 +13,16 @@ try {
 
     apiWrapper.verifyUser(function (error, result) {
         if (error) {
-            process.stdout.write("error");
-            process.stdout.write(endOfLine);
-            process.stdout.write("");
-            process.stdout.write(endOfLine);
-            process.stdout.write("");
-            process.stdout.write(endOfLine);
-
-            if (error) {
-                process.stdout.write(error.toString());
-                process.stdout.write(endOfLine);
-            }
-            
+            output.error(error)
             process.exit();
         }
         else {
-            process.stdout.write("success");
-            process.stdout.write(endOfLine);
-            process.stdout.write(result.name);
-            process.stdout.write(endOfLine);
-            process.stdout.write(result.login);
-            process.stdout.write(endOfLine);
+            output.success([result.name, result.login])
             process.exit();
         }
     });
 }
 catch (error) {
-    process.stdout.write("Error");
-    process.stdout.write(endOfLine);
-
-    if (error) {
-        process.stdout.write(error.toString());
-        process.stdout.write(endOfLine);
-    }
-
+    output.error(error)
     process.exit();
 }
