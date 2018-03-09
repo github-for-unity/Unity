@@ -58,6 +58,7 @@ namespace GitHub.Unity
         private readonly string userToken;
 
         private readonly NPath pathToNodeJs;
+        private readonly NPath pathToOctorunJs;
         private readonly string arguments;
 
         public OctorunTask(CancellationToken token, NPath pathToNodeJs, NPath pathToOctorunJs, string arguments,
@@ -73,12 +74,15 @@ namespace GitHub.Unity
             this.user = user;
             this.userToken = userToken;
             this.pathToNodeJs = pathToNodeJs;
+            this.pathToOctorunJs = pathToOctorunJs;
             this.arguments = $"{pathToOctorunJs} {arguments}";
         }
 
         public override void Configure(ProcessStartInfo psi)
         {
             base.Configure(psi);
+
+            psi.WorkingDirectory = pathToOctorunJs.Parent.Parent;
 
             psi.EnvironmentVariables.Add("OCTOKIT_USER_AGENT", $"{ApplicationInfo.ApplicationSafeName}/{ApplicationInfo.Version}");
 
