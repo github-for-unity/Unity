@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Octokit;
@@ -272,29 +273,24 @@ namespace GitHub.Unity
                 proc.StandardInput.Close();
             };
 
-            var ret = (await loginTask.StartAwait());
+            var ret = await loginTask.StartAwait();
 
-            if (ret.Count == 0)
+            if (ret.IsSuccess)
             {
-                throw new Exception("Authentication failed");
-            }
-
-            if (ret[0] == "success")
-            {
-                auth = new ApplicationAuthorization(ret[1]);
+                auth = new ApplicationAuthorization(ret.Output[0]);
                 return auth;
             }
 
-            if (ret[0] == "2fa")
+            if (ret.IsCutom && ret.Status == "2fa")
             {
-                keychain.SetToken(host, ret[1]);
+                keychain.SetToken(host, ret.Output[0]);
                 await keychain.Save(host);
                 throw new TwoFactorRequiredException(TwoFactorType.Unknown);
             }
 
-            if (ret.Count > 2)
+            if (ret.Output.Any())
             {
-                throw new Exception(ret[3]);
+                throw new Exception(string.Join(Environment.NewLine, ret.Output));
             }
 
             throw new Exception("Authentication failed");
@@ -329,22 +325,17 @@ namespace GitHub.Unity
                 proc.StandardInput.Close();
             };
 
-            var ret = (await loginTask.StartAwait());
+            var ret = await loginTask.StartAwait();
 
-            if (ret.Count == 0)
+            if (ret.IsSuccess)
             {
-                throw new Exception("Authentication failed");
-            }
-
-            if (ret[0] == "success")
-            {
-                auth = new ApplicationAuthorization(ret[1]);
+                auth = new ApplicationAuthorization(ret.Output[0]);
                 return auth;
             }
 
-            if (ret.Count > 2)
+            if (ret.Output.Any())
             {
-                throw new Exception(ret[3]);
+                throw new Exception(string.Join(Environment.NewLine, ret.Output));
             }
 
             throw new Exception("Authentication failed");
