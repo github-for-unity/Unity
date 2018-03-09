@@ -126,28 +126,4 @@ namespace GitHub.Unity
             return true;
         }
     }
-
-    class LastResultOutputProcessor<T> : BaseOutputProcessor<T>
-    {
-        public override void LineReceived(string line)
-        {
-            T res;
-            if (ProcessLine(line, out res))
-            {
-                Result = res;
-                RaiseOnEntry(res);
-            }
-        }
-
-        protected bool ProcessLine(string line, out T result)
-        {
-            result = default(T);
-            if (typeof(T) == typeof(string))
-            {
-                result = (T)(object)line;
-                return true;
-            }
-            return false;
-        }
-    }
 }
