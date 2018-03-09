@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Octokit;
 using GitHub.Logging;
 using System.Runtime.Serialization;
 using System.Text;
@@ -19,7 +18,6 @@ namespace GitHub.Unity
             var hostAddress = HostAddress.Create(repositoryUrl);
 
             return new ApiClient(repositoryUrl, keychain,
-                new GitHubClient(ApplicationConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri),
                 processManager, taskManager, nodeJsExecutablePath, octorunScriptPath);
         }
 
@@ -34,11 +32,10 @@ namespace GitHub.Unity
         private readonly NPath octorunScriptPath;
         private readonly ILoginManager loginManager;
 
-        public ApiClient(UriString hostUrl, IKeychain keychain, IGitHubClient githubClient, IProcessManager processManager, ITaskManager taskManager, NPath nodeJsExecutablePath, NPath octorunScriptPath)
+        public ApiClient(UriString hostUrl, IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, NPath nodeJsExecutablePath, NPath octorunScriptPath)
         {
             Guard.ArgumentNotNull(hostUrl, nameof(hostUrl));
             Guard.ArgumentNotNull(keychain, nameof(keychain));
-            Guard.ArgumentNotNull(githubClient, nameof(githubClient));
 
             HostAddress = HostAddress.Create(hostUrl);
             OriginalUrl = hostUrl;
@@ -64,12 +61,12 @@ namespace GitHub.Unity
             await loginManager.Logout(host);
         }
 
-        public async Task CreateRepository(NewRepository newRepository, Action<GitHubRepository, Exception> callback, string organization = null)
+        public async Task CreateRepository(string name, string description, bool isPrivate, Action<GitHubRepository, Exception> callback, string organization = null)
         {
             Guard.ArgumentNotNull(callback, "callback");
             try
             {
-                var repository = await CreateRepositoryInternal(newRepository, organization);
+                var repository = await CreateRepositoryInternal(name, organization, description, isPrivate);
                 callback(repository, null);
             }
             catch (Exception e)
@@ -201,7 +198,7 @@ namespace GitHub.Unity
             return result.Code == LoginResultCodes.Success;
         }
 
-        private async Task<GitHubRepository> CreateRepositoryInternal(NewRepository newRepository, string organization)
+        private async Task<GitHubRepository> CreateRepositoryInternal(string repositoryName, string organization, string description, bool isPrivate)
         {
             try
             {
@@ -214,13 +211,13 @@ namespace GitHub.Unity
                 var keychainAdapter = await keychain.Load(uriString);
 
                 var command = new StringBuilder("publish -r \"");
-                command.Append(newRepository.Name);
+                command.Append(repositoryName);
                 command.Append("\"");
 
-                if (!string.IsNullOrEmpty(newRepository.Description))
+                if (!string.IsNullOrEmpty(description))
                 {
                     command.Append(" -d \"");
-                    command.Append(newRepository.Description);
+                    command.Append(description);
                     command.Append("\"");
                 }
 
@@ -231,7 +228,7 @@ namespace GitHub.Unity
                     command.Append("\"");
                 }
 
-                if (newRepository.Private ?? false)
+                if (isPrivate)
                 {
                     command.Append(" -p");
                 }

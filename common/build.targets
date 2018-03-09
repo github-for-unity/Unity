@@ -14,31 +14,6 @@
   </ItemGroup>
 
   <!-- Common includes and references -->
-  <Choose>
-    <When Condition="'$(SolutionType)' == 'OctokitDebugging'">
-      <ItemGroup>
-        <ProjectReference Include="$(SolutionDir)..\dotnet-httpclient35\System.Net.Http\System.Net.Http-net_3_5.csproj">
-          <Project>{9862694d-e4fa-418b-8692-a0280feddf36}</Project>
-          <Name>System.Net.Http-net_3_5</Name>
-        </ProjectReference>
-        <ProjectReference Include="$(SolutionDir)..\octokit.net\Octokit\Octokit-35.csproj">
-          <Project>{49ef16a2-5ed1-480f-80a1-d1d05d6c1be4}</Project>
-          <Name>Octokit-35</Name>
-        </ProjectReference>
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <Reference Include="Octokit">
-          <HintPath>$(SolutionDir)lib\octokit.net\Octokit.dll</HintPath>
-        </Reference>
-        <Reference Include="System.Net.Http">
-          <HintPath>$(SolutionDir)lib\dotnet-httpclient35\DotNetHttp35.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
-
   <Target Name="BeforeBuild">
     <PropertyGroup>
       <UnityDLLsMissingErrorText>Location of Unity dlls is not set. You'll need to install Unity in a known location (the default installation directory for your system), or copy UnityEngine.dll and UnityEditor.dll to the {0}lib folder</UnityDLLsMissingErrorText>

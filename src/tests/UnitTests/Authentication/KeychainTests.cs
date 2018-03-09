@@ -7,7 +7,6 @@ using GitHub.Unity;
 using NCrunch.Framework;
 using NSubstitute;
 using NUnit.Framework;
-using Octokit;
 using TestUtils;
 
 namespace UnitTests
@@ -183,10 +182,6 @@ namespace UnitTests
             keychainAdapter.Credential.Token.Should().Be(token);
             keychainAdapter.Credential.Host.Should().Be(hostUri);
 
-            keychainAdapter.OctokitCredentials.AuthenticationType.Should().Be(AuthenticationType.Basic);
-            keychainAdapter.OctokitCredentials.Login.Should().Be(username);
-            keychainAdapter.OctokitCredentials.Password.Should().Be(token);
-
             credentialManager.Received(1).Load(hostUri);
             credentialManager.DidNotReceive().HasCredentials();
             credentialManager.DidNotReceive().Delete(Args.UriString);
@@ -230,10 +225,6 @@ namespace UnitTests
             var uriString = keychain.Hosts.FirstOrDefault();
             var keychainAdapter = keychain.Load(uriString).Result;
             keychainAdapter.Credential.Should().BeNull();
-
-            keychainAdapter.OctokitCredentials.AuthenticationType.Should().Be(AuthenticationType.Anonymous);
-            keychainAdapter.OctokitCredentials.Login.Should().BeNull();
-            keychainAdapter.OctokitCredentials.Password.Should().BeNull();
 
             fileSystem.DidNotReceive().FileExists(Args.String);
             fileSystem.DidNotReceive().ReadAllText(Args.String);
@@ -294,10 +285,6 @@ namespace UnitTests
             var keychainAdapter = keychain.Connect(hostUri);
 
             keychainAdapter.Credential.Should().BeNull();
-            keychainAdapter.OctokitCredentials.Should().NotBeNull();
-            keychainAdapter.OctokitCredentials.AuthenticationType.Should().Be(AuthenticationType.Anonymous);
-            keychainAdapter.OctokitCredentials.Login.Should().BeNull();
-            keychainAdapter.OctokitCredentials.Password.Should().BeNull();
 
             keychain.SetCredentials(new Credential(hostUri, username, password));
 
@@ -305,9 +292,6 @@ namespace UnitTests
             keychainAdapter.Credential.Host.Should().Be(hostUri);
             keychainAdapter.Credential.Username.Should().Be(username);
             keychainAdapter.Credential.Token.Should().Be(password);
-            keychainAdapter.OctokitCredentials.AuthenticationType.Should().Be(AuthenticationType.Basic);
-            keychainAdapter.OctokitCredentials.Login.Should().Be(username);
-            keychainAdapter.OctokitCredentials.Password.Should().Be(password);
 
             keychain.SetToken(hostUri, token);
 
@@ -315,9 +299,6 @@ namespace UnitTests
             keychainAdapter.Credential.Host.Should().Be(hostUri);
             keychainAdapter.Credential.Username.Should().Be(username);
             keychainAdapter.Credential.Token.Should().Be(token);
-            keychainAdapter.OctokitCredentials.AuthenticationType.Should().Be(AuthenticationType.Basic);
-            keychainAdapter.OctokitCredentials.Login.Should().Be(username);
-            keychainAdapter.OctokitCredentials.Password.Should().Be(token);
 
             keychain.Save(hostUri).Wait();
 
@@ -379,10 +360,6 @@ namespace UnitTests
             var keychainAdapter = keychain.Connect(hostUri);
 
             keychainAdapter.Credential.Should().BeNull();
-            keychainAdapter.OctokitCredentials.Should().NotBeNull();
-            keychainAdapter.OctokitCredentials.AuthenticationType.Should().Be(AuthenticationType.Anonymous);
-            keychainAdapter.OctokitCredentials.Login.Should().BeNull();
-            keychainAdapter.OctokitCredentials.Password.Should().BeNull();
 
             keychain.SetCredentials(new Credential(hostUri, username, password));
 
@@ -390,16 +367,10 @@ namespace UnitTests
             keychainAdapter.Credential.Host.Should().Be(hostUri);
             keychainAdapter.Credential.Username.Should().Be(username);
             keychainAdapter.Credential.Token.Should().Be(password);
-            keychainAdapter.OctokitCredentials.AuthenticationType.Should().Be(AuthenticationType.Basic);
-            keychainAdapter.OctokitCredentials.Login.Should().Be(username);
-            keychainAdapter.OctokitCredentials.Password.Should().Be(password);
 
             keychain.Clear(hostUri, false).Wait();
 
             keychainAdapter.Credential.Should().BeNull();
-            keychainAdapter.OctokitCredentials.AuthenticationType.Should().Be(AuthenticationType.Anonymous);
-            keychainAdapter.OctokitCredentials.Login.Should().BeNull();
-            keychainAdapter.OctokitCredentials.Password.Should().BeNull();
 
             fileSystem.DidNotReceive().FileExists(Args.String);
             fileSystem.DidNotReceive().FileDelete(Args.String);

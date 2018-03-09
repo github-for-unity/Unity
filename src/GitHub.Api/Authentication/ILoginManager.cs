@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Octokit;
 
 namespace GitHub.Unity
 {

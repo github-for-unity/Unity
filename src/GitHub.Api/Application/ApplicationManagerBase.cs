@@ -159,8 +159,7 @@ namespace GitHub.Unity
                 TaskManager,
                 Environment.FileSystem,
                 Environment.NodeJsExecutablePath,
-                Environment.OctorunScriptPath,
-                ApplicationConfiguration.ProductHeader);
+                Environment.OctorunScriptPath);
 
             UsageTracker = new UsageTracker(metricsService, UserSettings, usagePath, id, unityVersion);
 
