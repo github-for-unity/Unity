@@ -184,6 +184,16 @@ namespace GitHub.Unity
                 throw new TwoFactorRequiredException();
             }
 
+            if (ret.IsBadCredentials)
+            {
+                throw new Exception("Bad credentials.");
+            }
+
+            if (ret.IsLocked)
+            {
+                throw new Exception("Account locked.");
+            }
+
             if (ret.Output.Any())
             {
                 throw new Exception(string.Join(Environment.NewLine, ret.Output));
@@ -227,6 +237,23 @@ namespace GitHub.Unity
                 return ret.Output[0];
             }
 
+            if (ret.IsTwoFactorRequired)
+            {
+                keychain.SetToken(host, ret.Output[0]);
+                await keychain.Save(host);
+                throw new TwoFactorRequiredException();
+            }
+
+            if (ret.IsBadCredentials)
+            {
+                throw new Exception("Bad credentials.");
+            }
+
+            if (ret.IsLocked)
+            {
+                throw new Exception("Account locked.");
+            }
+
             if (ret.Output.Any())
             {
                 throw new Exception(string.Join(Environment.NewLine, ret.Output));
@@ -260,6 +287,7 @@ namespace GitHub.Unity
 
     class TwoFactorRequiredException : Exception
     {
-        
+        public TwoFactorRequiredException() : base("Two-Factor authentication required.")
+        { }
     }
 }
