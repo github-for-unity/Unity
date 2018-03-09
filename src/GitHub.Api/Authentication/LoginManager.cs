@@ -281,7 +281,7 @@ namespace GitHub.Unity
                 return auth;
             }
 
-            if (ret.IsCutom && ret.Status == "2fa")
+            if (ret.IsCustom && ret.Status == "2fa")
             {
                 keychain.SetToken(host, ret.Output[0]);
                 await keychain.Save(host);
