@@ -1,7 +1,8 @@
 var commander = require("commander");
-var package = require('../../package.json')
-var authentication = require('../authentication')
+var package = require('../../package.json');
+var authentication = require('../authentication');
 var endOfLine = require('os').EOL;
+var output = require('../output');
 
 commander
     .version(package.version)
@@ -13,22 +14,10 @@ var encoding = 'utf-8';
 if (commander.twoFactor) {
     var handleTwoFactorAuthentication = function (username, password, token) {
         authentication.handleTwoFactorAuthentication(username, password, token, function (token) {
-            process.stdout.write("success");
-            process.stdout.write(endOfLine);
-            process.stdout.write(token);
-            process.stdout.write(endOfLine);
+            output.success(token);
             process.exit();
         }, function (error) {
-            process.stdout.write("error");
-            process.stdout.write(endOfLine);
-            process.stdout.write("");
-            process.stdout.write(endOfLine);
-
-            if (error) {
-                process.stdout.write(error.toString());
-                process.stdout.write(endOfLine);
-            }
-
+            output.error(error);
             process.exit();
         });
     }
@@ -68,27 +57,13 @@ else {
     var handleBasicAuthentication = function (username, password) {
         authentication.handleBasicAuthentication(username, password,
             function (token) {
-                process.stdout.write("success");
-                process.stdout.write(endOfLine);
-                process.stdout.write(token);
-                process.stdout.write(endOfLine);
+                output.success(token);
                 process.exit();
             }, function () {
-                process.stdout.write("2fa");
-                process.stdout.write(endOfLine);
-                process.stdout.write(password);
-                process.stdout.write(endOfLine);
+                output.custom("2fa", password);
                 process.exit();
             }, function (error) {
-                process.stdout.write("error");
-                process.stdout.write(endOfLine);
-                process.stdout.write("");
-                process.stdout.write(endOfLine);
-
-                if (error) {
-                    process.stdout.write(error.toString());
-                    process.stdout.write(endOfLine);
-                }
+                output.error(error);
                 process.exit();
             });
     }
