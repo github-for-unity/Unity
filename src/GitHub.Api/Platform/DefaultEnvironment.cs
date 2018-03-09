@@ -138,7 +138,7 @@ namespace GitHub.Unity
         {
             get
             {
-                if (nodeJsExecutablePath == null)
+                if (!nodeJsExecutablePath.IsInitialized)
                 {
                     nodeJsExecutablePath = IsWindows
                         ? UnityApplication.Parent.Combine("Data", "Tools", "nodejs", "node.exe")

@@ -210,19 +210,22 @@ namespace GitHub.Unity
                 var uriString = keychain.Connections.First().Host;
                 var keychainAdapter = await keychain.Load(uriString);
 
-                var command = new StringBuilder("publish -r ");
+                var command = new StringBuilder("publish -r \"");
                 command.Append(repositoryName);
+                command.Append("\"");
 
                 if (!string.IsNullOrEmpty(description))
                 {
-                    command.Append(" -d ");
+                    command.Append(" -d \"");
                     command.Append(description);
+                    command.Append("\"");
                 }
 
                 if (!string.IsNullOrEmpty(organization))
                 {
-                    command.Append(" -o ");
+                    command.Append(" -o \"");
                     command.Append(organization);
+                    command.Append("\"");
                 }
 
                 if (isPrivate)
@@ -235,24 +238,18 @@ namespace GitHub.Unity
                     .Configure(processManager);
 
                 var ret = await octorunTask.StartAwait();
-
-                if (ret.Count == 0)
+                if (ret.IsSuccess && ret.Output.Length == 2)
                 {
-                    throw new ApiClientException("Publish failed");
-                }
-
-                if (ret[0] == "success")
-                {
-                    return new GitHubRepository()
+                    return new GitHubRepository
                     {
-                        Name = ret[1],
-                        CloneUrl = ret[2],
+                        Name = ret.Output[0],
+                        CloneUrl = ret.Output[1]
                     };
                 }
 
-                if (ret.Count > 3)
+                if (ret.Output.Any())
                 {
-                    throw new ApiClientException(ret[3]);
+                    throw new ApiClientException(string.Join(Environment.NewLine, ret.Output));
                 }
 
                 throw new ApiClientException("Publish failed");
@@ -281,28 +278,25 @@ namespace GitHub.Unity
                     .Configure(processManager);
 
                 var ret = await octorunTask.StartAsAsync();
-
-                logger.Trace("Return: {0}", string.Join(";", ret.ToArray()));
-
-                if (ret.Count == 0)
-                {
-                    throw new ApiClientException("Error getting organizations");
-                }
-
-                if (ret[0] == "success")
+                if (ret.IsSuccess)
                 {
                     var organizations = new List<Organization>();
-                    for (var i = 1; i < ret.Count; i = i + 2)
+                    for (var i = 0; i < ret.Output.Length; i = i + 2)
                     {
                         organizations.Add(new Organization
                         {
-                            Name = ret[i],
-                            Login = ret[i + 1]
+                            Name = ret.Output[i],
+                            Login = ret.Output[i + 1]
                         });
                     }
 
                     onSuccess(organizations.ToArray());
                     return;
+                }
+
+                if (ret.Output.Any())
+                {
+                    throw new ApiClientException(string.Join(Environment.NewLine, ret.Output));
                 }
 
                 throw new ApiClientException("Error getting organizations");
@@ -331,15 +325,18 @@ namespace GitHub.Unity
                     .Configure(processManager);
 
                 var ret = await octorunTask.StartAsAsync();
-
-                logger.Trace("Return: {0}", string.Join(";", ret.ToArray()));
-
-                if (ret[0] == "success")
+                if (ret.IsSuccess)
                 {
-                    return new GitHubUser {
-                        Name = ret[1],
-                        Login = ret[2]
+                    return new GitHubUser
+                    {
+                        Name = ret.Output[0],
+                        Login = ret.Output[1]
                     };
+                }
+
+                if (ret.Output.Any())
+                {
+                    throw new ApiClientException(string.Join(Environment.NewLine, ret.Output));
                 }
 
                 throw new ApiClientException("Error validating current user");

@@ -1,4 +1,5 @@
-﻿using System;
+﻿i have using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using GitHub.Logging;
@@ -169,28 +170,23 @@ namespace GitHub.Unity
                 proc.StandardInput.Close();
             };
 
-            var ret = (await loginTask.StartAwait());
+            var ret = await loginTask.StartAwait();
 
-            if (ret.Count == 0)
+            if (ret.IsSuccess)
             {
-                throw new Exception("Authentication failed");
+                return ret.Output[0];
             }
 
-            if (ret[0] == "success")
+            if (ret.IsCustom && ret.Status == "2fa")
             {
-                return ret[1];
-            }
-
-            if (ret[0] == "2fa")
-            {
-                keychain.SetToken(host, ret[1]);
+                keychain.SetToken(host, ret.Output[0]);
                 await keychain.Save(host);
                 throw new TwoFactorRequiredException();
             }
 
-            if (ret.Count > 2)
+            if (ret.Output.Any())
             {
-                throw new Exception(ret[3]);
+                throw new Exception(string.Join(Environment.NewLine, ret.Output));
             }
 
             throw new Exception("Authentication failed");
@@ -224,21 +220,16 @@ namespace GitHub.Unity
                 proc.StandardInput.Close();
             };
 
-            var ret = (await loginTask.StartAwait());
+            var ret = await loginTask.StartAwait();
 
-            if (ret.Count == 0)
+            if (ret.IsSuccess)
             {
-                throw new Exception("Authentication failed");
+                return ret.Output[0];
             }
 
-            if (ret[0] == "success")
+            if (ret.Output.Any())
             {
-                return ret[1];
-            }
-
-            if (ret.Count > 2)
-            {
-                throw new Exception(ret[3]);
+                throw new Exception(string.Join(Environment.NewLine, ret.Output));
             }
 
             throw new Exception("Authentication failed");

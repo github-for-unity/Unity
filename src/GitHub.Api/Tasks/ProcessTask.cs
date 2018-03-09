@@ -497,13 +497,7 @@ namespace GitHub.Unity
             this.fullPathToExecutable = fullPathToExecutable;
             this.arguments = arguments;
         }
-
-        public SimpleListProcessTask(CancellationToken token, string arguments, IOutputProcessor<string, List<string>> processor = null)
-            : base(token, processor ?? new SimpleListOutputProcessor())
-        {
-            this.arguments = arguments;
-        }
-
+        
         public override string ProcessName => fullPathToExecutable;
         public override string ProcessArguments => arguments;
     }
