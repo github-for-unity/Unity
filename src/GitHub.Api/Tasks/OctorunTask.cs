@@ -82,7 +82,7 @@ namespace GitHub.Unity
         {
             base.Configure(psi);
 
-            psi.WorkingDirectory = pathToOctorunJs.Parent.Parent;
+            psi.WorkingDirectory = pathToOctorunJs.Parent.Parent.Parent;
 
             psi.EnvironmentVariables.Add("OCTOKIT_USER_AGENT", $"{ApplicationInfo.ApplicationSafeName}/{ApplicationInfo.Version}");
 
