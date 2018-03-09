@@ -8,6 +8,9 @@ var lockedRegex = new RegExp("number of login attempts exceeded", "gi");
 var twoFactorRegex = new RegExp("must specify two-factor authentication otp code", "gi");
 var badCredentialsRegex = new RegExp("bad credentials", "gi");
 
+var lockedErrorMessage = "locked";
+var badCredentialsErrorMessage = "badcredentials";
+
 var handleBasicAuthentication = function (username, password, onSuccess, onRequiresTwoFa, onFailure) {
     var octokit = octokitWrapper.createOctokit();
 
@@ -28,10 +31,10 @@ var handleBasicAuthentication = function (username, password, onSuccess, onRequi
                 onRequiresTwoFa();
             }
             else if (lockedRegex.test(err.message)) {
-                onFailure("Account locked.")
+                onFailure(lockedErrorMessage)
             }
             else if (badCredentialsRegex.test(err.message)) {
-                onFailure("Bad credentials.")
+                onFailure(badCredentialsErrorMessage)
             }
             else {
                 onFailure(err)
@@ -63,10 +66,10 @@ var handleTwoFactorAuthentication = function (username, password, twoFactor, onS
     }, function (err, res) {
         if (err) {
             if (lockedRegex.test(err.message)) {
-                onFailure("Account locked.")
+                onFailure(lockedErrorMessage)
             }
             else if (badCredentialsRegex.test(err.message)) {
-                onFailure("Bad credentials.")
+                onFailure(badCredentialsErrorMessage)
             }
             else {
                 onFailure(err)
