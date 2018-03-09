@@ -276,6 +276,14 @@ namespace GitHub.Unity
                 if (!disposed)
                 {
                     disposed = true;
+                    HeadChanged = null;
+                    IndexChanged = null;
+                    ConfigChanged = null;
+                    RepositoryCommitted = null;
+                    RepositoryChanged = null;
+                    LocalBranchesChanged = null;
+                    RemoteBranchesChanged = null;
+
                     Stop();
                     if (nativeInterface != null)
                     {

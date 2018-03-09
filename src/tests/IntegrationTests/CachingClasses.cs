@@ -109,8 +109,8 @@ namespace IntegrationTests
 
         private bool isInvalidating;
 
-        public event Action CacheInvalidated;
-        public event Action<DateTimeOffset> CacheUpdated;
+        public event Action<CacheType> CacheInvalidated;
+        public event Action<CacheType, DateTimeOffset> CacheUpdated;
 
         protected ManagedCacheBase(CacheType type)
         {
@@ -138,7 +138,7 @@ namespace IntegrationTests
             {
                 isInvalidating = true;
                 LastUpdatedAt = DateTimeOffset.MinValue;
-                CacheInvalidated.SafeInvoke();
+                CacheInvalidated.SafeInvoke(CacheType);
             }
         }
 
@@ -157,7 +157,7 @@ namespace IntegrationTests
             if (isChanged)
             {
                 Logger.Trace("Updated: {0}", now);
-                CacheUpdated.SafeInvoke(now);
+                CacheUpdated.SafeInvoke(CacheType, now);
             }
         }
 

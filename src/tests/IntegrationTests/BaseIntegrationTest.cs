@@ -212,6 +212,8 @@ namespace IntegrationTests
         public virtual void OnTearDown()
         {
             TaskManager.Dispose();
+            Environment?.CacheContainer.Dispose();
+
             Logger.Debug("Deleting TestBasePath: {0}", TestBasePath.ToString());
             for (var i = 0; i < 5; i++)
             {
