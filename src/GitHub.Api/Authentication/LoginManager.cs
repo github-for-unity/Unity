@@ -177,7 +177,7 @@ namespace GitHub.Unity
                 return ret.Output[0];
             }
 
-            if (ret.IsCustom && ret.Status == "2fa")
+            if (ret.IsTwoFactorRequired)
             {
                 keychain.SetToken(host, ret.Output[0]);
                 await keychain.Save(host);
