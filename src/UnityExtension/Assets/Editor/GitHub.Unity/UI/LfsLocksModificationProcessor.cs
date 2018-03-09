@@ -10,15 +10,20 @@ namespace GitHub.Unity
         private static ILogging Logger = LogHelper.GetLogger<LfsLocksModificationProcessor>();
         private static IRepository repository;
         private static IPlatform platform;
+        private static IEnvironment environment;
+
         private static Dictionary<string, GitLock> locks = new Dictionary<string, GitLock>();
         private static CacheUpdateEvent lastLocksChangedEvent;
+        private static string loggedInUser;
 
-        public static void Initialize(IRepository repo, IPlatform plat)
+        public static void Initialize(IEnvironment env, IPlatform plat)
         {
             //Logger.Trace("Initialize HasRepository:{0}", repo != null);
-            repository = repo;
+            environment = env;
             platform = plat;
+            platform.Keychain.ConnectionsChanged += UserMayHaveChanged;
 
+            repository = environment.Repository;
             if (repository != null)
             {
                 repository.LocksChanged += RepositoryOnLocksChanged;
@@ -35,17 +40,7 @@ namespace GitHub.Unity
         public static AssetMoveResult OnWillMoveAsset(string oldPath, string newPath)
         {
             //Logger.Trace("OnWillMoveAsset:{0}->{1}", oldPath, newPath);
-
-            var result = AssetMoveResult.DidNotMove;
-            if (IsLocked(oldPath))
-            {
-                result = AssetMoveResult.FailedMove;
-            }
-            else if (IsLocked(newPath))
-            {
-                result = AssetMoveResult.FailedMove;
-            }
-            return result;
+            return IsLocked(oldPath) || IsLocked(newPath) ? AssetMoveResult.FailedMove : AssetMoveResult.DidNotMove;
         }
 
         public static AssetDeleteResult OnWillDeleteAsset(string assetPath, RemoveAssetOptions option)
@@ -58,16 +53,8 @@ namespace GitHub.Unity
         {
             //Logger.Trace("IsOpenForEdit:{0}", assetPath);
             var lck = GetLock(assetPath);
-            if (lck.HasValue)
-            {
-                message = "File is locked for editing by " + lck.Value.User;
-                return false;
-            }
-            else
-            {
-                message = null;
-                return true;
-            }
+            message = lck.HasValue ? "File is locked for editing by " + lck.Value.User : null;
+            return !lck.HasValue;
         }
 
         private static void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -79,6 +66,11 @@ namespace GitHub.Unity
             }
         }
 
+        private static void UserMayHaveChanged()
+        {
+            loggedInUser = platform.Keychain.Connections.Select(x => x.Username).FirstOrDefault();
+        }
+
         private static bool IsLocked(string assetPath)
         {
             return GetLock(assetPath).HasValue;
@@ -86,22 +78,14 @@ namespace GitHub.Unity
 
         private static GitLock? GetLock(string assetPath)
         {
-            GitLock? gitLock = null;
-            if (repository != null)
-            {
-                var repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath.ToNPath());
-                GitLock lck;
-                if(locks.TryGetValue(repositoryPath, out lck))
-                {
-                    var user = platform.Keychain.Connections.FirstOrDefault();
-                    if (!lck.User.Equals(user.Username))
-                    {
-                        gitLock = lck;
-                    }
-                    //Logger.Trace("Lock found on: {0}", assetPath);
-                }
-            }
-            return gitLock;
+            if (repository == null)
+                return null;
+
+            GitLock lck;
+            var repositoryPath = environment.GetRepositoryPath(assetPath.ToNPath());
+            if (!locks.TryGetValue(repositoryPath, out lck) || lck.User.Equals(loggedInUser))
+                return null;
+            return lck;
         }
     }
 }
