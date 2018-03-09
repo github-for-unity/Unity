@@ -80,7 +80,7 @@ namespace GitHub.Unity
         {
             base.Configure(psi);
 
-            psi.EnvironmentVariables.Add("OCTOKIT_USER_AGENT", ApplicationInfo.ApplicationSafeName+ AssemblyName.Version.ToString());
+            psi.EnvironmentVariables.Add("OCTOKIT_USER_AGENT", $"{ApplicationInfo.ApplicationSafeName}/{ApplicationInfo.Version}");
 
             if (clientId != null)
             {

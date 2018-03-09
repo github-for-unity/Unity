@@ -5,7 +5,11 @@ function ApiWrapper() {
     this.octokit = octokitWrapper.createOctokit();
 
     if (!config.user || !config.token) {
-        throw "User and/or Token missing";
+        throw "user and/or token missing";
+    }
+
+    if (!config.appName) {
+        throw "appName missing";
     }
 
     this.octokit.authenticate({
