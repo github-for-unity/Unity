@@ -74,22 +74,23 @@ namespace GitHub.Unity
             keychain.Connect(host);
             keychain.SetCredentials(new Credential(host, username, password));
 
-            string token;
             try
             {
-                token = await TryLogin(host, username, password);
-                if (string.IsNullOrEmpty(token))
+                var loginResultData = await TryLogin(host, username, password);
+                if (loginResultData.Code == LoginResultCodes.Success || loginResultData.Code == LoginResultCodes.CodeRequired)
                 {
-                    throw new InvalidOperationException("Returned token is null or empty");
-                }
-            }
-            catch (TwoFactorRequiredException e)
-            {
-                LoginResultCodes result;
-                result = LoginResultCodes.CodeRequired;
-                logger.Trace("2FA TwoFactorAuthorizationException: {0} {1}", LoginResultCodes.CodeRequired, e.Message);
+                    if (string.IsNullOrEmpty(loginResultData.Token))
+                    {
+                        throw new InvalidOperationException("Returned token is null or empty");
+                    }
 
-                return new LoginResultData(result, e.Message, host, password);
+                    keychain.SetToken(host, loginResultData.Token);
+                    await keychain.Save(host);
+
+                    return loginResultData;
+                }
+
+                return loginResultData;
             }
             catch (Exception e)
             {
@@ -98,16 +99,10 @@ namespace GitHub.Unity
                 await keychain.Clear(host, false);
                 return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
             }
-
-            keychain.SetToken(host, token);
-            await keychain.Save(host);
-
-            return new LoginResultData(LoginResultCodes.Success, "Success", host);
         }
 
         public async Task<LoginResultData> ContinueLogin(LoginResultData loginResultData, string twofacode)
         {
-            var token = loginResultData.Token;
             var host = loginResultData.Host;
             var keychainAdapter = keychain.Connect(host);
             var username = keychainAdapter.Credential.Username;
@@ -115,24 +110,29 @@ namespace GitHub.Unity
             try
             {
                 logger.Trace("2FA Continue");
-                token = await TryContinueLogin(host, username, password, twofacode);
+                loginResultData = await TryContinueLogin(host, username, password, twofacode);
 
-                if (string.IsNullOrEmpty(token))
+                if (loginResultData.Code == LoginResultCodes.Success)
                 {
-                    throw new InvalidOperationException("Returned token is null or empty");
+                    if (string.IsNullOrEmpty(loginResultData.Token))
+                    {
+                        throw new InvalidOperationException("Returned token is null or empty");
+                    }
+
+                    keychain.SetToken(host, loginResultData.Token);
+                    await keychain.Save(host);
+
+                    return loginResultData;
                 }
 
-                keychain.SetToken(host, token);
-                await keychain.Save(host);
-
-                return new LoginResultData(LoginResultCodes.Success, "", host);
+                return loginResultData;
             }
             catch (Exception e)
             {
-                logger.Trace(e, "Exception: {0}", e.Message);
+                logger.Warning(e, "Login Exception");
 
                 await keychain.Clear(host, false);
-                return new LoginResultData(LoginResultCodes.Failed, e.Message, host);
+                return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
             }
         }
 
@@ -144,7 +144,7 @@ namespace GitHub.Unity
             await new ActionTask(keychain.Clear(hostAddress, true)).StartAwait();
         }
 
-        private async Task<string> TryLogin(
+        private async Task<LoginResultData> TryLogin(
             UriString host,
             string username,
             string password
@@ -174,35 +174,33 @@ namespace GitHub.Unity
 
             if (ret.IsSuccess)
             {
-                return ret.Output[0];
+                return new LoginResultData(LoginResultCodes.Success, null, host, ret.Output[0]);
             }
 
             if (ret.IsTwoFactorRequired)
             {
-                keychain.SetToken(host, ret.Output[0]);
-                await keychain.Save(host);
-                throw new TwoFactorRequiredException();
+                return new LoginResultData(LoginResultCodes.CodeRequired, "Two Factor Required.", host, ret.Output[0]);
             }
 
             if (ret.IsBadCredentials)
             {
-                throw new Exception("Bad credentials.");
+                return new LoginResultData(LoginResultCodes.Failed, "Bad credentials.", host, ret.Output[0]);
             }
 
             if (ret.IsLocked)
             {
-                throw new Exception("Account locked.");
+                return new LoginResultData(LoginResultCodes.LockedOut, "Account locked.", host, ret.Output[0]);
             }
 
             if (ret.Output.Any())
             {
-                throw new Exception(string.Join(Environment.NewLine, ret.Output));
+                return new LoginResultData(LoginResultCodes.Failed, "Failed.", host, ret.Output[0]);
             }
 
-            throw new Exception("Authentication failed");
+            return new LoginResultData(LoginResultCodes.Failed, "Failed.", host);
         }
 
-        private async Task<string> TryContinueLogin(
+        private async Task<LoginResultData> TryContinueLogin(
             UriString host,
             string username,
             string password,
@@ -234,32 +232,30 @@ namespace GitHub.Unity
 
             if (ret.IsSuccess)
             {
-                return ret.Output[0];
+                return new LoginResultData(LoginResultCodes.Success, null, host, ret.Output[0]);
             }
 
             if (ret.IsTwoFactorRequired)
             {
-                keychain.SetToken(host, ret.Output[0]);
-                await keychain.Save(host);
-                throw new TwoFactorRequiredException();
+                return new LoginResultData(LoginResultCodes.CodeFailed, "Incorrect code. Two Factor Required.", host, ret.Output[0]);
             }
 
             if (ret.IsBadCredentials)
             {
-                throw new Exception("Bad credentials.");
+                return new LoginResultData(LoginResultCodes.Failed, "Bad credentials.", host, ret.Output[0]);
             }
 
             if (ret.IsLocked)
             {
-                throw new Exception("Account locked.");
+                return new LoginResultData(LoginResultCodes.LockedOut, "Account locked.", host, ret.Output[0]);
             }
 
             if (ret.Output.Any())
             {
-                throw new Exception(string.Join(Environment.NewLine, ret.Output));
+                return new LoginResultData(LoginResultCodes.Failed, "Failed.", host, ret.Output[0]);
             }
 
-            throw new Exception("Authentication failed");
+            return new LoginResultData(LoginResultCodes.Failed, "Failed.", host);
         }
     }
 
@@ -283,11 +279,5 @@ namespace GitHub.Unity
             : this(code, message, host, null)
         {
         }
-    }
-
-    class TwoFactorRequiredException : Exception
-    {
-        public TwoFactorRequiredException() : base("Two-Factor authentication required.")
-        { }
     }
 }
