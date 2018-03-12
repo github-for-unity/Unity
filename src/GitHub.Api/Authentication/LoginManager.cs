@@ -110,7 +110,7 @@ namespace GitHub.Unity
             try
             {
                 logger.Trace("2FA Continue");
-                loginResultData = await TryContinueLogin(host, username, password, twofacode);
+                loginResultData = await TryLogin(host, username, password, twofacode);
 
                 if (loginResultData.Code == LoginResultCodes.Success)
                 {
@@ -147,64 +147,8 @@ namespace GitHub.Unity
         private async Task<LoginResultData> TryLogin(
             UriString host,
             string username,
-            string password
-        )
-        {
-            if (!nodeJsExecutablePath.HasValue)
-            {
-                throw new InvalidOperationException("nodeJsExecutablePath must be set");
-            }
-
-            if (!octorunScript.HasValue)
-            {
-                throw new InvalidOperationException("octorunScript must be set");
-            }
-
-            var loginTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath.Value, octorunScript.Value,
-                "login", ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
-            loginTask.Configure(processManager, workingDirectory: octorunScript.Value.Parent.Parent, withInput: true);
-            loginTask.OnStartProcess += proc =>
-            {
-                proc.StandardInput.WriteLine(username);
-                proc.StandardInput.WriteLine(password);
-                proc.StandardInput.Close();
-            };
-
-            var ret = await loginTask.StartAwait();
-
-            if (ret.IsSuccess)
-            {
-                return new LoginResultData(LoginResultCodes.Success, null, host, ret.Output[0]);
-            }
-
-            if (ret.IsTwoFactorRequired)
-            {
-                return new LoginResultData(LoginResultCodes.CodeRequired, "Two Factor Required.", host, ret.Output[0]);
-            }
-
-            if (ret.IsBadCredentials)
-            {
-                return new LoginResultData(LoginResultCodes.Failed, "Bad credentials.", host, ret.Output[0]);
-            }
-
-            if (ret.IsLocked)
-            {
-                return new LoginResultData(LoginResultCodes.LockedOut, "Account locked.", host, ret.Output[0]);
-            }
-
-            if (ret.Output.Any())
-            {
-                return new LoginResultData(LoginResultCodes.Failed, "Failed.", host, ret.Output[0]);
-            }
-
-            return new LoginResultData(LoginResultCodes.Failed, "Failed.", host);
-        }
-
-        private async Task<LoginResultData> TryContinueLogin(
-            UriString host,
-            string username,
             string password,
-            string code
+            string code = null
         )
         {
             if (!nodeJsExecutablePath.HasValue)
@@ -217,14 +161,20 @@ namespace GitHub.Unity
                 throw new InvalidOperationException("octorunScript must be set");
             }
 
+            var hasTwoFactorCode = code != null;
+
+            var arguments = hasTwoFactorCode ? "login --twoFactor" : "login";
             var loginTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath.Value, octorunScript.Value,
-                "login --twoFactor", ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
+                arguments, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
             loginTask.Configure(processManager, workingDirectory: octorunScript.Value.Parent.Parent, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
                 proc.StandardInput.WriteLine(username);
                 proc.StandardInput.WriteLine(password);
-                proc.StandardInput.WriteLine(code);
+                if (hasTwoFactorCode)
+                {
+                    proc.StandardInput.WriteLine(code);
+                }
                 proc.StandardInput.Close();
             };
 
@@ -237,7 +187,10 @@ namespace GitHub.Unity
 
             if (ret.IsTwoFactorRequired)
             {
-                return new LoginResultData(LoginResultCodes.CodeFailed, "Incorrect code. Two Factor Required.", host, ret.Output[0]);
+                var resultCodes = hasTwoFactorCode ? LoginResultCodes.CodeFailed : LoginResultCodes.CodeRequired;
+                var message = hasTwoFactorCode ? "Incorrect code. Two Factor Required." : "Two Factor Required.";
+
+                return new LoginResultData(resultCodes, message, host, ret.Output[0]);
             }
 
             if (ret.IsBadCredentials)
