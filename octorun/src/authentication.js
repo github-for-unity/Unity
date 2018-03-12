@@ -31,8 +31,14 @@ var handleAuthentication = function (username, password, onSuccess, onFailure, t
         client_secret: config.clientSecret,
         headers: headers
     }, function (err, res) {
+
+        console.log("octokit.authorization.create", typeof(err), err, res);
         if (err) {
-            if (twoFactorRegex.test(err.message)) {
+            if (twoFactor && err.code && err.code === 422) {
+                //Two Factor Enterprise workaround
+                onSuccess(password);
+            }
+            else if (twoFactorRegex.test(err.message)) {
                 onSuccess(password, "2fa");
             }
             else if (lockedRegex.test(err.message)) {
