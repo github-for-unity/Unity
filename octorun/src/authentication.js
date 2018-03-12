@@ -31,8 +31,6 @@ var handleAuthentication = function (username, password, onSuccess, onFailure, t
         client_secret: config.clientSecret,
         headers: headers
     }, function (err, res) {
-
-        console.log("octokit.authorization.create", typeof(err), err, res);
         if (err) {
             if (twoFactor && err.code && err.code === 422) {
                 //Two Factor Enterprise workaround
