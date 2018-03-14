@@ -91,7 +91,7 @@ namespace GitHub.Unity
                 setupTask.Progress(progressReporter.UpdateProgress);
                 setupTask.OnEnd += (thisTask, result, success, exception) =>
                 {
-                    if (success && result != null)
+                    if (success && result.IsInitialized)
                         thisTask.Then(initEnvironmentTask);
                     else
                         thisTask.Then(findExecTask);
