@@ -88,9 +88,7 @@ namespace GitHub.Unity
 
             var targetPath = NPath.CurrentDirectory;
 
-            var unityYamlMergeExec = Environment.IsWindows
-                ? Environment.UnityApplicationContents.Parent.Combine("Tools", "UnityYAMLMerge.exe")
-                : Environment.UnityApplicationContents.Combine("Tools", "UnityYAMLMerge");
+            var unityYamlMergeExec = Environment.UnityApplicationContents.Combine("Tools", "UnityYAMLMerge" + Environment.ExecutableExtension);
 
             var yamlMergeCommand = Environment.IsWindows
                 ? $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED"""
