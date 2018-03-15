@@ -142,9 +142,8 @@ namespace GitHub.Unity
             {
                 if (!nodeJsExecutablePath.IsInitialized)
                 {
-                    nodeJsExecutablePath = IsWindows
-                        ? UnityApplicationContents.Combine("Tools", "nodejs", "node.exe")
-                        : UnityApplicationContents.Combine("Tools", "nodejs", "node");
+                    nodeJsExecutablePath =
+                        UnityApplicationContents.Combine("Tools", "nodejs", "node" + ExecutableExtension);
                 }
 
                 return nodeJsExecutablePath;
@@ -209,7 +208,7 @@ namespace GitHub.Unity
             }
             set { onMac = value; }
         }
-        public string ExecutableExtension { get { return IsWindows ? ".exe" : null; } }
+        public string ExecutableExtension { get { return IsWindows ? ".exe" : string.Empty; } }
         protected static ILogging Logger { get; } = LogHelper.GetLogger<DefaultEnvironment>();
     }
 }
