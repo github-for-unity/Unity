@@ -36,7 +36,13 @@ if (commander.twoFactor) {
 
         var twoFactor = readlineSync.question('Two Factor: ');
 
-        handleAuthentication(username, password, twoFactor);
+        try {
+            handleAuthentication(username, password, twoFactor);
+        }
+        catch (error) {
+            output.error(error);
+            process.exit();
+        }
     }
     else {
         var data = '';
@@ -54,7 +60,13 @@ if (commander.twoFactor) {
                 .split(/\r?\n/)
                 .filter(function (item) { return item; });
 
-            handleAuthentication(items[0], items[1], items[2]);
+            try {
+                handleAuthentication(items[0], items[1], items[2]);
+            }
+            catch (error) {
+                output.error(error);
+                process.exit();
+            }
         });
     }
 }
@@ -67,7 +79,13 @@ else {
             hideEchoBack: true
         });
 
-        handleAuthentication(username, password);
+        try {
+            handleAuthentication(username, password);
+        }
+        catch (error) {
+            output.error(error);
+            process.exit();
+        }
     }
     else {
         var data = '';
@@ -85,7 +103,13 @@ else {
                 .split(/\r?\n/)
                 .filter(function (item) { return item; });
 
-            handleAuthentication(items[0], items[1]);
+            try {
+                handleAuthentication(items[0], items[1]);
+            }
+            catch (error) {
+                output.error(error);
+                process.exit();
+            }
         });
     }
 }

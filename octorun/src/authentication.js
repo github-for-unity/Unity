@@ -9,6 +9,14 @@ var badCredentialsRegex = new RegExp("bad credentials", "gi");
 var scopes = ["user", "repo", "gist", "write:public_key"];
 
 var handleAuthentication = function (username, password, onSuccess, onFailure, twoFactor) {
+    if (!config.clientId || !config.clientSecret) {
+        throw "clientId and/or clientSecret missing";
+    }
+
+    if (!config.appName) {
+        throw "appName missing";
+    }
+
     var octokit = octokitWrapper.createOctokit();
 
     octokit.authenticate({
@@ -20,7 +28,8 @@ var handleAuthentication = function (username, password, onSuccess, onFailure, t
     var headers;
     if (twoFactor) {
         headers = {
-            "X-GitHub-OTP": twoFactor
+            "X-GitHub-OTP": twoFactor,
+            "user-agent": config.appName
         };
     }
 
