@@ -40,30 +40,32 @@ namespace GitHub.Unity
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
             GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
-            SetupMetrics();
         }
 
         public void Run(bool firstRun)
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
+            var octorunScriptPath = Environment.UserCachePath.Combine("octorun", "src", "bin", "app.js");
+            Logger.Trace("Using octorunScriptPath: {0}", octorunScriptPath);
+
             var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();            
             if (gitExecutablePath.HasValue && gitExecutablePath.Value.FileExists()) // we have a git path
             {
                 Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
-                InitializeEnvironment(gitExecutablePath.Value);
+                InitializeEnvironment(gitExecutablePath.Value, octorunScriptPath);
             }
             else // we need to go find git
             {
                 Logger.Trace("No git path found in settings");
 
-                var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (_, path) => InitializeEnvironment(path)) { Affinity = TaskAffinity.UI };
+                var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (_, path) => InitializeEnvironment(path, octorunScriptPath)) { Affinity = TaskAffinity.UI };
                 var findExecTask = new FindExecTask("git", CancellationToken)
                     .FinallyInUI((b, ex, path) => {
                         if (b && path.IsInitialized)
                         {
                             Logger.Trace("FindExecTask Success: {0}", path);
-                            InitializeEnvironment(path);
+                            InitializeEnvironment(path, octorunScriptPath);
                         }
                         else
                         {
@@ -86,9 +88,7 @@ namespace GitHub.Unity
 
             var targetPath = NPath.CurrentDirectory;
 
-            var unityYamlMergeExec = Environment.IsWindows
-                ? Environment.UnityApplication.Parent.Combine("Data", "Tools", "UnityYAMLMerge.exe")
-                : Environment.UnityApplication.Combine("Contents", "Tools", "UnityYAMLMerge");
+            var unityYamlMergeExec = Environment.UnityApplicationContents.Combine("Tools", "UnityYAMLMerge" + Environment.ExecutableExtension);
 
             var yamlMergeCommand = Environment.IsWindows
                 ? $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED"""
@@ -153,7 +153,13 @@ namespace GitHub.Unity
                 UserSettings.Set(Constants.GuidKey, id);
             }
 
-            UsageTracker = new UsageTracker(UserSettings, usagePath, id, unityVersion);
+            var metricsService = new MetricsService(ProcessManager,
+                TaskManager,
+                Environment.FileSystem,
+                Environment.NodeJsExecutablePath,
+                Environment.OctorunScriptPath);
+
+            UsageTracker = new UsageTracker(metricsService, UserSettings, usagePath, id, unityVersion);
 
             if (firstRun)
             {
@@ -169,13 +175,16 @@ namespace GitHub.Unity
         /// Initialize environment after finding where git is. This needs to run on the main thread
         /// </summary>
         /// <param name="gitExecutablePath"></param>
-        private void InitializeEnvironment(NPath gitExecutablePath)
+        /// <param name="octorunScriptPath"></param>
+        private void InitializeEnvironment(NPath gitExecutablePath, NPath octorunScriptPath)
         {
             var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
                 .ThenInUI(InitializeUI);
 
             Environment.GitExecutablePath = gitExecutablePath;
+            Environment.OctorunScriptPath = octorunScriptPath;
             Environment.User.Initialize(GitClient);
+            SetupMetrics();
 
             if (Environment.IsWindows)
             {

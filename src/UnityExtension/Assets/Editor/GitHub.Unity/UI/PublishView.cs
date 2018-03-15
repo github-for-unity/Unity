@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Octokit;
 using UnityEditor;
 using UnityEngine;
 
@@ -53,7 +52,7 @@ namespace GitHub.Unity
                         host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
                     }
 
-                    client = ApiClient.Create(host, Platform.Keychain);
+                    client = ApiClient.Create(host, Platform.Keychain, Manager.ProcessManager, TaskManager, Environment.NodeJsExecutablePath, Environment.OctorunScriptPath);
                 }
 
                 return client;
@@ -163,11 +162,7 @@ namespace GitHub.Unity
                         var cleanRepoDescription = repoDescription.Trim();
                         cleanRepoDescription = string.IsNullOrEmpty(cleanRepoDescription) ? null : cleanRepoDescription;
 
-                        Client.CreateRepository(new NewRepository(repoName)
-                        {
-                            Private = togglePrivate,
-                            Description = cleanRepoDescription
-                        }, (repository, ex) =>
+                        Client.CreateRepository(repoName, cleanRepoDescription, togglePrivate, (repository, ex) =>
                         {
                             if (ex != null)
                             {

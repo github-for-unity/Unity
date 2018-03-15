@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Octokit;
 using GitHub.Logging;
 
 namespace GitHub.Unity
@@ -153,7 +152,7 @@ namespace GitHub.Unity
         {
             //logger.Trace("Save: {0}", host);
             var keychainAdapter = await AddCredential(host);
-            AddConnection(new Connection(host, keychainAdapter.OctokitCredentials.Login));
+            AddConnection(new Connection(host, keychainAdapter.Credential.Username));
         }
 
         public void SetCredentials(ICredential credential)
@@ -236,7 +235,7 @@ namespace GitHub.Unity
         private async Task<KeychainAdapter> AddCredential(UriString host)
         {
             var keychainAdapter = GetKeychainAdapter(host);
-            if (keychainAdapter.OctokitCredentials == Credentials.Anonymous)
+            if (string.IsNullOrEmpty(keychainAdapter.Credential.Token))
             {
                 throw new InvalidOperationException("Anonymous credentials cannot be stored");
             }
@@ -324,6 +323,6 @@ namespace GitHub.Unity
         public Connection[] Connections => connections.Values.ToArray();
         public IList<UriString> Hosts => connections.Keys.ToArray();
         public bool HasKeys => connections.Any();
-        public bool NeedsLoad => HasKeys && FindOrCreateAdapter(connections.First().Value.Host).OctokitCredentials == Credentials.Anonymous;
+        public bool NeedsLoad => HasKeys && !string.IsNullOrEmpty(FindOrCreateAdapter(connections.First().Value.Host).Credential.Token);
     }
 }

@@ -11,7 +11,6 @@
     <AssemblyName>GitHub.Api</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
     <TargetFrameworkProfile />
     <LangVersion>6</LangVersion>
     <NuGetPackageImportStamp>
@@ -97,7 +96,6 @@
     <Compile Include="Application\ApplicationInfo.cs" />
     <Compile Include="Application\LoginResult.cs" />
     <Compile Include="Application\ApplicationConfiguration.cs" />
-    <Compile Include="Application\OctokitExtensions.cs" />
     <Compile Include="Application\Organization.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
@@ -144,6 +142,7 @@
     <Compile Include="Tasks\ConfigOutputProcessor.cs" />
     <Compile Include="Tasks\DownloadTask.cs" />
     <Compile Include="Tasks\ITaskManager.cs" />
+    <Compile Include="Tasks\OctorunTask.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskBase.cs" />
     <Compile Include="Tasks\TaskCanceledExceptions.cs" />

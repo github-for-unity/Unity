@@ -117,13 +117,7 @@
     <Compile Include="UI\Window.cs" />
   </ItemGroup>
   <Choose>
-    <When Condition="$(Buildtype) == 'Internal'">
-      <ItemGroup>
-        <Compile Include="$(SolutionDir)\script\src\MetricsInitialization.cs">
-          <Link>Metrics\MetricsInitialization.cs</Link>
-        </Compile>
-      </ItemGroup>
-    </When>
+    <When Condition="$(Buildtype) == 'Internal'" />
   </Choose>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\GitHub.Api\GitHub.Api.csproj">
