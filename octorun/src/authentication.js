@@ -9,6 +9,14 @@ var twoFactorRegex = new RegExp("must specify two-factor authentication otp code
 var badCredentialsRegex = new RegExp("bad credentials", "gi");
 
 var handleBasicAuthentication = function (username, password, onSuccess, onRequiresTwoFa, onFailure) {
+    if (!config.clientId || !config.clientSecret) {
+        throw "clientId and/or clientSecret missing";
+    }
+
+    if (!config.appName) {
+        throw "appName missing";
+    }
+
     var octokit = octokitWrapper.createOctokit();
 
     octokit.authenticate({
@@ -44,6 +52,14 @@ var handleBasicAuthentication = function (username, password, onSuccess, onRequi
 }
 
 var handleTwoFactorAuthentication = function (username, password, twoFactor, onSuccess, onFailure) {
+    if (!config.clientId || !config.clientSecret) {
+        throw "clientId and/or clientSecret missing";
+    }
+
+    if (!config.appName) {
+        throw "appName missing";
+    }
+    
     var octokit = octokitWrapper.createOctokit();
 
     octokit.authenticate({
@@ -54,11 +70,11 @@ var handleTwoFactorAuthentication = function (username, password, twoFactor, onS
 
     octokit.authorization.create({
         scopes: scopes,
-        note: config.appName,
         client_id: config.clientId,
         client_secret: config.clientSecret,
         headers: {
-            "X-GitHub-OTP": twoFactor
+            "X-GitHub-OTP": twoFactor,
+            "user-agent": config.appName
         }
     }, function (err, res) {
         if (err) {
