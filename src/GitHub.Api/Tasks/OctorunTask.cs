@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using GitHub.Logging;
@@ -130,6 +131,8 @@ namespace GitHub.Unity
 
         public bool IsSuccess => Status.Equals("success", StringComparison.InvariantCultureIgnoreCase);
         public bool IsError => Status.Equals("error", StringComparison.InvariantCultureIgnoreCase);
-        public bool IsCustom => !IsSuccess && !IsError;
+        public bool IsTwoFactorRequired => Status.Equals("2fa", StringComparison.InvariantCultureIgnoreCase);
+        public bool IsLocked => Output.First().Equals("locked", StringComparison.InvariantCultureIgnoreCase);
+        public bool IsBadCredentials => Output.First().Equals("badcredentials", StringComparison.InvariantCultureIgnoreCase);
     }
 }

@@ -9,19 +9,24 @@ commander
     .option('-t, --twoFactor')
     .parse(process.argv);
 
-var encoding = 'utf-8';
-
-if (commander.twoFactor) {
-    var handleTwoFactorAuthentication = function (username, password, token) {
-        authentication.handleTwoFactorAuthentication(username, password, token, function (token) {
+var handleAuthentication = function (username, password, twoFactor) {
+    authentication.handleAuthentication(username, password, function (token, status) {
+        if (status) {
+            output.custom(status, token);
+            process.exit();
+        }
+        else {
             output.success(token);
             process.exit();
-        }, function (error) {
-            output.error(error);
-            process.exit();
-        });
-    }
+        }
+    }, function (error) {
+        output.error(error);
+        process.exit();
+    }, twoFactor);
+}
 
+var encoding = 'utf-8';
+if (commander.twoFactor) {
     if (process.stdin.isTTY) {
         var readlineSync = require("readline-sync");
         var username = readlineSync.question('User: ');
@@ -32,7 +37,7 @@ if (commander.twoFactor) {
         var twoFactor = readlineSync.question('Two Factor: ');
 
         try {
-            handleTwoFactorAuthentication(username, password, twoFactor);
+            handleAuthentication(username, password, twoFactor);
         }
         catch (error) {
             output.error(error);
@@ -56,7 +61,7 @@ if (commander.twoFactor) {
                 .filter(function (item) { return item; });
 
             try {
-                handleTwoFactorAuthentication(items[0], items[1], items[2]);
+                handleAuthentication(items[0], items[1], items[2]);
             }
             catch (error) {
                 output.error(error);
@@ -66,20 +71,6 @@ if (commander.twoFactor) {
     }
 }
 else {
-    var handleBasicAuthentication = function (username, password) {
-        authentication.handleBasicAuthentication(username, password,
-            function (token) {
-                output.success(token);
-                process.exit();
-            }, function () {
-                output.custom("2fa", password);
-                process.exit();
-            }, function (error) {
-                output.error(error);
-                process.exit();
-            });
-    }
-
     if (process.stdin.isTTY) {
         var readlineSync = require("readline-sync");
 
@@ -89,7 +80,7 @@ else {
         });
 
         try {
-            handleBasicAuthentication(username, password);
+            handleAuthentication(username, password);
         }
         catch (error) {
             output.error(error);
@@ -113,7 +104,7 @@ else {
                 .filter(function (item) { return item; });
 
             try {
-                handleBasicAuthentication(items[0], items[1]);
+                handleAuthentication(items[0], items[1]);
             }
             catch (error) {
                 output.error(error);
