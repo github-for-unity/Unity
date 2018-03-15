@@ -42,10 +42,11 @@ namespace GitHub.Unity
             this.CacheContainer = cacheContainer;
         }
 
-        public void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityPath, NPath assetsPath)
+        public void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityApplicationPath, NPath unityApplicationContentsPath, NPath assetsPath)
         {
             ExtensionInstallPath = extensionInstallPath;
-            UnityApplication = unityPath;
+            UnityApplication = unityApplicationPath;
+            UnityApplicationContents = unityApplicationContentsPath;
             UnityAssetsPath = assetsPath;
             UnityProjectPath = assetsPath.Parent;
             UnityVersion = unityVersion;
@@ -109,6 +110,7 @@ namespace GitHub.Unity
         public IFileSystem FileSystem { get { return NPath.FileSystem; } set { NPath.FileSystem = value; } }
         public string UnityVersion { get; set; }
         public NPath UnityApplication { get; set; }
+        public NPath UnityApplicationContents { get; set; }
         public NPath UnityAssetsPath { get; set; }
         public NPath UnityProjectPath { get; set; }
         public NPath ExtensionInstallPath { get; set; }
@@ -140,9 +142,8 @@ namespace GitHub.Unity
             {
                 if (!nodeJsExecutablePath.IsInitialized)
                 {
-                    nodeJsExecutablePath = IsWindows
-                        ? UnityApplication.Parent.Combine("Data", "Tools", "nodejs", "node.exe")
-                        : UnityApplication.Combine("Contents", "Tools", "nodejs", "node");
+                    nodeJsExecutablePath =
+                        UnityApplicationContents.Combine("Tools", "nodejs", "node" + ExecutableExtension);
                 }
 
                 return nodeJsExecutablePath;
@@ -207,7 +208,7 @@ namespace GitHub.Unity
             }
             set { onMac = value; }
         }
-        public string ExecutableExtension { get { return IsWindows ? ".exe" : null; } }
+        public string ExecutableExtension { get { return IsWindows ? ".exe" : string.Empty; } }
         protected static ILogging Logger { get; } = LogHelper.GetLogger<DefaultEnvironment>();
     }
 }
