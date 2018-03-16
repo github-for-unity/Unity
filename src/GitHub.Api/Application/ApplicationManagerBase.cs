@@ -46,7 +46,8 @@ namespace GitHub.Unity
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
-            var octorunScriptPath = Environment.UserCachePath.Combine("octorun", "src", "bin", "app.js");
+            var octorunPath = Environment.UserCachePath.Combine("octorun");
+            var octorunScriptPath = octorunPath.Combine("src", "bin", "app.js");
             Logger.Trace("Using octorunScriptPath: {0}", octorunScriptPath);
 
             var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();            
