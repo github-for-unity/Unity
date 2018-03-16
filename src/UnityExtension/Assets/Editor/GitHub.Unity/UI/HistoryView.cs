@@ -744,10 +744,5 @@ namespace GitHub.Unity
             treeChanges.Load(selectedEntry.changes.Select(entry => new GitStatusEntryTreeData(entry)));
             Redraw();
         }
-
-        public override bool IsBusy
-        {
-            get { return false; }
-        }
     }
 }

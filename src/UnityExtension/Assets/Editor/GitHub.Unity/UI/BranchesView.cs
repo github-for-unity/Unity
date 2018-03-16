@@ -501,11 +501,6 @@ namespace GitHub.Unity
             return a.Name.CompareTo(b.Name);
         }
 
-        public override bool IsBusy
-        {
-            get { return false; }
-        }
-
         private enum NodeType
         {
             Folder,

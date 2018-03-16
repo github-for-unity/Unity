@@ -368,6 +368,7 @@ namespace GitHub.Unity
         public NPath LocalPath { get; private set; }
         public string Owner => CloneUrl?.Owner ?? null;
         public bool IsGitHub => HostAddress.IsGitHubDotCom(CloneUrl);
+        public bool IsBusy => repositoryManager?.IsBusy ?? false;
 
         internal string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture,
             "{0} Owner: {1} Name: {2} CloneUrl: {3} LocalPath: {4} Branch: {5} Remote: {6}", GetHashCode(), Owner, Name,

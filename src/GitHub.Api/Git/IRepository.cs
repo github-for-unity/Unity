@@ -60,6 +60,7 @@ namespace GitHub.Unity
         List<GitLock> CurrentLocks { get; }
         string CurrentBranchName { get; }
         List<GitLogEntry> CurrentLog { get; }
+        bool IsBusy { get; }
 
         event Action<CacheUpdateEvent> LogChanged;
         event Action<CacheUpdateEvent> TrackingStatusChanged;

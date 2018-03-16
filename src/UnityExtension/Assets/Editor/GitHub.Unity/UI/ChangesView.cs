@@ -347,9 +347,6 @@ namespace GitHub.Unity
 
         private void Commit()
         {
-            // Do not allow new commits before we have received one successful update
-            SetBusy(true);
-
             var files = treeChanges.GetCheckedFiles().ToList();
             ITask addTask;
 
@@ -367,19 +364,7 @@ namespace GitHub.Unity
                     {
                         commitMessage = "";
                         commitBody = "";
-                        SetBusy(false);
                     }).Start();
-        }
-
-        private void SetBusy(bool value)
-        {
-            treeChanges.IsBusy = value;
-            isBusy = value;
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy; }
         }
     }
 }

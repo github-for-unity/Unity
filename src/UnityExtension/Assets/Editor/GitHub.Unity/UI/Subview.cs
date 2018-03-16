@@ -59,7 +59,11 @@ namespace GitHub.Unity
         public IUser User { get { return Parent.User; } }
         public bool HasUser { get { return Parent.HasUser; } }
         public bool HasFocus { get { return Parent != null && Parent.HasFocus; } }
-        public abstract bool IsBusy { get; }
+        public virtual bool IsBusy
+        {
+            get { return Manager.IsBusy || Repository != null ? Repository.IsBusy : false; }
+        }
+
         protected ITaskManager TaskManager { get { return Manager.TaskManager; } }
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }
