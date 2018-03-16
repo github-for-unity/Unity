@@ -407,7 +407,7 @@ namespace GitHub.Unity
         public void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
             var managedCache = cacheContainer.GitUserCache;
-            var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
+            var raiseEvent = !cacheUpdateEvent.IsInitialized || managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
 
             Logger.Trace("Check GitUserCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
                 cacheUpdateEvent.UpdatedTime, raiseEvent);
@@ -502,6 +502,8 @@ namespace GitHub.Unity
 
         public CacheUpdateEvent(CacheType type, DateTimeOffset when)
         {
+            if (type == CacheType.None) throw new ArgumentOutOfRangeException(nameof(type));
+
             cacheType = type;
             updatedTimeValue = when;
             updatedTimeString = when.ToString(Constants.Iso8601Format);
@@ -562,18 +564,16 @@ namespace GitHub.Unity
                     }
                     else
                     {
-                        UpdatedTime = DateTimeOffset.MinValue;
+                        updatedTimeValue = DateTimeOffset.MinValue;
+                        updatedTimeString = updatedTimeValue.Value.ToString(Constants.Iso8601Format);
                     }
                 }
 
                 return updatedTimeValue.Value;
             }
-            set
-            {
-                updatedTimeValue = value;
-                updatedTimeString = value.ToString(Constants.Iso8601Format);
-            }
         }
+
+        public bool IsInitialized => cacheType != CacheType.None;
 
         public string UpdatedTimeString => updatedTimeString;
     }
