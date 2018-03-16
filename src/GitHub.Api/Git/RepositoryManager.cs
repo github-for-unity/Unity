@@ -186,8 +186,7 @@ namespace GitHub.Unity
 
         public ITask CommitAllFiles(string message, string body)
         {
-            var task = GitClient
-                .AddAll()
+            var task = GitClient.AddAll()
                 .Then(GitClient.Commit(message, body));
 
             return HookupHandlers(task, true);
@@ -195,8 +194,7 @@ namespace GitHub.Unity
 
         public ITask CommitFiles(List<string> files, string message, string body)
         {
-            var task = GitClient
-                .Add(files)
+            var task = GitClient.Add(files)
                 .Then(GitClient.Commit(message, body));
 
             return HookupHandlers(task, true);
@@ -332,18 +330,9 @@ namespace GitHub.Unity
                         }
                     }
 
-                    ITask<string> gitDiscardTask = null;
                     if (itemsToRevert.Any())
                     {
-                        gitDiscardTask = GitClient.Discard(itemsToRevert);
-                        task.Then(gitDiscardTask)
-                            // we're appending a new continuation after HookupHandlers has run,
-                            // we need to set the finally handler manually so it runs at the end of everything
-                            .Finally(s =>
-                            {
-                                watcher.Start();
-                                isBusy = false;
-                            });
+                        task.Then(GitClient.Discard(itemsToRevert));
                     }
                 }
                 , () => gitStatusEntries);
