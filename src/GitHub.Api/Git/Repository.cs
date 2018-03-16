@@ -50,10 +50,10 @@ namespace GitHub.Unity
                     RemoteBranchListChanged?.Invoke(cacheUpdateEvent);
                     LocalAndRemoteBranchListChanged?.Invoke(cacheUpdateEvent);
                 }},
-                { CacheType.GitAheadBehind, TrackingStatusChanged.SafeInvoke },
-                { CacheType.GitLocks, LocksChanged.SafeInvoke },
-                { CacheType.GitLog, LogChanged.SafeInvoke },
-                { CacheType.GitStatus, StatusEntriesChanged.SafeInvoke },
+                { CacheType.GitAheadBehind, c => TrackingStatusChanged?.Invoke(c) },
+                { CacheType.GitLocks, c => LocksChanged?.Invoke(c) },
+                { CacheType.GitLog, c => LogChanged?.Invoke(c) },
+                { CacheType.GitStatus, c => StatusEntriesChanged?.Invoke(c) },
                 { CacheType.GitUser, cacheUpdateEvent => { } },
                 { CacheType.RepositoryInfo, cacheUpdateEvent => {
                     CurrentBranchChanged?.Invoke(cacheUpdateEvent);

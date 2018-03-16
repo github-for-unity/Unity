@@ -23,11 +23,21 @@ namespace GitHub.Unity
     [Serializable]
     class ProcessException : TaskCanceledException
     {
+        public int ErrorCode { get; }
+
         protected ProcessException() : base()
         { }
-        protected ProcessException(string message) : base(message)
+        public ProcessException(int errorCode, string message) : base(message)
+        {
+            ErrorCode = errorCode;
+        }
+        public ProcessException(int errorCode, string message, Exception innerException) : base(message, innerException)
+        {
+            ErrorCode = errorCode;
+        }
+        public ProcessException(string message) : base(message)
         { }
-        protected ProcessException(string message, Exception innerException) : base(message, innerException)
+        public ProcessException(string message, Exception innerException) : base(message, innerException)
         { }
         protected ProcessException(SerializationInfo info, StreamingContext context) : base(info, context)
         { }
