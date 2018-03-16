@@ -30,7 +30,7 @@ namespace GitHub.Unity
         void ValidateAll();
         void InvalidateAll();
         IManagedCache GetCache(CacheType cacheType);
-        void CheckAndRaiseEventsIfCacheNewer(CacheUpdateEvent cacheUpdateEvent);
+        void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent);
     }
 
     public interface IManagedCache

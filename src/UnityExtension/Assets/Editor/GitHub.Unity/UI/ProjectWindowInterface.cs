@@ -42,12 +42,8 @@ namespace GitHub.Unity
 
         private static void ValidateCachedData(IRepository repository)
         {
-            if (lastRepositoryStatusChangedEvent.cacheType == CacheType.None)
-                lastRepositoryStatusChangedEvent = new CacheUpdateEvent(CacheType.GitStatus, DateTimeOffset.MinValue);
-            if (lastLocksChangedEvent.cacheType == CacheType.None)
-                lastLocksChangedEvent = new CacheUpdateEvent(CacheType.GitLocks, DateTimeOffset.MinValue);
-            repository.CheckAndRaiseEventsIfCacheNewer(lastRepositoryStatusChangedEvent);
-            repository.CheckAndRaiseEventsIfCacheNewer(lastLocksChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastRepositoryStatusChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
         }
 
         private static void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)

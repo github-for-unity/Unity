@@ -21,7 +21,7 @@ namespace GitHub.Unity
         ITask RequestLock(string file);
         ITask ReleaseLock(string file, bool force);
         ITask DiscardChanges(GitStatusEntry[] discardEntries);
-        void CheckAndRaiseEventsIfCacheNewer(CacheUpdateEvent cacheUpdateEvent);
+        void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent);
 
         /// <summary>
         /// Gets the name of the repository.

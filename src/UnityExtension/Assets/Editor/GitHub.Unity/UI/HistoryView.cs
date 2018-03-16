@@ -602,15 +602,9 @@ namespace GitHub.Unity
 
         private void ValidateCachedData(IRepository repository)
         {
-            if (lastLogChangedEvent.cacheType == CacheType.None)
-                lastLogChangedEvent = new CacheUpdateEvent(CacheType.GitLog, DateTimeOffset.MinValue);
-            if (lastAheadBehindChangedEvent.cacheType == CacheType.None)
-                lastAheadBehindChangedEvent = new CacheUpdateEvent(CacheType.GitAheadBehind, DateTimeOffset.MinValue);
-            if (lastCurrentRemoteChangedEvent.cacheType == CacheType.None)
-                lastCurrentRemoteChangedEvent = new CacheUpdateEvent(CacheType.RepositoryInfo, DateTimeOffset.MinValue);
-            repository.CheckAndRaiseEventsIfCacheNewer(lastLogChangedEvent);
-            repository.CheckAndRaiseEventsIfCacheNewer(lastAheadBehindChangedEvent);
-            repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentRemoteChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLog, lastLogChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitAheadBehind, lastAheadBehindChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentRemoteChangedEvent);
         }
 
         private void MaybeUpdateData()

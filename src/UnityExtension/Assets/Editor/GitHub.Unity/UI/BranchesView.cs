@@ -152,9 +152,7 @@ namespace GitHub.Unity
 
         private void ValidateCachedData(IRepository repository)
         {
-            if (lastLocalAndRemoteBranchListChangedEvent.cacheType == CacheType.None)
-                lastLocalAndRemoteBranchListChangedEvent = new CacheUpdateEvent(CacheType.Branches, DateTimeOffset.MinValue);
-            repository.CheckAndRaiseEventsIfCacheNewer(lastLocalAndRemoteBranchListChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.Branches, lastLocalAndRemoteBranchListChangedEvent);
         }
 
         private void Render()
