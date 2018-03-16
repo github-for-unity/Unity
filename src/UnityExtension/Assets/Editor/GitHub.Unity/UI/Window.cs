@@ -226,7 +226,7 @@ namespace GitHub.Unity
 
                     spinner.Render();
 
-                    rect = new Rect(0f, 0f, Position.width, Position.height - rect.height);
+                    rect = new Rect(0f, rect.y + rect.height, Position.width, Position.height - (rect.height + rect.y));
                     rect = spinner.Layout(rect);
                     rect.y += rect.height + 30;
                     rect.height = 20;
@@ -575,7 +575,7 @@ namespace GitHub.Unity
 
         public override bool IsBusy
         {
-            get { return Manager.IsBusy || ActiveView.IsBusy; }
+            get { return Manager.IsBusy; }
         }
 
         private enum SubTab
