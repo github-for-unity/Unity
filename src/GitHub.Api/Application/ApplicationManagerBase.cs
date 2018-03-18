@@ -55,6 +55,8 @@ namespace GitHub.Unity
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
+            isBusy = true;
+
             var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();
             if (gitExecutablePath.HasValue && gitExecutablePath.Value.FileExists()) // we have a git path
             {
@@ -65,7 +67,6 @@ namespace GitHub.Unity
             {
                 Logger.Trace("No git path found in settings");
 
-                isBusy = true;
                 var initEnvironmentTask = new ActionTask<NPath>(CancellationToken,
                     (b, path) => InitializeEnvironment(path)) { Affinity = TaskAffinity.UI };
                 var findExecTask = new FindExecTask("git", CancellationToken)
@@ -81,7 +82,6 @@ namespace GitHub.Unity
                             //Logger.Warning("FindExecTask Failure");
                             Logger.Error("Git not found");
                         }
-                        isBusy = false;
                     });
 
                 var gitInstaller = new GitInstaller(Environment, CancellationToken);
@@ -91,7 +91,7 @@ namespace GitHub.Unity
                 setupTask.Progress(progressReporter.UpdateProgress);
                 setupTask.OnEnd += (thisTask, result, success, exception) =>
                 {
-                    if (success && result != null)
+                    if (success && result.IsInitialized)
                         thisTask.Then(initEnvironmentTask);
                     else
                         thisTask.Then(findExecTask);
@@ -248,7 +248,7 @@ namespace GitHub.Unity
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
         public IUsageTracker UsageTracker { get; protected set; }
-        public bool IsBusy { get { return isBusy || (RepositoryManager?.IsBusy ?? false); } }
+        public bool IsBusy { get { return isBusy; } }
         protected TaskScheduler UIScheduler { get; private set; }
         protected SynchronizationContext SynchronizationContext { get; private set; }
         protected IRepositoryManager RepositoryManager { get { return repositoryManager; } }

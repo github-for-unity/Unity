@@ -52,9 +52,7 @@ namespace GitHub.Unity
             }
 
             AttachHandlers(Repository);
-            Repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentBranchChangedEvent);
-            Repository.CheckAndRaiseEventsIfCacheNewer(lastStatusEntriesChangedEvent);
-            Repository.CheckAndRaiseEventsIfCacheNewer(lastLocksChangedEvent);
+            ValidateCachedData(Repository);
         }
 
         public override void OnDisable()
@@ -241,6 +239,13 @@ namespace GitHub.Unity
             repository.LocksChanged -= RepositoryOnLocksChanged;
         }
 
+        private void ValidateCachedData(IRepository repository)
+        {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentBranchChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastStatusEntriesChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
+        }
+
         private void MaybeUpdateData()
         {
             if (currentBranchHasUpdate)
@@ -335,9 +340,6 @@ namespace GitHub.Unity
 
         private void Commit()
         {
-            // Do not allow new commits before we have received one successful update
-            SetBusy(true);
-
             var files = treeChanges.GetCheckedFiles().ToList();
             ITask addTask;
 
@@ -355,19 +357,7 @@ namespace GitHub.Unity
                     {
                         commitMessage = "";
                         commitBody = "";
-                        SetBusy(false);
                     }).Start();
-        }
-
-        private void SetBusy(bool value)
-        {
-            treeChanges.IsBusy = value;
-            isBusy = value;
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy; }
         }
     }
 }

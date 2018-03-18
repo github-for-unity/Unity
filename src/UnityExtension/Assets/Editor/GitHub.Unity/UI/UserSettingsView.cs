@@ -90,14 +90,10 @@ namespace GitHub.Unity
         private void UserOnChanged(CacheUpdateEvent cacheUpdateEvent)
         {
             //Logger.Trace("UserOnChanged");
-
-            if (!lastCheckUserChangedEvent.Equals(cacheUpdateEvent))
-            {
-                lastCheckUserChangedEvent = cacheUpdateEvent;
-                userHasChanges = true;
-                isBusy = false;
-                Redraw();
-            }
+            lastCheckUserChangedEvent = cacheUpdateEvent;
+            userHasChanges = true;
+            isBusy = false;
+            Redraw();
         }
 
         private void DetachHandlers()

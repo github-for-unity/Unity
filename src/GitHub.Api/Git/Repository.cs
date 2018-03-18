@@ -50,10 +50,10 @@ namespace GitHub.Unity
                     RemoteBranchListChanged?.Invoke(cacheUpdateEvent);
                     LocalAndRemoteBranchListChanged?.Invoke(cacheUpdateEvent);
                 }},
-                { CacheType.GitAheadBehind, TrackingStatusChanged.SafeInvoke },
-                { CacheType.GitLocks, LocksChanged.SafeInvoke },
-                { CacheType.GitLog, LogChanged.SafeInvoke },
-                { CacheType.GitStatus, StatusEntriesChanged.SafeInvoke },
+                { CacheType.GitAheadBehind, c => TrackingStatusChanged?.Invoke(c) },
+                { CacheType.GitLocks, c => LocksChanged?.Invoke(c) },
+                { CacheType.GitLog, c => LogChanged?.Invoke(c) },
+                { CacheType.GitStatus, c => StatusEntriesChanged?.Invoke(c) },
                 { CacheType.GitUser, cacheUpdateEvent => { } },
                 { CacheType.RepositoryInfo, cacheUpdateEvent => {
                     CurrentBranchChanged?.Invoke(cacheUpdateEvent);
@@ -64,7 +64,10 @@ namespace GitHub.Unity
 
             cacheContainer = container;
             cacheContainer.CacheInvalidated += CacheHasBeenInvalidated;
-            cacheContainer.CacheUpdated += (cacheType, offset) => cacheUpdateEvents[cacheType](new CacheUpdateEvent(cacheType, offset));
+            cacheContainer.CacheUpdated += (cacheType, offset) =>
+            {
+                cacheUpdateEvents[cacheType](new CacheUpdateEvent(cacheType, offset));
+            };
         }
 
         public void Initialize(IRepositoryManager repositoryManager, ITaskManager taskManager)
@@ -117,7 +120,7 @@ namespace GitHub.Unity
         public ITask ReleaseLock(string file, bool force) => repositoryManager.UnlockFile(file, force);
         public ITask DiscardChanges(GitStatusEntry[] gitStatusEntry) => repositoryManager.DiscardChanges(gitStatusEntry);
 
-        public void CheckAndRaiseEventsIfCacheNewer(CacheUpdateEvent cacheUpdateEvent) => cacheContainer.CheckAndRaiseEventsIfCacheNewer(cacheUpdateEvent);
+        public void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent) => cacheContainer.CheckAndRaiseEventsIfCacheNewer(cacheType, cacheUpdateEvent);
 
 
         /// <summary>
@@ -154,11 +157,14 @@ namespace GitHub.Unity
 
         private void RefreshCache(CacheType cacheType)
         {
-            var cache = cacheContainer.GetCache(cacheType);
-            // if the cache has valid data, we need to force an invalidation to refresh it
-            // if it doesn't have valid data, it will trigger an invalidation automatically
-            if (cache.ValidateData())
-                cache.InvalidateData();
+            taskManager.RunInUI(() =>
+            {
+                var cache = cacheContainer.GetCache(cacheType);
+                // if the cache has valid data, we need to force an invalidation to refresh it
+                // if it doesn't have valid data, it will trigger an invalidation automatically
+                if (cache.ValidateData())
+                    cache.InvalidateData();
+            });
         }
 
         private void CacheHasBeenInvalidated(CacheType cacheType)
@@ -362,6 +368,7 @@ namespace GitHub.Unity
         public NPath LocalPath { get; private set; }
         public string Owner => CloneUrl?.Owner ?? null;
         public bool IsGitHub => HostAddress.IsGitHubDotCom(CloneUrl);
+        public bool IsBusy => repositoryManager?.IsBusy ?? false;
 
         internal string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture,
             "{0} Owner: {1} Name: {2} CloneUrl: {3} LocalPath: {4} Branch: {5} Remote: {6}", GetHashCode(), Owner, Name,
@@ -398,17 +405,7 @@ namespace GitHub.Unity
             cacheContainer.CacheUpdated += (type, dt) => { if (type == CacheType.GitUser) CacheHasBeenUpdated(dt); };
         }
 
-        public void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent)
-        {
-            var managedCache = cacheContainer.GitUserCache;
-            var raiseEvent = managedCache.LastUpdatedAt != cacheUpdateEvent.UpdatedTime;
-
-            Logger.Trace("Check GitUserCache CacheUpdateEvent Current:{0} Check:{1} Result:{2}", managedCache.LastUpdatedAt,
-                cacheUpdateEvent.UpdatedTime, raiseEvent);
-
-            if (raiseEvent)
-                CacheHasBeenUpdated(managedCache.LastUpdatedAt);
-        }
+        public void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent) => cacheContainer.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, cacheUpdateEvent);
 
         public void Initialize(IGitClient client)
         {
@@ -485,90 +482,5 @@ namespace GitHub.Unity
         }
 
         protected static ILogging Logger { get; } = LogHelper.GetLogger<User>();
-    }
-
-    [Serializable]
-    public struct CacheUpdateEvent
-    {
-        [NonSerialized] private DateTimeOffset? updatedTimeValue;
-        public string updatedTimeString;
-        public CacheType cacheType;
-
-        public CacheUpdateEvent(CacheType type, DateTimeOffset when)
-        {
-            cacheType = type;
-            updatedTimeValue = when;
-            updatedTimeString = when.ToString(Constants.Iso8601Format);
-        }
-
-        public override int GetHashCode()
-        {
-            int hash = 17;
-            hash = hash * 23 + cacheType.GetHashCode();
-            hash = hash * 23 + (updatedTimeString?.GetHashCode() ?? 0);
-            return hash;
-        }
-
-        public override bool Equals(object other)
-        {
-            if (other is CacheUpdateEvent)
-                return Equals((CacheUpdateEvent)other);
-            return false;
-        }
-
-        public bool Equals(CacheUpdateEvent other)
-        {
-            return
-                cacheType == other.cacheType &&
-                String.Equals(updatedTimeString, other.updatedTimeString)
-                ;
-        }
-
-        public static bool operator ==(CacheUpdateEvent lhs, CacheUpdateEvent rhs)
-        {
-            // If both are null, or both are same instance, return true.
-            if (ReferenceEquals(lhs, rhs))
-                return true;
-
-            // If one is null, but not both, return false.
-            if (((object)lhs == null) || ((object)rhs == null))
-                return false;
-
-            // Return true if the fields match:
-            return lhs.Equals(rhs);
-        }
-
-        public static bool operator !=(CacheUpdateEvent lhs, CacheUpdateEvent rhs)
-        {
-            return !(lhs == rhs);
-        }
-
-        public DateTimeOffset UpdatedTime
-        {
-            get
-            {
-                if (!updatedTimeValue.HasValue)
-                {
-                    DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(updatedTimeString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
-                    {
-                        updatedTimeValue = result;
-                    }
-                    else
-                    {
-                        UpdatedTime = DateTimeOffset.MinValue;
-                    }
-                }
-
-                return updatedTimeValue.Value;
-            }
-            set
-            {
-                updatedTimeValue = value;
-                updatedTimeString = value.ToString(Constants.Iso8601Format);
-            }
-        }
-
-        public string UpdatedTimeString => updatedTimeString;
     }
 }

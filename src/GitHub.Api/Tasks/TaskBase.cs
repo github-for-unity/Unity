@@ -1,5 +1,6 @@
 using GitHub.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -160,6 +161,7 @@ namespace GitHub.Unity
                 nextTaskBase = nextTaskBase.GetTopMostTask() ?? nextTaskBase;
             // make the next task dependent on this one so it can get values from us
             nextTaskBase.SetDependsOn(this);
+            var nextTaskFinallyHandler = nextTaskBase.finallyHandler;
 
             if (runOptions == TaskRunOptions.OnSuccess)
             {
@@ -173,8 +175,8 @@ namespace GitHub.Unity
                     SetFaultHandler(nextTaskBase.continuationOnAlways);
                 if (nextTaskBase.catchHandler != null)
                     Catch(nextTaskBase.catchHandler);
-                if (nextTaskBase.finallyHandler != null)
-                    Finally(nextTaskBase.finallyHandler);
+                if (nextTaskFinallyHandler != null)
+                    Finally(nextTaskFinallyHandler);
             }
             else if (runOptions == TaskRunOptions.OnFailure)
             {
@@ -186,6 +188,18 @@ namespace GitHub.Unity
                 this.continuationOnAlways = nextTaskBase;
                 DependsOn?.SetFaultHandler(nextTaskBase);
             }
+
+            // if the current task has a fault handler, attach it to the chain we're appending
+            if (finallyHandler != null)
+            {
+                var endOfChainTask = nextTaskBase.GetBottomMostTask();
+                while (endOfChainTask != this && endOfChainTask != null)
+                {
+                    endOfChainTask.finallyHandler += finallyHandler;
+                    endOfChainTask = endOfChainTask.DependsOn;
+                }
+            }
+
             return nextTask;
         }
 
@@ -240,11 +254,7 @@ namespace GitHub.Unity
         public T Finally<T>(T taskToContinueWith)
             where T : ITask
         {
-            Guard.ArgumentNotNull(taskToContinueWith, nameof(taskToContinueWith));
-            continuationOnAlways = (TaskBase)(object)taskToContinueWith;
-            continuationOnAlways.SetDependsOn(this);
-            DependsOn?.SetFaultHandler(continuationOnAlways);
-            return taskToContinueWith;
+            return Then(taskToContinueWith, TaskRunOptions.OnAlways);
         }
 
         /// <summary>
@@ -361,6 +371,15 @@ namespace GitHub.Unity
             if (depends == null)
                 return null;
             return depends.GetTopMostTask(null, false);
+        }
+
+        protected TaskBase GetBottomMostTask()
+        {
+            if (continuationOnSuccess != null)
+                return continuationOnSuccess.GetBottomMostTask();
+            else if (continuationOnAlways != null)
+                return continuationOnAlways.GetBottomMostTask();
+            return this;
         }
 
         protected TaskBase GetTopMostTask(TaskBase ret, bool onlyCreatedState)

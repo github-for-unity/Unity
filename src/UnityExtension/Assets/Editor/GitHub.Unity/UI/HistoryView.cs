@@ -359,13 +359,7 @@ namespace GitHub.Unity
             }
 
             AttachHandlers(Repository);
-
-            if (Repository != null)
-            {
-                Repository.CheckAndRaiseEventsIfCacheNewer(lastLogChangedEvent);
-                Repository.CheckAndRaiseEventsIfCacheNewer(lastAheadBehindChangedEvent);
-                Repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentRemoteChangedEvent);
-            }
+            ValidateCachedData(Repository);
         }
 
         public override void OnDisable()
@@ -606,6 +600,13 @@ namespace GitHub.Unity
             repository.CurrentRemoteChanged -= RepositoryOnCurrentRemoteChanged;
         }
 
+        private void ValidateCachedData(IRepository repository)
+        {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLog, lastLogChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitAheadBehind, lastAheadBehindChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentRemoteChangedEvent);
+        }
+
         private void MaybeUpdateData()
         {
             if (Repository == null)
@@ -736,11 +737,6 @@ namespace GitHub.Unity
             treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
             treeChanges.Load(selectedEntry.changes.Select(entry => new GitStatusEntryTreeData(entry)));
             Redraw();
-        }
-
-        public override bool IsBusy
-        {
-            get { return false; }
         }
     }
 }

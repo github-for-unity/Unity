@@ -37,9 +37,13 @@ namespace GitHub.Unity
                 repository.TrackingStatusChanged += RepositoryOnStatusChanged;
                 repository.LocksChanged += RepositoryOnLocksChanged;
 
-                repository.CheckAndRaiseEventsIfCacheNewer(lastRepositoryStatusChangedEvent);
-                repository.CheckAndRaiseEventsIfCacheNewer(lastLocksChangedEvent);
             }
+        }
+
+        private static void ValidateCachedData(IRepository repository)
+        {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastRepositoryStatusChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
         }
 
         private static void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)

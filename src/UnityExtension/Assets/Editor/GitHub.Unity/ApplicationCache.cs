@@ -128,6 +128,7 @@ namespace GitHub.Unity
 
     abstract class ManagedCacheBase<T> : ScriptObjectSingleton<T> where T : ScriptableObject, IManagedCache
     {
+        [SerializeField] private CacheType cacheType;
         [SerializeField] private string lastUpdatedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
         [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
         [NonSerialized] private DateTimeOffset? lastUpdatedAtValue;
@@ -138,8 +139,8 @@ namespace GitHub.Unity
 
         protected ManagedCacheBase(CacheType type)
         {
-            CacheType = type;
             Logger = LogHelper.GetLogger(GetType());
+            CacheType = type;
         }
 
         public bool ValidateData()
@@ -246,7 +247,7 @@ namespace GitHub.Unity
             }
         }
 
-        public CacheType CacheType { get; private set; }
+        public CacheType CacheType { get { return cacheType; } private set { cacheType = value; } }
 
         protected ILogging Logger { get; private set; }
     }

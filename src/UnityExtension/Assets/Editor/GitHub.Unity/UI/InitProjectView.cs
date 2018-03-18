@@ -15,7 +15,6 @@ namespace GitHub.Unity
 
         [SerializeField] private CacheUpdateEvent lastCheckUserChangedEvent;
 
-        [NonSerialized] private bool isBusy;
         [NonSerialized] private bool userHasChanges;
         [NonSerialized] private bool gitExecutableIsSet;
 
@@ -66,10 +65,7 @@ namespace GitHub.Unity
                     {
                         if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
                         {
-                            isBusy = true;
-                            Manager.InitializeRepository()
-                                   .FinallyInUI((s, e) => isBusy = false)
-                                   .Start();
+                            Manager.InitializeRepository().Start();
                         }
                     }
                     EditorGUI.EndDisabledGroup();
@@ -124,11 +120,6 @@ namespace GitHub.Unity
                     && !string.IsNullOrEmpty(User.Email);
                 hasCompletedInitialCheck = true;
             }
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy;  }
         }
     }
 }

@@ -264,38 +264,40 @@ namespace IntegrationTests
             var runningOrder = new List<int>();
             var rand = new Randomizer();
             var startTasks = new List<ActionTask>();
-            var i = 1;
-            for (var start = i; i < start + count; i++)
+            for (var i = 0; i < count; i++)
             {
-                startTasks.Add(GetTask(TaskAffinity.Concurrent, i,
+                startTasks.Add(GetTask(TaskAffinity.Concurrent, i + 1,
                     id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }));
             }
 
             var midTasks = new List<ActionTask>();
-            for (var start = i; i < start + count; i++)
+            for (var i = 0; i < count; i++)
             {
-                midTasks.Add(startTasks[i - 4].Then(
-                        GetTask(TaskAffinity.Concurrent, i,
-                            id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }))
-                    );;
+                var previousTask = startTasks[i];
+                midTasks.Add(previousTask.Then(GetTask(TaskAffinity.Concurrent, i + 11,
+                    id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }))
+                );;
             }
 
             var endTasks = new List<ActionTask>();
-            for (var start = i; i < start + count; i++)
+            for (var i = 0; i < count; i++)
             {
-                endTasks.Add(midTasks[i - 7].Then(
-                    GetTask(TaskAffinity.Concurrent, i,
-                        id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }
-                        )));
+                var previousTask = midTasks[i];
+                endTasks.Add(previousTask.Then(GetTask(TaskAffinity.Concurrent, i + 21,
+                    id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }))
+                );
             }
 
             foreach (var t in endTasks)
                 t.Start();
             Task.WaitAll(endTasks.Select(x => x.Task).ToArray());
 
-            CollectionAssert.AreEquivalent(Enumerable.Range(1, 3), runningOrder.Take(3));
-            CollectionAssert.AreEquivalent(Enumerable.Range(4, 3), runningOrder.Skip(3).Take(3));
-            CollectionAssert.AreEquivalent(Enumerable.Range(7, 3), runningOrder.Skip(6).Take(3));
+            Assert.True(runningOrder.IndexOf(21) > runningOrder.IndexOf(11));
+            Assert.True(runningOrder.IndexOf(11) > runningOrder.IndexOf(1));
+            Assert.True(runningOrder.IndexOf(22) > runningOrder.IndexOf(12));
+            Assert.True(runningOrder.IndexOf(12) > runningOrder.IndexOf(2));
+            Assert.True(runningOrder.IndexOf(23) > runningOrder.IndexOf(13));
+            Assert.True(runningOrder.IndexOf(13) > runningOrder.IndexOf(3));
         }
 
         [Test]
