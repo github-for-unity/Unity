@@ -143,13 +143,14 @@ namespace UnitTests
             return testTreeNode;
         }
 
-        protected override void OnClear()
+        protected override void Clear()
         {
             if (traceLogging)
             {
                 Logger.Trace("OnClear");
             }
             TestTreeListener.OnClear();
+            base.Clear();
         }
 
         protected override void SetNodeIcon(TestTreeNode node)

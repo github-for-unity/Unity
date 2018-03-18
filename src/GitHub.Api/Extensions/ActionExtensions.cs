@@ -15,5 +15,11 @@ namespace GitHub.Unity
             if (action != null)
                 action(obj);
         }
+
+        public static void SafeInvoke<T1, T2>(this Action<T1, T2> action, T1 obj, T2 obj2)
+        {
+            if (action != null)
+                action(obj, obj2);
+        }
     }
 }

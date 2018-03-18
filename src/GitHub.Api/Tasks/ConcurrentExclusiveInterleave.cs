@@ -158,8 +158,6 @@ namespace GitHub.Unity
         /// <remarks>This has been separated out into its own method to improve the Parallel Tasks window experience.</remarks>
         private void ConcurrentExclusiveInterleaveProcessor()
         {
-            Logging.LogHelper.GetLogger<ConcurrentExclusiveInterleave>().Trace("ConcurrentExclusiveInterleaveProcessor");
-
             if (token.IsCancellationRequested) return;
             interleaveTaskScheduler.ThreadToExclude = Thread.CurrentThread.ManagedThreadId;
 

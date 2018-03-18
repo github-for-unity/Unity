@@ -77,7 +77,7 @@ namespace GitHub.Unity
             }
 
             AttachHandlers(Repository);
-            Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
+            Repository.CheckAndRaiseEventsIfCacheNewer(lastLocalAndRemoteBranchListChangedEvent);
         }
 
         public override void OnDisable()

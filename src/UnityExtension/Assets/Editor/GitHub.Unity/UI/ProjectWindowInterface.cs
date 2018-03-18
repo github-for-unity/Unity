@@ -25,7 +25,7 @@ namespace GitHub.Unity
 
         public static void Initialize(IRepository repo)
         {
-            Logger.Trace("Initialize HasRepository:{0}", repo != null);
+            //Logger.Trace("Initialize HasRepository:{0}", repo != null);
 
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
@@ -37,8 +37,8 @@ namespace GitHub.Unity
                 repository.TrackingStatusChanged += RepositoryOnStatusChanged;
                 repository.LocksChanged += RepositoryOnLocksChanged;
 
-                repository.CheckStatusChangedEvent(lastRepositoryStatusChangedEvent);
-                repository.CheckLocksChangedEvent(lastLocksChangedEvent);
+                repository.CheckAndRaiseEventsIfCacheNewer(lastRepositoryStatusChangedEvent);
+                repository.CheckAndRaiseEventsIfCacheNewer(lastLocksChangedEvent);
             }
         }
 

@@ -67,7 +67,7 @@ namespace GitHub.Unity
             private readonly IFileSystem fs;
             private readonly CancellationToken cancellationToken;
 
-            private volatile int finishedTaskCount;
+            private int finishedTaskCount;
             private volatile bool isSuccessful = true;
             private volatile Exception exception;
 

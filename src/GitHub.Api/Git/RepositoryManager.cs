@@ -18,6 +18,7 @@ namespace GitHub.Unity
         event Action<Dictionary<string, ConfigBranch>> LocalBranchesUpdated;
         event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> RemoteBranchesUpdated;
         event Action<GitAheadBehindStatus> GitAheadBehindStatusUpdated;
+        event Action<CacheType> DataNeedsRefreshing;
 
         void Initialize();
         void Start();
@@ -42,10 +43,12 @@ namespace GitHub.Unity
         void UpdateGitAheadBehindStatus();
         void UpdateLocks();
         int WaitForEvents();
+        void UpdateRepositoryInfo();
 
         IGitConfig Config { get; }
         IGitClient GitClient { get; }
         bool IsBusy { get; }
+        void UpdateBranches();
     }
 
     interface IRepositoryPathConfiguration
@@ -97,7 +100,6 @@ namespace GitHub.Unity
     {
         private readonly IGitConfig config;
         private readonly IGitClient gitClient;
-        private readonly IProcessManager processManager;
         private readonly IRepositoryPathConfiguration repositoryPaths;
         private readonly IFileSystem fileSystem;
         private readonly CancellationToken token;
@@ -113,10 +115,10 @@ namespace GitHub.Unity
         public event Action<List<GitLogEntry>> GitLogUpdated;
         public event Action<Dictionary<string, ConfigBranch>> LocalBranchesUpdated;
         public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> RemoteBranchesUpdated;
+        public event Action<CacheType> DataNeedsRefreshing;
 
         public RepositoryManager(IGitConfig gitConfig,
             IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
-            IProcessManager processManager,
             IFileSystem fileSystem,
             CancellationToken token,
             IRepositoryPathConfiguration repositoryPaths)
@@ -125,15 +127,20 @@ namespace GitHub.Unity
             this.fileSystem = fileSystem;
             this.token = token;
             this.gitClient = gitClient;
-            this.processManager = processManager;
             this.watcher = repositoryWatcher;
             this.config = gitConfig;
 
-            SetupWatcher();
+            watcher.HeadChanged += WatcherOnHeadChanged;
+            watcher.IndexChanged += WatcherOnIndexChanged;
+            watcher.ConfigChanged += WatcherOnConfigChanged;
+            watcher.RepositoryCommitted += WatcherOnRepositoryCommitted;
+            watcher.RepositoryChanged += WatcherOnRepositoryChanged;
+            watcher.LocalBranchesChanged += WatcherOnLocalBranchesChanged;
+            watcher.RemoteBranchesChanged += WatcherOnRemoteBranchesChanged;
         }
 
         public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IGitClient gitClient,
-            IProcessManager processManager, IFileSystem fileSystem, NPath repositoryRoot)
+            IFileSystem fileSystem, NPath repositoryRoot)
         {
             var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
             string filePath = repositoryPathConfiguration.DotGitConfig;
@@ -142,27 +149,25 @@ namespace GitHub.Unity
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
 
             return new RepositoryManager(gitConfig, repositoryWatcher,
-                gitClient, processManager, fileSystem,
+                gitClient, fileSystem,
                 taskManager.Token, repositoryPathConfiguration);
         }
 
         public void Initialize()
         {
-            Logger.Trace("Initialize");
+            //Logger.Trace("Initialize");
             watcher.Initialize();
         }
 
         public void Start()
         {
-            Logger.Trace("Start");
-
-            UpdateConfigData();
+            //Logger.Trace("Start");
             watcher.Start();
         }
 
         public void Stop()
         {
-            Logger.Trace("Stop");
+            //Logger.Trace("Stop");
             watcher.Stop();
         }
 
@@ -269,8 +274,7 @@ namespace GitHub.Unity
 
         public void UpdateGitLog()
         {
-            var task = GitClient
-                .Log()
+            var task = GitClient.Log()
                 .Then((success, logEntries) =>
                 {
                     if (success)
@@ -284,8 +288,7 @@ namespace GitHub.Unity
 
         public void UpdateGitStatus()
         {
-            var task = GitClient
-                .Status()
+            var task = GitClient.Status()
                 .Then((success, status) =>
                 {
                     if (success)
@@ -331,10 +334,9 @@ namespace GitHub.Unity
                     if (itemsToRevert.Any())
                     {
                         gitDiscardTask = GitClient.Discard(itemsToRevert);
-                        task
-                            .Then(gitDiscardTask)
-                            // we're appending a new continuation, we need to reset the finally handler
-                            // so it runs after the discard task
+                        task.Then(gitDiscardTask)
+                            // we're appending a new continuation after HookupHandlers has run,
+                            // we need to set the finally handler manually so it runs at the end of everything
                             .Finally(s =>
                             {
                                 watcher.Start();
@@ -379,7 +381,7 @@ namespace GitHub.Unity
         public void UpdateLocks()
         {
             GitClient.ListLocks(false)
-                .Finally((success, locks) =>
+                .Then((success, locks) =>
                 {
                     if (success)
                     {
@@ -389,70 +391,13 @@ namespace GitHub.Unity
                 .Start();
         }
 
-        private ITask<T> HookupHandlers<T>(ITask<T> task, bool filesystemChangesExpected)
+        public void UpdateBranches()
         {
-            return (ITask<T>)HookupHandlers((ITask)task, filesystemChangesExpected);
+            UpdateLocalBranches();
+            UpdateRemoteBranches();
         }
 
-        private ITask HookupHandlers(ITask task, bool filesystemChangesExpected)
-        {
-            var isExclusive = task.IsChainExclusive();
-            task.GetTopOfChain().OnStart += t =>
-            {
-                if (t.Affinity == TaskAffinity.Exclusive)
-                {
-                    Logger.Trace("Starting Operation - Setting Busy Flag");
-                    IsBusy = true;
-                }
-
-                if (filesystemChangesExpected)
-                {
-                    Logger.Trace("Starting Operation - Disable Watcher");
-                    watcher.Stop();
-                }
-            };
-
-            task.Finally(success =>
-            {
-                if (filesystemChangesExpected)
-                {
-                    Logger.Trace("Ended Operation - Enable Watcher");
-                    watcher.Start();
-                }
-
-                if (isExclusive)
-                {
-                    Logger.Trace("Ended Operation - Clearing Busy Flag");
-                    IsBusy = false;
-                }
-            });
-            return task;
-        }
-
-        private void SetupWatcher()
-        {
-            watcher.HeadChanged += WatcherOnHeadChanged;
-            watcher.IndexChanged += WatcherOnIndexChanged;
-            watcher.ConfigChanged += WatcherOnConfigChanged;
-            watcher.RepositoryCommitted += WatcherOnRepositoryCommitted;
-            watcher.RepositoryChanged += WatcherOnRepositoryChanged;
-            watcher.LocalBranchesChanged += WatcherOnLocalBranchesChanged;
-            watcher.RemoteBranchesChanged += WatcherOnRemoteBranchesChanged;
-        }
-
-        private void UpdateHead()
-        {
-            Logger.Trace("UpdateHead");
-            UpdateCurrentBranchAndRemote();
-            UpdateGitLog();
-        }
-
-        private string GetCurrentHead()
-        {
-            return repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
-        }
-
-        private void UpdateCurrentBranchAndRemote()
+        public void UpdateRepositoryInfo()
         {
             ConfigBranch? branch;
             ConfigRemote? remote;
@@ -502,62 +447,96 @@ namespace GitHub.Unity
             }
         }
 
+        private ITask<T> HookupHandlers<T>(ITask<T> task, bool filesystemChangesExpected)
+        {
+            return (ITask<T>)HookupHandlers((ITask)task, filesystemChangesExpected);
+        }
+
+        private ITask HookupHandlers(ITask task, bool filesystemChangesExpected)
+        {
+            var isExclusive = task.IsChainExclusive();
+            task.GetTopOfChain().OnStart += t =>
+            {
+                if (isExclusive)
+                {
+                    //Logger.Trace("Starting Operation - Setting Busy Flag");
+                    IsBusy = true;
+                }
+
+                if (filesystemChangesExpected)
+                {
+                    //Logger.Trace("Starting Operation - Disable Watcher");
+                    watcher.Stop();
+                }
+            };
+
+            task.Finally(success =>
+            {
+                if (filesystemChangesExpected)
+                {
+                    //Logger.Trace("Ended Operation - Enable Watcher");
+                    watcher.Start();
+                }
+
+                if (isExclusive)
+                {
+                    //Logger.Trace("Ended Operation - Clearing Busy Flag");
+                    IsBusy = false;
+                }
+            });
+            return task;
+        }
+
+        private string GetCurrentHead()
+        {
+            return repositoryPaths.DotGitHead.ReadAllLines().FirstOrDefault();
+        }
+
         private void WatcherOnRemoteBranchesChanged()
         {
             Logger.Trace("WatcherOnRemoteBranchesChanged");
-            UpdateRemoteBranches();
+            DataNeedsRefreshing?.Invoke(CacheType.Branches);
         }
 
         private void WatcherOnLocalBranchesChanged()
         {
             Logger.Trace("WatcherOnLocalBranchesChanged");
-            UpdateLocalBranches();
-            UpdateGitLog();
+            DataNeedsRefreshing?.Invoke(CacheType.Branches);
         }
 
         private void WatcherOnRepositoryCommitted()
         {
             Logger.Trace("WatcherOnRepositoryCommitted");
-            UpdateGitLog();
-            UpdateGitStatus();
+            DataNeedsRefreshing?.Invoke(CacheType.GitLog);
+            DataNeedsRefreshing?.Invoke(CacheType.GitStatus);
         }
 
         private void WatcherOnRepositoryChanged()
         {
             Logger.Trace("WatcherOnRepositoryChanged");
-            UpdateGitStatus();
+            DataNeedsRefreshing?.Invoke(CacheType.GitStatus);
         }
 
         private void WatcherOnConfigChanged()
         {
             Logger.Trace("WatcherOnConfigChanged");
-            UpdateConfigData(true);
+            config.Reset();
+            DataNeedsRefreshing?.Invoke(CacheType.Branches);
+            DataNeedsRefreshing?.Invoke(CacheType.RepositoryInfo);
+            DataNeedsRefreshing?.Invoke(CacheType.GitLog);
         }
 
         private void WatcherOnHeadChanged()
         {
             Logger.Trace("WatcherOnHeadChanged");
-            UpdateHead();
+            DataNeedsRefreshing?.Invoke(CacheType.RepositoryInfo);
+            DataNeedsRefreshing?.Invoke(CacheType.GitLog);
         }
 
         private void WatcherOnIndexChanged()
         {
             Logger.Trace("WatcherOnIndexChanged");
-            UpdateGitStatus();
-        }
-
-        private void UpdateConfigData(bool resetConfig = false)
-        {
-            Logger.Trace("UpdateConfigData reset:{0}", resetConfig);
-
-            if (resetConfig)
-            {
-                config.Reset();
-            }
-
-            UpdateLocalBranches();
-            UpdateRemoteBranches();
-            UpdateHead();
+            DataNeedsRefreshing?.Invoke(CacheType.GitStatus);
         }
 
         private void UpdateLocalBranches()

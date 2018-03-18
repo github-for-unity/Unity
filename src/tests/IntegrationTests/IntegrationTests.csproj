@@ -7,7 +7,7 @@
     <ProjectGuid>{1AC3F82E-AEAE-4C84-825C-207BB264FCFA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>IntegrationTests</RootNamespace>
+    <RootNamespace>GitHub.Unity</RootNamespace>
     <AssemblyName>IntegrationTests</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -73,12 +73,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auth\LoginTests.cs" />
-    <Compile Include="BaseTaskManagerTest.cs" />
+    <Compile Include="Download\BaseTestWithHttpServer.cs" />
     <Compile Include="Download\DownloadTaskTests.cs" />
     <Compile Include="Events\RepositoryManagerTests.cs" />
     <Compile Include="Events\RepositoryWatcherTests.cs" />
     <Compile Include="BaseGitEnvironmentTest.cs" />
-    <Compile Include="BasePlatformIntegrationTest.cs" />
     <Compile Include="BaseIntegrationTest.cs" />
     <Compile Include="Git\GitClientTests.cs" />
     <Compile Include="IntegrationTestEnvironment.cs" />
@@ -86,6 +85,7 @@
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="Process\ProcessManagerIntegrationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="CachingClasses.cs" />
     <Compile Include="SetUpFixture.cs" />
     <Compile Include="ThreadSynchronizationContext.cs" />
     <Compile Include="UnzipTaskTests.cs" />
@@ -119,6 +119,17 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <EmbeddedResource Include="PlatformResources\mac\git-lfs.zip" />
+    <EmbeddedResource Include="PlatformResources\mac\gitconfig" />
+    <EmbeddedResource Include="PlatformResources\windows\git-lfs.zip" />
+    <EmbeddedResource Include="PlatformResources\windows\git.zip" />
+    <EmbeddedResource Include="PlatformResources\windows\gitconfig" />
+    <EmbeddedResource Include="PlatformResources\linux\git-lfs.zip" />
+    <EmbeddedResource Include="PlatformResources\linux\git-lfs.zip.md5" />
+    <EmbeddedResource Include="PlatformResources\mac\git-lfs.zip.md5" />
+    <EmbeddedResource Include="PlatformResources\windows\git-lfs.zip.md5" />
+    <EmbeddedResource Include="PlatformResources\windows\git.zip.md5" />
+    <EmbeddedResource Include="PlatformResources\linux\gitconfig" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

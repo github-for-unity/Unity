@@ -11,7 +11,7 @@ using Rackspace.Threading;
 namespace IntegrationTests
 {
     [TestFixture]
-    class UnzipTaskTests : BaseTaskManagerTest
+    class UnzipTaskTests : BaseIntegrationTest
     {
         [Test]
         public async Task UnzipWorks()
@@ -26,8 +26,10 @@ namespace IntegrationTests
 
             var extractedPath = TestBasePath.Combine("gitlfs_zip_extracted").CreateDirectory();
 
-            var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath,
-                Environment.FileSystem, GitInstallDetails.GitLfsExtractedMD5);
+            var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath, Environment.FileSystem, GitInstaller.GitInstallDetails.GitLfsExtractedMD5)
+                .Progress(p => 
+                {
+                });
 
             await unzipTask.StartAwait();
 

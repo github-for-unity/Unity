@@ -7,61 +7,12 @@ using GitHub.Unity;
 using NUnit.Framework;
 using System.Diagnostics;
 using GitHub.Logging;
-using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 
 namespace IntegrationTests.Download
 {
-    class BaseDownloaderTest : BaseTaskManagerTest
-    {
-        protected const int Timeout = 30000;
-        protected TestWebServer.HttpServer server;
-
-        public override void OnSetup()
-        {
-            base.OnSetup();
-            InitializeEnvironment(TestBasePath, initializeRepository: false);
-        }
-
-        public override void TestFixtureSetUp()
-        {
-            base.TestFixtureSetUp();
-            server = new TestWebServer.HttpServer(SolutionDirectory.Combine("files"));
-            Task.Factory.StartNew(server.Start);
-            ApplicationConfiguration.WebTimeout = 50000;
-        }
-
-        public override void TestFixtureTearDown()
-        {
-            base.TestFixtureTearDown();
-            server.Stop();
-            ApplicationConfiguration.WebTimeout = ApplicationConfiguration.DefaultWebTimeout;
-        }
-
-        protected void StartTest(out Stopwatch watch, out ILogging logger, [CallerMemberName] string testName = "test")
-        {
-            watch = new Stopwatch();
-            logger = LogHelper.GetLogger(testName);
-            logger.Trace("Starting test");
-        }
-
-        protected void StartTrackTime(Stopwatch watch, ILogging logger = null, string message = "")
-        {
-            if (!String.IsNullOrEmpty(message))
-                logger.Trace(message);
-            watch.Reset();
-            watch.Start();
-        }
-
-        protected void StopTrackTimeAndLog(Stopwatch watch, ILogging logger)
-        {
-            watch.Stop();
-            logger.Trace($"Time: {watch.ElapsedMilliseconds}");
-        }
-    }
-
     [TestFixture]
-    class DownloaderTests : BaseDownloaderTest
+    class TestsWithHttpServer : BaseTestWithHttpServer
     {
         [Test]
         public async Task DownloadAndVerificationWorks()
@@ -70,9 +21,8 @@ namespace IntegrationTests.Download
             ILogging logger;
             StartTest(out watch, out logger);
 
-            var fileSystem = Environment.FileSystem;
             var fileUrl = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
-            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.md5");
 
             var downloader = new Downloader();
             StartTrackTime(watch, logger, md5Url);
@@ -94,9 +44,8 @@ namespace IntegrationTests.Download
             ILogging logger;
             StartTest(out watch, out logger);
 
-            var fileSystem = Environment.FileSystem;
             var fileUrl = new UriString($"http://localhost:{server.Port}/nope");
-            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.md5");
 
             var downloader = new Downloader();
             StartTrackTime(watch, logger, md5Url);
@@ -114,9 +63,8 @@ namespace IntegrationTests.Download
             ILogging logger;
             StartTest(out watch, out logger);
 
-            var fileSystem = Environment.FileSystem;
             var fileUrl = new UriString($"http://localhost:{server.Port}/git.zip");
-            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.md5");
 
             var downloader = new Downloader();
             StartTrackTime(watch, logger, md5Url);
@@ -134,9 +82,9 @@ namespace IntegrationTests.Download
             ILogging logger;
             StartTest(out watch, out logger);
 
-            var fileSystem = Environment.FileSystem;
+            var fileSystem = NPath.FileSystem;
             var fileUrl = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
-            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.md5");
 
             var downloader = new Downloader();
             StartTrackTime(watch, logger, md5Url);
@@ -175,9 +123,9 @@ namespace IntegrationTests.Download
             ILogging logger;
             StartTest(out watch, out logger);
 
-            var fileSystem = Environment.FileSystem;
+            var fileSystem = NPath.FileSystem;
             var fileUrl = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
-            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+            var md5Url = new UriString($"http://localhost:{server.Port}/git-lfs.zip.md5");
 
             var downloader = new Downloader();
             StartTrackTime(watch, logger, md5Url);
@@ -210,9 +158,9 @@ namespace IntegrationTests.Download
             StartTest(out watch, out logger);
 
             var fileUrl1 = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
-            var md5Url1 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+            var md5Url1 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.md5");
             var fileUrl2 = new UriString($"http://localhost:{server.Port}/git.zip");
-            var md5Url2 = new UriString($"http://localhost:{server.Port}/git.zip.MD5.txt");
+            var md5Url2 = new UriString($"http://localhost:{server.Port}/git.zip.md5");
 
             var events = new List<string>();
 
@@ -241,7 +189,7 @@ namespace IntegrationTests.Download
     }
 
     [TestFixture]
-    class DownloadTaskTests : BaseDownloaderTest
+    class DownloadTaskTestsWithHttpServer : BaseTestWithHttpServer
     {
         [Test]
         public async Task ResumingDownloadsWorks()
@@ -250,10 +198,10 @@ namespace IntegrationTests.Download
             ILogging logger;
             StartTest(out watch, out logger);
 
-            var fileSystem = Environment.FileSystem;
+            var fileSystem = NPath.FileSystem;
 
             var gitLfs = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
-            var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+            var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.md5");
 
             var downloadTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
 
@@ -306,7 +254,7 @@ namespace IntegrationTests.Download
             ILogging logger;
             StartTest(out watch, out logger);
 
-            var fileSystem = Environment.FileSystem;
+            var fileSystem = NPath.FileSystem;
 
             var taskFailed = false;
             Exception exceptionThrown = null;
@@ -340,9 +288,9 @@ namespace IntegrationTests.Download
         //    ILogging logger;
         //    StartTest(out watch, out logger);
 
-        //    var fileSystem = Environment.FileSystem;
+        //    var fileSystem = NPath.FileSystem;
 
-        //    var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+        //    var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.md5");
 
         //    var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
 
@@ -370,7 +318,7 @@ namespace IntegrationTests.Download
             ILogging logger;
             StartTest(out watch, out logger);
 
-            var fileSystem = Environment.FileSystem;
+            var fileSystem = NPath.FileSystem;
 
             var downloadTask = new DownloadTask(TaskManager.Token, fileSystem, "http://ggggithub.com/robots.txt");
             var exceptionThrown = false;
@@ -398,10 +346,10 @@ namespace IntegrationTests.Download
         //    ILogging logger;
         //    StartTest(out watch, out logger);
 
-        //    var fileSystem = Environment.FileSystem;
+        //    var fileSystem = NPath.FileSystem;
 
         //    var gitLfs = new UriString($"http://localhost:{server.Port}/git-lfs.zip");
-        //    var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.MD5.txt");
+        //    var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git-lfs.zip.md5");
 
         //    var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
         //    var downloadGitLfsTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath);
@@ -437,7 +385,7 @@ namespace IntegrationTests.Download
 
             server.Delay = 100;
 
-            var fileSystem = Environment.FileSystem;
+            var fileSystem = NPath.FileSystem;
 
             var evtStop = new AutoResetEvent(false);
             var evtFinally = new AutoResetEvent(false);

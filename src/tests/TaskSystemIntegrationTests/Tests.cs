@@ -10,11 +10,15 @@ using System.IO;
 using NSubstitute;
 using GitHub.Logging;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using FluentAssertions;
 
 namespace IntegrationTests
 {
     class BaseTest
     {
+        protected const int Timeout = 30000;
+
         public BaseTest()
         {
             Logger = LogHelper.GetLogger(GetType());
@@ -74,6 +78,27 @@ namespace IntegrationTests
         [TearDown]
         public void Teardown()
         {
+        }
+
+        protected void StartTest(out Stopwatch watch, out ILogging logger, [CallerMemberName] string testName = "test")
+        {
+            watch = new Stopwatch();
+            logger = LogHelper.GetLogger(testName);
+            logger.Trace("Starting test");
+        }
+
+        protected void StartTrackTime(Stopwatch watch, ILogging logger = null, string message = "")
+        {
+            if (!String.IsNullOrEmpty(message))
+                logger.Trace(message);
+            watch.Reset();
+            watch.Start();
+        }
+
+        protected void StopTrackTimeAndLog(Stopwatch watch, ILogging logger)
+        {
+            watch.Stop();
+            logger.Trace($"Time: {watch.ElapsedMilliseconds}");
         }
     }
 
@@ -220,7 +245,8 @@ namespace IntegrationTests
                 tasks.Add(GetTask(TaskAffinity.Concurrent, i, id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }));
             }
 
-            TaskManager.Schedule(tasks.Cast<ITask>().ToArray());
+            foreach (var task in tasks)
+                TaskManager.Schedule(task);
             Task.WaitAll(tasks.Select(x => x.Task).ToArray());
             //Console.WriteLine(String.Join(",", runningOrder.Select(x => x.ToString()).ToArray()));
             Assert.AreEqual(10, runningOrder.Count);
@@ -283,7 +309,8 @@ namespace IntegrationTests
                 tasks.Add(GetTask(TaskAffinity.Exclusive, i, id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }));
             }
 
-            TaskManager.Schedule(tasks.Cast<ITask>().ToArray());
+            foreach (var task in tasks)
+                TaskManager.Schedule(task);
             Task.WaitAll(tasks.Select(x => x.Task).ToArray());
             Assert.AreEqual(Enumerable.Range(1, 10), runningOrder);
         }
@@ -299,7 +326,8 @@ namespace IntegrationTests
                 tasks.Add(GetTask(TaskAffinity.UI, i, id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }));
             }
 
-            TaskManager.Schedule(tasks.Cast<ITask>().ToArray());
+            foreach (var task in tasks)
+                TaskManager.Schedule(task);
             Task.WaitAll(tasks.Select(x => x.Task).ToArray());
             Assert.AreEqual(Enumerable.Range(1, 10), runningOrder);
         }
@@ -600,7 +628,9 @@ namespace IntegrationTests
             ITask task = new ActionTask(Token, _ => { throw new Exception(); });
             task.OnStart += _ => runOrder.Add("start");
             task.OnEnd += (_, __, ___) => runOrder.Add("end");
-            task = task.Finally((_, __) => {});
+            // we want to run a Finally on a new task (and not in-thread) so that the StartAndSwallowException handler runs after this
+            // one, proving that the exception is propagated after everything is done
+            task = task.Finally((_, __) => {}, TaskAffinity.Concurrent);
 
             await task.StartAndSwallowException();
             CollectionAssert.AreEqual(new string[] { "start", "end" }, runOrder);
@@ -616,10 +646,45 @@ namespace IntegrationTests
         }
 
         [Test]
+        public async Task AllFinallyHandlersAreCalledOnException()
+        {
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
+
+            var task = new FuncTask<string>(TaskManager.Token, () => { throw new InvalidOperationException(); });
+            bool exceptionThrown1, exceptionThrown2;
+            exceptionThrown1 = exceptionThrown2 = false;
+
+            task.Finally(success => exceptionThrown1 = !success);
+            task.Finally((success, _) => exceptionThrown2 = !success);
+
+            StartTrackTime(watch);
+            var waitTask = task.Start().Task;
+            var ret = await TaskEx.WhenAny(waitTask, TaskEx.Delay(Timeout));
+            StopTrackTimeAndLog(watch, logger);
+            Assert.AreEqual(ret, waitTask);
+
+            exceptionThrown1.Should().BeTrue();
+            exceptionThrown2.Should().BeTrue();
+        }
+
+        [Test]
         public async Task StartAsyncWorks()
         {
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
+
             var task = new FuncTask<int>(Token, _ => 1);
-            var ret = await task.StartAsAsync();
+
+            StartTrackTime(watch);
+            var waitTask = task.StartAsAsync();
+            var retTask = await TaskEx.WhenAny(waitTask, TaskEx.Delay(Timeout));
+            StopTrackTimeAndLog(watch, logger);
+            Assert.AreEqual(retTask, waitTask);
+            var ret = await waitTask;
+
             Assert.AreEqual(1, ret);
         }
 
@@ -848,7 +913,7 @@ namespace IntegrationTests
             var callOrder = new List<string>();
 
             var taskEnd = new ActionTask(Token, () => callOrder.Add("chain completed")) { Name = "Chain Completed" };
-            var final = taskEnd.Finally((_, __) => { });
+            var final = taskEnd.Finally((_, __) => { }, TaskAffinity.Concurrent);
 
             var taskStart = new FuncTask<bool>(Token, _ =>
                 {

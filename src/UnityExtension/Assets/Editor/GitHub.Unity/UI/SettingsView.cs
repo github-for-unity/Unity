@@ -58,8 +58,8 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
-                Repository.CheckLocksChangedEvent(lastLocksChangedEvent);
+                Repository.CheckAndRaiseEventsIfCacheNewer(lastCurrentRemoteChangedEvent);
+                Repository.CheckAndRaiseEventsIfCacheNewer(lastLocksChangedEvent);
             }
 
             metricsHasChanged = true;
@@ -350,7 +350,7 @@ namespace GitHub.Unity
                 webTimeout = ApplicationConfiguration.WebTimeout;
                 EditorGUI.BeginChangeCheck();
                 {
-                    webTimeout = EditorGUILayout.IntField(webTimeout, WebTimeoutLabel);
+                    webTimeout = EditorGUILayout.IntField(WebTimeoutLabel, webTimeout);
                 }
                 if (EditorGUI.EndChangeCheck())
                 {

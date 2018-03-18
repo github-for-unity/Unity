@@ -89,7 +89,7 @@ namespace GitHub.Unity
 
         private void UserOnChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            Logger.Trace("UserOnChanged");
+            //Logger.Trace("UserOnChanged");
 
             if (!lastCheckUserChangedEvent.Equals(cacheUpdateEvent))
             {
