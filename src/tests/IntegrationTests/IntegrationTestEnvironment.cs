@@ -36,7 +36,7 @@ namespace IntegrationTests
 
             var installPath = solutionDirectory.Parent.Parent.Combine("src", "GitHub.Api");
 
-            Initialize(UnityVersion, installPath, solutionDirectory, repoPath.Combine("Assets"));
+            Initialize(UnityVersion, installPath, solutionDirectory, NPath.Default, repoPath.Combine("Assets"));
 
             InitializeRepository(initializeRepository ? (NPath?)repoPath : null);
 
@@ -49,9 +49,9 @@ namespace IntegrationTests
             }
         }
 
-        public void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityPath, NPath assetsPath)
+        public void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityPath, NPath unityContentsPath, NPath assetsPath)
         {
-            defaultEnvironment.Initialize(unityVersion, extensionInstallPath, unityPath, assetsPath);
+            defaultEnvironment.Initialize(unityVersion, extensionInstallPath, unityPath, unityContentsPath, assetsPath);
         }
 
         public void InitializeRepository(NPath? expectedPath = null)
@@ -106,11 +106,17 @@ namespace IntegrationTests
             }
         }
 
+        public NPath NodeJsExecutablePath => defaultEnvironment.NodeJsExecutablePath;
+
+        public NPath OctorunScriptPath { get; set; }
+
         public bool IsWindows => defaultEnvironment.IsWindows;
         public bool IsLinux => defaultEnvironment.IsLinux;
         public bool IsMac => defaultEnvironment.IsMac;
 
         public NPath UnityApplication => defaultEnvironment.UnityApplication;
+
+        public NPath UnityApplicationContents => defaultEnvironment.UnityApplicationContents;
 
         public NPath UnityAssetsPath => defaultEnvironment.UnityAssetsPath;
 

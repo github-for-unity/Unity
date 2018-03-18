@@ -1,0 +1,17 @@
+{
+  "name": "octorun",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "main": "src/app.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^2.14.1",
+    "dotenv": "^1.0.0",
+    "octokit-rest-for-node-v0.12": "1.0.1"
+  }
+}

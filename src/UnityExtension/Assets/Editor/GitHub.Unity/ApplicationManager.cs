@@ -32,6 +32,7 @@ namespace GitHub.Unity
             EnvironmentCache.Instance.Flush();
 
             isBusy = false;
+            LfsLocksModificationProcessor.Initialize(Environment, Platform);
             ProjectWindowInterface.Initialize(Environment.Repository);
             var window = Window.GetWindow();
             if (window != null)

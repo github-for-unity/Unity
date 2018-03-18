@@ -256,7 +256,7 @@ namespace GitHub.Unity
                         host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
                     }
 
-                    AuthenticationService = new AuthenticationService(host, Platform.Keychain);
+                    AuthenticationService = new AuthenticationService(host, Platform.Keychain, Environment.NodeJsExecutablePath, Environment.OctorunScriptPath);
                 }
                 return authenticationService;
             }

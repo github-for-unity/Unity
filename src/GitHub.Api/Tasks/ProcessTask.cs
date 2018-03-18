@@ -86,10 +86,10 @@ namespace GitHub.Unity
             {
                 Process.ErrorDataReceived += (s, e) =>
                 {
-                    //if (e.Data != null)        
-                    //{        
-                    //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");        
-                    //}        
+                    //if (e.Data != null)
+                    //{
+                    //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
+                    //}
 
                     string encodedData = null;
                     if (e.Data != null)
@@ -498,20 +498,36 @@ namespace GitHub.Unity
         private readonly NPath? fullPathToExecutable;
         private readonly string arguments;
 
-        public SimpleProcessTask(CancellationToken token, NPath fullPathToExecutable, string arguments)
-            : base(token, new SimpleOutputProcessor())
+        public SimpleProcessTask(CancellationToken token, NPath fullPathToExecutable, string arguments, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         {
             this.fullPathToExecutable = fullPathToExecutable;
             this.arguments = arguments;
         }
 
-        public SimpleProcessTask(CancellationToken token, string arguments)
-            : base(token, new SimpleOutputProcessor())
+        public SimpleProcessTask(CancellationToken token, string arguments, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         {
             this.arguments = arguments;
         }
 
         public override string ProcessName => fullPathToExecutable?.FileName;
+        public override string ProcessArguments => arguments;
+    }
+
+    class SimpleListProcessTask : ProcessTaskWithListOutput<string>
+    {
+        private readonly NPath fullPathToExecutable;
+        private readonly string arguments;
+
+        public SimpleListProcessTask(CancellationToken token, NPath fullPathToExecutable, string arguments, IOutputProcessor<string, List<string>> processor = null)
+            : base(token, processor ?? new SimpleListOutputProcessor())
+        {
+            this.fullPathToExecutable = fullPathToExecutable;
+            this.arguments = arguments;
+        }
+        
+        public override string ProcessName => fullPathToExecutable;
         public override string ProcessArguments => arguments;
     }
 }

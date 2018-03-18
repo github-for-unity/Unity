@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
@@ -17,5 +18,7 @@ namespace GitHub.Unity
         bool HasKeys { get; }
         bool NeedsLoad { get; }
         void SetToken(UriString host, string token);
+
+        event Action ConnectionsChanged;
     }
 }

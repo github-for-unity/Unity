@@ -92,6 +92,7 @@
     <Compile Include="Misc\Installer.cs" />
     <Compile Include="UI\BaseWindow.cs" />
     <Compile Include="UI\ChangesTreeControl.cs" />
+    <Compile Include="UI\LfsLocksModificationProcessor.cs" />
     <Compile Include="UI\PopupWindow.cs" />
     <Compile Include="UI\ProjectWindowInterface.cs" />
     <Compile Include="Misc\Styles.cs" />
@@ -115,13 +116,7 @@
     <Compile Include="UI\Window.cs" />
   </ItemGroup>
   <Choose>
-    <When Condition="$(Buildtype) == 'Internal'">
-      <ItemGroup>
-        <Compile Include="$(SolutionDir)\script\src\MetricsInitialization.cs">
-          <Link>Metrics\MetricsInitialization.cs</Link>
-        </Compile>
-      </ItemGroup>
-    </When>
+    <When Condition="$(Buildtype) == 'Internal'" />
   </Choose>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\GitHub.Api\GitHub.Api.csproj">

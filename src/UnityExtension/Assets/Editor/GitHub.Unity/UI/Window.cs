@@ -502,7 +502,7 @@ namespace GitHub.Unity
                 host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
             }
 
-            var apiClient = ApiClient.Create(host, Platform.Keychain);
+            var apiClient = ApiClient.Create(host, Platform.Keychain, null, null, NPath.Default, NPath.Default);
             apiClient.Logout(host);
         }
 

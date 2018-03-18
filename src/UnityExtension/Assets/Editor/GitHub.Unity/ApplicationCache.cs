@@ -68,6 +68,7 @@ namespace GitHub.Unity
         [SerializeField] private string extensionInstallPath;
         [SerializeField] private string repositoryPath;
         [SerializeField] private string unityApplication;
+        [SerializeField] private string unityApplicationContents;
         [SerializeField] private string unityAssetsPath;
         [SerializeField] private string unityVersion;
 
@@ -75,6 +76,7 @@ namespace GitHub.Unity
         {
             repositoryPath = Environment.RepositoryPath;
             unityApplication = Environment.UnityApplication;
+            unityApplicationContents = Environment.UnityApplicationContents;
             unityAssetsPath = Environment.UnityAssetsPath;
             extensionInstallPath = Environment.ExtensionInstallPath;
             Save(true);
@@ -110,11 +112,12 @@ namespace GitHub.Unity
                     {
                         unityAssetsPath = Application.dataPath;
                         unityApplication = EditorApplication.applicationPath;
+                        unityApplicationContents = EditorApplication.applicationContentsPath;
                         extensionInstallPath = DetermineInstallationPath();
                         unityVersion = Application.unityVersion;
                     }
                     environment.Initialize(unityVersion, extensionInstallPath.ToNPath(), unityApplication.ToNPath(),
-                        unityAssetsPath.ToNPath());
+                        unityApplicationContents.ToNPath(), unityAssetsPath.ToNPath());
                     NPath? path = null;
                     if (!String.IsNullOrEmpty(repositoryPath))
                         path = repositoryPath.ToNPath();

@@ -48,7 +48,6 @@ namespace GitHub.Unity
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
             GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
-            SetupMetrics();
         }
 
         public void Run(bool firstRun)
@@ -105,9 +104,7 @@ namespace GitHub.Unity
 
             var targetPath = NPath.CurrentDirectory;
 
-            var unityYamlMergeExec = Environment.IsWindows
-                ? Environment.UnityApplication.Parent.Combine("Data", "Tools", "UnityYAMLMerge.exe")
-                : Environment.UnityApplication.Combine("Contents", "Tools", "UnityYAMLMerge");
+            var unityYamlMergeExec = Environment.UnityApplicationContents.Combine("Tools", "UnityYAMLMerge" + Environment.ExecutableExtension);
 
             var yamlMergeCommand = Environment.IsWindows
                 ? $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED"""
@@ -173,7 +170,13 @@ namespace GitHub.Unity
                 UserSettings.Set(Constants.GuidKey, id);
             }
 
-            UsageTracker = new UsageTracker(UserSettings, usagePath, id, unityVersion);
+            var metricsService = new MetricsService(ProcessManager,
+                TaskManager,
+                Environment.FileSystem,
+                Environment.NodeJsExecutablePath,
+                Environment.OctorunScriptPath);
+
+            UsageTracker = new UsageTracker(metricsService, UserSettings, usagePath, id, unityVersion);
 
             if (firstRun)
             {
@@ -189,6 +192,7 @@ namespace GitHub.Unity
         /// Initialize environment after finding where git is. This needs to run on the main thread
         /// </summary>
         /// <param name="gitExecutablePath"></param>
+        /// <param name="octorunScriptPath"></param>
         private void InitializeEnvironment(NPath gitExecutablePath)
         {
             Environment.GitExecutablePath = gitExecutablePath;
@@ -197,6 +201,7 @@ namespace GitHub.Unity
             var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
                 .ThenInUI(InitializeUI);
 
+            SetupMetrics();
             ITask task = afterGitSetup;
             if (Environment.IsWindows)
             {
