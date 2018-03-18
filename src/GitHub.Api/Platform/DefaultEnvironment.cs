@@ -8,8 +8,14 @@ namespace GitHub.Unity
     public class DefaultEnvironment : IEnvironment
     {
         private const string logFile = "github-unity.log";
+        private static bool? onWindows;
+        private static bool? onLinux;
+        private static bool? onMac;
 
-        public NPath LogPath { get; }
+        private NPath gitExecutablePath;
+        private NPath nodeJsExecutablePath;
+        private NPath octorunScriptPath;
+
         public DefaultEnvironment()
         {
             NPath localAppData;
@@ -36,10 +42,19 @@ namespace GitHub.Unity
             LogPath = UserCachePath.Combine(logFile);
         }
 
-        public DefaultEnvironment(ICacheContainer cacheContainer)
-            : this()
+        public DefaultEnvironment(ICacheContainer cacheContainer) : this()
         {
             this.CacheContainer = cacheContainer;
+        }
+
+        /// <summary>
+        /// This is for tests to reset the static OS flags
+        /// </summary>
+        public static void Reset()
+        {
+            onWindows = null;
+            onLinux = null;
+            onMac = null;
         }
 
         public void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityApplicationPath, NPath unityApplicationContentsPath, NPath assetsPath)
@@ -107,6 +122,7 @@ namespace GitHub.Unity
             return Environment.GetEnvironmentVariable(variable);
         }
 
+        public NPath LogPath { get; }
         public IFileSystem FileSystem { get { return NPath.FileSystem; } set { NPath.FileSystem = value; } }
         public string UnityVersion { get; set; }
         public NPath UnityApplication { get; set; }
@@ -116,42 +132,43 @@ namespace GitHub.Unity
         public NPath ExtensionInstallPath { get; set; }
         public NPath UserCachePath { get; set; }
         public NPath SystemCachePath { get; set; }
-        public NPath Path { get { return Environment.GetEnvironmentVariable("PATH").ToNPath(); } }
-        public string NewLine { get { return Environment.NewLine; } }
-        public NPath OctorunScriptPath { get; set; }
-
-        private NPath gitExecutablePath;
+        public NPath Path => Environment.GetEnvironmentVariable("PATH").ToNPath();
+        public string NewLine => Environment.NewLine;
+        public NPath OctorunScriptPath
+        {
+            get
+            {
+                if (!octorunScriptPath.IsInitialized)
+                    octorunScriptPath = UserCachePath.Combine("octorun", "src", "bin", "app.js");
+                return octorunScriptPath;
+            }
+            set
+            {
+                octorunScriptPath = value;
+            }
+        }
         public NPath GitExecutablePath
         {
             get { return gitExecutablePath; }
             set
             {
                 gitExecutablePath = value;
-                if (String.IsNullOrEmpty(gitExecutablePath))
+                if (!gitExecutablePath.IsInitialized)
                     GitInstallPath = NPath.Default;
                 else
                     GitInstallPath = GitExecutablePath.Resolve().Parent.Parent;
             }
         }
-
-        private NPath nodeJsExecutablePath;
-
         public NPath NodeJsExecutablePath
         {
             get
             {
                 if (!nodeJsExecutablePath.IsInitialized)
-                {
-                    nodeJsExecutablePath =
-                        UnityApplicationContents.Combine("Tools", "nodejs", "node" + ExecutableExtension);
-                }
-
+                    nodeJsExecutablePath = UnityApplicationContents.Combine("Tools", "nodejs", "node" + ExecutableExtension);
                 return nodeJsExecutablePath;
             }
         }
-
         public NPath GitInstallPath { get; private set; }
-
         public NPath RepositoryPath { get; private set; }
         public ICacheContainer CacheContainer { get; private set; }
         public IRepository Repository { get; set; }
@@ -161,17 +178,6 @@ namespace GitHub.Unity
         public bool IsLinux { get { return OnLinux; } }
         public bool IsMac { get { return OnMac; } }
 
-        /// <summary>
-        /// This is for tests to reset the static OS flags
-        /// </summary>
-        public static void Reset()
-        {
-            onWindows = null;
-            onLinux = null;
-            onMac = null;
-        }
-
-        private static bool? onWindows;
         public static bool OnWindows
         {
             get
@@ -183,7 +189,6 @@ namespace GitHub.Unity
             set { onWindows = value; }
         }
 
-        private static bool? onLinux;
         public static bool OnLinux
         {
             get
@@ -195,7 +200,6 @@ namespace GitHub.Unity
             set { onLinux = value; }
         }
 
-        private static bool? onMac;
         public static bool OnMac
         {
             get
@@ -208,6 +212,7 @@ namespace GitHub.Unity
             }
             set { onMac = value; }
         }
+
         public string ExecutableExtension { get { return IsWindows ? ".exe" : string.Empty; } }
         protected static ILogging Logger { get; } = LogHelper.GetLogger<DefaultEnvironment>();
     }

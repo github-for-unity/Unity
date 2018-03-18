@@ -46,27 +46,23 @@ namespace GitHub.Unity
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
-            var octorunPath = Environment.UserCachePath.Combine("octorun");
-            var octorunScriptPath = octorunPath.Combine("src", "bin", "app.js");
-            Logger.Trace("Using octorunScriptPath: {0}", octorunScriptPath);
-
-            var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();            
+            var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();
             if (gitExecutablePath.HasValue && gitExecutablePath.Value.FileExists()) // we have a git path
             {
                 Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
-                InitializeEnvironment(gitExecutablePath.Value, octorunScriptPath);
+                InitializeEnvironment(gitExecutablePath.Value);
             }
             else // we need to go find git
             {
                 Logger.Trace("No git path found in settings");
 
-                var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (_, path) => InitializeEnvironment(path, octorunScriptPath)) { Affinity = TaskAffinity.UI };
+                var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (_, path) => InitializeEnvironment(path)) { Affinity = TaskAffinity.UI };
                 var findExecTask = new FindExecTask("git", CancellationToken)
                     .FinallyInUI((b, ex, path) => {
                         if (b && path.IsInitialized)
                         {
                             Logger.Trace("FindExecTask Success: {0}", path);
-                            InitializeEnvironment(path, octorunScriptPath);
+                            InitializeEnvironment(path);
                         }
                         else
                         {
@@ -177,13 +173,12 @@ namespace GitHub.Unity
         /// </summary>
         /// <param name="gitExecutablePath"></param>
         /// <param name="octorunScriptPath"></param>
-        private void InitializeEnvironment(NPath gitExecutablePath, NPath octorunScriptPath)
+        private void InitializeEnvironment(NPath gitExecutablePath)
         {
             var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
                 .ThenInUI(InitializeUI);
 
             Environment.GitExecutablePath = gitExecutablePath;
-            Environment.OctorunScriptPath = octorunScriptPath;
             Environment.User.Initialize(GitClient);
             SetupMetrics();
 

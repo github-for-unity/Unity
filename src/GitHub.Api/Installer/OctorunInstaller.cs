@@ -10,22 +10,18 @@ namespace GitHub.Unity
         private const string OctorunExtractedMD5 = "b7341015bc701a9f5bf83f51b1b596b7";
 
         private static readonly ILogging Logger = LogHelper.GetLogger<OctorunInstaller>();
-        private readonly CancellationToken cancellationToken;
 
-        private readonly IEnvironment environment;
+        private readonly IFileSystem fileSystem;
+        private readonly ITaskManager taskManager;
         private readonly IZipHelper sharpZipLibHelper;
         private readonly NPath octorunArchivePath;
         private NPath octorunPath;
 
-        public OctorunInstaller(IEnvironment environment, CancellationToken cancellationToken, NPath octorunPath,
-            NPath octorunArchivePath = default(NPath)) : this(environment, cancellationToken, octorunPath, ZipHelper.Instance,
-            octorunArchivePath)
-        { }
-
-        public OctorunInstaller(IEnvironment environment, CancellationToken cancellationToken, NPath octorunPath, IZipHelper sharpZipLibHelper, NPath octorunArchivePath = default (NPath))
+        public OctorunInstaller(IFileSystem fileSystem, ITaskManager taskManager,
+            NPath octorunPath, IZipHelper sharpZipLibHelper, NPath octorunArchivePath)
         {
-            this.environment = environment;
-            this.cancellationToken = cancellationToken;
+            this.fileSystem = fileSystem;
+            this.taskManager = taskManager;
             this.octorunPath = octorunPath;
             this.sharpZipLibHelper = sharpZipLibHelper;
             this.octorunArchivePath = octorunArchivePath;
@@ -54,8 +50,8 @@ namespace GitHub.Unity
             Logger.Trace("ExtractOctorun");
 
             var tempZipExtractPath = NPath.CreateTempDirectory("octorun_extract_archive_path");
-            var resultTask = new UnzipTask(cancellationToken, octorunArchivePath, tempZipExtractPath, sharpZipLibHelper,
-                environment.FileSystem, OctorunExtractedMD5)
+            var resultTask = new UnzipTask(taskManager.Token, octorunArchivePath, tempZipExtractPath, sharpZipLibHelper,
+                fileSystem, OctorunExtractedMD5)
                 .Then(s => MoveOctorun(tempZipExtractPath));
 
             resultTask.Then(onFailure, TaskRunOptions.OnFailure);
