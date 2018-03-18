@@ -116,6 +116,7 @@
     <Compile Include="Helpers\Constants.cs" />
     <Compile Include="Helpers\Validation.cs" />
     <Compile Include="Installer\GitInstaller.cs" />
+    <Compile Include="Installer\OctorunInstaller.cs" />
     <Compile Include="Installer\UnzipTask.cs" />
     <Compile Include="IO\FileSystem.cs" />
     <Compile Include="OutputProcessors\GitAheadBehindStatusOutputProcessor.cs" />
@@ -281,6 +282,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\.gitattributes" />
     <EmbeddedResource Include="Resources\.gitignore" />
+    <EmbeddedResource Include="Resources\octorun.zip" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Localization.resx">
