@@ -280,6 +280,7 @@ namespace GitHub.Unity
     class FuncListTask<T> : DataTaskBase<T, List<T>>
     {
         protected Func<bool, List<T>> Callback { get; }
+        protected Func<bool, FuncListTask<T>, List<T>> CallbackWithSelf { get; }
         protected Func<bool, Exception, List<T>> CallbackWithException { get; }
 
         public FuncListTask(CancellationToken token, Func<bool, List<T>> action)
@@ -294,6 +295,13 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(action, "action");
             this.CallbackWithException = action;
+        }
+
+        public FuncListTask(CancellationToken token, Func<bool, FuncListTask<T>, List<T>> action)
+            : base(token)
+        {
+            Guard.ArgumentNotNull(action, "action");
+            this.CallbackWithSelf = action;
         }
 
         public FuncListTask(Task<List<T>> task)
@@ -312,11 +320,22 @@ namespace GitHub.Unity
                 {
                     result = Callback(success);
                 }
+                else if (CallbackWithSelf != null)
+                {
+                    result = CallbackWithSelf(success, this);
+                }
                 else if (CallbackWithException != null)
                 {
                     var thrown = GetThrownException();
                     result = CallbackWithException(success, thrown);
                 }
+            }
+            catch (AggregateException ex)
+            {
+                var e = ex.GetBaseException();
+                Errors = e.Message;
+                if (!RaiseFaultHandlers(e))
+                    throw e;
             }
             catch (Exception ex)
             {

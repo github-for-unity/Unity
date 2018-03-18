@@ -97,7 +97,10 @@
     <Compile Include="Application\LoginResult.cs" />
     <Compile Include="Application\ApplicationConfiguration.cs" />
     <Compile Include="Application\Organization.cs" />
+    <Compile Include="Cache\CacheContainer.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
+    <Compile Include="Cache\CachingClasses.cs" />
+    <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Git\Tasks\GitCheckoutTask.cs" />
     <Compile Include="Git\GitAheadBehindStatus.cs" />
@@ -119,6 +122,7 @@
     <Compile Include="Installer\OctorunInstaller.cs" />
     <Compile Include="Installer\UnzipTask.cs" />
     <Compile Include="IO\FileSystem.cs" />
+    <Compile Include="Managers\Downloader.cs" />
     <Compile Include="OutputProcessors\GitAheadBehindStatusOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
     <Compile Include="OutputProcessors\VersionOutputProcessor.cs" />
@@ -276,8 +280,12 @@
     <Content Include="PlatformResources\windows\git.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <EmbeddedResource Include="PlatformResources\mac\gitconfig" />
-    <EmbeddedResource Include="PlatformResources\windows\gitconfig" />
+    <EmbeddedResource Include="PlatformResources\mac\gitconfig">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PlatformResources\windows\gitconfig">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\.gitattributes" />
@@ -293,6 +301,22 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <Content Include="PlatformResources\linux\git-lfs.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PlatformResources\linux\git-lfs.zip.md5" />
+    <Content Include="PlatformResources\mac\git-lfs.zip.md5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PlatformResources\windows\git-lfs.zip.md5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PlatformResources\windows\git.zip.md5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <EmbeddedResource Include="PlatformResources\linux\gitconfig">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

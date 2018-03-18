@@ -11,67 +11,49 @@ using Rackspace.Threading;
 namespace IntegrationTests
 {
     [TestFixture]
-    class UnzipTaskTests : BaseTaskManagerTest
+    class UnzipTaskTests : BaseIntegrationTest
     {
         [Test]
-        public void TaskSucceeds()
+        public async Task UnzipWorks()
         {
             InitializeTaskManager();
 
             var cacheContainer = Substitute.For<ICacheContainer>();
             Environment = new IntegrationTestEnvironment(cacheContainer, TestBasePath, SolutionDirectory);
 
-            var destinationPath = TestBasePath.Combine("git_zip").CreateDirectory();
-            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", destinationPath, Environment);
+            var destinationPath = TestBasePath.Combine("gitlfs_zip").CreateDirectory();
+            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", destinationPath, Environment);
 
-            var extractedPath = TestBasePath.Combine("git_zip_extracted").CreateDirectory();
+            var extractedPath = TestBasePath.Combine("gitlfs_zip_extracted").CreateDirectory();
 
-            var zipProgress = 0;
-            Logger.Trace("Pct Complete {0}%", zipProgress);
-            var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath, Environment.FileSystem, GitInstallDetails.GitExtractedMD5, 
-                new Progress<float>(zipFileProgress => {
-                    var zipFileProgressInteger = (int) (zipFileProgress * 100);
-                    if (zipProgress != zipFileProgressInteger)
-                    {
-                        zipProgress = zipFileProgressInteger;
-                        Logger.Trace("Pct Complete {0}%", zipProgress);
-                    }
-                }));
+            var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath, Environment.FileSystem, GitInstaller.GitInstallDetails.GitLfsExtractedMD5)
+                .Progress(p => 
+                {
+                });
 
-            unzipTask.Start().Wait();
+            await unzipTask.StartAwait();
 
             extractedPath.DirectoryExists().Should().BeTrue();
         }
 
         [Test]
-        public void TaskFailsWhenMD5Incorect()
+        public void FailsWhenMD5Incorrect()
         {
             InitializeTaskManager();
 
             var cacheContainer = Substitute.For<ICacheContainer>();
             Environment = new IntegrationTestEnvironment(cacheContainer, TestBasePath, SolutionDirectory);
 
-            var destinationPath = TestBasePath.Combine("git_zip").CreateDirectory();
-            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", destinationPath, Environment);
+            var destinationPath = TestBasePath.Combine("gitlfs_zip").CreateDirectory();
+            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", destinationPath, Environment);
 
-            var extractedPath = TestBasePath.Combine("git_zip_extracted").CreateDirectory();
+            var extractedPath = TestBasePath.Combine("gitlfs_zip_extracted").CreateDirectory();
 
+            var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath, Environment.FileSystem, "AABBCCDD");
 
-            var failed = false;
-            Exception exception = null;
-
-            var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath, Environment.FileSystem, "AABBCCDD")
-                .Finally((b, ex) => {
-                    failed = true;
-                    exception = ex;
-                });
-
-            unzipTask.Start().Wait();
+            Assert.Throws<UnzipException>(async () => await unzipTask.StartAwait());
 
             extractedPath.DirectoryExists().Should().BeFalse();
-            failed.Should().BeTrue();
-            exception.Should().NotBeNull();
-            exception.Should().BeOfType<UnzipTaskException>();
         }
     }
 }

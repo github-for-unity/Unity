@@ -1,9 +1,12 @@
 using System;
+using System.Globalization;
 using GitHub.Unity;
 using GitHub.Logging;
 
 namespace IntegrationTests
 {
+
+
     class IntegrationTestEnvironment : IEnvironment
     {
         private static readonly ILogging logger = LogHelper.GetLogger<IntegrationTestEnvironment>();
@@ -35,8 +38,7 @@ namespace IntegrationTests
 
             Initialize(UnityVersion, installPath, solutionDirectory, NPath.Default, repoPath.Combine("Assets"));
 
-            if (initializeRepository)
-                InitializeRepository();
+            InitializeRepository(initializeRepository ? (NPath?)repoPath : null);
 
             this.enableTrace = enableTrace;
 
@@ -59,7 +61,7 @@ namespace IntegrationTests
 
         public string ExpandEnvironmentVariables(string name)
         {
-            throw new NotImplementedException();
+            return name;
         }
 
         public string GetEnvironmentVariable(string v)
@@ -122,22 +124,19 @@ namespace IntegrationTests
 
         public NPath ExtensionInstallPath => defaultEnvironment.ExtensionInstallPath;
 
-        public NPath UserCachePath { get; set; }
-        public NPath SystemCachePath { get; set; }
-        public NPath LogPath { get; set; }
+        public NPath UserCachePath { get { return defaultEnvironment.UserCachePath; } set { defaultEnvironment.UserCachePath = value; } }
+        public NPath SystemCachePath { get { return defaultEnvironment.SystemCachePath; } set { defaultEnvironment.SystemCachePath = value; } }
+        public NPath LogPath => defaultEnvironment.LogPath;
 
         public NPath RepositoryPath => defaultEnvironment.RepositoryPath;
 
         public NPath GitInstallPath => defaultEnvironment.GitInstallPath;
 
-        public IRepository Repository { get; set; }
-        public IUser User { get; set; }
+        public IRepository Repository { get { return defaultEnvironment.Repository; } set { defaultEnvironment.Repository = value; } }
+        public IUser User { get { return defaultEnvironment.User; } set { defaultEnvironment.User = value; } }
         public IFileSystem FileSystem { get { return defaultEnvironment.FileSystem; } set { defaultEnvironment.FileSystem = value; } }
-        public string ExecutableExtension { get { return defaultEnvironment.ExecutableExtension; } }
+        public string ExecutableExtension => defaultEnvironment.ExecutableExtension;
 
-        public ICacheContainer CacheContainer
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public ICacheContainer CacheContainer => defaultEnvironment.CacheContainer;
     }
 }

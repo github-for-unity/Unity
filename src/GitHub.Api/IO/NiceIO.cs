@@ -1177,6 +1177,11 @@ namespace GitHub.Unity
             return path;
 #endif
         }
+
+        public static string CalculateMD5(this NPath path)
+        {
+            return NPath.FileSystem.CalculateFileMD5(path);
+        }
     }
 
     public enum SlashMode

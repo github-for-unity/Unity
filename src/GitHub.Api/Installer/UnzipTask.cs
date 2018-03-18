@@ -4,23 +4,21 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    class UnzipTask: TaskBase
+    class UnzipTask : TaskBase<NPath>
     {
         private readonly string archiveFilePath;
         private readonly NPath extractedPath;
         private readonly IZipHelper zipHelper;
         private readonly IFileSystem fileSystem;
         private readonly string expectedMD5;
-        private readonly IProgress<float> zipFileProgress;
-        private readonly IProgress<long> estimatedDurationProgress;
 
-        public UnzipTask(CancellationToken token, string archiveFilePath, NPath extractedPath, IFileSystem fileSystem, string expectedMD5 = null, IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null) :
-            this(token, archiveFilePath, extractedPath, ZipHelper.Instance, fileSystem, expectedMD5, zipFileProgress, estimatedDurationProgress)
+        public UnzipTask(CancellationToken token, NPath archiveFilePath, NPath extractedPath, IFileSystem fileSystem, string expectedMD5 = null) :
+            this(token, archiveFilePath, extractedPath, ZipHelper.Instance, fileSystem, expectedMD5)
         {
             
         }
 
-        public UnzipTask(CancellationToken token, string archiveFilePath, NPath extractedPath, IZipHelper zipHelper, IFileSystem fileSystem, string expectedMD5 = null, IProgress<float> zipFileProgress = null, IProgress<long> estimatedDurationProgress = null)
+        public UnzipTask(CancellationToken token, NPath archiveFilePath, NPath extractedPath, IZipHelper zipHelper, IFileSystem fileSystem, string expectedMD5 = null)
             : base(token)
         {
             this.archiveFilePath = archiveFilePath;
@@ -28,51 +26,95 @@ namespace GitHub.Unity
             this.zipHelper = zipHelper;
             this.fileSystem = fileSystem;
             this.expectedMD5 = expectedMD5;
-            this.zipFileProgress = zipFileProgress;
-            this.estimatedDurationProgress = estimatedDurationProgress;
+            Name = $"Unzip {archiveFilePath.FileName}";
         }
 
-        protected override void Run(bool success)
+        protected NPath BaseRun(bool success)
         {
-            base.Run(success);
+            return base.RunWithReturn(success);
+        }
 
-            Logger.Trace("Unzip File: {0} to Path: {1}", archiveFilePath, extractedPath);
+        protected override NPath RunWithReturn(bool success)
+        {
+            var ret = BaseRun(success);
+
+            RaiseOnStart();
 
             try
             {
-                zipHelper.Extract(archiveFilePath, extractedPath, Token, zipFileProgress, estimatedDurationProgress);
+                ret = RunUnzip(success);
             }
             catch (Exception ex)
             {
-                var message = "Error Unzipping file";
-
-                Logger.Error(ex, message);
-                throw new UnzipTaskException(message);
+                Errors = ex.Message;
+                if (!RaiseFaultHandlers(ex))
+                    throw;
             }
-
-            if (expectedMD5 != null)
+            finally
             {
-                var calculatedMD5 = fileSystem.CalculateFolderMD5(extractedPath);
-                if (!calculatedMD5.Equals(expectedMD5, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    extractedPath.DeleteIfExists();
-
-                    var message = $"Extracted MD5: {calculatedMD5} Does not match expected: {expectedMD5}";
-                    Logger.Error(message);
-
-                    throw new UnzipTaskException(message);
-                }
+                RaiseOnEnd(ret);
             }
-
-            Logger.Trace("Completed Unzip");
+            return ret;
         }
+
+        protected virtual NPath RunUnzip(bool success)
+        {
+            Logger.Trace("Unzip File: {0} to Path: {1}", archiveFilePath, extractedPath);
+
+            Exception exception = null;
+            var attempts = 0;
+            do
+            {
+                if (Token.IsCancellationRequested)
+                    break;
+
+                exception = null;
+                try
+                {
+                    success = zipHelper.Extract(archiveFilePath, extractedPath, Token,
+                        (value, total) =>
+                        {
+                            UpdateProgress(value, total);
+                            return !Token.IsCancellationRequested;
+                        });
+
+                    if (expectedMD5 != null)
+                    {
+                        var calculatedMD5 = fileSystem.CalculateFolderMD5(extractedPath);
+                        success = calculatedMD5.Equals(expectedMD5, StringComparison.InvariantCultureIgnoreCase);
+                        if (!success)
+                        {
+                            extractedPath.DeleteIfExists();
+
+                            var message = $"Extracted MD5: {calculatedMD5} Does not match expected: {expectedMD5}";
+                            Logger.Error(message);
+
+                            exception = new UnzipException(message);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                    success = false;
+                }
+            } while (attempts++ < RetryCount);
+
+            if (!success)
+            {
+                Token.ThrowIfCancellationRequested();
+                throw new UnzipException("Error unzipping file", exception);
+            }
+            return extractedPath;
+        }
+        protected int RetryCount { get; }
     }
 
-    public class UnzipTaskException : Exception {
-        public UnzipTaskException(string message) : base(message)
+    public class UnzipException : Exception {
+        public UnzipException(string message) : base(message)
         { }
 
-        public UnzipTaskException(string message, Exception innerException) : base(message, innerException)
+        public UnzipException(string message, Exception innerException) : base(message, innerException)
         { }
     }
 }

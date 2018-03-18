@@ -38,6 +38,10 @@
       <HintPath>$(SolutionDir)\packages\AsyncBridge.Net35.0.2.3333.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="FluentAssertions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\FluentAssertions.2.2.0.0\lib\net35\FluentAssertions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NSubstitute, Version=1.10.0.0, Culture=neutral, PublicKeyToken=92dd2e9066daa5ca, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\NSubstitute.1.10.0.0\lib\net35\NSubstitute.dll</HintPath>
       <Private>True</Private>

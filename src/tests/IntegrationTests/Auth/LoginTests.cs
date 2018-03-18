@@ -2,15 +2,11 @@
 using System.Linq;
 using GitHub.Unity;
 using NUnit.Framework;
-using System.Threading;
-using System.Threading.Tasks;
-using Rackspace.Threading;
-using TestUtils;
 
 namespace IntegrationTests
 {
     [TestFixture]
-    class LoginIntegrationTests : BaseGitEnvironmentTest
+    class LoginIntegrationTests : BaseIntegrationTest
     {
         [Test]
         public void CommonParentTest()

@@ -683,10 +683,11 @@ namespace GitHub.Unity
             return node;
         }
 
-        protected override void OnClear()
+        protected override void Clear()
         {
             folders.Clear();
             checkedFileNodes.Clear();
+            base.Clear();
         }
 
         protected override IEnumerable<string> GetCollapsedFolders()

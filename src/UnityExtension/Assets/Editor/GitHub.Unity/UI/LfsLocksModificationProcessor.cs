@@ -27,7 +27,7 @@ namespace GitHub.Unity
             if (repository != null)
             {
                 repository.LocksChanged += RepositoryOnLocksChanged;
-                repository.CheckLocksChangedEvent(lastLocksChangedEvent);
+                repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
             }
         }
 

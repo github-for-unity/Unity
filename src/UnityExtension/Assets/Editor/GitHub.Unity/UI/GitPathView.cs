@@ -211,7 +211,7 @@ namespace GitHub.Unity
 
         private void ValidateAndSetGitInstallPath(string value)
         {
-            Logger.Trace("Validating Git Path:{0}", value);
+            //Logger.Trace("Validating Git Path:{0}", value);
 
             gitVersionErrorMessage = null;
 
@@ -253,7 +253,7 @@ namespace GitHub.Unity
                     }
                     else
                     {
-                        Logger.Trace("Software versions meet minimums Git:{0} GitLfs:{1}",
+                        Logger.Warning("Software versions meet minimums Git:{0} GitLfs:{1}",
                             result.GitVersion,
                             result.GitLfsVersion);
 
