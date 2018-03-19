@@ -71,21 +71,22 @@ namespace GitHub.Unity
                             UpdateProgress(value, total);
                             return !Token.IsCancellationRequested;
                         });
-
+/*
                     if (expectedMD5 != null)
                     {
                         var calculatedMD5 = fileSystem.CalculateFolderMD5(extractedPath);
                         success = calculatedMD5.Equals(expectedMD5, StringComparison.InvariantCultureIgnoreCase);
+*/
                         if (!success)
                         {
                             extractedPath.DeleteIfExists();
 
-                            var message = $"Extracted MD5: {calculatedMD5} Does not match expected: {expectedMD5}";
-                            Logger.Error(message);
+                            //var message = $"Extracted MD5: {calculatedMD5} Does not match expected: {expectedMD5}";
+                            var message = $"Failed to extract {archiveFilePath} to {extractedPath}";
 
                             exception = new UnzipException(message);
                         }
-                    }
+//                    }
                 }
                 catch (Exception ex)
                 {

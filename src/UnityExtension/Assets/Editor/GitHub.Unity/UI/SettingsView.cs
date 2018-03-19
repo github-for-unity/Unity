@@ -166,7 +166,7 @@ namespace GitHub.Unity
         {
             if (metricsHasChanged)
             {
-                metricsEnabled = Manager.UsageTracker.Enabled;
+                //metricsEnabled = Manager.UsageTracker.Enabled;
                 metricsHasChanged = false;
             }
 
