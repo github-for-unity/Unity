@@ -164,7 +164,11 @@ namespace GitHub.Unity
             get
             {
                 if (!nodeJsExecutablePath.IsInitialized)
-                    nodeJsExecutablePath = UnityApplicationContents.Combine("Tools", "nodejs", "node" + ExecutableExtension);
+                {
+                    nodeJsExecutablePath = IsWindows ?
+                        UnityApplicationContents.Combine("Tools", "nodejs", "node" + ExecutableExtension) :
+                        UnityApplicationContents.Combine("Tools", "nodejs", "bin", "node" + ExecutableExtension);
+                }
                 return nodeJsExecutablePath;
             }
         }
