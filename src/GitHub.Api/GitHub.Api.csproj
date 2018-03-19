@@ -69,10 +69,6 @@
     <Reference Include="Mono.Posix">
       <HintPath>$(SolutionDir)lib\Mono.Posix.dll</HintPath>
     </Reference>
-    <Reference Include="Rackspace.Threading, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bb62785d398726f0, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\TunnelVisionLabs.Threading.2.0.0-unity\lib\net35-client\Rackspace.Threading.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="ReadOnlyCollectionsInterfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET20\ReadOnlyCollectionsInterfaces.dll</HintPath>
       <Private>True</Private>
