@@ -27,7 +27,7 @@ namespace IntegrationTests
 
             var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath,
                     ZipHelper.Instance,
-                    Environment.FileSystem, GitInstaller.GitInstallDetails.GitLfsExtractedMD5)
+                    Environment.FileSystem)
                 .Progress(p => 
                 {
                 });
@@ -51,7 +51,7 @@ namespace IntegrationTests
             var extractedPath = TestBasePath.Combine("gitlfs_zip_extracted").CreateDirectory();
 
             var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath, 
-                ZipHelper.Instance, Environment.FileSystem, "AABBCCDD");
+                ZipHelper.Instance, Environment.FileSystem);
 
             Assert.Throws<UnzipException>(async () => await unzipTask.StartAwait());
 

@@ -45,7 +45,7 @@ namespace GitHub.Unity
                     var tempZipExtractPath = NPath.CreateTempDirectory("octorun_extract_archive_path");
                     var unzipTask = new UnzipTask(taskManager.Token, installDetails.ZipFile,
                             tempZipExtractPath, sharpZipLibHelper,
-                            fileSystem, OctorunInstallDetails.ExtractedMD5)
+                            fileSystem)
                         .Then((success, p) => MoveOctorun(p));
                     t.Then(unzipTask);
                 }

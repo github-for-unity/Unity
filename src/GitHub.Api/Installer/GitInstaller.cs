@@ -146,7 +146,7 @@ namespace GitHub.Unity
             if (!state.GitIsValid)
             {
                 ITask<NPath> unzipTask = new UnzipTask(cancellationToken, installDetails.GitZipPath, gitExtractPath, sharpZipLibHelper,
-                    environment.FileSystem, GitInstallDetails.GitExtractedMD5);
+                    environment.FileSystem);
                 unzipTask.Progress(p => installationTask.UpdateProgress(40 + (long)(20 * p.Percentage), 100, unzipTask.Name));
 
                 unzipTask = unzipTask.Then((s, path) =>
@@ -169,7 +169,7 @@ namespace GitHub.Unity
             if (!state.GitLfsIsValid)
             {
                 ITask<NPath> unzipTask = new UnzipTask(cancellationToken, installDetails.GitLfsZipPath, gitLfsExtractPath, sharpZipLibHelper,
-                    environment.FileSystem, GitInstallDetails.GitLfsExtractedMD5);
+                    environment.FileSystem);
                 unzipTask.Progress(p => installationTask.UpdateProgress(60 + (long)(20 * p.Percentage), 100, unzipTask.Name));
 
                 unzipTask = unzipTask.Then((s, path) =>

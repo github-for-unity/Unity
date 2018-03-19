@@ -12,14 +12,13 @@ namespace GitHub.Unity
         private readonly string expectedMD5;
 
         public UnzipTask(CancellationToken token, NPath archiveFilePath, NPath extractedPath,
-            IZipHelper zipHelper, IFileSystem fileSystem, string expectedMD5)
+            IZipHelper zipHelper, IFileSystem fileSystem)
             : base(token)
         {
             this.archiveFilePath = archiveFilePath;
             this.extractedPath = extractedPath;
             this.zipHelper = zipHelper;
             this.fileSystem = fileSystem;
-            this.expectedMD5 = expectedMD5;
             Name = $"Unzip {archiveFilePath.FileName}";
         }
 
@@ -71,22 +70,14 @@ namespace GitHub.Unity
                             UpdateProgress(value, total);
                             return !Token.IsCancellationRequested;
                         });
-/*
-                    if (expectedMD5 != null)
+
+                    if (!success)
                     {
-                        var calculatedMD5 = fileSystem.CalculateFolderMD5(extractedPath);
-                        success = calculatedMD5.Equals(expectedMD5, StringComparison.InvariantCultureIgnoreCase);
-*/
-                        if (!success)
-                        {
-                            extractedPath.DeleteIfExists();
+                        extractedPath.DeleteIfExists();
 
-                            //var message = $"Extracted MD5: {calculatedMD5} Does not match expected: {expectedMD5}";
-                            var message = $"Failed to extract {archiveFilePath} to {extractedPath}";
-
-                            exception = new UnzipException(message);
-                        }
-//                    }
+                        var message = $"Failed to extract {archiveFilePath} to {extractedPath}";
+                        exception = new UnzipException(message);
+                    }
                 }
                 catch (Exception ex)
                 {
