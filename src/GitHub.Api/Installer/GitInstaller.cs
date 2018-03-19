@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 using GitHub.Logging;
 
 namespace GitHub.Unity
@@ -14,6 +13,7 @@ namespace GitHub.Unity
         private readonly GitInstallDetails installDetails;
         private readonly IZipHelper sharpZipLibHelper;
 
+        GitInstallationState installationState;
         ITask<NPath> installationTask;
 
         public GitInstaller(IEnvironment environment, CancellationToken cancellationToken,
@@ -35,35 +35,35 @@ namespace GitHub.Unity
             installationTask.OnEnd += (thisTask, result, success, exception) => thisTask.UpdateProgress(100, 100);
 
             if (!environment.IsWindows)
-                return installationTask;
+            {
+                return new FindExecTask("git", cancellationToken)
+                    .Then(installationTask, taskIsTopOfChain: true);
+            }
 
-            var startTask = new FuncTask<GitInstallationState>(cancellationToken, () =>
+            var startTask = new FuncTask<NPath>(cancellationToken, () =>
                 {
-                    var state = VerifyGitInstallation();
-                    if (!state.GitIsValid && !state.GitLfsIsValid)
-                        state = GrabZipFromResources(state);
+                    installationState = VerifyGitInstallation();
+                    if (!installationState.GitIsValid && !installationState.GitLfsIsValid)
+                        installationState = GrabZipFromResources(installationState);
                     else
                         Logger.Trace("SetupGitIfNeeded: Skipped");
-                    return state;
+                    return installDetails.GitExecutablePath;
                 })
                 { Name = "Git Installation - Extract" };
 
 
-            startTask.OnEnd += (thisTask, state, success, exception) =>
+            startTask.OnEnd += (thisTask, path, success, exception) =>
             {
-                if (!state.GitIsValid && !state.GitLfsIsValid)
+                if (!installationState.GitIsValid && !installationState.GitLfsIsValid)
                 {
-                    if (!state.GitZipExists || !state.GitLfsZipExists)
-                        thisTask = thisTask.Then(CreateDownloadTask(state));
-                    thisTask = thisTask.Then(ExtractPortableGit(state));
+                    if (!installationState.GitZipExists || !installationState.GitLfsZipExists)
+                        thisTask = thisTask.Then(CreateDownloadTask(installationState));
+                    thisTask = thisTask.Then(ExtractPortableGit(installationState));
                 }
                 thisTask.Then(installationTask);
             };
 
-            // we want to start the startTask and not the installationTask because the latter only gets
-            // appended to the task chain when startTask ends, so calling Start() on it wouldn't work
-            startTask.Start();
-            return installationTask;
+            return startTask;
         }
 
         private GitInstallationState VerifyGitInstallation()
@@ -123,7 +123,7 @@ namespace GitHub.Unity
             return state;
         }
 
-        private ITask<GitInstallationState> CreateDownloadTask(GitInstallationState state)
+        private ITask<NPath> CreateDownloadTask(GitInstallationState state)
         {
             var downloader = new Downloader();
             downloader.QueueDownload(installDetails.GitZipUrl, installDetails.GitZipMd5Url, installDetails.ZipPath);
@@ -133,11 +133,11 @@ namespace GitHub.Unity
                 state.GitZipExists = installDetails.GitZipPath.FileExists();
                 state.GitLfsZipExists = installDetails.GitLfsZipPath.FileExists();
                 installationTask.UpdateProgress(40, 100);
-                return state;
+                return installDetails.ZipPath;
             });
         }
 
-        private FuncTask<GitInstallationState> ExtractPortableGit(GitInstallationState state)
+        private FuncTask<NPath> ExtractPortableGit(GitInstallationState state)
         {
             ITask<NPath> task = null;
             var tempZipExtractPath = NPath.CreateTempDirectory("git_zip_extract_zip_paths");
@@ -187,10 +187,10 @@ namespace GitHub.Unity
                 task = task?.Then(unzipTask) ?? unzipTask;
             }
 
-            return task.Finally(new FuncTask<GitInstallationState>(cancellationToken, (success) =>
+            return task.Finally(new FuncTask<NPath>(cancellationToken, (success) =>
             {
                 tempZipExtractPath.DeleteIfExists();
-                return state;
+                return installDetails.GitInstallationPath;
             }));
         }
 
