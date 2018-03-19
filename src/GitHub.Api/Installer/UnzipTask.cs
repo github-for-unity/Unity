@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
@@ -12,13 +11,8 @@ namespace GitHub.Unity
         private readonly IFileSystem fileSystem;
         private readonly string expectedMD5;
 
-        public UnzipTask(CancellationToken token, NPath archiveFilePath, NPath extractedPath, IFileSystem fileSystem, string expectedMD5 = null) :
-            this(token, archiveFilePath, extractedPath, ZipHelper.Instance, fileSystem, expectedMD5)
-        {
-            
-        }
-
-        public UnzipTask(CancellationToken token, NPath archiveFilePath, NPath extractedPath, IZipHelper zipHelper, IFileSystem fileSystem, string expectedMD5 = null)
+        public UnzipTask(CancellationToken token, NPath archiveFilePath, NPath extractedPath,
+            IZipHelper zipHelper, IFileSystem fileSystem, string expectedMD5)
             : base(token)
         {
             this.archiveFilePath = archiveFilePath;

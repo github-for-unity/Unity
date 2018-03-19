@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using ICSharpCode.SharpZipLib.Zip;
@@ -17,21 +16,12 @@ namespace GitHub.Unity
             get
             {
                 if (instance == null)
-                {
                     instance = new ZipHelper();
-                }
-
                 return instance;
             }
         }
 
         public bool Extract(string archive, string outFolder, CancellationToken cancellationToken,
-            Func<long, long, bool> onProgress = null)
-        {
-            return ExtractZipFile(archive, outFolder, cancellationToken, onProgress);
-        }
-
-        public static bool ExtractZipFile(string archive, string outFolder, CancellationToken cancellationToken,
             Func<long, long, bool> onProgress)
         {
             const int chunkSize = 4096; // 4K is optimum
