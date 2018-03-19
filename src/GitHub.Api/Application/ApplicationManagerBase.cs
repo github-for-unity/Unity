@@ -174,7 +174,8 @@ namespace GitHub.Unity
                 id = Guid.NewGuid().ToString();
                 UserSettings.Set(Constants.GuidKey, id);
             }
-/*
+
+#if ENABLE_METRICS
             var metricsService = new MetricsService(ProcessManager,
                 TaskManager,
                 Environment.FileSystem,
@@ -187,7 +188,7 @@ namespace GitHub.Unity
             {
                 UsageTracker.IncrementLaunchCount();
             }
-*/
+#endif
         }
 
         protected abstract void SetupMetrics();
