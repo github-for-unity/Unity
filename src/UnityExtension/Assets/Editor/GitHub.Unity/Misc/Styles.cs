@@ -901,7 +901,7 @@ namespace GitHub.Unity
             {
                 if (code == null)
                 {
-                    code = Utility.GetIcon("code.png", "spinner-outside@2x.png");
+                    code = Utility.GetIcon("code.png", "code@2x.png");
                 }
                 return code;
             }
@@ -963,7 +963,7 @@ namespace GitHub.Unity
             {
                 if (codeInverted == null)
                 {
-                    codeInverted = Utility.GetIcon("code.png", "spinner-outside@2x.png");
+                    codeInverted = Utility.GetIcon("code.png", "code@2x.png");
                     codeInverted.InvertColors();
                 }
                 return codeInverted;
