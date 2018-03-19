@@ -6,7 +6,6 @@ using GitHub.Unity;
 using Microsoft.Win32.SafeHandles;
 using NSubstitute;
 using NUnit.Framework;
-using Rackspace.Threading;
 
 namespace IntegrationTests
 {
