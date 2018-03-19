@@ -210,7 +210,7 @@ namespace GitHub.Unity
                 ActiveView.OnGUI();
             }
 
-            if (IsBusy && activeTab != SubTab.Settings && Event.current.type == EventType.repaint)
+            if (IsBusy && activeTab != SubTab.Settings && Event.current.type == EventType.Repaint)
             {
                 if (timeSinceLastRotation < 0)
                 {

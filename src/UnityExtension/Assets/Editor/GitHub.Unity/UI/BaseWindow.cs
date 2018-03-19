@@ -75,7 +75,7 @@ namespace GitHub.Unity
         // This is Unity's magic method
         private void OnGUI()
         {
-            if (Event.current.type == EventType.layout)
+            if (Event.current.type == EventType.Layout)
             {
                 if (cachedRepository != Environment.Repository || initializeWasCalled)
                 {
@@ -89,7 +89,7 @@ namespace GitHub.Unity
 
             OnUI();
 
-            if (Event.current.type == EventType.repaint)
+            if (Event.current.type == EventType.Repaint)
             {
                 inLayout = false;
             }
