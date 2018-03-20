@@ -31,6 +31,6 @@ using System.Runtime.InteropServices;
 namespace System
 {
     internal static class AssemblyVersionInformation {
-        internal const string Version = "0.30.2";
+        internal const string Version = "0.30.3";
     }
 }
