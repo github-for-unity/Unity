@@ -54,6 +54,7 @@ namespace GitHub.Unity
 
     class ProcessWrapper
     {
+        private readonly string taskName;
         private readonly IOutputProcessor outputProcessor;
         private readonly Action onStart;
         private readonly Action onEnd;
@@ -67,10 +68,11 @@ namespace GitHub.Unity
         private ILogging logger;
         protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
 
-        public ProcessWrapper(Process process, IOutputProcessor outputProcessor,
+        public ProcessWrapper(string taskName, Process process, IOutputProcessor outputProcessor,
             Action onStart, Action onEnd, Action<Exception, string> onError,
             CancellationToken token)
         {
+            this.taskName = taskName;
             this.outputProcessor = outputProcessor;
             this.onStart = onStart;
             this.onEnd = onEnd;
@@ -102,8 +104,7 @@ namespace GitHub.Unity
 
             try
             {
-                if (!Process.StartInfo.Arguments.StartsWith("credential-"))
-                    Logger.Trace($"Running '{Process.StartInfo.FileName.ToNPath().FileName} {Process.StartInfo.Arguments}'");
+                Logger.Trace($"Running '{Process.StartInfo.FileName.ToNPath().FileName} {taskName}'");
 
                 Process.Start();
 
@@ -158,6 +159,10 @@ namespace GitHub.Unity
                 var errorCode = ex.NativeErrorCode;
 
                 StringBuilder sb = new StringBuilder();
+                if (Process.StartInfo.Arguments.Contains("-credential"))
+                    sb.AppendLine($"'{Process.StartInfo.FileName} {taskName}'");
+                else
+                    sb.AppendLine($"'{Process.StartInfo.FileName} {Process.StartInfo.Arguments}'");
                 if (errorCode == 2)
                     sb.AppendLine("The system cannot find the file specified.");
                 foreach (string env in Process.StartInfo.EnvironmentVariables.Keys)
@@ -240,6 +245,7 @@ namespace GitHub.Unity
             Guard.NotNull(this, outputProcessor, nameof(outputProcessor));
             Process = new Process { StartInfo = psi, EnableRaisingEvents = true };
             ProcessName = psi.FileName;
+            Name = ProcessArguments;
         }
 
         public virtual void Configure(ProcessStartInfo psi, IOutputProcessor<T> processor)
@@ -251,6 +257,7 @@ namespace GitHub.Unity
 
             Process = new Process { StartInfo = psi, EnableRaisingEvents = true };
             ProcessName = psi.FileName;
+            Name = ProcessArguments;
         }
 
         public void Configure(Process existingProcess)
@@ -263,6 +270,7 @@ namespace GitHub.Unity
 
             Process = existingProcess;
             ProcessName = existingProcess.StartInfo.FileName;
+            Name = ProcessArguments;
         }
 
         protected override void RaiseOnStart()
@@ -285,7 +293,7 @@ namespace GitHub.Unity
         {
             var result = base.RunWithReturn(success);
 
-            wrapper = new ProcessWrapper(Process, outputProcessor,
+            wrapper = new ProcessWrapper(Name, Process, outputProcessor,
                 RaiseOnStart,
                 () =>
                 {
@@ -421,7 +429,7 @@ namespace GitHub.Unity
         {
             var result = base.RunWithReturn(success);
 
-            wrapper = new ProcessWrapper(Process, outputProcessor,
+            wrapper = new ProcessWrapper(Name, Process, outputProcessor,
                 RaiseOnStart,
                 () =>
                 {
