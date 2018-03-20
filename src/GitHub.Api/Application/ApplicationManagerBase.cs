@@ -201,11 +201,11 @@ namespace GitHub.Unity
         /// <param name="octorunScriptPath"></param>
         private void InitializeEnvironment(NPath gitExecutablePath)
         {
+            isBusy = false;
             SetupMetrics();
 
             if (!gitExecutablePath.IsInitialized)
             {
-                isBusy = false;
                 return;
             }
 
