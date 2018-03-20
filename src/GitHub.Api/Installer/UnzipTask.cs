@@ -9,7 +9,6 @@ namespace GitHub.Unity
         private readonly NPath extractedPath;
         private readonly IZipHelper zipHelper;
         private readonly IFileSystem fileSystem;
-        private readonly string expectedMD5;
 
         public UnzipTask(CancellationToken token, NPath archiveFilePath, NPath extractedPath,
             IZipHelper zipHelper, IFileSystem fileSystem)

@@ -43,7 +43,7 @@ namespace IntegrationTests
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(syncContext);
 
             var env = new DefaultEnvironment();
-            TestBasePath = NPath.CreateTempDirectory("integration-tests");
+            TestBasePath = NPath.CreateTempDirectory("integration tests");
             env.FileSystem.SetCurrentDirectory(TestBasePath);
 
             var repo = Substitute.For<IRepository>();

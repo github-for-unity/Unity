@@ -4,7 +4,7 @@ namespace GitHub.Unity
     static partial class ApplicationInfo
     {
 #if DEBUG
-        public const string ApplicationName = "GitHubUnityDebug";
+        public const string ApplicationName = "GitHub for Unity Debug";
         public const string ApplicationProvider = "GitHub";
 #else
         public const string ApplicationName = "GitHubUnity";
