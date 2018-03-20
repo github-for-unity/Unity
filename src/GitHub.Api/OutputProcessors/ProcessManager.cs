@@ -83,7 +83,7 @@ namespace GitHub.Unity
 
                 var envVars = startInfo.EnvironmentVariables;
                 var scriptContents = new[] {
-                    $"cd {envVars["GHU_WORKINGDIR"]}",
+                    $"cd \"{envVars["GHU_WORKINGDIR"]}\"",
                     $"PATH=\"{envVars["GHU_FULLPATH"]}\":$PATH /bin/bash"
                 };
                 environment.FileSystem.WriteAllLines(envVarFile, scriptContents);
