@@ -9,7 +9,7 @@ namespace IntegrationTests
     [TestFixture]
     class GitClientTests : BaseGitEnvironmentTest
     {
-        protected const int Timeout = 3000;
+        protected const int Timeout = 30000;
 
         [Test]
         public async Task ShouldGetGitVersion()
