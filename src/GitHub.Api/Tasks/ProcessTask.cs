@@ -104,7 +104,7 @@ namespace GitHub.Unity
 
             try
             {
-                Logger.Trace($"Running '{Process.StartInfo.FileName.ToNPath().FileName} {taskName}'");
+                Logger.Trace($"Running '{Process.StartInfo.FileName} {taskName}'");
 
                 Process.Start();
 
@@ -154,9 +154,11 @@ namespace GitHub.Unity
                     }
                 }
             }
-            catch (Win32Exception ex)
+            catch (Exception ex)
             {
-                var errorCode = ex.NativeErrorCode;
+                var errorCode = -42;
+                if (ex is Win32Exception)
+                    errorCode = ((Win32Exception)ex).NativeErrorCode;
 
                 StringBuilder sb = new StringBuilder();
                 if (Process.StartInfo.Arguments.Contains("-credential"))
@@ -171,12 +173,6 @@ namespace GitHub.Unity
                     sb.AppendLine();
                 }
                 thrownException = new ProcessException(errorCode, sb.ToString(), ex);
-            }
-            catch (Exception ex)
-            {
-                thrownException = new ProcessException(Process.HasExited ? Process.ExitCode : -42,
-                    "Unknown error",
-                    ex);
             }
 
             if (thrownException != null || errors.Count > 0)
