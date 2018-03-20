@@ -76,7 +76,7 @@ namespace GitHub.Unity
             this.userToken = userToken;
             this.pathToNodeJs = pathToNodeJs;
             this.pathToOctorunJs = pathToOctorunJs;
-            this.arguments = $"{pathToOctorunJs} {arguments}";
+            this.arguments = $"\"{pathToOctorunJs}\" {arguments}";
         }
 
         public override void Configure(ProcessStartInfo psi)
