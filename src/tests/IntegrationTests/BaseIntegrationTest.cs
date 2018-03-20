@@ -158,13 +158,16 @@ namespace IntegrationTests
             Exception ex = null;
 
             var setupTask = gitInstaller.SetupGitIfNeeded();
-            setupTask.OnEnd += (thisTask, path, success, exception) => {
-                result = path;
-                ex = exception;
-                autoResetEvent.Set();
+            setupTask.OnEnd += (thisTask, _, __, ___) => {
+                ((ITask<NPath>)thisTask.GetEndOfChain()).OnEnd += (t, path, success, exception) =>
+                {
+                    result = path;
+                    ex = exception;
+                    autoResetEvent.Set();
+                };
             };
-
-            if (!autoResetEvent.WaitOne(TimeSpan.FromMinutes(1)))
+            setupTask.Start();
+            if (!autoResetEvent.WaitOne(TimeSpan.FromMinutes(5)))
                 throw new TimeoutException($"Test setup unzipping {zipArchivesPath} to {pathToSetupGitInto} timed out");
 
             if (result == null)
@@ -197,7 +200,7 @@ namespace IntegrationTests
         [SetUp]
         public virtual void OnSetup()
         {
-            TestBasePath = NPath.CreateTempDirectory("integration-tests");
+            TestBasePath = NPath.CreateTempDirectory("integration tests");
             NPath.FileSystem.SetCurrentDirectory(TestBasePath);
             TestRepoMasterCleanUnsynchronized = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_clean_unsync");
             TestRepoMasterCleanUnsynchronizedRussianLanguage = TestBasePath.Combine("IOTestsRepo", "IOTestsRepo_master_clean_sync_with_russian_language");
