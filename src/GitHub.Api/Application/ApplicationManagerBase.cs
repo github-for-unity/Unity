@@ -84,16 +84,15 @@ namespace GitHub.Unity
                     if (path.IsInitialized)
                         return;
 
-                    Logger.Trace("No git path found in settings");
+                    Logger.Trace("Using portable git");
 
                     var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager);
 
-                    // if successful, continue with environment initialization, otherwise try to find an existing git installation
                     var task = gitInstaller.SetupGitIfNeeded();
                     task.Progress(progressReporter.UpdateProgress);
                     task.OnEnd += (thisTask, result, success, exception) =>
                     {
-                        thisTask.Then(initEnvironmentTask, taskIsTopOfChain: true);
+                        thisTask.GetEndOfChain().Then(initEnvironmentTask, taskIsTopOfChain: true);
                     };
 
                     // append installer task to top chain
