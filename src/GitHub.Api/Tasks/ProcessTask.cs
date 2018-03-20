@@ -161,6 +161,8 @@ namespace GitHub.Unity
                     errorCode = ((Win32Exception)ex).NativeErrorCode;
 
                 StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"Error code {errorCode}");
+                sb.AppendLine(ex.Message);
                 if (Process.StartInfo.Arguments.Contains("-credential"))
                     sb.AppendLine($"'{Process.StartInfo.FileName} {taskName}'");
                 else
