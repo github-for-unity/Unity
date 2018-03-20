@@ -12,6 +12,12 @@ namespace IntegrationTests
         protected static TimeSpan Timeout = TimeSpan.FromMinutes(5);
 
         [Test]
+        public void AaSetupGitFirst()
+        {
+            InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
+        }
+
+        [Test]
         public async Task ShouldGetGitVersion()
         {
             if (!DefaultEnvironment.OnWindows)
