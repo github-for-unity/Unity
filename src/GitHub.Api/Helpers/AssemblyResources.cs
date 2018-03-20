@@ -33,7 +33,7 @@ namespace GitHub.Unity
             if (stream != null)
                 return destinationPath.Combine(resource).WriteAllBytes(stream.ToByteArray());
 
-            return environment.ExtensionInstallPath.Combine(type, os, resource);
+            return environment.ExtensionInstallPath.Combine(type, os, resource).Copy(destinationPath.Combine(resource));
         }
     }
 }

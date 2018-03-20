@@ -6,98 +6,129 @@ namespace GitHub.Unity
 {
     class OctorunInstaller
     {
-        private const string ExpectedOctorunVersion = "8008bf3da68428f50368cf2fe3fe290df4acad54";
-        private const string OctorunExtractedMD5 = "b7341015bc701a9f5bf83f51b1b596b7";
-
         private static readonly ILogging Logger = LogHelper.GetLogger<OctorunInstaller>();
 
+        private readonly IEnvironment environment;
         private readonly IFileSystem fileSystem;
         private readonly ITaskManager taskManager;
         private readonly IZipHelper sharpZipLibHelper;
-        private readonly NPath octorunArchivePath;
-        private NPath octorunPath;
+        private readonly OctorunInstallDetails installDetails;
 
-        public OctorunInstaller(IFileSystem fileSystem, ITaskManager taskManager,
-            NPath octorunPath, IZipHelper sharpZipLibHelper, NPath octorunArchivePath)
+        public OctorunInstaller(IEnvironment environment, ITaskManager taskManager,
+            OctorunInstallDetails installDetails = null)
         {
-            this.fileSystem = fileSystem;
+            this.environment = environment;
+            this.sharpZipLibHelper = ZipHelper.Instance;
+            this.installDetails = installDetails ?? new OctorunInstallDetails(environment.UserCachePath);
+            this.fileSystem = environment.FileSystem;
             this.taskManager = taskManager;
-            this.octorunPath = octorunPath;
-            this.sharpZipLibHelper = sharpZipLibHelper;
-            this.octorunArchivePath = octorunArchivePath;
         }
 
-        public void SetupOctorunIfNeeded(ActionTask<NPath> onSuccess, ITask onFailure)
+        public ITask<NPath> SetupOctorunIfNeeded()
         {
-            Logger.Trace("SetupOctorunIfNeeded");
+            //Logger.Trace("SetupOctorunIfNeeded");
 
-            var isOctorunExtracted = IsOctorunExtracted();
-            Logger.Trace("isOctorunExtracted: {0}", isOctorunExtracted);
-
-            if (!isOctorunExtracted)
+            var task = new FuncTask<NPath>(taskManager.Token, () =>
             {
-                ExtractOctorun(onSuccess, onFailure);
-            }
-            else
+                var isOctorunExtracted = IsOctorunExtracted();
+                Logger.Trace("isOctorunExtracted: {0}", isOctorunExtracted);
+                if (isOctorunExtracted)
+                    return installDetails.ExecutablePath;
+                GrabZipFromResources();
+                return NPath.Default;
+            });
+
+            task.OnEnd += (t, path, _, __) =>
             {
-                onSuccess.PreviousResult = octorunPath;
-                onSuccess.Start();
+                if (!path.IsInitialized)
+                {
+                    var tempZipExtractPath = NPath.CreateTempDirectory("octorun_extract_archive_path");
+                    var unzipTask = new UnzipTask(taskManager.Token, installDetails.ZipFile,
+                            tempZipExtractPath, sharpZipLibHelper,
+                            fileSystem)
+                        .Then((success, p) => MoveOctorun(p));
+                    t.Then(unzipTask);
+                }
+            };
+
+            return task;
+        }
+
+        private NPath GrabZipFromResources()
+        {
+            if (!installDetails.ZipFile.FileExists())
+            {
+                AssemblyResources.ToFile(ResourceType.Generic, "octorun.zip", installDetails.BaseZipPath, environment);
             }
+            return installDetails.ZipFile;
         }
 
-        private void ExtractOctorun(ActionTask<NPath> onSuccess, ITask onFailure)
+        private NPath MoveOctorun(NPath fromPath)
         {
-            Logger.Trace("ExtractOctorun");
+            var toPath = installDetails.InstallationPath;
+            Logger.Trace($"Moving tempDirectory:'{fromPath}' to extractTarget:'{toPath}'");
 
-            var tempZipExtractPath = NPath.CreateTempDirectory("octorun_extract_archive_path");
-            var resultTask = new UnzipTask(taskManager.Token, octorunArchivePath, tempZipExtractPath, sharpZipLibHelper,
-                fileSystem, OctorunExtractedMD5)
-                .Then(s => MoveOctorun(tempZipExtractPath));
-
-            resultTask.Then(onFailure, TaskRunOptions.OnFailure);
-            resultTask.Then(onSuccess, TaskRunOptions.OnSuccess);
-
-            resultTask.Start();
-        }
-
-        private NPath MoveOctorun(NPath octorunExtractPath)
-        {
-            Logger.Trace($"Moving tempDirectory:'{octorunExtractPath}' to extractTarget:'{octorunPath}'");
-
-            octorunPath.DeleteIfExists();
-            octorunPath.EnsureParentDirectoryExists();
-            octorunExtractPath.Move(octorunPath);
-
-            Logger.Trace($"Deleting targetGitLfsExecPath:'{octorunExtractPath}'");
-            octorunExtractPath.DeleteIfExists();
-
-            return octorunPath;
+            toPath.DeleteIfExists();
+            toPath.EnsureParentDirectoryExists();
+            fromPath.Move(toPath);
+            return installDetails.ExecutablePath;
         }
 
         private bool IsOctorunExtracted()
         {
-            if (!octorunPath.DirectoryExists())
+            if (!installDetails.InstallationPath.DirectoryExists())
             {
-                Logger.Warning($"{octorunPath} does not exist");
+                //Logger.Warning($"{octorunPath} does not exist");
                 return false;
             }
 
-            var versionFilePath = octorunPath.Combine("version");
-
-            if (!versionFilePath.FileExists())
+            if (!installDetails.VersionFile.FileExists())
             {
-                Logger.Warning($"{versionFilePath} does not exist");
+                //Logger.Warning($"{versionFilePath} does not exist");
                 return false;
             }
 
-            var octorunVersion = versionFilePath.ReadAllText();
-            if (!ExpectedOctorunVersion.Equals(octorunVersion))
+            var octorunVersion = installDetails.VersionFile.ReadAllText();
+            if (!OctorunInstallDetails.PackageVersion.Equals(octorunVersion))
             {
-                Logger.Warning("Current version {0} does not match expected {1}", octorunVersion, ExpectedOctorunVersion);
+                Logger.Warning("Current version {0} does not match expected {1}", octorunVersion, OctorunInstallDetails.PackageVersion);
                 return false;
             }
-
             return true;
+        }
+
+        public class OctorunInstallDetails
+        {
+            public const string DefaultZipMd5Url = "https://ghfvs-installer.github.com/unity/octorun/octorun.zip.md5";
+            public const string DefaultZipUrl = "https://ghfvs-installer.github.com/unity/octorun/octorun.zip";
+            public const string ExtractedMD5 = "b7341015bc701a9f5bf83f51b1b596b7";
+            public const string ExecutableMD5 = "50570ed932559f294d1a1361801740b9";
+
+            public const string PackageVersion = "8008bf3da68428f50368cf2fe3fe290df4acad54";
+            private const string PackageName = "octorun";
+            private const string zipFile = "octorun.zip";
+
+            public OctorunInstallDetails(NPath baseDataPath)
+            {
+                BaseZipPath = baseDataPath.Combine("downloads");
+                BaseZipPath.EnsureDirectoryExists();
+                ZipFile = BaseZipPath.Combine(zipFile);
+
+                var installPath = baseDataPath.Combine(PackageName);
+                InstallationPath = installPath;
+
+                Executable = "app.js";
+                ExecutablePath = installPath.Combine("src", "bin", Executable);
+            }
+
+            public NPath BaseZipPath { get; }
+            public NPath ZipFile { get; }
+            public NPath InstallationPath { get; }
+            public string Executable { get; }
+            public NPath ExecutablePath { get; }
+            public UriString ZipMd5Url { get; set; } = DefaultZipMd5Url;
+            public UriString ZipUrl { get; set; } = DefaultZipUrl;
+            public NPath VersionFile => InstallationPath.Combine("version");
         }
     }
 }

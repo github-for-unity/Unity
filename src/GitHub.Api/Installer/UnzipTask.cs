@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
@@ -10,22 +9,15 @@ namespace GitHub.Unity
         private readonly NPath extractedPath;
         private readonly IZipHelper zipHelper;
         private readonly IFileSystem fileSystem;
-        private readonly string expectedMD5;
 
-        public UnzipTask(CancellationToken token, NPath archiveFilePath, NPath extractedPath, IFileSystem fileSystem, string expectedMD5 = null) :
-            this(token, archiveFilePath, extractedPath, ZipHelper.Instance, fileSystem, expectedMD5)
-        {
-            
-        }
-
-        public UnzipTask(CancellationToken token, NPath archiveFilePath, NPath extractedPath, IZipHelper zipHelper, IFileSystem fileSystem, string expectedMD5 = null)
+        public UnzipTask(CancellationToken token, NPath archiveFilePath, NPath extractedPath,
+            IZipHelper zipHelper, IFileSystem fileSystem)
             : base(token)
         {
             this.archiveFilePath = archiveFilePath;
             this.extractedPath = extractedPath;
             this.zipHelper = zipHelper;
             this.fileSystem = fileSystem;
-            this.expectedMD5 = expectedMD5;
             Name = $"Unzip {archiveFilePath.FileName}";
         }
 
@@ -78,19 +70,12 @@ namespace GitHub.Unity
                             return !Token.IsCancellationRequested;
                         });
 
-                    if (expectedMD5 != null)
+                    if (!success)
                     {
-                        var calculatedMD5 = fileSystem.CalculateFolderMD5(extractedPath);
-                        success = calculatedMD5.Equals(expectedMD5, StringComparison.InvariantCultureIgnoreCase);
-                        if (!success)
-                        {
-                            extractedPath.DeleteIfExists();
+                        extractedPath.DeleteIfExists();
 
-                            var message = $"Extracted MD5: {calculatedMD5} Does not match expected: {expectedMD5}";
-                            Logger.Error(message);
-
-                            exception = new UnzipException(message);
-                        }
+                        var message = $"Failed to extract {archiveFilePath} to {extractedPath}";
+                        exception = new UnzipException(message);
                     }
                 }
                 catch (Exception ex)

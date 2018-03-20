@@ -51,6 +51,7 @@ namespace GitHub.Unity
         bool IsChainExclusive();
 
         void UpdateProgress(long value, long total, string message = null);
+        ITask GetEndOfChain();
     }
 
     public interface ITask<TResult> : ITask
@@ -192,7 +193,7 @@ namespace GitHub.Unity
             // if the current task has a fault handler, attach it to the chain we're appending
             if (finallyHandler != null)
             {
-                var endOfChainTask = nextTaskBase.GetBottomMostTask();
+                TaskBase endOfChainTask = (TaskBase)nextTaskBase.GetEndOfChain();
                 while (endOfChainTask != this && endOfChainTask != null)
                 {
                     endOfChainTask.finallyHandler += finallyHandler;
@@ -373,12 +374,12 @@ namespace GitHub.Unity
             return depends.GetTopMostTask(null, false);
         }
 
-        protected TaskBase GetBottomMostTask()
+        public ITask GetEndOfChain()
         {
             if (continuationOnSuccess != null)
-                return continuationOnSuccess.GetBottomMostTask();
+                return continuationOnSuccess.GetEndOfChain();
             else if (continuationOnAlways != null)
-                return continuationOnAlways.GetBottomMostTask();
+                return continuationOnAlways.GetEndOfChain();
             return this;
         }
 

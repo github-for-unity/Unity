@@ -465,7 +465,7 @@ namespace GitHub.Unity
 
             var contentStyle = IsActive ? activeNodeStyle : nodeStyle;
 
-            if (Event.current.type == EventType.repaint)
+            if (Event.current.type == EventType.Repaint)
             {
                 contentStyle.Draw(fillRect, GUIContent.none, false, false, false, isSelected);
             }
@@ -475,7 +475,7 @@ namespace GitHub.Unity
             {
                 styleOn = !IsCollapsed;
 
-                if (Event.current.type == EventType.repaint)
+                if (Event.current.type == EventType.Repaint)
                 {
                     toggleStyle.Draw(toggleRect, GUIContent.none, false, false, styleOn, isSelected);
                 }
@@ -514,7 +514,7 @@ namespace GitHub.Unity
                 }
             }
 
-            if (Event.current.type == EventType.repaint)
+            if (Event.current.type == EventType.Repaint)
             {
                 contentStyle.Draw(iconRect, content, false, false, false, isSelected);
             }
