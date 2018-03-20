@@ -10,18 +10,21 @@ namespace GitHub.Unity
         private readonly CancellationToken cancellationToken;
 
         private readonly IEnvironment environment;
+        private readonly IProcessManager processManager;
         private readonly GitInstallDetails installDetails;
         private readonly IZipHelper sharpZipLibHelper;
 
         GitInstallationState installationState;
         ITask<NPath> installationTask;
 
-        public GitInstaller(IEnvironment environment, CancellationToken cancellationToken,
+        public GitInstaller(IEnvironment environment, IProcessManager processManager,
+            ITaskManager taskManager,
             GitInstallDetails installDetails = null)
         {
             this.environment = environment;
+            this.processManager = processManager;
             this.sharpZipLibHelper = ZipHelper.Instance;
-            this.cancellationToken = cancellationToken;
+            this.cancellationToken = taskManager.Token;
             this.installDetails = installDetails ?? new GitInstallDetails(environment.UserCachePath, environment.IsWindows);
         }
 
@@ -29,28 +32,40 @@ namespace GitHub.Unity
         {
             //Logger.Trace("SetupGitIfNeeded");
 
-            installationTask = new FuncTask<NPath>(cancellationToken, (_) => installDetails.GitExecutablePath)
+            installationTask = new FuncTask<NPath, NPath>(cancellationToken, (success, path) =>
+                    {
+                        return path;
+                    })
                 { Name = "Git Installation - Complete" };
             installationTask.OnStart += thisTask => thisTask.UpdateProgress(0, 100);
             installationTask.OnEnd += (thisTask, result, success, exception) => thisTask.UpdateProgress(100, 100);
 
+            ITask<NPath> startTask = null;
             if (!environment.IsWindows)
             {
-                return new FindExecTask("git", cancellationToken)
-                    .Then(installationTask, taskIsTopOfChain: true);
-            }
-
-            var startTask = new FuncTask<NPath>(cancellationToken, () =>
+                startTask = new FindExecTask("git", cancellationToken)
+                    .Configure(processManager);
+                // we should doublecheck that system git is usable here
+                installationState = new GitInstallationState
                 {
-                    installationState = VerifyGitInstallation();
-                    if (!installationState.GitIsValid && !installationState.GitLfsIsValid)
-                        installationState = GrabZipFromResources(installationState);
-                    else
-                        Logger.Trace("SetupGitIfNeeded: Skipped");
-                    return installDetails.GitExecutablePath;
-                })
+                    GitIsValid = true,
+                    GitLfsIsValid = true
+                };
+            }
+            else
+            {
+                startTask = new FuncTask<NPath>(cancellationToken, () =>
+                    {
+                        installationState = VerifyGitInstallation();
+                        if (!installationState.GitIsValid && !installationState.GitLfsIsValid)
+                            installationState = GrabZipFromResources(installationState);
+                        else
+                            Logger.Trace("SetupGitIfNeeded: Skipped");
+                        return installDetails.GitExecutablePath;
+                    })
                 { Name = "Git Installation - Extract" };
 
+            }
 
             startTask.OnEnd += (thisTask, path, success, exception) =>
             {

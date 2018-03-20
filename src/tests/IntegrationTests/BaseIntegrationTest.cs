@@ -152,7 +152,7 @@ namespace IntegrationTests
             AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
             AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip.md5", zipArchivesPath, Environment);
 
-            var gitInstaller = new GitInstaller(Environment, TaskManager.Token, installDetails);
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails);
 
             NPath? result = null;
             Exception ex = null;

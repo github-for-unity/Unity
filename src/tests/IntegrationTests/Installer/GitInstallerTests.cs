@@ -49,7 +49,7 @@ namespace IntegrationTests
 
             TestBasePath.Combine("git").CreateDirectory();
 
-            var gitInstaller = new GitInstaller(Environment, CancellationToken.None, installDetails);
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails);
             var startTask = gitInstaller.SetupGitIfNeeded();
             var endTask = new FuncTask<NPath, NPath>(CancellationToken.None, (s, path) => path);
             startTask.OnEnd += (thisTask, path, success, exception) => thisTask.GetEndOfChain().Then(endTask);

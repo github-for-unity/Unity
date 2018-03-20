@@ -86,7 +86,7 @@ namespace GitHub.Unity
 
                     Logger.Trace("No git path found in settings");
 
-                    var gitInstaller = new GitInstaller(Environment, CancellationToken);
+                    var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager);
 
                     // if successful, continue with environment initialization, otherwise try to find an existing git installation
                     var task = gitInstaller.SetupGitIfNeeded();
