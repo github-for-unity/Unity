@@ -82,8 +82,10 @@ namespace GitHub.Unity
             initializeGitTask.OnEnd += (t, path, _, __) =>
                 {
                     if (path.IsInitialized)
+                    {
+                        t.GetEndOfChain().Then(initEnvironmentTask, taskIsTopOfChain: true);
                         return;
-
+                    }
                     Logger.Trace("Using portable git");
 
                     var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager);
