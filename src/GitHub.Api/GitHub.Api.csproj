@@ -276,31 +276,14 @@
     <Content Include="PlatformResources\windows\git.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <EmbeddedResource Include="PlatformResources\mac\gitconfig">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="PlatformResources\windows\gitconfig">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\.gitattributes" />
-    <EmbeddedResource Include="Resources\.gitignore" />
-    <EmbeddedResource Include="Resources\octorun.zip" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Localization.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
+    <EmbeddedResource Include="PlatformResources\mac\gitconfig" />
+    <EmbeddedResource Include="PlatformResources\windows\gitconfig" />
     <Content Include="PlatformResources\linux\git-lfs.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="PlatformResources\linux\git-lfs.zip.md5" />
+    <Content Include="PlatformResources\linux\git-lfs.zip.md5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="PlatformResources\mac\git-lfs.zip.md5">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -310,11 +293,24 @@
     <Content Include="PlatformResources\windows\git.zip.md5">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <EmbeddedResource Include="PlatformResources\linux\gitconfig">
+    <EmbeddedResource Include="PlatformResources\linux\gitconfig" />
+    <EmbeddedResource Include="Resources\.gitattributes" />
+    <EmbeddedResource Include="Resources\.gitignore" />
+    <Content Include="Resources\octorun.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\octorun.zip.md5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <EmbeddedResource Include="Localization.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Localization.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
