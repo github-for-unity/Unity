@@ -378,7 +378,7 @@ namespace GitHub.Unity
         public string ToString(SlashMode slashMode)
         {
             if (!_isInitialized)
-                return null;
+                return String.Empty;
 
             // Check if it's linux root /
             if (IsRoot && string.IsNullOrEmpty(_driveLetter))

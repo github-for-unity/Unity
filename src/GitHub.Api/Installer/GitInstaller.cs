@@ -44,7 +44,7 @@ namespace GitHub.Unity
             if (!environment.IsWindows)
             {
                 startTask = new FindExecTask("git", cancellationToken)
-                    .Configure(processManager);
+                    .Configure(processManager, false, true);
                 // we should doublecheck that system git is usable here
                 installationState = new GitInstallationState
                 {

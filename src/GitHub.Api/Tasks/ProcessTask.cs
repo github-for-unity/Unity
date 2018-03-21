@@ -18,13 +18,20 @@ namespace GitHub.Unity
             return processManager.Configure(task, withInput: withInput);
         }
 
+        public static T Configure<T>(this T task, IProcessManager processManager, bool withInput, bool dontSetupGit)
+            where T : IProcess
+        {
+            return processManager.Configure(task, withInput: withInput, dontSetupGit: dontSetupGit);
+        }
+
         public static T Configure<T>(this T task, IProcessManager processManager, string executable = null,
             string arguments = null,
             NPath? workingDirectory = null,
-            bool withInput = false)
+            bool withInput = false
+            , bool dontSetupGit = false)
             where T : IProcess
         {
-            return processManager.Configure(task, executable?.ToNPath(), arguments, workingDirectory, withInput);
+            return processManager.Configure(task, executable?.ToNPath(), arguments, workingDirectory, withInput, dontSetupGit);
         }
     }
 
