@@ -135,7 +135,6 @@
     <Compile Include="Git\GitStatusEntry.cs" />
     <Compile Include="Git\IGitObjectFactory.cs" />
     <Compile Include="Git\Tasks\GitRevertTask.cs" />
-    <Compile Include="IO\FileSystemHelpers.cs" />
     <Compile Include="Application\IApplicationManager.cs" />
     <Compile Include="Tasks\ActionTask.cs" />
     <Compile Include="Tasks\BaseOutputProcessor.cs" />
