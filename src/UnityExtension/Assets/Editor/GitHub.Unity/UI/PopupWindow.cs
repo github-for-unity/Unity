@@ -24,12 +24,6 @@ namespace GitHub.Unity
 
         public event Action<bool> OnClose;
 
-        [MenuItem("GitHub/Authenticate")]
-        public static void Launch()
-        {
-            OpenWindow(PopupViewType.AuthenticationView);
-        }
-
         public static PopupWindow OpenWindow(PopupViewType popupViewType, Action<bool> onClose = null)
         {
             var popupWindow = GetWindow<PopupWindow>(true);
