@@ -77,7 +77,7 @@ Make sure a Git user and email address are set in the `%HOME%\.gitconfig` file b
   email = Your Email
 ```
 
-Once the extension is installed, you can open a command line with the same Git and Git LFS version that the extension uses by going to the `GitHub` -> `Command line` menu in Unity.
+Once the extension is installed, you can open a command line with the same Git and Git LFS version that the extension uses by going to `Window` -> `GitHub Command Line` in Unity.
 
 ### Installation
 
@@ -91,7 +91,7 @@ Alternatively, import the package by clicking Assets, Import Package, Custom Pac
 
 ##### macOS
 
-The extension log file can be found at `~/.local/share/GitHubUnityDebug/github-unity.log`. This is a temporary location and will be changed in the future.
+he extension log file can be found at `~/Library/Application Support/GitHubUnity/github-unity.log`
 
 ##### Windows
 
@@ -124,7 +124,7 @@ You can access the GitHub window by going to Windows -> GitHub. The window opens
 
 ### Initialize Repository
 
-![Initialize repository screenshot](https://user-images.githubusercontent.com/121322/27644875-7fc6302a-5bd9-11e7-98d0-c09b2e450503.png)
+![Initialize repository screenshot](https://user-images.githubusercontent.com/10103121/37807041-bb4446a6-2e19-11e8-9fff-a431309b8515.png)
 
 If the current Unity project is not in a Git repository, the GitHub for Unity extension will offer to initialize the repository for you. This will:
 
@@ -190,4 +190,4 @@ GitHub trademarks. GitHub's logos include, for instance, the stylized
 Invertocat designs that include "logo" in the file title in the following
 folder: [IconsAndLogos](https://github.com/github-for-unity/Unity/tree/master/src/UnityExtension/Assets/Editor/GitHub.Unity/IconsAndLogos).
 
-Copyright 2015 - 2017 GitHub, Inc.
+Copyright 2015 - 2018 GitHub, Inc.
