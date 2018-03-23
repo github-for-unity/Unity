@@ -123,6 +123,16 @@ namespace GitHub.Unity
             return keychainAdapter;
         }
 
+        private KeychainAdapter FindAdapter(UriString host)
+        {
+            KeychainAdapter value;
+            if (!keychainAdapters.TryGetValue(host, out value))
+            {
+                return null;
+            }
+            return value;
+        }
+
         private KeychainAdapter FindOrCreateAdapter(UriString host)
         {
             KeychainAdapter value;
@@ -323,6 +333,6 @@ namespace GitHub.Unity
         public Connection[] Connections => connections.Values.ToArray();
         public IList<UriString> Hosts => connections.Keys.ToArray();
         public bool HasKeys => connections.Any();
-        public bool NeedsLoad => HasKeys && !string.IsNullOrEmpty(FindOrCreateAdapter(connections.First().Value.Host).Credential.Token);
+        public bool NeedsLoad => HasKeys && !string.IsNullOrEmpty(FindAdapter(connections.First().Value.Host)?.Credential.Token);
     }
 }
