@@ -253,7 +253,7 @@ namespace GitHub.Unity
                     }
                     else
                     {
-                        Logger.Warning("Software versions meet minimums Git:{0} GitLfs:{1}",
+                        Logger.Trace("Software versions meet minimums Git:{0} GitLfs:{1}",
                             result.GitVersion,
                             result.GitLfsVersion);
 
