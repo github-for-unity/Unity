@@ -55,7 +55,7 @@ namespace GitHub.Unity
             // Install path
             GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(!gitExecutableIsSet || IsBusy || Parent.IsBusy);
+            EditorGUI.BeginDisabledGroup(IsBusy || Parent.IsBusy);
             {
                 // Install path field
                 GUILayout.BeginHorizontal();
@@ -201,11 +201,8 @@ namespace GitHub.Unity
         private void CheckEnteredGitPath()
         {
             isValueChanged = !string.IsNullOrEmpty(newGitExec) && newGitExec != gitExec;
-
             isValueChangedAndFileExists = isValueChanged && newGitExec.ToNPath().FileExists();
-
             gitFileErrorMessage = isValueChanged && !isValueChangedAndFileExists ? ErrorInvalidPathMessage : null;
-
             gitVersionErrorMessage = null;
         }
 
@@ -216,7 +213,7 @@ namespace GitHub.Unity
             gitVersionErrorMessage = null;
 
             GitClient.ValidateGitInstall(value.ToNPath())
-                .ThenInUI((sucess, result) =>
+                .FinallyInUI((sucess, exception, result) =>
                 {
                     if (!sucess)
                     {
