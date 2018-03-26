@@ -16,7 +16,7 @@ try {
             output.error(error);
         }
         else {
-            results = [];
+            var results = [];
             for (var i = 0; i < result.length; i++) {
                 results.push(result[i].name);
                 results.push(result[i].login);
