@@ -2,6 +2,7 @@ var commander = require("commander");
 var package = require('../../package.json')
 var ApiWrapper = require('../api')
 var endOfLine = require('os').EOL;
+var output = require('../output');
 
 commander
     .version(package.version)
@@ -13,11 +14,8 @@ commander
 
 if(!commander.repository)
 {
-    process.stdout.write("repository required");
-    process.stdout.write(endOfLine);
     commander.help();
     process.exit(-1);
-    return;
 }
 
 var private = false;
@@ -31,46 +29,13 @@ try {
     apiWrapper.publish(commander.repository, commander.description, private, commander.organization,
         function (error, result) {
             if (error) {
-                process.stdout.write("error");
-                process.stdout.write(endOfLine);
-
-                process.stdout.write("");
-                process.stdout.write(endOfLine);
-
-                process.stdout.write("");
-                process.stdout.write(endOfLine);
-
-                if (error) {
-                    process.stdout.write(error.toString());
-                    process.stdout.write(endOfLine);
-                }
-
-                process.exit();
+                output.error(error);
             }
             else {
-                process.stdout.write("success");
-                process.stdout.write(endOfLine);
-
-                process.stdout.write(commander.repository);
-                process.stdout.write(endOfLine);
-
-                process.stdout.write(result);
-                process.stdout.write(endOfLine);
-                process.exit();
+                output.success(commander.repository);
             }
         });
 }
 catch (error) {
-    process.stdout.write("error");
-    process.stdout.write(endOfLine);
-
-    process.stdout.write("");
-    process.stdout.write(endOfLine);
-
-    if (error) {
-        process.stdout.write(error.toString());
-        process.stdout.write(endOfLine);
-    }
-
-    process.exit();
+    output.error(error);
 }
