@@ -318,8 +318,6 @@ namespace GitHub.Unity
                 var uriString = keychain.Connections.First().Host;
                 var keychainAdapter = await keychain.Load(uriString);
 
-                logger.Trace("Username: {0} Token: {1}", keychainAdapter.Credential.Username, keychainAdapter.Credential.Token);
-
                 var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScriptPath, "validate",
                     user: keychainAdapter.Credential.Username, userToken: keychainAdapter.Credential.Token)
                     .Configure(processManager);
