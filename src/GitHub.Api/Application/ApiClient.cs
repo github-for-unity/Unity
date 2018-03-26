@@ -247,12 +247,7 @@ namespace GitHub.Unity
                     };
                 }
 
-                if (ret.Output.Any())
-                {
-                    throw new ApiClientException(string.Join(Environment.NewLine, ret.Output));
-                }
-
-                throw new ApiClientException("Publish failed");
+                throw new ApiClientException(ret.GetApiErrorMessage() ?? "Publish failed");
             }
             catch (Exception ex)
             {
@@ -294,12 +289,7 @@ namespace GitHub.Unity
                     return;
                 }
 
-                if (ret.Output.Any())
-                {
-                    throw new ApiClientException(string.Join(Environment.NewLine, ret.Output));
-                }
-
-                throw new ApiClientException("Error getting organizations");
+                throw new ApiClientException(ret.GetApiErrorMessage() ?? "Error getting organizations");
             }
             catch (Exception ex)
             {
@@ -332,12 +322,7 @@ namespace GitHub.Unity
                     };
                 }
 
-                if (ret.Output.Any())
-                {
-                    throw new ApiClientException(string.Join(Environment.NewLine, ret.Output));
-                }
-
-                throw new ApiClientException("Error validating current user");
+                throw new ApiClientException(ret.GetApiErrorMessage() ?? "Error validating current user");
             }
             catch (KeychainEmptyException)
             {
