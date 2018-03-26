@@ -193,12 +193,7 @@ namespace GitHub.Unity
                 return new LoginResultData(resultCodes, message, host, ret.Output[0]);
             }
 
-            if (ret.Output.Any())
-            {
-                return new LoginResultData(LoginResultCodes.Failed, ret.Output[0], host);
-            }
-
-            return new LoginResultData(LoginResultCodes.Failed, "Failed.", host);
+            return new LoginResultData(LoginResultCodes.Failed, ret.GetApiErrorMessage() ?? "Failed.", host);
         }
     }
 

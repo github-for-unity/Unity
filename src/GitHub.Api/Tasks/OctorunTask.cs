@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using GitHub.Logging;
 
@@ -132,5 +133,20 @@ namespace GitHub.Unity
         public bool IsSuccess => Status.Equals("success", StringComparison.InvariantCultureIgnoreCase);
         public bool IsError => Status.Equals("error", StringComparison.InvariantCultureIgnoreCase);
         public bool IsTwoFactorRequired => Status.Equals("2fa", StringComparison.InvariantCultureIgnoreCase);
+    }
+
+    static class OctorunResultExtensions {
+        private static Regex ApiErrorMessageRegex = new Regex(@"\""message\"":\""(.*?)\""", RegexOptions.Compiled);
+
+        internal static string GetApiErrorMessage(this OctorunResult octorunResult)
+        {
+            if (!octorunResult.IsError || !octorunResult.Output.Any())
+            {
+                return null;
+            }
+
+            var match = ApiErrorMessageRegex.Match(octorunResult.Output[0]);
+            return match.Success ? match.Groups[1].Value : octorunResult.Output[0];
+        }
     }
 }
