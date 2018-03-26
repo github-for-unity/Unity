@@ -87,7 +87,7 @@ namespace GitHub.Unity
             try
             {
                 var keychainConnection = keychain.Connections.First();
-                var keychainAdapter = await GetValidatedKeychainAdaper(keychainConnection);
+                var keychainAdapter = await GetValidatedKeychainAdapter(keychainConnection);
                 await GetValidatedGitHubUser(keychainConnection, keychainAdapter);
                 onSuccess();
             }
@@ -201,7 +201,7 @@ namespace GitHub.Unity
 
                 //TODO: ONE_USER_LOGIN This assumes only ever one user can login
                 var keychainConnection = keychain.Connections.First();
-                var keychainAdapter = await GetValidatedKeychainAdaper(keychainConnection);
+                var keychainAdapter = await GetValidatedKeychainAdapter(keychainConnection);
                 await GetValidatedGitHubUser(keychainConnection, keychainAdapter);
 
                 var command = new StringBuilder("publish -r \"");
@@ -263,7 +263,7 @@ namespace GitHub.Unity
 
                 //TODO: ONE_USER_LOGIN This assumes only ever one user can login
                 var keychainConnection = keychain.Connections.First();
-                var keychainAdapter = await GetValidatedKeychainAdaper(keychainConnection);
+                var keychainAdapter = await GetValidatedKeychainAdapter(keychainConnection);
                 await GetValidatedGitHubUser(keychainConnection, keychainAdapter);
 
                 var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScriptPath, "organizations",
@@ -301,7 +301,7 @@ namespace GitHub.Unity
             }
         }
 
-        private async Task<IKeychainAdapter> GetValidatedKeychainAdaper(Connection keychainConnection)
+        private async Task<IKeychainAdapter> GetValidatedKeychainAdapter(Connection keychainConnection)
         {
             if (keychain.HasKeys)
             {
