@@ -87,7 +87,7 @@ namespace GitHub.Unity
             // Juggling to find out where we got installed
             var shim = CreateInstance<RunLocationShim>();
             var script = MonoScript.FromScriptableObject(shim);
-            var scriptPath = AssetDatabase.GetAssetPath(script).ToNPath();
+            var scriptPath = Application.dataPath.ToNPath().Parent.Combine(AssetDatabase.GetAssetPath(script).ToNPath());
             DestroyImmediate(shim);
             return scriptPath.Parent;
         }

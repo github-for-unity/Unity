@@ -10,7 +10,8 @@ namespace GitHub.Unity
     {
         private const float DefaultNotificationTimeout = 4f;
         private const string Title = "GitHub";
-        private const string LaunchMenu = "Window/GitHub";
+        private const string Menu_Window_GitHub = "Window/GitHub";
+        private const string Menu_Window_GitHub_Command_Line = "Window/GitHub Command Line";
         private const string BadNotificationDelayError = "A delay of {0} is shorter than the default delay and thus would get pre-empted.";
         private const string InitializeTitle = "Initialize";
         private const string HistoryTitle = "History";
@@ -47,19 +48,13 @@ namespace GitHub.Unity
         [SerializeField] private GUIContent repoUrlContent;
         [SerializeField] private CacheUpdateEvent lastCurrentBranchAndRemoteChangedEvent;
 
-        [MenuItem(LaunchMenu)]
+        [MenuItem(Menu_Window_GitHub)]
         public static void Window_GitHub()
         {
             ShowWindow(EntryPoint.ApplicationManager);
         }
 
-        [MenuItem("GitHub/Show Window")]
-        public static void GitHub_ShowWindow()
-        {
-            ShowWindow(EntryPoint.ApplicationManager);
-        }
-
-        [MenuItem("GitHub/Command Line")]
+        [MenuItem(Menu_Window_GitHub_Command_Line)]
         public static void GitHub_CommandLine()
         {
             EntryPoint.ApplicationManager.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);

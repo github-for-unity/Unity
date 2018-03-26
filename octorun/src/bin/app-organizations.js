@@ -17,7 +17,7 @@ try {
             process.exit();
         }
         else {
-            let results = [];
+            results = [];
             for (var i = 0; i < result.length; i++) {
                 results.push(result[i].name);
                 results.push(result[i].login);

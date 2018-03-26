@@ -46,7 +46,7 @@ namespace GitHub.Unity
                     var unzipTask = new UnzipTask(taskManager.Token, installDetails.ZipFile,
                             tempZipExtractPath, sharpZipLibHelper,
                             fileSystem)
-                        .Then((success, p) => MoveOctorun(p));
+                        .Then((success, extractPath) => MoveOctorun(extractPath.Combine("octorun")));
                     t.Then(unzipTask);
                 }
             };
@@ -101,10 +101,8 @@ namespace GitHub.Unity
         {
             public const string DefaultZipMd5Url = "https://ghfvs-installer.github.com/unity/octorun/octorun.zip.md5";
             public const string DefaultZipUrl = "https://ghfvs-installer.github.com/unity/octorun/octorun.zip";
-            public const string ExtractedMD5 = "b7341015bc701a9f5bf83f51b1b596b7";
-            public const string ExecutableMD5 = "50570ed932559f294d1a1361801740b9";
 
-            public const string PackageVersion = "8008bf3da68428f50368cf2fe3fe290df4acad54";
+            public const string PackageVersion = "b91b7b60";
             private const string PackageName = "octorun";
             private const string zipFile = "octorun.zip";
 

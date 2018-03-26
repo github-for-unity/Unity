@@ -44,7 +44,7 @@ namespace GitHub.Unity
             if (!environment.IsWindows)
             {
                 startTask = new FindExecTask("git", cancellationToken)
-                    .Configure(processManager);
+                    .Configure(processManager, false, true);
                 // we should doublecheck that system git is usable here
                 installationState = new GitInstallationState
                 {
@@ -174,7 +174,7 @@ namespace GitHub.Unity
                     source.Move(target);
                     state.GitExists = installDetails.GitExecutablePath.FileExists();
                     state.GitIsValid = s;
-                    return path;
+                    return target;
                 });
                 task = unzipTask;
             }
@@ -197,7 +197,7 @@ namespace GitHub.Unity
                     source.Move(target);
                     state.GitExists = target.FileExists();
                     state.GitIsValid = s;
-                    return path;
+                    return target;
                 });
                 task = task?.Then(unzipTask) ?? unzipTask;
             }
@@ -205,7 +205,7 @@ namespace GitHub.Unity
             return task.Finally(new FuncTask<NPath>(cancellationToken, (success) =>
             {
                 tempZipExtractPath.DeleteIfExists();
-                return installDetails.GitInstallationPath;
+                return installDetails.GitExecutablePath;
             }));
         }
 

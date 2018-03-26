@@ -61,7 +61,7 @@ namespace GitHub.Unity
         public bool HasFocus { get { return Parent != null && Parent.HasFocus; } }
         public virtual bool IsBusy
         {
-            get { return Manager.IsBusy || Repository != null ? Repository.IsBusy : false; }
+            get { return (Manager != null && Manager.IsBusy) || (Repository != null && Repository.IsBusy); }
         }
 
         protected ITaskManager TaskManager { get { return Manager.TaskManager; } }

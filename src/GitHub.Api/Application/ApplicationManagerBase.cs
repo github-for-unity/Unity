@@ -61,12 +61,7 @@ namespace GitHub.Unity
             isBusy = true;
 
             var octorunInstaller = new OctorunInstaller(Environment, TaskManager);
-            var setupTask = octorunInstaller
-                .SetupOctorunIfNeeded()
-                .Then((s, octorunPath) =>
-                    {
-                        Environment.OctorunScriptPath = octorunPath;
-                    });
+            var setupTask = octorunInstaller.SetupOctorunIfNeeded();
 
             var initializeGitTask = new FuncTask<NPath>(CancellationToken, () =>
                 {
@@ -78,12 +73,23 @@ namespace GitHub.Unity
                     }
                     return NPath.Default;
                 });
+            var setOctorunEnvironmentTask = new ActionTask<NPath>(CancellationToken, (s, octorunPath) =>
+                {
+                    Environment.OctorunScriptPath = octorunPath;
+                });
+
+            setupTask.OnEnd += (t, path, _, __) =>
+                {
+                    t.GetEndOfChain().Then(setOctorunEnvironmentTask).Then(initializeGitTask);
+                };
 
             initializeGitTask.OnEnd += (t, path, _, __) =>
                 {
                     if (path.IsInitialized)
+                    {
+                        t.GetEndOfChain().Then(initEnvironmentTask, taskIsTopOfChain: true);
                         return;
-
+                    }
                     Logger.Trace("Using portable git");
 
                     var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager);
@@ -99,7 +105,7 @@ namespace GitHub.Unity
                     t.Then(task, taskIsTopOfChain: true);
                 };
 
-            setupTask.Then(initializeGitTask).Start();
+            setupTask.Start();
         }
 
         public ITask InitializeRepository()
@@ -201,11 +207,11 @@ namespace GitHub.Unity
         /// <param name="octorunScriptPath"></param>
         private void InitializeEnvironment(NPath gitExecutablePath)
         {
+            isBusy = false;
             SetupMetrics();
 
             if (!gitExecutablePath.IsInitialized)
             {
-                isBusy = false;
                 return;
             }
 

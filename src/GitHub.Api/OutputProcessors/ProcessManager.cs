@@ -23,7 +23,10 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
         }
 
-        public T Configure<T>(T processTask, NPath? executable = null, string arguments = null, NPath? workingDirectory = null, bool withInput = false)
+        public T Configure<T>(T processTask, NPath? executable = null, string arguments = null,
+            NPath? workingDirectory = null,
+            bool withInput = false,
+            bool dontSetupGit = false)
              where T : IProcess
         {
             executable = executable ?? processTask.ProcessName?.ToNPath() ?? environment.GitExecutablePath;
@@ -42,7 +45,7 @@ namespace GitHub.Unity
                 StandardErrorEncoding = Encoding.UTF8
             };
 
-            gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath);
+            gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath, dontSetupGit);
 
             if (executable.Value.IsRelative)
             {
@@ -83,7 +86,7 @@ namespace GitHub.Unity
 
                 var envVars = startInfo.EnvironmentVariables;
                 var scriptContents = new[] {
-                    $"cd {envVars["GHU_WORKINGDIR"]}",
+                    $"cd \"{envVars["GHU_WORKINGDIR"]}\"",
                     $"PATH=\"{envVars["GHU_FULLPATH"]}\":$PATH /bin/bash"
                 };
                 environment.FileSystem.WriteAllLines(envVarFile, scriptContents);
