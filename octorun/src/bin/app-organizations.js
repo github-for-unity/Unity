@@ -14,7 +14,6 @@ try {
     apiWrapper.getOrgs(function (error, result) {
         if (error) {
             output.error(error);
-            process.exit();
         }
         else {
             results = [];
@@ -24,11 +23,9 @@ try {
             }
 
             output.success(results);
-            process.exit();
         }
     });
 }
 catch (error) {
     output.error(error);
-    process.exit();
 }
