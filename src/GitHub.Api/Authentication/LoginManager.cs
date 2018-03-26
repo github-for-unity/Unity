@@ -193,19 +193,9 @@ namespace GitHub.Unity
                 return new LoginResultData(resultCodes, message, host, ret.Output[0]);
             }
 
-            if (ret.IsBadCredentials)
-            {
-                return new LoginResultData(LoginResultCodes.Failed, "Bad credentials.", host, ret.Output[0]);
-            }
-
-            if (ret.IsLocked)
-            {
-                return new LoginResultData(LoginResultCodes.LockedOut, "Account locked.", host, ret.Output[0]);
-            }
-
             if (ret.Output.Any())
             {
-                return new LoginResultData(LoginResultCodes.Failed, "Failed.", host, ret.Output[0]);
+                return new LoginResultData(LoginResultCodes.Failed, ret.Output[0], host);
             }
 
             return new LoginResultData(LoginResultCodes.Failed, "Failed.", host);
