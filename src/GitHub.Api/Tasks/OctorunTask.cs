@@ -8,7 +8,7 @@ using GitHub.Logging;
 
 namespace GitHub.Unity
 {
-    class OctorunTaskOutputProcessor : BaseOutputProcessor<OctorunResult>
+    class OctorunResultOutputProcessor : BaseOutputProcessor<OctorunResult>
     {
         private int lineCount;
         private string status;
@@ -68,7 +68,7 @@ namespace GitHub.Unity
             string user = null,
             string userToken = null,
             IOutputProcessor<OctorunResult> processor = null)
-            : base(token, processor ?? new OctorunTaskOutputProcessor())
+            : base(token, processor ?? new OctorunResultOutputProcessor())
         {
             this.clientId = clientId;
             this.clientSecret = clientSecret;
