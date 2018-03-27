@@ -323,6 +323,5 @@ namespace GitHub.Unity
         public Connection[] Connections => connections.Values.ToArray();
         public IList<UriString> Hosts => connections.Keys.ToArray();
         public bool HasKeys => connections.Any();
-        public bool NeedsLoad => HasKeys && !string.IsNullOrEmpty(FindOrCreateAdapter(connections.First().Value.Host).Credential?.Token);
     }
 }
