@@ -97,6 +97,18 @@ namespace GitHub.Unity
             }
         }
 
+        public async Task GetCurrentUser(Action<GitHubUser> callback)
+        {
+            Guard.ArgumentNotNull(callback, "callback");
+            
+            //TODO: ONE_USER_LOGIN This assumes only ever one user can login
+            var keychainConnection = keychain.Connections.First();
+            var keychainAdapter = await GetValidatedKeychainAdapter(keychainConnection);
+            var user = await GetValidatedGitHubUser(keychainConnection, keychainAdapter);
+
+            callback(user);
+        }
+
         public async Task Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result)
         {
             Guard.ArgumentNotNull(need2faCode, "need2faCode");
