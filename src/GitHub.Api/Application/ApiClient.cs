@@ -305,27 +305,24 @@ namespace GitHub.Unity
         {
             if (keychain.HasKeys)
             {
-                logger.Trace("LoadKeychainInternal: Loading");
-
                 var keychainAdapter = await keychain.Load(keychainConnection.Host);
-                logger.Trace("LoadKeychainInternal: Loaded");
 
                 if (string.IsNullOrEmpty(keychainAdapter.Credential?.Username))
                 {
-                    logger.Trace("LoadKeychainInternal: Username is empty");
+                    logger.Warning("LoadKeychainInternal: Username is empty");
                     throw new TokenUsernameMismatchException(keychainConnection.Username);
                 }
 
                 if (keychainAdapter.Credential.Username != keychainConnection.Username)
                 {
-                    logger.Trace("LoadKeychainInternal: Token username does not match");
+                    logger.Warning("LoadKeychainInternal: Token username does not match");
                     throw new TokenUsernameMismatchException(keychainConnection.Username, keychainAdapter.Credential.Username);
                 }
 
                 return keychainAdapter;
             }
 
-            logger.Trace("LoadKeychainInternal: No keys to load");
+            logger.Warning("LoadKeychainInternal: No keys to load");
             throw new KeychainEmptyException();
         }
 
