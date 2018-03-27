@@ -379,12 +379,19 @@ namespace GitHub.Unity
                 logger.Trace("LoadKeychainInternal: Loading");
 
                 //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-                var uriString = keychain.Connections.First().Host;
+                var connection = keychain.Connections.First();
+                var uriString = connection.Host;
 
                 var keychainAdapter = await keychain.Load(uriString);
                 logger.Trace("LoadKeychainInternal: Loaded");
 
-                return keychainAdapter.Credential.Token != null;
+                var keychainUsername = keychainAdapter.Credential?.Username;
+                if (keychainUsername == null || connection.Username != keychainUsername)
+                {
+                    throw new TokenUsernameMismatchException(connection.Username, keychainUsername);
+                }
+
+                return keychainAdapter.Credential?.Token != null;
             }
 
             logger.Trace("LoadKeychainInternal: No keys to load");
