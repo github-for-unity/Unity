@@ -213,7 +213,7 @@ namespace GitHub.Unity
 
         private void ValidateAndSetGitInstallPath(string value)
         {
-            //Logger.Trace("Validating Git Path:{0}", value);
+            Logger.Trace("Validating Git Path:{0}", value);
 
             gitVersionErrorMessage = null;
 
