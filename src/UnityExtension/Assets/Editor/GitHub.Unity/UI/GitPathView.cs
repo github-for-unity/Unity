@@ -15,7 +15,9 @@ namespace GitHub.Unity
         private const string BrowseButton = "...";
         private const string GitInstallBrowseTitle = "Select git binary";
         private const string ErrorInvalidPathMessage = "Invalid Path.";
-        private const string ErrorGettingSoftwareVersionMessage = "Error getting software versions.";
+        private const string ErrorValidatingGitPath = "Error validating Git Path.";
+        private const string ErrorGitNotFoundMessage = "Git not found.";
+        private const string ErrorGitLfsNotFoundMessage = "Git LFS not found.";
         private const string ErrorMinimumGitVersionMessageFormat = "Git version {0} found. Git version {1} is required.";
         private const string ErrorMinimumGitLfsVersionMessageFormat = "Git LFS version {0} found. Git LFS version {1} is required.";
 
@@ -216,12 +218,12 @@ namespace GitHub.Unity
             gitVersionErrorMessage = null;
 
             GitClient.ValidateGitInstall(value.ToNPath())
-                .ThenInUI((sucess, result) =>
+                .FinallyInUI((success, exception, result) =>
                 {
-                    if (!sucess)
+                    if (!success)
                     {
-                        Logger.Trace(ErrorGettingSoftwareVersionMessage);
-                        gitVersionErrorMessage = ErrorGettingSoftwareVersionMessage;
+                        Logger.Trace(ErrorValidatingGitPath);
+                        gitVersionErrorMessage = ErrorValidatingGitPath;
                     }
                     else if (!result.IsValid)
                     {
@@ -232,28 +234,39 @@ namespace GitHub.Unity
 
                         var errorMessageStringBuilder = new StringBuilder();
 
-                        if (result.GitVersion < Constants.MinimumGitVersion)
+                        if (result.GitVersion == null)
                         {
-                            errorMessageStringBuilder.AppendFormat(ErrorMinimumGitVersionMessageFormat,
-                                result.GitVersion, Constants.MinimumGitVersion);
+                            errorMessageStringBuilder.Append(ErrorGitNotFoundMessage);
                         }
-
-                        if (result.GitLfsVersion < Constants.MinimumGitLfsVersion)
+                        else if (result.GitLfsVersion == null)
                         {
-                            if (errorMessageStringBuilder.Length > 0)
+                            errorMessageStringBuilder.Append(ErrorGitLfsNotFoundMessage);
+                        }
+                        else
+                        {
+                            if (result.GitVersion < Constants.MinimumGitVersion)
                             {
-                                errorMessageStringBuilder.Append(Environment.NewLine);
+                                errorMessageStringBuilder.AppendFormat(ErrorMinimumGitVersionMessageFormat,
+                                    result.GitVersion, Constants.MinimumGitVersion);
                             }
 
-                            errorMessageStringBuilder.AppendFormat(ErrorMinimumGitLfsVersionMessageFormat,
-                                result.GitLfsVersion, Constants.MinimumGitLfsVersion);
+                            if (result.GitLfsVersion < Constants.MinimumGitLfsVersion)
+                            {
+                                if (errorMessageStringBuilder.Length > 0)
+                                {
+                                    errorMessageStringBuilder.Append(Environment.NewLine);
+                                }
+
+                                errorMessageStringBuilder.AppendFormat(ErrorMinimumGitLfsVersionMessageFormat,
+                                    result.GitLfsVersion, Constants.MinimumGitLfsVersion);
+                            }
                         }
 
                         gitVersionErrorMessage = errorMessageStringBuilder.ToString();
                     }
                     else
                     {
-                        Logger.Warning("Software versions meet minimums Git:{0} GitLfs:{1}",
+                        Logger.Trace("Software versions meet minimums Git:{0} GitLfs:{1}",
                             result.GitVersion,
                             result.GitLfsVersion);
 

@@ -120,18 +120,29 @@ namespace GitHub.Unity
             Version gitVersion = null;
             Version gitLfsVersion = null;
 
-            var gitVersionTask = new GitVersionTask(cancellationToken).Configure(processManager, path);
-            var gitLfsVersionTask = new GitLfsVersionTask(cancellationToken).Configure(processManager, path);
-
-            return gitVersionTask
-                .Then((result, version) => gitVersion = version)
-                .Then(gitLfsVersionTask)
-                .Then((result, version) => gitLfsVersion = version)
-                .Then(success => new ValidateGitInstallResult(success &&
+            var endTask = new FuncTask<ValidateGitInstallResult>(cancellationToken,
+                () => new ValidateGitInstallResult(
                     gitVersion?.CompareTo(Constants.MinimumGitVersion) >= 0 &&
                     gitLfsVersion?.CompareTo(Constants.MinimumGitLfsVersion) >= 0,
-                    gitVersion, gitLfsVersion)
-                );
+                    gitVersion, gitLfsVersion));
+              
+            var gitLfsVersionTask = new GitLfsVersionTask(cancellationToken).Configure(processManager, path);
+            
+            gitLfsVersionTask
+                .Then((result, version) => {return gitLfsVersion = version;})
+                .Then(endTask, taskIsTopOfChain: true);
+
+            gitLfsVersionTask.Then(endTask, TaskRunOptions.OnFailure, taskIsTopOfChain:true);
+
+            var gitVersionTask = new GitVersionTask(cancellationToken).Configure(processManager, path);
+
+            gitVersionTask
+                .Then((result, version) => { return gitVersion = version; })
+                .Then(gitLfsVersionTask, taskIsTopOfChain: true);
+            
+            gitVersionTask.Then(endTask, TaskRunOptions.OnFailure, taskIsTopOfChain:true);
+
+            return endTask;
         }
 
         public ITask Init(IOutputProcessor<string> processor = null)
