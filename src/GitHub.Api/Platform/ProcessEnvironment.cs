@@ -15,14 +15,14 @@ namespace GitHub.Unity
             Environment = environment;
         }
 
-        public void Configure(ProcessStartInfo psi, NPath workingDirectory)
+        public void Configure(ProcessStartInfo psi, NPath workingDirectory, bool dontSetupGit = false)
         {
             psi.WorkingDirectory = workingDirectory;
             psi.EnvironmentVariables["HOME"] = NPath.HomeDirectory;
             psi.EnvironmentVariables["TMP"] = psi.EnvironmentVariables["TEMP"] = NPath.SystemTemp;
 
             // if we don't know where git is, then there's nothing else to configure
-            if (!Environment.GitInstallPath.IsInitialized)
+            if (!Environment.GitInstallPath.IsInitialized || dontSetupGit)
                 return;
 
 
@@ -52,7 +52,10 @@ namespace GitHub.Unity
                     baseExecPath = baseExecPath.Combine("mingw64");
                 binPath = baseExecPath.Combine("bin");
             }
+
             var execPath = baseExecPath.Combine("libexec", "git-core");
+            if (!execPath.DirectoryExists())
+                execPath = NPath.Default;
 
             if (Environment.IsWindows)
             {
@@ -63,7 +66,9 @@ namespace GitHub.Unity
             {
                 path = $"{gitExecutableDir}:{binPath}:{execPath}:{gitLfsPath}:{Environment.Path}:{developerPaths}";
             }
-            psi.EnvironmentVariables["GIT_EXEC_PATH"] = execPath.ToString();
+
+            if (execPath.IsInitialized)
+                psi.EnvironmentVariables["GIT_EXEC_PATH"] = execPath.ToString();
 
             psi.EnvironmentVariables["PATH"] = path;
             psi.EnvironmentVariables["GHU_FULLPATH"] = path;

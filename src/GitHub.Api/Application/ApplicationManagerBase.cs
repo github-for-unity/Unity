@@ -12,9 +12,17 @@ namespace GitHub.Unity
         protected static ILogging Logger { get; } = LogHelper.GetLogger<IApplicationManager>();
 
         private RepositoryManager repositoryManager;
+        private Progress progressReporter;
+        protected bool isBusy;
+        public event Action<IProgress> OnProgress
+        {
+            add { progressReporter.OnProgress += value; }
+            remove { progressReporter.OnProgress -= value; }
+        }
 
         public ApplicationManagerBase(SynchronizationContext synchronizationContext)
         {
+            progressReporter = new Progress();
             SynchronizationContext = synchronizationContext;
             SynchronizationContext.SetSynchronizationContext(SynchronizationContext);
             ThreadingHelper.SetUIThread();
@@ -40,55 +48,73 @@ namespace GitHub.Unity
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
             GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
-            SetupMetrics();
         }
 
         public void Run(bool firstRun)
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
-            var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();            
-            if (gitExecutablePath != null && gitExecutablePath.Value.FileExists()) // we have a git path
-            {
-                Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
-                InitializeEnvironment(gitExecutablePath.Value);
-            }
-            else // we need to go find git
-            {
-                Logger.Trace("No git path found in settings");
+            var initEnvironmentTask = new ActionTask<NPath>(CancellationToken,
+                    (_, path) => InitializeEnvironment(path))
+                { Affinity = TaskAffinity.UI };
 
-                var initEnvironmentTask = new ActionTask<NPath>(CancellationToken, (_, path) => InitializeEnvironment(path)) { Affinity = TaskAffinity.UI };
-                var findExecTask = new FindExecTask("git", CancellationToken)
-                    .FinallyInUI((b, ex, path) => {
-                        if (b && path != null)
-                        {
-                            Logger.Trace("FindExecTask Success: {0}", path);
-                            InitializeEnvironment(path);
-                        }
-                        else
-                        {
-                            Logger.Warning("FindExecTask Failure");
-                            Logger.Error("Git not found");
-                        }
-                    });
+            isBusy = true;
 
-                var installDetails = new GitInstallDetails(Environment.UserCachePath, true);
-                var gitInstaller = new GitInstaller(Environment, CancellationToken, installDetails);
+            var octorunInstaller = new OctorunInstaller(Environment, TaskManager);
+            var setupTask = octorunInstaller.SetupOctorunIfNeeded();
 
-                // if successful, continue with environment initialization, otherwise try to find an existing git installation
-                gitInstaller.SetupGitIfNeeded(initEnvironmentTask, findExecTask);
-            }
+            var initializeGitTask = new FuncTask<NPath>(CancellationToken, () =>
+                {
+                    var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();
+                    if (gitExecutablePath.HasValue && gitExecutablePath.Value.FileExists()) // we have a git path
+                    {
+                        Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
+                        return gitExecutablePath.Value;
+                    }
+                    return NPath.Default;
+                });
+            var setOctorunEnvironmentTask = new ActionTask<NPath>(CancellationToken, (s, octorunPath) =>
+                {
+                    Environment.OctorunScriptPath = octorunPath;
+                });
+
+            setupTask.OnEnd += (t, path, _, __) =>
+                {
+                    t.GetEndOfChain().Then(setOctorunEnvironmentTask).Then(initializeGitTask);
+                };
+
+            initializeGitTask.OnEnd += (t, path, _, __) =>
+                {
+                    if (path.IsInitialized)
+                    {
+                        t.GetEndOfChain().Then(initEnvironmentTask, taskIsTopOfChain: true);
+                        return;
+                    }
+                    Logger.Trace("Using portable git");
+
+                    var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager);
+
+                    var task = gitInstaller.SetupGitIfNeeded();
+                    task.Progress(progressReporter.UpdateProgress);
+                    task.OnEnd += (thisTask, result, success, exception) =>
+                    {
+                        thisTask.GetEndOfChain().Then(initEnvironmentTask, taskIsTopOfChain: true);
+                    };
+
+                    // append installer task to top chain
+                    t.Then(task, taskIsTopOfChain: true);
+                };
+
+            setupTask.Start();
         }
 
         public ITask InitializeRepository()
         {
-            Logger.Trace("Running Repository Initialize");
+            //Logger.Trace("Running Repository Initialize");
 
             var targetPath = NPath.CurrentDirectory;
 
-            var unityYamlMergeExec = Environment.IsWindows
-                ? Environment.UnityApplication.Parent.Combine("Data", "Tools", "UnityYAMLMerge.exe")
-                : Environment.UnityApplication.Combine("Contents", "Tools", "UnityYAMLMerge");
+            var unityYamlMergeExec = Environment.UnityApplicationContents.Combine("Tools", "UnityYAMLMerge" + Environment.ExecutableExtension);
 
             var yamlMergeCommand = Environment.IsWindows
                 ? $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED"""
@@ -125,19 +151,20 @@ namespace GitHub.Unity
 
         public void RestartRepository()
         {
-            if (Environment.RepositoryPath != null)
+            if (Environment.RepositoryPath.IsInitialized)
             {
-                repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, ProcessManager, Environment.FileSystem, Environment.RepositoryPath);
+                repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, Environment.FileSystem, Environment.RepositoryPath);
                 repositoryManager.Initialize();
-                Environment.Repository.Initialize(repositoryManager);
+                Environment.Repository.Initialize(repositoryManager, TaskManager);
                 repositoryManager.Start();
-                Logger.Trace($"Got a repository? {Environment.Repository}");
+                Environment.Repository.Start();
+                Logger.Trace($"Got a repository? {(Environment.Repository != null ? Environment.Repository.LocalPath : "null")}");
             }
         }
 
         protected void SetupMetrics(string unityVersion, bool firstRun)
         {
-            Logger.Trace("Setup metrics");
+            //Logger.Trace("Setup metrics");
 
             var usagePath = Environment.UserCachePath.Combine(Constants.UsageFile);
 
@@ -153,12 +180,20 @@ namespace GitHub.Unity
                 UserSettings.Set(Constants.GuidKey, id);
             }
 
-            UsageTracker = new UsageTracker(UserSettings, usagePath, id, unityVersion);
+#if ENABLE_METRICS
+            var metricsService = new MetricsService(ProcessManager,
+                TaskManager,
+                Environment.FileSystem,
+                Environment.NodeJsExecutablePath,
+                Environment.OctorunScriptPath);
+
+            UsageTracker = new UsageTracker(metricsService, UserSettings, usagePath, id, unityVersion);
 
             if (firstRun)
             {
                 UsageTracker.IncrementLaunchCount();
             }
+#endif
         }
 
         protected abstract void SetupMetrics();
@@ -169,40 +204,44 @@ namespace GitHub.Unity
         /// Initialize environment after finding where git is. This needs to run on the main thread
         /// </summary>
         /// <param name="gitExecutablePath"></param>
+        /// <param name="octorunScriptPath"></param>
         private void InitializeEnvironment(NPath gitExecutablePath)
         {
-            var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
-                .ThenInUI(InitializeUI);
+            isBusy = false;
+            SetupMetrics();
+
+            if (!gitExecutablePath.IsInitialized)
+            {
+                return;
+            }
 
             Environment.GitExecutablePath = gitExecutablePath;
             Environment.User.Initialize(GitClient);
 
+            var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
+                .ThenInUI(InitializeUI);
+
+            ITask task = afterGitSetup;
             if (Environment.IsWindows)
             {
-                GitClient
-                    .GetConfig("credential.helper", GitConfigSource.Global)
-                    .Then((b, credentialHelper) => {
-                        if (!string.IsNullOrEmpty(credentialHelper))
-                        {
-                            Logger.Trace("Windows CredentialHelper: {0}", credentialHelper);
-                            afterGitSetup.Start();
-                        }
-                        else
+                var credHelperTask = GitClient.GetConfig("credential.helper", GitConfigSource.Global);
+                credHelperTask.OnEnd += (thisTask, credentialHelper, success, exception) =>
+                    {
+                        if (!success || string.IsNullOrEmpty(credentialHelper))
                         {
                             Logger.Warning("No Windows CredentialHelper found: Setting to wincred");
-
-                            GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global)
-                                .Then(afterGitSetup)
-                                .Start();
+                            thisTask
+                                .Then(GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global))
+                                .Then(afterGitSetup);
                         }
-                    })
-                    .Start();
+                        else
+                            thisTask.Then(afterGitSetup);
+                    };
+                task = credHelperTask;
             }
-            else
-            {
-                afterGitSetup.Start();
-            }
+            task.Start();
         }
+
 
         private bool disposed = false;
         protected virtual void Dispose(bool disposing)
@@ -233,6 +272,7 @@ namespace GitHub.Unity
         public ISettings SystemSettings { get; protected set; }
         public ISettings UserSettings { get; protected set; }
         public IUsageTracker UsageTracker { get; protected set; }
+        public bool IsBusy { get { return isBusy; } }
         protected TaskScheduler UIScheduler { get; private set; }
         protected SynchronizationContext SynchronizationContext { get; private set; }
         protected IRepositoryManager RepositoryManager { get { return repositoryManager; } }

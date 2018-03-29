@@ -1,7 +1,4 @@
-﻿using System.Threading.Tasks;
-using Rackspace.Threading;
-
-namespace GitHub.Unity
+﻿namespace GitHub.Unity
 {
     public interface IUsageTracker
     {

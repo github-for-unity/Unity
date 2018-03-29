@@ -77,7 +77,7 @@ namespace GitHub.Unity
             }
 
             AttachHandlers(Repository);
-            Repository.CheckLocalAndRemoteBranchListChangedEvent(lastLocalAndRemoteBranchListChangedEvent);
+            ValidateCachedData(Repository);
         }
 
         public override void OnDisable()
@@ -148,6 +148,11 @@ namespace GitHub.Unity
         private void DetachHandlers(IRepository repository)
         {
             repository.LocalAndRemoteBranchListChanged -= RepositoryOnLocalAndRemoteBranchListChanged;
+        }
+
+        private void ValidateCachedData(IRepository repository)
+        {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.Branches, lastLocalAndRemoteBranchListChangedEvent);
         }
 
         private void Render()
@@ -492,11 +497,6 @@ namespace GitHub.Unity
             }
 
             return a.Name.CompareTo(b.Name);
-        }
-
-        public override bool IsBusy
-        {
-            get { return false; }
         }
 
         private enum NodeType

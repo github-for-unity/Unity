@@ -98,7 +98,18 @@ namespace GitHub.Unity
                                  repoIcon,
                                  lockIcon,
                                  emptyStateInit,
-                                 dropdownListIcon;
+                                 dropdownListIcon,
+                                 globeIcon,
+                                 spinnerInside,
+                                 spinnerOutside,
+                                 code,
+                                 rocket,
+                                 merge,
+                                 spinnerInsideInverted,
+                                 spinnerOutsideInverted,
+                                 codeInverted,
+                                 rocketInverted,
+                                 mergeInverted;
 
         public static Texture2D GetFileStatusIcon(GitFileStatus status, bool isLocked)
         {
@@ -848,7 +859,6 @@ namespace GitHub.Unity
             }
         }
 
-        private static Texture2D globeIcon;
         public static Texture2D GlobeIcon
         {
             get
@@ -861,6 +871,130 @@ namespace GitHub.Unity
             }
         }
 
+        public static Texture2D SpinnerInside
+        {
+            get
+            {
+                if (spinnerInside == null)
+                {
+                    spinnerInside = Utility.GetIcon("spinner-inside.png", "spinner-inside@2x.png");
+                }
+                return spinnerInside;
+            }
+        }
+
+        public static Texture2D SpinnerOutside
+        {
+            get
+            {
+                if (spinnerOutside == null)
+                {
+                    spinnerOutside = Utility.GetIcon("spinner-outside.png", "spinner-outside@2x.png");
+                }
+                return spinnerOutside;
+            }
+        }
+
+        public static Texture2D Code
+        {
+            get
+            {
+                if (code == null)
+                {
+                    code = Utility.GetIcon("code.png", "code@2x.png");
+                }
+                return code;
+            }
+        }
+
+        public static Texture2D Rocket
+        {
+            get
+            {
+                if (rocket == null)
+                {
+                    rocket = Utility.GetIcon("rocket.png", "rocket@2x.png");
+                }
+                return rocket;
+            }
+        }
+
+        public static Texture2D Merge
+        {
+            get
+            {
+                if (merge == null)
+                {
+                    merge = Utility.GetIcon("merge.png", "merge@2x.png");
+                }
+                return merge;
+            }
+        }
+
+        public static Texture2D SpinnerInsideInverted
+        {
+            get
+            {
+                if (spinnerInsideInverted == null)
+                {
+                    spinnerInsideInverted = Utility.GetIcon("spinner-inside.png", "spinner-inside@2x.png");
+                    spinnerInsideInverted.InvertColors();
+                }
+                return spinnerInsideInverted;
+            }
+        }
+
+        public static Texture2D SpinnerOutsideInverted
+        {
+            get
+            {
+                if (spinnerOutsideInverted == null)
+                {
+                    spinnerOutsideInverted = Utility.GetIcon("spinner-outside.png", "spinner-outside@2x.png");
+                    spinnerOutsideInverted.InvertColors();
+                }
+                return spinnerOutsideInverted;
+            }
+        }
+
+        public static Texture2D CodeInverted
+        {
+            get
+            {
+                if (codeInverted == null)
+                {
+                    codeInverted = Utility.GetIcon("code.png", "code@2x.png");
+                    codeInverted.InvertColors();
+                }
+                return codeInverted;
+            }
+        }
+
+        public static Texture2D RocketInverted
+        {
+            get
+            {
+                if (rocketInverted == null)
+                {
+                    rocketInverted = Utility.GetIcon("rocket.png", "rocket@2x.png");
+                    rocketInverted.InvertColors();
+                }
+                return rocketInverted;
+            }
+        }
+
+        public static Texture2D MergeInverted
+        {
+            get
+            {
+                if (mergeInverted == null)
+                {
+                    mergeInverted = Utility.GetIcon("merge.png", "merge@2x.png");
+                    mergeInverted.InvertColors();
+                }
+                return mergeInverted;
+            }
+        }
         private static GUIStyle foldout;
         public static GUIStyle Foldout
         {

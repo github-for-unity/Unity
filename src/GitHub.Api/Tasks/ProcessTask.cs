@@ -18,13 +18,20 @@ namespace GitHub.Unity
             return processManager.Configure(task, withInput: withInput);
         }
 
+        public static T Configure<T>(this T task, IProcessManager processManager, bool withInput, bool dontSetupGit)
+            where T : IProcess
+        {
+            return processManager.Configure(task, withInput: withInput, dontSetupGit: dontSetupGit);
+        }
+
         public static T Configure<T>(this T task, IProcessManager processManager, string executable = null,
             string arguments = null,
             NPath? workingDirectory = null,
-            bool withInput = false)
+            bool withInput = false
+            , bool dontSetupGit = false)
             where T : IProcess
         {
-            return processManager.Configure(task, executable?.ToNPath(), arguments, workingDirectory, withInput);
+            return processManager.Configure(task, executable?.ToNPath(), arguments, workingDirectory, withInput, dontSetupGit);
         }
     }
 
@@ -54,6 +61,7 @@ namespace GitHub.Unity
 
     class ProcessWrapper
     {
+        private readonly string taskName;
         private readonly IOutputProcessor outputProcessor;
         private readonly Action onStart;
         private readonly Action onEnd;
@@ -67,10 +75,11 @@ namespace GitHub.Unity
         private ILogging logger;
         protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
 
-        public ProcessWrapper(Process process, IOutputProcessor outputProcessor,
+        public ProcessWrapper(string taskName, Process process, IOutputProcessor outputProcessor,
             Action onStart, Action onEnd, Action<Exception, string> onError,
             CancellationToken token)
         {
+            this.taskName = taskName;
             this.outputProcessor = outputProcessor;
             this.onStart = onStart;
             this.onEnd = onEnd;
@@ -81,14 +90,15 @@ namespace GitHub.Unity
 
         public void Run()
         {
+            Exception thrownException = null;
             if (Process.StartInfo.RedirectStandardError)
             {
                 Process.ErrorDataReceived += (s, e) =>
                 {
-                    //if (e.Data != null)        
-                    //{        
-                    //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");        
-                    //}        
+                    //if (e.Data != null)
+                    //{
+                    //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
+                    //}
 
                     string encodedData = null;
                     if (e.Data != null)
@@ -101,73 +111,81 @@ namespace GitHub.Unity
 
             try
             {
+                Logger.Trace($"Running '{Process.StartInfo.FileName} {taskName}'");
+
                 Process.Start();
-            }
-            catch (Win32Exception ex)
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine("Error code " + ex.NativeErrorCode);
-                if (ex.NativeErrorCode == 2)
+
+                if (Process.StartInfo.RedirectStandardInput)
+                    Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
+                if (Process.StartInfo.RedirectStandardError)
+                    Process.BeginErrorReadLine();
+
+                onStart?.Invoke();
+
+                if (Process.StartInfo.RedirectStandardOutput)
                 {
-                    sb.AppendLine("The system cannot find the file specified.");
+                    var outputStream = Process.StandardOutput;
+                    var line = outputStream.ReadLine();
+                    while (line != null)
+                    {
+                        outputProcessor.LineReceived(line);
+
+                        if (token.IsCancellationRequested)
+                        {
+                            if (!Process.HasExited)
+                                Process.Kill();
+                            Process.Close();
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        line = outputStream.ReadLine();
+                    }
+                    outputProcessor.LineReceived(null);
                 }
+
+                if (Process.StartInfo.CreateNoWindow)
+                {
+                    while (!WaitForExit(500))
+                    {
+                        if (token.IsCancellationRequested)
+                        {
+                            Process.Kill();
+                            Process.Close();
+                        }
+                        token.ThrowIfCancellationRequested();
+                    }
+
+                    if (Process.ExitCode != 0 && errors.Count > 0)
+                    {
+                        thrownException = new ProcessException(Process.ExitCode, string.Join(Environment.NewLine, errors.ToArray()));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorCode = -42;
+                if (ex is Win32Exception)
+                    errorCode = ((Win32Exception)ex).NativeErrorCode;
+
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"Error code {errorCode}");
+                sb.AppendLine(ex.Message);
+                if (Process.StartInfo.Arguments.Contains("-credential"))
+                    sb.AppendLine($"'{Process.StartInfo.FileName} {taskName}'");
+                else
+                    sb.AppendLine($"'{Process.StartInfo.FileName} {Process.StartInfo.Arguments}'");
+                if (errorCode == 2)
+                    sb.AppendLine("The system cannot find the file specified.");
                 foreach (string env in Process.StartInfo.EnvironmentVariables.Keys)
                 {
                     sb.AppendFormat("{0}:{1}", env, Process.StartInfo.EnvironmentVariables[env]);
                     sb.AppendLine();
                 }
-                onError?.Invoke(ex, String.Format("{0} {1}", ex.Message, sb.ToString()));
-                onEnd?.Invoke();
-                return;
+                thrownException = new ProcessException(errorCode, sb.ToString(), ex);
             }
 
-            if (Process.StartInfo.RedirectStandardInput)
-                Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
-            if (Process.StartInfo.RedirectStandardError)
-                Process.BeginErrorReadLine();
-
-            onStart?.Invoke();
-
-            if (Process.StartInfo.RedirectStandardOutput)
-            {
-                var outputStream = Process.StandardOutput;
-                var line = outputStream.ReadLine();
-                while (line != null)
-                {
-                    outputProcessor.LineReceived(line);
-
-                    if (token.IsCancellationRequested)
-                    {
-                        if (!Process.HasExited)
-                            Process.Kill();
-
-                        Process.Close();
-                        onEnd?.Invoke();
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    line = outputStream.ReadLine();
-                }
-                outputProcessor.LineReceived(null);
-            }
-
-            if (Process.StartInfo.CreateNoWindow)
-            {
-                while (!WaitForExit(500))
-                {
-                    if (token.IsCancellationRequested)
-                        Process.Kill();
-                    Process.Close();
-                    onEnd?.Invoke();
-                    token.ThrowIfCancellationRequested();
-                }
-
-                if (Process.ExitCode != 0 && errors.Count > 0)
-                {
-                    onError?.Invoke(null, string.Join(Environment.NewLine, errors.ToArray()));
-                }
-            }
-
+            if (thrownException != null || errors.Count > 0)
+                onError?.Invoke(thrownException, string.Join(Environment.NewLine, errors.ToArray()));
             onEnd?.Invoke();
         }
 
@@ -232,6 +250,7 @@ namespace GitHub.Unity
             Guard.NotNull(this, outputProcessor, nameof(outputProcessor));
             Process = new Process { StartInfo = psi, EnableRaisingEvents = true };
             ProcessName = psi.FileName;
+            Name = ProcessArguments;
         }
 
         public virtual void Configure(ProcessStartInfo psi, IOutputProcessor<T> processor)
@@ -243,6 +262,7 @@ namespace GitHub.Unity
 
             Process = new Process { StartInfo = psi, EnableRaisingEvents = true };
             ProcessName = psi.FileName;
+            Name = ProcessArguments;
         }
 
         public void Configure(Process existingProcess)
@@ -255,6 +275,7 @@ namespace GitHub.Unity
 
             Process = existingProcess;
             ProcessName = existingProcess.StartInfo.FileName;
+            Name = ProcessArguments;
         }
 
         protected override void RaiseOnStart()
@@ -273,33 +294,41 @@ namespace GitHub.Unity
         {
         }
 
-        protected override void Run(bool success)
-        {
-            throw new NotImplementedException();
-        }
-
         protected override T RunWithReturn(bool success)
         {
             var result = base.RunWithReturn(success);
 
-            wrapper = new ProcessWrapper(Process, outputProcessor,
+            wrapper = new ProcessWrapper(Name, Process, outputProcessor,
                 RaiseOnStart,
                 () =>
                 {
-                    if (outputProcessor != null)
-                        result = outputProcessor.Result;
-
-                    if (typeof(T) == typeof(string) && result == null && !Process.StartInfo.CreateNoWindow)
-                        result = (T)(object)"Process running";
-
-                    RaiseOnEnd(result);
-
-                    if (Errors != null)
+                    try
                     {
-                        OnErrorData?.Invoke(Errors);
-                        thrownException = thrownException ?? new ProcessException(this);
-                        if (!RaiseFaultHandlers(thrownException))
+                        if (outputProcessor != null)
+                            result = outputProcessor.Result;
+
+                        if (typeof(T) == typeof(string) && result == null && !Process.StartInfo.CreateNoWindow)
+                            result = (T)(object)"Process running";
+
+                        if (!String.IsNullOrEmpty(Errors))
+                            OnErrorData?.Invoke(Errors);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (thrownException == null)
+                            thrownException = new ProcessException(ex.Message, ex);
+                        else
+                            thrownException = new ProcessException(thrownException.GetExceptionMessage(), ex);
+                    }
+
+                    try
+                    {
+                        if (thrownException != null && !RaiseFaultHandlers(thrownException))
                             throw thrownException;
+                    }
+                    finally
+                    {
+                        RaiseOnEnd(result);
                     }
                 },
                 (ex, error) =>
@@ -405,23 +434,36 @@ namespace GitHub.Unity
         {
             var result = base.RunWithReturn(success);
 
-            wrapper = new ProcessWrapper(Process, outputProcessor,
+            wrapper = new ProcessWrapper(Name, Process, outputProcessor,
                 RaiseOnStart,
                 () =>
                 {
-                    if (outputProcessor != null)
-                        result = outputProcessor.Result;
-                    if (result == null)
-                        result = new List<T>();
-
-                    RaiseOnEnd(result);
-
-                    if (Errors != null)
+                    try
                     {
-                        OnErrorData?.Invoke(Errors);
-                        thrownException = thrownException ?? new ProcessException(this);
-                        if (!RaiseFaultHandlers(thrownException))
+                        if (outputProcessor != null)
+                            result = outputProcessor.Result;
+                        if (result == null)
+                            result = new List<T>();
+
+                        if (!String.IsNullOrEmpty(Errors))
+                            OnErrorData?.Invoke(Errors);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (thrownException == null)
+                            thrownException = new ProcessException(ex.Message, ex);
+                        else
+                            thrownException = new ProcessException(thrownException.GetExceptionMessage(), ex);
+                    }
+
+                    try
+                    {
+                        if (thrownException != null && !RaiseFaultHandlers(thrownException))
                             throw thrownException;
+                    }
+                    finally
+                    {
+                        RaiseOnEnd(result);
                     }
                 },
                 (ex, error) =>
@@ -469,20 +511,36 @@ namespace GitHub.Unity
         private readonly NPath? fullPathToExecutable;
         private readonly string arguments;
 
-        public SimpleProcessTask(CancellationToken token, NPath fullPathToExecutable, string arguments)
-            : base(token, new SimpleOutputProcessor())
+        public SimpleProcessTask(CancellationToken token, NPath fullPathToExecutable, string arguments, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         {
             this.fullPathToExecutable = fullPathToExecutable;
             this.arguments = arguments;
         }
 
-        public SimpleProcessTask(CancellationToken token, string arguments)
-            : base(token, new SimpleOutputProcessor())
+        public SimpleProcessTask(CancellationToken token, string arguments, IOutputProcessor<string> processor = null)
+            : base(token, processor ?? new SimpleOutputProcessor())
         {
             this.arguments = arguments;
         }
 
         public override string ProcessName => fullPathToExecutable?.FileName;
+        public override string ProcessArguments => arguments;
+    }
+
+    class SimpleListProcessTask : ProcessTaskWithListOutput<string>
+    {
+        private readonly NPath fullPathToExecutable;
+        private readonly string arguments;
+
+        public SimpleListProcessTask(CancellationToken token, NPath fullPathToExecutable, string arguments, IOutputProcessor<string, List<string>> processor = null)
+            : base(token, processor ?? new SimpleListOutputProcessor())
+        {
+            this.fullPathToExecutable = fullPathToExecutable;
+            this.arguments = arguments;
+        }
+        
+        public override string ProcessName => fullPathToExecutable;
         public override string ProcessArguments => arguments;
     }
 }

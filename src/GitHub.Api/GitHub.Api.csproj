@@ -11,7 +11,6 @@
     <AssemblyName>GitHub.Api</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
     <TargetFrameworkProfile />
     <LangVersion>6</LangVersion>
     <NuGetPackageImportStamp>
@@ -23,7 +22,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;$(BuildDefs)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>true</RunCodeAnalysis>
@@ -33,7 +32,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;$(BuildDefs)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <BuildConfid>Release</BuildConfid>
@@ -45,7 +44,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>TRACE;DEBUG;DEVELOPER_BUILD</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEVELOPER_BUILD;$(BuildDefs)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>false</RunCodeAnalysis>
@@ -70,10 +69,6 @@
     <Reference Include="Mono.Posix">
       <HintPath>$(SolutionDir)lib\Mono.Posix.dll</HintPath>
     </Reference>
-    <Reference Include="Rackspace.Threading, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bb62785d398726f0, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\TunnelVisionLabs.Threading.2.0.0-unity\lib\net35-client\Rackspace.Threading.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="ReadOnlyCollectionsInterfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET20\ReadOnlyCollectionsInterfaces.dll</HintPath>
       <Private>True</Private>
@@ -97,9 +92,11 @@
     <Compile Include="Application\ApplicationInfo.cs" />
     <Compile Include="Application\LoginResult.cs" />
     <Compile Include="Application\ApplicationConfiguration.cs" />
-    <Compile Include="Application\OctokitExtensions.cs" />
     <Compile Include="Application\Organization.cs" />
+    <Compile Include="Cache\CacheContainer.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
+    <Compile Include="Cache\CachingClasses.cs" />
+    <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Git\Tasks\GitCheckoutTask.cs" />
     <Compile Include="Git\GitAheadBehindStatus.cs" />
@@ -118,8 +115,10 @@
     <Compile Include="Helpers\Constants.cs" />
     <Compile Include="Helpers\Validation.cs" />
     <Compile Include="Installer\GitInstaller.cs" />
+    <Compile Include="Installer\OctorunInstaller.cs" />
     <Compile Include="Installer\UnzipTask.cs" />
     <Compile Include="IO\FileSystem.cs" />
+    <Compile Include="Managers\Downloader.cs" />
     <Compile Include="OutputProcessors\GitAheadBehindStatusOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
     <Compile Include="OutputProcessors\VersionOutputProcessor.cs" />
@@ -136,7 +135,6 @@
     <Compile Include="Git\GitStatusEntry.cs" />
     <Compile Include="Git\IGitObjectFactory.cs" />
     <Compile Include="Git\Tasks\GitRevertTask.cs" />
-    <Compile Include="IO\FileSystemHelpers.cs" />
     <Compile Include="Application\IApplicationManager.cs" />
     <Compile Include="Tasks\ActionTask.cs" />
     <Compile Include="Tasks\BaseOutputProcessor.cs" />
@@ -144,6 +142,7 @@
     <Compile Include="Tasks\ConfigOutputProcessor.cs" />
     <Compile Include="Tasks\DownloadTask.cs" />
     <Compile Include="Tasks\ITaskManager.cs" />
+    <Compile Include="Tasks\OctorunTask.cs" />
     <Compile Include="Tasks\ProcessTask.cs" />
     <Compile Include="Tasks\TaskBase.cs" />
     <Compile Include="Tasks\TaskCanceledExceptions.cs" />
@@ -278,22 +277,39 @@
     </Content>
     <EmbeddedResource Include="PlatformResources\mac\gitconfig" />
     <EmbeddedResource Include="PlatformResources\windows\gitconfig" />
-  </ItemGroup>
-  <ItemGroup>
+    <Content Include="PlatformResources\linux\git-lfs.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PlatformResources\linux\git-lfs.zip.md5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PlatformResources\mac\git-lfs.zip.md5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PlatformResources\windows\git-lfs.zip.md5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PlatformResources\windows\git.zip.md5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <EmbeddedResource Include="PlatformResources\linux\gitconfig" />
     <EmbeddedResource Include="Resources\.gitattributes" />
     <EmbeddedResource Include="Resources\.gitignore" />
+    <Content Include="Resources\octorun.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\octorun.zip.md5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <EmbeddedResource Include="Localization.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Localization.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -58,12 +58,12 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
-                Repository.CheckLocksChangedEvent(lastLocksChangedEvent);
+                ValidateCachedData(Repository);
             }
 
             metricsHasChanged = true;
         }
+
 
         public override void OnDisable()
         {
@@ -156,11 +156,17 @@ namespace GitHub.Unity
             }
         }
 
+        private void ValidateCachedData(IRepository repository)
+        {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentRemoteChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
+        }
+
         private void MaybeUpdateData()
         {
             if (metricsHasChanged)
             {
-                metricsEnabled = Manager.UsageTracker.Enabled;
+                metricsEnabled = Manager.UsageTracker != null ? Manager.UsageTracker.Enabled : false;
                 metricsHasChanged = false;
             }
 
@@ -305,7 +311,7 @@ namespace GitHub.Unity
         {
             GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(IsBusy);
+            EditorGUI.BeginDisabledGroup(IsBusy && Manager.UsageTracker != null);
             {
                 
                 EditorGUI.BeginChangeCheck();
@@ -314,7 +320,8 @@ namespace GitHub.Unity
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
-                    Manager.UsageTracker.Enabled = metricsEnabled;
+                    if (Manager.UsageTracker != null)
+                        Manager.UsageTracker.Enabled = metricsEnabled;
                 }
             }
             EditorGUI.EndDisabledGroup();
@@ -350,7 +357,7 @@ namespace GitHub.Unity
                 webTimeout = ApplicationConfiguration.WebTimeout;
                 EditorGUI.BeginChangeCheck();
                 {
-                    webTimeout = EditorGUILayout.IntField(webTimeout, WebTimeoutLabel);
+                    webTimeout = EditorGUILayout.IntField(WebTimeoutLabel, webTimeout);
                 }
                 if (EditorGUI.EndChangeCheck())
                 {

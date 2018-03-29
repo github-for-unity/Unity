@@ -378,7 +378,7 @@ namespace GitHub.Unity
         public string ToString(SlashMode slashMode)
         {
             if (!_isInitialized)
-                return null;
+                return String.Empty;
 
             // Check if it's linux root /
             if (IsRoot && string.IsNullOrEmpty(_driveLetter))
@@ -1176,6 +1176,11 @@ namespace GitHub.Unity
 #else
             return path;
 #endif
+        }
+
+        public static string CalculateMD5(this NPath path)
+        {
+            return NPath.FileSystem.CalculateFileMD5(path);
         }
     }
 

@@ -10,7 +10,8 @@ namespace GitHub.Unity
     {
         private const float DefaultNotificationTimeout = 4f;
         private const string Title = "GitHub";
-        private const string LaunchMenu = "Window/GitHub";
+        private const string Menu_Window_GitHub = "Window/GitHub";
+        private const string Menu_Window_GitHub_Command_Line = "Window/GitHub Command Line";
         private const string BadNotificationDelayError = "A delay of {0} is shorter than the default delay and thus would get pre-empted.";
         private const string InitializeTitle = "Initialize";
         private const string HistoryTitle = "History";
@@ -21,12 +22,20 @@ namespace GitHub.Unity
         private const string Window_RepoUrlTooltip = "Url of the {0} remote";
         private const string Window_RepoNoUrlTooltip = "Add a remote in the Settings tab";
         private const string Window_RepoBranchTooltip = "Active branch";
+        private const float SpinnerAnimationDuration = 4f;
 
         [NonSerialized] private double notificationClearTime = -1;
-        [SerializeField] private SubTab changeTab = SubTab.Loading;
-        [SerializeField] private SubTab activeTab = SubTab.Loading;
+        [NonSerialized] private double timeSinceLastRotation = -1f;
+        [NonSerialized] private bool currentBranchAndRemoteHasUpdate;
+        [NonSerialized] private bool gitExecutableIsSet;
+        [NonSerialized] private Spinner spinner;
+        [NonSerialized] private IProgress progress;
+        [NonSerialized] private float progressValue;
+        [NonSerialized] private string progressMessage;
+
+        [SerializeField] private SubTab changeTab = SubTab.InitProject;
+        [SerializeField] private SubTab activeTab = SubTab.InitProject;
         [SerializeField] private InitProjectView initProjectView = new InitProjectView();
-        [SerializeField] private LoadingView loadingView = new LoadingView();
         [SerializeField] private BranchesView branchesView = new BranchesView();
         [SerializeField] private ChangesView changesView = new ChangesView();
         [SerializeField] private HistoryView historyView = new HistoryView();
@@ -37,24 +46,15 @@ namespace GitHub.Unity
         [SerializeField] private string repoUrl;
         [SerializeField] private GUIContent repoBranchContent;
         [SerializeField] private GUIContent repoUrlContent;
-
         [SerializeField] private CacheUpdateEvent lastCurrentBranchAndRemoteChangedEvent;
-        [NonSerialized] private bool currentBranchAndRemoteHasUpdate;
-        [NonSerialized] private bool gitExecutableIsSet;
 
-        [MenuItem(LaunchMenu)]
+        [MenuItem(Menu_Window_GitHub)]
         public static void Window_GitHub()
         {
             ShowWindow(EntryPoint.ApplicationManager);
         }
 
-        [MenuItem("GitHub/Show Window")]
-        public static void GitHub_ShowWindow()
-        {
-            ShowWindow(EntryPoint.ApplicationManager);
-        }
-
-        [MenuItem("GitHub/Command Line")]
+        [MenuItem(Menu_Window_GitHub_Command_Line)]
         public static void GitHub_CommandLine()
         {
             EntryPoint.ApplicationManager.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
@@ -86,20 +86,8 @@ namespace GitHub.Unity
         {
             base.Initialize(applicationManager);
 
-            gitExecutableIsSet = !string.IsNullOrEmpty(Environment.GitExecutablePath);
-            if (gitExecutableIsSet)
-            {
-                if (!HasRepository)
-                {
-                    if (activeTab == SubTab.Loading)
-                    {
-                        Logger.Trace("Initialze set all tabs to InitProject");
-                        changeTab = activeTab = SubTab.InitProject;
-                    }
-                }
-            }
+            applicationManager.OnProgress += OnProgress;
 
-            LoadingView.InitializeView(this);
             HistoryView.InitializeView(this);
             ChangesView.InitializeView(this);
             BranchesView.InitializeView(this);
@@ -107,6 +95,12 @@ namespace GitHub.Unity
             InitProjectView.InitializeView(this);
 
             titleContent = new GUIContent(Title, Styles.SmallLogo);
+
+            if (!HasRepository)
+            {
+                //Logger.Trace("Initialize set all tabs to InitProject");
+                changeTab = activeTab = SubTab.InitProject;
+            }
         }
 
         public override void OnEnable()
@@ -117,10 +111,13 @@ namespace GitHub.Unity
             Selection.activeObject = this;
 #endif
             if (Repository != null)
-                Repository.CheckCurrentBranchAndRemoteChangedEvent(lastCurrentBranchAndRemoteChangedEvent);
+                ValidateCachedData(Repository);
 
             if (ActiveView != null)
                 ActiveView.OnEnable();
+
+            if (spinner == null)
+                spinner = new Spinner();
         }
 
         public override void OnDisable()
@@ -152,27 +149,24 @@ namespace GitHub.Unity
             DetachHandlers(oldRepository);
             AttachHandlers(Repository);
 
-            if (gitExecutableIsSet)
+            if (HasRepository)
             {
-                if (HasRepository)
+                if (activeTab == SubTab.InitProject)
                 {
-                    if (activeTab == SubTab.InitProject)
-                    {
-                        Logger.Trace("OnRepositoryChanged set changeTab to History");
+                    //Logger.Trace("OnRepositoryChanged set changeTab to History");
 
-                        changeTab = SubTab.History;
-                        UpdateActiveTab();
-                    }
+                    changeTab = SubTab.History;
+                    UpdateActiveTab();
                 }
-                else
+            }
+            else
+            {
+                if (activeTab != SubTab.InitProject)
                 {
-                    if (activeTab == SubTab.Loading)
-                    {
-                        Logger.Trace("OnRepositoryChanged set changeTab to InitProject");
+                    //Logger.Trace("OnRepositoryChanged set changeTab to InitProject");
 
-                        changeTab = SubTab.InitProject;
-                        UpdateActiveTab();
-                    }
+                    changeTab = SubTab.InitProject;
+                    UpdateActiveTab();
                 }
             }
         }
@@ -192,31 +186,55 @@ namespace GitHub.Unity
             Repaint();
         }
 
+
         public override void OnUI()
         {
             base.OnUI();
 
-            if(gitExecutableIsSet)
+            if (HasRepository)
             { 
-                if (HasRepository)
-                {
-                    DoHeaderGUI();
-                }
-
-                DoToolbarGUI();
+                DoHeaderGUI();
             }
 
+            DoToolbarGUI();
+
+            var rect = GUILayoutUtility.GetLastRect();
             // GUI for the active tab
             if (ActiveView != null)
             {
                 ActiveView.OnGUI();
+            }
+
+            if (IsBusy && activeTab != SubTab.Settings && Event.current.type == EventType.Repaint)
+            {
+                if (timeSinceLastRotation < 0)
+                {
+                    timeSinceLastRotation = EditorApplication.timeSinceStartup;
+                }
+                else
+                {
+                    var elapsedTime = (float)(EditorApplication.timeSinceStartup - timeSinceLastRotation);
+                    if (spinner == null)
+                        spinner = new Spinner();
+                    spinner.Start(elapsedTime);
+                    spinner.Rotate(elapsedTime);
+
+                    spinner.Render();
+
+                    rect = new Rect(0f, rect.y + rect.height, Position.width, Position.height - (rect.height + rect.y));
+                    rect = spinner.Layout(rect);
+                    rect.y += rect.height + 30;
+                    rect.height = 20;
+                    if (!String.IsNullOrEmpty(progressMessage))
+                        EditorGUI.ProgressBar(rect, progressValue / 100, progressMessage);
+                }
             }
         }
 
         public override void Update()
         {
             base.Update();
-
+            
             // Notification auto-clear timer override
             if (notificationClearTime > 0f && EditorApplication.timeSinceStartup > notificationClearTime)
             {
@@ -224,10 +242,32 @@ namespace GitHub.Unity
                 RemoveNotification();
                 Redraw();
             }
+
+            if (IsBusy && activeTab != SubTab.Settings)
+            {
+                Redraw();
+            }
+            else
+            {
+                timeSinceLastRotation = -1f;
+                spinner.Stop();
+            }
+        }
+
+        private void ValidateCachedData(IRepository repository)
+        {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentBranchAndRemoteChangedEvent);
         }
 
         private void MaybeUpdateData()
         {
+            if (progress != null)
+            {
+                progressValue = progress.Value;
+                progressMessage = progress.Message;
+            }
+
+            gitExecutableIsSet = !String.IsNullOrEmpty(Environment.GitExecutablePath);
             string updatedRepoRemote = null;
             string updatedRepoUrl = DefaultRepoUrl;
 
@@ -322,6 +362,11 @@ namespace GitHub.Unity
             }
         }
 
+        private void OnProgress(IProgress progr)
+        {
+            progress = progr;
+        }
+
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
@@ -367,7 +412,7 @@ namespace GitHub.Unity
                         changeTab = TabButton(SubTab.History, HistoryTitle, changeTab);
                         changeTab = TabButton(SubTab.Branches, BranchesTitle, changeTab);
                     }
-                    else
+                    else if (!HasRepository)
                     {
                         changeTab = TabButton(SubTab.InitProject, InitializeTitle, changeTab);
                     }
@@ -438,6 +483,7 @@ namespace GitHub.Unity
         {
             Application.OpenURL(Platform.CredentialManager.CachedCredentials.Host.Combine(Platform.CredentialManager.CachedCredentials.Username));
         }
+
         private void SignOut(object obj)
         {
             UriString host;
@@ -451,7 +497,7 @@ namespace GitHub.Unity
                 host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
             }
 
-            var apiClient = ApiClient.Create(host, Platform.Keychain);
+            var apiClient = ApiClient.Create(host, Platform.Keychain, null, null, NPath.Default, NPath.Default);
             apiClient.Logout(host);
         }
 
@@ -477,8 +523,6 @@ namespace GitHub.Unity
         {
             switch (tab)
             {
-                case SubTab.Loading:
-                    return loadingView;
                 case SubTab.InitProject:
                     return initProjectView;
                 case SubTab.History:
@@ -492,11 +536,6 @@ namespace GitHub.Unity
                 default:
                     throw new ArgumentOutOfRangeException("tab");
             }
-        }
-
-        public LoadingView LoadingView
-        {
-            get { return loadingView; }
         }
 
         public HistoryView HistoryView
@@ -531,13 +570,12 @@ namespace GitHub.Unity
 
         public override bool IsBusy
         {
-            get { return false; }
+            get { return Manager.IsBusy; }
         }
 
         private enum SubTab
         {
             None,
-            Loading,
             InitProject,
             History,
             Changes,

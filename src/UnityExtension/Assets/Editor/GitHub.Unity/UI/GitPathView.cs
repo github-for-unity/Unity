@@ -35,7 +35,7 @@ namespace GitHub.Unity
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
-            gitExecutableIsSet = Environment.GitExecutablePath != null;
+            gitExecutableIsSet = Environment.GitExecutablePath.IsInitialized;
         }
 
         public override void OnEnable()
@@ -181,7 +181,7 @@ namespace GitHub.Unity
                     }
                 }
 
-                if (Environment.GitExecutablePath != null)
+                if (Environment.GitExecutablePath.IsInitialized)
                 {
                     newGitExec = gitExec = Environment.GitExecutablePath.ToString();
                     gitExecParent = Environment.GitExecutablePath.Parent.ToString();
@@ -211,7 +211,7 @@ namespace GitHub.Unity
 
         private void ValidateAndSetGitInstallPath(string value)
         {
-            Logger.Trace("Validating Git Path:{0}", value);
+            //Logger.Trace("Validating Git Path:{0}", value);
 
             gitVersionErrorMessage = null;
 
@@ -253,7 +253,7 @@ namespace GitHub.Unity
                     }
                     else
                     {
-                        Logger.Trace("Software versions meet minimums Git:{0} GitLfs:{1}",
+                        Logger.Warning("Software versions meet minimums Git:{0} GitLfs:{1}",
                             result.GitVersion,
                             result.GitLfsVersion);
 

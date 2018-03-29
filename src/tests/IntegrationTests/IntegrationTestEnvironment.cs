@@ -1,15 +1,16 @@
 using System;
+using System.Globalization;
 using GitHub.Unity;
 using GitHub.Logging;
 
 namespace IntegrationTests
 {
+
+
     class IntegrationTestEnvironment : IEnvironment
     {
         private static readonly ILogging logger = LogHelper.GetLogger<IntegrationTestEnvironment>();
         private readonly bool enableTrace;
-
-        private readonly NPath integrationTestEnvironmentPath;
 
         private DefaultEnvironment defaultEnvironment;
 
@@ -23,20 +24,16 @@ namespace IntegrationTests
             defaultEnvironment = new DefaultEnvironment(cacheContainer);
             defaultEnvironment.FileSystem.SetCurrentDirectory(repoPath);
             environmentPath = environmentPath ??
-                defaultEnvironment.GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData)
-                                  .ToNPath()
-                                  .EnsureDirectoryExists(ApplicationInfo.ApplicationName + "-IntegrationTests");
+                defaultEnvironment.UserCachePath.EnsureDirectoryExists("IntegrationTests");
 
-            integrationTestEnvironmentPath = environmentPath.Value;
-            UserCachePath = integrationTestEnvironmentPath.Combine("User");
-            SystemCachePath = integrationTestEnvironmentPath.Combine("System");
+            UserCachePath = environmentPath.Value.Combine("User");
+            SystemCachePath = environmentPath.Value.Combine("System");
 
             var installPath = solutionDirectory.Parent.Parent.Combine("src", "GitHub.Api");
 
-            Initialize(UnityVersion, installPath, solutionDirectory, repoPath.Combine("Assets"));
+            Initialize(UnityVersion, installPath, solutionDirectory, NPath.Default, repoPath.Combine("Assets"));
 
-            if (initializeRepository)
-                InitializeRepository();
+            InitializeRepository(initializeRepository ? (NPath?)repoPath : null);
 
             this.enableTrace = enableTrace;
 
@@ -47,9 +44,9 @@ namespace IntegrationTests
             }
         }
 
-        public void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityPath, NPath assetsPath)
+        public void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityPath, NPath unityContentsPath, NPath assetsPath)
         {
-            defaultEnvironment.Initialize(unityVersion, extensionInstallPath, unityPath, assetsPath);
+            defaultEnvironment.Initialize(unityVersion, extensionInstallPath, unityPath, unityContentsPath, assetsPath);
         }
 
         public void InitializeRepository(NPath? expectedPath = null)
@@ -59,7 +56,7 @@ namespace IntegrationTests
 
         public string ExpandEnvironmentVariables(string name)
         {
-            throw new NotImplementedException();
+            return name;
         }
 
         public string GetEnvironmentVariable(string v)
@@ -74,7 +71,7 @@ namespace IntegrationTests
 
         public string GetSpecialFolder(Environment.SpecialFolder folder)
         {
-            var ensureDirectoryExists = integrationTestEnvironmentPath.EnsureDirectoryExists(folder.ToString());
+            var ensureDirectoryExists = UserCachePath.Parent.EnsureDirectoryExists(folder.ToString());
             var specialFolderPath = ensureDirectoryExists.ToString();
 
             if (enableTrace)
@@ -85,7 +82,7 @@ namespace IntegrationTests
             return specialFolderPath;
         }
 
-        public string UserProfilePath => integrationTestEnvironmentPath.CreateDirectory("user-profile-path");
+        public string UserProfilePath => UserCachePath.Parent.CreateDirectory("user profile path");
 
         public NPath Path => Environment.GetEnvironmentVariable("PATH").ToNPath();
         public string NewLine => Environment.NewLine;
@@ -104,11 +101,17 @@ namespace IntegrationTests
             }
         }
 
+        public NPath NodeJsExecutablePath => defaultEnvironment.NodeJsExecutablePath;
+
+        public NPath OctorunScriptPath { get; set; }
+
         public bool IsWindows => defaultEnvironment.IsWindows;
         public bool IsLinux => defaultEnvironment.IsLinux;
         public bool IsMac => defaultEnvironment.IsMac;
 
         public NPath UnityApplication => defaultEnvironment.UnityApplication;
+
+        public NPath UnityApplicationContents => defaultEnvironment.UnityApplicationContents;
 
         public NPath UnityAssetsPath => defaultEnvironment.UnityAssetsPath;
 
@@ -116,22 +119,19 @@ namespace IntegrationTests
 
         public NPath ExtensionInstallPath => defaultEnvironment.ExtensionInstallPath;
 
-        public NPath UserCachePath { get; set; }
-        public NPath SystemCachePath { get; set; }
-        public NPath LogPath { get; set; }
+        public NPath UserCachePath { get { return defaultEnvironment.UserCachePath; } set { defaultEnvironment.UserCachePath = value; } }
+        public NPath SystemCachePath { get { return defaultEnvironment.SystemCachePath; } set { defaultEnvironment.SystemCachePath = value; } }
+        public NPath LogPath => defaultEnvironment.LogPath;
 
         public NPath RepositoryPath => defaultEnvironment.RepositoryPath;
 
         public NPath GitInstallPath => defaultEnvironment.GitInstallPath;
 
-        public IRepository Repository { get; set; }
-        public IUser User { get; set; }
+        public IRepository Repository { get { return defaultEnvironment.Repository; } set { defaultEnvironment.Repository = value; } }
+        public IUser User { get { return defaultEnvironment.User; } set { defaultEnvironment.User = value; } }
         public IFileSystem FileSystem { get { return defaultEnvironment.FileSystem; } set { defaultEnvironment.FileSystem = value; } }
-        public string ExecutableExtension { get { return defaultEnvironment.ExecutableExtension; } }
+        public string ExecutableExtension => defaultEnvironment.ExecutableExtension;
 
-        public ICacheContainer CacheContainer
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public ICacheContainer CacheContainer => defaultEnvironment.CacheContainer;
     }
 }

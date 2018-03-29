@@ -90,11 +90,11 @@ namespace GitHub.Unity
         {
             if (!running)
             {
-                Logger.Warning("Watcher already stopped");
+                //Logger.Warning("Watcher already stopped");
                 return;
             }
 
-            Logger.Trace("Stopping watcher");
+            //Logger.Trace("Stopping watcher");
 
             running = false;
             pauseEvent.Set();
@@ -102,7 +102,7 @@ namespace GitHub.Unity
 
         private void WatcherLoop()
         {
-            Logger.Trace("Starting watcher");
+            //Logger.Trace("Starting watcher");
 
             while (running)
             {
@@ -136,9 +136,9 @@ namespace GitHub.Unity
             var fileEvents = nativeInterface.GetEvents();
             if (fileEvents.Length > 0)
             {
-                Logger.Trace("Handling {0} Events", fileEvents.Length);
+                //Logger.Trace("Handling {0} Events", fileEvents.Length);
                 processedEventCount = ProcessEvents(fileEvents);
-                Logger.Trace("Processed {0} Events", processedEventCount);
+                //Logger.Trace("Processed {0} Events", processedEventCount);
             }
 
             lastCountOfProcessedEvents = processedEventCount;
@@ -168,12 +168,6 @@ namespace GitHub.Unity
 
                 var eventDirectory = new NPath(fileEvent.Directory);
                 var fileA = eventDirectory.Combine(fileEvent.FileA);
-
-                NPath fileB;
-                if (fileEvent.FileB != null)
-                {
-                    fileB = eventDirectory.Combine(fileEvent.FileB);
-                }
 
                 // handling events in .git/*
                 if (fileA.IsChildOf(paths.DotGitPath))
@@ -221,49 +215,52 @@ namespace GitHub.Unity
             int eventsProcessed = 0;
             if (events.Contains(EventType.ConfigChanged))
             {
-                Logger.Trace("ConfigChanged");
+                //Logger.Trace("ConfigChanged");
                 ConfigChanged?.Invoke();
                 eventsProcessed++;
             }
 
             if (events.Contains(EventType.HeadChanged))
             {
-                Logger.Trace("HeadChanged");
+                //Logger.Trace("HeadChanged");
                 HeadChanged?.Invoke();
                 eventsProcessed++;
             }
 
             if (events.Contains(EventType.LocalBranchesChanged))
             {
-                Logger.Trace("LocalBranchesChanged");
+                //Logger.Trace("LocalBranchesChanged");
                 LocalBranchesChanged?.Invoke();
                 eventsProcessed++;
             }
 
             if (events.Contains(EventType.RemoteBranchesChanged))
             {
-                Logger.Trace("RemoteBranchesChanged");
+                //Logger.Trace("RemoteBranchesChanged");
                 RemoteBranchesChanged?.Invoke();
                 eventsProcessed++;
             }
 
             if (events.Contains(EventType.IndexChanged))
             {
-                Logger.Trace("IndexChanged");
-                IndexChanged?.Invoke();
-                eventsProcessed++;
+                if (!events.Contains(EventType.RepositoryChanged))
+                {
+                    //Logger.Trace("IndexChanged");
+                    IndexChanged?.Invoke();
+                    eventsProcessed++;
+                }
             }
 
             if (events.Contains(EventType.RepositoryChanged))
             {
-                Logger.Trace("RepositoryChanged");
+                //Logger.Trace("RepositoryChanged");
                 RepositoryChanged?.Invoke();
                 eventsProcessed++;
             }
 
             if (events.Contains(EventType.RepositoryCommitted))
             {
-                Logger.Trace("RepositoryCommitted");
+                //Logger.Trace("RepositoryCommitted");
                 RepositoryCommitted?.Invoke();
                 eventsProcessed++;
             }
@@ -279,6 +276,14 @@ namespace GitHub.Unity
                 if (!disposed)
                 {
                     disposed = true;
+                    HeadChanged = null;
+                    IndexChanged = null;
+                    ConfigChanged = null;
+                    RepositoryCommitted = null;
+                    RepositoryChanged = null;
+                    LocalBranchesChanged = null;
+                    RemoteBranchesChanged = null;
+
                     Stop();
                     if (nativeInterface != null)
                     {

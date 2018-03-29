@@ -9,7 +9,7 @@ using NUnit.Framework;
 namespace IntegrationTests
 {
     [TestFixture]
-    class GitInstallerTests : BaseTaskManagerTest
+    class GitInstallerTests : BaseIntegrationTest
     {
         const int Timeout = 30000;
         public override void OnSetup()
@@ -35,49 +35,28 @@ namespace IntegrationTests
         }
 
         [Test]
-        [Category("DoNotRunOnAppVeyor")]
         public void GitInstallTest()
         {
             var gitInstallationPath = TestBasePath.Combine("GitInstall").CreateDirectory();
 
-            var installDetails = new GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows)
+            var installDetails = new GitInstaller.GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows)
                 {
-                    GitZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitZipMd5Url).Filename}",
-                    GitZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitZipUrl).Filename}",
-                    GitLfsZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitLfsZipMd5Url).Filename}",
-                    GitLfsZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstallDetails.DefaultGitLfsZipUrl).Filename}",
+                    GitZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstaller.GitInstallDetails.DefaultGitZipMd5Url).Filename}",
+                    GitZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstaller.GitInstallDetails.DefaultGitZipUrl).Filename}",
+                    GitLfsZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstaller.GitInstallDetails.DefaultGitLfsZipMd5Url).Filename}",
+                    GitLfsZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstaller.GitInstallDetails.DefaultGitLfsZipUrl).Filename}",
                 };
 
             TestBasePath.Combine("git").CreateDirectory();
 
-            //var gitArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
-            //var gitLfsArchivePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
-            
-            var gitInstaller = new GitInstaller(Environment, CancellationToken.None, installDetails);
-
-            var autoResetEvent = new AutoResetEvent(false);
-
-            bool? result = null;
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails);
+            var startTask = gitInstaller.SetupGitIfNeeded();
+            var endTask = new FuncTask<NPath, NPath>(TaskManager.Token, (s, path) => path);
+            startTask.OnEnd += (thisTask, path, success, exception) => thisTask.GetEndOfChain().Then(endTask);
+            startTask.Start();
             NPath? resultPath = null;
-            Exception ex = null;
-
-            gitInstaller.SetupGitIfNeeded(new ActionTask<NPath>(CancellationToken.None, (b, path) => {
-                    result = true;
-                    resultPath = path;
-                    autoResetEvent.Set();
-                }),
-                new ActionTask(CancellationToken.None, (b, exception) => {
-                    result = false;
-                    ex = exception;
-                    autoResetEvent.Set();
-                }));
-
-            autoResetEvent.WaitOne();
-
-            result.HasValue.Should().BeTrue();
-            result.Value.Should().BeTrue();
+            Assert.DoesNotThrow(async () => resultPath = await endTask.Task);
             resultPath.Should().NotBeNull();
-            ex.Should().BeNull();
         }
     }
 }

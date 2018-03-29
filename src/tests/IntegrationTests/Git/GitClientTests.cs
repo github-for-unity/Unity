@@ -9,38 +9,46 @@ namespace IntegrationTests
     [TestFixture]
     class GitClientTests : BaseGitEnvironmentTest
     {
+        protected static TimeSpan Timeout = TimeSpan.FromMinutes(5);
+
+        [Test]
+        public void AaSetupGitFirst()
+        {
+            InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
+        }
+
         [Test]
         public async Task ShouldGetGitVersion()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            if (!DefaultEnvironment.OnWindows)
+                return;
 
-            var result = await GitClient.Version().StartAwait();
+            InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
-            if (Environment.IsWindows)
-            {
-                result.Should().Be(new Version(2,11,1));
-            }
-            else
-            {
-                result.Should().NotBeNull();
-            }
+            var task = GitClient.Version();
+            var taskDone = await TaskEx.WhenAny(task.Start().Task, TaskEx.Delay(Timeout));
+            Assert.AreEqual(task.Task, taskDone);
+            var result = await task.Task;
+
+            var expected = new Version(2,11,1);
+            result.Should().Be(expected);
         }
 
         [Test]
         public async Task ShouldGetGitLfsVersion()
         {
-            Initialize(TestRepoMasterCleanSynchronized);
+            if (!DefaultEnvironment.OnWindows)
+                return;
 
-            var result = await GitClient.LfsVersion().StartAwait();
+            InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
-            if (Environment.IsWindows)
-            {
-                result.Should().Be(new Version(2, 3, 4));
-            }
-            else
-            {
-                result.Should().NotBeNull();
-            }
+            var task = GitClient.LfsVersion();
+            var taskDone = await TaskEx.WhenAny(task.Start().Task, TaskEx.Delay(Timeout));
+            Assert.AreEqual(task.Task, taskDone);
+            var result = await task.Task;
+
+            var expected = new Version(2,3,4);
+            result.Should().Be(expected);
         }
     }
 }

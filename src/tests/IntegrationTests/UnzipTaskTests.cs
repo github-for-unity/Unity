@@ -6,72 +6,35 @@ using GitHub.Unity;
 using Microsoft.Win32.SafeHandles;
 using NSubstitute;
 using NUnit.Framework;
-using Rackspace.Threading;
 
 namespace IntegrationTests
 {
     [TestFixture]
-    class UnzipTaskTests : BaseTaskManagerTest
+    class UnzipTaskTests : BaseIntegrationTest
     {
         [Test]
-        public void TaskSucceeds()
+        public async Task UnzipWorks()
         {
             InitializeTaskManager();
 
             var cacheContainer = Substitute.For<ICacheContainer>();
             Environment = new IntegrationTestEnvironment(cacheContainer, TestBasePath, SolutionDirectory);
 
-            var destinationPath = TestBasePath.Combine("git_zip").CreateDirectory();
-            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", destinationPath, Environment);
+            var destinationPath = TestBasePath.Combine("gitlfs_zip").CreateDirectory();
+            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", destinationPath, Environment);
 
-            var extractedPath = TestBasePath.Combine("git_zip_extracted").CreateDirectory();
+            var extractedPath = TestBasePath.Combine("gitlfs_zip_extracted").CreateDirectory();
 
-            var zipProgress = 0;
-            Logger.Trace("Pct Complete {0}%", zipProgress);
-            var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath, Environment.FileSystem, GitInstallDetails.GitExtractedMD5, 
-                new Progress<float>(zipFileProgress => {
-                    var zipFileProgressInteger = (int) (zipFileProgress * 100);
-                    if (zipProgress != zipFileProgressInteger)
-                    {
-                        zipProgress = zipFileProgressInteger;
-                        Logger.Trace("Pct Complete {0}%", zipProgress);
-                    }
-                }));
-
-            unzipTask.Start().Wait();
-
-            extractedPath.DirectoryExists().Should().BeTrue();
-        }
-
-        [Test]
-        public void TaskFailsWhenMD5Incorect()
-        {
-            InitializeTaskManager();
-
-            var cacheContainer = Substitute.For<ICacheContainer>();
-            Environment = new IntegrationTestEnvironment(cacheContainer, TestBasePath, SolutionDirectory);
-
-            var destinationPath = TestBasePath.Combine("git_zip").CreateDirectory();
-            var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "git.zip", destinationPath, Environment);
-
-            var extractedPath = TestBasePath.Combine("git_zip_extracted").CreateDirectory();
-
-
-            var failed = false;
-            Exception exception = null;
-
-            var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath, Environment.FileSystem, "AABBCCDD")
-                .Finally((b, ex) => {
-                    failed = true;
-                    exception = ex;
+            var unzipTask = new UnzipTask(CancellationToken.None, archiveFilePath, extractedPath,
+                    ZipHelper.Instance,
+                    Environment.FileSystem)
+                .Progress(p => 
+                {
                 });
 
-            unzipTask.Start().Wait();
+            await unzipTask.StartAwait();
 
-            extractedPath.DirectoryExists().Should().BeFalse();
-            failed.Should().BeTrue();
-            exception.Should().NotBeNull();
-            exception.Should().BeOfType<UnzipTaskException>();
+            extractedPath.DirectoryExists().Should().BeTrue();
         }
     }
 }

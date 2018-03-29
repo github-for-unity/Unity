@@ -11,11 +11,11 @@ namespace GitHub.Unity
         [NonSerialized] private IUser cachedUser;
         [NonSerialized] private IRepository cachedRepository;
         [NonSerialized] private bool initializeWasCalled;
-        [NonSerialized] private bool inLayout;
+        [NonSerialized] protected bool inLayout;
 
         public virtual void Initialize(IApplicationManager applicationManager)
         {
-            Logger.Trace("Initialize ApplicationManager:{0} Initialized:{1}", applicationManager, initialized);
+            //Logger.Trace("Initialize ApplicationManager:{0} Initialized:{1}", applicationManager, initialized);
         }
 
         public void InitializeWindow(IApplicationManager applicationManager, bool requiresRedraw = true)
@@ -37,7 +37,7 @@ namespace GitHub.Unity
 
         public virtual void Refresh()
         {
-            Logger.Debug("Refresh");
+            //Logger.Debug("Refresh");
         }
 
         public virtual void Finish(bool result)
@@ -45,14 +45,14 @@ namespace GitHub.Unity
 
         public virtual void Awake()
         {
-            Logger.Trace("Awake Initialized:{0}", initialized);
+            //Logger.Trace("Awake Initialized:{0}", initialized);
             if (!initialized)
                 InitializeWindow(EntryPoint.ApplicationManager, false);
         }
 
         public virtual void OnEnable()
         {
-            Logger.Trace("OnEnable Initialized:{0}", initialized);
+            //Logger.Trace("OnEnable Initialized:{0}", initialized);
             if (!initialized)
                 InitializeWindow(EntryPoint.ApplicationManager, false);
         }
@@ -75,7 +75,7 @@ namespace GitHub.Unity
         // This is Unity's magic method
         private void OnGUI()
         {
-            if (Event.current.type == EventType.layout)
+            if (Event.current.type == EventType.Layout)
             {
                 if (cachedRepository != Environment.Repository || initializeWasCalled)
                 {
@@ -89,7 +89,7 @@ namespace GitHub.Unity
 
             OnUI();
 
-            if (Event.current.type == EventType.repaint)
+            if (Event.current.type == EventType.Repaint)
             {
                 inLayout = false;
             }

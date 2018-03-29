@@ -24,12 +24,16 @@ namespace GitHub.Unity
             var type = resourceType == ResourceType.Icon ? "IconsAndLogos"
                 : resourceType == ResourceType.Platform ? "PlatformResources"
                 : "Resources";
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
+
+            var asm = Assembly.GetCallingAssembly();
+            if (!asm.FullName.StartsWith("IntegrationTests"))
+                asm = typeof(AssemblyResources).Assembly;
+            var stream = asm.GetManifestResourceStream(
                                      String.Format("GitHub.Unity.{0}{1}.{2}", type, !string.IsNullOrEmpty(os) ? "." + os : os, resource));
             if (stream != null)
                 return destinationPath.Combine(resource).WriteAllBytes(stream.ToByteArray());
 
-            return environment.ExtensionInstallPath.Combine(type, os, resource);
+            return environment.ExtensionInstallPath.Combine(type, os, resource).Copy(destinationPath.Combine(resource));
         }
     }
 }

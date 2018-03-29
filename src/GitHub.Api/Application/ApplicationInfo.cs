@@ -4,13 +4,13 @@ namespace GitHub.Unity
     static partial class ApplicationInfo
     {
 #if DEBUG
-        public const string ApplicationName = "GitHubUnityDebug";
+        public const string ApplicationName = "GitHub for Unity Debug";
         public const string ApplicationProvider = "GitHub";
 #else
         public const string ApplicationName = "GitHubUnity";
         public const string ApplicationProvider = "GitHub";
 #endif
-        public const string ApplicationSafeName = "unity-internal-test";
+        public const string ApplicationSafeName = "GitHubUnity";
         public const string ApplicationDescription = "GitHub for Unity";
 
         internal static string ClientId { get; private set; } = "";
