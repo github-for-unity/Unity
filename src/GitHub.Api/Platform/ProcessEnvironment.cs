@@ -21,6 +21,8 @@ namespace GitHub.Unity
             psi.EnvironmentVariables["HOME"] = NPath.HomeDirectory;
             psi.EnvironmentVariables["TMP"] = psi.EnvironmentVariables["TEMP"] = NPath.SystemTemp;
             psi.EnvironmentVariables["GHU_WORKINGDIR"] = workingDirectory;
+            
+            Logger.Trace("Configure DontSetupGit:{0}", dontSetupGit);
 
             // if we don't know where git is, then there's nothing else to configure
             if (!Environment.GitInstallPath.IsInitialized || dontSetupGit)

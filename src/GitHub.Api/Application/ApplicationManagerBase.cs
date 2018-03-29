@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using GitHub.Logging;
 
 namespace GitHub.Unity
@@ -55,8 +53,8 @@ namespace GitHub.Unity
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
             
-            var initEnvironmentTask = new ActionTask<object[]>(CancellationToken,
-                    (_, values) => InitializeEnvironment((NPath)values[0], (bool)values[1]))
+            var initEnvironmentTask = new ActionTask<NPath>(CancellationToken,
+                    (_, path) => InitializeEnvironment(path))
                 { Affinity = TaskAffinity.UI };
 
             isBusy = true;
@@ -89,7 +87,6 @@ namespace GitHub.Unity
                     if (path.IsInitialized)
                     {
                         t.GetEndOfChain()
-                            .Then(b => new object[] {path, true})
                             .Then(initEnvironmentTask, taskIsTopOfChain: true);
                         return;
                     }
@@ -102,7 +99,6 @@ namespace GitHub.Unity
                     task.OnEnd += (thisTask, result, success, exception) =>
                     {
                         thisTask.GetEndOfChain()
-                            .Then(b => new object[] { result, false })
                             .Then(initEnvironmentTask, taskIsTopOfChain: true);
                     };
 
@@ -209,9 +205,8 @@ namespace GitHub.Unity
         /// Initialize environment after finding where git is. This needs to run on the main thread
         /// </summary>
         /// <param name="gitExecutablePath"></param>
-        /// <param name="isCustomGitExec"></param>
         /// <param name="octorunScriptPath"></param>
-        private void InitializeEnvironment(NPath gitExecutablePath, bool isCustomGitExec)
+        private void InitializeEnvironment(NPath gitExecutablePath)
         {
             isBusy = false;
             SetupMetrics();
@@ -220,6 +215,9 @@ namespace GitHub.Unity
             {
                 return;
             }
+            
+            var gitInstallDetails = new GitInstaller.GitInstallDetails(Environment.UserCachePath, Environment.IsWindows);
+            var isCustomGitExec = gitExecutablePath != gitInstallDetails.GitExecutablePath;
 
             Environment.GitExecutablePath = gitExecutablePath;
             Environment.IsCustomGitExecutable = isCustomGitExec;
