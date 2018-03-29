@@ -1,5 +1,6 @@
 ﻿using GitHub.Logging;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -29,7 +30,18 @@ namespace GitHub.Unity
             bool dontSetupGit = false)
              where T : IProcess
         {
-            executable = executable ?? processTask.ProcessName?.ToNPath() ?? environment.GitExecutablePath;
+            if (executable == null)
+            {
+                if (processTask.ProcessName?.ToNPath() != null)
+                {
+                    executable = processTask.ProcessName.ToNPath();
+                }
+                else
+                {
+                    executable = environment.GitExecutablePath;
+                    dontSetupGit = environment.IsCustomGitExecutable;
+                }
+            }
 
             //If this null check fails, be sure you called Configure() on your task
             Guard.ArgumentNotNull(executable, nameof(executable));
@@ -85,11 +97,15 @@ namespace GitHub.Unity
                 gitEnvironment.Configure(startInfo, workingDirectory);
 
                 var envVars = startInfo.EnvironmentVariables;
-                var scriptContents = new[] {
+                var scriptContents = new List<string> {
                     $"cd \"{envVars["GHU_WORKINGDIR"]}\"",
-                    $"PATH=\"{envVars["GHU_FULLPATH"]}\" /bin/bash"
                 };
-                environment.FileSystem.WriteAllLines(envVarFile, scriptContents);
+
+                if (!environment.IsCustomGitExecutable) {
+                    scriptContents.Add($"PATH=\"{envVars["GHU_FULLPATH"]}\" /bin/bash");
+                }
+                
+                environment.FileSystem.WriteAllLines(envVarFile, scriptContents.ToArray());
                 Mono.Unix.Native.Syscall.chmod(envVarFile, (Mono.Unix.Native.FilePermissions)493); // -rwxr-xr-x mode (0755)
             }
             else

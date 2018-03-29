@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using GitHub.Logging;
 
 namespace GitHub.Unity
@@ -53,9 +54,9 @@ namespace GitHub.Unity
         public void Run(bool firstRun)
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
-
-            var initEnvironmentTask = new ActionTask<NPath>(CancellationToken,
-                    (_, path) => InitializeEnvironment(path))
+            
+            var initEnvironmentTask = new ActionTask<object[]>(CancellationToken,
+                    (_, values) => InitializeEnvironment((NPath)values[0], (bool)values[1]))
                 { Affinity = TaskAffinity.UI };
 
             isBusy = true;
@@ -87,7 +88,9 @@ namespace GitHub.Unity
                 {
                     if (path.IsInitialized)
                     {
-                        t.GetEndOfChain().Then(initEnvironmentTask, taskIsTopOfChain: true);
+                        t.GetEndOfChain()
+                            .Then(b => new object[] {path, true})
+                            .Then(initEnvironmentTask, taskIsTopOfChain: true);
                         return;
                     }
                     Logger.Trace("Using portable git");
@@ -98,7 +101,9 @@ namespace GitHub.Unity
                     task.Progress(progressReporter.UpdateProgress);
                     task.OnEnd += (thisTask, result, success, exception) =>
                     {
-                        thisTask.GetEndOfChain().Then(initEnvironmentTask, taskIsTopOfChain: true);
+                        thisTask.GetEndOfChain()
+                            .Then(b => new object[] { result, false })
+                            .Then(initEnvironmentTask, taskIsTopOfChain: true);
                     };
 
                     // append installer task to top chain
@@ -204,8 +209,9 @@ namespace GitHub.Unity
         /// Initialize environment after finding where git is. This needs to run on the main thread
         /// </summary>
         /// <param name="gitExecutablePath"></param>
+        /// <param name="isCustomGitExec"></param>
         /// <param name="octorunScriptPath"></param>
-        private void InitializeEnvironment(NPath gitExecutablePath)
+        private void InitializeEnvironment(NPath gitExecutablePath, bool isCustomGitExec)
         {
             isBusy = false;
             SetupMetrics();
@@ -216,6 +222,7 @@ namespace GitHub.Unity
             }
 
             Environment.GitExecutablePath = gitExecutablePath;
+            Environment.IsCustomGitExecutable = isCustomGitExec;
             Environment.User.Initialize(GitClient);
 
             var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
@@ -226,7 +233,7 @@ namespace GitHub.Unity
             {
                 var credHelperTask = GitClient.GetConfig("credential.helper", GitConfigSource.Global);
                 credHelperTask.OnEnd += (thisTask, credentialHelper, success, exception) =>
-                    {
+                    {   
                         if (!success || string.IsNullOrEmpty(credentialHelper))
                         {
                             Logger.Warning("No Windows CredentialHelper found: Setting to wincred");

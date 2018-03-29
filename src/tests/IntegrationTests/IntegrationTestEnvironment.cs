@@ -88,6 +88,8 @@ namespace IntegrationTests
         public string NewLine => Environment.NewLine;
         public string UnityVersion => "5.6";
 
+        public bool IsCustomGitExecutable { get; set; }
+
         public NPath GitExecutablePath
         {
             get { return defaultEnvironment.GitExecutablePath; }

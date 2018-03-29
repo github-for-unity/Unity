@@ -255,6 +255,7 @@ namespace GitHub.Unity
                         {
                             Manager.SystemSettings.Unset(Constants.GitInstallPathKey);
                             Environment.GitExecutablePath = result;
+                            Environment.IsCustomGitExecutable = false;
 
                             gitExecHasChanged = true;
                         }
@@ -323,6 +324,7 @@ namespace GitHub.Unity
 
                             Manager.SystemSettings.Set(Constants.GitInstallPathKey, value);
                             Environment.GitExecutablePath = value.ToNPath();
+                            Environment.IsCustomGitExecutable = true;
 
                             gitExecHasChanged = true;
                         }

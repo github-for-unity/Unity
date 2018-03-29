@@ -12,6 +12,7 @@ namespace GitHub.Unity
 
         NPath Path { get; }
         string NewLine { get; }
+        bool IsCustomGitExecutable { get; set; }
         NPath GitExecutablePath { get; set; }
         NPath NodeJsExecutablePath { get; }
         NPath OctorunScriptPath { get; set; }

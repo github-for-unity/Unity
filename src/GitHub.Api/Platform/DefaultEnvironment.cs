@@ -147,6 +147,9 @@ namespace GitHub.Unity
                 octorunScriptPath = value;
             }
         }
+
+        public bool IsCustomGitExecutable { get; set; }
+
         public NPath GitExecutablePath
         {
             get { return gitExecutablePath; }
