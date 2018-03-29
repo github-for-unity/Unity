@@ -141,7 +141,7 @@ namespace GitHub.Unity
                         CheckEnteredGitPath();
 
                         new FindExecTask("git", Manager.CancellationToken)
-                            .Configure(Manager.ProcessManager)
+                            .Configure(Manager.ProcessManager, false, true)
                             .FinallyInUI((success, ex, path) => {
                                 if (success)
                                 {
