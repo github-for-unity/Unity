@@ -87,7 +87,7 @@ namespace GitHub.Unity
                 var envVars = startInfo.EnvironmentVariables;
                 var scriptContents = new[] {
                     $"cd \"{envVars["GHU_WORKINGDIR"]}\"",
-                    $"PATH=\"{envVars["GHU_FULLPATH"]}\":$PATH /bin/bash"
+                    $"PATH=\"{envVars["GHU_FULLPATH"]}\" /bin/bash"
                 };
                 environment.FileSystem.WriteAllLines(envVarFile, scriptContents);
                 Mono.Unix.Native.Syscall.chmod(envVarFile, (Mono.Unix.Native.FilePermissions)493); // -rwxr-xr-x mode (0755)
