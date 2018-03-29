@@ -25,7 +25,7 @@ namespace GitHub.Unity
             if (!Environment.GitInstallPath.IsInitialized || dontSetupGit)
                 return;
 
-            Logger.Trace("Environment.GitExecutablePath", Environment.GitExecutablePath);
+            Logger.Trace("Environment.GitExecutablePath: {0}", Environment.GitExecutablePath);
 
             Guard.ArgumentNotNull(psi, "psi");
 
