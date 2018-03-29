@@ -218,9 +218,9 @@ namespace GitHub.Unity
             gitVersionErrorMessage = null;
 
             GitClient.ValidateGitInstall(value.ToNPath())
-                .FinallyInUI((sucess, exception, result) =>
+                .FinallyInUI((success, exception, result) =>
                 {
-                    if (!sucess)
+                    if (!success)
                     {
                         Logger.Trace(ErrorValidatingGitPath);
                         gitVersionErrorMessage = ErrorValidatingGitPath;
