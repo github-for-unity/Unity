@@ -25,7 +25,6 @@ namespace GitHub.Unity
             if (!Environment.GitInstallPath.IsInitialized || dontSetupGit)
                 return;
 
-            Logger.Trace("Environment.GitExecutablePath: {0}", Environment.GitExecutablePath);
 
             Guard.ArgumentNotNull(psi, "psi");
 
@@ -34,6 +33,8 @@ namespace GitHub.Unity
             var gitPathRoot = Environment.GitInstallPath;
             var gitLfsPath = Environment.GitInstallPath;
             var gitExecutableDir = Environment.GitExecutablePath.Parent; // original path to git (might be different from install path if it's a symlink)
+
+            Logger.Trace("Environment.GitExecutablePath: {0}", Environment.GitExecutablePath);
 
             // Paths to developer tools such as msbuild.exe
             //var developerPaths = StringExtensions.JoinForAppending(";", developerEnvironment.GetPaths());
