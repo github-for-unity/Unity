@@ -100,18 +100,11 @@ namespace GitHub.Unity
                 gitEnvironment.Configure(startInfo, workingDirectory, environment.IsCustomGitExecutable);
 
                 var envVars = startInfo.EnvironmentVariables;
-                var scriptContents = new List<string> {
+                var scriptContents = new[] {
                     $"cd \"{envVars["GHU_WORKINGDIR"]}\"",
+                    environment.IsCustomGitExecutable? "/bin/bash" : $"PATH=\"{envVars["GHU_FULLPATH"]}\":$PATH /bin/bash"
                 };
-
-                if (!environment.IsCustomGitExecutable) {
-                    scriptContents.Add($"PATH=\"{envVars["GHU_FULLPATH"]}\" /bin/bash");
-                }
-                else {
-                    scriptContents.Add($"/bin/bash");
-                }
-                
-                environment.FileSystem.WriteAllLines(envVarFile, scriptContents.ToArray());
+                environment.FileSystem.WriteAllLines(envVarFile, scriptContents);
                 Mono.Unix.Native.Syscall.chmod(envVarFile, (Mono.Unix.Native.FilePermissions)493); // -rwxr-xr-x mode (0755)
             }
             else
