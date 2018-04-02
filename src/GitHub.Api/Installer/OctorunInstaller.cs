@@ -56,10 +56,10 @@ namespace GitHub.Unity
 
         private NPath GrabZipFromResources()
         {
-            if (!installDetails.ZipFile.FileExists())
-            {
-                AssemblyResources.ToFile(ResourceType.Generic, "octorun.zip", installDetails.BaseZipPath, environment);
-            }
+            installDetails.ZipFile.DeleteIfExists();
+            
+            AssemblyResources.ToFile(ResourceType.Generic, "octorun.zip", installDetails.BaseZipPath, environment);
+            
             return installDetails.ZipFile;
         }
 
