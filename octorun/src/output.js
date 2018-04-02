@@ -24,8 +24,9 @@ var outputResult = function (status, results, errors, preventExit) {
                 process.stdout.write(endOfLine);
             }
         }
-
-        throw "Unsupported result output";
+        else {
+            throw "Unsupported result output";
+        }
     }
 
     if (errors) {
@@ -37,7 +38,7 @@ var outputResult = function (status, results, errors, preventExit) {
             for (var errorIndex = 0; errorIndex < errors.length; errorIndex++) {
                 var error = errors[errorIndex];
                 if (typeof error !== 'string') {
-                    throw "Unsupported result output";
+                    throw "Unsupported error output";
                 }
 
                 process.stdout.write(error);
@@ -47,14 +48,14 @@ var outputResult = function (status, results, errors, preventExit) {
         else if (errors.toString) {
             process.stdout.write(errors.toString());
             process.stdout.write(endOfLine);
-        }        
+        }
         else {
             process.stdout.write(errors);
             process.stdout.write(endOfLine);
         }
     }
 
-    if(!preventExit) {
+    if (!preventExit) {
         process.exit();
     }
 }
