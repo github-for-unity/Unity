@@ -10,8 +10,9 @@ namespace GitHub.Unity
         string GetEnvironmentVariable(string v);
         string GetSpecialFolder(Environment.SpecialFolder folder);
 
-        NPath Path { get; }
+        string Path { get; set; }
         string NewLine { get; }
+        bool IsCustomGitExecutable { get; set; }
         NPath GitExecutablePath { get; set; }
         NPath NodeJsExecutablePath { get; }
         NPath OctorunScriptPath { get; set; }

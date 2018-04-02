@@ -1,5 +1,6 @@
 ﻿using GitHub.Logging;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -29,7 +30,20 @@ namespace GitHub.Unity
             bool dontSetupGit = false)
              where T : IProcess
         {
-            executable = executable ?? processTask.ProcessName?.ToNPath() ?? environment.GitExecutablePath;
+            logger.Trace("Configure executable:{0}", executable);
+            
+            if (executable == null)
+            {
+                if (processTask.ProcessName?.ToNPath() != null)
+                {
+                    executable = processTask.ProcessName.ToNPath();
+                }
+                else
+                {
+                    executable = environment.GitExecutablePath;
+                    dontSetupGit = environment.IsCustomGitExecutable;
+                }
+            }
 
             //If this null check fails, be sure you called Configure() on your task
             Guard.ArgumentNotNull(executable, nameof(executable));
@@ -45,6 +59,7 @@ namespace GitHub.Unity
                 StandardErrorEncoding = Encoding.UTF8
             };
 
+            logger.Trace("gitEnvironment.Configure dontSetupGit:{0}", dontSetupGit);
             gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath, dontSetupGit);
 
             if (executable.Value.IsRelative)
@@ -72,7 +87,7 @@ namespace GitHub.Unity
             if (environment.IsWindows)
             {
                 startInfo.FileName = "cmd";
-                gitEnvironment.Configure(startInfo, workingDirectory);
+                gitEnvironment.Configure(startInfo, workingDirectory, environment.IsCustomGitExecutable);
             }
             else if (environment.IsMac)
             {
@@ -82,12 +97,12 @@ namespace GitHub.Unity
                 var envVarFile = NPath.GetTempFilename();
                 startInfo.FileName = "open";
                 startInfo.Arguments = $"-a Terminal {envVarFile}";
-                gitEnvironment.Configure(startInfo, workingDirectory);
+                gitEnvironment.Configure(startInfo, workingDirectory, environment.IsCustomGitExecutable);
 
                 var envVars = startInfo.EnvironmentVariables;
                 var scriptContents = new[] {
                     $"cd \"{envVars["GHU_WORKINGDIR"]}\"",
-                    $"PATH=\"{envVars["GHU_FULLPATH"]}\":$PATH /bin/bash"
+                    environment.IsCustomGitExecutable? "/bin/bash" : $"PATH=\"{envVars["GHU_FULLPATH"]}\":$PATH /bin/bash"
                 };
                 environment.FileSystem.WriteAllLines(envVarFile, scriptContents);
                 Mono.Unix.Native.Syscall.chmod(envVarFile, (Mono.Unix.Native.FilePermissions)493); // -rwxr-xr-x mode (0755)
@@ -95,7 +110,7 @@ namespace GitHub.Unity
             else
             {
                 startInfo.FileName = "sh";
-                gitEnvironment.Configure(startInfo, workingDirectory);
+                gitEnvironment.Configure(startInfo, workingDirectory, environment.IsCustomGitExecutable);
             }
 
             Process.Start(startInfo);

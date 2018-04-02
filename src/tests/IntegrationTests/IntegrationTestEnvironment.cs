@@ -84,9 +84,12 @@ namespace IntegrationTests
 
         public string UserProfilePath => UserCachePath.Parent.CreateDirectory("user profile path");
 
-        public NPath Path => Environment.GetEnvironmentVariable("PATH").ToNPath();
+        public string Path { get; set; } = Environment.GetEnvironmentVariable("PATH").ToNPath();
+
         public string NewLine => Environment.NewLine;
         public string UnityVersion => "5.6";
+
+        public bool IsCustomGitExecutable { get; set; }
 
         public NPath GitExecutablePath
         {
