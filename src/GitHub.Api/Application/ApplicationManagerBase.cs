@@ -52,6 +52,26 @@ namespace GitHub.Unity
         public void Run(bool firstRun)
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
+
+            ITask<string> getMacEnvironmentPathTask;
+            if (Environment.IsMac)
+            {
+                getMacEnvironmentPathTask = new SimpleProcessTask(CancellationToken, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
+                           .Configure(ProcessManager)
+                           .Then((success, path) => success ? path.Split(new[] { "\"" }, StringSplitOptions.None)[1] : null);
+            }
+            else
+            {
+                getMacEnvironmentPathTask = new FuncTask<string>(CancellationToken, () => null);
+            }
+
+            var setMacEnvironmentPathTask = getMacEnvironmentPathTask.Then((_, path) => {
+                if (path != null)
+                {
+                    Logger.Trace("Mac Environment Path Original:{0} Updated:{1}", Environment.Path, path);
+                    Environment.Path = path;
+                }
+            });
             
             var initEnvironmentTask = new ActionTask<NPath>(CancellationToken,
                     (_, path) => InitializeEnvironment(path))
@@ -60,7 +80,7 @@ namespace GitHub.Unity
             isBusy = true;
 
             var octorunInstaller = new OctorunInstaller(Environment, TaskManager);
-            var setupTask = octorunInstaller.SetupOctorunIfNeeded();
+            var setupTask = setMacEnvironmentPathTask.Then(octorunInstaller.SetupOctorunIfNeeded());
 
             var initializeGitTask = new FuncTask<NPath>(CancellationToken, () =>
                 {

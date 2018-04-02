@@ -132,7 +132,8 @@ namespace GitHub.Unity
         public NPath ExtensionInstallPath { get; set; }
         public NPath UserCachePath { get; set; }
         public NPath SystemCachePath { get; set; }
-        public NPath Path => Environment.GetEnvironmentVariable("PATH").ToNPath();
+        public string Path { get; set; } = Environment.GetEnvironmentVariable("PATH");
+
         public string NewLine => Environment.NewLine;
         public NPath OctorunScriptPath
         {
