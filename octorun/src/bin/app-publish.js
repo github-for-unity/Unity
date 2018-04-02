@@ -32,7 +32,7 @@ try {
                 output.error(error);
             }
             else {
-                output.success(commander.repository);
+                output.success(result);
             }
         });
 }
