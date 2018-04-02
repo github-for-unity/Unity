@@ -113,12 +113,15 @@ namespace GitHub.Unity
         public ITask CommitAllFiles(string message, string body) => repositoryManager.CommitAllFiles(message, body);
         public ITask CommitFiles(List<string> files, string message, string body) => repositoryManager.CommitFiles(files, message, body);
         public ITask Pull() => repositoryManager.Pull(CurrentRemote.Value.Name, CurrentBranch?.Name);
+        public ITask Push(string remote) => repositoryManager.Push(remote, CurrentBranch?.Name);
         public ITask Push() => repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch?.Name);
         public ITask Fetch() => repositoryManager.Fetch(CurrentRemote.Value.Name);
         public ITask Revert(string changeset) => repositoryManager.Revert(changeset);
         public ITask RequestLock(string file) => repositoryManager.LockFile(file);
         public ITask ReleaseLock(string file, bool force) => repositoryManager.UnlockFile(file, force);
         public ITask DiscardChanges(GitStatusEntry[] gitStatusEntry) => repositoryManager.DiscardChanges(gitStatusEntry);
+        public ITask RemoteAdd(string remote, string url) => repositoryManager.RemoteAdd(remote, url);
+        public ITask RemoteRemove(string remote) => repositoryManager.RemoteRemove(remote);
 
         public void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent) => cacheContainer.CheckAndRaiseEventsIfCacheNewer(cacheType, cacheUpdateEvent);
 

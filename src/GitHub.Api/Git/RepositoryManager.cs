@@ -225,19 +225,19 @@ namespace GitHub.Unity
         public ITask RemoteAdd(string remote, string url)
         {
             var task = GitClient.RemoteAdd(remote, url);
-            return HookupHandlers(task, false);
+            return HookupHandlers(task, true);
         }
 
         public ITask RemoteRemove(string remote)
         {
             var task = GitClient.RemoteRemove(remote);
-            return HookupHandlers(task, false);
+            return HookupHandlers(task, true);
         }
 
         public ITask RemoteChange(string remote, string url)
         {
             var task = GitClient.RemoteChange(remote, url);
-            return HookupHandlers(task, false);
+            return HookupHandlers(task, true);
         }
 
         public ITask SwitchBranch(string branch)
