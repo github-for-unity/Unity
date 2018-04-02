@@ -481,7 +481,10 @@ namespace GitHub.Unity
 
         private void GoToProfile(object obj)
         {
-            Application.OpenURL(Platform.CredentialManager.CachedCredentials.Host.Combine(Platform.CredentialManager.CachedCredentials.Username));
+            //TODO: ONE_USER_LOGIN This assumes only ever one user can login
+            var keychainConnection = Platform.Keychain.Connections.First();
+            var uriString = new UriString(keychainConnection.Host).Combine(keychainConnection.Username);
+            Application.OpenURL(uriString);
         }
 
         private void SignOut(object obj)
