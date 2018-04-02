@@ -60,8 +60,6 @@ namespace GitHub.Unity
                 var userPath = @"C:\windows\system32;C:\windows";
                 var path = $"{gitPathRoot}\\cmd;{gitPathRoot}\\usr\\bin;{execPath};{binPath}";
     
-                Logger.Trace("Calculated Path: {0}", path);
-    
                 if (execPath.IsInitialized)
                     psi.EnvironmentVariables["GIT_EXEC_PATH"] = execPath.ToString();
     

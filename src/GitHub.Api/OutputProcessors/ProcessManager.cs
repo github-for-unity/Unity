@@ -30,8 +30,6 @@ namespace GitHub.Unity
             bool dontSetupGit = false)
              where T : IProcess
         {
-            logger.Trace("Configure executable:{0}", executable);
-            
             if (executable == null)
             {
                 if (processTask.ProcessName?.ToNPath() != null)
@@ -59,7 +57,6 @@ namespace GitHub.Unity
                 StandardErrorEncoding = Encoding.UTF8
             };
 
-            logger.Trace("gitEnvironment.Configure dontSetupGit:{0}", dontSetupGit);
             gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath, dontSetupGit);
 
             if (executable.Value.IsRelative)
