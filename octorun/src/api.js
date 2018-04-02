@@ -65,24 +65,24 @@ ApiWrapper.prototype.getOrgs = function (callback) {
 };
 
 ApiWrapper.prototype.publish = function (name, desc, private, organization, callback) {
+    var callbackHandler = function (error, result) {
+        callback(error, (!result) ? null : [result.data.name, result.data.clone_url]);
+    };
+
     if (organization) {
         this.octokit.repos.createForOrg({
             org: organization,
             name: name,
             description: desc,
             private: private
-        }, function (error, result) {
-            callback(error, (!result) ? null : result.data.clone_url);
-        });
+        }, callbackHandler);
     }
     else {
         this.octokit.repos.create({
             name: name,
             description: desc,
             private: private
-        }, function (error, result) {
-            callback(error, (!result) ? null : result.data.clone_url);
-        });
+        }, callbackHandler);
     }
 };
 
