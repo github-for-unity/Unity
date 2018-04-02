@@ -182,10 +182,11 @@ namespace GitHub.Unity
 
                             Logger.Trace("Repository Created");
 
-                            GitClient.RemoteAdd("origin", repository.CloneUrl)
-                                     .Then(GitClient.Push("origin", Repository.CurrentBranch.Value.Name))
-                                     .ThenInUI(Finish)
-                                     .Start();
+                            Repository.RemoteAdd("origin", repository.CloneUrl)
+                                .Then(Repository.Push("origin"))
+                                .ThenInUI(Finish)
+                                .Start();
+
                         }, organization);
                     }
                     EditorGUI.EndDisabledGroup();
