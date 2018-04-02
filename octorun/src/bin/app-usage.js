@@ -3,6 +3,7 @@ var package = require('../../package.json')
 var endOfLine = require('os').EOL;
 var fs = require('fs');
 var util = require('util');
+var output = require('../output');
 
 commander
     .version(package.version)
@@ -50,38 +51,20 @@ if (fileContents && host) {
 
         res.on('data', function (d) {
             if (success) {
-                process.stdout.write("success");
-                process.stdout.write(endOfLine);
-                process.stdout.write(d);
-                process.stdout.write(endOfLine);
+                output.custom("success", d, true);
             }
             else {
-                process.stdout.write("error");
-                process.stdout.write(endOfLine);
-                
-                process.stdout.write("");
-                process.stdout.write(endOfLine);
-                
-                process.stdout.write(d);
-                process.stdout.write(endOfLine);
+                output.custom("error", "", true);
             }
         });
 
         res.on('end', function (d) {
-            process.exit(success ? 0 : -1);
+            process.exit();
         });
     });
 
     req.on('error', function (error) {
-        process.stdout.write("Error");
-        process.stdout.write(endOfLine);
-        
-        if (error) {
-            process.stdout.write(error.toString());
-            process.stdout.write(endOfLine);
-        }
-
-        process.exit(-1);
+        output.error(error);
     });
 
     req.write(fileContents);

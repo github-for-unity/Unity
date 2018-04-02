@@ -1,6 +1,6 @@
 var endOfLine = require('os').EOL;
 
-var outputResult = function (status, results, errors) {
+var outputResult = function (status, results, errors, preventExit) {
     process.stdout.write(status);
     process.stdout.write(endOfLine);
 
@@ -44,10 +44,18 @@ var outputResult = function (status, results, errors) {
                 process.stdout.write(endOfLine);
             }
         }
+        else if (errors.toString) {
+            process.stdout.write(errors.toString());
+            process.stdout.write(endOfLine);
+        }        
         else {
             process.stdout.write(errors);
             process.stdout.write(endOfLine);
         }
+    }
+
+    if(!preventExit) {
+        process.exit();
     }
 }
 
@@ -55,8 +63,8 @@ var outputSuccess = function (results) {
     outputResult("success", results);
 }
 
-var outputCustom = function (status, results) {
-    outputResult(status, results);
+var outputCustom = function (status, results, preventExit) {
+    outputResult(status, results, undefined, preventExit);
 }
 
 var outputError = function (errors) {
