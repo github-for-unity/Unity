@@ -54,6 +54,7 @@ namespace GitHub.Unity
         [SerializeField] private string repositoryProgressMessage;
         [SerializeField] private float appManagerProgressValue;
         [SerializeField] private string appManagerProgressMessage;
+        [SerializeField] private Connection connection;
 
         [MenuItem(Menu_Window_GitHub)]
         public static void Window_GitHub()
@@ -210,6 +211,7 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
+            connection = Platform.Keychain.Connections.FirstOrDefault();
             if (repositoryProgressHasUpdate)
             {
                 if (repositoryProgress != null)
@@ -351,6 +353,7 @@ namespace GitHub.Unity
             repository.TrackingStatusChanged += RepositoryOnTrackingStatusChanged;
             repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
             repository.OnProgress += UpdateProgress;
+            Platform.Keychain.ConnectionsChanged += ConnectionsChanged;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -362,6 +365,7 @@ namespace GitHub.Unity
             repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
             repository.OnProgress -= UpdateProgress;
             Manager.OnProgress -= ApplicationManagerOnProgress;
+            Platform.Keychain.ConnectionsChanged -= ConnectionsChanged;
         }
 
         private void RepositoryOnCurrentBranchAndRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -417,6 +421,12 @@ namespace GitHub.Unity
         {
             appManagerProgress = progress;
             appManagerProgressHasUpdate = true;
+        }
+
+        private void ConnectionsChanged()
+        {
+            connection = Platform.Keychain.Connections.FirstOrDefault();
+            Redraw();
         }
 
         public override void OnUI()
@@ -541,6 +551,18 @@ namespace GitHub.Unity
                 }
 
                 GUILayout.FlexibleSpace();
+
+                if (connection == null)
+                {
+                    if (GUILayout.Button("Sign in", Styles.HistoryToolbarButtonStyle))
+                        SignIn(null);
+                }
+                else
+                {
+                    if (GUILayout.Button(connection.Username, EditorStyles.toolbarDropDown))
+                    {
+                        DoAccountDropdown();
+                    }
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -770,23 +792,15 @@ namespace GitHub.Unity
             toView.OnDataUpdate();
 
             // this triggers a repaint
-            Repaint();
+            Redraw();
         }
 
         private void DoAccountDropdown()
         {
             GenericMenu accountMenu = new GenericMenu();
-
-            if (!Platform.Keychain.HasKeys)
-            {
-                accountMenu.AddItem(new GUIContent("Sign in"), false, SignIn, "sign in");
-            }
-            else
-            {
-                accountMenu.AddItem(new GUIContent("Go to Profile"), false, GoToProfile, "profile");
-                accountMenu.AddSeparator("");
-                accountMenu.AddItem(new GUIContent("Sign out"), false, SignOut, "sign out");
-            }
+            accountMenu.AddItem(new GUIContent("Go to Profile"), false, GoToProfile, "profile");
+            accountMenu.AddSeparator("");
+            accountMenu.AddItem(new GUIContent("Sign out"), false, SignOut, "sign out");
             accountMenu.ShowAsContext();
         }
 
