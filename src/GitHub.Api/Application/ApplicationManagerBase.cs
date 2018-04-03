@@ -58,6 +58,7 @@ namespace GitHub.Unity
             {
                 setExistingEnvironmentPath = new SimpleProcessTask(CancellationToken, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
                            .Configure(ProcessManager, dontSetupGit: true)
+                           .Catch(e => true) // make sure this doesn't throw if the task fails
                            .Then((success, path) => success ? path.Split(new[] { "\"" }, StringSplitOptions.None)[1] : null);
             }
             else
