@@ -269,7 +269,7 @@ namespace GitHub.Unity
                 gitVersionErrorMessage = null;
 
                 GitClient.ValidateGitInstall(value.ToNPath())
-                    .FinallyInUI((success, exception, result) =>
+                .ThenInUI((success, result) =>
                     {
                         if (!success)
                         {
