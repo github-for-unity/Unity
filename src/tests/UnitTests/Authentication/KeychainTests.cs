@@ -223,7 +223,7 @@ namespace UnitTests
 
             var uriString = keychain.Hosts.FirstOrDefault();
             var keychainAdapter = keychain.Load(uriString).Result;
-            keychainAdapter.Credential.Should().BeNull();
+            keychainAdapter.Should().BeNull();
 
             fileSystem.DidNotReceive().FileExists(Args.String);
             fileSystem.DidNotReceive().ReadAllText(Args.String);

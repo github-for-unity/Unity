@@ -14,7 +14,6 @@ namespace GitHub.Unity
         Task ContinueLogin(LoginResult loginResult, string code);
         Task<bool> LoginAsync(string username, string password, Func<LoginResult, string> need2faCode);
         Task Logout(UriString host);
-        Task GetCurrentUser(Action<GitHubUser> callback);
-        Task ValidateCurrentUser(Action onSuccess, Action<Exception> onError = null);
+        Task GetCurrentUser(Action<GitHubUser> onSuccess, Action<Exception> onError = null);
     }
 }
