@@ -129,6 +129,8 @@ namespace IntegrationTests
         public NPath RepositoryPath => defaultEnvironment.RepositoryPath;
 
         public NPath GitInstallPath => defaultEnvironment.GitInstallPath;
+        public NPath GitLfsInstallPath => defaultEnvironment.GitLfsInstallPath;
+        public NPath GitLfsExecutablePath { get { return defaultEnvironment.GitLfsExecutablePath; } set { defaultEnvironment.GitLfsExecutablePath = value; } }
 
         public IRepository Repository { get { return defaultEnvironment.Repository; } set { defaultEnvironment.Repository = value; } }
         public IUser User { get { return defaultEnvironment.User; } set { defaultEnvironment.User = value; } }

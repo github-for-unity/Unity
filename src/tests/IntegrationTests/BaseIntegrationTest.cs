@@ -80,11 +80,14 @@ namespace IntegrationTests
                 initializeRepository);
         }
 
-        private void InitializePlatform(NPath repoPath, NPath? environmentPath, bool enableEnvironmentTrace,
-            bool setupGit = true, string testName = "")
+        protected void InitializePlatform(NPath repoPath, NPath? environmentPath = null,
+            bool enableEnvironmentTrace = true,
+            bool setupGit = true,
+            string testName = "",
+            bool initializeRepository = true)
         {
             InitializeTaskManager();
-            InitializeEnvironment(repoPath, environmentPath, enableEnvironmentTrace, true);
+            InitializeEnvironment(repoPath, environmentPath, enableEnvironmentTrace, initializeRepository);
 
             Platform = new Platform(Environment);
             ProcessManager = new ProcessManager(Environment, GitEnvironment, TaskManager.Token);
@@ -141,7 +144,7 @@ namespace IntegrationTests
         {
             var autoResetEvent = new AutoResetEvent(false);
 
-            var installDetails = new GitInstaller.GitInstallDetails(pathToSetupGitInto, true);
+            var installDetails = new GitInstaller.GitInstallDetails(pathToSetupGitInto, Environment.IsWindows);
 
             var zipArchivesPath = pathToSetupGitInto.Combine("downloads").CreateDirectory();
 
@@ -159,9 +162,9 @@ namespace IntegrationTests
 
             var setupTask = gitInstaller.SetupGitIfNeeded();
             setupTask.OnEnd += (thisTask, _, __, ___) => {
-                ((ITask<NPath>)thisTask.GetEndOfChain()).OnEnd += (t, path, success, exception) =>
+                ((ITask<GitInstaller.GitInstallationState>)thisTask.GetEndOfChain()).OnEnd += (t, state, success, exception) =>
                 {
-                    result = path;
+                    result = state.GitExecutablePath;
                     ex = exception;
                     autoResetEvent.Set();
                 };

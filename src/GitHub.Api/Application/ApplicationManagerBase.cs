@@ -74,8 +74,8 @@ namespace GitHub.Unity
                 }
             };
             
-            var initEnvironmentTask = new ActionTask<NPath>(CancellationToken,
-                    (_, path) => InitializeEnvironment(path))
+            var initEnvironmentTask = new ActionTask<GitInstaller.GitInstallationState>(CancellationToken,
+                    (_, state) => InitializeEnvironment(state))
                 { Affinity = TaskAffinity.UI };
 
             isBusy = true;
@@ -227,20 +227,22 @@ namespace GitHub.Unity
         /// </summary>
         /// <param name="gitExecutablePath"></param>
         /// <param name="octorunScriptPath"></param>
-        private void InitializeEnvironment(NPath gitExecutablePath)
+        private void InitializeEnvironment(GitInstaller.GitInstallationState installationState)
         {
             isBusy = false;
             SetupMetrics();
 
-            if (!gitExecutablePath.IsInitialized)
+            if (!installationState.GitIsValid)
             {
                 return;
             }
-            
-            var gitInstallDetails = new GitInstaller.GitInstallDetails(Environment.UserCachePath, Environment.IsWindows);
-            var isCustomGitExec = gitExecutablePath != gitInstallDetails.GitExecutablePath;
 
-            Environment.GitExecutablePath = gitExecutablePath;
+            var gitInstallDetails = new GitInstaller.GitInstallDetails(Environment.UserCachePath, Environment.IsWindows);
+            var isCustomGitExec = installationState.GitExecutablePath != gitInstallDetails.GitExecutablePath;
+
+            Environment.GitExecutablePath = installationState.GitExecutablePath;
+            Environment.GitLfsExecutablePath = installationState.GitLfsExecutablePath;
+
             Environment.IsCustomGitExecutable = isCustomGitExec;
             Environment.User.Initialize(GitClient);
 

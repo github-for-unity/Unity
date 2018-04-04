@@ -35,5 +35,7 @@ namespace GitHub.Unity
         IRepository Repository { get; set; }
         string ExecutableExtension { get; }
         ICacheContainer CacheContainer { get; }
+        NPath GitLfsInstallPath { get; }
+        NPath GitLfsExecutablePath { get; set; }
     }
 }
