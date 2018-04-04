@@ -18,7 +18,7 @@ namespace IntegrationTests
     class RepositoryManagerTests : BaseGitEnvironmentTest
     {
         private RepositoryManagerEvents repositoryManagerEvents;
-        private TimeSpan Timeout = TimeSpan.FromMilliseconds(800);
+        private TimeSpan Timeout = TimeSpan.FromMilliseconds(1200);
 
         public override void OnSetup()
         {
