@@ -458,7 +458,7 @@ namespace IntegrationTests
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} localBranches:{1}", now, value);
+                Logger.Trace("Updating: {0} localBranches:{1}", now, value.Length);
 
                 var localBranchesIsNull = localBranches == null;
                 var valueIsNull = value == null;
@@ -482,7 +482,7 @@ namespace IntegrationTests
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} remoteBranches:{1}", now, value);
+                Logger.Trace("Updating: {0} remoteBranches:{1}", now, value.Length);
 
                 var remoteBranchesIsNull = remoteBranches == null;
                 var valueIsNull = value == null;
@@ -506,7 +506,7 @@ namespace IntegrationTests
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} remotes:{1}", now, value);
+                Logger.Trace("Updating: {0} remotes:{1}", now, value.Length);
 
                 var remotesIsNull = remotes == null;
                 var valueIsNull = value == null;
@@ -598,19 +598,19 @@ namespace IntegrationTests
             }
         }
 
-        public void SetRemotes(Dictionary<string, ConfigRemote> remoteDictionary, Dictionary<string, Dictionary<string, ConfigBranch>> branchDictionary)
+        public void SetRemotes(Dictionary<string, ConfigRemote> remoteConfigs, Dictionary<string, Dictionary<string, ConfigBranch>> remoteConfigBranches)
         {
             var now = DateTimeOffset.Now;
-            configRemotes = new ConfigRemoteDictionary(remoteDictionary);
-            remoteConfigBranches = new RemoteConfigBranchDictionary(branchDictionary);
+            configRemotes = new ConfigRemoteDictionary(remoteConfigs);
+            this.remoteConfigBranches = new RemoteConfigBranchDictionary(remoteConfigBranches);
             Logger.Trace("SetRemotes {0}", now);
             SaveData(now, true);
         }
 
-        public void SetLocals(Dictionary<string, ConfigBranch> branchDictionary)
+        public void SetLocals(Dictionary<string, ConfigBranch> configBranches, GitBranch[] gitBranches)
         {
             var now = DateTimeOffset.Now;
-            localConfigBranches = new LocalConfigBranchDictionary(branchDictionary);
+            this.localConfigBranches = new LocalConfigBranchDictionary(configBranches);
             Logger.Trace("SetRemotes {0}", now);
             SaveData(now, true);
         }

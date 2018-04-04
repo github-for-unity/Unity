@@ -20,9 +20,9 @@ namespace UnitTests
 
             AssertProcessOutput(output, new[]
             {
-                new GitBranch("master", "origin/master", true),
-                new GitBranch("feature/feature-1", "", false),
-                new GitBranch("bugfixes/bugfix-1", "origin/bugfixes/bugfix-1", false),
+                new GitBranch("master", "origin/master"),
+                new GitBranch("feature/feature-1", ""),
+                new GitBranch("bugfixes/bugfix-1", "origin/bugfixes/bugfix-1"),
             });
         }
 

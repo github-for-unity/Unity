@@ -84,20 +84,16 @@ namespace GitHub.Unity
 
     public interface IBranchCache : IManagedCache
     {
-        GitBranch[] LocalBranches { get; set; }
-        GitBranch[] RemoteBranches { get; set; }
-        GitRemote[] Remotes { get; set; }
+        GitBranch[] LocalBranches { get; }
+        GitBranch[] RemoteBranches { get; }
+        GitRemote[] Remotes { get; }
 
         ILocalConfigBranchDictionary LocalConfigBranches { get; }
         IRemoteConfigBranchDictionary RemoteConfigBranches { get; }
         IConfigRemoteDictionary ConfigRemotes { get; }
         
-        void RemoveLocalBranch(string branch);
-        void AddLocalBranch(string branch);
-        void AddRemoteBranch(string remote, string branch);
-        void RemoveRemoteBranch(string remote, string branch);
-        void SetRemotes(Dictionary<string, ConfigRemote> remoteDictionary, Dictionary<string, Dictionary<string, ConfigBranch>> branchDictionary);
-        void SetLocals(Dictionary<string, ConfigBranch> branchDictionary);
+        void SetRemotes(Dictionary<string, ConfigRemote> remoteConfigs, Dictionary<string, Dictionary<string, ConfigBranch>> configBranches, GitRemote[] gitRemotes, GitBranch[] gitBranches);
+        void SetLocals(Dictionary<string, ConfigBranch> configBranches, GitBranch[] gitBranches);
     }
 
     public interface IRepositoryInfoCacheData
