@@ -219,6 +219,13 @@ namespace IntegrationTests
         {
             TaskManager.Dispose();
             Environment?.CacheContainer.Dispose();
+            BranchesCache.Instance = null;
+            GitAheadBehindCache.Instance = null;
+            GitLocksCache.Instance = null;
+            GitLogCache.Instance = null;
+            GitStatusCache.Instance = null;
+            GitUserCache.Instance = null;
+            RepositoryInfoCache.Instance = null;
 
             Logger.Debug("Deleting TestBasePath: {0}", TestBasePath.ToString());
             for (var i = 0; i < 5; i++)
