@@ -590,7 +590,7 @@ namespace GitHub.Unity
                 if (!branchList.ContainsKey(branch))
                 {
                     var now = DateTimeOffset.Now;
-                    branchList.Add(branch, new ConfigBranch(branch, ConfigRemotes[remote]));
+                    branchList.Add(branch, new ConfigBranch(branch, ConfigRemotes[remote], null));
                     Logger.Trace("AddRemoteBranch {0} remote:{1} branch:{2} ", now, remote, branch);
                     SaveData(now, true);
                 }
