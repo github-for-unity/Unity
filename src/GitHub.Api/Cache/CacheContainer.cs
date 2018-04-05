@@ -60,13 +60,11 @@ namespace GitHub.Unity
 
         private void OnCacheUpdated(CacheType cacheType, DateTimeOffset datetime)
         {
-            Logger.Trace("OnCacheUpdated cacheType:{0} datetime:{1}", cacheType, datetime);
             CacheUpdated.SafeInvoke(cacheType, datetime);
         }
 
         private void OnCacheInvalidated(CacheType cacheType)
         {
-            Logger.Trace("OnCacheInvalidated cacheType:{0}", cacheType);
             CacheInvalidated.SafeInvoke(cacheType);
         }
 

@@ -142,6 +142,7 @@ namespace GitHub.Unity
 
                         new FindExecTask("git", Manager.CancellationToken)
                             .Configure(Manager.ProcessManager, false, true)
+                            .Catch(ex => true)
                             .FinallyInUI((success, ex, path) => {
                                 if (success)
                                 {
@@ -242,7 +243,7 @@ namespace GitHub.Unity
                     EntryPoint.ApplicationManager.TaskManager);
 
                 gitInstaller.SetupGitIfNeeded()
-                    .FinallyInUI((success, exception, result) =>
+                    .FinallyInUI((success, exception, installationState) =>
                     {
                         Logger.Trace("Setup Git Using the installer:{0}", success);
 
@@ -254,7 +255,8 @@ namespace GitHub.Unity
                         else
                         {
                             Manager.SystemSettings.Unset(Constants.GitInstallPathKey);
-                            Environment.GitExecutablePath = result;
+                            Environment.GitExecutablePath = installationState.GitExecutablePath;
+                            Environment.GitLfsExecutablePath = installationState.GitLfsExecutablePath;
                             Environment.IsCustomGitExecutable = false;
 
                             gitExecHasChanged = true;

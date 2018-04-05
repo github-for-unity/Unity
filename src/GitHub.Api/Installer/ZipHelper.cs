@@ -19,6 +19,7 @@ namespace GitHub.Unity
                     instance = new ZipHelper();
                 return instance;
             }
+            set { instance = value; }
         }
 
         public bool Extract(string archive, string outFolder, CancellationToken cancellationToken,

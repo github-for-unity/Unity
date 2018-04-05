@@ -84,7 +84,7 @@ namespace GitHub.Unity
             if (environment.IsWindows)
             {
                 startInfo.FileName = "cmd";
-                gitEnvironment.Configure(startInfo, workingDirectory, environment.IsCustomGitExecutable);
+                gitEnvironment.Configure(startInfo, workingDirectory);
             }
             else if (environment.IsMac)
             {
@@ -94,12 +94,12 @@ namespace GitHub.Unity
                 var envVarFile = NPath.GetTempFilename();
                 startInfo.FileName = "open";
                 startInfo.Arguments = $"-a Terminal {envVarFile}";
-                gitEnvironment.Configure(startInfo, workingDirectory, environment.IsCustomGitExecutable);
+                gitEnvironment.Configure(startInfo, workingDirectory);
 
                 var envVars = startInfo.EnvironmentVariables;
                 var scriptContents = new[] {
                     $"cd \"{envVars["GHU_WORKINGDIR"]}\"",
-                    environment.IsCustomGitExecutable? "/bin/bash" : $"PATH=\"{envVars["GHU_FULLPATH"]}\":$PATH /bin/bash"
+                    $"PATH=\"{envVars["GHU_FULLPATH"]}\" /bin/bash"
                 };
                 environment.FileSystem.WriteAllLines(envVarFile, scriptContents);
                 Mono.Unix.Native.Syscall.chmod(envVarFile, (Mono.Unix.Native.FilePermissions)493); // -rwxr-xr-x mode (0755)
@@ -107,7 +107,7 @@ namespace GitHub.Unity
             else
             {
                 startInfo.FileName = "sh";
-                gitEnvironment.Configure(startInfo, workingDirectory, environment.IsCustomGitExecutable);
+                gitEnvironment.Configure(startInfo, workingDirectory);
             }
 
             Process.Start(startInfo);
