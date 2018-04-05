@@ -30,14 +30,13 @@ namespace GitHub.Unity
         public ITask<GitInstallationState> SetupGitIfNeeded()
         {
             //Logger.Trace("SetupGitIfNeeded");
-
+            GitInstallationState installationState = new GitInstallationState();
             installationTask = new FuncTask<GitInstallationState, GitInstallationState>(cancellationToken, (success, path) => path)
                 { Name = "Git Installation - Complete" };
             installationTask.OnStart += thisTask => thisTask.UpdateProgress(0, 100);
             installationTask.OnEnd += (thisTask, result, success, exception) => thisTask.UpdateProgress(100, 100);
 
             ITask<GitInstallationState> startTask = null;
-            GitInstallationState installationState = new GitInstallationState();
             if (!environment.IsWindows)
             {
                 var findTask = new FindExecTask("git", cancellationToken)
@@ -72,37 +71,47 @@ namespace GitHub.Unity
             {
                 startTask = new FuncTask<GitInstallationState>(cancellationToken, () =>
                     {
-                        installationState = VerifyGitInstallation();
-                        if (!installationState.GitIsValid && !installationState.GitLfsIsValid)
-                            installationState = GrabZipFromResources(installationState);
-                        else
-                            Logger.Trace("SetupGitIfNeeded: Skipped");
-                        return installationState;
+                        return VerifyPortableGitInstallation();
                     })
                 { Name = "Git Installation - Extract" };
             }
 
+            startTask = startTask.Then(new FuncTask<GitInstallationState, GitInstallationState>(cancellationToken, (success, installState) =>
+                {
+                    if (installState.GitIsValid && installState.GitLfsIsValid)
+                    {
+                        return installState;
+                    }
+
+                    installState = VerifyZipFiles(installState);
+                    installState = GrabZipFromResourcesIfNeeded(installState);
+                    return installState;
+                })
+                { Name = "Git Installation - Validate" }
+            );
+
             startTask.OnEnd += (thisTask, installState, success, exception) =>
             {
-                if (!installState.GitIsValid && !installState.GitLfsIsValid)
+                if (installState.GitIsValid && installState.GitLfsIsValid)
                 {
-                    if (!installState.GitZipExists || !installState.GitLfsZipExists)
-                        thisTask = thisTask.Then(CreateDownloadTask(installState));
-                    thisTask = thisTask.Then(ExtractPortableGit(installState));
+                    Logger.Trace("Skipping git installation");
+                    thisTask.Then(installationTask);
+                    return;
                 }
-                thisTask = thisTask.Then(installationTask);
+
+                var downloadZipTask = DownloadZipsIfNeeded(installState);
+                downloadZipTask.OnEnd += ExtractPortableGit;
+                thisTask.Then(downloadZipTask);
             };
 
             return startTask;
         }
 
-        private GitInstallationState VerifyGitInstallation()
+        private GitInstallationState VerifyPortableGitInstallation()
         {
             var state = new GitInstallationState();
             var gitExists = installDetails.GitExecutablePath.IsInitialized && installDetails.GitExecutablePath.FileExists();
             var gitLfsExists = installDetails.GitLfsExecutablePath.IsInitialized && installDetails.GitLfsExecutablePath.FileExists();
-            state.GitZipExists = installDetails.GitZipPath.FileExists();
-            state.GitLfsZipExists = installDetails.GitLfsZipPath.FileExists();
 
             if (gitExists)
             {
@@ -144,26 +153,44 @@ namespace GitHub.Unity
             return state;
         }
 
-        private GitInstallationState GrabZipFromResources(GitInstallationState state)
+        private GitInstallationState VerifyZipFiles(GitInstallationState state)
         {
-            if (!state.GitZipExists)
+            var md5 = AssemblyResources.ToFile(ResourceType.Platform, "git.zip.md5", installDetails.ZipPath, environment);
+            if (!md5.FileExists() || (installDetails.GitZipPath.FileExists() && !Utils.VerifyFileIntegrity(installDetails.GitZipPath, md5)))
             {
-                AssemblyResources.ToFile(ResourceType.Platform, "git.zip", installDetails.ZipPath, environment);
-                AssemblyResources.ToFile(ResourceType.Platform, "git.zip.md5", installDetails.ZipPath, environment);
+                installDetails.GitZipPath.DeleteIfExists();
             }
             state.GitZipExists = installDetails.GitZipPath.FileExists();
 
-            if (!state.GitLfsZipExists)
+            md5 = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip.md5", installDetails.ZipPath, environment);
+            // check whether the git-lfs zip file exists and is valid
+            if (!md5.FileExists() || (installDetails.GitLfsZipPath.FileExists() && !Utils.VerifyFileIntegrity(installDetails.GitLfsZipPath, md5)))
             {
-                AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", installDetails.ZipPath, environment);
-                AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip.md5", installDetails.ZipPath, environment);
+                installDetails.GitLfsZipPath.DeleteIfExists();
             }
             state.GitLfsZipExists = installDetails.GitLfsZipPath.FileExists();
             installationTask.UpdateProgress(20, 100);
             return state;
         }
 
-        private ITask<GitInstallationState> CreateDownloadTask(GitInstallationState state)
+        private GitInstallationState GrabZipFromResourcesIfNeeded(GitInstallationState state)
+        {
+            if (!state.GitZipExists)
+            {
+                AssemblyResources.ToFile(ResourceType.Platform, "git.zip", installDetails.ZipPath, environment);
+            }
+            state.GitZipExists = installDetails.GitZipPath.FileExists();
+
+            if (!state.GitLfsZipExists)
+            {
+                AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", installDetails.ZipPath, environment);
+            }
+            state.GitLfsZipExists = installDetails.GitLfsZipPath.FileExists();
+            installationTask.UpdateProgress(30, 100);
+            return state;
+        }
+
+        private ITask<GitInstallationState> DownloadZipsIfNeeded(GitInstallationState state)
         {
             var downloader = new Downloader();
             downloader.Catch(e => true);
@@ -180,7 +207,8 @@ namespace GitHub.Unity
             });
         }
 
-        private FuncTask<GitInstallationState> ExtractPortableGit(GitInstallationState state)
+        private void ExtractPortableGit(ITask<GitInstallationState> thisTask,
+            GitInstallationState state, bool s, Exception exception)
         {
             ITask<NPath> task = null;
             var tempZipExtractPath = NPath.CreateTempDirectory("git_zip_extract_zip_paths");
@@ -252,7 +280,9 @@ namespace GitHub.Unity
                 endTask = task.Then(endTask);
             }
 
-            return endTask;
+            thisTask
+                .Then(endTask)
+                .Then(installationTask);
         }
 
         public class GitInstallationState

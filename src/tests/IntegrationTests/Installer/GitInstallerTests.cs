@@ -62,12 +62,12 @@ namespace IntegrationTests
             }), Arg.Any<CancellationToken>(), Arg.Any<Func<long, long, bool>>()).Returns(true);
             ZipHelper.Instance = zipHelper;
             var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails);
-            var startTask = gitInstaller.SetupGitIfNeeded();
-            var endTask = new FuncTask<GitInstaller.GitInstallationState, GitInstaller.GitInstallationState>(TaskManager.Token, (s, state) => state);
-            startTask.OnEnd += (thisTask, path, success, exception) => thisTask.GetEndOfChain().Then(endTask);
+
+            TaskCompletionSource<GitInstaller.GitInstallationState> end = new TaskCompletionSource<GitInstaller.GitInstallationState>();
+            var startTask = gitInstaller.SetupGitIfNeeded().Finally((_, state) => end.TrySetResult(state));
             startTask.Start();
             GitInstaller.GitInstallationState result = null;
-            Assert.DoesNotThrow(async () => result = await endTask.Task);
+            Assert.DoesNotThrow(async () => result = await end.Task);
             result.Should().NotBeNull();
 
             Assert.AreEqual(gitInstallationPath.Combine(installDetails.PackageNameWithVersion), result.GitInstallationPath);

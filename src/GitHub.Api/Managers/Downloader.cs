@@ -29,7 +29,9 @@ namespace GitHub.Unity
         private readonly List<PairDownloader> downloaders = new List<PairDownloader>();
 
         public Downloader() : base(TaskManager.Instance.Token, RunDownloaders)
-        {}
+        {
+            Name = "Downloader";
+        }
 
         public void QueueDownload(UriString url, UriString md5Url, NPath targetDirectory)
         {
@@ -70,6 +72,7 @@ namespace GitHub.Unity
             private int finishedTaskCount;
             private volatile bool isSuccessful = true;
             private volatile Exception exception;
+            private DownloadData result;
 
             public PairDownloader()
             {
@@ -84,7 +87,7 @@ namespace GitHub.Unity
                 foreach (var task in queuedTasks)
                     task.Start();
                 if (queuedTasks.Count == 0)
-                    DownloadComplete(null);
+                    DownloadComplete(result);
                 return aggregateDownloads.Task;
             }
 
@@ -92,7 +95,7 @@ namespace GitHub.Unity
             {
                 var destinationFile = targetDirectory.Combine(url.Filename);
                 var destinationMd5 = targetDirectory.Combine(md5Url.Filename);
-                var result = new DownloadData(url, destinationFile);
+                result = new DownloadData(url, destinationFile);
 
                 Action<ITask<NPath>, NPath, bool, Exception> verifyDownload = (t, res, success, ex) =>
                 {
@@ -122,31 +125,6 @@ namespace GitHub.Unity
 
                 var md5Exists = destinationMd5.FileExists();
                 var fileExists = destinationFile.FileExists();
-
-                if (fileExists && md5Exists)
-                {
-                    var verification = new FuncTask<NPath>(cancellationToken, () => destinationFile);
-                    verification.OnStart += _ => DownloadStart?.Invoke(result);
-                    verification.OnEnd += (t, res, success, ex) =>
-                    {
-                        if (!Utils.VerifyFileIntegrity(destinationFile, destinationMd5))
-                        {
-                            destinationMd5.Delete();
-                            destinationFile.Delete();
-                            var fileDownload = DownloadFile(url, targetDirectory, result, verifyDownload);
-                            queuedTasks.Add(fileDownload);
-                            var md5Download = DownloadFile(md5Url, targetDirectory, result, verifyDownload);
-                            queuedTasks.Add(md5Download);
-                            fileDownload.Start();
-                            md5Download.Start();
-                        }
-                        else
-                        {
-                            DownloadComplete(result);
-                        }
-                    };
-                    queuedTasks.Add(verification);
-                }
 
                 if (!md5Exists)
                 {
