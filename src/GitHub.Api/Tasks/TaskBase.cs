@@ -550,7 +550,20 @@ namespace GitHub.Unity
 
         public override T Then<T>(T continuation, TaskRunOptions runOptions = TaskRunOptions.OnSuccess, bool taskIsTopOfChain = false)
         {
-            return base.Then<T>(continuation, runOptions, taskIsTopOfChain);
+            var nextTask = base.Then<T>(continuation, runOptions, taskIsTopOfChain);
+            var nextTaskBase = ((TaskBase)(object)nextTask);
+            // if the current task has a fault handler that matches this signature, attach it to the chain we're appending
+            if (finallyHandler != null)
+            {
+                TaskBase endOfChainTask = (TaskBase)nextTaskBase.GetEndOfChain();
+                while (endOfChainTask != this && endOfChainTask != null)
+                {
+                    if (endOfChainTask is TaskBase<TResult>)
+                        ((TaskBase<TResult>)endOfChainTask).finallyHandler += finallyHandler;
+                    endOfChainTask = endOfChainTask.DependsOn;
+                }
+            }
+            return nextTask;
         }
 
         /// <summary>
