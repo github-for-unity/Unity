@@ -70,6 +70,7 @@ namespace GitHub.Unity
             private int finishedTaskCount;
             private volatile bool isSuccessful = true;
             private volatile Exception exception;
+            private DownloadData result;
 
             public PairDownloader()
             {
@@ -84,7 +85,7 @@ namespace GitHub.Unity
                 foreach (var task in queuedTasks)
                     task.Start();
                 if (queuedTasks.Count == 0)
-                    DownloadComplete(null);
+                    DownloadComplete(result);
                 return aggregateDownloads.Task;
             }
 
@@ -92,7 +93,7 @@ namespace GitHub.Unity
             {
                 var destinationFile = targetDirectory.Combine(url.Filename);
                 var destinationMd5 = targetDirectory.Combine(md5Url.Filename);
-                var result = new DownloadData(url, destinationFile);
+                result = new DownloadData(url, destinationFile);
 
                 Action<ITask<NPath>, NPath, bool, Exception> verifyDownload = (t, res, success, ex) =>
                 {
