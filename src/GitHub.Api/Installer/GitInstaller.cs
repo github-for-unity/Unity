@@ -73,7 +73,7 @@ namespace GitHub.Unity
                     {
                         return VerifyPortableGitInstallation();
                     })
-                { Name = "Git Installation - Extract" };
+                { Name = "Git Installation - Verify" };
             }
 
             startTask = startTask.Then(new FuncTask<GitInstallationState, GitInstallationState>(cancellationToken, (success, installState) =>

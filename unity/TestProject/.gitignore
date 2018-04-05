@@ -8,6 +8,7 @@
 *.dylib
 *.so
 *.bundle
+*.md5
 
 # ignoring this for now
 *.meta
