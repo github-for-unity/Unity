@@ -24,6 +24,10 @@ var outputResult = function (status, results, errors, preventExit) {
                 process.stdout.write(endOfLine);
             }
         }
+        else if (results.toString) {
+            process.stdout.write(errors.toString());
+            process.stdout.write(endOfLine);
+        }
         else {
             throw "Unsupported result output";
         }
