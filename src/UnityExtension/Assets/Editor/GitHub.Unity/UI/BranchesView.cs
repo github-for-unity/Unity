@@ -338,7 +338,7 @@ namespace GitHub.Unity
 
         private void OnTreeGUI(Rect rect)
         {
-            var treeRenderRect = Rect.zero;
+            var treeRenderRect = new Rect(0f, 0f, 0f, 0f);
             if (treeLocals != null && treeRemotes != null)
             {
                 treeLocals.FolderStyle = Styles.Foldout;

@@ -498,7 +498,7 @@ namespace GitHub.Unity
                     {
                         var borderLeft = Styles.Label.margin.left;
                         var treeControlRect = new Rect(rect.x + borderLeft, rect.y, Position.width - borderLeft * 2, Position.height - rect.height + Styles.CommitAreaPadding);
-                        var treeRect = Rect.zero;
+                        var treeRect = new Rect(0f, 0f, 0f, 0f);
                         if (treeChanges != null)
                         {
                             treeChanges.FolderStyle = Styles.Foldout;
