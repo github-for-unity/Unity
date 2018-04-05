@@ -112,11 +112,6 @@ namespace GitHub.Unity
 
         public ITask<ValidateGitInstallResult> ValidateGitInstall(NPath path)
         {
-            if (!path.FileExists())
-            {
-                return new FuncTask<ValidateGitInstallResult>(TaskEx.FromResult(new ValidateGitInstallResult(false, null, null)));
-            }
-
             Version gitVersion = null;
             Version gitLfsVersion = null;
 
@@ -125,23 +120,18 @@ namespace GitHub.Unity
                     gitVersion?.CompareTo(Constants.MinimumGitVersion) >= 0 &&
                     gitLfsVersion?.CompareTo(Constants.MinimumGitLfsVersion) >= 0,
                     gitVersion, gitLfsVersion));
-              
-            var gitLfsVersionTask = new GitLfsVersionTask(cancellationToken).Configure(processManager, path);
-            
-            gitLfsVersionTask
-                .Then((result, version) => {return gitLfsVersion = version;})
-                .Then(endTask, taskIsTopOfChain: true);
 
-            gitLfsVersionTask.Then(endTask, TaskRunOptions.OnFailure, taskIsTopOfChain:true);
+            if (path.FileExists())
+            {
+                var gitLfsVersionTask = new GitLfsVersionTask(cancellationToken).Configure(processManager, path);
+                gitLfsVersionTask.OnEnd += (t, v, _, __) => gitLfsVersion = v;
+                var gitVersionTask = new GitVersionTask(cancellationToken).Configure(processManager, path);
+                gitVersionTask.OnEnd += (t, v, _, __) => gitVersion = v;
 
-            var gitVersionTask = new GitVersionTask(cancellationToken).Configure(processManager, path);
-
-            gitVersionTask
-                .Then((result, version) => { return gitVersion = version; })
-                .Then(gitLfsVersionTask, taskIsTopOfChain: true);
-            
-            gitVersionTask.Then(endTask, TaskRunOptions.OnFailure, taskIsTopOfChain:true);
-
+                gitVersionTask
+                    .Then(gitLfsVersionTask)
+                    .Finally(endTask);
+            }
             return endTask;
         }
 
