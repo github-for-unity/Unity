@@ -31,7 +31,7 @@ namespace GitHub.Unity
 
             Logger.Trace("guid:{0}", guid);
             if (Enabled)
-                RunTimer(3*10);
+                RunTimer(3*60);
         }
 
         private UsageStore LoadUsage()
