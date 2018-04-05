@@ -72,5 +72,8 @@ namespace GitHub.Unity
         event Action<CacheUpdateEvent> LocksChanged;
         event Action<CacheUpdateEvent> RemoteBranchListChanged;
         event Action<CacheUpdateEvent> LocalAndRemoteBranchListChanged;
+        ITask RemoteAdd(string remote, string url);
+        ITask RemoteRemove(string remote);
+        ITask Push(string remote);
     }
 }
