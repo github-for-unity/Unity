@@ -24,24 +24,24 @@ namespace TestUtils.Events
 
     class RepositoryManagerEvents
     {
-        internal TaskCompletionSource<bool> isBusy;
-        public Task<bool> IsBusy => isBusy.Task;
-        internal TaskCompletionSource<bool> isNotBusy;
-        public Task<bool> IsNotBusy => isNotBusy.Task;
-        internal TaskCompletionSource<bool> currentBranchUpdated;
-        public Task<bool> CurrentBranchUpdated => currentBranchUpdated.Task;
-        internal TaskCompletionSource<bool> gitAheadBehindStatusUpdated;
-        public Task<bool> GitAheadBehindStatusUpdated => gitAheadBehindStatusUpdated.Task;
-        internal TaskCompletionSource<bool> gitStatusUpdated;
-        public Task<bool> GitStatusUpdated => gitStatusUpdated.Task;
-        internal TaskCompletionSource<bool> gitLocksUpdated;
-        public Task<bool> GitLocksUpdated => gitLocksUpdated.Task;
-        internal TaskCompletionSource<bool> gitLogUpdated;
-        public Task<bool> GitLogUpdated => gitLogUpdated.Task;
-        internal TaskCompletionSource<bool> localBranchesUpdated;
-        public Task<bool> LocalBranchesUpdated => localBranchesUpdated.Task;
-        internal TaskCompletionSource<bool> remoteBranchesUpdated;
-        public Task<bool> RemoteBranchesUpdated => remoteBranchesUpdated.Task;
+        internal TaskCompletionSource<object> isBusy;
+        public Task IsBusy => isBusy.Task;
+        internal TaskCompletionSource<object> isNotBusy;
+        public Task IsNotBusy => isNotBusy.Task;
+        internal TaskCompletionSource<object> currentBranchUpdated;
+        public Task CurrentBranchUpdated => currentBranchUpdated.Task;
+        internal TaskCompletionSource<object> gitAheadBehindStatusUpdated;
+        public Task GitAheadBehindStatusUpdated => gitAheadBehindStatusUpdated.Task;
+        internal TaskCompletionSource<object> gitStatusUpdated;
+        public Task GitStatusUpdated => gitStatusUpdated.Task;
+        internal TaskCompletionSource<object> gitLocksUpdated;
+        public Task GitLocksUpdated => gitLocksUpdated.Task;
+        internal TaskCompletionSource<object> gitLogUpdated;
+        public Task GitLogUpdated => gitLogUpdated.Task;
+        internal TaskCompletionSource<object> localBranchesUpdated;
+        public Task LocalBranchesUpdated => localBranchesUpdated.Task;
+        internal TaskCompletionSource<object> remoteBranchesUpdated;
+        public Task RemoteBranchesUpdated => remoteBranchesUpdated.Task;
 
 
         public RepositoryManagerEvents()
@@ -51,15 +51,15 @@ namespace TestUtils.Events
 
         public void Reset()
         {
-            isBusy = new TaskCompletionSource<bool>();
-            isNotBusy = new TaskCompletionSource<bool>();
-            currentBranchUpdated = new TaskCompletionSource<bool>();
-            gitAheadBehindStatusUpdated = new TaskCompletionSource<bool>();
-            gitStatusUpdated = new TaskCompletionSource<bool>();
-            gitLocksUpdated = new TaskCompletionSource<bool>();
-            gitLogUpdated = new TaskCompletionSource<bool>();
-            localBranchesUpdated = new TaskCompletionSource<bool>();
-            remoteBranchesUpdated = new TaskCompletionSource<bool>();
+            isBusy = new TaskCompletionSource<object>();
+            isNotBusy = new TaskCompletionSource<object>();
+            currentBranchUpdated = new TaskCompletionSource<object>();
+            gitAheadBehindStatusUpdated = new TaskCompletionSource<object>();
+            gitStatusUpdated = new TaskCompletionSource<object>();
+            gitLocksUpdated = new TaskCompletionSource<object>();
+            gitLogUpdated = new TaskCompletionSource<object>();
+            localBranchesUpdated = new TaskCompletionSource<object>();
+            remoteBranchesUpdated = new TaskCompletionSource<object>();
         }
 
         public async Task WaitForNotBusy(int seconds = 1)

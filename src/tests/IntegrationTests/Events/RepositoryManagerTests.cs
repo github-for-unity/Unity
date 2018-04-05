@@ -96,7 +96,7 @@ namespace IntegrationTests
                 await repositoryManagerEvents.WaitForNotBusy();
                 StopTrackTimeAndLog(watch, logger);
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -142,7 +142,7 @@ namespace IntegrationTests
                 await repositoryManagerEvents.WaitForNotBusy();
                 StopTrackTimeAndLog(watch, logger);
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>();
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -168,19 +168,12 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
-                repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
-                repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
+                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitLocksUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>("otherwise the event was raised");
             }
             finally
             {
@@ -221,7 +214,7 @@ namespace IntegrationTests
                 await repositoryManagerEvents.WaitForNotBusy();
                 StopTrackTimeAndLog(watch, logger);
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
@@ -250,10 +243,10 @@ namespace IntegrationTests
                 await repositoryManagerEvents.WaitForNotBusy();
                 StopTrackTimeAndLog(watch, logger);
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
 
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
                 repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
@@ -293,10 +286,10 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -340,11 +333,11 @@ namespace IntegrationTests
 
                 await TaskEx.Delay(Timeout);
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -387,10 +380,10 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -415,9 +408,9 @@ namespace IntegrationTests
 
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
@@ -460,11 +453,11 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -485,11 +478,11 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -531,11 +524,11 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -556,10 +549,10 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -601,11 +594,11 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
@@ -648,10 +641,10 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
+                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
 
                 repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
                 repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
