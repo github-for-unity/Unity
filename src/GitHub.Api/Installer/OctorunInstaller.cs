@@ -56,10 +56,10 @@ namespace GitHub.Unity
 
         private NPath GrabZipFromResources()
         {
-            if (!installDetails.ZipFile.FileExists())
-            {
-                AssemblyResources.ToFile(ResourceType.Generic, "octorun.zip", installDetails.BaseZipPath, environment);
-            }
+            installDetails.ZipFile.DeleteIfExists();
+            
+            AssemblyResources.ToFile(ResourceType.Generic, "octorun.zip", installDetails.BaseZipPath, environment);
+            
             return installDetails.ZipFile;
         }
 
@@ -102,7 +102,7 @@ namespace GitHub.Unity
             public const string DefaultZipMd5Url = "https://ghfvs-installer.github.com/unity/octorun/octorun.zip.md5";
             public const string DefaultZipUrl = "https://ghfvs-installer.github.com/unity/octorun/octorun.zip";
 
-            public const string PackageVersion = "b91b7b60";
+            public const string PackageVersion = "46811135";
             private const string PackageName = "octorun";
             private const string zipFile = "octorun.zip";
 

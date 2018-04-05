@@ -8,7 +8,7 @@ namespace GitHub.Unity
     /// </summary>
     public interface IRepository : IEquatable<IRepository>, IDisposable
     {
-        void Initialize(IRepositoryManager repositoryManager, ITaskManager taskManager);
+        void Initialize(IRepositoryManager theRepositoryManager, ITaskManager theTaskManager);
         void Start();
 
         ITask CommitAllFiles(string message, string body);
@@ -72,5 +72,8 @@ namespace GitHub.Unity
         event Action<CacheUpdateEvent> LocksChanged;
         event Action<CacheUpdateEvent> RemoteBranchListChanged;
         event Action<CacheUpdateEvent> LocalAndRemoteBranchListChanged;
+        ITask RemoteAdd(string remote, string url);
+        ITask RemoteRemove(string remote);
+        ITask Push(string remote);
     }
 }

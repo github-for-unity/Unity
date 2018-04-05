@@ -16,7 +16,6 @@ namespace GitHub.Unity
         Connection[] Connections { get; }
         IList<UriString> Hosts { get; }
         bool HasKeys { get; }
-        bool NeedsLoad { get; }
         void SetToken(UriString host, string token);
 
         event Action ConnectionsChanged;
