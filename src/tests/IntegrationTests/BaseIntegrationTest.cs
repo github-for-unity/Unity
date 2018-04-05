@@ -8,6 +8,7 @@ using GitHub.Logging;
 using System.Linq;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
@@ -160,16 +161,13 @@ namespace IntegrationTests
             NPath? result = null;
             Exception ex = null;
 
-            var setupTask = gitInstaller.SetupGitIfNeeded();
-            setupTask.OnEnd += (thisTask, _, __, ___) => {
-                ((ITask<GitInstaller.GitInstallationState>)thisTask.GetEndOfChain()).OnEnd += (t, state, success, exception) =>
+            var setupTask = gitInstaller.SetupGitIfNeeded().Finally((success, state) =>
                 {
                     result = state.GitExecutablePath;
-                    ex = exception;
                     autoResetEvent.Set();
-                };
-            };
+                });
             setupTask.Start();
+
             if (!autoResetEvent.WaitOne(TimeSpan.FromMinutes(5)))
                 throw new TimeoutException($"Test setup unzipping {zipArchivesPath} to {pathToSetupGitInto} timed out");
 
