@@ -107,6 +107,7 @@ namespace GitHub.Unity
                 Logger.Trace("Using portable git");
 
                 var setupGit = new GitInstaller(Environment, ProcessManager, TaskManager).SetupGitIfNeeded();
+                t.Then(setupGit);
                 setupGit.Finally((s, state) =>
                 {
                     endTask.PreviousResult = state;
@@ -114,7 +115,6 @@ namespace GitHub.Unity
                 });
                 setupGit.Progress(progressReporter.UpdateProgress);
                 // append installer task to top chain
-                t.Then(setupGit);
             };
 
             var setupChain = setExistingEnvironmentPath.Then(setupOctorun);

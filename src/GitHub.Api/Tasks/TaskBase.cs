@@ -671,8 +671,7 @@ namespace GitHub.Unity
         protected override void CallFinallyHandler()
         {
             finallyHandler?.Invoke(!taskFailed, result);
-            if (finallyHandler == null)
-                base.CallFinallyHandler();
+            base.CallFinallyHandler();
         }
 
         public new Task<TResult> Task
