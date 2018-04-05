@@ -488,7 +488,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} localBranches:{1}", now, value);
+                Logger.Trace("{0} Updating LocalBranches: current:{1} new:{2}", now, localBranches, value);
 
                 var localBranchesIsNull = localBranches == null;
                 var valueIsNull = value == null;
@@ -512,7 +512,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} remoteBranches:{1}", now, value);
+                Logger.Trace("{0} Updating RemoteBranches: current:{1} new:{2}", now, remoteBranches, value);
 
                 var remoteBranchesIsNull = remoteBranches == null;
                 var valueIsNull = value == null;
@@ -536,7 +536,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} remotes:{1}", now, value);
+                Logger.Trace("{0} Updating Remotes: current:{1} new:{2}", now, remotes, value);
 
                 var remotesIsNull = remotes == null;
                 var valueIsNull = value == null;
@@ -590,7 +590,7 @@ namespace GitHub.Unity
                 if (!branchList.ContainsKey(branch))
                 {
                     var now = DateTimeOffset.Now;
-                    branchList.Add(branch, new ConfigBranch(branch, ConfigRemotes[remote]));
+                    branchList.Add(branch, new ConfigBranch(branch, ConfigRemotes[remote], null));
                     Logger.Trace("AddRemoteBranch {0} remote:{1} branch:{2} ", now, remote, branch);
                     SaveData(now, true);
                 }
@@ -671,7 +671,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} gitLog:{1}", now, value);
+                Logger.Trace("{0} Updating Log: current:{1} new:{2}", now, log.Count, value.Count);
 
                 if (!log.SequenceEqual(value))
                 {
@@ -707,8 +707,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} ahead:{1}", now, value);
-
+                Logger.Trace("{0} Updating Ahead: current:{1} new:{2}", now, ahead, value);
                 if (ahead != value)
                 {
                     ahead = value;
@@ -731,7 +730,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} behind:{1}", now, value);
+                Logger.Trace("{0} Updating Behind: current:{1} new:{2}", now, behind, value);
 
                 if (behind != value)
                 {
@@ -766,7 +765,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} entries:{1}", now, value.Count);
+                Logger.Trace("{0} Updating Entries: current:{1} new:{2}", now, entries.Count, value.Count);
 
                 if (!entries.SequenceEqual(value))
                 {
@@ -801,7 +800,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} gitLocks:{1}", now, value);
+                Logger.Trace("{0} Updating GitLocks: current:{1} new:{2}", now, gitLocks.Count, value.Count);
 
                 if (!gitLocks.SequenceEqual(value))
                 {
@@ -837,7 +836,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} Name:{1}", now, value);
+                Logger.Trace("{0} Updating Name: current:{1} new:{2}", now, gitName, value);
 
                 if (gitName != value)
                 {
@@ -861,7 +860,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} Email:{1}", now, value);
+                Logger.Trace("{0} Updating Email: current:{1} new:{2}", now, gitEmail, value);
 
                 if (gitEmail != value)
                 {

@@ -70,14 +70,14 @@ namespace GitHub.Unity
             };
         }
 
-        public void Initialize(IRepositoryManager repositoryManager, ITaskManager taskManager)
+        public void Initialize(IRepositoryManager theRepositoryManager, ITaskManager theTaskManager)
         {
             //Logger.Trace("Initialize");
-            Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
-            Guard.ArgumentNotNull(taskManager, nameof(taskManager));
+            Guard.ArgumentNotNull(theRepositoryManager, nameof(theRepositoryManager));
+            Guard.ArgumentNotNull(theTaskManager, nameof(theTaskManager));
 
-            this.taskManager = taskManager;
-            this.repositoryManager = repositoryManager;
+            this.taskManager = theTaskManager;
+            this.repositoryManager = theRepositoryManager;
             this.repositoryManager.CurrentBranchUpdated += RepositoryManagerOnCurrentBranchUpdated;
             this.repositoryManager.GitStatusUpdated += RepositoryManagerOnGitStatusUpdated;
             this.repositoryManager.GitAheadBehindStatusUpdated += RepositoryManagerOnGitAheadBehindStatusUpdated;
@@ -176,7 +176,6 @@ namespace GitHub.Unity
                 return;
             }
 
-            Logger.Trace($"CacheInvalidated {cacheType.ToString()}");
             switch (cacheType)
             {
                 case CacheType.Branches:
