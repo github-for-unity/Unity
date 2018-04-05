@@ -134,13 +134,13 @@ namespace IntegrationTests
                 var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
                 foobarTxt.WriteAllText("foobar");
 
-                var testDocumentTxt = TestRepoMasterCleanSynchronized.Combine("Assets", "TestDocument.txt");
-                testDocumentTxt.WriteAllText("foobar");
-
-                await TaskManager.Wait();
-
+                StartTrackTime(watch, logger, "RepositoryManager.WaitForEvents()");
                 RepositoryManager.WaitForEvents();
+                StopTrackTimeAndLog(watch, logger);
+
+                StartTrackTime(watch, logger, "repositoryManagerEvents.WaitForNotBusy()");
                 await repositoryManagerEvents.WaitForNotBusy();
+                StopTrackTimeAndLog(watch, logger);
 
                 (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>();
 
@@ -156,7 +156,7 @@ namespace IntegrationTests
                 repositoryManagerListener.ClearReceivedCalls();
                 repositoryManagerEvents.Reset();
 
-                var filesToCommit = new List<string> { "Assets\\TestDocument.txt", "foobar.txt" };
+                var filesToCommit = new List<string> { "foobar.txt" };
                 var commitMessage = "IntegrationTest Commit";
                 var commitBody = string.Empty;
 
@@ -210,9 +210,6 @@ namespace IntegrationTests
 
                 var foobarTxt = TestRepoMasterCleanSynchronized.Combine("foobar.txt");
                 foobarTxt.WriteAllText("foobar");
-
-                var testDocumentTxt = TestRepoMasterCleanSynchronized.Combine("Assets", "TestDocument.txt");
-                testDocumentTxt.WriteAllText("foobar");
 
                 await TaskManager.Wait();
 
