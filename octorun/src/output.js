@@ -25,7 +25,7 @@ var outputResult = function (status, results, errors, preventExit) {
             }
         }
         else if (results.toString) {
-            process.stdout.write(errors.toString());
+            process.stdout.write(results.toString());
             process.stdout.write(endOfLine);
         }
         else {
