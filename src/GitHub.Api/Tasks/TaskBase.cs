@@ -316,7 +316,6 @@ namespace GitHub.Unity
             {
                 //Logger.Trace($"Starting {Affinity} {ToString()}");
                 Task.Start(scheduler);
-                SetContinuation();
             }
             return this;
         }
