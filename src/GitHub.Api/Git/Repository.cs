@@ -176,7 +176,6 @@ namespace GitHub.Unity
                 return;
             }
 
-            Logger.Trace($"CacheInvalidated {cacheType.ToString()}");
             switch (cacheType)
             {
                 case CacheType.Branches:
