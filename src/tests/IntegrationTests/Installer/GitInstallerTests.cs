@@ -15,7 +15,7 @@ namespace IntegrationTests
         public override void OnSetup()
         {
             base.OnSetup();
-            InitializeEnvironment(TestBasePath, initializeRepository: false);
+            InitializePlatform(TestBasePath, setupGit: false, initializeRepository: false);
         }
 
         private TestWebServer.HttpServer server;
@@ -32,10 +32,11 @@ namespace IntegrationTests
             base.TestFixtureTearDown();
             server.Stop();
             ApplicationConfiguration.WebTimeout = ApplicationConfiguration.DefaultWebTimeout;
+            ZipHelper.Instance = null;
         }
 
         [Test]
-        public void GitInstallTest()
+        public void GitInstallWindows()
         {
             var gitInstallationPath = TestBasePath.Combine("GitInstall").CreateDirectory();
 
@@ -49,14 +50,84 @@ namespace IntegrationTests
 
             TestBasePath.Combine("git").CreateDirectory();
 
+            var zipHelper = Substitute.For<IZipHelper>();
+            zipHelper.Extract(Arg.Any<string>(), Arg.Do<string>(x =>
+            {
+                var n = x.ToNPath();
+                n.EnsureDirectoryExists();
+                if (n.FileName == "git-lfs")
+                {
+                    n.Combine("git-lfs" + Environment.ExecutableExtension).WriteAllText("");
+                }
+            }), Arg.Any<CancellationToken>(), Arg.Any<Func<long, long, bool>>()).Returns(true);
+            ZipHelper.Instance = zipHelper;
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails);
+
+            TaskCompletionSource<GitInstaller.GitInstallationState> end = new TaskCompletionSource<GitInstaller.GitInstallationState>();
+            var startTask = gitInstaller.SetupGitIfNeeded().Finally((_, state) => end.TrySetResult(state));
+            startTask.Start();
+            GitInstaller.GitInstallationState result = null;
+            Assert.DoesNotThrow(async () => result = await end.Task);
+            result.Should().NotBeNull();
+
+            Assert.AreEqual(gitInstallationPath.Combine(installDetails.PackageNameWithVersion), result.GitInstallationPath);
+            result.GitExecutablePath.Should().Be(gitInstallationPath.Combine(installDetails.PackageNameWithVersion, "cmd", "git" + Environment.ExecutableExtension));
+            result.GitLfsExecutablePath.Should().Be(gitInstallationPath.Combine(installDetails.PackageNameWithVersion, "mingw32", "libexec", "git-core", "git-lfs" + Environment.ExecutableExtension));
+
+            var isCustomGitExec = result.GitExecutablePath != result.GitExecutablePath;
+
+            Environment.GitExecutablePath = result.GitExecutablePath;
+            Environment.GitLfsExecutablePath = result.GitLfsExecutablePath;
+
+            Environment.IsCustomGitExecutable = isCustomGitExec;
+            
+            var procTask = new SimpleProcessTask(TaskManager.Token, "something")
+                .Configure(ProcessManager);
+            procTask.Process.StartInfo.EnvironmentVariables["PATH"].Should().StartWith(gitInstallationPath.ToString());
+        }
+
+        //[Test]
+        public void GitInstallMac()
+        {
+            var filesystem = Substitute.For<IFileSystem>();
+            DefaultEnvironment.OnMac = true;
+            DefaultEnvironment.OnWindows = false;
+
+            var gitInstallationPath = TestBasePath.Combine("GitInstall").CreateDirectory();
+
+            var installDetails = new GitInstaller.GitInstallDetails(gitInstallationPath, Environment.IsWindows)
+                {
+                    GitZipMd5Url = $"http://localhost:{server.Port}/{new Uri(GitInstaller.GitInstallDetails.DefaultGitZipMd5Url).AbsolutePath}",
+                    GitZipUrl = $"http://localhost:{server.Port}/{new Uri(GitInstaller.GitInstallDetails.DefaultGitZipUrl).AbsolutePath}",
+                    GitLfsZipMd5Url = $"http://localhost:{server.Port}/{new Uri(GitInstaller.GitInstallDetails.DefaultGitLfsZipMd5Url).AbsolutePath}",
+                    GitLfsZipUrl = $"http://localhost:{server.Port}/{new Uri(GitInstaller.GitInstallDetails.DefaultGitLfsZipUrl).AbsolutePath}",
+                };
+
+            TestBasePath.Combine("git").CreateDirectory();
+
             var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails);
             var startTask = gitInstaller.SetupGitIfNeeded();
-            var endTask = new FuncTask<NPath, NPath>(TaskManager.Token, (s, path) => path);
+            var endTask = new FuncTask<GitInstaller.GitInstallationState, GitInstaller.GitInstallationState>(TaskManager.Token, (s, state) => state);
             startTask.OnEnd += (thisTask, path, success, exception) => thisTask.GetEndOfChain().Then(endTask);
             startTask.Start();
-            NPath? resultPath = null;
-            Assert.DoesNotThrow(async () => resultPath = await endTask.Task);
-            resultPath.Should().NotBeNull();
+            GitInstaller.GitInstallationState result = null;
+            Assert.DoesNotThrow(async () => result = await endTask.Task);
+            result.Should().NotBeNull();
+
+            Assert.AreEqual(gitInstallationPath.Combine(installDetails.PackageNameWithVersion), result.GitInstallationPath);
+            result.GitExecutablePath.Should().Be(gitInstallationPath.Combine("bin", "git" + Environment.ExecutableExtension));
+            result.GitLfsExecutablePath.Should().Be(gitInstallationPath.Combine(installDetails.PackageNameWithVersion, "libexec", "git-core", "git-lfs" + Environment.ExecutableExtension));
+
+            var isCustomGitExec = result.GitExecutablePath != result.GitExecutablePath;
+
+            Environment.GitExecutablePath = result.GitExecutablePath;
+            Environment.GitLfsExecutablePath = result.GitLfsExecutablePath;
+
+            Environment.IsCustomGitExecutable = isCustomGitExec;
+            
+            var procTask = new SimpleProcessTask(TaskManager.Token, "something")
+                .Configure(ProcessManager);
+            procTask.Process.StartInfo.EnvironmentVariables["PATH"].Should().StartWith(gitInstallationPath.ToString());
         }
     }
 }

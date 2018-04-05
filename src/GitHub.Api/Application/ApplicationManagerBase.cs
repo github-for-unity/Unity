@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -54,14 +53,35 @@ namespace GitHub.Unity
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
 
-            var initEnvironmentTask = new ActionTask<NPath>(CancellationToken,
-                    (_, path) => InitializeEnvironment(path))
+            ITask<string> setExistingEnvironmentPath;
+            if (Environment.IsMac)
+            {
+                setExistingEnvironmentPath = new SimpleProcessTask(CancellationToken, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
+                           .Configure(ProcessManager, dontSetupGit: true)
+                           .Catch(e => true) // make sure this doesn't throw if the task fails
+                           .Then((success, path) => success ? path.Split(new[] { "\"" }, StringSplitOptions.None)[1] : null);
+            }
+            else
+            {
+                setExistingEnvironmentPath = new FuncTask<string>(CancellationToken, () => null);
+            }
+
+            setExistingEnvironmentPath.OnEnd += (t, path, success, ex) => {
+                if (path != null)
+                {
+                    Logger.Trace("Existing Environment Path Original:{0} Updated:{1}", Environment.Path, path);
+                    Environment.Path = path;
+                }
+            };
+            
+            var initEnvironmentTask = new ActionTask<GitInstaller.GitInstallationState>(CancellationToken,
+                    (_, state) => InitializeEnvironment(state))
                 { Affinity = TaskAffinity.UI };
 
             isBusy = true;
 
             var octorunInstaller = new OctorunInstaller(Environment, TaskManager);
-            var setupTask = octorunInstaller.SetupOctorunIfNeeded();
+            var setupTask = setExistingEnvironmentPath.Then(octorunInstaller.SetupOctorunIfNeeded());
 
             var initializeGitTask = new FuncTask<NPath>(CancellationToken, () =>
                 {
@@ -87,7 +107,8 @@ namespace GitHub.Unity
                 {
                     if (path.IsInitialized)
                     {
-                        t.GetEndOfChain().Then(initEnvironmentTask, taskIsTopOfChain: true);
+                        t.GetEndOfChain()
+                            .Then(initEnvironmentTask, taskIsTopOfChain: true);
                         return;
                     }
                     Logger.Trace("Using portable git");
@@ -98,7 +119,8 @@ namespace GitHub.Unity
                     task.Progress(progressReporter.UpdateProgress);
                     task.OnEnd += (thisTask, result, success, exception) =>
                     {
-                        thisTask.GetEndOfChain().Then(initEnvironmentTask, taskIsTopOfChain: true);
+                        thisTask.GetEndOfChain()
+                            .Then(initEnvironmentTask, taskIsTopOfChain: true);
                     };
 
                     // append installer task to top chain
@@ -205,17 +227,23 @@ namespace GitHub.Unity
         /// </summary>
         /// <param name="gitExecutablePath"></param>
         /// <param name="octorunScriptPath"></param>
-        private void InitializeEnvironment(NPath gitExecutablePath)
+        private void InitializeEnvironment(GitInstaller.GitInstallationState installationState)
         {
             isBusy = false;
             SetupMetrics();
 
-            if (!gitExecutablePath.IsInitialized)
+            if (!installationState.GitIsValid)
             {
                 return;
             }
 
-            Environment.GitExecutablePath = gitExecutablePath;
+            var gitInstallDetails = new GitInstaller.GitInstallDetails(Environment.UserCachePath, Environment.IsWindows);
+            var isCustomGitExec = installationState.GitExecutablePath != gitInstallDetails.GitExecutablePath;
+
+            Environment.GitExecutablePath = installationState.GitExecutablePath;
+            Environment.GitLfsExecutablePath = installationState.GitLfsExecutablePath;
+
+            Environment.IsCustomGitExecutable = isCustomGitExec;
             Environment.User.Initialize(GitClient);
 
             var afterGitSetup = new ActionTask(CancellationToken, RestartRepository)
@@ -226,7 +254,7 @@ namespace GitHub.Unity
             {
                 var credHelperTask = GitClient.GetConfig("credential.helper", GitConfigSource.Global);
                 credHelperTask.OnEnd += (thisTask, credentialHelper, success, exception) =>
-                    {
+                    {   
                         if (!success || string.IsNullOrEmpty(credentialHelper))
                         {
                             Logger.Warning("No Windows CredentialHelper found: Setting to wincred");

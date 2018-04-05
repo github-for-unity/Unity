@@ -14,21 +14,18 @@ try {
     apiWrapper.getOrgs(function (error, result) {
         if (error) {
             output.error(error);
-            process.exit();
         }
         else {
-            results = [];
+            var results = [];
             for (var i = 0; i < result.length; i++) {
                 results.push(result[i].name);
                 results.push(result[i].login);
             }
 
             output.success(results);
-            process.exit();
         }
     });
 }
 catch (error) {
     output.error(error);
-    process.exit();
 }

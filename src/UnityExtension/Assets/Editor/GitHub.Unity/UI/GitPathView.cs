@@ -11,11 +11,15 @@ namespace GitHub.Unity
         private const string GitInstallTitle = "Git installation";
         private const string PathToGit = "Path to Git";
         private const string GitPathSaveButton = "Save Path";
-        private const string GitInstallFindButton = "Find install";
+        private const string UseInternalGitButton = "Use internal git";
+        private const string FindSystemGitButton = "Find system git";
         private const string BrowseButton = "...";
         private const string GitInstallBrowseTitle = "Select git binary";
         private const string ErrorInvalidPathMessage = "Invalid Path.";
-        private const string ErrorGettingSoftwareVersionMessage = "Error getting software versions.";
+        private const string ErrorInstallingInternalGit = "Error installing portable git.";
+        private const string ErrorValidatingGitPath = "Error validating Git Path.";
+        private const string ErrorGitNotFoundMessage = "Git not found.";
+        private const string ErrorGitLfsNotFoundMessage = "Git LFS not found.";
         private const string ErrorMinimumGitVersionMessageFormat = "Git version {0} found. Git version {1} is required.";
         private const string ErrorMinimumGitLfsVersionMessageFormat = "Git LFS version {0} found. Git LFS version {1} is required.";
 
@@ -31,11 +35,15 @@ namespace GitHub.Unity
         [NonSerialized] private bool isBusy;
         [NonSerialized] private bool gitExecHasChanged;
         [NonSerialized] private bool gitExecutableIsSet;
+        [NonSerialized] private string portableGitPath;
 
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
             gitExecutableIsSet = Environment.GitExecutablePath.IsInitialized;
+
+            var gitInstallDetails = new GitInstaller.GitInstallDetails(Environment.UserCachePath, Environment.IsWindows);
+            portableGitPath = gitInstallDetails.GitExecutablePath;
         }
 
         public override void OnEnable()
@@ -110,8 +118,21 @@ namespace GitHub.Unity
                     }
                     EditorGUI.EndDisabledGroup();
 
+                    // disable if we are not on windows
+                    // disable if the newPath == portableGitPath
+                    EditorGUI.BeginDisabledGroup(!Environment.IsWindows || Environment.IsWindows && newGitExec == portableGitPath);
+                    if (GUILayout.Button(UseInternalGitButton, GUILayout.ExpandWidth(false)))
+                    {
+                        GUI.FocusControl(null);
+
+                        Logger.Trace("Expected portableGitPath: {0}", portableGitPath);
+                        newGitExec = portableGitPath;
+                        CheckEnteredGitPath();
+                    }
+                    EditorGUI.EndDisabledGroup();
+
                     //Find button - for attempting to locate a new install
-                    if (GUILayout.Button(GitInstallFindButton, GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(FindSystemGitButton, GUILayout.ExpandWidth(false)))
                     {
                         GUI.FocusControl(null);
                         isBusy = true;
@@ -121,6 +142,7 @@ namespace GitHub.Unity
 
                         new FindExecTask("git", Manager.CancellationToken)
                             .Configure(Manager.ProcessManager, dontSetupGit: true)
+                            .Catch(ex => true)
                             .FinallyInUI((success, ex, path) => {
                                 if (success)
                                 {
@@ -211,61 +233,108 @@ namespace GitHub.Unity
 
         private void ValidateAndSetGitInstallPath(string value)
         {
-            //Logger.Trace("Validating Git Path:{0}", value);
+            value = value.Trim();
 
-            gitVersionErrorMessage = null;
+            if (value == portableGitPath)
+            {
+                Logger.Trace("Attempting to restore portable Git Path:{0}", value);
 
-            GitClient.ValidateGitInstall(value.ToNPath())
-                .ThenInUI((sucess, result) =>
-                {
-                    if (!sucess)
+                var gitInstaller = new GitInstaller(Environment, EntryPoint.ApplicationManager.ProcessManager,
+                    EntryPoint.ApplicationManager.TaskManager);
+
+                gitInstaller.SetupGitIfNeeded()
+                    .FinallyInUI((success, exception, installationState) =>
                     {
-                        Logger.Trace(ErrorGettingSoftwareVersionMessage);
-                        gitVersionErrorMessage = ErrorGettingSoftwareVersionMessage;
-                    }
-                    else if (!result.IsValid)
-                    {
-                        Logger.Warning(
-                            "Software versions do not meet minimums Git:{0} (Minimum:{1}) GitLfs:{2} (Minimum:{3})",
-                            result.GitVersion, Constants.MinimumGitVersion, result.GitLfsVersion,
-                            Constants.MinimumGitLfsVersion);
+                        Logger.Trace("Setup Git Using the installer:{0}", success);
 
-                        var errorMessageStringBuilder = new StringBuilder();
-
-                        if (result.GitVersion < Constants.MinimumGitVersion)
+                        if (!success)
                         {
-                            errorMessageStringBuilder.AppendFormat(ErrorMinimumGitVersionMessageFormat,
-                                result.GitVersion, Constants.MinimumGitVersion);
+                            Logger.Error(exception, ErrorInstallingInternalGit);
+                            gitVersionErrorMessage = ErrorValidatingGitPath;
+                        }
+                        else
+                        {
+                            Manager.SystemSettings.Unset(Constants.GitInstallPathKey);
+                            Environment.GitExecutablePath = installationState.GitExecutablePath;
+                            Environment.GitLfsExecutablePath = installationState.GitLfsExecutablePath;
+                            Environment.IsCustomGitExecutable = false;
+
+                            gitExecHasChanged = true;
                         }
 
-                        if (result.GitLfsVersion < Constants.MinimumGitLfsVersion)
+                        isBusy = false;
+                    }).Start();
+            }
+            else
+            {
+                //Logger.Trace("Validating Git Path:{0}", value);
+
+                gitVersionErrorMessage = null;
+
+                GitClient.ValidateGitInstall(value.ToNPath(), true)
+                    .ThenInUI((success, result) =>
+                    {
+                        if (!success)
                         {
-                            if (errorMessageStringBuilder.Length > 0)
+                            Logger.Trace(ErrorValidatingGitPath);
+                            gitVersionErrorMessage = ErrorValidatingGitPath;
+                        }
+                        else if (!result.IsValid)
+                        {
+                            Logger.Warning(
+                                "Software versions do not meet minimums Git:{0} (Minimum:{1}) GitLfs:{2} (Minimum:{3})",
+                                result.GitVersion, Constants.MinimumGitVersion, result.GitLfsVersion,
+                                Constants.MinimumGitLfsVersion);
+
+                            var errorMessageStringBuilder = new StringBuilder();
+
+                            if (result.GitVersion == null)
                             {
-                                errorMessageStringBuilder.Append(Environment.NewLine);
+                                errorMessageStringBuilder.Append(ErrorGitNotFoundMessage);
+                            }
+                            else if (result.GitLfsVersion == null)
+                            {
+                                errorMessageStringBuilder.Append(ErrorGitLfsNotFoundMessage);
+                            }
+                            else
+                            {
+                                if (result.GitVersion < Constants.MinimumGitVersion)
+                                {
+                                    errorMessageStringBuilder.AppendFormat(ErrorMinimumGitVersionMessageFormat,
+                                        result.GitVersion, Constants.MinimumGitVersion);
+                                }
+
+                                if (result.GitLfsVersion < Constants.MinimumGitLfsVersion)
+                                {
+                                    if (errorMessageStringBuilder.Length > 0)
+                                    {
+                                        errorMessageStringBuilder.Append(Environment.NewLine);
+                                    }
+
+                                    errorMessageStringBuilder.AppendFormat(ErrorMinimumGitLfsVersionMessageFormat,
+                                        result.GitLfsVersion, Constants.MinimumGitLfsVersion);
+                                }
                             }
 
-                            errorMessageStringBuilder.AppendFormat(ErrorMinimumGitLfsVersionMessageFormat,
-                                result.GitLfsVersion, Constants.MinimumGitLfsVersion);
+                            gitVersionErrorMessage = errorMessageStringBuilder.ToString();
+                        }
+                        else
+                        {
+                            Logger.Trace("Software versions meet minimums Git:{0} GitLfs:{1}",
+                                result.GitVersion,
+                                result.GitLfsVersion);
+
+                            Manager.SystemSettings.Set(Constants.GitInstallPathKey, value);
+                            Environment.GitExecutablePath = value.ToNPath();
+                            Environment.IsCustomGitExecutable = true;
+
+                            gitExecHasChanged = true;
                         }
 
-                        gitVersionErrorMessage = errorMessageStringBuilder.ToString();
-                    }
-                    else
-                    {
-                        Logger.Warning("Software versions meet minimums Git:{0} GitLfs:{1}",
-                            result.GitVersion,
-                            result.GitLfsVersion);
+                        isBusy = false;
 
-                        Manager.SystemSettings.Set(Constants.GitInstallPathKey, value);
-                        Environment.GitExecutablePath = value.ToNPath();
-
-                        gitExecHasChanged = true;
-                    }
-
-                    isBusy = false;
-
-                }).Start();
+                    }).Start();
+            }
         }
 
         public override bool IsBusy

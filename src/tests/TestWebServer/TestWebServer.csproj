@@ -43,6 +43,40 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\GitHub.Api\PlatformResources\windows\git.zip">
+      <Link>files\git\windows\git.zip</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\GitHub.Api\PlatformResources\windows\git.zip.md5">
+      <Link>files\git\windows\git.zip.md5</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\GitHub.Api\PlatformResources\windows\git-lfs.zip">
+      <Link>files\git\windows\git-lfs.zip</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\GitHub.Api\PlatformResources\windows\git-lfs.zip.md5">
+      <Link>files\git\windows\git-lfs.zip.md5</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <!--None Include="..\..\GitHub.Api\PlatformResources\mac\git.zip">
+      <Link>files\git\mac\git.zip</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\GitHub.Api\PlatformResources\mac\git.zip.md5">
+      <Link>files\git\mac\git.zip.md5</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None-->
+    <None Include="..\..\GitHub.Api\PlatformResources\mac\git-lfs.zip">
+      <Link>files\git\mac\git-lfs.zip</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\GitHub.Api\PlatformResources\mac\git-lfs.zip.md5">
+      <Link>files\git\mac\git-lfs.zip.md5</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\GitHub.Logging\GitHub.Logging.csproj">
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>

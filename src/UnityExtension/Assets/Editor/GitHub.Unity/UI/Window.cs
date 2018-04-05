@@ -481,7 +481,10 @@ namespace GitHub.Unity
 
         private void GoToProfile(object obj)
         {
-            Application.OpenURL(Platform.CredentialManager.CachedCredentials.Host.Combine(Platform.CredentialManager.CachedCredentials.Username));
+            //TODO: ONE_USER_LOGIN This assumes only ever one user can login
+            var keychainConnection = Platform.Keychain.Connections.First();
+            var uriString = new UriString(keychainConnection.Host).Combine(keychainConnection.Username);
+            Application.OpenURL(uriString);
         }
 
         private void SignOut(object obj)
@@ -497,7 +500,7 @@ namespace GitHub.Unity
                 host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
             }
 
-            var apiClient = ApiClient.Create(host, Platform.Keychain, null, null, NPath.Default, NPath.Default);
+            var apiClient = new ApiClient(host, Platform.Keychain, null, null, NPath.Default, NPath.Default);
             apiClient.Logout(host);
         }
 

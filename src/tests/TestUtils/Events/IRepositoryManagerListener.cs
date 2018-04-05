@@ -6,6 +6,7 @@ using GitHub.Unity;
 using NSubstitute;
 using GitHub.Logging;
 using NUnit.Framework;
+using System.Threading.Tasks;
 
 namespace TestUtils.Events
 {
@@ -23,33 +24,48 @@ namespace TestUtils.Events
 
     class RepositoryManagerEvents
     {
-        public EventWaitHandle IsBusy { get; } = new AutoResetEvent(false);
-        public EventWaitHandle IsNotBusy { get; } = new AutoResetEvent(false);
-        public EventWaitHandle CurrentBranchUpdated { get; } = new AutoResetEvent(false);
-        public EventWaitHandle GitAheadBehindStatusUpdated { get; } = new AutoResetEvent(false);
-        public EventWaitHandle GitStatusUpdated { get; } = new AutoResetEvent(false);
-        public EventWaitHandle GitLocksUpdated { get; } = new AutoResetEvent(false);
-        public EventWaitHandle GitLogUpdated { get; } = new AutoResetEvent(false);
-        public EventWaitHandle LocalBranchesUpdated { get; } = new AutoResetEvent(false);
-        public EventWaitHandle RemoteBranchesUpdated { get; } = new AutoResetEvent(false);
+        internal TaskCompletionSource<object> isBusy;
+        public Task IsBusy => isBusy.Task;
+        internal TaskCompletionSource<object> isNotBusy;
+        public Task IsNotBusy => isNotBusy.Task;
+        internal TaskCompletionSource<object> currentBranchUpdated;
+        public Task CurrentBranchUpdated => currentBranchUpdated.Task;
+        internal TaskCompletionSource<object> gitAheadBehindStatusUpdated;
+        public Task GitAheadBehindStatusUpdated => gitAheadBehindStatusUpdated.Task;
+        internal TaskCompletionSource<object> gitStatusUpdated;
+        public Task GitStatusUpdated => gitStatusUpdated.Task;
+        internal TaskCompletionSource<object> gitLocksUpdated;
+        public Task GitLocksUpdated => gitLocksUpdated.Task;
+        internal TaskCompletionSource<object> gitLogUpdated;
+        public Task GitLogUpdated => gitLogUpdated.Task;
+        internal TaskCompletionSource<object> localBranchesUpdated;
+        public Task LocalBranchesUpdated => localBranchesUpdated.Task;
+        internal TaskCompletionSource<object> remoteBranchesUpdated;
+        public Task RemoteBranchesUpdated => remoteBranchesUpdated.Task;
+
+
+        public RepositoryManagerEvents()
+        {
+            Reset();
+        }
 
         public void Reset()
         {
-            IsBusy.Reset();
-            IsNotBusy.Reset();
-            CurrentBranchUpdated.Reset();
-            GitAheadBehindStatusUpdated.Reset();
-            GitStatusUpdated.Reset();
-            GitLocksUpdated.Reset();
-            GitLogUpdated.Reset();
-            LocalBranchesUpdated.Reset();
-            RemoteBranchesUpdated.Reset();
+            isBusy = new TaskCompletionSource<object>();
+            isNotBusy = new TaskCompletionSource<object>();
+            currentBranchUpdated = new TaskCompletionSource<object>();
+            gitAheadBehindStatusUpdated = new TaskCompletionSource<object>();
+            gitStatusUpdated = new TaskCompletionSource<object>();
+            gitLocksUpdated = new TaskCompletionSource<object>();
+            gitLogUpdated = new TaskCompletionSource<object>();
+            localBranchesUpdated = new TaskCompletionSource<object>();
+            remoteBranchesUpdated = new TaskCompletionSource<object>();
         }
 
-        public void WaitForNotBusy(int seconds = 1)
+        public async Task WaitForNotBusy(int seconds = 1)
         {
-            IsBusy.WaitOne(TimeSpan.FromSeconds(seconds));
-            IsNotBusy.WaitOne(TimeSpan.FromSeconds(seconds));
+            await TaskEx.WhenAny(IsBusy, TaskEx.Delay(TimeSpan.FromSeconds(seconds)));
+            await TaskEx.WhenAny(IsNotBusy, TaskEx.Delay(TimeSpan.FromSeconds(seconds)));
         }
     }
 
@@ -64,51 +80,51 @@ namespace TestUtils.Events
                 logger?.Trace("OnIsBusyChanged: {0}", isBusy);
                 listener.OnIsBusyChanged(isBusy);
                 if (isBusy)
-                    managerEvents?.IsBusy.Set();
+                    managerEvents?.isBusy.TrySetResult(true);
                 else
-                    managerEvents?.IsNotBusy.Set();
+                    managerEvents?.isNotBusy.TrySetResult(true);
             };
 
             repositoryManager.CurrentBranchUpdated += (configBranch, configRemote) => {
                 logger?.Trace("CurrentBranchUpdated");
                 listener.CurrentBranchUpdated(configBranch, configRemote);
-                managerEvents?.CurrentBranchUpdated.Set();
+                managerEvents?.currentBranchUpdated.TrySetResult(true);
             };
 
             repositoryManager.GitLocksUpdated += gitLocks => {
                 logger?.Trace("GitLocksUpdated");
                 listener.GitLocksUpdated(gitLocks);
-                managerEvents?.GitLocksUpdated.Set();
+                managerEvents?.gitLocksUpdated.TrySetResult(true);
             };
 
             repositoryManager.GitAheadBehindStatusUpdated += gitAheadBehindStatus => {
                 logger?.Trace("GitAheadBehindStatusUpdated");
                 listener.GitAheadBehindStatusUpdated(gitAheadBehindStatus);
-                managerEvents?.GitAheadBehindStatusUpdated.Set();
+                managerEvents?.gitAheadBehindStatusUpdated.TrySetResult(true);
             };
 
             repositoryManager.GitStatusUpdated += gitStatus => {
                 logger?.Trace("GitStatusUpdated");
                 listener.GitStatusUpdated(gitStatus);
-                managerEvents?.GitStatusUpdated.Set();
+                managerEvents?.gitStatusUpdated.TrySetResult(true);
             };
 
             repositoryManager.GitLogUpdated += gitLogEntries => {
                 logger?.Trace("GitLogUpdated");
                 listener.GitLogUpdated(gitLogEntries);
-                managerEvents?.GitLogUpdated.Set();
+                managerEvents?.gitLogUpdated.TrySetResult(true);
             };
 
             repositoryManager.LocalBranchesUpdated += branchList => {
                 logger?.Trace("LocalBranchesUpdated");
                 listener.LocalBranchesUpdated(branchList);
-                managerEvents?.LocalBranchesUpdated.Set();
+                managerEvents?.localBranchesUpdated.TrySetResult(true);
             };
 
             repositoryManager.RemoteBranchesUpdated += (remotesList, branchList) => {
                 logger?.Trace("RemoteBranchesUpdated");
                 listener.RemoteBranchesUpdated(remotesList, branchList);
-                managerEvents?.RemoteBranchesUpdated.Set();
+                managerEvents?.remoteBranchesUpdated.TrySetResult(true);
             };
         }
 

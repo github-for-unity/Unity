@@ -13,6 +13,7 @@ namespace GitHub.Unity
         private static bool? onMac;
 
         private NPath gitExecutablePath;
+        private NPath gitLfsExecutablePath;
         private NPath nodeJsExecutablePath;
         private NPath octorunScriptPath;
 
@@ -132,7 +133,8 @@ namespace GitHub.Unity
         public NPath ExtensionInstallPath { get; set; }
         public NPath UserCachePath { get; set; }
         public NPath SystemCachePath { get; set; }
-        public NPath Path => Environment.GetEnvironmentVariable("PATH").ToNPath();
+        public string Path { get; set; } = Environment.GetEnvironmentVariable("PATH");
+
         public string NewLine => Environment.NewLine;
         public NPath OctorunScriptPath
         {
@@ -147,6 +149,9 @@ namespace GitHub.Unity
                 octorunScriptPath = value;
             }
         }
+
+        public bool IsCustomGitExecutable { get; set; }
+
         public NPath GitExecutablePath
         {
             get { return gitExecutablePath; }
@@ -159,6 +164,17 @@ namespace GitHub.Unity
                     GitInstallPath = GitExecutablePath.Resolve().Parent.Parent;
             }
         }
+
+        public NPath GitLfsExecutablePath
+        {
+            get { return gitLfsExecutablePath; }
+            set
+            {
+                gitLfsExecutablePath = value;
+                GitLfsInstallPath = gitLfsExecutablePath.IsInitialized ? gitLfsExecutablePath.Parent : NPath.Default;
+            }
+        }
+
         public NPath NodeJsExecutablePath
         {
             get
@@ -173,6 +189,7 @@ namespace GitHub.Unity
             }
         }
         public NPath GitInstallPath { get; private set; }
+        public NPath GitLfsInstallPath { get; private set; }
         public NPath RepositoryPath { get; private set; }
         public ICacheContainer CacheContainer { get; private set; }
         public IRepository Repository { get; set; }

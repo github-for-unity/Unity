@@ -9,7 +9,7 @@ namespace GitHub.Unity
 {
     public interface IGitClient
     {
-        ITask<ValidateGitInstallResult> ValidateGitInstall(NPath path);
+        ITask<ValidateGitInstallResult> ValidateGitInstall(NPath path, bool isCustomGit);
 
         ITask Init(IOutputProcessor<string> processor = null);
 
@@ -110,28 +110,31 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
         }
 
-        public ITask<ValidateGitInstallResult> ValidateGitInstall(NPath path)
+        public ITask<ValidateGitInstallResult> ValidateGitInstall(NPath path, bool isCustomGit)
         {
-            if (!path.FileExists())
-            {
-                return new FuncTask<ValidateGitInstallResult>(TaskEx.FromResult(new ValidateGitInstallResult(false, null, null)));
-            }
-
             Version gitVersion = null;
             Version gitLfsVersion = null;
 
-            var gitVersionTask = new GitVersionTask(cancellationToken).Configure(processManager, path);
-            var gitLfsVersionTask = new GitLfsVersionTask(cancellationToken).Configure(processManager, path);
-
-            return gitVersionTask
-                .Then((result, version) => gitVersion = version)
-                .Then(gitLfsVersionTask)
-                .Then((result, version) => gitLfsVersion = version)
-                .Then(success => new ValidateGitInstallResult(success &&
+            var endTask = new FuncTask<ValidateGitInstallResult>(cancellationToken,
+                () => new ValidateGitInstallResult(
                     gitVersion?.CompareTo(Constants.MinimumGitVersion) >= 0 &&
                     gitLfsVersion?.CompareTo(Constants.MinimumGitLfsVersion) >= 0,
-                    gitVersion, gitLfsVersion)
-                );
+                    gitVersion, gitLfsVersion));
+
+            if (path.FileExists())
+            {
+                var gitLfsVersionTask = new GitLfsVersionTask(cancellationToken)
+                    .Configure(processManager, path, dontSetupGit: isCustomGit);
+                gitLfsVersionTask.OnEnd += (t, v, _, __) => gitLfsVersion = v;
+                var gitVersionTask = new GitVersionTask(cancellationToken)
+                    .Configure(processManager, path, dontSetupGit: isCustomGit);
+                gitVersionTask.OnEnd += (t, v, _, __) => gitVersion = v;
+
+                gitVersionTask
+                    .Then(gitLfsVersionTask)
+                    .Finally(endTask);
+            }
+            return endTask;
         }
 
         public ITask Init(IOutputProcessor<string> processor = null)
@@ -273,7 +276,7 @@ namespace GitHub.Unity
         {
             //Logger.Trace("Fetch");
 
-            return new GitFetchTask(remote, cancellationToken, processor)
+            return new GitFetchTask(remote, cancellationToken, true, processor)
                 .Configure(processManager);
         }
 
