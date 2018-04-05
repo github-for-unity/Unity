@@ -164,7 +164,7 @@ namespace GitHub.Unity
                     break;
                 }
 
-                //Logger.Trace(fileEvent.Describe());
+                Logger.Trace(fileEvent.Describe());
 
                 var eventDirectory = new NPath(fileEvent.Directory);
                 var fileA = eventDirectory.Combine(fileEvent.FileA);

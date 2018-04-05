@@ -14,7 +14,8 @@ using GitHub.Logging;
 
 namespace IntegrationTests
 {
-    [TestFixture /*, Category("DoNotRunOnAppVeyor") */]
+    //[TestFixture, Category("DoNotRunOnAppVeyor")]
+    [TestFixture, Category("RunOnAppVeyor")]
     class RepositoryManagerTests : BaseGitEnvironmentTest
     {
         private RepositoryManagerEvents repositoryManagerEvents;

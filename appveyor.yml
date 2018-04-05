@@ -54,8 +54,7 @@ build:
   verbosity: minimal
 test:
   categories:
-    except:
-    - DoNotRunOnAppVeyor
+    - RunOnAppVeyor
 artifacts:
 - path: unity\PackageProject
   type: zip
