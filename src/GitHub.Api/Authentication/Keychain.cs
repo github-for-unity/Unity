@@ -12,6 +12,7 @@ namespace GitHub.Unity
     {
         public string Host { get; set; }
         public string Username { get; set; }
+        [NonSerialized] internal GitHubUser User;
 
         // for json serialization
         public Connection()
@@ -99,7 +100,7 @@ namespace GitHub.Unity
 
         public async Task<IKeychainAdapter> Load(UriString host)
         {
-            KeychainAdapter keychainAdapter = FindOrCreateAdapter(host);
+            var keychainAdapter = FindOrCreateAdapter(host);
             var connection = GetConnection(host);
 
             //logger.Trace($@"Loading KeychainAdapter Host:""{host}"" Cached Username:""{cachedConnection.Username}""");
@@ -109,6 +110,7 @@ namespace GitHub.Unity
             {
                 logger.Warning("Cannot load host from Credential Manager; removing from cache");
                 await Clear(host, false);
+                keychainAdapter = null;
             }
             else
             {
@@ -323,6 +325,5 @@ namespace GitHub.Unity
         public Connection[] Connections => connections.Values.ToArray();
         public IList<UriString> Hosts => connections.Keys.ToArray();
         public bool HasKeys => connections.Any();
-        public bool NeedsLoad => HasKeys && !string.IsNullOrEmpty(FindOrCreateAdapter(connections.First().Value.Host).Credential.Token);
     }
 }

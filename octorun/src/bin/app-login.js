@@ -13,15 +13,12 @@ var handleAuthentication = function (username, password, twoFactor) {
     authentication.handleAuthentication(username, password, function (token, status) {
         if (status) {
             output.custom(status, token);
-            process.exit();
         }
         else {
             output.success(token);
-            process.exit();
         }
     }, function (error) {
         output.error(error);
-        process.exit();
     }, twoFactor);
 }
 
@@ -41,7 +38,6 @@ if (commander.twoFactor) {
         }
         catch (error) {
             output.error(error);
-            process.exit();
         }
     }
     else {
@@ -108,7 +104,6 @@ else {
             }
             catch (error) {
                 output.error(error);
-                process.exit();
             }
         });
     }

@@ -480,174 +480,34 @@ namespace GitHub.Unity
         public BranchesCache() : base(CacheType.Branches)
         { }
 
-        public GitBranch[] LocalBranches
-        {
-            get { return localBranches; }
-            set
-            {
-                var now = DateTimeOffset.Now;
-                var isUpdated = false;
-
-                Logger.Trace("Updating: {0} localBranches:{1}", now, value);
-
-                var localBranchesIsNull = localBranches == null;
-                var valueIsNull = value == null;
-
-                if (localBranchesIsNull != valueIsNull ||
-                    !localBranchesIsNull && !localBranches.SequenceEqual(value))
-                {
-                    localBranches = value;
-                    isUpdated = true;
-                }
-
-                SaveData(now, isUpdated);
-            }
-        }
-
-        public GitBranch[] RemoteBranches
-        {
-            get { return remoteBranches; }
-            set
-            {
-                var now = DateTimeOffset.Now;
-                var isUpdated = false;
-
-                Logger.Trace("Updating: {0} remoteBranches:{1}", now, value);
-
-                var remoteBranchesIsNull = remoteBranches == null;
-                var valueIsNull = value == null;
-
-                if (remoteBranchesIsNull != valueIsNull ||
-                    !remoteBranchesIsNull && !remoteBranches.SequenceEqual(value))
-                {
-                    remoteBranches = value;
-                    isUpdated = true;
-                }
-
-                SaveData(now, isUpdated);
-            }
-        }
-
-        public GitRemote[] Remotes
-        {
-            get { return remotes; }
-            set
-            {
-                var now = DateTimeOffset.Now;
-                var isUpdated = false;
-
-                Logger.Trace("Updating: {0} remotes:{1}", now, value);
-
-                var remotesIsNull = remotes == null;
-                var valueIsNull = value == null;
-
-                if (remotesIsNull != valueIsNull ||
-                    !remotesIsNull && !remotes.SequenceEqual(value))
-                {
-                    remotes = value;
-                    isUpdated = true;
-                }
-
-                SaveData(now, isUpdated);
-            }
-        }
-
-        public void RemoveLocalBranch(string branch)
-        {
-            if (LocalConfigBranches.ContainsKey(branch))
-            {
-                var now = DateTimeOffset.Now;
-                LocalConfigBranches.Remove(branch);
-                Logger.Trace("RemoveLocalBranch {0} branch:{1} ", now, branch);
-                SaveData(now, true);
-            }
-            else
-            {
-                Logger.Warning("Branch {0} is not found", branch);
-            }
-        }
-
-        public void AddLocalBranch(string branch)
-        {
-            if (!LocalConfigBranches.ContainsKey(branch))
-            {
-                var now = DateTimeOffset.Now;
-                LocalConfigBranches.Add(branch, new ConfigBranch(branch));
-                Logger.Trace("AddLocalBranch {0} branch:{1} ", now, branch);
-                SaveData(now, true);
-            }
-            else
-            {
-                Logger.Warning("Branch {0} is already present", branch);
-            }
-        }
-
-        public void AddRemoteBranch(string remote, string branch)
-        {
-            Dictionary<string, ConfigBranch> branchList;
-            if (RemoteConfigBranches.TryGetValue(remote, out branchList))
-            {
-                if (!branchList.ContainsKey(branch))
-                {
-                    var now = DateTimeOffset.Now;
-                    branchList.Add(branch, new ConfigBranch(branch, ConfigRemotes[remote]));
-                    Logger.Trace("AddRemoteBranch {0} remote:{1} branch:{2} ", now, remote, branch);
-                    SaveData(now, true);
-                }
-                else
-                {
-                    Logger.Warning("Branch {0} is already present in Remote {1}", branch, remote);
-                }
-            }
-            else
-            {
-                Logger.Warning("Remote {0} is not found", remote);
-            }
-        }
-
-        public void RemoveRemoteBranch(string remote, string branch)
-        {
-            Dictionary<string, ConfigBranch> branchList;
-            if (RemoteConfigBranches.TryGetValue(remote, out branchList))
-            {
-                if (branchList.ContainsKey(branch))
-                {
-                    var now = DateTimeOffset.Now;
-                    branchList.Remove(branch);
-                    Logger.Trace("RemoveRemoteBranch {0} remote:{1} branch:{2} ", now, remote, branch);
-                    SaveData(now, true);
-                }
-                else
-                {
-                    Logger.Warning("Branch {0} is not found in Remote {1}", branch, remote);
-                }
-            }
-            else
-            {
-                Logger.Warning("Remote {0} is not found", remote);
-            }
-        }
-
-        public void SetRemotes(Dictionary<string, ConfigRemote> remoteDictionary, Dictionary<string, Dictionary<string, ConfigBranch>> branchDictionary)
+        public void SetRemotes(Dictionary<string, ConfigRemote> remoteConfigs, Dictionary<string, Dictionary<string, ConfigBranch>> configBranches, GitRemote[] gitRemotes, GitBranch[] gitBranches)
         {
             var now = DateTimeOffset.Now;
-            configRemotes = new ConfigRemoteDictionary(remoteDictionary);
-            remoteConfigBranches = new RemoteConfigBranchDictionary(branchDictionary);
+            configRemotes = new ConfigRemoteDictionary(remoteConfigs);
+            remoteConfigBranches = new RemoteConfigBranchDictionary(configBranches);
+            remotes = gitRemotes;
+            remoteBranches = gitBranches;
+
             Logger.Trace("SetRemotes {0}", now);
             SaveData(now, true);
         }
 
-        public void SetLocals(Dictionary<string, ConfigBranch> branchDictionary)
+        public void SetLocals(Dictionary<string, ConfigBranch> configBranches, GitBranch[] gitBranches)
         {
             var now = DateTimeOffset.Now;
-            localConfigBranches = new LocalConfigBranchDictionary(branchDictionary);
-            Logger.Trace("SetRemotes {0}", now);
+            localConfigBranches = new LocalConfigBranchDictionary(configBranches);
+            localBranches = gitBranches;
+
+            Logger.Trace("SetLocals {0}", now);
             SaveData(now, true);
         }
 
         public ILocalConfigBranchDictionary LocalConfigBranches { get { return localConfigBranches; } }
         public IRemoteConfigBranchDictionary RemoteConfigBranches { get { return remoteConfigBranches; } }
         public IConfigRemoteDictionary ConfigRemotes { get { return configRemotes; } }
+        public GitBranch[] LocalBranches { get { return localBranches; } }
+        public GitBranch[] RemoteBranches { get { return remoteBranches; } }
+        public GitRemote[] Remotes { get { return remotes; } }
         public override TimeSpan DataTimeout { get { return TimeSpan.FromDays(1); } }
     }
 
@@ -671,7 +531,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} gitLog:{1}", now, value);
+                Logger.Trace("{0} Updating Log: current:{1} new:{2}", now, log.Count, value.Count);
 
                 if (!log.SequenceEqual(value))
                 {
@@ -707,8 +567,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} ahead:{1}", now, value);
-
+                Logger.Trace("{0} Updating Ahead: current:{1} new:{2}", now, ahead, value);
                 if (ahead != value)
                 {
                     ahead = value;
@@ -731,7 +590,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} behind:{1}", now, value);
+                Logger.Trace("{0} Updating Behind: current:{1} new:{2}", now, behind, value);
 
                 if (behind != value)
                 {
@@ -766,7 +625,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} entries:{1}", now, value.Count);
+                Logger.Trace("{0} Updating Entries: current:{1} new:{2}", now, entries.Count, value.Count);
 
                 if (!entries.SequenceEqual(value))
                 {
@@ -801,7 +660,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} gitLocks:{1}", now, value);
+                Logger.Trace("{0} Updating GitLocks: current:{1} new:{2}", now, gitLocks.Count, value.Count);
 
                 if (!gitLocks.SequenceEqual(value))
                 {
@@ -837,7 +696,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} Name:{1}", now, value);
+                Logger.Trace("{0} Updating Name: current:{1} new:{2}", now, gitName, value);
 
                 if (gitName != value)
                 {
@@ -861,7 +720,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("Updating: {0} Email:{1}", now, value);
+                Logger.Trace("{0} Updating Email: current:{1} new:{2}", now, gitEmail, value);
 
                 if (gitEmail != value)
                 {

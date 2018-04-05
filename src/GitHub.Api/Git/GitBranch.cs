@@ -9,15 +9,13 @@ namespace GitHub.Unity
 
         public string name;
         public string tracking;
-        public bool isActive;
 
-        public GitBranch(string name, string tracking, bool active)
+        public GitBranch(string name, string tracking)
         {
             Guard.ArgumentNotNullOrWhiteSpace(name, "name");
 
             this.name = name;
             this.tracking = tracking;
-            this.isActive = active;
         }
 
         public override int GetHashCode()
@@ -25,7 +23,6 @@ namespace GitHub.Unity
             int hash = 17;
             hash = hash * 23 + (name?.GetHashCode() ?? 0);
             hash = hash * 23 + (tracking?.GetHashCode() ?? 0);
-            hash = hash * 23 + isActive.GetHashCode();
             return hash;
         }
 
@@ -40,8 +37,7 @@ namespace GitHub.Unity
         {
             return
                 String.Equals(name, other.name) &&
-                String.Equals(tracking, other.tracking) &&
-                isActive == other.isActive;
+                String.Equals(tracking, other.tracking);
         }
 
         public static bool operator ==(GitBranch lhs, GitBranch rhs)
@@ -65,11 +61,10 @@ namespace GitHub.Unity
 
         public string Name => name;
         public string Tracking => tracking;
-        public bool IsActive => isActive;
 
         public override string ToString()
         {
-            return $"{Name} Tracking? {Tracking} Active? {IsActive}";
+            return $"{Name} Tracking? {Tracking}";
         }
     }
 }

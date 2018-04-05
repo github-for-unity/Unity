@@ -79,17 +79,20 @@ namespace GitHub.Unity
 
         public string name;
         public ConfigRemote remote;
+        public string trackingBranch;
 
         public ConfigBranch(string name)
         {
             this.name = name;
+            this.trackingBranch = null;
             remote = ConfigRemote.Default;
         }
 
-        public ConfigBranch(string name, ConfigRemote? remote)
+        public ConfigBranch(string name, ConfigRemote? remote, string trackingBranch)
         {
             this.name = name;
             this.remote = remote ?? ConfigRemote.Default;
+            this.trackingBranch = trackingBranch != null && trackingBranch.StartsWith("refs/heads") ? trackingBranch.Substring("refs/heads".Length + 1) : null;
         }
 
         public override int GetHashCode()
@@ -137,6 +140,7 @@ namespace GitHub.Unity
         public bool IsTracking => Remote.HasValue;
 
         public string Name => name;
+        public string TrackingBranch => trackingBranch;
 
         public ConfigRemote? Remote => Equals(remote, ConfigRemote.Default) ? (ConfigRemote?) null : remote;
 
@@ -189,7 +193,7 @@ namespace GitHub.Unity
             return groups
                 .Where(x => x.Key == "branch")
                 .SelectMany(x => x.Value)
-                .Select(x => new ConfigBranch(x.Key, GetRemote(x.Value.TryGetString("remote"))));
+                .Select(x => new ConfigBranch(x.Key, GetRemote(x.Value.TryGetString("remote")), x.Value.TryGetString("merge")));
         }
 
         public IEnumerable<ConfigRemote> GetRemotes()
@@ -217,7 +221,7 @@ namespace GitHub.Unity
                 .Where(x => x.Key == "branch")
                 .SelectMany(x => x.Value)
                 .Where(x => x.Key == branch)
-                .Select(x => new ConfigBranch(x.Key,GetRemote(x.Value.TryGetString("remote"))) as ConfigBranch?)
+                .Select(x => new ConfigBranch(x.Key, GetRemote(x.Value.TryGetString("remote")), x.Value.TryGetString("merge")) as ConfigBranch?)
                 .FirstOrDefault();
         }
 

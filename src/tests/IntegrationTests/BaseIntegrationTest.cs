@@ -8,6 +8,7 @@ using GitHub.Logging;
 using System.Linq;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
@@ -80,11 +81,14 @@ namespace IntegrationTests
                 initializeRepository);
         }
 
-        private void InitializePlatform(NPath repoPath, NPath? environmentPath, bool enableEnvironmentTrace,
-            bool setupGit = true, string testName = "")
+        protected void InitializePlatform(NPath repoPath, NPath? environmentPath = null,
+            bool enableEnvironmentTrace = true,
+            bool setupGit = true,
+            string testName = "",
+            bool initializeRepository = true)
         {
             InitializeTaskManager();
-            InitializeEnvironment(repoPath, environmentPath, enableEnvironmentTrace, true);
+            InitializeEnvironment(repoPath, environmentPath, enableEnvironmentTrace, initializeRepository);
 
             Platform = new Platform(Environment);
             ProcessManager = new ProcessManager(Environment, GitEnvironment, TaskManager.Token);
@@ -141,7 +145,7 @@ namespace IntegrationTests
         {
             var autoResetEvent = new AutoResetEvent(false);
 
-            var installDetails = new GitInstaller.GitInstallDetails(pathToSetupGitInto, true);
+            var installDetails = new GitInstaller.GitInstallDetails(pathToSetupGitInto, Environment.IsWindows);
 
             var zipArchivesPath = pathToSetupGitInto.Combine("downloads").CreateDirectory();
 
@@ -157,16 +161,13 @@ namespace IntegrationTests
             NPath? result = null;
             Exception ex = null;
 
-            var setupTask = gitInstaller.SetupGitIfNeeded();
-            setupTask.OnEnd += (thisTask, _, __, ___) => {
-                ((ITask<NPath>)thisTask.GetEndOfChain()).OnEnd += (t, path, success, exception) =>
+            var setupTask = gitInstaller.SetupGitIfNeeded().Finally((success, state) =>
                 {
-                    result = path;
-                    ex = exception;
+                    result = state.GitExecutablePath;
                     autoResetEvent.Set();
-                };
-            };
+                });
             setupTask.Start();
+
             if (!autoResetEvent.WaitOne(TimeSpan.FromMinutes(5)))
                 throw new TimeoutException($"Test setup unzipping {zipArchivesPath} to {pathToSetupGitInto} timed out");
 
@@ -216,6 +217,13 @@ namespace IntegrationTests
         {
             TaskManager.Dispose();
             Environment?.CacheContainer.Dispose();
+            BranchesCache.Instance = null;
+            GitAheadBehindCache.Instance = null;
+            GitLocksCache.Instance = null;
+            GitLogCache.Instance = null;
+            GitStatusCache.Instance = null;
+            GitUserCache.Instance = null;
+            RepositoryInfoCache.Instance = null;
 
             Logger.Debug("Deleting TestBasePath: {0}", TestBasePath.ToString());
             for (var i = 0; i < 5; i++)

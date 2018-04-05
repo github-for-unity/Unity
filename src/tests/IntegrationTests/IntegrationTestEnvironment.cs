@@ -84,9 +84,12 @@ namespace IntegrationTests
 
         public string UserProfilePath => UserCachePath.Parent.CreateDirectory("user profile path");
 
-        public NPath Path => Environment.GetEnvironmentVariable("PATH").ToNPath();
+        public string Path { get; set; } = Environment.GetEnvironmentVariable("PATH").ToNPath();
+
         public string NewLine => Environment.NewLine;
         public string UnityVersion => "5.6";
+
+        public bool IsCustomGitExecutable { get; set; }
 
         public NPath GitExecutablePath
         {
@@ -126,6 +129,8 @@ namespace IntegrationTests
         public NPath RepositoryPath => defaultEnvironment.RepositoryPath;
 
         public NPath GitInstallPath => defaultEnvironment.GitInstallPath;
+        public NPath GitLfsInstallPath => defaultEnvironment.GitLfsInstallPath;
+        public NPath GitLfsExecutablePath { get { return defaultEnvironment.GitLfsExecutablePath; } set { defaultEnvironment.GitLfsExecutablePath = value; } }
 
         public IRepository Repository { get { return defaultEnvironment.Repository; } set { defaultEnvironment.Repository = value; } }
         public IUser User { get { return defaultEnvironment.User; } set { defaultEnvironment.User = value; } }
