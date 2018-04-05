@@ -52,7 +52,7 @@ namespace GitHub.Unity
                         host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
                     }
 
-                    client = ApiClient.Create(host, Platform.Keychain, Manager.ProcessManager, TaskManager, Environment.NodeJsExecutablePath, Environment.OctorunScriptPath);
+                    client = new ApiClient(host, Platform.Keychain, Manager.ProcessManager, TaskManager, Environment.NodeJsExecutablePath, Environment.OctorunScriptPath);
                 }
 
                 return client;
@@ -182,10 +182,11 @@ namespace GitHub.Unity
 
                             Logger.Trace("Repository Created");
 
-                            GitClient.RemoteAdd("origin", repository.CloneUrl)
-                                     .Then(GitClient.Push("origin", Repository.CurrentBranch.Value.Name))
-                                     .ThenInUI(Finish)
-                                     .Start();
+                            Repository.RemoteAdd("origin", repository.CloneUrl)
+                                .Then(Repository.Push("origin"))
+                                .ThenInUI(Finish)
+                                .Start();
+
                         }, organization);
                     }
                     EditorGUI.EndDisabledGroup();

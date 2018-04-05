@@ -70,14 +70,14 @@ namespace GitHub.Unity
             };
         }
 
-        public void Initialize(IRepositoryManager repositoryManager, ITaskManager taskManager)
+        public void Initialize(IRepositoryManager theRepositoryManager, ITaskManager theTaskManager)
         {
             //Logger.Trace("Initialize");
-            Guard.ArgumentNotNull(repositoryManager, nameof(repositoryManager));
-            Guard.ArgumentNotNull(taskManager, nameof(taskManager));
+            Guard.ArgumentNotNull(theRepositoryManager, nameof(theRepositoryManager));
+            Guard.ArgumentNotNull(theTaskManager, nameof(theTaskManager));
 
-            this.taskManager = taskManager;
-            this.repositoryManager = repositoryManager;
+            this.taskManager = theTaskManager;
+            this.repositoryManager = theRepositoryManager;
             this.repositoryManager.CurrentBranchUpdated += RepositoryManagerOnCurrentBranchUpdated;
             this.repositoryManager.GitStatusUpdated += RepositoryManagerOnGitStatusUpdated;
             this.repositoryManager.GitAheadBehindStatusUpdated += RepositoryManagerOnGitAheadBehindStatusUpdated;
@@ -113,12 +113,15 @@ namespace GitHub.Unity
         public ITask CommitAllFiles(string message, string body) => repositoryManager.CommitAllFiles(message, body);
         public ITask CommitFiles(List<string> files, string message, string body) => repositoryManager.CommitFiles(files, message, body);
         public ITask Pull() => repositoryManager.Pull(CurrentRemote.Value.Name, CurrentBranch?.Name);
+        public ITask Push(string remote) => repositoryManager.Push(remote, CurrentBranch?.Name);
         public ITask Push() => repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch?.Name);
         public ITask Fetch() => repositoryManager.Fetch(CurrentRemote.Value.Name);
         public ITask Revert(string changeset) => repositoryManager.Revert(changeset);
         public ITask RequestLock(string file) => repositoryManager.LockFile(file);
         public ITask ReleaseLock(string file, bool force) => repositoryManager.UnlockFile(file, force);
         public ITask DiscardChanges(GitStatusEntry[] gitStatusEntry) => repositoryManager.DiscardChanges(gitStatusEntry);
+        public ITask RemoteAdd(string remote, string url) => repositoryManager.RemoteAdd(remote, url);
+        public ITask RemoteRemove(string remote) => repositoryManager.RemoteRemove(remote);
 
         public void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent) => cacheContainer.CheckAndRaiseEventsIfCacheNewer(cacheType, cacheUpdateEvent);
 
@@ -176,7 +179,6 @@ namespace GitHub.Unity
                 return;
             }
 
-            Logger.Trace($"CacheInvalidated {cacheType.ToString()}");
             switch (cacheType)
             {
                 case CacheType.Branches:
@@ -225,11 +227,9 @@ namespace GitHub.Unity
                 name = null;
                 cloneUrl = null;
                 cacheContainer.RepositoryInfoCache.UpdateData(data);
-                var n = Name; // force refresh of the Name and CloneUrl property
-                // update active state in local branches
-                cacheContainer.BranchCache.LocalBranches = LocalConfigBranches;
-                // update tracking state in remote branches
-                cacheContainer.BranchCache.RemoteBranches = RemoteConfigBranches;
+               
+                // force refresh of the Name and CloneUrl propertys
+                var n = Name;
             });
         }
 
@@ -262,21 +262,22 @@ namespace GitHub.Unity
             taskManager.RunInUI(() => cacheContainer.GitLocksCache.GitLocks = gitLocks);
         }
 
-        private void RepositoryManagerOnRemoteBranchesUpdated(Dictionary<string, ConfigRemote> remotes,
-            Dictionary<string, Dictionary<string, ConfigBranch>> branches)
+        private void RepositoryManagerOnRemoteBranchesUpdated(Dictionary<string, ConfigRemote> remoteConfigs,
+            Dictionary<string, Dictionary<string, ConfigBranch>> remoteConfigBranches)
         {
             taskManager.RunInUI(() => {
-                cacheContainer.BranchCache.SetRemotes(remotes, branches);
-                cacheContainer.BranchCache.Remotes = ConfigRemotes;
-                cacheContainer.BranchCache.RemoteBranches = RemoteConfigBranches;
+                var gitRemotes = remoteConfigs.Values.Select(GetGitRemote).ToArray();
+                var gitRemoteBranches = remoteConfigBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch).ToArray();
+
+                cacheContainer.BranchCache.SetRemotes(remoteConfigs, remoteConfigBranches, gitRemotes, gitRemoteBranches);
             });
         }
 
-        private void RepositoryManagerOnLocalBranchesUpdated(Dictionary<string, ConfigBranch> branches)
+        private void RepositoryManagerOnLocalBranchesUpdated(Dictionary<string, ConfigBranch> localConfigBranchDictionary)
         {
             taskManager.RunInUI(() => {
-                cacheContainer.BranchCache.SetLocals(branches);
-                cacheContainer.BranchCache.LocalBranches = LocalConfigBranches;
+                var gitLocalBranches = localConfigBranchDictionary.Values.Select(x => GetLocalGitBranch(CurrentBranchName, x)).ToArray();
+                cacheContainer.BranchCache.SetLocals(localConfigBranchDictionary, gitLocalBranches);
             });
         }
 
@@ -285,7 +286,7 @@ namespace GitHub.Unity
             var branchName = x.Name;
             var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + branchName : "[None]";
             var isActive = branchName == currentBranchName;
-            return new GitBranch(branchName, trackingName, isActive);
+            return new GitBranch(branchName, trackingName);
         }
 
 
@@ -307,7 +308,7 @@ namespace GitHub.Unity
         }
 
 
-        private static GitBranch GetRemoteGitBranch(ConfigBranch x) => new GitBranch(x.Remote.Value.Name + "/" + x.Name, "[None]", false);
+        private static GitBranch GetRemoteGitBranch(ConfigBranch x) => new GitBranch(x.Remote.Value.Name + "/" + x.Name, "[None]");
         private static GitRemote GetGitRemote(ConfigRemote configRemote) => new GitRemote(configRemote.Name, configRemote.Url);
 
         public GitRemote[] Remotes => cacheContainer.BranchCache.Remotes;
@@ -373,10 +374,6 @@ namespace GitHub.Unity
         internal string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture,
             "{0} Owner: {1} Name: {2} CloneUrl: {3} LocalPath: {4} Branch: {5} Remote: {6}", GetHashCode(), Owner, Name,
             CloneUrl, LocalPath, CurrentBranch, CurrentRemote);
-
-        private GitBranch[] RemoteConfigBranches => cacheContainer.BranchCache.RemoteConfigBranches.Values.SelectMany(x => x.Values).Select(GetRemoteGitBranch).ToArray();
-        private GitRemote[] ConfigRemotes => cacheContainer.BranchCache.ConfigRemotes.Values.Select(GetGitRemote).ToArray();
-        private GitBranch[] LocalConfigBranches => cacheContainer.BranchCache.LocalConfigBranches.Values.Select(x => GetLocalGitBranch(CurrentBranchName, x)).ToArray();
     }
 
     public interface IUser

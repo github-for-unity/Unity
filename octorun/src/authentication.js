@@ -2,9 +2,7 @@ var endOfLine = require('os').EOL;
 var config = require("./configuration");
 var octokitWrapper = require("./octokit");
 
-var lockedRegex = new RegExp("number of login attempts exceeded", "gi");
 var twoFactorRegex = new RegExp("must specify two-factor authentication otp code", "gi");
-var badCredentialsRegex = new RegExp("bad credentials", "gi");
 
 var scopes = ["user", "repo", "gist", "write:public_key"];
 
@@ -47,12 +45,6 @@ var handleAuthentication = function (username, password, onSuccess, onFailure, t
             }
             else if (twoFactorRegex.test(err.message)) {
                 onSuccess(password, "2fa");
-            }
-            else if (lockedRegex.test(err.message)) {
-                onFailure("locked")
-            }
-            else if (badCredentialsRegex.test(err.message)) {
-                onFailure("badcredentials")
             }
             else {
                 onFailure(err)

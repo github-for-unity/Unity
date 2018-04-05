@@ -225,19 +225,19 @@ namespace GitHub.Unity
         public ITask RemoteAdd(string remote, string url)
         {
             var task = GitClient.RemoteAdd(remote, url);
-            return HookupHandlers(task, false);
+            return HookupHandlers(task, true);
         }
 
         public ITask RemoteRemove(string remote)
         {
             var task = GitClient.RemoteRemove(remote);
-            return HookupHandlers(task, false);
+            return HookupHandlers(task, true);
         }
 
         public ITask RemoteChange(string remote, string url)
         {
             var task = GitClient.RemoteChange(remote, url);
-            return HookupHandlers(task, false);
+            return HookupHandlers(task, true);
         }
 
         public ITask SwitchBranch(string branch)
@@ -348,7 +348,7 @@ namespace GitHub.Unity
             if (configBranch.HasValue && configBranch.Value.Remote.HasValue)
             {
                 var name = configBranch.Value.Name;
-                var trackingName = configBranch.Value.IsTracking ? configBranch.Value.Remote.Value.Name + "/" + name : "[None]";
+                var trackingName = configBranch.Value.IsTracking ? configBranch.Value.Remote.Value.Name + "/" + configBranch.Value.TrackingBranch : "[None]";
 
                 var task = GitClient.AheadBehindStatus(name, trackingName)
                     .Then((success, status) =>
@@ -491,6 +491,10 @@ namespace GitHub.Unity
         {
             Logger.Trace("WatcherOnLocalBranchesChanged");
             DataNeedsRefreshing?.Invoke(CacheType.Branches);
+            // the watcher should tell us what branch has changed so we can fire this only
+            // when the active branch has changed
+            DataNeedsRefreshing?.Invoke(CacheType.GitLog);
+            DataNeedsRefreshing?.Invoke(CacheType.GitAheadBehind);
         }
 
         private void WatcherOnRepositoryCommitted()
@@ -520,6 +524,7 @@ namespace GitHub.Unity
             Logger.Trace("WatcherOnHeadChanged");
             DataNeedsRefreshing?.Invoke(CacheType.RepositoryInfo);
             DataNeedsRefreshing?.Invoke(CacheType.GitLog);
+            DataNeedsRefreshing?.Invoke(CacheType.GitAheadBehind);
         }
 
         private void WatcherOnIndexChanged()
@@ -577,7 +582,7 @@ namespace GitHub.Unity
                                .Select(x => x.RelativeTo(basedir))
                                .Select(x => x.ToString(SlashMode.Forward)))
                     {
-                        branchList.Add(branch, new ConfigBranch(branch, remotes[remote]));
+                        branchList.Add(branch, new ConfigBranch(branch, remotes[remote], null));
                     }
 
                     remoteBranches.Add(remote, branchList);

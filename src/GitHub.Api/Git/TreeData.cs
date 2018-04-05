@@ -1,4 +1,5 @@
 using System;
+using System.Security.Cryptography.X509Certificates;
 
 namespace GitHub.Unity
 {
@@ -11,19 +12,22 @@ namespace GitHub.Unity
     [Serializable]
     public struct GitBranchTreeData : ITreeData
     {
-        public static GitBranchTreeData Default = new GitBranchTreeData(Unity.GitBranch.Default);
+        public static GitBranchTreeData Default = new GitBranchTreeData(Unity.GitBranch.Default, false);
 
         public GitBranch GitBranch;
+        public bool isActive;
 
-        public GitBranchTreeData(GitBranch gitBranch)
+        public GitBranchTreeData(GitBranch gitBranch, bool isActive)
         {
             GitBranch = gitBranch;
+            this.isActive = isActive;
         }
 
         public override int GetHashCode()
         {
             int hash = 17;
             hash = hash * 23 + GitBranch.GetHashCode();
+            hash = hash * 23 + isActive.GetHashCode();
             return hash;
         }
 
@@ -36,7 +40,7 @@ namespace GitHub.Unity
 
         public bool Equals(GitBranchTreeData other)
         {
-            return GitBranch.Equals(other.GitBranch);
+            return GitBranch.Equals(other.GitBranch) && IsActive == other.IsActive;
         }
 
         public static bool operator ==(GitBranchTreeData lhs, GitBranchTreeData rhs)
@@ -59,7 +63,7 @@ namespace GitHub.Unity
         }
 
         public string Path => GitBranch.Name;
-        public bool IsActive => GitBranch.IsActive;
+        public bool IsActive => isActive;
     }
 
     [Serializable]

@@ -34,9 +34,8 @@ namespace GitHub.Unity
 
             if (repository != null)
             {
-                repository.TrackingStatusChanged += RepositoryOnStatusChanged;
+                repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
                 repository.LocksChanged += RepositoryOnLocksChanged;
-
             }
         }
 
@@ -46,7 +45,7 @@ namespace GitHub.Unity
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
         }
 
-        private static void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
+        private static void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
         {
             if (!lastRepositoryStatusChangedEvent.Equals(cacheUpdateEvent))
             {

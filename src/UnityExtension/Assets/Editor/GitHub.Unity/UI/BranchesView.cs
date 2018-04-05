@@ -50,6 +50,12 @@ namespace GitHub.Unity
         [SerializeField] private CacheUpdateEvent lastLocalAndRemoteBranchListChangedEvent;
         [NonSerialized] private bool localAndRemoteBranchListHasUpdate;
 
+        [SerializeField] private CacheUpdateEvent lastCurrentBranchAndRemoteChange;
+        [NonSerialized] private bool currentBranchAndRemoteChangeHasUpdate;
+
+        [SerializeField] private GitBranch currentBranch = GitBranch.Default;
+        [SerializeField] private GitRemote currentRemote = GitRemote.Default;
+
         [SerializeField] private List<GitBranch> localBranches;
         [SerializeField] private List<GitBranch> remoteBranches;
 
@@ -109,6 +115,17 @@ namespace GitHub.Unity
             }
         }
 
+        private void RepositoryOnCurrentBranchAndRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastCurrentBranchAndRemoteChange.Equals(cacheUpdateEvent))
+            {
+                lastCurrentBranchAndRemoteChange = cacheUpdateEvent;
+                currentBranchAndRemoteChangeHasUpdate = true;
+                Redraw();
+            }
+        }
+
+
         private void RepositoryOnLocalAndRemoteBranchListChanged(CacheUpdateEvent cacheUpdateEvent)
         {
             if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))
@@ -121,12 +138,24 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
+            if (currentBranchAndRemoteChangeHasUpdate)
+            {
+                currentBranch = Repository.CurrentBranch ?? GitBranch.Default;
+                currentRemote = Repository.CurrentRemote ?? GitRemote.Default;
+            }
+
             if (localAndRemoteBranchListHasUpdate)
             {
-                localAndRemoteBranchListHasUpdate = false;
 
                 localBranches = Repository.LocalBranches.ToList();
                 remoteBranches = Repository.RemoteBranches.ToList();
+
+            }
+
+            if (currentBranchAndRemoteChangeHasUpdate || localAndRemoteBranchListHasUpdate)
+            {
+                currentBranchAndRemoteChangeHasUpdate = false;
+                localAndRemoteBranchListHasUpdate = false;
 
                 BuildTree();
             }
@@ -143,16 +172,19 @@ namespace GitHub.Unity
         private void AttachHandlers(IRepository repository)
         {
             repository.LocalAndRemoteBranchListChanged += RepositoryOnLocalAndRemoteBranchListChanged;
+            repository.CurrentBranchAndRemoteChanged += RepositoryOnCurrentBranchAndRemoteChanged;
         }
 
         private void DetachHandlers(IRepository repository)
         {
             repository.LocalAndRemoteBranchListChanged -= RepositoryOnLocalAndRemoteBranchListChanged;
+            repository.CurrentBranchAndRemoteChanged -= RepositoryOnCurrentBranchAndRemoteChanged;
         }
 
         private void ValidateCachedData(IRepository repository)
         {
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.Branches, lastLocalAndRemoteBranchListChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentBranchAndRemoteChange);
         }
 
         private void Render()
@@ -187,8 +219,8 @@ namespace GitHub.Unity
             localBranches.Sort(CompareBranches);
             remoteBranches.Sort(CompareBranches);
 
-            treeLocals.Load(localBranches.Select(branch => new GitBranchTreeData(branch)));
-            treeRemotes.Load(remoteBranches.Select(branch => new GitBranchTreeData(branch)));
+            treeLocals.Load(localBranches.Select(branch => new GitBranchTreeData(branch, currentBranch != GitBranch.Default && currentBranch.Name == branch.Name)));
+            treeRemotes.Load(remoteBranches.Select(branch => new GitBranchTreeData(branch, false)));
             Redraw();
         }
 
