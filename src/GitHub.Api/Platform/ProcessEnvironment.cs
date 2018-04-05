@@ -65,10 +65,13 @@ namespace GitHub.Unity
                 {
                     pathEntries.Add(gitExecutableDir.ToString());
                 }
+
                 if (execPath.IsInitialized)
                     pathEntries.Add(execPath);
                 pathEntries.Add(binPath);
 
+                // we can only set this env var if there is a libexec/git-core. git will bypass internally bundled tools if this env var
+                // is set, which will break Apple's system git on certain tools (like osx-credentialmanager)
                 if (execPath.IsInitialized)
                     psi.EnvironmentVariables["GIT_EXEC_PATH"] = execPath.ToString();
             }
@@ -88,8 +91,11 @@ namespace GitHub.Unity
             //TODO: Remove with Git LFS Locking becomes standard
             psi.EnvironmentVariables["GITLFSLOCKSENABLED"] = "1";
 
-            psi.EnvironmentVariables["PLINK_PROTOCOL"] = "ssh";
-            psi.EnvironmentVariables["TERM"] = "msys";
+            if (Environment.IsWindows)
+            {
+                psi.EnvironmentVariables["PLINK_PROTOCOL"] = "ssh";
+                psi.EnvironmentVariables["TERM"] = "msys";
+            }
 
             var httpProxy = Environment.GetEnvironmentVariable("HTTP_PROXY");
             if (!String.IsNullOrEmpty(httpProxy))
