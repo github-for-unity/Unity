@@ -52,6 +52,11 @@ namespace GitHub.Unity
         public void Run(bool firstRun)
         {
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
+            isBusy = true;
+
+            var endTask = new ActionTask<GitInstaller.GitInstallationState>(CancellationToken,
+                    (_, state) => InitializeEnvironment(state))
+                { Affinity = TaskAffinity.UI };
 
             ITask<string> setExistingEnvironmentPath;
             if (Environment.IsMac)
@@ -59,14 +64,15 @@ namespace GitHub.Unity
                 setExistingEnvironmentPath = new SimpleProcessTask(CancellationToken, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
                            .Configure(ProcessManager, dontSetupGit: true)
                            .Catch(e => true) // make sure this doesn't throw if the task fails
-                           .Then((success, path) => success ? path.Split(new[] { "\"" }, StringSplitOptions.None)[1] : null);
+                           .Then((success, path) => success ? path?.Split(new[] { "\"" }, StringSplitOptions.None)[1] : null);
             }
             else
             {
                 setExistingEnvironmentPath = new FuncTask<string>(CancellationToken, () => null);
             }
 
-            setExistingEnvironmentPath.OnEnd += (t, path, success, ex) => {
+            setExistingEnvironmentPath.OnEnd += (t, path, success, ex) =>
+            {
                 if (path != null)
                 {
                     Logger.Trace("Existing Environment Path Original:{0} Updated:{1}", Environment.Path, path);
@@ -74,60 +80,50 @@ namespace GitHub.Unity
                 }
             };
             
-            var initEnvironmentTask = new ActionTask<GitInstaller.GitInstallationState>(CancellationToken,
-                    (_, state) => InitializeEnvironment(state))
-                { Affinity = TaskAffinity.UI };
+            var setupOctorun = new OctorunInstaller(Environment, TaskManager).SetupOctorunIfNeeded();
+            var setOctorunEnvironment = new ActionTask<NPath>(CancellationToken,
+                (s, octorunPath) => Environment.OctorunScriptPath = octorunPath);
 
-            isBusy = true;
-
-            var octorunInstaller = new OctorunInstaller(Environment, TaskManager);
-            var setupTask = setExistingEnvironmentPath.Then(octorunInstaller.SetupOctorunIfNeeded());
-
-            var initializeGitTask = new FuncTask<NPath>(CancellationToken, () =>
+            var getGitFromSettings = new FuncTask<NPath>(CancellationToken, () =>
+            {
+                var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();
+                if (gitExecutablePath.HasValue && gitExecutablePath.Value.FileExists()) // we have a git path
                 {
-                    var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();
-                    if (gitExecutablePath.HasValue && gitExecutablePath.Value.FileExists()) // we have a git path
-                    {
-                        Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
-                        return gitExecutablePath.Value;
-                    }
-                    return NPath.Default;
+                    Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
+                    return gitExecutablePath.Value;
+                }
+                return NPath.Default;
+            });
+
+            getGitFromSettings.OnEnd += (t, path, _, __) =>
+            {
+                if (path.IsInitialized)
+                {
+                    var state = new GitInstaller.GitInstallationState { GitExecutablePath = path };
+                    endTask.PreviousResult = state;
+                    endTask.Start();
+                    return;
+                }
+                Logger.Trace("Using portable git");
+
+                var setupGit = new GitInstaller(Environment, ProcessManager, TaskManager).SetupGitIfNeeded();
+                setupGit.Finally((s, state) =>
+                {
+                    endTask.PreviousResult = state;
+                    endTask.Start();
                 });
-            var setOctorunEnvironmentTask = new ActionTask<NPath>(CancellationToken, (s, octorunPath) =>
-                {
-                    Environment.OctorunScriptPath = octorunPath;
-                });
+                setupGit.Progress(progressReporter.UpdateProgress);
+                // append installer task to top chain
+                t.Then(setupGit);
+            };
 
-            setupTask.OnEnd += (t, path, _, __) =>
-                {
-                    t.GetEndOfChain().Then(setOctorunEnvironmentTask).Then(initializeGitTask);
-                };
+            var setupChain = setExistingEnvironmentPath.Then(setupOctorun);
+            setupChain.OnEnd += (t, path, _, __) =>
+            {
+                t.GetEndOfChain().Then(setOctorunEnvironment).Then(getGitFromSettings);
+            };
 
-            initializeGitTask.OnEnd += (t, path, _, __) =>
-                {
-                    if (path.IsInitialized)
-                    {
-                        t.GetEndOfChain()
-                            .Then(initEnvironmentTask, taskIsTopOfChain: true);
-                        return;
-                    }
-                    Logger.Trace("Using portable git");
-
-                    var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager);
-
-                    var task = gitInstaller.SetupGitIfNeeded();
-                    task.Progress(progressReporter.UpdateProgress);
-                    task.OnEnd += (thisTask, result, success, exception) =>
-                    {
-                        thisTask.GetEndOfChain()
-                            .Then(initEnvironmentTask, taskIsTopOfChain: true);
-                    };
-
-                    // append installer task to top chain
-                    t.Then(task, taskIsTopOfChain: true);
-                };
-
-            setupTask.Start();
+            setupChain.Start();
         }
 
         public ITask InitializeRepository()
