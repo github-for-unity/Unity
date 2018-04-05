@@ -96,16 +96,16 @@ namespace IntegrationTests
                 await repositoryManagerEvents.WaitForNotBusy();
                 StopTrackTimeAndLog(watch, logger);
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.GitStatusUpdated);
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
-                repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
-                repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
+                // we don't expect these events
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.CurrentBranchUpdated);
             }
             finally
             {
@@ -142,16 +142,16 @@ namespace IntegrationTests
                 await repositoryManagerEvents.WaitForNotBusy();
                 StopTrackTimeAndLog(watch, logger);
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>();
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.GitStatusUpdated);
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
-                repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
-                repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
+                // we don't expect these events
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.CurrentBranchUpdated);
 
                 repositoryManagerListener.ClearReceivedCalls();
                 repositoryManagerEvents.Reset();
@@ -168,17 +168,31 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLocksUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>("otherwise the event was raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.CurrentBranchUpdated);
+
+                // we don't expect these events
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
             }
             finally
             {
                 EndTest(logger);
             }
+        }
+
+        private async Task AssertReceivedEvent(Task task)
+        {
+            (await TaskEx.WhenAny(task, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+        }
+
+        private async Task AssertDidNotReceiveEvent(Task task)
+        {
+            (await TaskEx.WhenAny(task, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<bool>>("otherwise the event was raised");
         }
 
         [Test]
@@ -214,17 +228,16 @@ namespace IntegrationTests
                 await repositoryManagerEvents.WaitForNotBusy();
                 StopTrackTimeAndLog(watch, logger);
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.GitStatusUpdated);
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
-
-                repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
-                repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
-                repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
+                // we don't expect these events
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.CurrentBranchUpdated);
 
                 repositoryManagerListener.ClearReceivedCalls();
                 repositoryManagerEvents.Reset();
@@ -243,18 +256,16 @@ namespace IntegrationTests
                 await repositoryManagerEvents.WaitForNotBusy();
                 StopTrackTimeAndLog(watch, logger);
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.GitStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.CurrentBranchUpdated);
 
-                repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
-                repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
-                repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
+                // we don't expect these events
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
             }
             finally
             {
@@ -286,20 +297,16 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.GitStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.CurrentBranchUpdated);
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
-
-                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
-                repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
+                // we don't expect these events
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
             }
             finally
             {
@@ -333,21 +340,16 @@ namespace IntegrationTests
 
                 await TaskEx.Delay(Timeout);
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.CurrentBranchUpdated);
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
-                repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
-
-                repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
+                // we don't expect these events
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitStatusUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
             }
             finally
             {
@@ -373,6 +375,16 @@ namespace IntegrationTests
 
                 repositoryManagerListener.AssertDidNotReceiveAnyCalls();
 
+                {
+                    // prepopulate repository info cache
+                    var b = Repository.CurrentBranch;
+                    await TaskManager.Wait();
+                    RepositoryManager.WaitForEvents();
+                    await AssertReceivedEvent(repositoryManagerEvents.CurrentBranchUpdated);
+                    repositoryManagerListener.ClearReceivedCalls();
+                    repositoryManagerEvents.Reset();
+                }
+
                 var createdBranch1 = "feature/document2";
                 await RepositoryManager.CreateBranch(createdBranch1, "feature/document").StartAsAsync();
                 await TaskManager.Wait();
@@ -380,21 +392,17 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
-
-                repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
+                // we don't expect these events
                 // TODO: log should not be getting called, but it is because when branches get changed we're blindly calling log
-                //repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+                //await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitStatusUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.CurrentBranchUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
 
                 repositoryManagerListener.ClearReceivedCalls();
                 repositoryManagerEvents.Reset();
@@ -408,20 +416,17 @@ namespace IntegrationTests
 
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
-
-                repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
+                // we don't expect these events
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitStatusUpdated);
                 // TODO: log should not be getting called, but it is because when branches get changed we're blindly calling log
-                //repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+                //await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.CurrentBranchUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
             }
             finally
             {
@@ -453,21 +458,16 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.CurrentBranchUpdated);
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
-                repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
-
-                repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
+                // we don't expect these events
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitStatusUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
 
                 repositoryManagerListener.ClearReceivedCalls();
                 repositoryManagerEvents.Reset();
@@ -478,21 +478,16 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.CurrentBranchUpdated);
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
-                repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
-
-                repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
+                // we don't expect these events
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitStatusUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
             }
             finally
             {
@@ -524,21 +519,16 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.CurrentBranchUpdated);
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
-                repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
-
-                repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
+                // we don't expect these events
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitStatusUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
 
                 repositoryManagerListener.ClearReceivedCalls();
                 repositoryManagerEvents.Reset();
@@ -549,20 +539,16 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.GitStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.CurrentBranchUpdated);
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
-
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
-                repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
+                // we don't expect these events
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
             }
             finally
             {
@@ -594,22 +580,17 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitLogUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.GitStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitLogUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.CurrentBranchUpdated);
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.Received().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.Received().GitLogUpdated(Args.GitLogs);
-                repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
-
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
+                // we don't expect these events
                 // TODO: this should not happen but it's happening right now because when local branches get updated in the cache, remotes get updated too
-                //repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
+                //await AssertDidNotReceiveEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
             }
             finally
             {
@@ -641,21 +622,18 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 await repositoryManagerEvents.WaitForNotBusy();
 
-                (await TaskEx.WhenAny(repositoryManagerEvents.CurrentBranchUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.GitAheadBehindStatusUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.LocalBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
-                (await TaskEx.WhenAny(repositoryManagerEvents.RemoteBranchesUpdated, TaskEx.Delay(Timeout))).Should().BeAssignableTo<Task<object>>("otherwise the event was not raised");
+                // we expect these events
+                await AssertReceivedEvent(repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertReceivedEvent(repositoryManagerEvents.CurrentBranchUpdated);
 
-                repositoryManagerListener.Received().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.Received().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.Received().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.Received().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.Received().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
-
-                repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
+                // we don't expect these events
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitStatusUpdated);
                 // TODO: log should not be getting called, but it is because when branches get changed we're blindly calling log
-                //repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
+                //await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLogUpdated);
+                //await AssertDidNotReceiveEvent(repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertDidNotReceiveEvent(repositoryManagerEvents.GitLocksUpdated);
             }
             finally
             {
