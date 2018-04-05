@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace IntegrationTests
 {
-    [TestFixture, Category("RunOnAppVeyor")]
+    [TestFixture]
     class GitClientTests : BaseGitEnvironmentTest
     {
         protected static TimeSpan Timeout = TimeSpan.FromMinutes(5);

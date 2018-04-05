@@ -164,10 +164,10 @@ namespace GitHub.Unity
                     break;
                 }
 
-                Logger.Trace(fileEvent.Describe());
-
                 var eventDirectory = new NPath(fileEvent.Directory);
                 var fileA = eventDirectory.Combine(fileEvent.FileA);
+
+                Logger.Trace("{0} isDotGit:{1} is {2}?:{3}", fileEvent.Describe(), fileA.IsChildOf(paths.DotGitPath), paths.DotGitIndex, fileA.Equals(paths.DotGitIndex));
 
                 // handling events in .git/*
                 if (fileA.IsChildOf(paths.DotGitPath))
