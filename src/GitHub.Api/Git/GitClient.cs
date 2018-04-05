@@ -273,7 +273,7 @@ namespace GitHub.Unity
         {
             //Logger.Trace("Fetch");
 
-            return new GitFetchTask(remote, cancellationToken, processor)
+            return new GitFetchTask(remote, cancellationToken, true, processor)
                 .Configure(processManager);
         }
 
