@@ -102,7 +102,7 @@ namespace GitHub.Unity
             public const string DefaultZipMd5Url = "https://ghfvs-installer.github.com/unity/octorun/octorun.zip.md5";
             public const string DefaultZipUrl = "https://ghfvs-installer.github.com/unity/octorun/octorun.zip";
 
-            public const string PackageVersion = "46811135";
+            public const string PackageVersion = "9fcd9faa";
             private const string PackageName = "octorun";
             private const string zipFile = "octorun.zip";
 
