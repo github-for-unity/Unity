@@ -30,18 +30,7 @@ namespace GitHub.Unity
             bool dontSetupGit = false)
              where T : IProcess
         {
-            if (executable == null)
-            {
-                if (processTask.ProcessName?.ToNPath() != null)
-                {
-                    executable = processTask.ProcessName.ToNPath();
-                }
-                else
-                {
-                    executable = environment.GitExecutablePath;
-                    dontSetupGit = environment.IsCustomGitExecutable;
-                }
-            }
+            executable = executable ?? processTask.ProcessName?.ToNPath() ?? environment.GitExecutablePath;
 
             //If this null check fails, be sure you called Configure() on your task
             Guard.ArgumentNotNull(executable, nameof(executable));
