@@ -99,7 +99,10 @@ namespace GitHub.Unity
             {
                 if (path.IsInitialized)
                 {
-                    var state = new GitInstaller.GitInstallationState { GitExecutablePath = path };
+                    var state = new GitInstaller.GitInstallationState {
+                        GitExecutablePath = path,
+                        GitIsValid = true
+                    };
                     endTask.PreviousResult = state;
                     endTask.Start();
                     return;
