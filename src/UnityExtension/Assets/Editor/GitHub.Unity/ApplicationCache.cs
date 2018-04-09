@@ -136,6 +136,7 @@ namespace GitHub.Unity
         [SerializeField] private string initializedAtString = DateTimeOffset.MinValue.ToString(Constants.Iso8601Format);
         [NonSerialized] private DateTimeOffset? lastUpdatedAtValue;
         [NonSerialized] private DateTimeOffset? initializedAtValue;
+        [NonSerialized] private bool isInvalidating;
 
         public event Action<CacheType> CacheInvalidated;
         public event Action<CacheType, DateTimeOffset> CacheUpdated;
@@ -151,7 +152,7 @@ namespace GitHub.Unity
             var isInitialized = IsInitialized;
             var timedOut = DateTimeOffset.Now - LastUpdatedAt > DataTimeout;
             var needsInvalidation = !isInitialized || timedOut;
-            if (needsInvalidation)
+            if (needsInvalidation && !isInvalidating)
             {
                 Logger.Trace("needsInvalidation isInitialized:{0} timedOut:{1}", isInitialized, timedOut);
                 InvalidateData();
@@ -161,9 +162,13 @@ namespace GitHub.Unity
 
         public void InvalidateData()
         {
-            Logger.Trace("Invalidate");
-            LastUpdatedAt = DateTimeOffset.MinValue;
-            CacheInvalidated.SafeInvoke(CacheType);
+            if (!isInvalidating)
+            {
+                Logger.Trace("Invalidate");
+                isInvalidating = true;
+                LastUpdatedAt = DateTimeOffset.MinValue;
+                CacheInvalidated.SafeInvoke(CacheType);
+            }
         }
 
         protected void SaveData(DateTimeOffset now, bool isChanged)
@@ -171,10 +176,12 @@ namespace GitHub.Unity
             var isInitialized = IsInitialized;
             isChanged = isChanged || !isInitialized;
 
-            InitializedAt = !isInitialized ? now : InitializedAt;
-            LastUpdatedAt = isChanged ? now : LastUpdatedAt;
+            InitializedAt = !isInitialized || InitializedAt == DateTimeOffset.MinValue ? now : InitializedAt;
+            LastUpdatedAt = isChanged || LastUpdatedAt == DateTimeOffset.MinValue ? now : LastUpdatedAt;
 
             Save(true);
+
+            isInvalidating = false;
 
             if (isChanged)
             {
