@@ -119,7 +119,17 @@ namespace GitHub.Unity
                         throw new InvalidOperationException("Returned token is null or empty");
                     }
 
-                    keychain.SetToken(host, loginResultData.Token);
+                    var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath.Value, octorunScript.Value, "validate",
+                            user: username, userToken: loginResultData.Token)
+                        .Configure(processManager);
+
+                    var validateResult = await octorunTask.StartAsAsync();
+                    if (!validateResult.IsSuccess)
+                    {
+                        throw new InvalidOperationException("Authentication validation failed");
+                    }
+
+                    keychain.SetToken(host, loginResultData.Token, validateResult.Output[1]);
                     await keychain.Save(host);
 
                     return loginResultData;
