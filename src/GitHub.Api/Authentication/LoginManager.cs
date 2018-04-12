@@ -84,8 +84,11 @@ namespace GitHub.Unity
                         throw new InvalidOperationException("Returned token is null or empty");
                     }
 
-                    keychain.SetToken(host, loginResultData.Token);
-                    await keychain.Save(host);
+                    if (loginResultData.Code == LoginResultCodes.Success)
+                    {
+                        keychain.SetToken(host, loginResultData.Token);
+                        await keychain.Save(host);
+                    }
 
                     return loginResultData;
                 }
@@ -106,7 +109,7 @@ namespace GitHub.Unity
             var host = loginResultData.Host;
             var keychainAdapter = keychain.Connect(host);
             var username = keychainAdapter.Credential.Username;
-            var password = keychainAdapter.Credential.Token;
+            var password = loginResultData.Token;
             try
             {
                 logger.Trace("2FA Continue");
