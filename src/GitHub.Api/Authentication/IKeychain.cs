@@ -10,7 +10,6 @@ namespace GitHub.Unity
         Task<IKeychainAdapter> Load(UriString host);
         Task Clear(UriString host, bool deleteFromCredentialManager);
         Task Save(UriString host);
-        void UpdateToken(UriString host, string token);
         void SetCredentials(ICredential credential);
         void Initialize();
         Connection[] Connections { get; }
