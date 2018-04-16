@@ -4,7 +4,7 @@ The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub int
 
 You can reach the team right here by opening a [new issue](https://github.com/github-for-unity/Unity/issues/new), or by joining one of the chats below. You can also email us at unity@github.com, or tweet at [@GitHubUnity](https://twitter.com/GitHubUnity)
 
-![Build Status](https://ci.appveyor.com/api/projects/status/github/github-for-unity/Unity?branch=master&svg=true)
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/github-for-unity/Unity?branch=master&svg=true)](https://ci.appveyor.com/project/github-windows/unity)
 
 [![Join the chat at https://gitter.im/github-for-unity/Unity](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/github-for-unity/Unity?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Join the chat at https://discord.gg/5zH8hVx](https://img.shields.io/badge/discord-join%20chat-7289DA.svg)](https://discord.gg/5zH8hVx)
