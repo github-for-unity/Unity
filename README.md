@@ -1,8 +1,8 @@
 # [GitHub for Unity](https://unity.github.com)
 
-## Notices
+The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub into [Unity](https://unity3d.com/), integrating source control into your work with friendly and accessible tools and workflows.
 
-From version 0.19 onwards, the location of the plugin has moved to `Assets/Plugins/GitHub`. If you have version 0.18 or lower, you need to delete the `Assets/Editor/GitHub` folder before you install newer versions. You should exit Unity and delete the folder from Explorer/Finder, as Unity will not unload native libraries while it's running. Also, remember to update your `.gitignore` file.
+You can reach the team right here by opening a [new issue](https://github.com/github-for-unity/Unity/issues/new), or by joining one of the chats below. You can also email us at unity@github.com, or tweet at [@GitHubUnity](https://twitter.com/GitHubUnity)
 
 ![Build Status](https://ci.appveyor.com/api/projects/status/github/github-for-unity/Unity?branch=master&svg=true)
 
@@ -10,11 +10,12 @@ From version 0.19 onwards, the location of the plugin has moved to `Assets/Plugi
 [![Join the chat at https://discord.gg/5zH8hVx](https://img.shields.io/badge/discord-join%20chat-7289DA.svg)](https://discord.gg/5zH8hVx)
 [![GitHub for Unity live coding on Twitch](https://img.shields.io/badge/twitch-live%20coding-6441A4.svg)](https://www.twitch.tv/sh4na)
 
-## About
 
-The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub into [Unity](https://unity3d.com/), integrating source control into your work with friendly and accessible tools and workflows.
+## Notices
 
-**Please note:** this software is currently alpha quality. Please refer to the [list of known issues](https://github.com/github-for-unity/Unity/issues?q=is%3Aissue+is%3Aopen+label%3Abug), and make sure you have backups of your work before trying it out.
+This software is currently alpha quality. Please refer to the [list of known issues](https://github.com/github-for-unity/Unity/issues?q=is%3Aissue+is%3Aopen+label%3Abug), and make sure you have backups of your work before trying it out.
+
+From version 0.19 onwards, the location of the plugin has moved to `Assets/Plugins/GitHub`. If you have version 0.18 or lower, you need to delete the `Assets/Editor/GitHub` folder before you install newer versions. You should exit Unity and delete the folder from Explorer/Finder, as Unity will not unload native libraries while it's running. Also, remember to update your `.gitignore` file.
 
 #### Table Of Contents
 
