@@ -58,7 +58,7 @@ namespace UnitTests
             NPath? gitPath = null)
         {
             var gitStatusEntryFactory = new GitObjectFactory(environment);
-            var processor = new StatusOutputProcessor(gitStatusEntryFactory);
+            var processor = new GitStatusOutputProcessor(gitStatusEntryFactory);
 
             NPath path = gitPath ?? defaultGitPath;
 
