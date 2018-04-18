@@ -250,7 +250,7 @@ namespace UnitTests
             var gitObjectFactory = SubstituteFactory.CreateGitObjectFactory(TestRootPath);
 
             GitStatus? result = null;
-            var outputProcessor = new StatusOutputProcessor(gitObjectFactory);
+            var outputProcessor = new GitStatusOutputProcessor(gitObjectFactory);
             outputProcessor.OnEntry += status => { result = status; };
 
             foreach (var line in lines)
