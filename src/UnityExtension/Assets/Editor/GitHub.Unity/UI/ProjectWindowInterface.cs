@@ -185,7 +185,6 @@ namespace GitHub.Unity
             {
                 var path = entries[index].ProjectPath;
                 var guid = AssetDatabase.AssetPathToGUID(path);
-
                 guids.Add(guid);
             }
 
