@@ -184,16 +184,22 @@ namespace GitHub.Unity
 
         public ITask CommitAllFiles(string message, string body)
         {
+            var tempFilename = NPath.GetTempFilename();
+            fileSystem.WriteAllLines(tempFilename, new []{message, Environment.NewLine, body});
+
             var task = GitClient.AddAll()
-                .Then(GitClient.Commit(message, body));
+                .Then(GitClient.Commit(tempFilename));
 
             return HookupHandlers(task, true);
         }
 
         public ITask CommitFiles(List<string> files, string message, string body)
         {
+            var tempFilename = NPath.GetTempFilename();
+            fileSystem.WriteAllLines(tempFilename, new[] { message, Environment.NewLine, body });
+
             var task = GitClient.Add(files)
-                .Then(GitClient.Commit(message, body));
+                .Then(GitClient.Commit(tempFilename));
 
             return HookupHandlers(task, true);
         }

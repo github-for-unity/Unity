@@ -61,7 +61,7 @@ namespace GitHub.Unity
         ITask<string> RemoteChange(string remote, string url,
             IOutputProcessor<string> processor = null);
 
-        ITask<string> Commit(string message, string body,
+        ITask<string> Commit(string messageFile,
             IOutputProcessor<string> processor = null);
 
         ITask<string> Add(IList<string> files,
@@ -77,7 +77,7 @@ namespace GitHub.Unity
         ITask<string> Remove(IList<string> files,
             IOutputProcessor<string> processor = null);
 
-        ITask<string> AddAndCommit(IList<string> files, string message, string body,
+        ITask<string> AddAndCommit(IList<string> files, string messageFile,
             IOutputProcessor<string> processor = null);
 
         ITask<string> Lock(string file,
@@ -333,12 +333,12 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<string> Commit(string message, string body,
+        public ITask<string> Commit(string messageFile,
             IOutputProcessor<string> processor = null)
         {
             //Logger.Trace("Commit");
 
-            return new GitCommitTask(message, body, cancellationToken, processor)
+            return new GitCommitTask(messageFile, cancellationToken, processor)
                 .Configure(processManager);
         }
 
@@ -413,13 +413,13 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<string> AddAndCommit(IList<string> files, string message, string body,
+        public ITask<string> AddAndCommit(IList<string> files, string messageFile,
             IOutputProcessor<string> processor = null)
         {
             //Logger.Trace("AddAndCommit");
 
             return Add(files)
-                .Then(new GitCommitTask(message, body, cancellationToken)
+                .Then(new GitCommitTask(messageFile, cancellationToken)
                     .Configure(processManager));
         }
 

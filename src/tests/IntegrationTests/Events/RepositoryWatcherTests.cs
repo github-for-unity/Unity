@@ -81,7 +81,10 @@ namespace IntegrationTests
                         repositoryWatcher.Stop();
                         Logger.Trace("Issuing Command");
 
-                        await GitClient.Commit("Test Commit", string.Empty).StartAsAsync();
+                        var tempFilename = NPath.GetTempFilename();
+                        tempFilename.WriteAllLines(new []{ "Test Commit", Environment.NewLine, string.Empty });
+
+                        await GitClient.Commit(tempFilename).StartAsAsync();
 
                         Logger.Trace("Completed Command");
                         repositoryWatcher.Start();

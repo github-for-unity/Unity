@@ -8,17 +8,15 @@ namespace GitHub.Unity
         private const string TaskName = "git commit";
         private readonly string arguments;
 
-        public GitCommitTask(string message, string body,
+        public GitCommitTask(string messageFile,
             CancellationToken token, IOutputProcessor<string> processor = null)
             : base(token, processor ?? new SimpleOutputProcessor())
         {
-            Guard.ArgumentNotNullOrWhiteSpace(message, "message");
+            Guard.ArgumentNotNullOrWhiteSpace(messageFile, "messageFile");
 
             Name = TaskName;
             arguments = "-c i18n.commitencoding=utf8 commit ";
-            arguments += String.Format(" -m \"{0}\"", message);
-            if (!String.IsNullOrEmpty(body))
-                arguments += String.Format(" -m \"{0}\"", body);
+            arguments += String.Format(" --file \"{0}\"", messageFile);
         }
 
         public override string ProcessArguments { get { return arguments; } }
