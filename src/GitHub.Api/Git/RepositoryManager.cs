@@ -187,7 +187,8 @@ namespace GitHub.Unity
             var tempFilename = WriteCommitMessageToTempFile(message, body);
 
             var task = GitClient.AddAll()
-                .Then(GitClient.Commit(tempFilename));
+                .Then(GitClient.Commit(tempFilename))
+                .Finally(_ => tempFilename.DeleteIfExists());
 
             return HookupHandlers(task, true);
         }
@@ -197,7 +198,8 @@ namespace GitHub.Unity
             var tempFilename = WriteCommitMessageToTempFile(message, body);
 
             var task = GitClient.Add(files)
-                .Then(GitClient.Commit(tempFilename));
+                .Then(GitClient.Commit(tempFilename))
+                .Finally(_ => tempFilename.DeleteIfExists());
 
             return HookupHandlers(task, true);
         }

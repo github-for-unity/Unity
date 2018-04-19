@@ -169,7 +169,9 @@ namespace GitHub.Unity
                     Environment.InitializeRepository();
                     RestartRepository();
                 })
-                .ThenInUI(InitializeUI);
+                .ThenInUI(InitializeUI)
+                .Finally(_ => commitPath.DeleteIfExists());
+
             return task;
         }
 
