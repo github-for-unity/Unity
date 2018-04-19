@@ -463,8 +463,6 @@ namespace GitHub.Unity
                         GenericMenu menu = new GenericMenu();
                         menu.AddItem(new GUIContent("Revert"), false, RevertCommit);
                         menu.ShowAsContext();
-
-                        Event.current.Use();
                     });
 
                 if (requiresRepaint)
