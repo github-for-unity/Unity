@@ -154,7 +154,7 @@ namespace GitHub.Unity
 
         private Usage GetCurrentUsage(UsageStore usageStore)
         {
-            var usage = usageStore.Model.GetCurrentUsage(AppConfiguration.AssemblyName.Version.ToString(), unityVersion);
+            var usage = usageStore.Model.GetCurrentUsage(ApplicationConfiguration.AssemblyName.Version.ToString(), unityVersion);
             usage.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
             usage.CurrentLang = CultureInfo.CurrentCulture.IetfLanguageTag;
             return usage;
