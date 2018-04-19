@@ -124,7 +124,7 @@ namespace IntegrationTests
             var isInitialized = IsInitialized;
             var timedOut = DateTimeOffset.Now - LastUpdatedAt > DataTimeout;
             var needsInvalidation = !isInitialized || timedOut;
-            if (needsInvalidation)
+            if (needsInvalidation && !isInvalidating)
             {
                 Logger.Trace("needsInvalidation isInitialized:{0} timedOut:{1}", isInitialized, timedOut);
                 InvalidateData();
@@ -134,9 +134,9 @@ namespace IntegrationTests
 
         public void InvalidateData()
         {
-            Logger.Trace("Invalidate");
             if (!isInvalidating)
             {
+                Logger.Trace("Invalidate");
                 isInvalidating = true;
                 LastUpdatedAt = DateTimeOffset.MinValue;
                 CacheInvalidated.SafeInvoke(CacheType);
@@ -148,8 +148,8 @@ namespace IntegrationTests
             var isInitialized = IsInitialized;
             isChanged = isChanged || !isInitialized;
 
-            InitializedAt = !isInitialized ? now : InitializedAt;
-            LastUpdatedAt = isChanged ? now : LastUpdatedAt;
+            InitializedAt = !isInitialized || InitializedAt == DateTimeOffset.MinValue ? now : InitializedAt;
+            LastUpdatedAt = isChanged || LastUpdatedAt == DateTimeOffset.MinValue ? now : LastUpdatedAt;
 
             Save(true);
 
